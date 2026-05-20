@@ -1,0 +1,223 @@
+"use client";
+
+import { useState, useEffect, useCallback, Suspense } from "react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Search, LogOut, FileText, Wallet, BarChart3, Receipt, Settings } from "lucide-react";
+import { useI18n } from "@/lib/i18n/context";
+import { DashboardLayout } from "@/components/crm/DashboardLayout";
+import { AdminLogin } from "@/components/crm/AdminLogin";
+import { ExpensesPanel } from "@/components/crm/ExpensesPanel";
+import { FinanceReports } from "@/components/crm/FinanceReports";
+import { SettingsPanel } from "@/components/crm/SettingsPanel";
+import { loadDb } from "@/lib/store";
+import { calcClientTotal } from "@/lib/workorder-calc";
+import { isAdminAuthenticated, logoutAdmin, restoreSessionFromToken } from "@/lib/auth";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+
+type CrmTab = "overview" | "expenses" | "reports" | "settings";
+
+function CRMPageContent() {
+  const { t } = useI18n();
+  const c = t.crm;
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [mounted, setMounted] = useState(false);
+  const [authed, setAuthed] = useState(false);
+  const [tab, setTab] = useState<CrmTab>("overview");
+  const [search, setSearch] = useState("");
+  const [tick, setTick] = useState(0);
+
+  const refresh = useCallback(() => {
+    setAuthed(isAdminAuthenticated());
+    setTick((n) => n + 1);
+  }, []);
+
+  useEffect(() => {
+    restoreSessionFromToken().finally(() => {
+      refresh();
+      setMounted(true);
+    });
+  }, [refresh]);
+
+  useEffect(() => {
+    const q = searchParams.get("tab");
+    if (q === "expenses" || q === "reports" || q === "settings") {
+      setTab(q);
+    } else {
+      setTab("overview");
+    }
+  }, [searchParams]);
+
+  const selectTab = (id: CrmTab) => {
+    setTab(id);
+    router.replace(id === "overview" ? "/crm" : `/crm?tab=${id}`);
+  };
+
+  if (!mounted || !authed) return <AdminLogin onSuccess={refresh} />;
+
+  const db = loadDb();
+  void tick;
+
+  const filteredOrders = db.workOrders.filter(
+    (o) =>
+      !search ||
+      o.number.toLowerCase().includes(search.toLowerCase()) ||
+      db.vehicles.find((v) => v.id === o.vehicleId)?.vin.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const totalRevenue = db.workOrders.reduce((s, o) => s + calcClientTotal(o), 0);
+
+  const navTabs = [
+    { id: "overview" as const, icon: FileText, label: c.dashboard },
+    { id: "expenses" as const, icon: Wallet, label: t.wo.internalExpenses },
+    { id: "reports" as const, icon: BarChart3, label: t.wo.reports },
+    { id: "settings" as const, icon: Settings, label: t.wo.settingsTitle },
+  ];
+
+  return (
+    <DashboardLayout role="admin">
+      <div className="p-6 lg:p-10 space-y-8">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <h1 className="font-display text-2xl font-bold uppercase text-glow">{c.title}</h1>
+          <div className="flex flex-wrap gap-2">
+            <Link href="/crm/work-orders" className="btn-primary text-xs py-2">
+              <Receipt size={16} /> {t.wo.ordersTitle}
+            </Link>
+            <Button variant="outline" onClick={() => { logoutAdmin(); refresh(); }}>
+              <LogOut size={16} /> {c.logout}
+            </Button>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          {navTabs.map(({ id, icon: Icon, label }) => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => selectTab(id)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm transition-all ${
+                tab === id ? "bg-bm-red shadow-neon-sm" : "glass text-bm-muted"
+              }`}
+            >
+              <Icon size={16} /> {label}
+            </button>
+          ))}
+        </div>
+
+        {tab === "overview" && (
+          <>
+            <div className="relative max-w-md">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-bm-muted" />
+              <input
+                className="input-premium pl-10 w-full text-sm"
+                placeholder={c.search}
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              {[
+                { label: c.clients, value: db.users.filter((u) => u.role === "client").length },
+                { label: c.workOrders, value: db.workOrders.length },
+                { label: c.appointments, value: db.appointments.length },
+                { label: c.revenue, value: `${totalRevenue.toLocaleString()} zł` },
+              ].map((kpi, i) => (
+                <Card key={i} glow className="text-center py-6">
+                  <p className="text-xs uppercase text-bm-muted">{kpi.label}</p>
+                  <p className="font-display text-2xl font-bold text-bm-red mt-2">{kpi.value}</p>
+                </Card>
+              ))}
+            </div>
+
+            <section className="glass-red rounded-xl overflow-hidden neon-border">
+              <div className="px-4 py-3 border-b border-bm-border bg-bm-red/10 font-display text-sm uppercase font-bold flex justify-between">
+                <span>{c.currentOrders}</span>
+                <Link href="/crm/work-orders" className="text-bm-red text-xs hover:underline">
+                  + {c.createOrder}
+                </Link>
+              </div>
+              <table className="dashboard-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>{c.status}</th>
+                    <th>{c.client}</th>
+                    <th>{c.total}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredOrders.slice(0, 10).map((order) => {
+                    const client = db.users.find((u) => u.id === order.userId);
+                    return (
+                      <tr key={order.id}>
+                        <td className="font-mono text-bm-red">{order.number}</td>
+                        <td>
+                          <span className="status-pill bg-bm-red/20 text-bm-red text-[10px]">
+                            {t.repairStatus[order.status]}
+                          </span>
+                        </td>
+                        <td>{client?.name}</td>
+                        <td className="font-mono">{calcClientTotal(order).toFixed(2)} zł</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </section>
+
+            <section className="glass-red rounded-xl overflow-hidden neon-border">
+              <div className="px-4 py-3 border-b border-bm-border bg-bm-red/10 font-display text-sm uppercase font-bold">
+                {c.onlineBookings}
+              </div>
+              {db.appointments.length === 0 ? (
+                <p className="p-6 text-center text-bm-muted">{c.noBookings}</p>
+              ) : (
+                <table className="dashboard-table">
+                  <thead>
+                    <tr>
+                      <th>{c.date}</th>
+                      <th>{c.time}</th>
+                      <th>{c.service}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[...db.appointments].reverse().map((apt) => (
+                      <tr key={apt.id}>
+                        <td>{apt.date}</td>
+                        <td>{apt.time}</td>
+                        <td>
+                          {apt.serviceIds
+                            .map((id) => t.serviceItems[id as keyof typeof t.serviceItems] ?? id)
+                            .join(", ")}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </section>
+          </>
+        )}
+
+        {tab === "expenses" && <ExpensesPanel onUpdate={refresh} />}
+        {tab === "reports" && <FinanceReports />}
+        {tab === "settings" && <SettingsPanel onUpdate={refresh} />}
+      </div>
+    </DashboardLayout>
+  );
+}
+
+function CrmLoadingFallback() {
+  return <AdminLogin onSuccess={() => {}} />;
+}
+
+export default function CRMPage() {
+  return (
+    <Suspense fallback={<CrmLoadingFallback />}>
+      <CRMPageContent />
+    </Suspense>
+  );
+}
