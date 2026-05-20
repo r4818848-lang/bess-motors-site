@@ -6,13 +6,12 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Search, LogOut, FileText, Wallet, BarChart3, Receipt, Settings } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { DashboardLayout } from "@/components/crm/DashboardLayout";
-import { AdminLogin } from "@/components/crm/AdminLogin";
 import { ExpensesPanel } from "@/components/crm/ExpensesPanel";
 import { FinanceReports } from "@/components/crm/FinanceReports";
 import { SettingsPanel } from "@/components/crm/SettingsPanel";
 import { loadDb } from "@/lib/store";
 import { calcClientTotal } from "@/lib/workorder-calc";
-import { isAdminAuthenticated, logoutAdmin, restoreSessionFromToken } from "@/lib/auth";
+import { logoutAdmin } from "@/lib/auth";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 
@@ -23,23 +22,11 @@ function CRMPageContent() {
   const c = t.crm;
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [mounted, setMounted] = useState(false);
-  const [authed, setAuthed] = useState(false);
   const [tab, setTab] = useState<CrmTab>("overview");
   const [search, setSearch] = useState("");
   const [tick, setTick] = useState(0);
 
-  const refresh = useCallback(() => {
-    setAuthed(isAdminAuthenticated());
-    setTick((n) => n + 1);
-  }, []);
-
-  useEffect(() => {
-    restoreSessionFromToken().finally(() => {
-      refresh();
-      setMounted(true);
-    });
-  }, [refresh]);
+  const refresh = useCallback(() => setTick((n) => n + 1), []);
 
   useEffect(() => {
     const q = searchParams.get("tab");
@@ -54,8 +41,6 @@ function CRMPageContent() {
     setTab(id);
     router.replace(id === "overview" ? "/crm" : `/crm?tab=${id}`);
   };
-
-  if (!mounted || !authed) return <AdminLogin onSuccess={refresh} />;
 
   const db = loadDb();
   void tick;
@@ -211,7 +196,11 @@ function CRMPageContent() {
 }
 
 function CrmLoadingFallback() {
-  return <AdminLogin onSuccess={() => {}} />;
+  return (
+    <div className="flex items-center justify-center py-24">
+      <div className="h-8 w-8 rounded-full border-2 border-bm-red border-t-transparent animate-spin" />
+    </div>
+  );
 }
 
 export default function CRMPage() {

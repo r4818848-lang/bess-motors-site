@@ -15,10 +15,8 @@ const navPaths = [
   { href: "/services", key: "services" as const },
   { href: "/booking", key: "booking" as const },
   { href: "/cabinet", key: "cabinet" as const },
-  { href: "/gallery", key: "gallery" as const },
   { href: "/about", key: "about" as const },
   { href: "/contacts", key: "contacts" as const },
-  { href: "/crm", key: "crm" as const },
 ];
 
 export function Header() {

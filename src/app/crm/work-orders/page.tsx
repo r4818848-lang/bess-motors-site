@@ -6,9 +6,8 @@ import Link from "next/link";
 import { Plus, Pencil, LogOut } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { DashboardLayout } from "@/components/crm/DashboardLayout";
-import { AdminLogin } from "@/components/crm/AdminLogin";
 import { WorkOrderForm } from "@/components/crm/WorkOrderForm";
-import { isAdminAuthenticated, logoutAdmin, restoreSessionFromToken } from "@/lib/auth";
+import { logoutAdmin } from "@/lib/auth";
 import { loadDb } from "@/lib/store";
 import { calcClientTotal } from "@/lib/workorder-calc";
 import { Button } from "@/components/ui/Button";
@@ -19,26 +18,16 @@ function WorkOrdersPageContent() {
   const c = t.crm;
   const sig = t.signature;
   const searchParams = useSearchParams();
-  const [authed, setAuthed] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [tick, setTick] = useState(0);
 
-  const refresh = useCallback(() => {
-    setAuthed(isAdminAuthenticated());
-    setTick((n) => n + 1);
-  }, []);
-
-  useEffect(() => {
-    restoreSessionFromToken().finally(refresh);
-  }, [refresh]);
+  const refresh = useCallback(() => setTick((n) => n + 1), []);
 
   useEffect(() => {
     const edit = searchParams.get("edit");
     if (edit) setEditingId(edit);
   }, [searchParams]);
-
-  if (!authed) return <AdminLogin onSuccess={refresh} />;
 
   const db = loadDb();
   void tick;

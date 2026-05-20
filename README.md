@@ -15,11 +15,10 @@ Luxury performance garage web platform with CRM, client portal, mechanic panel, 
 
 | Route | Description |
 |-------|-------------|
-| `/` | Home — hero, stats, services, reviews, before/after |
+| `/` | Home — hero, stats, services, reviews |
 | `/services` | All service categories + custom request |
 | `/booking` | Interactive calendar booking |
 | `/cabinet` | Client portal — login by phone, cars, VIN, live status, PDF |
-| `/gallery` | Before/after project gallery |
 | `/about` | Company info |
 | `/contacts` | Contact form |
 | `/crm` | Admin ERP — clients, orders, warehouse, finance, analytics |

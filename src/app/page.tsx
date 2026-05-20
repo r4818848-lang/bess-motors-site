@@ -4,7 +4,6 @@ import { StatsSection } from "@/components/home/StatsSection";
 import { ServicesPreview } from "@/components/home/ServicesPreview";
 import { Advantages } from "@/components/home/Advantages";
 import { Reviews } from "@/components/home/Reviews";
-import { BeforeAfter } from "@/components/home/BeforeAfter";
 
 export default function HomePage() {
   return (
@@ -14,7 +13,6 @@ export default function HomePage() {
       <StatsSection />
       <ServicesPreview />
       <Advantages />
-      <BeforeAfter />
       <Reviews />
     </>
   );

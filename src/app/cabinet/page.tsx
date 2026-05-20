@@ -68,17 +68,27 @@ export default function CabinetPage() {
   const refreshDb = () => setDb(loadDb());
 
   useEffect(() => {
-    restoreSessionFromToken().finally(() => {
-      refreshDb();
-      setSessionReady(true);
-      setMounted(true);
-    });
+    restoreSessionFromToken()
+      .catch(() => null)
+      .finally(() => {
+        refreshDb();
+        setSessionReady(true);
+        setMounted(true);
+      });
   }, []);
 
-  const user =
-    mounted && db && isClientAuthenticated()
-      ? db.users.find((u) => u.id === db.currentUserId && u.role === "client") ?? null
-      : null;
+  const resolveClientUser = () => {
+    if (!mounted || !sessionReady || !isClientAuthenticated()) return null;
+    const fresh = loadDb();
+    if (!fresh.currentUserId) return null;
+    return (
+      fresh.users.find(
+        (u) => u.id === fresh.currentUserId && u.role === "client"
+      ) ?? null
+    );
+  };
+
+  const user = resolveClientUser();
 
   const logout = () => {
     authLogout();
@@ -133,22 +143,29 @@ export default function CabinetPage() {
     }
   };
 
-  if (!mounted || !sessionReady || !user || !db) {
+  if (!mounted || !sessionReady || !user) {
     return (
       <div className="pt-28 pb-20 min-h-[70vh] flex items-center justify-center px-4 grid-bg">
-        <PhoneAuthForm variant="cabinet" onSuccess={() => refreshDb()} />
+        <PhoneAuthForm
+          onSuccess={() => {
+            refreshDb();
+            setSessionReady(true);
+          }}
+        />
       </div>
     );
   }
 
-  const myVehicles = db.vehicles.filter((v) => v.userId === user.id);
-  const myOrders = db.workOrders.filter((o) => o.userId === user.id);
+  const activeDb = db ?? loadDb();
+
+  const myVehicles = activeDb.vehicles.filter((v) => v.userId === user.id);
+  const myOrders = activeDb.workOrders.filter((o) => o.userId === user.id);
   const activeOrder = myOrders[0];
   const activeStatusIdx = activeOrder
     ? statusOrder.indexOf(activeOrder.status)
     : 0;
 
-  const myAppointments = db.appointments
+  const myAppointments = activeDb.appointments
     .filter((a) => a.userId === user.id)
     .sort((a, b) => `${b.date}${b.time}`.localeCompare(`${a.date}${a.time}`));
 
@@ -269,7 +286,7 @@ export default function CabinetPage() {
               </Card>
             ) : (
               myAppointments.map((apt) => {
-                const ctx = getAppointmentContext(db, apt);
+                const ctx = getAppointmentContext(activeDb, apt);
                 return (
                   <Card key={apt.id} glow>
                     <div className="flex flex-wrap justify-between gap-2">
@@ -340,7 +357,7 @@ export default function CabinetPage() {
             {selectedOrderId && myOrders.find((o) => o.id === selectedOrderId) ? (
               <ClientWorkOrderDetail
                 order={myOrders.find((o) => o.id === selectedOrderId)!}
-                db={db}
+                db={activeDb}
                 onBack={() => setSelectedOrderId(null)}
               />
             ) : (
@@ -351,7 +368,7 @@ export default function CabinetPage() {
                   </Card>
                 ) : (
                   myOrders.map((order) => {
-                    const vehicle = db.vehicles.find((v) => v.id === order.vehicleId);
+                    const vehicle = activeDb.vehicles.find((v) => v.id === order.vehicleId);
                     return (
                       <Card
                         key={order.id}
@@ -382,7 +399,7 @@ export default function CabinetPage() {
           </>
         )}
 
-        {tab === "expenses" && <SpendingStats db={db} userId={user.id} />}
+        {tab === "expenses" && <SpendingStats db={activeDb} userId={user.id} />}
 
         {tab === "warranty" && (
           <div className="space-y-4">
@@ -405,7 +422,7 @@ export default function CabinetPage() {
         {tab === "photos" && (
           <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
             {myOrders.flatMap((o) =>
-              o.files
+              (o.files ?? [])
                 .filter((f) => f.type === "image" && f.dataUrl && f.category !== "internal")
                 .map((f) => (
                   <img
@@ -416,7 +433,7 @@ export default function CabinetPage() {
                   />
                 ))
             )}
-            {myOrders.every((o) => !o.files.some((f) => f.type === "image")) && (
+            {myOrders.every((o) => !(o.files ?? []).some((f) => f.type === "image")) && (
               <Card glow className="col-span-full text-center py-12 text-bm-muted">
                 {t.cabinet.photos}
               </Card>

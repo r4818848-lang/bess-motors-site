@@ -203,17 +203,24 @@ const sampleOrder: WorkOrder = {
 
 const defaultDb: Database = {
   users: [
-    { id: "admin-1", phone: "+48791257229", name: "Administrator BESS MOTORS", role: "admin", createdAt: "2024-01-01" },
+    { id: "admin-1", phone: "+48888838688", name: "Administrator BESS MOTORS", role: "admin", createdAt: "2024-01-01" },
     { id: "mech-1", phone: "+48987654321", name: "Jan Kowalski", role: "mechanic", createdAt: "2024-01-01" },
     { id: "mech-2", phone: "+48911122233", name: "Piotr Nowak", role: "mechanic", createdAt: "2024-02-01" },
     {
       id: "client-demo",
       phone: "+48555111222",
-      email: "demo@bessmotors.pl",
       password: "demo123",
       name: "Michał Kowalski",
       role: "client",
       createdAt: "2024-06-01",
+    },
+    {
+      id: "client-example",
+      phone: "+48123123123",
+      password: "clientpassword",
+      name: "Jan Klient",
+      role: "client",
+      createdAt: "2025-01-01",
     },
   ],
   vehicles: [
@@ -290,14 +297,15 @@ function migrateWorkOrder(o: Partial<WorkOrder> & { id: string; mechanicCommissi
     orderDiscount: 0,
     internalNotes: "",
     clientNotes: "",
-    files: [],
     updatedAt: o.createdAt ?? new Date().toISOString().slice(0, 10),
     ...o,
     mechanicLaborPercent: labor,
     mechanicPartsPercent: parts,
     confirmationStatus,
     signature,
+    services: o.services ?? [],
     parts: (o.parts ?? []).map((p) => ({ ...p, discount: p.discount ?? 0 })),
+    files: o.files ?? [],
   } as WorkOrder;
 }
 
@@ -354,7 +362,11 @@ export function loadDb(): Database {
 
 export function saveDb(db: Database): void {
   if (typeof window === "undefined") return;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
+  } catch {
+    /* quota or private mode — avoid crashing the app */
+  }
 }
 
 // Legacy exports — delegate to workorder-calc

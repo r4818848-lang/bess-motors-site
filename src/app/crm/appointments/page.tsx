@@ -5,23 +5,14 @@ import Link from "next/link";
 import { LogOut } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { DashboardLayout } from "@/components/crm/DashboardLayout";
-import { AdminLogin } from "@/components/crm/AdminLogin";
 import { AppointmentsList } from "@/components/crm/AppointmentsList";
-import { isAdminAuthenticated, logoutAdmin, restoreSessionFromToken } from "@/lib/auth";
+import { logoutAdmin } from "@/lib/auth";
 import { Button } from "@/components/ui/Button";
 
 function AppointmentsPageContent() {
   const { t } = useI18n();
   const c = t.crm;
-  const [authed, setAuthed] = useState(false);
-
-  const refresh = useCallback(() => setAuthed(isAdminAuthenticated()), []);
-
-  useEffect(() => {
-    restoreSessionFromToken().finally(refresh);
-  }, [refresh]);
-
-  if (!authed) return <AdminLogin onSuccess={refresh} />;
+  const refresh = useCallback(() => {}, []);
 
   return (
     <DashboardLayout role="admin">

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { ChevronRight, Phone, Timer, Shield, Tag, ShieldCheck } from "lucide-react";
+import { ChevronRight, Phone, Timer, Shield, Tag } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { siteConfig } from "@/lib/site";
 import { Logo } from "@/components/brand/Logo";
@@ -97,9 +97,9 @@ export function Hero() {
                 {t.hero.ctaBook}
                 <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Link>
-              <Link href="/crm" className="btn-outline group border-bm-muted/40 text-bm-muted hover:text-bm-red">
-                <ShieldCheck className="w-4 h-4" />
-                {t.hero.ctaAdmin}
+              <Link href="/cabinet" className="btn-outline group">
+                {t.nav.cabinet}
+                <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Link>
             </div>
 

@@ -32,9 +32,6 @@ export function Footer() {
             <Link href="/contacts" className="text-bm-muted hover:text-bm-red transition-colors">
               {t.nav.contacts}
             </Link>
-            <Link href="/crm" className="text-bm-muted hover:text-bm-red transition-colors">
-              {t.nav.crm}
-            </Link>
           </div>
 
           <div className="space-y-3 text-sm">

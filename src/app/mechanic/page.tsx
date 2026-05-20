@@ -74,8 +74,8 @@ function MechanicPageContent() {
   return (
     <DashboardLayout role="mechanic">
       <div className="p-6 lg:p-10">
-        <Link href="/crm" className="text-sm text-bm-muted hover:text-bm-red">
-          ← CRM
+        <Link href="/" className="text-sm text-bm-muted hover:text-bm-red">
+          ← {t.nav.home}
         </Link>
         <h1 className="font-display text-2xl font-bold uppercase text-glow mt-4 mb-2">
           {m.title}

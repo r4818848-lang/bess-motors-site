@@ -34,15 +34,6 @@ export const reviews = [
   { name: "Dmitry S.", car: "Audi RS3", text: "Chip tuning i diagnostyka AI — szybko i dokładnie.", rating: 5 },
 ];
 
-export const galleryProjects = [
-  { id: 1, title: "BMW M4 — Stage 2", category: "tuning", before: "#1a1a2e", after: "#16213e" },
-  { id: 2, title: "Porsche 911 — Detailing", category: "detailing", before: "#2d132c", after: "#801336" },
-  { id: 3, title: "Mercedes AMG — Paint", category: "paint", before: "#0f3460", after: "#e94560" },
-  { id: 4, title: "Audi RS6 — Exhaust", category: "tuning", before: "#1b262c", after: "#3282b8" },
-  { id: 5, title: "VW Golf GTI — Chip", category: "tuning", before: "#2b2d42", after: "#ef233c" },
-  { id: 6, title: "Tesla Model 3 — Wrap", category: "detailing", before: "#212529", after: "#495057" },
-];
-
 export const stats = [
   { value: "2,500+", key: "clients" as const },
   { value: "8,000+", key: "repairs" as const },

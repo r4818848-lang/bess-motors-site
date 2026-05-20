@@ -17,6 +17,9 @@ function fromBase64(b64: string): Uint8Array<ArrayBuffer> {
 }
 
 export async function hashPassword(password: string): Promise<string> {
+  if (typeof crypto === "undefined" || !crypto.subtle) {
+    throw new Error("crypto_unavailable");
+  }
   const salt = crypto.getRandomValues(new Uint8Array(16)) as Uint8Array<ArrayBuffer>;
   const enc = new TextEncoder();
   const key = await crypto.subtle.importKey("raw", enc.encode(password), "PBKDF2", false, [
