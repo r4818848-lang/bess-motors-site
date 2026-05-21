@@ -1,6 +1,8 @@
 /** Canonical site URL for sitemap, robots, Open Graph (set in Vercel: NEXT_PUBLIC_SITE_URL) */
+/** Must match the URL verified in Google Search Console */
 export function getSiteUrl(): string {
-  const url = process.env.NEXT_PUBLIC_SITE_URL ?? "https://bess-motors-site.vercel.app";
+  const url =
+    process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.bess-motors.com";
   return url.replace(/\/$/, "");
 }
 
