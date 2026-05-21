@@ -35,6 +35,8 @@ export function createBookingAppointment(params: {
   comment: string;
   clientName: string;
   clientPhone: string;
+  estimatedTotal?: number;
+  cartLines?: { itemId: string; label: string; lineTotal: number; priceFrom: boolean }[];
 }): void {
   const db = loadDb();
   const userId = db.currentUserId ?? "guest";
