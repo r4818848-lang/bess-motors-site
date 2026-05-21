@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Phone, ArrowRight, Check } from "lucide-react";
+import { X, Phone, ArrowRight, Check, List } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { serviceFlows, type ServiceId, type FlowOption } from "@/lib/services-catalog";
 import { timeSlots } from "@/lib/data";
@@ -10,6 +11,23 @@ import { createCallRequest, createBookingAppointment } from "@/lib/booking-actio
 import { loadDb } from "@/lib/store";
 import { BookingCalendar } from "@/components/booking/BookingCalendar";
 import { Button } from "@/components/ui/Button";
+import { BookingTotalSummary } from "@/components/booking/BookingTotalSummary";
+import {
+  buildCartLine,
+  cartSubtotal,
+  cartHasFromPrices,
+  formatPln,
+  unitPriceHint,
+  defaultQuantity,
+  type CartLine,
+} from "@/lib/booking-cart";
+import { getPriceItem, HOURLY_RATE_PLN } from "@/lib/price-list";
+import {
+  serviceBasePriceId,
+  resolvePriceIdsForOption,
+  getItemForOption,
+  itemLabel,
+} from "@/lib/service-price-map";
 
 type Phase = "manager" | "flow" | "date" | "time" | "problem" | "contact" | "done";
 type SubmitMode = "call" | "booking";
@@ -60,6 +78,8 @@ interface Props {
 export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
   const { t, locale } = useI18n();
   const bf = t.bookingFlow;
+  const bq = t.bookingQuote;
+  const loc = locale === "ru" || locale === "uk" ? "ru" : "pl";
   const serviceLabel =
     t.serviceItems[serviceId as keyof typeof t.serviceItems] ?? serviceId;
   const screens = useMemo(() => buildScreens(serviceId), [serviceId]);
@@ -77,7 +97,7 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
   const [screenIdx, setScreenIdx] = useState(0);
   const [oilExtra, setOilExtra] = useState<string | null>(null);
   const [picked, setPicked] = useState<string[]>([]);
-  const [extras, setExtras] = useState<string[]>([]);
+  const [cart, setCart] = useState<CartLine[]>([]);
   const [date, setDate] = useState<Date | null>(null);
   const [time, setTime] = useState("");
   const [problem, setProblem] = useState("");
@@ -90,6 +110,43 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
     const items = t.serviceItems as Record<string, string>;
     return flow[key] ?? items[key] ?? key;
   };
+
+  const addPriceIdsToCart = useCallback(
+    (ids: string[]) => {
+      for (const id of ids) {
+        const item = getPriceItem(id);
+        if (!item) continue;
+        const line = buildCartLine(
+          item,
+          itemLabel(item, loc),
+          defaultQuantity(item)
+        );
+        setCart((prev) => {
+          const rest = prev.filter((l) => l.itemId !== id);
+          return [...rest, line];
+        });
+      }
+    },
+    [loc]
+  );
+
+  const initBaseService = useCallback(() => {
+    const baseId = serviceBasePriceId[serviceId];
+    if (baseId) addPriceIdsToCart([baseId]);
+  }, [serviceId, addPriceIdsToCart]);
+
+  const addOptionsToCart = useCallback(
+    (optionIds: string[]) => {
+      for (const optId of optionIds) {
+        const ids = resolvePriceIdsForOption(serviceId, optId);
+        if (ids.length) addPriceIdsToCart(ids);
+      }
+    },
+    [addPriceIdsToCart]
+  );
+
+  const total = cartSubtotal(cart);
+  const hasFrom = cartHasFromPrices(cart);
 
   const currentScreen = (): FlowScreen | null => {
     if (serviceId === "oil" && screenIdx === 0) {
@@ -146,6 +203,18 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
   const screen = phase === "flow" ? currentScreen() : null;
   const oilFlowSteps = serviceId === "oil" ? (oilExtra === "yes" ? 4 : 3) : screens.length;
 
+  const startSelfBooking = () => {
+    setScreenIdx(0);
+    setSubmitMode("booking");
+    setCart([]);
+    if (serviceId === "oil") {
+      addPriceIdsToCart(["oil_filter"]);
+    } else {
+      initBaseService();
+    }
+    setPhase(screens.length || serviceId === "oil" ? "flow" : "date");
+  };
+
   const nextFlow = () => {
     const max = serviceId === "oil" ? oilFlowSteps : screens.length;
     if (screenIdx + 1 < max) {
@@ -182,58 +251,105 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
 
   const submitBooking = () => {
     if (!contactValid) return;
+    const breakdown = cart
+      .map((l) => `${l.label}: ${l.isFree ? bq.free : formatPln(l.lineTotal)}`)
+      .join("; ");
     const comment = [
-      extras.length ? extras.join(", ") : "",
-      picked.length ? picked.join(", ") : "",
-      problem,
+      cart.length ? `[${bq.grandTotal}: ${formatPln(total)}]` : "",
+      breakdown,
+      hasFrom ? bq.fromWarningShort : "",
+      problem.trim() ? `${bf.describeProblem}: ${problem.trim()}` : "",
+      `${bq.hourlyNote} ${HOURLY_RATE_PLN} zł/h`,
     ]
       .filter(Boolean)
       .join(" | ");
+
     createBookingAppointment({
       serviceId,
-      serviceIds: [serviceId, ...extras, ...picked],
+      serviceIds: cart.length
+        ? cart.map((l) => l.itemId)
+        : [serviceId],
       date: date?.toISOString().slice(0, 10) ?? "",
       time,
       comment,
       clientName: clientName.trim(),
       clientPhone: clientPhone.trim(),
+      estimatedTotal: total,
+      cartLines: cart.map((l) => ({
+        itemId: l.itemId,
+        label: l.label,
+        lineTotal: l.lineTotal,
+        priceFrom: l.priceFrom,
+      })),
     });
     setDoneKind("booking");
     setPhase("done");
     onSuccess?.("booking");
   };
 
+  const renderOptionPrice = (opt: FlowOption) => {
+    if (opt.id === "oilFilter" && serviceId === "oil") {
+      const base = getPriceItem("oil_filter");
+      if (base) {
+        return (
+          <span className="block text-[10px] text-bm-muted font-mono mt-1">
+            {loc === "ru" ? "включено в замену масла" : "w cenie wymiany oleju"} (
+            {unitPriceHint(base, loc)})
+          </span>
+        );
+      }
+    }
+    const item = getItemForOption(serviceId, opt.id, loc);
+    if (!item) return null;
+    return (
+      <span className="block text-bm-red font-mono text-xs font-bold mt-1">
+        {unitPriceHint(item, loc)}
+      </span>
+    );
+  };
+
   const renderOptions = (sc: FlowScreen) => {
     if (sc.type === "yesno") {
+      const base = getPriceItem("oil_filter");
       return (
-        <div className="flex flex-wrap gap-3 justify-center">
-          <button
-            type="button"
-            className="px-6 py-3 rounded-xl bg-bm-red/20 border border-bm-red font-semibold uppercase text-sm"
-            onClick={() => {
-              if (serviceId === "oil") setOilExtra("yes");
-              nextFlow();
-            }}
-          >
-            {bf.yes}
-          </button>
-          <button
-            type="button"
-            className="px-6 py-3 rounded-xl glass border border-bm-border font-semibold uppercase text-sm"
-            onClick={() => {
-              if (serviceId === "oil") setOilExtra("no");
-              nextFlow();
-            }}
-          >
-            {bf.no}
-          </button>
+        <div className="space-y-4">
+          {base && serviceId === "oil" && (
+            <p className="text-center text-sm text-bm-silver">
+              {lbl("oilExtra")}{" "}
+              <span className="text-bm-red font-mono font-bold">
+                {unitPriceHint(base, loc)}
+              </span>
+            </p>
+          )}
+          <div className="flex flex-wrap gap-3 justify-center">
+            <button
+              type="button"
+              className="px-6 py-3 rounded-xl bg-bm-red/20 border border-bm-red font-semibold uppercase text-sm"
+              onClick={() => {
+                if (serviceId === "oil") setOilExtra("yes");
+                nextFlow();
+              }}
+            >
+              {bf.yes}
+            </button>
+            <button
+              type="button"
+              className="px-6 py-3 rounded-xl glass border border-bm-border font-semibold uppercase text-sm"
+              onClick={() => {
+                if (serviceId === "oil") setOilExtra("no");
+                nextFlow();
+              }}
+            >
+              {bf.no}
+            </button>
+          </div>
         </div>
       );
     }
     const multi = sc.type === "multi";
     return (
       <>
-        <div className="flex flex-wrap gap-2 justify-center">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           {sc.options.map((opt) => {
             const active = multi ? picked.includes(opt.id) : picked[0] === opt.id;
             return (
@@ -247,22 +363,42 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
                     );
                   } else setPicked([opt.id]);
                 }}
-                className={`px-3 py-2 rounded-lg text-xs sm:text-sm transition-all ${
+                className={`px-3 py-3 rounded-xl text-left transition-all ${
                   active
-                    ? "bg-bm-red text-white shadow-neon-sm"
+                    ? "bg-bm-red/25 border-2 border-bm-red text-white shadow-neon-sm"
                     : "glass border border-bm-border hover:border-bm-red/40"
                 }`}
               >
-                {lbl(opt.labelKey)}
+                <span className="text-xs sm:text-sm font-semibold block">
+                  {lbl(opt.labelKey)}
+                </span>
+                {renderOptionPrice(opt)}
               </button>
             );
           })}
         </div>
+        {multi && picked.length > 0 && (
+          <p className="text-center text-xs text-bm-muted font-mono">
+            + {formatPln(
+              picked.reduce((sum, id) => {
+                const ids = resolvePriceIdsForOption(serviceId, id);
+                return (
+                  sum +
+                  ids.reduce((s, pid) => {
+                    const it = getPriceItem(pid);
+                    return s + (it ? it.basePrice * defaultQuantity(it) : 0);
+                  }, 0)
+                );
+              }, 0)
+            )}
+          </p>
+        )}
         <Button
           className="w-full mt-4"
           disabled={multi ? picked.length === 0 : !picked[0]}
           onClick={() => {
-            setExtras((e) => [...e, ...picked]);
+            if (multi) addOptionsToCart(picked);
+            else if (picked[0]) addOptionsToCart(picked);
             nextFlow();
           }}
         >
@@ -271,6 +407,16 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
       </>
     );
   };
+
+  const runningTotalBar =
+    cart.length > 0 && phase !== "done" && phase !== "manager" ? (
+      <div className="rounded-lg border border-bm-red/30 bg-bm-red/10 px-3 py-2 flex justify-between items-center text-sm">
+        <span className="text-bm-muted uppercase text-[10px] tracking-wide">
+          {bq.total}
+        </span>
+        <span className="font-mono font-bold text-bm-red">{formatPln(total)}</span>
+      </div>
+    ) : null;
 
   const contactFields = (
     <div className="space-y-3">
@@ -313,6 +459,9 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
         </button>
 
         <p className="text-xs uppercase text-bm-red tracking-widest mb-1">{serviceLabel}</p>
+        <p className="text-[10px] text-bm-muted mb-3">
+          {bq.hourlyNote} {HOURLY_RATE_PLN} zł/h
+        </p>
 
         <AnimatePresence mode="wait">
           {phase === "manager" && (
@@ -320,11 +469,19 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
               key="mgr"
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              className="space-y-6 pt-4"
+              className="space-y-4 pt-4"
             >
               <h2 className="font-display text-xl font-bold uppercase text-glow text-center">
                 {bf.managerTitle}
               </h2>
+              <Link
+                href="/booking"
+                onClick={onClose}
+                className="flex items-center justify-center gap-2 w-full py-3 rounded-xl border border-bm-red/50 text-bm-red text-xs uppercase tracking-wide hover:bg-bm-red/10"
+              >
+                <List className="w-4 h-4" />
+                {bf.fullPriceList}
+              </Link>
               <button
                 type="button"
                 className="w-full py-4 rounded-xl bg-bm-red/20 border-2 border-bm-red shadow-neon-sm font-display uppercase text-sm flex items-center justify-center gap-2"
@@ -336,13 +493,7 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
               <button
                 type="button"
                 className="w-full py-4 rounded-xl glass border border-bm-border font-display uppercase text-sm"
-                onClick={() => {
-                  setScreenIdx(0);
-                  setSubmitMode("booking");
-                  setPhase(
-                    screens.length || serviceId === "oil" ? "flow" : "date"
-                  );
-                }}
+                onClick={startSelfBooking}
               >
                 {bf.continueSelf}
                 <ArrowRight className="inline w-4 h-4 ml-1" />
@@ -351,16 +502,18 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
           )}
 
           {phase === "flow" && screen && (
-            <motion.div key={`s-${screenIdx}`} className="space-y-5 pt-4">
+            <motion.div key={`s-${screenIdx}`} className="space-y-4 pt-4">
               <h2 className="font-display text-lg uppercase text-center">
                 {lbl(screen.key)}
               </h2>
+              {runningTotalBar}
               {renderOptions(screen)}
             </motion.div>
           )}
 
           {phase === "flow" && !screen && screens.length === 0 && serviceId !== "oil" && (
-            <motion.div className="pt-4">
+            <motion.div className="pt-4 space-y-4">
+              {runningTotalBar}
               <Button className="w-full" onClick={() => setPhase("date")}>
                 {bf.next}
               </Button>
@@ -370,6 +523,7 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
           {phase === "date" && (
             <motion.div key="date" className="space-y-4 pt-4">
               <h2 className="font-display text-lg uppercase text-center">{t.booking.selectDate}</h2>
+              {runningTotalBar}
               <BookingCalendar selected={date} onSelect={setDate} locale={locale} />
               <Button className="w-full" disabled={!date} onClick={() => setPhase("time")}>
                 {bf.next}
@@ -380,6 +534,7 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
           {phase === "time" && (
             <motion.div key="time" className="space-y-4 pt-4">
               <h2 className="font-display text-lg uppercase text-center">{t.booking.selectTime}</h2>
+              {runningTotalBar}
               <div className="flex flex-wrap gap-2 justify-center">
                 {timeSlots.map((slot) => (
                   <button
@@ -405,6 +560,7 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
               <h2 className="font-display text-lg uppercase text-center">
                 {isOtherReason ? bf.otherReasonDescribe : bf.describeProblem}
               </h2>
+              {runningTotalBar}
               <textarea
                 className="input-premium w-full min-h-[100px]"
                 placeholder={
@@ -426,13 +582,19 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
           {phase === "contact" && (
             <motion.div key="contact" className="space-y-4 pt-4">
               <h2 className="font-display text-lg uppercase text-center">{bf.contactTitle}</h2>
+              <BookingTotalSummary
+                lines={cart}
+                title={bq.finalTotalTitle}
+                grandLabel={bq.grandTotal}
+                fromWarning={bq.fromWarning}
+              />
               {contactFields}
               <Button
                 className="w-full"
-                disabled={!contactValid}
+                disabled={!contactValid || (submitMode === "booking" && cart.length === 0)}
                 onClick={submitMode === "call" ? submitCall : submitBooking}
               >
-                {submitMode === "call" ? bf.orderCall : t.booking.confirm}
+                {submitMode === "call" ? bf.orderCall : bq.submit}
               </Button>
             </motion.div>
           )}
@@ -443,6 +605,11 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
               <p className="font-display text-xl uppercase text-glow">
                 {doneKind === "call" ? bf.callSuccess : t.booking.success}
               </p>
+              {cart.length > 0 && (
+                <p className="text-sm text-bm-muted">
+                  {bq.grandTotal}: <span className="text-bm-red font-mono">{formatPln(total)}</span>
+                </p>
+              )}
               <Button variant="outline" className="w-full" onClick={onClose}>
                 OK
               </Button>
