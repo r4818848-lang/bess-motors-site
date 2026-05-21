@@ -9,6 +9,8 @@ import { Providers } from "./providers";
 import { Header } from "@/components/layout/Header";
 
 import { Footer } from "@/components/layout/Footer";
+import { JsonLd } from "@/components/seo/JsonLd";
+import { getSiteUrl, googleSiteVerification } from "@/lib/seo";
 
 
 
@@ -18,8 +20,7 @@ const orbitron = Orbitron({ subsets: ["latin"], variable: "--font-orbitron" });
 
 
 
-const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://bess-motors-site.vercel.app";
+const siteUrl = getSiteUrl();
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -47,8 +48,12 @@ export const metadata: Metadata = {
       "Szybko, profesjonalnie, najlepsze ceny — serwis i tuning w Warszawie.",
     images: [{ url: "/images/banner.png", width: 1200, height: 630, alt: "BESS MOTORS" }],
   },
-  robots: { index: true, follow: true },
+  robots: { index: true, follow: true, googleBot: { index: true, follow: true } },
+  alternates: { canonical: siteUrl },
   icons: { icon: "/images/logo.png", apple: "/images/logo.png" },
+  ...(googleSiteVerification
+    ? { verification: { google: googleSiteVerification } }
+    : {}),
 };
 
 
@@ -102,9 +107,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="pl" className={`${inter.variable} ${orbitron.variable}`} suppressHydrationWarning>
 
       <head>
-
         <style dangerouslySetInnerHTML={{ __html: criticalCss }} />
-
       </head>
 
       <body
@@ -116,7 +119,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         suppressHydrationWarning
 
       >
-
+        <JsonLd />
         <Providers>
 
           <Header />
