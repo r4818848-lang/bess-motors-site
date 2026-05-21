@@ -44,6 +44,6 @@ echo.
 
 timeout /t 2 /nobreak >nul
 start "" "http://localhost:3000"
-call npm run dev
+call npm run dev:clean
 
 pause

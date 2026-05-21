@@ -19,25 +19,29 @@ export function Hero() {
 
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden pt-20">
-      {/* Баннер на весь экран — задний фон */}
-      <div className="absolute inset-0" aria-hidden>
+      {/* Фон: полный баннер на всю секцию */}
+      <div className="absolute inset-0 z-0" aria-hidden>
         <Image
           src={siteConfig.bannerImage}
           alt=""
           fill
           priority
-          className="object-cover object-center"
+          className="object-cover object-[72%_42%] sm:object-[75%_40%]"
           sizes="100vw"
-          quality={90}
+          quality={85}
         />
-        {/* Затемнение слева — текст читается, справа виден баннер и авто */}
-        <div className="absolute inset-0 bg-gradient-to-r from-bm-black from-0% via-bm-black/[0.93] via-[38%] sm:via-[42%] to-bm-black/20 to-100%" />
-        <div className="absolute inset-0 bg-gradient-to-t from-bm-black via-bm-black/30 to-transparent" />
-        <div className="absolute inset-0 bg-black/15" />
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              "linear-gradient(90deg, rgba(0,0,0,0.97) 0%, rgba(0,0,0,0.92) 42%, rgba(0,0,0,0.55) 68%, rgba(0,0,0,0.25) 100%)",
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-bm-black via-transparent to-bm-black/50" />
       </div>
 
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-[1]">
-        <div className="absolute left-0 right-0 h-px bg-gradient-to-r from-transparent via-bm-red/50 to-transparent animate-scan-line top-24" />
+        <div className="absolute left-0 right-0 top-24 h-px bg-gradient-to-r from-transparent via-bm-red/50 to-transparent animate-scan-line" />
       </div>
 
       <div className="relative z-10 mx-auto max-w-7xl px-4 lg:px-8 w-full py-12">
@@ -60,7 +64,7 @@ export function Hero() {
             </p>
 
             <h1 className="font-display font-black uppercase leading-[0.95] tracking-tight">
-              <span className="block text-4xl md:text-5xl lg:text-6xl text-white italic -skew-x-6 drop-shadow-[0_2px_24px_rgba(0,0,0,0.9)]">
+              <span className="block text-4xl md:text-5xl lg:text-6xl text-white italic -skew-x-6 drop-shadow-[0_2px_20px_rgba(0,0,0,0.9)]">
                 {t.hero.slogan1}
               </span>
               <span className="block text-4xl md:text-5xl lg:text-6xl text-bm-red text-glow italic -skew-x-6 mt-1">

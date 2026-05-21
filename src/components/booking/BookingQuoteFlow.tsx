@@ -242,11 +242,7 @@ function CartPanel({
   );
 
   if (sticky) {
-    return (
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 glass-red border-t border-bm-red/40 p-4 pb-safe shadow-[0_-8px_32px_rgba(0,0,0,0.8)]">
-        {inner}
-      </div>
-    );
+    return null;
   }
 
   return (
@@ -561,31 +557,27 @@ export function BookingQuoteFlow({ onDone }: Props) {
         )}
       </AnimatePresence>
 
-      {phase === "services" && cart.length > 0 && (
-        <>
-          <CartPanel
-            sticky
-            lines={cart}
-            locale={loc}
-            labels={labels}
-            onRemove={(id) => setCart((c) => c.filter((l) => l.id !== id))}
-            onQtyChange={(id, qty) =>
-              setCart((c) =>
-                c.map((l) => {
-                  if (l.id !== id) return l;
-                  const item = priceListItems.find((i) => i.id === l.itemId);
-                  if (!item) return l;
-                  return buildCartLine(item, l.label.split(" (")[0], qty);
-                })
-              )
-            }
-          />
-          <div className="lg:hidden fixed bottom-[140px] left-4 right-4 z-50">
-            <Button className="w-full shadow-neon" onClick={() => setPhase("datetime")}>
-              {bq.continue} — {formatPln(total)}
+      {phase === "services" && (
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 glass-red border-t border-bm-red/40 p-3 shadow-[0_-8px_32px_rgba(0,0,0,0.85)]">
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-[10px] uppercase text-bm-muted tracking-wide">
+                {labels.cartTitle} ({cart.length})
+              </p>
+              <p className="font-display text-xl font-bold text-bm-red font-mono">
+                {formatPln(total)}
+              </p>
+            </div>
+            <Button
+              className="shrink-0"
+              disabled={cart.length === 0}
+              onClick={() => setPhase("datetime")}
+            >
+              {bq.continue}
+              <ChevronRight className="w-4 h-4" />
             </Button>
           </div>
-        </>
+        </div>
       )}
     </div>
   );
