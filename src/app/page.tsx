@@ -1,3 +1,5 @@
+"use client";
+
 import { Hero } from "@/components/home/Hero";
 import { BannerServices } from "@/components/home/BannerServices";
 import { StatsSection } from "@/components/home/StatsSection";

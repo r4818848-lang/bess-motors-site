@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Phone, Lock, LogIn, UserPlus, ChevronRight } from "lucide-react";
+import { Phone, Car, LogIn, UserPlus, ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useI18n } from "@/lib/i18n/context";
 import { loginWithPhonePassword, registerClient, type AuthResult } from "@/lib/auth";
@@ -19,10 +18,10 @@ export function PhoneAuthForm({ onSuccess }: PhoneAuthFormProps) {
   const router = useRouter();
   const [mode, setMode] = useState<Mode>("login");
   const [phone, setPhone] = useState("");
-  const [password, setPassword] = useState("");
+  const [plate, setPlate] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [focused, setFocused] = useState<"phone" | "password" | null>(null);
+  const [focused, setFocused] = useState<"phone" | "plate" | null>(null);
 
   const errorMessage = (result: Extract<AuthResult, { ok: false }>) => {
     switch (result.error) {
@@ -30,8 +29,8 @@ export function PhoneAuthForm({ onSuccess }: PhoneAuthFormProps) {
         return t.auth.phoneExists;
       case "phone_required":
         return t.auth.phoneRequired;
-      case "password_required":
-        return t.auth.passwordRequired;
+      case "plate_required":
+        return t.auth.plateRequired;
       default:
         return t.auth.invalidCredentials;
     }
@@ -43,8 +42,8 @@ export function PhoneAuthForm({ onSuccess }: PhoneAuthFormProps) {
     try {
       const result =
         mode === "register"
-          ? await registerClient(phone, password)
-          : await loginWithPhonePassword(phone, password);
+          ? await registerClient(phone, plate)
+          : await loginWithPhonePassword(phone, plate);
 
       if (!result.ok) {
         setError(errorMessage(result));
@@ -67,24 +66,15 @@ export function PhoneAuthForm({ onSuccess }: PhoneAuthFormProps) {
 
   return (
     <div className="relative w-full max-w-md mx-auto">
-      <motion.div
-        className="absolute -inset-1 rounded-3xl opacity-60 blur-xl"
-        animate={{
-          background: [
-            "radial-gradient(circle at 20% 50%, rgba(225,6,0,0.35), transparent 50%)",
-            "radial-gradient(circle at 80% 50%, rgba(225,6,0,0.25), transparent 50%)",
-            "radial-gradient(circle at 20% 50%, rgba(225,6,0,0.35), transparent 50%)",
-          ],
+      <div
+        className="absolute -inset-1 rounded-3xl opacity-60 blur-xl pointer-events-none"
+        style={{
+          background:
+            "radial-gradient(circle at 50% 50%, rgba(225,6,0,0.3), transparent 70%)",
         }}
-        transition={{ duration: 4, repeat: Infinity }}
       />
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="relative rounded-2xl p-6 sm:p-8 overflow-hidden glass-red neon-border"
-      >
+      <div className="relative rounded-2xl p-6 sm:p-8 overflow-hidden glass-red neon-border">
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
@@ -97,7 +87,8 @@ export function PhoneAuthForm({ onSuccess }: PhoneAuthFormProps) {
           <h1 className="font-display text-2xl sm:text-3xl font-bold uppercase text-center tracking-widest text-glow">
             {t.cabinet.title}
           </h1>
-          <p className="text-center text-sm text-bm-muted mt-2 mb-8">{t.auth.subtitle}</p>
+          <p className="text-center text-sm text-bm-muted mt-2 mb-2">{t.auth.subtitle}</p>
+          <p className="text-center text-[10px] text-bm-muted/80 mb-6">{t.auth.plateHint}</p>
 
           <div className="flex rounded-xl border border-bm-border/60 p-1 mb-6 bg-bm-black/50 backdrop-blur-sm">
             {(["login", "register"] as Mode[]).map((m) => (
@@ -119,77 +110,61 @@ export function PhoneAuthForm({ onSuccess }: PhoneAuthFormProps) {
             ))}
           </div>
 
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={mode}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.25 }}
-              className="space-y-4"
-            >
-              <div className="relative group">
-                <Phone
-                  className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors ${
-                    focused === "phone" ? "text-bm-red" : "text-bm-muted"
-                  }`}
-                />
-                <input
-                  type="tel"
-                  inputMode="tel"
-                  autoComplete="tel"
-                  className="input-premium pl-10 w-full bg-bm-black/60 backdrop-blur-md transition-all duration-300"
-                  style={{
-                    boxShadow:
-                      focused === "phone"
-                        ? "0 0 24px rgba(225, 6, 0, 0.35), inset 0 0 0 1px rgba(225,6,0,0.5)"
-                        : undefined,
-                  }}
-                  placeholder={t.cabinet.phone}
-                  value={phone}
-                  onFocus={() => setFocused("phone")}
-                  onBlur={() => setFocused(null)}
-                  onChange={(e) => setPhone(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-                />
-              </div>
+          <div className="space-y-4">
+            <div className="relative group">
+              <Phone
+                className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors ${
+                  focused === "phone" ? "text-bm-red" : "text-bm-muted"
+                }`}
+              />
+              <input
+                type="tel"
+                inputMode="tel"
+                autoComplete="tel"
+                className="input-premium pl-10 w-full bg-bm-black/60 backdrop-blur-md transition-all duration-300"
+                style={{
+                  boxShadow:
+                    focused === "phone"
+                      ? "0 0 24px rgba(225, 6, 0, 0.35), inset 0 0 0 1px rgba(225,6,0,0.5)"
+                      : undefined,
+                }}
+                placeholder={t.cabinet.phone}
+                value={phone}
+                onFocus={() => setFocused("phone")}
+                onBlur={() => setFocused(null)}
+                onChange={(e) => setPhone(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+              />
+            </div>
 
-              <div className="relative group">
-                <Lock
-                  className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors ${
-                    focused === "password" ? "text-bm-red" : "text-bm-muted"
-                  }`}
-                />
-                <input
-                  type="password"
-                  autoComplete={mode === "register" ? "new-password" : "current-password"}
-                  className="input-premium pl-10 w-full bg-bm-black/60 backdrop-blur-md transition-all duration-300"
-                  style={{
-                    boxShadow:
-                      focused === "password"
-                        ? "0 0 24px rgba(225, 6, 0, 0.35), inset 0 0 0 1px rgba(225,6,0,0.5)"
-                        : undefined,
-                  }}
-                  placeholder={t.cabinet.password}
-                  value={password}
-                  onFocus={() => setFocused("password")}
-                  onBlur={() => setFocused(null)}
-                  onChange={(e) => setPassword(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-                />
-              </div>
-            </motion.div>
-          </AnimatePresence>
+            <div className="relative group">
+              <Car
+                className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors ${
+                  focused === "plate" ? "text-bm-red" : "text-bm-muted"
+                }`}
+              />
+              <input
+                type="text"
+                autoComplete="off"
+                autoCapitalize="off"
+                className="input-premium pl-10 w-full bg-bm-black/60 backdrop-blur-md font-mono tracking-wider transition-all duration-300"
+                style={{
+                  boxShadow:
+                    focused === "plate"
+                      ? "0 0 24px rgba(225, 6, 0, 0.35), inset 0 0 0 1px rgba(225,6,0,0.5)"
+                      : undefined,
+                }}
+                placeholder={t.cabinet.registrationPlate}
+                value={plate}
+                onFocus={() => setFocused("plate")}
+                onBlur={() => setFocused(null)}
+                onChange={(e) => setPlate(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+              />
+            </div>
+          </div>
 
-          {error && (
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="mt-3 text-sm text-bm-red text-center"
-            >
-              {error}
-            </motion.p>
-          )}
+          {error && <p className="mt-3 text-sm text-bm-red text-center">{error}</p>}
 
           <Button className="w-full mt-6 gap-2" onClick={handleSubmit} disabled={loading}>
             {loading ? (
@@ -208,7 +183,7 @@ export function PhoneAuthForm({ onSuccess }: PhoneAuthFormProps) {
             )}
           </Button>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }

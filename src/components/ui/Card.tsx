@@ -1,7 +1,6 @@
 "use client";
 
 import { clsx } from "clsx";
-import { motion } from "framer-motion";
 import type { ReactNode } from "react";
 
 interface CardProps {
@@ -12,23 +11,19 @@ interface CardProps {
   onClick?: () => void;
 }
 
-export function Card({ children, className, glow, delay = 0, onClick }: CardProps) {
+export function Card({ children, className, glow, onClick }: CardProps) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.5, delay }}
+    <div
       onClick={onClick}
       role={onClick ? "button" : undefined}
       className={clsx(
-        "card-premium",
+        "card-premium animate-fade-in",
         glow && "glass-red neon-border",
         onClick && "cursor-pointer",
         className
       )}
     >
       {children}
-    </motion.div>
+    </div>
   );
 }

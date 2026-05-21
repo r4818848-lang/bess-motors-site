@@ -29,9 +29,11 @@ export function Logo({ size = "md", showTagline = true }: LogoProps) {
         width={s.width}
         height={s.height}
         className={clsx(
-          "object-contain object-left drop-shadow-[0_0_12px_rgba(225,6,0,0.35)]",
+          "object-contain object-left bg-transparent",
+          "drop-shadow-[0_0_12px_rgba(225,6,0,0.35)]",
           "transition-transform duration-300 group-hover:scale-[1.02]"
         )}
+        unoptimized
         style={{ height: s.height, width: "auto", maxWidth: s.width }}
         priority={size === "lg"}
       />

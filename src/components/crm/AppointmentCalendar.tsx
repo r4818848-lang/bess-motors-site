@@ -21,6 +21,7 @@ import {
   getAppointmentContext,
 } from "@/lib/appointments";
 import { Button } from "@/components/ui/Button";
+import { useDbSync } from "@/hooks/useDbSync";
 
 const statuses: RepairStatus[] = [
   "received",
@@ -41,13 +42,14 @@ export function AppointmentCalendar({ role = "admin", mechanicId }: Props) {
   const cal = t.calendar;
   const [view, setView] = useState<CalendarView>("week");
   const [cursor, setCursor] = useState(new Date());
-  const [tick, setTick] = useState(0);
   const [selected, setSelected] = useState<Appointment | null>(null);
   const [dragId, setDragId] = useState<string | null>(null);
 
-  const refresh = () => setTick((n) => n + 1);
+  const dbTick = useDbSync();
   const db = loadDb();
-  void tick;
+  void dbTick;
+
+  const refresh = () => {};
 
   const appointments = useMemo(() => {
     let list = db.appointments;
@@ -55,7 +57,7 @@ export function AppointmentCalendar({ role = "admin", mechanicId }: Props) {
       list = list.filter((a) => a.mechanicId === mechanicId);
     }
     return list;
-  }, [db.appointments, role, mechanicId, tick]);
+  }, [db.appointments, role, mechanicId, dbTick]);
 
   const weekStart = startOfWeek(cursor);
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
@@ -121,7 +123,7 @@ export function AppointmentCalendar({ role = "admin", mechanicId }: Props) {
         </div>
         {!compact && (
           <>
-            <p className="text-[10px] font-semibold truncate">{ctx.client?.name}</p>
+            <p className="text-[10px] font-semibold truncate">{ctx.contact.name}</p>
             <p className="text-[9px] text-bm-muted truncate">
               {ctx.vehicle?.make} {ctx.vehicle?.plate}
             </p>
@@ -308,7 +310,12 @@ export function AppointmentCalendar({ role = "admin", mechanicId }: Props) {
                 return (
                   <>
                     <p>
-                      <span className="text-bm-muted">{cal.client}:</span> {ctx.client?.name}
+                      <span className="text-bm-muted">{cal.client}:</span> {ctx.contact.name}
+                      {ctx.contact.phone && (
+                        <span className="block font-mono text-bm-red text-xs mt-0.5">
+                          {ctx.contact.phone}
+                        </span>
+                      )}
                     </p>
                     <p>
                       <span className="text-bm-muted">{cal.vehicle}:</span> {ctx.vehicle?.make}{" "}

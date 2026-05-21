@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useDbSync } from "@/hooks/useDbSync";
 import Link from "next/link";
 import { Filter, Pencil } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
@@ -12,7 +13,7 @@ export function AppointmentsList() {
   const { t } = useI18n();
   const cal = t.calendar;
   const c = t.crm;
-  const [tick, setTick] = useState(0);
+  const dbTick = useDbSync();
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [mechanicId, setMechanicId] = useState("all");
@@ -20,7 +21,7 @@ export function AppointmentsList() {
   const [clientQ, setClientQ] = useState("");
   const [plateQ, setPlateQ] = useState("");
 
-  void tick;
+  void dbTick;
   const db = loadDb();
 
   const rows = useMemo(() => {
@@ -33,8 +34,10 @@ export function AppointmentsList() {
     if (clientQ) {
       const q = clientQ.toLowerCase();
       list = list.filter((a) => {
-        const u = db.users.find((x) => x.id === a.userId);
-        return u?.name.toLowerCase().includes(q) || u?.phone.includes(q);
+        const ctx = getAppointmentContext(db, a);
+        const name = (a.clientName ?? ctx.client?.name ?? "").toLowerCase();
+        const phone = a.clientPhone ?? ctx.client?.phone ?? ctx.contact.phone;
+        return name.includes(q) || phone.includes(q);
       });
     }
     if (plateQ) {
@@ -45,7 +48,7 @@ export function AppointmentsList() {
       });
     }
     return [...list].sort((a, b) => `${b.date}${b.time}`.localeCompare(`${a.date}${a.time}`));
-  }, [db, dateFrom, dateTo, mechanicId, repairStatus, clientQ, plateQ, tick]);
+  }, [db, dateFrom, dateTo, mechanicId, repairStatus, clientQ, plateQ, dbTick]);
 
   return (
     <div className="space-y-6">
@@ -121,7 +124,10 @@ export function AppointmentsList() {
                   <tr key={apt.id} className="hover:bg-white/5">
                     <td>{apt.date}</td>
                     <td className="font-mono text-bm-red">{apt.time}</td>
-                    <td>{ctx.client?.name}</td>
+                    <td>
+                      <div>{ctx.contact.name}</div>
+                      <div className="text-[10px] text-bm-muted font-mono">{ctx.contact.phone}</div>
+                    </td>
                     <td>{ctx.vehicle ? `${ctx.vehicle.make} ${ctx.vehicle.model}` : "—"}</td>
                     <td>{ctx.vehicle?.plate}</td>
                     <td>

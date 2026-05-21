@@ -30,17 +30,33 @@ Polish (default), Russian, English, Ukrainian — switch via header.
 
 ## Getting Started
 
+### Windows (рекомендуется)
+
+Дважды щёлкните **`ZAPUSK-SAJTA.bat`** в папке проекта — зависимости установятся сами, сайт откроется на [http://localhost:3000](http://localhost:3000).
+
+Подробно: файл **`ZAPUSK.txt`**.
+
+### Вручную
+
 ```bash
 cd bess-motors
 npm install
-npm run dev
+npm run dev:clean
 ```
 
 Open [http://localhost:3000](http://localhost:3000)
 
-### Demo Login (Client Cabinet)
+### Сохранение / резервная копия
 
-Phone: `+48555111222`
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\save-project.ps1
+```
+
+Создаёт zip без `node_modules` и `.next`. После распаковки снова запустите **`ZAPUSK-SAJTA.bat`**.
+
+### Client cabinet
+
+Register at `/cabinet` with phone + vehicle registration plate (no demo accounts).
 
 ## Production Integration
 

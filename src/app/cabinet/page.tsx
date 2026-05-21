@@ -1,17 +1,18 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { motion } from "framer-motion";
 import {
   Car,
   FileText,
   Bell,
   Shield,
   DollarSign,
-  Image,
+  Image as ImageIcon,
   LogOut,
   CalendarDays,
+  History,
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import {
@@ -36,6 +37,13 @@ import { Card } from "@/components/ui/Card";
 import { AIModules } from "@/components/ai/AIModules";
 import { ClientWorkOrderDetail } from "@/components/cabinet/ClientWorkOrderDetail";
 import { SpendingStats } from "@/components/cabinet/SpendingStats";
+import { ServiceHistoryTimeline } from "@/components/cabinet/ServiceHistoryTimeline";
+import { WorkOrderFilters } from "@/components/crm/WorkOrderFilters";
+import {
+  filterWorkOrders,
+  defaultWorkOrderFilters,
+} from "@/lib/workorder-filters";
+import { getClientPaymentView } from "@/lib/payment";
 
 const statusOrder: RepairStatus[] = [
   "received",
@@ -46,13 +54,15 @@ const statusOrder: RepairStatus[] = [
   "delivered",
 ];
 
-export default function CabinetPage() {
+function CabinetPageContent() {
   const { t } = useI18n();
+  const searchParams = useSearchParams();
   const [mounted, setMounted] = useState(false);
   const [db, setDb] = useState<Database | null>(null);
   const [sessionReady, setSessionReady] = useState(false);
   const [tab, setTab] = useState("cars");
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const [orderFilters, setOrderFilters] = useState(defaultWorkOrderFilters);
   const [vinForm, setVinForm] = useState({
     vin: "",
     plate: "",
@@ -76,6 +86,16 @@ export default function CabinetPage() {
         setMounted(true);
       });
   }, []);
+
+  useEffect(() => {
+    const orderParam = searchParams.get("order");
+    const tabParam = searchParams.get("tab");
+    if (tabParam === "history") setTab("history");
+    if (orderParam) {
+      setTab("orders");
+      setSelectedOrderId(orderParam);
+    }
+  }, [searchParams]);
 
   const resolveClientUser = () => {
     if (!mounted || !sessionReady || !isClientAuthenticated()) return null;
@@ -143,13 +163,25 @@ export default function CabinetPage() {
     }
   };
 
-  if (!mounted || !sessionReady || !user) {
+  if (!mounted || !sessionReady) {
     return (
-      <div className="pt-28 pb-20 min-h-[70vh] flex items-center justify-center px-4 grid-bg">
+      <div className="pt-28 pb-20 min-h-[70vh] flex items-center justify-center px-4">
+        <div className="text-center">
+          <div className="h-10 w-10 rounded-full border-2 border-bm-red border-t-transparent animate-spin mx-auto" />
+          <p className="mt-4 text-sm text-bm-muted">{t.common.loading}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="pt-28 pb-20 min-h-[70vh] flex items-center justify-center px-4">
         <PhoneAuthForm
           onSuccess={() => {
             refreshDb();
             setSessionReady(true);
+            setMounted(true);
           }}
         />
       </div>
@@ -160,6 +192,10 @@ export default function CabinetPage() {
 
   const myVehicles = activeDb.vehicles.filter((v) => v.userId === user.id);
   const myOrders = activeDb.workOrders.filter((o) => o.userId === user.id);
+  const filteredMyOrders = filterWorkOrders(myOrders, orderFilters).sort((a, b) =>
+    b.createdAt.localeCompare(a.createdAt)
+  );
+  const cp = t.clientPayment;
   const activeOrder = myOrders[0];
   const activeStatusIdx = activeOrder
     ? statusOrder.indexOf(activeOrder.status)
@@ -172,11 +208,12 @@ export default function CabinetPage() {
   const tabs = [
     { id: "cars", icon: Car, label: t.cabinet.myCars },
     { id: "appointments", icon: CalendarDays, label: t.cabinet.appointments },
+    { id: "history", icon: History, label: t.cabinet.history },
     { id: "orders", icon: FileText, label: t.cabinet.workOrders },
     { id: "status", icon: Bell, label: t.cabinet.liveStatus },
     { id: "warranty", icon: Shield, label: t.cabinet.warranties },
     { id: "expenses", icon: DollarSign, label: t.cabinet.expenses },
-    { id: "photos", icon: Image, label: t.cabinet.photos },
+    { id: "photos", icon: ImageIcon, label: t.cabinet.photos },
   ];
 
   return (
@@ -320,10 +357,11 @@ export default function CabinetPage() {
             <p className="text-sm text-bm-muted mb-6">Order {activeOrder.number}</p>
             <div className="flex justify-between relative">
               <div className="absolute top-4 left-0 right-0 h-0.5 bg-bm-border" />
-              <motion.div
-                className="absolute top-4 left-0 h-0.5 bg-bm-red shadow-neon-sm"
-                initial={{ width: 0 }}
-                animate={{ width: `${(activeStatusIdx / (statusOrder.length - 1)) * 100}%` }}
+              <div
+                className="absolute top-4 left-0 h-0.5 bg-bm-red shadow-neon-sm transition-all duration-500"
+                style={{
+                  width: `${(activeStatusIdx / (statusOrder.length - 1)) * 100}%`,
+                }}
               />
               {statusOrder.map((s, i) => {
                 const labels = t.repairStatus;
@@ -352,6 +390,25 @@ export default function CabinetPage() {
           </Card>
         )}
 
+        {tab === "history" && (
+          <>
+            <WorkOrderFilters
+              filters={orderFilters}
+              onChange={setOrderFilters}
+              clientMode
+            />
+            <ServiceHistoryTimeline
+              db={activeDb}
+              userId={user.id}
+              orderIds={filteredMyOrders.map((o) => o.id)}
+              onOpenOrder={(id) => {
+                setSelectedOrderId(id);
+                setTab("orders");
+              }}
+            />
+          </>
+        )}
+
         {tab === "orders" && (
           <>
             {selectedOrderId && myOrders.find((o) => o.id === selectedOrderId) ? (
@@ -362,13 +419,27 @@ export default function CabinetPage() {
               />
             ) : (
               <div className="space-y-4">
-                {myOrders.length === 0 ? (
+                <WorkOrderFilters
+                  filters={orderFilters}
+                  onChange={setOrderFilters}
+                  clientMode
+                />
+                {filteredMyOrders.length === 0 ? (
                   <Card glow className="text-center py-12 text-bm-muted">
                     {t.crm.noOrders}
                   </Card>
                 ) : (
-                  myOrders.map((order) => {
+                  filteredMyOrders.map((order) => {
                     const vehicle = activeDb.vehicles.find((v) => v.id === order.vehicleId);
+                    const pay = getClientPaymentView(order.paymentMethod, order.paymentStatus);
+                    const payLabel =
+                      pay === "card"
+                        ? cp.card
+                        : pay === "cash"
+                          ? cp.cash
+                          : pay === "mixed"
+                            ? cp.mixed
+                            : null;
                     return (
                       <Card
                         key={order.id}
@@ -382,9 +453,14 @@ export default function CabinetPage() {
                             <p className="text-sm text-bm-muted">
                               {vehicle?.make} {vehicle?.model} · {order.createdAt}
                             </p>
-                            <span className="status-pill bg-bm-red/20 text-bm-red text-[10px] mt-2 inline-block">
+                            <span className="status-pill bg-bm-red/20 text-bm-red text-[10px] mt-2 inline-block mr-2">
                               {t.repairStatus[order.status]}
                             </span>
+                            {payLabel && (
+                              <span className="status-pill bg-green-500/20 text-green-400 text-[10px] inline-block">
+                                {payLabel}
+                              </span>
+                            )}
                           </div>
                           <p className="font-display text-xl text-bm-red">
                             {calcClientTotal(order).toFixed(2)} zł
@@ -466,5 +542,19 @@ export default function CabinetPage() {
         </section>
       </div>
     </div>
+  );
+}
+
+export default function CabinetPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="pt-28 pb-20 min-h-[70vh] flex items-center justify-center">
+          <div className="h-10 w-10 rounded-full border-2 border-bm-red border-t-transparent animate-spin" />
+        </div>
+      }
+    >
+      <CabinetPageContent />
+    </Suspense>
   );
 }

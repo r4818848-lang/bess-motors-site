@@ -1,0 +1,35 @@
+BESS MOTORS — как запустить сайт
+================================
+
+1) Установите Node.js LTS (если ещё нет):
+   https://nodejs.org
+
+2) Дважды щёлкните файл:
+   ZAPUSK-SAJTA.bat
+
+   Сайт откроется: http://localhost:3000
+
+3) Админ CRM:
+   Телефон: +48888838688
+   Пароль:  11788245@illia
+   Страница: http://localhost:3000/crm
+
+4) Клиентский кабинет:
+   http://localhost:3000/cabinet
+   Вход: телефон + госномер автомобиля
+
+5) Если сайт не открывается (ошибка 500, белый экран):
+   - закройте ВСЕ окна с npm/node
+   - запустите ZAPUSK-SAJTA.bat (он сам очистит кэш)
+   - в браузере Ctrl+F5
+   - НЕ запускайте "npm run build" пока сайт работает в dev
+
+6) Если видите "Cannot find module ./331.js":
+   - это сломанный кэш .next — только ZAPUSK-SAJTA.bat
+
+6) Резервная копия проекта:
+   powershell -ExecutionPolicy Bypass -File scripts\backup.ps1
+   Архив появится в папке website на рабочем столе.
+
+Папка проекта: bess-motors
+Не удаляйте: package.json, package-lock.json, public, src

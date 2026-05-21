@@ -28,10 +28,27 @@ export interface Vehicle {
   make: string;
   model: string;
   engine: string;
+  engineVolume?: string;
   trim: string;
   power: string;
   transmission: string;
+  drivetrain?: string;
+  year?: string;
+  color?: string;
+  fuelType?: string;
+  notes?: string;
   userId: string;
+}
+
+export interface VehicleHistoryEntry {
+  id: string;
+  vehicleId: string;
+  userId: string;
+  changedAt: string;
+  changedBy: string;
+  field: string;
+  oldValue: string;
+  newValue: string;
 }
 
 export interface User {
@@ -49,14 +66,24 @@ export interface User {
 
 export type ConfirmationStatus = "awaiting_confirmation" | "confirmed";
 
+/** Client-facing document lifecycle */
+export type DocumentStatus =
+  | "awaiting_signature"
+  | "signed"
+  | "in_progress"
+  | "completed"
+  | "delivered";
+
 export interface OrderSignature {
   dataUrl: string;
   signedAt: string;
   signedBy: string;
   ip: string;
   userAgent: string;
+  deviceInfo?: string;
   priceAgreed: boolean;
   repairAgreed: boolean;
+  confirmationText?: string;
 }
 
 export interface WorkOrderLine {
@@ -70,11 +97,25 @@ export interface WorkOrderLine {
 export interface PartLine {
   id: string;
   name: string;
+  /** Catalog / OEM number — CRM only */
+  partNumber?: string;
+  /** Supplier / brand — CRM only */
+  supplier?: string;
   qty: number;
   purchasePrice: number;
   sellPrice: number;
   discount: number;
 }
+
+export type PaymentMethod =
+  | "cash"
+  | "cash_receipt"
+  | "card"
+  | "transfer"
+  | "blik"
+  | "card_cash";
+
+export type PaymentStatus = "unpaid" | "paid";
 
 export interface AttachedFile {
   id: string;
@@ -106,9 +147,19 @@ export interface WorkOrder {
   createdAt: string;
   updatedAt: string;
   confirmationStatus: ConfirmationStatus;
+  documentStatus?: DocumentStatus;
+  /** VAT on client total (net + VAT) */
+  vatEnabled?: boolean;
   signature?: OrderSignature;
   /** @deprecated use signature.dataUrl */
   clientSignature?: string;
+  paymentStatus?: PaymentStatus;
+  paymentMethod?: PaymentMethod;
+  paidAt?: string;
+  /** For paymentMethod card_cash — cash portion (PLN) */
+  paidCashAmount?: number;
+  /** For paymentMethod card_cash — card/transfer portion (PLN) */
+  paidCardAmount?: number;
 }
 
 export interface ServiceExpense {
@@ -130,9 +181,41 @@ export interface MechanicProfile {
 export interface AppSettings {
   defaultLaborPercent: number;
   defaultPartsPercent: number;
+  /** Default VAT % (Poland 23%) */
+  vatRate: number;
+  vatEnabledByDefault: boolean;
+}
+
+export interface PasswordResetRecord {
+  id: string;
+  phone: string;
+  codeHash: string;
+  expiresAt: string;
+  attempts: number;
+  verified: boolean;
+  resetToken?: string;
+  tokenExpiresAt?: string;
+  createdAt: string;
 }
 
 export type AppointmentStatus = "scheduled" | "confirmed" | "completed" | "cancelled";
+
+export type CallRequestStatus = "needs_call" | "called" | "done";
+
+export type OrderSource = "website" | "manual";
+
+export interface CallRequest {
+  id: string;
+  phone: string;
+  clientName?: string;
+  userId: string;
+  serviceId: string;
+  serviceLabel: string;
+  comment: string;
+  status: CallRequestStatus;
+  source?: OrderSource;
+  createdAt: string;
+}
 
 export interface Appointment {
   id: string;
@@ -146,6 +229,9 @@ export interface Appointment {
   appointmentStatus: AppointmentStatus;
   workOrderId?: string;
   comment: string;
+  clientName?: string;
+  clientPhone?: string;
+  source?: OrderSource;
   createdAt: string;
 }
 
@@ -160,101 +246,57 @@ export interface WarehouseItem {
   qrCode: string;
 }
 
+import { notifyDbChanged } from "./db-events";
+
 const STORAGE_KEY = "bess-motors-db";
+/** One-time wipe of all client accounts from localStorage */
+const PURGE_CLIENTS_MIGRATION_KEY = "bess-motors-migration:purge-clients-v1";
+
+/** Remove every client user and related records; keep admin, mechanics, CRM data */
+export function purgeAllClientsFromDb(db: Database): Database {
+  const clientIds = new Set(
+    db.users.filter((u) => u.role === "client").map((u) => u.id)
+  );
+  return {
+    ...db,
+    users: db.users.filter((u) => u.role !== "client"),
+    vehicles: db.vehicles.filter((v) => !clientIds.has(v.userId)),
+    workOrders: db.workOrders.filter((w) => !clientIds.has(w.userId)),
+    appointments: db.appointments.filter((a) => !clientIds.has(a.userId)),
+    callRequests: db.callRequests.filter((c) => !clientIds.has(c.userId)),
+    vehicleHistory: db.vehicleHistory.filter((h) => !clientIds.has(h.userId)),
+    passwordResets: [],
+    currentUserId:
+      db.currentUserId && clientIds.has(db.currentUserId) ? null : db.currentUserId,
+  };
+}
 
 export interface Database {
   users: User[];
   vehicles: Vehicle[];
   workOrders: WorkOrder[];
   appointments: Appointment[];
+  callRequests: CallRequest[];
+  vehicleHistory: VehicleHistoryEntry[];
   warehouse: WarehouseItem[];
   expenses: ServiceExpense[];
   mechanics: MechanicProfile[];
   settings: AppSettings;
+  passwordResets: PasswordResetRecord[];
   currentUserId: string | null;
 }
-
-const sampleOrder: WorkOrder = {
-  id: "wo1",
-  number: "BM-2025-0042",
-  userId: "client-demo",
-  vehicleId: "v1",
-  status: "repair",
-  mechanicId: "mech-1",
-  mechanicLaborPercent: -1,
-  mechanicPartsPercent: -1,
-  orderDiscount: 5,
-  internalNotes: "Sprawdzić układ wydechowy przy odbiorze",
-  clientNotes: "Proszę o kontakt przed rozpoczęciem prac",
-  files: [],
-  warrantyUntil: "2026-05-15",
-  createdAt: "2025-05-15",
-  updatedAt: "2025-05-15",
-  confirmationStatus: "awaiting_confirmation",
-  services: [
-    { id: "s1", name: "Diagnostyka komputerowa", qty: 1, price: 250, discount: 0 },
-    { id: "s2", name: "Wymiana oleju", qty: 1, price: 180, discount: 10 },
-  ],
-  parts: [
-    { id: "p1", name: "Filtr oleju", qty: 1, purchasePrice: 25, sellPrice: 45, discount: 0 },
-    { id: "p2", name: "Olej 5W30 5L", qty: 1, purchasePrice: 80, sellPrice: 140, discount: 0 },
-  ],
-};
 
 const defaultDb: Database = {
   users: [
     { id: "admin-1", phone: "+48888838688", name: "Administrator BESS MOTORS", role: "admin", createdAt: "2024-01-01" },
     { id: "mech-1", phone: "+48987654321", name: "Jan Kowalski", role: "mechanic", createdAt: "2024-01-01" },
     { id: "mech-2", phone: "+48911122233", name: "Piotr Nowak", role: "mechanic", createdAt: "2024-02-01" },
-    {
-      id: "client-demo",
-      phone: "+48555111222",
-      password: "demo123",
-      name: "Michał Kowalski",
-      role: "client",
-      createdAt: "2024-06-01",
-    },
-    {
-      id: "client-example",
-      phone: "+48123123123",
-      password: "clientpassword",
-      name: "Jan Klient",
-      role: "client",
-      createdAt: "2025-01-01",
-    },
   ],
-  vehicles: [
-    {
-      id: "v1",
-      vin: "WBA3A5C50EK123456",
-      plate: "WA 12345",
-      mileage: 85000,
-      make: "BMW",
-      model: "320d",
-      engine: "2.0 Diesel",
-      trim: "M Sport",
-      power: "190 HP",
-      transmission: "Automatic",
-      userId: "client-demo",
-    },
-  ],
-  workOrders: [sampleOrder],
-  appointments: [
-    {
-      id: "apt-1",
-      userId: "client-demo",
-      vehicleId: "v1",
-      serviceIds: ["diagnostic", "oil"],
-      date: new Date().toISOString().slice(0, 10),
-      time: "10:00",
-      mechanicId: "mech-1",
-      repairStatus: "received",
-      appointmentStatus: "scheduled",
-      workOrderId: "wo1",
-      comment: "Kontrola + olej",
-      createdAt: "2025-05-10",
-    },
-  ],
+  vehicles: [],
+  workOrders: [],
+  callRequests: [],
+  vehicleHistory: [],
+  appointments: [],
   expenses: [
     { id: "ex1", category: "rent", description: "Czynsz warsztat", amount: 4500, date: "2025-05-01" },
     { id: "ex2", category: "utilities", description: "Prąd + woda", amount: 680, date: "2025-05-05" },
@@ -263,13 +305,24 @@ const defaultDb: Database = {
     { id: "mech-1", name: "Jan Kowalski", laborPercent: 50, partsPercent: 50, bonusPerOrder: 0 },
     { id: "mech-2", name: "Piotr Nowak", laborPercent: 50, partsPercent: 50, bonusPerOrder: 0 },
   ],
-  settings: { defaultLaborPercent: 50, defaultPartsPercent: 50 },
+  settings: { defaultLaborPercent: 50, defaultPartsPercent: 50, vatRate: 23, vatEnabledByDefault: true },
+  passwordResets: [],
   warehouse: [
     { id: "wh1", name: "Filtr oleju Mann", sku: "HU7008z", qty: 24, purchasePrice: 22, sellPrice: 45, supplier: "Inter Cars", qrCode: "BM-WH-001" },
     { id: "wh2", name: "Klocki hamulcowe Brembo", sku: "P85020", qty: 12, purchasePrice: 120, sellPrice: 220, supplier: "Auto Partner", qrCode: "BM-WH-002" },
   ],
   currentUserId: null,
 };
+
+export function deriveDocumentStatus(
+  repairStatus: RepairStatus,
+  confirmationStatus: ConfirmationStatus
+): DocumentStatus {
+  if (confirmationStatus !== "confirmed") return "awaiting_signature";
+  if (repairStatus === "delivered") return "delivered";
+  if (repairStatus === "ready") return "completed";
+  return "in_progress";
+}
 
 function migrateWorkOrder(o: Partial<WorkOrder> & { id: string; mechanicCommissionPercent?: number }): WorkOrder {
   const legacy = o as { mechanicCommissionPercent?: number };
@@ -281,6 +334,9 @@ function migrateWorkOrder(o: Partial<WorkOrder> & { id: string; mechanicCommissi
   const confirmationStatus =
     o.confirmationStatus ??
     (o.signature || o.clientSignature ? "confirmed" : "awaiting_confirmation");
+  const documentStatus =
+    o.documentStatus ??
+    deriveDocumentStatus(o.status ?? "received", confirmationStatus);
   let signature = o.signature;
   if (!signature && o.clientSignature) {
     signature = {
@@ -302,10 +358,22 @@ function migrateWorkOrder(o: Partial<WorkOrder> & { id: string; mechanicCommissi
     mechanicLaborPercent: labor,
     mechanicPartsPercent: parts,
     confirmationStatus,
+    documentStatus,
+    vatEnabled: o.vatEnabled ?? true,
     signature,
     services: o.services ?? [],
-    parts: (o.parts ?? []).map((p) => ({ ...p, discount: p.discount ?? 0 })),
+    parts: (o.parts ?? []).map((p) => ({
+      ...p,
+      discount: p.discount ?? 0,
+      partNumber: p.partNumber ?? "",
+      supplier: p.supplier ?? "",
+    })),
     files: o.files ?? [],
+    paymentStatus: o.paymentStatus ?? "unpaid",
+    paymentMethod: o.paymentMethod,
+    paidAt: o.paidAt,
+    paidCashAmount: o.paidCashAmount,
+    paidCardAmount: o.paidCardAmount,
   } as WorkOrder;
 }
 
@@ -324,6 +392,27 @@ function migrateAppointment(a: Partial<Appointment> & { serviceId?: string }): A
   } as Appointment;
 }
 
+function migrateVehicle(v: Partial<Vehicle> & { id: string; userId: string }): Vehicle {
+  return {
+    vin: v.vin ?? "",
+    plate: v.plate ?? "",
+    mileage: v.mileage ?? 0,
+    make: v.make ?? "",
+    model: v.model ?? "",
+    engine: v.engine ?? "",
+    engineVolume: v.engineVolume ?? "",
+    trim: v.trim ?? "",
+    power: v.power ?? "",
+    transmission: v.transmission ?? "",
+    drivetrain: v.drivetrain ?? "",
+    year: v.year ?? "",
+    color: v.color ?? "",
+    fuelType: v.fuelType ?? "",
+    notes: v.notes ?? "",
+    ...v,
+  } as Vehicle;
+}
+
 function migrateMechanic(m: Partial<MechanicProfile> & { id: string; commissionPercent?: number }): MechanicProfile {
   const legacy = m as { commissionPercent?: number };
   return {
@@ -335,25 +424,45 @@ function migrateMechanic(m: Partial<MechanicProfile> & { id: string; commissionP
   };
 }
 
+function mergeStoredDb(parsed: Partial<Database>): Database {
+  return {
+    ...defaultDb,
+    ...parsed,
+    workOrders: (parsed.workOrders ?? defaultDb.workOrders).map(migrateWorkOrder),
+    appointments: (parsed.appointments ?? defaultDb.appointments).map(migrateAppointment),
+    callRequests: parsed.callRequests ?? defaultDb.callRequests,
+    vehicleHistory: parsed.vehicleHistory ?? defaultDb.vehicleHistory,
+    vehicles: (parsed.vehicles ?? defaultDb.vehicles).map(migrateVehicle),
+    expenses: parsed.expenses ?? defaultDb.expenses,
+    mechanics: (parsed.mechanics ?? defaultDb.mechanics).map(migrateMechanic),
+    settings: {
+      ...defaultDb.settings,
+      ...(parsed.settings ?? {}),
+    },
+    passwordResets: parsed.passwordResets ?? defaultDb.passwordResets,
+  };
+}
+
 export function loadDb(): Database {
   if (typeof window === "undefined") return defaultDb;
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
+    let db: Database;
     if (raw) {
       const parsed = JSON.parse(raw) as Partial<Database>;
-      return {
-        ...defaultDb,
-        ...parsed,
-        workOrders: (parsed.workOrders ?? defaultDb.workOrders).map(migrateWorkOrder),
-        appointments: (parsed.appointments ?? defaultDb.appointments).map(migrateAppointment),
-        expenses: parsed.expenses ?? defaultDb.expenses,
-        mechanics: (parsed.mechanics ?? defaultDb.mechanics).map(migrateMechanic),
-        settings: {
-          ...defaultDb.settings,
-          ...(parsed.settings ?? {}),
-        },
-      };
+      db = mergeStoredDb(parsed);
+    } else {
+      db = { ...defaultDb };
     }
+
+    if (!localStorage.getItem(PURGE_CLIENTS_MIGRATION_KEY)) {
+      const purged = purgeAllClientsFromDb(db);
+      saveDb(purged);
+      localStorage.setItem(PURGE_CLIENTS_MIGRATION_KEY, "1");
+      return purged;
+    }
+
+    return db;
   } catch {
     /* ignore */
   }
@@ -364,6 +473,7 @@ export function saveDb(db: Database): void {
   if (typeof window === "undefined") return;
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
+    notifyDbChanged();
   } catch {
     /* quota or private mode — avoid crashing the app */
   }

@@ -13,8 +13,10 @@ import {
   Settings,
   Calendar,
   CalendarDays,
+  Flame,
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
+import { useHotOrdersBadgeCount } from "@/components/crm/HotOrdersPanel";
 
 type NavItem = {
   href: string;
@@ -36,9 +38,11 @@ function DashboardLayoutInner({
   const searchParams = useSearchParams();
   const tab = searchParams.get("tab");
   const c = t.crm;
+  const hotBadge = useHotOrdersBadgeCount();
 
   const adminNav: NavItem[] = [
     { href: "/crm", path: "/crm", icon: LayoutDashboard, label: c.dashboard, tab: null },
+    { href: "/crm?tab=hot", path: "/crm", icon: Flame, label: c.hotOrders, tab: "hot" },
     { href: "/crm/work-orders", path: "/crm/work-orders", icon: FileText, label: c.workOrders },
     { href: "/crm/calendar", path: "/crm/calendar", icon: Calendar, label: t.calendar.title },
     { href: "/crm/appointments", path: "/crm/appointments", icon: CalendarDays, label: t.calendar.appointmentsTitle },
@@ -92,7 +96,12 @@ function DashboardLayoutInner({
                 )}
               >
                 <Icon size={18} />
-                {item.label}
+                <span className="flex-1">{item.label}</span>
+                {item.tab === "hot" && hotBadge > 0 && (
+                  <span className="hot-badge-pulse min-w-[20px] h-5 px-1.5 rounded-full bg-bm-red text-[10px] font-bold flex items-center justify-center">
+                    {hotBadge}
+                  </span>
+                )}
               </Link>
             );
           })}

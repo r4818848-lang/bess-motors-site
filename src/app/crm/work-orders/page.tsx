@@ -1,15 +1,18 @@
 "use client";
 
-import { useState, useEffect, useCallback, Suspense } from "react";
+import { useState, useEffect, useCallback, Suspense, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Plus, Pencil, LogOut } from "lucide-react";
+import { SignLinkShareBlock } from "@/components/work-order/SignLinkShareBlock";
 import { useI18n } from "@/lib/i18n/context";
 import { DashboardLayout } from "@/components/crm/DashboardLayout";
 import { WorkOrderForm } from "@/components/crm/WorkOrderForm";
 import { logoutAdmin } from "@/lib/auth";
 import { loadDb } from "@/lib/store";
 import { calcClientTotal } from "@/lib/workorder-calc";
+import { filterWorkOrders, defaultWorkOrderFilters } from "@/lib/workorder-filters";
+import { WorkOrderFilters } from "@/components/crm/WorkOrderFilters";
 import { Button } from "@/components/ui/Button";
 
 function WorkOrdersPageContent() {
@@ -21,6 +24,7 @@ function WorkOrdersPageContent() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [tick, setTick] = useState(0);
+  const [filters, setFilters] = useState(defaultWorkOrderFilters);
 
   const refresh = useCallback(() => setTick((n) => n + 1), []);
 
@@ -31,6 +35,16 @@ function WorkOrdersPageContent() {
 
   const db = loadDb();
   void tick;
+  const pm = t.paymentMethods;
+  const ps = t.paymentStatus;
+
+  const filteredOrders = useMemo(
+    () =>
+      filterWorkOrders([...db.workOrders], filters).sort((a, b) =>
+        b.createdAt.localeCompare(a.createdAt)
+      ),
+    [db.workOrders, filters]
+  );
 
   if (creating || editingId) {
     return (
@@ -82,22 +96,27 @@ function WorkOrdersPageContent() {
           </div>
         </div>
 
+        <WorkOrderFilters filters={filters} onChange={setFilters} />
+
         <div className="glass-red rounded-xl overflow-hidden neon-border">
           <table className="dashboard-table">
             <thead>
               <tr>
                 <th>#</th>
                 <th>{c.status}</th>
+                <th>{t.wo.paymentMethodLabel}</th>
                 <th>{c.date}</th>
                 <th>{c.client}</th>
                 <th>Auto</th>
                 <th>{c.total}</th>
+                <th>{t.document.documentStatus}</th>
                 <th>{sig.adminSigned}</th>
+                <th>{t.document.signLinkTitle}</th>
                 <th></th>
               </tr>
             </thead>
             <tbody>
-              {[...db.workOrders].reverse().map((order) => {
+              {filteredOrders.map((order) => {
                 const client = db.users.find((u) => u.id === order.userId);
                 const vehicle = db.vehicles.find((v) => v.id === order.vehicleId);
                 return (
@@ -108,12 +127,36 @@ function WorkOrdersPageContent() {
                         {t.repairStatus[order.status]}
                       </span>
                     </td>
+                    <td className="text-xs">
+                      {order.paymentStatus === "paid" && order.paymentMethod ? (
+                        <span className="text-green-400">{pm[order.paymentMethod]}</span>
+                      ) : (
+                        <span className="text-amber-400">{ps.unpaid}</span>
+                      )}
+                    </td>
                     <td>{order.createdAt}</td>
                     <td>{client?.name ?? "—"}</td>
                     <td>
                       {vehicle ? `${vehicle.make} ${vehicle.model}` : "—"}
                     </td>
                     <td className="font-mono">{calcClientTotal(order).toFixed(2)} zł</td>
+                    <td>
+                      <span
+                        className={`status-pill text-[10px] ${
+                          order.documentStatus === "awaiting_signature"
+                            ? "doc-status-awaiting"
+                            : order.documentStatus === "signed"
+                              ? "doc-status-signed"
+                              : order.documentStatus === "delivered"
+                                ? "doc-status-delivered"
+                                : order.documentStatus === "completed"
+                                  ? "doc-status-completed"
+                                  : "doc-status-progress"
+                        }`}
+                      >
+                        {t.documentStatus[order.documentStatus ?? "awaiting_signature"]}
+                      </span>
+                    </td>
                     <td>
                       {order.confirmationStatus === "confirmed" ? (
                         <span className="text-[10px] text-green-400">
@@ -129,10 +172,18 @@ function WorkOrdersPageContent() {
                       )}
                     </td>
                     <td>
+                      {client ? (
+                        <SignLinkShareBlock order={order} client={client} inline />
+                      ) : (
+                        <span className="text-bm-muted text-xs">—</span>
+                      )}
+                    </td>
+                    <td>
                       <button
                         type="button"
                         onClick={() => setEditingId(order.id)}
                         className="text-bm-red hover:text-white p-2"
+                        title={w.editOrder}
                       >
                         <Pencil size={16} />
                       </button>

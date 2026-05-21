@@ -1,21 +1,5 @@
-export const serviceCategories = [
-  { id: "oil", icon: "Droplets" },
-  { id: "diagnostic", icon: "Scan" },
-  { id: "electric", icon: "Zap" },
-  { id: "suspension", icon: "Settings" },
-  { id: "brakes", icon: "Disc" },
-  { id: "engine", icon: "Cog" },
-  { id: "transmission", icon: "Settings2" },
-  { id: "ac", icon: "Wind" },
-  { id: "detailing", icon: "Sparkles" },
-  { id: "polish", icon: "Sun" },
-  { id: "paint", icon: "Paintbrush" },
-  { id: "stage1", icon: "Gauge" },
-  { id: "stage2", icon: "Gauge" },
-  { id: "chip", icon: "Cpu" },
-  { id: "turbo", icon: "Fan" },
-  { id: "exhaust", icon: "Flame" },
-] as const;
+export { popularServices, serviceCategories, serviceFlows } from "./services-catalog";
+export type { ServiceId } from "./services-catalog";
 
 export const mechanics = [
   { id: "mech-1", name: "Jan Kowalski", specialty: "Engine / Tuning", rating: 4.9 },

@@ -57,6 +57,34 @@
     text-shadow: 0 0 20px rgba(225, 6, 0, 0.6), 0 0 40px rgba(225, 6, 0, 0.3);
   }
 
+  .hot-order-call-pulse {
+    animation: hot-call-glow 2s ease-in-out infinite;
+  }
+
+  .hot-badge-pulse {
+    animation: hot-badge-glow 1.5s ease-in-out infinite;
+  }
+
+  @keyframes hot-call-glow {
+    0%,
+    100% {
+      box-shadow: 0 0 12px rgba(251, 146, 60, 0.25), inset 0 0 0 1px rgba(251, 146, 60, 0.4);
+    }
+    50% {
+      box-shadow: 0 0 28px rgba(251, 146, 60, 0.45), inset 0 0 0 1px rgba(251, 146, 60, 0.7);
+    }
+  }
+
+  @keyframes hot-badge-glow {
+    0%,
+    100% {
+      box-shadow: 0 0 8px rgba(225, 6, 0, 0.4);
+    }
+    50% {
+      box-shadow: 0 0 20px rgba(225, 6, 0, 0.7);
+    }
+  }
+
   .metallic {
     background: linear-gradient(
       135deg,
@@ -126,5 +154,408 @@
 
   .status-pill {
     @apply inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide;
+  }
+
+  .doc-status-awaiting {
+    @apply bg-amber-500/20 text-amber-400;
+    box-shadow: 0 0 12px rgba(251, 191, 36, 0.25);
+  }
+
+  .doc-status-signed {
+    @apply bg-emerald-500/20 text-emerald-400;
+    box-shadow: 0 0 12px rgba(52, 211, 153, 0.25);
+  }
+
+  .doc-status-progress {
+    @apply bg-blue-500/20 text-blue-400;
+  }
+
+  .doc-status-completed {
+    @apply bg-bm-red/20 text-bm-red;
+    box-shadow: 0 0 12px rgba(225, 6, 0, 0.3);
+  }
+
+  .doc-status-delivered {
+    @apply bg-white/10 text-white;
+  }
+
+  .service-timeline-line {
+    @apply absolute left-[11px] top-8 bottom-0 w-0.5 bg-gradient-to-b from-bm-red/80 to-bm-border;
+  }
+
+  .animate-fade-in {
+    animation: fade-in-up 0.4s ease-out both;
+  }
+
+  /* Premium work order — BESS MOTORS banner (carbon + neon) */
+  .wo-carbon-texture {
+    background-color: #0a0a0a;
+    background-image:
+      linear-gradient(
+        180deg,
+        rgba(10, 10, 10, 0.97) 0%,
+        rgba(14, 14, 14, 0.92) 50%,
+        rgba(10, 10, 10, 0.97) 100%
+      ),
+      repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(255, 255, 255, 0.018) 2px,
+        rgba(255, 255, 255, 0.018) 3px
+      );
+  }
+
+  .wo-glow-br {
+    background: radial-gradient(
+      ellipse 70% 55% at 92% 88%,
+      rgba(225, 6, 0, 0.22) 0%,
+      rgba(225, 6, 0, 0.06) 40%,
+      transparent 72%
+    );
+  }
+
+  .wo-forged-carbon {
+    background-image: url("/images/forged-carbon.png");
+    background-size: cover;
+    background-position: center;
+  }
+
+  .wo-premium-root.wo-premium-color {
+    @apply relative overflow-hidden rounded-2xl;
+    box-shadow:
+      0 0 0 1px rgba(225, 6, 0, 0.18),
+      0 0 60px rgba(225, 6, 0, 0.08),
+      0 32px 80px rgba(0, 0, 0, 0.75);
+  }
+
+  .wo-premium-root.wo-premium-color::after {
+    content: "";
+    @apply absolute inset-0 pointer-events-none;
+    background: rgba(0, 0, 0, 0.72);
+  }
+
+  .wo-premium-root.wo-premium-color > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  .wo-premium-root.wo-premium-color::before {
+    content: "";
+    @apply absolute inset-0 pointer-events-none wo-glow-br z-[1];
+  }
+
+  .wo-premium-root.wo-premium-bw {
+    @apply relative overflow-hidden rounded-2xl bg-white text-black;
+    box-shadow:
+      0 0 0 1px rgba(0, 0, 0, 0.12),
+      0 16px 48px rgba(0, 0, 0, 0.12);
+  }
+
+  .wo-premium-bw .wo-premium-header {
+    background: #f4f4f4 !important;
+    border-bottom: 2px solid #000 !important;
+  }
+
+  .wo-premium-bw .wo-premium-slogan {
+    color: #111 !important;
+    text-shadow: none !important;
+  }
+
+  .wo-premium-bw .wo-premium-badge-outline {
+    color: #000 !important;
+    border-color: #000 !important;
+    box-shadow: none !important;
+    border-radius: 9999px !important;
+  }
+
+  .wo-premium-bw .wo-premium-logo-glow {
+    filter: grayscale(1) contrast(1.1) !important;
+  }
+
+  .wo-premium-bw .wo-premium-section-title {
+    @apply text-black;
+  }
+
+  .wo-premium-bw .wo-premium-section-title::after {
+    background: linear-gradient(90deg, rgba(0, 0, 0, 0.5), transparent);
+  }
+
+  .wo-premium-bw .wo-premium-card {
+    background: #f8f8f8 !important;
+    border-color: #999 !important;
+    box-shadow: none !important;
+  }
+
+  .wo-premium-bw .wo-premium-card:hover {
+    border-color: #333 !important;
+    box-shadow: none !important;
+  }
+
+  .wo-premium-bw .wo-premium-table thead tr {
+    background: linear-gradient(90deg, #333, #666, #eee) !important;
+  }
+
+  .wo-premium-bw .wo-premium-table tbody tr {
+    background: #fff !important;
+  }
+
+  .wo-premium-bw .wo-premium-table tbody tr:nth-child(even) {
+    background: #f5f5f5 !important;
+  }
+
+  .wo-premium-bw .wo-premium-table td {
+    @apply text-gray-800 border-gray-200;
+  }
+
+  .wo-premium-bw .wo-premium-table td:last-child,
+  .wo-premium-bw .text-bm-red,
+  .wo-premium-bw .font-mono.text-bm-red {
+    color: #000 !important;
+  }
+
+  .wo-premium-bw .wo-premium-total {
+    background: #f4f4f4 !important;
+    border-color: #000 !important;
+    box-shadow: none !important;
+  }
+
+  .wo-premium-bw .wo-premium-total-amount {
+    color: #000 !important;
+    text-shadow: none !important;
+  }
+
+  .wo-premium-bw .wo-premium-total::after {
+    display: none;
+  }
+
+  .wo-doc-icon-btn {
+    @apply inline-flex items-center justify-center w-10 h-10 rounded-full
+      border border-bm-red/55 bg-bm-black/90 text-bm-red
+      transition-all duration-200 shrink-0;
+    box-shadow:
+      0 0 14px rgba(225, 6, 0, 0.35),
+      inset 0 0 12px rgba(225, 6, 0, 0.06);
+  }
+
+  .wo-doc-icon-btn:hover:not(:disabled) {
+    @apply border-bm-red text-white bg-bm-red/20;
+    box-shadow:
+      0 0 22px rgba(225, 6, 0, 0.55),
+      0 0 40px rgba(225, 6, 0, 0.2);
+    transform: translateY(-1px);
+  }
+
+  .wo-doc-icon-btn:disabled {
+    @apply opacity-40 cursor-not-allowed;
+  }
+
+  .wo-doc-icon-btn-active {
+    @apply border-bm-red bg-bm-red/25 text-white;
+    box-shadow: 0 0 24px rgba(225, 6, 0, 0.6);
+  }
+
+  .wo-premium-header {
+    @apply relative overflow-hidden px-6 py-10 sm:px-12 sm:py-12 border-b border-bm-red/20;
+    background: linear-gradient(
+      180deg,
+      rgba(12, 12, 12, 0.98) 0%,
+      rgba(8, 8, 8, 0.95) 100%
+    );
+  }
+
+  .wo-premium-scan {
+    @apply absolute left-0 right-0 h-px pointer-events-none opacity-70;
+    background: linear-gradient(90deg, transparent, rgba(225, 6, 0, 0.5), transparent);
+    animation: scan-line 4s linear infinite;
+  }
+
+  .wo-premium-slogan {
+    @apply font-display font-bold uppercase text-white leading-[1.15] tracking-wide;
+    text-shadow:
+      0 0 40px rgba(225, 6, 0, 0.25),
+      0 2px 24px rgba(0, 0, 0, 0.8);
+  }
+
+  .wo-premium-badge-outline {
+    @apply inline-flex items-center justify-center px-4 py-2.5 rounded-full text-[11px] font-display font-bold uppercase tracking-[0.12em] text-bm-red;
+    background: transparent;
+    border: 1px solid rgba(225, 6, 0, 0.85);
+    box-shadow: 0 0 16px rgba(225, 6, 0, 0.12);
+    transition: border-color 0.25s, box-shadow 0.25s;
+  }
+
+  .wo-premium-badge-outline:hover {
+    border-color: #e10600;
+    box-shadow: 0 0 20px rgba(225, 6, 0, 0.35);
+  }
+
+  .wo-premium-logo-glow {
+    filter: drop-shadow(0 0 28px rgba(225, 6, 0, 0.55));
+  }
+
+  .wo-premium-card {
+    @apply rounded-xl p-5 sm:p-7 backdrop-blur-md transition-all duration-300 relative;
+    background: linear-gradient(
+      155deg,
+      rgba(22, 22, 22, 0.92) 0%,
+      rgba(12, 12, 12, 0.88) 100%
+    );
+    border: 1px solid rgba(225, 6, 0, 0.22);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.04),
+      0 8px 32px rgba(0, 0, 0, 0.45);
+  }
+
+  .wo-premium-card::before {
+    content: "";
+    @apply absolute top-0 left-4 right-4 h-px pointer-events-none;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(192, 192, 192, 0.25),
+      transparent
+    );
+  }
+
+  .wo-premium-card:hover {
+    border-color: rgba(225, 6, 0, 0.4);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.06),
+      0 0 36px rgba(225, 6, 0, 0.1);
+  }
+
+  .wo-premium-section-title {
+    @apply font-display text-[10px] uppercase tracking-[0.28em] text-bm-red flex items-center gap-3;
+  }
+
+  .wo-premium-section-title::after {
+    content: "";
+    @apply flex-1 h-px max-w-[120px];
+    background: linear-gradient(90deg, rgba(225, 6, 0, 0.6), transparent);
+  }
+
+  .wo-premium-table-wrap {
+    @apply rounded-xl overflow-hidden relative;
+    border: 1px solid rgba(225, 6, 0, 0.22);
+    box-shadow:
+      0 0 0 1px rgba(0, 0, 0, 0.5),
+      0 12px 40px rgba(0, 0, 0, 0.4);
+  }
+
+  .wo-premium-table {
+    @apply w-full text-sm;
+  }
+
+  .wo-premium-table thead tr {
+    background: linear-gradient(
+      90deg,
+      rgba(225, 6, 0, 0.95) 0%,
+      rgba(160, 4, 0, 0.9) 35%,
+      rgba(26, 26, 26, 0.98) 100%
+    );
+  }
+
+  .wo-premium-table th {
+    @apply px-4 py-3.5 text-left text-[10px] font-display uppercase tracking-[0.2em] text-white/95;
+  }
+
+  .wo-premium-table tbody tr {
+    @apply transition-all duration-200;
+    background: rgba(8, 8, 8, 0.75);
+  }
+
+  .wo-premium-table tbody tr:nth-child(even) {
+    background: rgba(16, 16, 16, 0.8);
+  }
+
+  .wo-premium-table tbody tr:hover {
+    background: rgba(225, 6, 0, 0.06);
+  }
+
+  .wo-premium-table td {
+    @apply px-4 py-3.5 border-b border-white/[0.04] text-bm-silver;
+  }
+
+  .wo-premium-total {
+    @apply rounded-2xl p-7 sm:p-9 relative overflow-hidden;
+    background: linear-gradient(
+      160deg,
+      rgba(18, 18, 18, 0.98) 0%,
+      rgba(8, 8, 8, 0.96) 100%
+    );
+    border: 1px solid rgba(225, 6, 0, 0.45);
+    box-shadow:
+      0 0 50px rgba(225, 6, 0, 0.15),
+      inset 0 0 80px rgba(225, 6, 0, 0.04);
+  }
+
+  .wo-premium-total::after {
+    content: "";
+    @apply absolute -bottom-8 -right-8 w-40 h-40 pointer-events-none rounded-full;
+    background: radial-gradient(circle, rgba(225, 6, 0, 0.2) 0%, transparent 70%);
+  }
+
+  .wo-premium-total-amount {
+    @apply font-display font-black text-bm-red font-mono tracking-tight;
+    text-shadow:
+      0 0 32px rgba(225, 6, 0, 0.65),
+      0 0 64px rgba(225, 6, 0, 0.25);
+  }
+
+  .wo-premium-photo-frame {
+    @apply relative rounded-lg overflow-hidden aspect-video cursor-pointer transition-all duration-300;
+    border: 1px solid rgba(225, 6, 0, 0.4);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+  }
+
+  .wo-premium-photo-frame:hover {
+    border-color: rgba(225, 6, 0, 0.85);
+    box-shadow: 0 0 36px rgba(225, 6, 0, 0.3);
+    transform: translateY(-2px);
+  }
+
+  .wo-premium-body {
+    @apply relative px-4 sm:px-10 py-8 sm:py-10 space-y-10;
+  }
+
+  @keyframes fade-in-up {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  #work-order-print,
+  #work-order-print * {
+    visibility: visible;
+  }
+
+  #work-order-print {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  #work-order-print.wo-premium-color,
+  #work-order-print.wo-premium-color ~ * {
+    background: transparent;
+  }
+
+  #work-order-print.wo-premium-bw {
+    background: #fff !important;
   }
 }

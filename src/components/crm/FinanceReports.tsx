@@ -8,6 +8,7 @@ import {
   calcPartsProfit,
   calcMechanicEarnings,
 } from "@/lib/workorder-calc";
+import { aggregatePaymentBreakdown } from "@/lib/payment";
 import { AnalyticsCharts } from "./AnalyticsCharts";
 import { Card } from "@/components/ui/Card";
 
@@ -40,6 +41,7 @@ export function FinanceReports() {
   const { t } = useI18n();
   const w = t.wo;
   const c = t.crm;
+  const pm = t.paymentMethods;
   const db = loadDb();
   const [period, setPeriod] = useState<Period>("month");
   const [dateFrom, setDateFrom] = useState("2025-01-01");
@@ -72,6 +74,8 @@ export function FinanceReports() {
     });
     const topClient = [...clientTotals.entries()].sort((a, b) => b[1] - a[1])[0];
 
+    const payments = aggregatePaymentBreakdown(orders);
+
     return {
       revenue,
       partsProfit,
@@ -81,6 +85,7 @@ export function FinanceReports() {
       avgCheck,
       orderCount: orders.length,
       topClient,
+      payments,
     };
   }, [db, period, dateFrom, dateTo]);
 
@@ -146,6 +151,52 @@ export function FinanceReports() {
           </span>
         </p>
       )}
+
+      <div className="glass-red rounded-xl p-6 neon-border space-y-4">
+        <h3 className="font-display text-sm uppercase text-bm-red font-bold">
+          {w.paymentReportTitle}
+        </h3>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 text-sm">
+          {(
+            [
+              ["cash", stats.payments.cash],
+              ["cash_receipt", stats.payments.cash_receipt],
+              ["card", stats.payments.card],
+              ["transfer", stats.payments.transfer],
+              ["blik", stats.payments.blik],
+            ] as const
+          ).map(([key, val]) => (
+            <div key={key} className="glass rounded-lg p-3">
+              <p className="text-[10px] uppercase text-bm-muted">{pm[key]}</p>
+              <p className="font-mono text-lg text-white mt-1">{val.toFixed(2)} zł</p>
+            </div>
+          ))}
+          <div className="glass rounded-lg p-3">
+            <p className="text-[10px] uppercase text-bm-muted">{pm.card_cash} (nal)</p>
+            <p className="font-mono text-lg text-white mt-1">
+              {stats.payments.card_cash_cash.toFixed(2)} zł
+            </p>
+          </div>
+          <div className="glass rounded-lg p-3">
+            <p className="text-[10px] uppercase text-bm-muted">{pm.card_cash} (karta)</p>
+            <p className="font-mono text-lg text-white mt-1">
+              {stats.payments.card_cash_card.toFixed(2)} zł
+            </p>
+          </div>
+          <div className="glass rounded-lg p-3 border border-amber-500/30">
+            <p className="text-[10px] uppercase text-amber-400">{w.paymentUnpaid}</p>
+            <p className="font-mono text-lg text-amber-300 mt-1">
+              {stats.payments.unpaid.toFixed(2)} zł
+            </p>
+          </div>
+          <div className="glass rounded-lg p-3 border border-green-500/30">
+            <p className="text-[10px] uppercase text-green-400">{w.paymentPaidTotal}</p>
+            <p className="font-mono text-lg text-green-300 mt-1">
+              {stats.payments.paidTotal.toFixed(2)} zł
+            </p>
+          </div>
+        </div>
+      </div>
 
       <AnalyticsCharts />
     </div>

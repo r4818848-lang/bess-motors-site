@@ -23,19 +23,19 @@ export function Hero() {
       <div className="absolute inset-0 grid-bg opacity-40" />
       <div className="absolute inset-0 bg-radial-glow" />
 
-      {/* Banner reference — desktop right */}
-      <div className="absolute right-0 top-0 bottom-0 w-full lg:w-[55%] opacity-30 lg:opacity-100 pointer-events-none">
-        <div className="relative h-full w-full">
+      {/* Banner — только авто и телефон справа (без дубля карточек услуг) */}
+      <div className="absolute right-0 top-0 bottom-0 w-full lg:w-[48%] opacity-25 lg:opacity-90 pointer-events-none overflow-hidden">
+        <div className="relative h-full w-[140%] lg:w-[200%] lg:-right-[35%]">
           <Image
             src={siteConfig.bannerImage}
-            alt="BESS MOTORS"
+            alt=""
             fill
-            className="object-cover object-right-top"
+            className="object-cover object-[88%_35%] lg:object-[92%_40%]"
             priority
-            sizes="(max-width: 1024px) 100vw, 55vw"
+            sizes="(max-width: 1024px) 100vw, 50vw"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-bm-black via-bm-black/80 to-transparent lg:via-bm-black/40" />
-          <div className="absolute inset-0 bg-gradient-to-t from-bm-black via-transparent to-bm-black/50" />
+          <div className="absolute inset-0 bg-gradient-to-r from-bm-black via-bm-black/90 to-transparent lg:via-bm-black/50" />
+          <div className="absolute inset-0 bg-gradient-to-t from-bm-black via-transparent to-bm-black/60" />
         </div>
       </div>
 
@@ -48,7 +48,7 @@ export function Hero() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-8 lg:hidden"
+            className="mb-8"
           >
             <Logo size="lg" />
           </motion.div>
@@ -74,13 +74,11 @@ export function Hero() {
             <p className="mt-6 text-bm-muted leading-relaxed max-w-lg">{t.hero.desc}</p>
 
             {/* Value pills — like banner ribbon */}
-            <div className="mt-6 inline-flex flex-wrap gap-0 rounded-lg overflow-hidden border border-bm-red/40 shadow-neon-sm">
-              {pills.map(({ icon: Icon, label }, i) => (
+            <div className="mt-6 flex flex-wrap gap-2">
+              {pills.map(({ icon: Icon, label }) => (
                 <div
                   key={label}
-                  className={`flex items-center gap-2 px-4 py-2.5 bg-bm-red/90 text-white text-xs font-bold uppercase tracking-wide ${
-                    i > 0 ? "border-l border-bm-red/50" : ""
-                  }`}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-full border border-bm-red/70 bg-bm-red/90 text-white text-xs font-bold uppercase tracking-wide shadow-[0_0_14px_rgba(225,6,0,0.35)]"
                 >
                   <Icon className="w-4 h-4" />
                   {label}

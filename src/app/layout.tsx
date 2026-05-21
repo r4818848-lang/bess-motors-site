@@ -18,16 +18,37 @@ const orbitron = Orbitron({ subsets: ["latin"], variable: "--font-orbitron" });
 
 
 
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://bess-motors-site.vercel.app";
+
 export const metadata: Metadata = {
-
-  title: "BESS MOTORS — Premium Automotive Ecosystem",
-
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: "BESS MOTORS — Serwis samochodowy Warszawa",
+    template: "%s | BESS MOTORS",
+  },
   description:
-
-    "Luxury performance garage — serwis, tuning, CRM, online booking i live status naprawy.",
-
+    "BESS MOTORS — serwis samochodowy Warszawa, Aleja Krakowska. Szynomontaż, klimatyzacja, wymiana oleju, chip tuning, mechanika. Online booking i konto klienta.",
+  keywords: [
+    "BESS MOTORS",
+    "serwis samochodowy Warszawa",
+    "warsztat samochodowy",
+    "szynomontaż Warszawa",
+    "chip tuning",
+    "wymiana oleju",
+  ],
+  openGraph: {
+    type: "website",
+    locale: "pl_PL",
+    url: siteUrl,
+    siteName: "BESS MOTORS",
+    title: "BESS MOTORS — Serwis samochodowy Warszawa",
+    description:
+      "Szybko, profesjonalnie, najlepsze ceny — serwis i tuning w Warszawie.",
+    images: [{ url: "/images/banner.png", width: 1200, height: 630, alt: "BESS MOTORS" }],
+  },
+  robots: { index: true, follow: true },
   icons: { icon: "/images/logo.png", apple: "/images/logo.png" },
-
 };
 
 
@@ -40,7 +61,7 @@ const criticalCss = `
 
   html,body{margin:0;min-height:100%;background:#0a0a0a!important;color:#fff!important;font-family:system-ui,sans-serif}
 
-  main{min-height:60vh;padding-top:5rem}
+  main{min-height:60vh}
 
   header{position:fixed;top:0;left:0;right:0;z-index:50;background:rgba(20,20,20,.92);border-bottom:1px solid #2a2a2a;backdrop-filter:blur(12px)}
 

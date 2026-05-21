@@ -1,20 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { Check, FileText, Shield } from "lucide-react";
+import { Check, PenLine } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import type { WorkOrder, Database, OrderSignature } from "@/lib/store";
 import { loadDb, saveDb } from "@/lib/store";
-import {
-  calcClientTotal,
-  calcServiceLine,
-  calcPartLine,
-  calcOrderDiscountAmount,
-  calcSubtotal,
-} from "@/lib/workorder-calc";
 import { SignaturePad } from "@/components/signature/SignaturePad";
 import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
+import { PremiumWorkOrderDocument } from "@/components/work-order/PremiumWorkOrderDocument";
+import {
+  fetchClientIp,
+  getDeviceInfo,
+  SIGNATURE_CONFIRMATION_TEXT,
+  SIGNATURE_CONFIRMATION_TEXT_RU,
+} from "@/lib/work-order-share";
 
 interface Props {
   order: WorkOrder;
@@ -24,29 +23,34 @@ interface Props {
 }
 
 export function WorkOrderSignatureFlow({ order, db, onDone, onCancel }: Props) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const s = t.signature;
+  const ru = locale === "ru" || locale === "uk";
   const [signatureData, setSignatureData] = useState<string | null>(null);
   const [priceOk, setPriceOk] = useState(false);
   const [repairOk, setRepairOk] = useState(false);
   const [worksOk, setWorksOk] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  const subtotal = calcSubtotal(order);
-  const discount = calcOrderDiscountAmount(order);
-  const total = calcClientTotal(order);
+  const vatRate = db.settings.vatRate ?? 23;
   const client = db.users.find((u) => u.id === order.userId);
+  const vehicle = db.vehicles.find((v) => v.id === order.vehicleId);
+  const confirmText = ru ? SIGNATURE_CONFIRMATION_TEXT_RU : SIGNATURE_CONFIRMATION_TEXT;
 
-  const submit = () => {
-    if (!signatureData || !priceOk || !repairOk || !worksOk) return;
-
+  const submit = async () => {
+    if (!signatureData || !priceOk || !repairOk || !worksOk || submitting) return;
+    setSubmitting(true);
+    const ip = await fetchClientIp();
     const meta: OrderSignature = {
       dataUrl: signatureData,
       signedAt: new Date().toISOString(),
       signedBy: client?.name ?? "Client",
-      ip: "browser",
+      ip,
       userAgent: typeof navigator !== "undefined" ? navigator.userAgent : "",
+      deviceInfo: getDeviceInfo(),
       priceAgreed: priceOk,
       repairAgreed: repairOk,
+      confirmationText: confirmText,
     };
 
     const fresh = loadDb();
@@ -56,77 +60,90 @@ export function WorkOrderSignatureFlow({ order, db, onDone, onCancel }: Props) {
       wo.signature = meta;
       wo.clientSignature = signatureData;
       wo.updatedAt = new Date().toISOString().slice(0, 10);
+      wo.documentStatus =
+        wo.status === "delivered"
+          ? "delivered"
+          : wo.status === "ready"
+            ? "completed"
+            : "signed";
       saveDb(fresh);
     }
+    setSubmitting(false);
     onDone();
   };
 
+  if (!client || !vehicle) {
+    return (
+      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4">
+        <p className="text-bm-muted">{t.document.orderNotFound}</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-4 overflow-y-auto">
-      <Card glow className="max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center gap-3 mb-6">
-          <Shield className="w-8 h-8 text-bm-red" />
-          <div>
-            <h2 className="font-display text-xl font-bold uppercase text-glow">{s.title}</h2>
-            <p className="text-sm text-bm-muted font-mono">{order.number}</p>
-          </div>
-        </div>
+    <div className="fixed inset-0 z-[100] bg-black/95 overflow-y-auto">
+      <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
+        <PremiumWorkOrderDocument
+          order={order}
+          vehicle={vehicle}
+          client={client}
+          vatRate={vatRate}
+          signatureSlot={
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="flex items-start gap-3 text-sm cursor-pointer glass rounded-lg p-3 hover:border-bm-red/40 transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={worksOk}
+                    onChange={(e) => setWorksOk(e.target.checked)}
+                    className="mt-1 accent-bm-red"
+                  />
+                  {s.agreeWorks}
+                </label>
+                <label className="flex items-start gap-3 text-sm cursor-pointer glass rounded-lg p-3 hover:border-bm-red/40 transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={priceOk}
+                    onChange={(e) => setPriceOk(e.target.checked)}
+                    className="mt-1 accent-bm-red"
+                  />
+                  {s.agreePrice}
+                </label>
+                <label className="flex items-start gap-3 text-sm cursor-pointer glass rounded-lg p-3 hover:border-bm-red/40 transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={repairOk}
+                    onChange={(e) => setRepairOk(e.target.checked)}
+                    className="mt-1 accent-bm-red"
+                  />
+                  {s.agreeRepair}
+                </label>
+              </div>
+              <p className="text-[10px] uppercase tracking-widest text-bm-red flex items-center gap-2">
+                <PenLine size={14} /> {s.signHere}
+              </p>
+              <SignaturePad onChange={setSignatureData} height={220} />
+            </div>
+          }
+        />
 
-        <section className="mb-6">
-          <h3 className="text-xs uppercase text-bm-red mb-3 flex items-center gap-2">
-            <FileText size={14} /> {s.worksReview}
-          </h3>
-          <ul className="text-sm space-y-1 max-h-32 overflow-y-auto glass rounded p-3">
-            {order.services.map((line) => (
-              <li key={line.id} className="flex justify-between">
-                <span>{line.name}</span>
-                <span className="text-bm-red font-mono">{calcServiceLine(line).toFixed(2)} zł</span>
-              </li>
-            ))}
-            {order.parts.map((line) => (
-              <li key={line.id} className="flex justify-between">
-                <span>{line.name}</span>
-                <span className="text-bm-red font-mono">{calcPartLine(line).toFixed(2)} zł</span>
-              </li>
-            ))}
-          </ul>
-          <p className="mt-3 font-display text-2xl font-bold text-bm-red">
-            {s.total}: {total.toFixed(2)} zł
-          </p>
-          {discount > 0 && (
-            <p className="text-xs text-bm-muted">
-              {subtotal.toFixed(2)} zł − {discount.toFixed(2)} zł
-            </p>
-          )}
-        </section>
+        <p className="text-[10px] text-bm-muted text-center leading-relaxed max-w-2xl mx-auto">
+          {s.legalNotice}
+        </p>
 
-        <div className="space-y-3 mb-6">
-          <label className="flex items-start gap-3 text-sm cursor-pointer">
-            <input type="checkbox" checked={worksOk} onChange={(e) => setWorksOk(e.target.checked)} className="mt-1 accent-bm-red" />
-            {s.agreeWorks}
-          </label>
-          <label className="flex items-start gap-3 text-sm cursor-pointer">
-            <input type="checkbox" checked={priceOk} onChange={(e) => setPriceOk(e.target.checked)} className="mt-1 accent-bm-red" />
-            {s.agreePrice}
-          </label>
-          <label className="flex items-start gap-3 text-sm cursor-pointer">
-            <input type="checkbox" checked={repairOk} onChange={(e) => setRepairOk(e.target.checked)} className="mt-1 accent-bm-red" />
-            {s.agreeRepair}
-          </label>
-        </div>
-
-        <h3 className="text-xs uppercase text-bm-red mb-2">{s.signHere}</h3>
-        <SignaturePad onChange={setSignatureData} />
-
-        <div className="flex flex-wrap gap-3 mt-8">
-          <Button className="flex-1" onClick={submit} disabled={!signatureData || !priceOk || !repairOk || !worksOk}>
-            <Check size={16} /> {s.confirm}
+        <div className="flex flex-wrap gap-3 max-w-2xl mx-auto">
+          <Button
+            className="flex-1 min-w-[200px]"
+            onClick={submit}
+            disabled={!signatureData || !priceOk || !repairOk || !worksOk || submitting}
+          >
+            <Check size={16} /> {submitting ? s.submitting : s.confirm}
           </Button>
           <Button variant="outline" onClick={onCancel}>
             {t.common.cancel}
           </Button>
         </div>
-      </Card>
+      </div>
     </div>
   );
 }

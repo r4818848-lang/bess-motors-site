@@ -40,6 +40,46 @@ export function calcClientTotal(order: WorkOrder): number {
   return Math.max(0, calcSubtotal(order) - calcOrderDiscountAmount(order));
 }
 
+export function calcVatAmount(order: WorkOrder, vatRate: number): number {
+  if (!order.vatEnabled) return 0;
+  return calcClientTotal(order) * (vatRate / 100);
+}
+
+export function calcClientTotalWithVat(order: WorkOrder, vatRate: number): number {
+  return calcClientTotal(order) + calcVatAmount(order, vatRate);
+}
+
+export interface OrderTotalsBreakdown {
+  servicesSub: number;
+  partsSub: number;
+  subtotal: number;
+  discount: number;
+  netTotal: number;
+  vatRate: number;
+  vatAmount: number;
+  grossTotal: number;
+}
+
+export function calcOrderBreakdown(order: WorkOrder, vatRate = 23): OrderTotalsBreakdown {
+  const servicesSub = calcServicesSubtotal(order);
+  const partsSub = calcPartsSubtotal(order);
+  const subtotal = servicesSub + partsSub;
+  const discount = calcOrderDiscountAmount(order);
+  const netTotal = calcClientTotal(order);
+  const vatAmount = calcVatAmount(order, vatRate);
+  const grossTotal = netTotal + vatAmount;
+  return {
+    servicesSub,
+    partsSub,
+    subtotal,
+    discount,
+    netTotal,
+    vatRate,
+    vatAmount,
+    grossTotal,
+  };
+}
+
 export function calcPartsProfit(order: WorkOrder): number {
   return order.parts.reduce((s, l) => s + calcPartLineProfit(l), 0);
 }

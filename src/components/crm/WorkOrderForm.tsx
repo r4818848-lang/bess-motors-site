@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Plus, Trash2, Search, Save, X, Upload } from "lucide-react";
+import { Plus, Trash2, Search, Save, X, Upload, FileText } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import {
   loadDb,
@@ -11,8 +11,13 @@ import {
   type PartLine,
   type AttachedFile,
   type RepairStatus,
+  type DocumentStatus,
+  type PaymentMethod,
+  type PaymentStatus,
   type Database,
+  deriveDocumentStatus,
 } from "@/lib/store";
+import { PAYMENT_METHODS } from "@/lib/payment";
 import { searchClientsAndVehicles } from "@/lib/workorder-search";
 import {
   calcServiceLine,
@@ -26,9 +31,12 @@ import {
   calcClientTotal,
   calcPartsProfit,
   calcMechanicEarnings,
+  calcOrderBreakdown,
   generateOrderNumber,
 } from "@/lib/workorder-calc";
 import { Button } from "@/components/ui/Button";
+import { VehicleClientEditor } from "@/components/crm/VehicleClientEditor";
+import { WorkOrderDocumentActions } from "@/components/work-order/WorkOrderDocumentActions";
 
 const statuses: RepairStatus[] = [
   "received",
@@ -58,8 +66,19 @@ function emptyOrder(db: Database): WorkOrder {
     createdAt: new Date().toISOString().slice(0, 10),
     updatedAt: new Date().toISOString().slice(0, 10),
     confirmationStatus: "awaiting_confirmation",
+    documentStatus: "awaiting_signature",
+    vatEnabled: db.settings.vatEnabledByDefault ?? true,
+    paymentStatus: "unpaid",
   };
 }
+
+const documentStatuses: DocumentStatus[] = [
+  "awaiting_signature",
+  "signed",
+  "in_progress",
+  "completed",
+  "delivered",
+];
 
 interface WorkOrderFormProps {
   orderId?: string | null;
@@ -71,6 +90,10 @@ export function WorkOrderForm({ orderId, onClose, onSaved }: WorkOrderFormProps)
   const { t } = useI18n();
   const w = t.wo;
   const c = t.crm;
+  const doc = t.document;
+  const docSt = t.documentStatus;
+  const pm = t.paymentMethods;
+  const ps = t.paymentStatus;
 
   const db = loadDb();
   const existing = orderId ? db.workOrders.find((o) => o.id === orderId) : null;
@@ -165,7 +188,24 @@ export function WorkOrderForm({ orderId, onClose, onSaved }: WorkOrderFormProps)
     }
     const fresh = loadDb();
     const idx = fresh.workOrders.findIndex((o) => o.id === order.id);
-    const updated = { ...order, updatedAt: new Date().toISOString().slice(0, 10) };
+    const documentStatus =
+      order.documentStatus ??
+      deriveDocumentStatus(order.status, order.confirmationStatus);
+    const isPaid = order.paymentStatus === "paid";
+    const updated = {
+      ...order,
+      documentStatus,
+      updatedAt: new Date().toISOString().slice(0, 10),
+      paymentStatus: order.paymentStatus ?? "unpaid",
+      ...(isPaid
+        ? { paidAt: order.paidAt ?? new Date().toISOString().slice(0, 10) }
+        : {
+            paidAt: undefined,
+            paymentMethod: undefined,
+            paidCashAmount: undefined,
+            paidCardAmount: undefined,
+          }),
+    };
     if (idx >= 0) fresh.workOrders[idx] = updated;
     else fresh.workOrders.push(updated);
     saveDb(fresh);
@@ -182,6 +222,8 @@ export function WorkOrderForm({ orderId, onClose, onSaved }: WorkOrderFormProps)
 
   const client = db.users.find((u) => u.id === order.userId);
   const vehicle = db.vehicles.find((v) => v.id === order.vehicleId);
+  const vatRate = db.settings.vatRate ?? 23;
+  const breakdown = calcOrderBreakdown(order, vatRate);
 
   return (
     <div className="space-y-6">
@@ -210,18 +252,16 @@ export function WorkOrderForm({ orderId, onClose, onSaved }: WorkOrderFormProps)
       {/* Client / vehicle search */}
       <div className="glass-red rounded-xl p-6 neon-border">
         <h3 className="font-display text-sm uppercase text-bm-red mb-4">{w.searchClient}</h3>
-        {client && vehicle && !showSearch ? (
-          <div className="flex flex-wrap justify-between items-center gap-4">
-            <div>
-              <p className="font-semibold">{client.name}</p>
-              <p className="text-sm text-bm-muted font-mono">{client.phone}</p>
-              <p className="text-sm mt-2">
-                {vehicle.make} {vehicle.model} · {vehicle.plate} · VIN {vehicle.vin}
-              </p>
-            </div>
+        {client && !showSearch ? (
+          <div className="space-y-4">
             <Button variant="outline" className="text-xs" onClick={() => setShowSearch(true)}>
               {w.changeClient}
             </Button>
+            <VehicleClientEditor
+              userId={order.userId}
+              vehicleId={order.vehicleId}
+              onVehicleId={(id) => setOrder((o) => ({ ...o, vehicleId: id }))}
+            />
           </div>
         ) : (
           <>
@@ -261,14 +301,57 @@ export function WorkOrderForm({ orderId, onClose, onSaved }: WorkOrderFormProps)
         )}
       </div>
 
+      {client && vehicle && (
+        <div className="glass-red rounded-xl p-6 neon-border">
+          <h3 className="font-display text-sm uppercase text-bm-red mb-4 flex items-center gap-2">
+            <FileText size={16} /> {w.sendDocuments}
+          </h3>
+          <WorkOrderDocumentActions order={order} client={client} vehicle={vehicle} />
+          {order.signature && (
+            <div className="mt-4 pt-4 border-t border-bm-border text-xs text-bm-muted">
+              <p className="text-green-400">{t.signature.confirmed}</p>
+              <p>{new Date(order.signature.signedAt).toLocaleString()}</p>
+              <p>IP: {order.signature.ip}</p>
+              {order.signature.deviceInfo && <p className="truncate">{order.signature.deviceInfo}</p>}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Status + mechanic */}
-      <div className="grid md:grid-cols-3 gap-4">
+      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div>
+          <label className="text-xs uppercase text-bm-muted">{doc.documentStatus}</label>
+          <select
+            className="input-premium mt-1"
+            value={order.documentStatus ?? "awaiting_signature"}
+            onChange={(e) =>
+              setOrder({ ...order, documentStatus: e.target.value as DocumentStatus })
+            }
+          >
+            {documentStatuses.map((s) => (
+              <option key={s} value={s}>
+                {docSt[s]}
+              </option>
+            ))}
+          </select>
+        </div>
         <div>
           <label className="text-xs uppercase text-bm-muted">{c.status}</label>
           <select
             className="input-premium mt-1"
             value={order.status}
-            onChange={(e) => setOrder({ ...order, status: e.target.value as RepairStatus })}
+            onChange={(e) => {
+              const status = e.target.value as RepairStatus;
+              setOrder({
+                ...order,
+                status,
+                documentStatus:
+                  order.documentStatus && order.confirmationStatus === "confirmed"
+                    ? order.documentStatus
+                    : deriveDocumentStatus(status, order.confirmationStatus),
+              });
+            }}
           >
             {statuses.map((s) => (
               <option key={s} value={s}>
@@ -309,6 +392,17 @@ export function WorkOrderForm({ orderId, onClose, onSaved }: WorkOrderFormProps)
             onChange={(e) => setOrder({ ...order, orderDiscount: Number(e.target.value) })}
           />
         </div>
+        <div className="flex items-end">
+          <label className="flex items-center gap-2 text-sm cursor-pointer pb-3">
+            <input
+              type="checkbox"
+              className="accent-bm-red"
+              checked={order.vatEnabled ?? false}
+              onChange={(e) => setOrder({ ...order, vatEnabled: e.target.checked })}
+            />
+            {doc.vatEnabled} ({vatRate}%)
+          </label>
+        </div>
         <div>
           <label className="text-xs uppercase text-bm-muted">{w.laborPercent}</label>
           <input
@@ -345,6 +439,89 @@ export function WorkOrderForm({ orderId, onClose, onSaved }: WorkOrderFormProps)
               });
             }}
           />
+        </div>
+      </div>
+
+      <div className="glass-red rounded-xl p-6 neon-border space-y-4">
+        <h3 className="font-display text-sm uppercase text-bm-red font-bold">{w.paymentTitle}</h3>
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div>
+            <label className="text-xs uppercase text-bm-muted">{w.paymentStatusLabel}</label>
+            <select
+              className="input-premium mt-1"
+              value={order.paymentStatus ?? "unpaid"}
+              onChange={(e) => {
+                const paymentStatus = e.target.value as PaymentStatus;
+                setOrder({
+                  ...order,
+                  paymentStatus,
+                  ...(paymentStatus === "unpaid"
+                    ? { paymentMethod: undefined, paidAt: undefined }
+                    : { paidAt: order.paidAt ?? new Date().toISOString().slice(0, 10) }),
+                });
+              }}
+            >
+              <option value="unpaid">{ps.unpaid}</option>
+              <option value="paid">{ps.paid}</option>
+            </select>
+          </div>
+          <div>
+            <label className="text-xs uppercase text-bm-muted">{w.paymentMethodLabel}</label>
+            <select
+              className="input-premium mt-1"
+              disabled={order.paymentStatus !== "paid"}
+              value={order.paymentMethod ?? ""}
+              onChange={(e) =>
+                setOrder({
+                  ...order,
+                  paymentMethod: (e.target.value || undefined) as PaymentMethod | undefined,
+                })
+              }
+            >
+              <option value="">—</option>
+              {PAYMENT_METHODS.map((m) => (
+                <option key={m} value={m}>
+                  {pm[m]}
+                </option>
+              ))}
+            </select>
+          </div>
+          {order.paymentMethod === "card_cash" && order.paymentStatus === "paid" && (
+            <>
+              <div>
+                <label className="text-xs uppercase text-bm-muted">{w.paidCashPart}</label>
+                <input
+                  type="number"
+                  min={0}
+                  step={0.01}
+                  className="input-premium mt-1"
+                  value={order.paidCashAmount ?? ""}
+                  onChange={(e) =>
+                    setOrder({
+                      ...order,
+                      paidCashAmount: e.target.value === "" ? undefined : Number(e.target.value),
+                    })
+                  }
+                />
+              </div>
+              <div>
+                <label className="text-xs uppercase text-bm-muted">{w.paidCardPart}</label>
+                <input
+                  type="number"
+                  min={0}
+                  step={0.01}
+                  className="input-premium mt-1"
+                  value={order.paidCardAmount ?? ""}
+                  onChange={(e) =>
+                    setOrder({
+                      ...order,
+                      paidCardAmount: e.target.value === "" ? undefined : Number(e.target.value),
+                    })
+                  }
+                />
+              </div>
+            </>
+          )}
         </div>
       </div>
 
@@ -449,6 +626,8 @@ export function WorkOrderForm({ orderId, onClose, onSaved }: WorkOrderFormProps)
                   {
                     id: `p-${Date.now()}`,
                     name: "",
+                    partNumber: "",
+                    supplier: "",
                     qty: 1,
                     purchasePrice: 0,
                     sellPrice: 0,
@@ -467,6 +646,8 @@ export function WorkOrderForm({ orderId, onClose, onSaved }: WorkOrderFormProps)
             <thead>
               <tr>
                 <th>{c.name}</th>
+                <th>{w.partNumber}</th>
+                <th>{w.supplier}</th>
                 <th>{c.qty}</th>
                 <th>{c.purchasePrice}</th>
                 <th>{c.sellPrice}</th>
@@ -484,6 +665,21 @@ export function WorkOrderForm({ orderId, onClose, onSaved }: WorkOrderFormProps)
                       className="input-premium text-sm py-1 min-w-[120px]"
                       value={line.name}
                       onChange={(e) => updatePart(i, { name: e.target.value })}
+                    />
+                  </td>
+                  <td>
+                    <input
+                      className="input-premium text-sm py-1 min-w-[90px] font-mono"
+                      placeholder="SKU"
+                      value={line.partNumber ?? ""}
+                      onChange={(e) => updatePart(i, { partNumber: e.target.value })}
+                    />
+                  </td>
+                  <td>
+                    <input
+                      className="input-premium text-sm py-1 min-w-[100px]"
+                      value={line.supplier ?? ""}
+                      onChange={(e) => updatePart(i, { supplier: e.target.value })}
                     />
                   </td>
                   <td>
@@ -627,8 +823,13 @@ export function WorkOrderForm({ orderId, onClose, onSaved }: WorkOrderFormProps)
         <div className="glass-red rounded-xl p-4 neon-border border-bm-red">
           <p className="text-xs text-bm-muted uppercase">{w.clientTotal}</p>
           <p className="font-display text-2xl font-bold text-glow">
-            {totals.clientTotal.toFixed(2)} zł
+            {breakdown.grossTotal.toFixed(2)} zł
           </p>
+          {order.vatEnabled && breakdown.vatAmount > 0 && (
+            <p className="text-xs text-bm-muted mt-1">
+              {w.vatAmount}: {breakdown.vatAmount.toFixed(2)} zł
+            </p>
+          )}
         </div>
         <div className="glass-red rounded-xl p-4 neon-border">
           <p className="text-xs text-bm-muted uppercase">{c.profit} ({w.partsProfit})</p>

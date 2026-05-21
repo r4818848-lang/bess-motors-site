@@ -30,14 +30,32 @@ export function startOfWeek(d: Date): Date {
   return x;
 }
 
+export function getAppointmentClientContact(
+  db: Database,
+  apt: Appointment
+): { name: string; phone: string } {
+  if (apt.clientName || apt.clientPhone) {
+    return {
+      name: apt.clientName?.trim() || "—",
+      phone: apt.clientPhone?.trim() || "",
+    };
+  }
+  const client = db.users.find((u) => u.id === apt.userId);
+  return {
+    name: client?.name?.trim() || "—",
+    phone: client?.phone?.trim() || "",
+  };
+}
+
 export function getAppointmentContext(db: Database, apt: Appointment) {
   const client = db.users.find((u) => u.id === apt.userId);
+  const contact = getAppointmentClientContact(db, apt);
   const vehicle = db.vehicles.find((v) => v.id === apt.vehicleId);
   const mechanic = db.mechanics.find((m) => m.id === apt.mechanicId);
   const order = apt.workOrderId
     ? db.workOrders.find((o) => o.id === apt.workOrderId)
     : undefined;
-  return { client, vehicle, mechanic, order };
+  return { client, contact, vehicle, mechanic, order };
 }
 
 export function filterAppointments(

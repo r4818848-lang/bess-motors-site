@@ -1,21 +1,23 @@
 "use client";
 
 import { useState, useEffect, useCallback, Suspense } from "react";
+import { useDbSync } from "@/hooks/useDbSync";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Search, LogOut, FileText, Wallet, BarChart3, Receipt, Settings } from "lucide-react";
+import { Search, LogOut, FileText, Wallet, BarChart3, Receipt, Settings, Flame } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { DashboardLayout } from "@/components/crm/DashboardLayout";
 import { ExpensesPanel } from "@/components/crm/ExpensesPanel";
 import { FinanceReports } from "@/components/crm/FinanceReports";
 import { SettingsPanel } from "@/components/crm/SettingsPanel";
+import { HotOrdersPanel } from "@/components/crm/HotOrdersPanel";
 import { loadDb } from "@/lib/store";
 import { calcClientTotal } from "@/lib/workorder-calc";
 import { logoutAdmin } from "@/lib/auth";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 
-type CrmTab = "overview" | "expenses" | "reports" | "settings";
+type CrmTab = "overview" | "hot" | "expenses" | "reports" | "settings";
 
 function CRMPageContent() {
   const { t } = useI18n();
@@ -24,13 +26,14 @@ function CRMPageContent() {
   const searchParams = useSearchParams();
   const [tab, setTab] = useState<CrmTab>("overview");
   const [search, setSearch] = useState("");
-  const [tick, setTick] = useState(0);
+  const dbTick = useDbSync();
+  const refresh = useCallback(() => {}, []);
 
-  const refresh = useCallback(() => setTick((n) => n + 1), []);
+  void dbTick;
 
   useEffect(() => {
     const q = searchParams.get("tab");
-    if (q === "expenses" || q === "reports" || q === "settings") {
+    if (q === "hot" || q === "expenses" || q === "reports" || q === "settings") {
       setTab(q);
     } else {
       setTab("overview");
@@ -43,7 +46,6 @@ function CRMPageContent() {
   };
 
   const db = loadDb();
-  void tick;
 
   const filteredOrders = db.workOrders.filter(
     (o) =>
@@ -56,6 +58,7 @@ function CRMPageContent() {
 
   const navTabs = [
     { id: "overview" as const, icon: FileText, label: c.dashboard },
+    { id: "hot" as const, icon: Flame, label: c.hotOrders },
     { id: "expenses" as const, icon: Wallet, label: t.wo.internalExpenses },
     { id: "reports" as const, icon: BarChart3, label: t.wo.reports },
     { id: "settings" as const, icon: Settings, label: t.wo.settingsTitle },
@@ -153,39 +156,10 @@ function CRMPageContent() {
               </table>
             </section>
 
-            <section className="glass-red rounded-xl overflow-hidden neon-border">
-              <div className="px-4 py-3 border-b border-bm-border bg-bm-red/10 font-display text-sm uppercase font-bold">
-                {c.onlineBookings}
-              </div>
-              {db.appointments.length === 0 ? (
-                <p className="p-6 text-center text-bm-muted">{c.noBookings}</p>
-              ) : (
-                <table className="dashboard-table">
-                  <thead>
-                    <tr>
-                      <th>{c.date}</th>
-                      <th>{c.time}</th>
-                      <th>{c.service}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {[...db.appointments].reverse().map((apt) => (
-                      <tr key={apt.id}>
-                        <td>{apt.date}</td>
-                        <td>{apt.time}</td>
-                        <td>
-                          {apt.serviceIds
-                            .map((id) => t.serviceItems[id as keyof typeof t.serviceItems] ?? id)
-                            .join(", ")}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </section>
           </>
         )}
+
+        {tab === "hot" && <HotOrdersPanel onUpdate={refresh} />}
 
         {tab === "expenses" && <ExpensesPanel onUpdate={refresh} />}
         {tab === "reports" && <FinanceReports />}
