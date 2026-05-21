@@ -19,32 +19,25 @@ export function Hero() {
 
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden pt-20">
-      <div className="absolute inset-0 bg-bm-black" />
-      <div className="absolute inset-0 grid-bg opacity-30" />
-      <div className="absolute inset-0 bg-radial-glow" />
-
-      {/* Фон справа — ровный блок с авто, без дубля баннера */}
-      <div
-        className="absolute inset-y-0 right-0 hidden md:block w-[min(50%,560px)] pointer-events-none"
-        aria-hidden
-      >
-        <div className="relative h-full w-full">
-          <Image
-            src={siteConfig.heroCarImage}
-            alt=""
-            fill
-            className="object-cover object-center"
-            priority
-            sizes="560px"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-bm-black via-bm-black/75 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-t from-bm-black via-transparent to-bm-black/40" />
-          <div className="absolute inset-y-0 left-0 w-px bg-gradient-to-b from-transparent via-bm-red/40 to-transparent" />
-        </div>
+      {/* Баннер на весь экран — задний фон */}
+      <div className="absolute inset-0" aria-hidden>
+        <Image
+          src={siteConfig.bannerImage}
+          alt=""
+          fill
+          priority
+          className="object-cover object-center"
+          sizes="100vw"
+          quality={90}
+        />
+        {/* Затемнение слева — текст читается, справа виден баннер и авто */}
+        <div className="absolute inset-0 bg-gradient-to-r from-bm-black from-0% via-bm-black/[0.93] via-[38%] sm:via-[42%] to-bm-black/20 to-100%" />
+        <div className="absolute inset-0 bg-gradient-to-t from-bm-black via-bm-black/30 to-transparent" />
+        <div className="absolute inset-0 bg-black/15" />
       </div>
 
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute left-0 right-0 h-px bg-gradient-to-r from-transparent via-bm-red/50 to-transparent animate-scan-line" />
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-[1]">
+        <div className="absolute left-0 right-0 h-px bg-gradient-to-r from-transparent via-bm-red/50 to-transparent animate-scan-line top-24" />
       </div>
 
       <div className="relative z-10 mx-auto max-w-7xl px-4 lg:px-8 w-full py-12">
@@ -62,12 +55,12 @@ export function Hero() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <p className="font-display text-xs uppercase tracking-[0.25em] text-bm-red mb-3">
+            <p className="font-display text-xs uppercase tracking-[0.25em] text-bm-red mb-3 drop-shadow-lg">
               {t.tagline}
             </p>
 
             <h1 className="font-display font-black uppercase leading-[0.95] tracking-tight">
-              <span className="block text-4xl md:text-5xl lg:text-6xl text-white italic -skew-x-6">
+              <span className="block text-4xl md:text-5xl lg:text-6xl text-white italic -skew-x-6 drop-shadow-[0_2px_24px_rgba(0,0,0,0.9)]">
                 {t.hero.slogan1}
               </span>
               <span className="block text-4xl md:text-5xl lg:text-6xl text-bm-red text-glow italic -skew-x-6 mt-1">
@@ -75,7 +68,9 @@ export function Hero() {
               </span>
             </h1>
 
-            <p className="mt-6 text-bm-muted leading-relaxed max-w-lg">{t.hero.desc}</p>
+            <p className="mt-6 text-bm-silver/95 leading-relaxed max-w-lg drop-shadow-md">
+              {t.hero.desc}
+            </p>
 
             <div className="mt-6 flex flex-wrap gap-2">
               {pills.map(({ icon: Icon, label }) => (
@@ -106,7 +101,7 @@ export function Hero() {
 
             <a
               href={siteConfig.phoneHref}
-              className="mt-8 inline-block font-display text-3xl md:text-4xl font-black text-white hover:text-bm-red transition-colors tracking-wide"
+              className="mt-8 inline-block font-display text-3xl md:text-4xl font-black text-white hover:text-bm-red transition-colors tracking-wide drop-shadow-lg"
             >
               {siteConfig.phone}
             </a>
