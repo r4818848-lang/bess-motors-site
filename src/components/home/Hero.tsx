@@ -19,23 +19,27 @@ export function Hero() {
 
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden pt-20">
-      <div className="absolute inset-0 bg-black" />
-      <div className="absolute inset-0 grid-bg opacity-40" />
+      <div className="absolute inset-0 bg-bm-black" />
+      <div className="absolute inset-0 grid-bg opacity-30" />
       <div className="absolute inset-0 bg-radial-glow" />
 
-      {/* Banner — только авто и телефон справа (без дубля карточек услуг) */}
-      <div className="absolute right-0 top-0 bottom-0 w-full lg:w-[48%] opacity-25 lg:opacity-90 pointer-events-none overflow-hidden">
-        <div className="relative h-full w-[140%] lg:w-[200%] lg:-right-[35%]">
+      {/* Фон справа — ровный блок с авто, без дубля баннера */}
+      <div
+        className="absolute inset-y-0 right-0 hidden md:block w-[min(50%,560px)] pointer-events-none"
+        aria-hidden
+      >
+        <div className="relative h-full w-full">
           <Image
-            src={siteConfig.bannerImage}
+            src={siteConfig.heroCarImage}
             alt=""
             fill
-            className="object-cover object-[88%_35%] lg:object-[92%_40%]"
+            className="object-cover object-center"
             priority
-            sizes="(max-width: 1024px) 100vw, 50vw"
+            sizes="560px"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-bm-black via-bm-black/90 to-transparent lg:via-bm-black/50" />
-          <div className="absolute inset-0 bg-gradient-to-t from-bm-black via-transparent to-bm-black/60" />
+          <div className="absolute inset-0 bg-gradient-to-r from-bm-black via-bm-black/75 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-bm-black via-transparent to-bm-black/40" />
+          <div className="absolute inset-y-0 left-0 w-px bg-gradient-to-b from-transparent via-bm-red/40 to-transparent" />
         </div>
       </div>
 
@@ -73,7 +77,6 @@ export function Hero() {
 
             <p className="mt-6 text-bm-muted leading-relaxed max-w-lg">{t.hero.desc}</p>
 
-            {/* Value pills — like banner ribbon */}
             <div className="mt-6 flex flex-wrap gap-2">
               {pills.map(({ icon: Icon, label }) => (
                 <div

@@ -27,6 +27,9 @@ export const siteConfig = {
 
   bannerImage: "/images/banner.png",
 
+  /** Hero background — только авто и блок телефона (без карточек услуг) */
+  heroCarImage: "/images/hero-car.png",
+
   logoImage: "/images/logo.png",
 
   forgedCarbonImage: "/images/forged-carbon.png",
