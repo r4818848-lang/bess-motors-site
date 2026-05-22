@@ -9,6 +9,7 @@ import { Providers } from "./providers";
 import { Header } from "@/components/layout/Header";
 
 import { Footer } from "@/components/layout/Footer";
+import { GoogleAdsTag } from "@/components/analytics/GoogleAdsTag";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { getSiteUrl, googleSiteVerification } from "@/lib/seo";
 
@@ -107,6 +108,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="pl" className={`${inter.variable} ${orbitron.variable}`} suppressHydrationWarning>
 
       <head>
+        <GoogleAdsTag />
         <style dangerouslySetInnerHTML={{ __html: criticalCss }} />
       </head>
 
