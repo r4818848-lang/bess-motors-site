@@ -7,7 +7,7 @@ import { useI18n } from "@/lib/i18n/context";
 import { DashboardLayout } from "@/components/crm/DashboardLayout";
 import { AppointmentCalendar } from "@/components/crm/AppointmentCalendar";
 import { loadDb, saveDb, type RepairStatus } from "@/lib/store";
-import { handleWorkOrderReadyTransition } from "@/lib/client-notifications";
+import { handleWorkOrderClientNotifications } from "@/lib/client-notifications";
 import { calcServiceLine, calcMechanicEarnings } from "@/lib/workorder-calc";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -50,9 +50,9 @@ function MechanicPageContent() {
     const fresh = loadDb();
     const order = fresh.workOrders.find((o) => o.id === orderId);
     if (order) {
-      const previousStatus = order.status;
+      const previous = { ...order };
       order.status = status;
-      handleWorkOrderReadyTransition(fresh, order, previousStatus);
+      handleWorkOrderClientNotifications(fresh, order, previous);
       saveDb(fresh);
       setTick((n) => n + 1);
     }

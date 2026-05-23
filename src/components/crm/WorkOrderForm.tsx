@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import { Plus, Trash2, Search, Save, X, Upload, FileText } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
-import { handleWorkOrderReadyTransition, buildCarReadyWhatsAppUrl } from "@/lib/client-notifications";
+import { handleWorkOrderClientNotifications, buildCarReadyWhatsAppUrl } from "@/lib/client-notifications";
 import {
   loadDb,
   saveDb,
@@ -189,7 +189,7 @@ export function WorkOrderForm({ orderId, onClose, onSaved }: WorkOrderFormProps)
     }
     const fresh = loadDb();
     const idx = fresh.workOrders.findIndex((o) => o.id === order.id);
-    const previousStatus = idx >= 0 ? fresh.workOrders[idx].status : undefined;
+    const previousOrder = idx >= 0 ? { ...fresh.workOrders[idx] } : null;
     const documentStatus =
       order.documentStatus ??
       deriveDocumentStatus(order.status, order.confirmationStatus);
@@ -210,7 +210,7 @@ export function WorkOrderForm({ orderId, onClose, onSaved }: WorkOrderFormProps)
     };
     if (idx >= 0) fresh.workOrders[idx] = updated;
     else fresh.workOrders.push(updated);
-    handleWorkOrderReadyTransition(fresh, updated, previousStatus);
+    handleWorkOrderClientNotifications(fresh, updated, previousOrder);
     saveDb(fresh);
     onSaved();
   };

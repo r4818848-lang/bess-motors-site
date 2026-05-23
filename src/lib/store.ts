@@ -164,13 +164,24 @@ export interface WorkOrder {
   readyNotifiedAt?: string;
 }
 
-export type ClientNotificationType = "car_ready";
+export type ClientNotificationType =
+  | "car_ready"
+  | "status_change"
+  | "appointment_invite"
+  | "sign_required";
 
 export interface ClientNotification {
   id: string;
   userId: string;
-  workOrderId: string;
   type: ClientNotificationType;
+  workOrderId?: string;
+  appointmentId?: string;
+  /** Repair status for status_change / car_ready context */
+  status?: RepairStatus;
+  appointmentDate?: string;
+  appointmentTime?: string;
+  /** scheduled = received, confirmed = approved, rescheduled = date/time changed */
+  appointmentKind?: "scheduled" | "confirmed" | "rescheduled";
   read: boolean;
   createdAt: string;
 }

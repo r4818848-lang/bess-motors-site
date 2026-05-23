@@ -30,6 +30,7 @@ import {
   markAllNotificationsRead,
   maybeShowBrowserNotifications,
   requestNotificationPermission,
+  getNotificationCopy,
 } from "@/lib/client-notifications";
 import { decodeVin } from "@/lib/vin";
 import { siteConfig } from "@/lib/site";
@@ -111,10 +112,10 @@ function CabinetPageContent() {
   useEffect(() => {
     if (!mounted || !sessionReady || !clientUser || !db) return;
     maybeShowBrowserNotifications(db, clientUser.id, {
-      title: t.notifExt.carReadyTitle,
-      body: t.notifExt.carReadyBody,
+      notifExt: t.notifExt,
+      repairStatus: t.repairStatus,
     });
-  }, [mounted, sessionReady, clientUser, db, t.notifExt.carReadyTitle, t.notifExt.carReadyBody]);
+  }, [mounted, sessionReady, clientUser, db, t.notifExt, t.repairStatus]);
 
   const user = mounted && sessionReady ? clientUser : null;
 
@@ -271,6 +272,17 @@ function CabinetPageContent() {
           ))}
         </div>
 
+        {unreadCount > 0 && tab !== "notifications" && (
+          <Card
+            glow
+            className="mb-6 border-amber-500/40 cursor-pointer hover:border-bm-red/60"
+            onClick={() => setTab("notifications")}
+          >
+            <p className="text-sm font-semibold text-amber-400">
+              {t.cabinet.notifications}: {unreadCount}
+            </p>
+          </Card>
+        )}
 
         {tab === "cars" && (
           <div className="grid lg:grid-cols-2 gap-8">
@@ -541,27 +553,39 @@ function CabinetPageContent() {
               </Card>
             ) : (
               myNotifications.map((n) => {
-                const order = activeDb.workOrders.find((o) => o.id === n.workOrderId);
-                const vehicle = order
-                  ? activeDb.vehicles.find((v) => v.id === order.vehicleId)
-                  : null;
-                const vehicleLabel = vehicle
-                  ? `${vehicle.make} ${vehicle.model} · ${vehicle.plate}`
-                  : order?.number ?? "";
+                const copy = getNotificationCopy(n, activeDb, {
+                  notifExt: t.notifExt,
+                  repairStatus: t.repairStatus,
+                });
+                const order = n.workOrderId
+                  ? activeDb.workOrders.find((o) => o.id === n.workOrderId)
+                  : undefined;
+                const titleColor =
+                  copy.accent === "green"
+                    ? "text-green-400"
+                    : copy.accent === "amber"
+                      ? "text-amber-400"
+                      : copy.accent === "blue"
+                        ? "text-blue-400"
+                        : "text-bm-red";
+                const borderColor =
+                  copy.accent === "green"
+                    ? "border-green-500/40"
+                    : copy.accent === "amber"
+                      ? "border-amber-500/40"
+                      : copy.accent === "blue"
+                        ? "border-blue-500/40"
+                        : "border-bm-red/40";
                 return (
                   <Card
                     key={n.id}
                     glow
-                    className={n.read ? "opacity-70" : "border-green-500/40"}
+                    className={n.read ? "opacity-70" : borderColor}
                   >
                     <div className="flex flex-wrap items-start justify-between gap-4">
                       <div>
-                        <p className="font-display font-bold text-green-400">
-                          {t.notifExt.carReadyTitle}
-                        </p>
-                        <p className="text-sm text-bm-muted mt-1">
-                          {t.notifExt.carReadyBody.replace("{vehicle}", vehicleLabel)}
-                        </p>
+                        <p className={`font-display font-bold ${titleColor}`}>{copy.title}</p>
+                        <p className="text-sm text-bm-muted mt-1">{copy.body}</p>
                         {order && (
                           <p className="text-xs font-mono text-bm-red mt-2">{order.number}</p>
                         )}
@@ -582,24 +606,40 @@ function CabinetPageContent() {
                       )}
                     </div>
                     <div className="flex flex-wrap gap-3 mt-4">
-                      <a
-                        href={siteConfig.googleMapsReviewsUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-xs text-bm-red hover:underline"
-                      >
-                        {t.notifExt.leaveReview}
-                      </a>
-                      {order && (
+                      {copy.showReviewLink && (
+                        <a
+                          href={siteConfig.googleMapsReviewsUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-bm-red hover:underline"
+                        >
+                          {t.notifExt.leaveReview}
+                        </a>
+                      )}
+                      {copy.signHref && (
+                        <Link href={copy.signHref} className="text-xs text-amber-400 hover:underline">
+                          {t.notifExt.signNow}
+                        </Link>
+                      )}
+                      {copy.orderId && (
                         <button
                           type="button"
                           className="text-xs text-bm-muted hover:text-white"
                           onClick={() => {
                             setTab("orders");
-                            setSelectedOrderId(order.id);
+                            setSelectedOrderId(copy.orderId!);
                           }}
                         >
-                          {t.cabinet.workOrders}
+                          {t.notifExt.viewOrder}
+                        </button>
+                      )}
+                      {copy.appointmentTab && (
+                        <button
+                          type="button"
+                          className="text-xs text-bm-muted hover:text-white"
+                          onClick={() => setTab("appointments")}
+                        >
+                          {t.notifExt.viewAppointments}
                         </button>
                       )}
                     </div>

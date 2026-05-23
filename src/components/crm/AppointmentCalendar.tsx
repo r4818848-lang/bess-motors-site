@@ -20,6 +20,7 @@ import {
   startOfWeek,
   getAppointmentContext,
 } from "@/lib/appointments";
+import { handleAppointmentNotification } from "@/lib/client-notifications";
 import { Button } from "@/components/ui/Button";
 import { useDbSync } from "@/hooks/useDbSync";
 
@@ -78,8 +79,10 @@ export function AppointmentCalendar({ role = "admin", mechanicId }: Props) {
     const fresh = loadDb();
     const apt = fresh.appointments.find((a) => a.id === id);
     if (apt) {
+      const previous = { date: apt.date, time: apt.time, appointmentStatus: apt.appointmentStatus };
       apt.date = date;
       apt.time = time;
+      handleAppointmentNotification(fresh, apt, "rescheduled", previous);
       saveDb(fresh);
       refresh();
       setSelected(apt);
@@ -91,7 +94,15 @@ export function AppointmentCalendar({ role = "admin", mechanicId }: Props) {
     const fresh = loadDb();
     const apt = fresh.appointments.find((a) => a.id === selected.id);
     if (apt) {
+      const previous = {
+        date: apt.date,
+        time: apt.time,
+        appointmentStatus: apt.appointmentStatus,
+      };
       Object.assign(apt, patch);
+      if (patch.date !== undefined || patch.time !== undefined) {
+        handleAppointmentNotification(fresh, apt, "rescheduled", previous);
+      }
       saveDb(fresh);
       setSelected({ ...apt });
       refresh();

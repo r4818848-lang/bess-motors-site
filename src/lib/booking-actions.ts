@@ -1,7 +1,7 @@
 import { loadDb, saveDb } from "./store";
 import type { ServiceId } from "./services-catalog";
 import { getStoredAttribution } from "./utm";
-import { notifyAppointment } from "./client-notifications";
+import { handleAppointmentNotification } from "./client-notifications";
 
 export function createCallRequest(params: {
   phone: string;
@@ -46,7 +46,7 @@ export function createBookingAppointment(params: {
   const userId = db.currentUserId ?? "guest";
   const vehicle = db.vehicles.find((v) => v.userId === userId);
   const marketing = getStoredAttribution() ?? undefined;
-  const apt = {
+  db.appointments.push({
     id: `apt-${Date.now()}`,
     userId,
     vehicleId: vehicle?.id ?? "",
@@ -54,16 +54,16 @@ export function createBookingAppointment(params: {
     date: params.date,
     time: params.time,
     mechanicId: db.mechanics[0]?.id ?? "mech-1",
-    repairStatus: "received" as const,
-    appointmentStatus: "scheduled" as const,
+    repairStatus: "received",
+    appointmentStatus: "scheduled",
     comment: params.comment,
     clientName: params.clientName,
     clientPhone: params.clientPhone,
-    source: "website" as const,
+    source: "website",
     marketing: marketing ?? undefined,
     createdAt: new Date().toISOString(),
-  };
-  db.appointments.push(apt);
-  notifyAppointment(db, apt, "created");
+  });
+  const apt = db.appointments[db.appointments.length - 1];
+  handleAppointmentNotification(db, apt, "scheduled");
   saveDb(db);
 }

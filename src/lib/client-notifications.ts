@@ -1,7 +1,54 @@
-import type { Database, RepairStatus, WorkOrder, ClientNotification } from "./store";
+import type {
+  Appointment,
+  ClientNotification,
+  Database,
+  RepairStatus,
+  WorkOrder,
+} from "./store";
 import { siteConfig } from "./site";
 
 export type { ClientNotification, ClientNotificationType } from "./store";
+
+type AppointmentKind = NonNullable<ClientNotification["appointmentKind"]>;
+
+function ensureNotifications(db: Database): ClientNotification[] {
+  db.notifications = db.notifications ?? [];
+  return db.notifications;
+}
+
+function isClientUserId(userId: string | undefined): userId is string {
+  return Boolean(userId && userId !== "guest");
+}
+
+function pushNotification(
+  db: Database,
+  data: Omit<ClientNotification, "id" | "read" | "createdAt">
+): ClientNotification {
+  const list = ensureNotifications(db);
+  const notification: ClientNotification = {
+    ...data,
+    id: `n-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    read: false,
+    createdAt: new Date().toISOString(),
+  };
+  list.push(notification);
+  return notification;
+}
+
+function vehicleLabel(db: Database, order: WorkOrder | undefined): string {
+  if (!order) return "";
+  const vehicle = db.vehicles.find((v) => v.id === order.vehicleId);
+  return vehicle
+    ? `${vehicle.make} ${vehicle.model} · ${vehicle.plate}`.trim()
+    : order.number;
+}
+
+function hasNotification(
+  db: Database,
+  match: (n: ClientNotification) => boolean
+): boolean {
+  return (db.notifications ?? []).some(match);
+}
 
 /** When CRM sets status to ready — create in-app notification for the client */
 export function handleWorkOrderReadyTransition(
@@ -12,22 +59,145 @@ export function handleWorkOrderReadyTransition(
   if (order.status !== "ready") return false;
   if (previousStatus === "ready") return false;
   if (order.readyNotifiedAt) return false;
+  if (!isClientUserId(order.userId)) return false;
 
-  db.notifications = db.notifications ?? [];
-  const duplicate = db.notifications.some(
-    (n) => n.workOrderId === order.id && n.type === "car_ready"
-  );
-  if (duplicate) return false;
+  if (
+    hasNotification(
+      db,
+      (n) => n.workOrderId === order.id && n.type === "car_ready"
+    )
+  ) {
+    return false;
+  }
 
-  db.notifications.push({
-    id: `n-${Date.now()}-${order.id}`,
+  pushNotification(db, {
     userId: order.userId,
     workOrderId: order.id,
     type: "car_ready",
-    read: false,
-    createdAt: new Date().toISOString(),
+    status: "ready",
   });
   order.readyNotifiedAt = new Date().toISOString();
+  return true;
+}
+
+function handleWorkOrderStatusChange(
+  db: Database,
+  order: WorkOrder,
+  previousStatus?: RepairStatus
+): boolean {
+  if (!isClientUserId(order.userId)) return false;
+  if (previousStatus === undefined || previousStatus === order.status) return false;
+
+  if (order.status === "ready") {
+    return handleWorkOrderReadyTransition(db, order, previousStatus);
+  }
+
+  if (
+    hasNotification(
+      db,
+      (n) =>
+        n.workOrderId === order.id &&
+        n.type === "status_change" &&
+        n.status === order.status
+    )
+  ) {
+    return false;
+  }
+
+  pushNotification(db, {
+    userId: order.userId,
+    workOrderId: order.id,
+    type: "status_change",
+    status: order.status,
+  });
+  return true;
+}
+
+export function handleWorkOrderSignRequired(
+  db: Database,
+  order: WorkOrder,
+  previous?: WorkOrder | null
+): boolean {
+  if (!isClientUserId(order.userId)) return false;
+  if (order.confirmationStatus === "confirmed") return false;
+
+  const needsSignature =
+    order.confirmationStatus === "awaiting_confirmation" ||
+    order.documentStatus === "awaiting_signature";
+  if (!needsSignature) return false;
+
+  if (previous?.confirmationStatus === "confirmed") return false;
+
+  if (
+    hasNotification(
+      db,
+      (n) => n.workOrderId === order.id && n.type === "sign_required"
+    )
+  ) {
+    return false;
+  }
+
+  pushNotification(db, {
+    userId: order.userId,
+    workOrderId: order.id,
+    type: "sign_required",
+  });
+  return true;
+}
+
+/** Status change, car ready, signature required — call on every work order save/update */
+export function handleWorkOrderClientNotifications(
+  db: Database,
+  order: WorkOrder,
+  previous?: WorkOrder | null
+): void {
+  handleWorkOrderStatusChange(db, order, previous?.status);
+  handleWorkOrderSignRequired(db, order, previous);
+}
+
+export function handleAppointmentNotification(
+  db: Database,
+  apt: Appointment,
+  kind: AppointmentKind,
+  previous?: Pick<Appointment, "date" | "time" | "appointmentStatus"> | null
+): boolean {
+  if (!isClientUserId(apt.userId)) return false;
+
+  if (kind === "rescheduled" && previous) {
+    if (previous.date === apt.date && previous.time === apt.time) return false;
+  }
+
+  if (kind === "confirmed") {
+    if (
+      hasNotification(
+        db,
+        (n) => n.appointmentId === apt.id && n.appointmentKind === "confirmed"
+      )
+    ) {
+      return false;
+    }
+  }
+
+  if (kind === "scheduled") {
+    if (
+      hasNotification(
+        db,
+        (n) => n.appointmentId === apt.id && n.appointmentKind === "scheduled"
+      )
+    ) {
+      return false;
+    }
+  }
+
+  pushNotification(db, {
+    userId: apt.userId,
+    appointmentId: apt.id,
+    workOrderId: apt.workOrderId,
+    type: "appointment_invite",
+    appointmentDate: apt.date,
+    appointmentTime: apt.time,
+    appointmentKind: kind,
+  });
   return true;
 }
 
@@ -49,6 +219,110 @@ export function markNotificationRead(db: Database, notificationId: string): void
 export function markAllNotificationsRead(db: Database, userId: string): void {
   for (const n of db.notifications ?? []) {
     if (n.userId === userId) n.read = true;
+  }
+}
+
+export type NotificationCopy = {
+  title: string;
+  body: string;
+  accent: "green" | "red" | "amber" | "blue";
+  showReviewLink?: boolean;
+  signHref?: string;
+  orderId?: string;
+  appointmentTab?: boolean;
+};
+
+type RepairStatusLabels = Record<RepairStatus, string>;
+
+export function getNotificationCopy(
+  n: ClientNotification,
+  db: Database,
+  labels: {
+    notifExt: {
+      carReadyTitle: string;
+      carReadyBody: string;
+      statusChangeTitle: string;
+      statusChangeBody: string;
+      appointmentScheduledTitle: string;
+      appointmentScheduledBody: string;
+      appointmentConfirmedTitle: string;
+      appointmentConfirmedBody: string;
+      appointmentRescheduledTitle: string;
+      appointmentRescheduledBody: string;
+      signRequiredTitle: string;
+      signRequiredBody: string;
+    };
+    repairStatus: RepairStatusLabels;
+  }
+): NotificationCopy {
+  const order = n.workOrderId
+    ? db.workOrders.find((o) => o.id === n.workOrderId)
+    : undefined;
+  const vehicle = order ? vehicleLabel(db, order) : "";
+  const date = n.appointmentDate ?? "";
+  const time = n.appointmentTime ?? "";
+  const statusLabel = n.status ? labels.repairStatus[n.status] : "";
+
+  switch (n.type) {
+    case "car_ready":
+      return {
+        title: labels.notifExt.carReadyTitle,
+        body: labels.notifExt.carReadyBody.replace("{vehicle}", vehicle || order?.number || ""),
+        accent: "green",
+        showReviewLink: true,
+        orderId: order?.id,
+      };
+    case "status_change":
+      return {
+        title: labels.notifExt.statusChangeTitle,
+        body: labels.notifExt.statusChangeBody
+          .replace("{vehicle}", vehicle || order?.number || "")
+          .replace("{status}", statusLabel),
+        accent: "blue",
+        orderId: order?.id,
+      };
+    case "appointment_invite": {
+      if (n.appointmentKind === "confirmed") {
+        return {
+          title: labels.notifExt.appointmentConfirmedTitle,
+          body: labels.notifExt.appointmentConfirmedBody
+            .replace("{date}", date)
+            .replace("{time}", time)
+            .replace("{vehicle}", vehicle),
+          accent: "green",
+          appointmentTab: true,
+          orderId: order?.id,
+        };
+      }
+      if (n.appointmentKind === "rescheduled") {
+        return {
+          title: labels.notifExt.appointmentRescheduledTitle,
+          body: labels.notifExt.appointmentRescheduledBody
+            .replace("{date}", date)
+            .replace("{time}", time),
+          accent: "amber",
+          appointmentTab: true,
+        };
+      }
+      return {
+        title: labels.notifExt.appointmentScheduledTitle,
+        body: labels.notifExt.appointmentScheduledBody
+          .replace("{date}", date)
+          .replace("{time}", time),
+        accent: "blue",
+        appointmentTab: true,
+      };
+    }
+    case "sign_required":
+      return {
+        title: labels.notifExt.signRequiredTitle,
+        body: labels.notifExt.signRequiredBody.replace("{number}", order?.number ?? ""),
+        accent: "amber",
+        signHref: order ? `/sign/${order.id}` : undefined,
+        orderId: order?.id,
+      };
+    default:
+      return { title: "", body: "", accent: "blue" };
   }
 }
 
@@ -83,32 +357,32 @@ const PUSH_SEEN_PREFIX = "bess-notif-pushed-";
 export function maybeShowBrowserNotifications(
   db: Database,
   userId: string,
-  copy: { title: string; body: string }
+  labels: Parameters<typeof getNotificationCopy>[2]
 ): void {
   if (typeof window === "undefined" || !("Notification" in window)) return;
   if (Notification.permission !== "granted") return;
 
-  const unread = getUserNotifications(db, userId).filter((n) => !n.read && n.type === "car_ready");
+  const unread = getUserNotifications(db, userId).filter((n) => !n.read);
 
   for (const n of unread) {
     const seenKey = `${PUSH_SEEN_PREFIX}${n.id}`;
     if (sessionStorage.getItem(seenKey)) continue;
 
-    const order = db.workOrders.find((o) => o.id === n.workOrderId);
-    const vehicle = order ? db.vehicles.find((v) => v.id === order.vehicleId) : null;
-    const label = vehicle
-      ? `${vehicle.make} ${vehicle.model} · ${vehicle.plate}`.trim()
-      : order?.number ?? "";
+    const copy = getNotificationCopy(n, db, labels);
 
     try {
       const notification = new Notification(copy.title, {
-        body: copy.body.replace("{vehicle}", label || order?.number || ""),
+        body: copy.body,
         icon: siteConfig.logoImage || "/images/logo.png",
         tag: n.id,
       });
       notification.onclick = () => {
         window.focus();
-        window.location.href = "/cabinet?tab=notifications";
+        if (copy.signHref) {
+          window.location.href = copy.signHref;
+        } else {
+          window.location.href = "/cabinet?tab=notifications";
+        }
       };
       sessionStorage.setItem(seenKey, "1");
     } catch {
