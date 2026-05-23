@@ -431,7 +431,7 @@ const pl = {
     { title: "Performance", desc: "Diagnostyka i tuning klasy M" },
     { title: "Zespół", desc: "Certyfikowani mistrzowie mechaniki" },
     { title: "Jakość", desc: "Części premium i gwarancja" },
-    { title: "Technologia", desc: "AI, CRM, live status naprawy" },
+    { title: "Technologia", desc: "CRM, status naprawy online" },
   ],
   charts: {
     revenueByMonth: "Przychody wg miesięcy",
@@ -684,7 +684,7 @@ const pl = {
   reviews: [
     { name: "Michał K.", car: "BMW M340i", text: "Stage 2 + downpipe — +80 KM. Profesjonalizm na najwyższym poziomie!", rating: 5 },
     { name: "Anna W.", car: "Mercedes C300", text: "Detailing ceramiczny — auto jak nowe. Polecam BESS MOTORS!", rating: 5 },
-    { name: "Dmitry S.", car: "Audi RS3", text: "Chip tuning i diagnostyka AI — szybko i dokładnie.", rating: 5 },
+    { name: "Dmitry S.", car: "Audi RS3", text: "Chip tuning i diagnostyka komputerowa — szybko i dokładnie.", rating: 5 },
   ],
   wo: {
     ordersTitle: "Zlecenia / Zlecenia naprawcze",
@@ -879,7 +879,7 @@ const ru: TranslationKeys = {
     viewAll: "Смотреть всё",
   },
   advantages: [
-    { title: "Premium диагностика", desc: "Продвинутые OBD сканеры и AI анализ" },
+    { title: "Premium диагностика", desc: "Продвинутые OBD-сканеры и компьютерная диагностика" },
     { title: "Оригинальные запчасти", desc: "Склад с сертифицированными компонентами" },
     { title: "Гарантия качества", desc: "Полная документация и PDF заказ-наряды" },
     { title: "Live статус", desc: "Отслеживание ремонта в реальном времени" },
@@ -1234,7 +1234,7 @@ const ru: TranslationKeys = {
     { title: "Performance", desc: "Диагностика и тюнинг уровня M" },
     { title: "Команда", desc: "Сертифицированные мастера" },
     { title: "Качество", desc: "Премиум-запчасти и гарантия" },
-    { title: "Технологии", desc: "AI, CRM, статус ремонта онлайн" },
+    { title: "Технологии", desc: "CRM, статус ремонта онлайн" },
   ],
   contacts: {
     title: "Контакты",
@@ -1475,7 +1475,7 @@ const ru: TranslationKeys = {
   reviews: [
     { name: "Михаил К.", car: "BMW M340i", text: "Stage 2 + даунпайп — +80 л.с. Профессионализм на высшем уровне!", rating: 5 },
     { name: "Анна В.", car: "Mercedes C300", text: "Керамический детейлинг — машина как новая. Рекомендую BESS MOTORS!", rating: 5 },
-    { name: "Дмитрий С.", car: "Audi RS3", text: "Чип-тюнинг и AI-диагностика — быстро и точно.", rating: 5 },
+    { name: "Дмитрий С.", car: "Audi RS3", text: "Чип-тюнинг и компьютерная диагностика — быстро и точно.", rating: 5 },
   ],
   charts: {
     revenueByMonth: "Доход по месяцам",
@@ -1689,7 +1689,7 @@ const en: TranslationKeys = {
     viewAll: "View All",
   },
   advantages: [
-    { title: "Premium Diagnostics", desc: "Advanced OBD scanners and AI analysis" },
+    { title: "Premium Diagnostics", desc: "Advanced OBD scanners and computer diagnostics" },
     { title: "Genuine Parts", desc: "Warehouse with certified components" },
     { title: "Quality Guarantee", desc: "Full documentation and PDF work orders" },
     { title: "Live Status", desc: "Real-time repair tracking" },
@@ -1850,7 +1850,7 @@ const en: TranslationKeys = {
     { title: "Performance", desc: "M-level diagnostics and tuning" },
     { title: "Team", desc: "Certified master mechanics" },
     { title: "Quality", desc: "Premium parts and warranty" },
-    { title: "Technology", desc: "AI, CRM, live repair status" },
+    { title: "Technology", desc: "CRM, live repair status" },
   ],
   charts: {
     revenueByMonth: "Revenue by month",
@@ -1867,7 +1867,7 @@ const en: TranslationKeys = {
   reviews: [
     { name: "Michał K.", car: "BMW M340i", text: "Stage 2 + downpipe — +80 HP. Top professionalism!", rating: 5 },
     { name: "Anna W.", car: "Mercedes C300", text: "Ceramic detailing — car like new. Highly recommend!", rating: 5 },
-    { name: "Dmitry S.", car: "Audi RS3", text: "Chip tuning and AI diagnostics — fast and accurate.", rating: 5 },
+    { name: "Dmitry S.", car: "Audi RS3", text: "Chip tuning and computer diagnostics — fast and accurate.", rating: 5 },
   ],
   mechanic: {
     title: "Mechanic Panel",

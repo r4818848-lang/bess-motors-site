@@ -41,7 +41,6 @@ import { getAppointmentContext } from "@/lib/appointments";
 import { calcClientTotal } from "@/lib/workorder-calc";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { AIModules } from "@/components/ai/AIModules";
 import { ClientWorkOrderDetail } from "@/components/cabinet/ClientWorkOrderDetail";
 import { SpendingStats } from "@/components/cabinet/SpendingStats";
 import { ServiceHistoryTimeline } from "@/components/cabinet/ServiceHistoryTimeline";
@@ -403,14 +402,6 @@ function CabinetPageContent() {
                 {t.cabinet.addCar}
               </Button>
             </Card>
-            <div className="lg:col-span-2">
-              <AIModules
-                onVinDecoded={(data) => {
-                  setVinForm((f) => ({ ...f, ...data }));
-                  if (data.make) setVinMessage({ type: "ok", text: t.cabinet.vinDecoded });
-                }}
-              />
-            </div>
           </div>
         )}
 

@@ -15,7 +15,7 @@ export const timeSlots = [
 export const reviews = [
   { name: "Michał K.", car: "BMW M340i", text: "Stage 2 + downpipe — +80 KM. Profesjonalizm na najwyższym poziomie!", rating: 5 },
   { name: "Anna W.", car: "Mercedes C300", text: "Detailing ceramiczny — auto jak nowe. Polecam BESS MOTORS!", rating: 5 },
-  { name: "Dmitry S.", car: "Audi RS3", text: "Chip tuning i diagnostyka AI — szybko i dokładnie.", rating: 5 },
+  { name: "Dmitry S.", car: "Audi RS3", text: "Chip tuning i diagnostyka komputerowa — szybko i dokładnie.", rating: 5 },
 ];
 
 export const stats = [
