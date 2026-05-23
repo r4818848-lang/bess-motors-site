@@ -6,6 +6,7 @@ import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { clsx } from "clsx";
 import { useI18n } from "@/lib/i18n/context";
+import { useAuth } from "@/lib/auth/session-context";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { Logo } from "@/components/brand/Logo";
 import { siteConfig } from "@/lib/site";
@@ -22,6 +23,7 @@ const navPaths = [
 
 export function Header() {
   const { t } = useI18n();
+  const { isClientLoggedIn, clientUser } = useAuth();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
@@ -36,13 +38,19 @@ export function Header() {
               key={href}
               href={href}
               className={clsx(
-                "rounded-lg px-3 py-2 text-sm transition-all",
+                "rounded-lg px-3 py-2 text-sm transition-all relative",
                 pathname === href
                   ? "bg-bm-red/20 text-bm-red shadow-neon-sm"
-                  : "text-bm-muted hover:text-white hover:bg-white/5"
+                  : "text-bm-muted hover:text-white hover:bg-white/5",
+                href === "/cabinet" && isClientLoggedIn && "text-white"
               )}
             >
-              {t.nav[key]}
+              {key === "cabinet" && isClientLoggedIn && clientUser
+                ? clientUser.name.split(" ")[0] || t.nav.cabinet
+                : t.nav[key]}
+              {href === "/cabinet" && isClientLoggedIn && (
+                <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.8)]" />
+              )}
             </Link>
           ))}
         </nav>

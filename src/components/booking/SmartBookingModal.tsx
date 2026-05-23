@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Phone, ArrowRight, ChevronLeft, Check, List } from "lucide-react";
@@ -9,7 +9,7 @@ import { useI18n } from "@/lib/i18n/context";
 import { serviceFlows, type ServiceId, type FlowOption } from "@/lib/services-catalog";
 import { timeSlots } from "@/lib/data";
 import { createCallRequest, createBookingAppointment } from "@/lib/booking-actions";
-import { loadDb } from "@/lib/store";
+import { useAuth } from "@/lib/auth/session-context";
 import { BookingCalendar } from "@/components/booking/BookingCalendar";
 import { Button } from "@/components/ui/Button";
 import { BookingTotalSummary } from "@/components/booking/BookingTotalSummary";
@@ -85,13 +85,7 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
     t.serviceItems[serviceId as keyof typeof t.serviceItems] ?? serviceId;
   const screens = useMemo(() => buildScreens(serviceId), [serviceId]);
   const isOtherReason = serviceId === "otherReason";
-
-  const loggedIn = useMemo(() => {
-    if (typeof window === "undefined") return { name: "", phone: "" };
-    const db = loadDb();
-    const u = db.users.find((x) => x.id === db.currentUserId && x.role === "client");
-    return { name: u?.name ?? "", phone: u?.phone ?? "" };
-  }, []);
+  const { clientUser, sessionReady } = useAuth();
 
   const [phase, setPhase] = useState<Phase>("manager");
   const [submitMode, setSubmitMode] = useState<SubmitMode>("booking");
@@ -102,9 +96,15 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
   const [date, setDate] = useState<Date | null>(null);
   const [time, setTime] = useState("");
   const [problem, setProblem] = useState("");
-  const [clientName, setClientName] = useState(loggedIn.name);
-  const [clientPhone, setClientPhone] = useState(loggedIn.phone);
+  const [clientName, setClientName] = useState("");
+  const [clientPhone, setClientPhone] = useState("");
   const [doneKind, setDoneKind] = useState<"call" | "booking">("booking");
+
+  useEffect(() => {
+    if (!sessionReady || !clientUser) return;
+    setClientName(clientUser.name);
+    setClientPhone(clientUser.phone);
+  }, [sessionReady, clientUser]);
 
   const lbl = (key: string) => {
     const flow = bf as Record<string, string>;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -34,7 +34,7 @@ import {
   type CartLine,
 } from "@/lib/booking-cart";
 import { createBookingAppointment } from "@/lib/booking-actions";
-import { loadDb } from "@/lib/store";
+import { useAuth } from "@/lib/auth/session-context";
 import { BookingCalendar } from "@/components/booking/BookingCalendar";
 import { timeSlots } from "@/lib/data";
 import { Button } from "@/components/ui/Button";
@@ -262,15 +262,9 @@ interface Props {
 export function BookingQuoteFlow({ onDone }: Props) {
   const router = useRouter();
   const { t, locale } = useI18n();
+  const { clientUser, sessionReady } = useAuth();
   const bq = t.bookingQuote;
   const loc = locale === "ru" || locale === "uk" ? "ru" : "pl";
-
-  const loggedIn = useMemo(() => {
-    if (typeof window === "undefined") return { name: "", phone: "" };
-    const db = loadDb();
-    const u = db.users.find((x) => x.id === db.currentUserId && x.role === "client");
-    return { name: u?.name ?? "", phone: u?.phone ?? "" };
-  }, []);
 
   const [phase, setPhase] = useState<Phase>("services");
   const [category, setCategory] = useState<PriceCategoryId>("maintenance");
@@ -278,8 +272,14 @@ export function BookingQuoteFlow({ onDone }: Props) {
   const [date, setDate] = useState<Date | null>(null);
   const [time, setTime] = useState("");
   const [note, setNote] = useState("");
-  const [clientName, setClientName] = useState(loggedIn.name);
-  const [clientPhone, setClientPhone] = useState(loggedIn.phone);
+  const [clientName, setClientName] = useState("");
+  const [clientPhone, setClientPhone] = useState("");
+
+  useEffect(() => {
+    if (!sessionReady || !clientUser) return;
+    setClientName(clientUser.name);
+    setClientPhone(clientUser.phone);
+  }, [sessionReady, clientUser]);
 
   const labels: Record<string, string> = {
     addService: bq.addService,

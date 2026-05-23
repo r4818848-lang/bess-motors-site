@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Phone, Car, LogIn, UserPlus, ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useI18n } from "@/lib/i18n/context";
+import { useAuth } from "@/lib/auth/session-context";
 import { loginWithPhonePassword, registerClient, type AuthResult } from "@/lib/auth";
 import { Button } from "@/components/ui/Button";
 
@@ -16,6 +17,7 @@ interface PhoneAuthFormProps {
 export function PhoneAuthForm({ onSuccess }: PhoneAuthFormProps) {
   const { t } = useI18n();
   const router = useRouter();
+  const { refreshAuth } = useAuth();
   const [mode, setMode] = useState<Mode>("login");
   const [phone, setPhone] = useState("");
   const [plate, setPlate] = useState("");
@@ -55,6 +57,7 @@ export function PhoneAuthForm({ onSuccess }: PhoneAuthFormProps) {
         return;
       }
 
+      refreshAuth();
       onSuccess?.();
       router.refresh();
     } catch {

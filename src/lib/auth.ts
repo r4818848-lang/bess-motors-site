@@ -55,11 +55,12 @@ export function isHiddenAdminCredentials(phone: string, password: string): boole
 }
 
 async function issueToken(userId: string, role: AuthRole): Promise<string> {
+  const expiresIn = role === "client" ? "365d" : "7d";
   return new SignJWT({ role })
     .setProtectedHeader({ alg: "HS256" })
     .setSubject(userId)
     .setIssuedAt()
-    .setExpirationTime("7d")
+    .setExpirationTime(expiresIn)
     .sign(getSecret());
 }
 
@@ -106,6 +107,13 @@ export async function restoreSessionFromToken(): Promise<User | null> {
   db.currentUserId = user.id;
   saveDb(db);
   localStorage.setItem(SESSION_ROLE_KEY, session.role);
+
+  // Refresh client token on each visit — stay signed in for a year
+  if (user.role === "client") {
+    const freshToken = await issueToken(user.id, "client");
+    localStorage.setItem(TOKEN_KEY, freshToken);
+  }
+
   return user;
 }
 

@@ -24,11 +24,7 @@ import {
 } from "@/lib/store";
 import { decodeVin } from "@/lib/vin";
 import { siteConfig } from "@/lib/site";
-import {
-  logout as authLogout,
-  restoreSessionFromToken,
-  isClientAuthenticated,
-} from "@/lib/auth";
+import { useAuth } from "@/lib/auth/session-context";
 import { PhoneAuthForm } from "@/components/auth/PhoneAuthForm";
 import { getAppointmentContext } from "@/lib/appointments";
 import { calcClientTotal } from "@/lib/workorder-calc";
@@ -57,9 +53,9 @@ const statusOrder: RepairStatus[] = [
 function CabinetPageContent() {
   const { t } = useI18n();
   const searchParams = useSearchParams();
+  const { sessionReady, clientUser, signOut } = useAuth();
   const [mounted, setMounted] = useState(false);
   const [db, setDb] = useState<Database | null>(null);
-  const [sessionReady, setSessionReady] = useState(false);
   const [tab, setTab] = useState("cars");
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [orderFilters, setOrderFilters] = useState(defaultWorkOrderFilters);
@@ -78,14 +74,13 @@ function CabinetPageContent() {
   const refreshDb = () => setDb(loadDb());
 
   useEffect(() => {
-    restoreSessionFromToken()
-      .catch(() => null)
-      .finally(() => {
-        refreshDb();
-        setSessionReady(true);
-        setMounted(true);
-      });
+    refreshDb();
+    setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (sessionReady) refreshDb();
+  }, [sessionReady, clientUser]);
 
   useEffect(() => {
     const orderParam = searchParams.get("order");
@@ -97,21 +92,10 @@ function CabinetPageContent() {
     }
   }, [searchParams]);
 
-  const resolveClientUser = () => {
-    if (!mounted || !sessionReady || !isClientAuthenticated()) return null;
-    const fresh = loadDb();
-    if (!fresh.currentUserId) return null;
-    return (
-      fresh.users.find(
-        (u) => u.id === fresh.currentUserId && u.role === "client"
-      ) ?? null
-    );
-  };
-
-  const user = resolveClientUser();
+  const user = mounted && sessionReady ? clientUser : null;
 
   const logout = () => {
-    authLogout();
+    signOut();
     refreshDb();
   };
 
@@ -177,13 +161,7 @@ function CabinetPageContent() {
   if (!user) {
     return (
       <div className="pt-28 pb-20 min-h-[70vh] flex items-center justify-center px-4">
-        <PhoneAuthForm
-          onSuccess={() => {
-            refreshDb();
-            setSessionReady(true);
-            setMounted(true);
-          }}
-        />
+        <PhoneAuthForm onSuccess={() => refreshDb()} />
       </div>
     );
   }
