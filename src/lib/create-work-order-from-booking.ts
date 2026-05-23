@@ -1,6 +1,7 @@
 import { normalizePhone } from "./auth";
 import { generateOrderNumber } from "./workorder-calc";
 import type { Appointment, Database, WorkOrder, WorkOrderLine } from "./store";
+import { notifyAppointment, notifyWorkOrderSignRequired } from "./client-notifications";
 
 function ensureClientForBooking(
   db: Database,
@@ -140,6 +141,9 @@ export function createWorkOrderFromAppointment(
   apt.workOrderId = workOrder.id;
   apt.repairStatus = "received";
   apt.appointmentStatus = "confirmed";
+
+  notifyAppointment(db, apt, "confirmed");
+  notifyWorkOrderSignRequired(db, workOrder);
 
   return workOrder.id;
 }

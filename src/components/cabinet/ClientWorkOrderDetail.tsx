@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { PenLine } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import type { WorkOrder, Database } from "@/lib/store";
-import { loadDb } from "@/lib/store";
+import { loadDb, saveDb } from "@/lib/store";
+import { markWorkOrderNotificationsRead } from "@/lib/client-notifications";
 import { Button } from "@/components/ui/Button";
 import { WorkOrderSignatureFlow } from "@/components/cabinet/WorkOrderSignatureFlow";
 import { WorkOrderDocumentActions } from "@/components/work-order/WorkOrderDocumentActions";
@@ -26,6 +27,13 @@ export function ClientWorkOrderDetail({ order, db, onBack }: Props) {
   const cp = t.clientPayment;
   const [showSign, setShowSign] = useState(false);
   const [localOrder, setLocalOrder] = useState(order);
+
+  useEffect(() => {
+    const fresh = loadDb();
+    markWorkOrderNotificationsRead(fresh, order.userId, order.id);
+    saveDb(fresh);
+  }, [order.id, order.userId]);
+
   const client = db.users.find((u) => u.id === order.userId)!;
   const vehicle = db.vehicles.find((v) => v.id === order.vehicleId);
   const vatRate = db.settings.vatRate ?? 23;

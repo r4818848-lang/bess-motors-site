@@ -35,6 +35,7 @@ import {
   generateOrderNumber,
 } from "@/lib/workorder-calc";
 import { Button } from "@/components/ui/Button";
+import { applyWorkOrderNotifications } from "@/lib/client-notifications";
 import { VehicleClientEditor } from "@/components/crm/VehicleClientEditor";
 import { WorkOrderDocumentActions } from "@/components/work-order/WorkOrderDocumentActions";
 
@@ -188,6 +189,7 @@ export function WorkOrderForm({ orderId, onClose, onSaved }: WorkOrderFormProps)
     }
     const fresh = loadDb();
     const idx = fresh.workOrders.findIndex((o) => o.id === order.id);
+    const prev = idx >= 0 ? fresh.workOrders[idx] : null;
     const documentStatus =
       order.documentStatus ??
       deriveDocumentStatus(order.status, order.confirmationStatus);
@@ -208,6 +210,7 @@ export function WorkOrderForm({ orderId, onClose, onSaved }: WorkOrderFormProps)
     };
     if (idx >= 0) fresh.workOrders[idx] = updated;
     else fresh.workOrders.push(updated);
+    applyWorkOrderNotifications(fresh, prev, updated);
     saveDb(fresh);
     onSaved();
   };

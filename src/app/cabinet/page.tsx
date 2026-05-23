@@ -40,6 +40,8 @@ import {
   defaultWorkOrderFilters,
 } from "@/lib/workorder-filters";
 import { getClientPaymentView } from "@/lib/payment";
+import { ClientNotificationsPanel } from "@/components/cabinet/ClientNotificationsPanel";
+import { getUnreadCount } from "@/lib/client-notifications";
 
 const statusOrder: RepairStatus[] = [
   "received",
@@ -86,6 +88,7 @@ function CabinetPageContent() {
     const orderParam = searchParams.get("order");
     const tabParam = searchParams.get("tab");
     if (tabParam === "history") setTab("history");
+    if (tabParam === "notifications") setTab("notifications");
     if (orderParam) {
       setTab("orders");
       setSelectedOrderId(orderParam);
@@ -183,9 +186,13 @@ function CabinetPageContent() {
     .filter((a) => a.userId === user.id)
     .sort((a, b) => `${b.date}${b.time}`.localeCompare(`${a.date}${a.time}`));
 
+  const unreadNotifications = getUnreadCount(activeDb, user.id);
+  const cn = t.clientNotifications;
+
   const tabs = [
     { id: "cars", icon: Car, label: t.cabinet.myCars },
     { id: "appointments", icon: CalendarDays, label: t.cabinet.appointments },
+    { id: "notifications", icon: Bell, label: cn.title, badge: unreadNotifications },
     { id: "history", icon: History, label: t.cabinet.history },
     { id: "orders", icon: FileText, label: t.cabinet.workOrders },
     { id: "status", icon: Bell, label: t.cabinet.liveStatus },
@@ -210,15 +217,20 @@ function CabinetPageContent() {
         </div>
 
         <div className="flex flex-wrap gap-2 mb-8 overflow-x-auto pb-2">
-          {tabs.map(({ id, icon: Icon, label }) => (
+          {tabs.map(({ id, icon: Icon, label, badge }) => (
             <button
               key={id}
               onClick={() => setTab(id)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm whitespace-nowrap transition-all ${
+              className={`relative flex items-center gap-2 px-4 py-2 rounded-lg text-sm whitespace-nowrap transition-all ${
                 tab === id ? "bg-bm-red shadow-neon-sm" : "glass text-bm-muted hover:text-white"
               }`}
             >
               <Icon size={16} /> {label}
+              {badge ? (
+                <span className="ml-1 min-w-[18px] h-[18px] px-1 rounded-full bg-white text-bm-red text-[10px] font-bold">
+                  {badge > 9 ? "9+" : badge}
+                </span>
+              ) : null}
             </button>
           ))}
         </div>
@@ -367,6 +379,8 @@ function CabinetPageContent() {
             </div>
           </Card>
         )}
+
+        {tab === "notifications" && <ClientNotificationsPanel />}
 
         {tab === "history" && (
           <>

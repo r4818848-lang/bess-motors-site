@@ -200,6 +200,24 @@ export interface PasswordResetRecord {
 
 export type AppointmentStatus = "scheduled" | "confirmed" | "completed" | "cancelled";
 
+export type ClientNotificationType = "status_change" | "appointment" | "sign_required";
+
+export interface ClientNotification {
+  id: string;
+  userId: string;
+  type: ClientNotificationType;
+  workOrderId?: string;
+  workOrderNumber?: string;
+  appointmentId?: string;
+  statusKey?: RepairStatus;
+  appointmentDate?: string;
+  appointmentTime?: string;
+  /** For appointment notifications */
+  appointmentKind?: "created" | "confirmed" | "rescheduled";
+  read: boolean;
+  createdAt: string;
+}
+
 export type CallRequestStatus = "needs_call" | "called" | "done";
 
 export type OrderSource = "website" | "manual";
@@ -279,6 +297,9 @@ export function purgeAllClientsFromDb(db: Database): Database {
     passwordResets: [],
     currentUserId:
       db.currentUserId && clientIds.has(db.currentUserId) ? null : db.currentUserId,
+    clientNotifications: (db.clientNotifications ?? []).filter(
+      (n) => !clientIds.has(n.userId)
+    ),
   };
 }
 
@@ -295,6 +316,7 @@ export interface Database {
   settings: AppSettings;
   passwordResets: PasswordResetRecord[];
   currentUserId: string | null;
+  clientNotifications: ClientNotification[];
 }
 
 const defaultDb: Database = {
@@ -323,6 +345,7 @@ const defaultDb: Database = {
     { id: "wh2", name: "Klocki hamulcowe Brembo", sku: "P85020", qty: 12, purchasePrice: 120, sellPrice: 220, supplier: "Auto Partner", qrCode: "BM-WH-002" },
   ],
   currentUserId: null,
+  clientNotifications: [],
 };
 
 export function deriveDocumentStatus(
@@ -451,6 +474,7 @@ function mergeStoredDb(parsed: Partial<Database>): Database {
       ...(parsed.settings ?? {}),
     },
     passwordResets: parsed.passwordResets ?? defaultDb.passwordResets,
+    clientNotifications: parsed.clientNotifications ?? defaultDb.clientNotifications,
   };
 }
 
