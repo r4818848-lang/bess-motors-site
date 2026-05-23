@@ -5,10 +5,7 @@ import {
   calcServiceLine,
   calcPartLine,
 } from "./workorder-calc";
-import {
-  SIGNATURE_CONFIRMATION_TEXT,
-  SIGNATURE_CONFIRMATION_TEXT_RU,
-} from "./work-order-share";
+import { getWorkOrderLegalTexts } from "./work-order-share";
 
 export type DocLocale = "pl" | "ru";
 export type WorkOrderDocVariant = "color" | "bw";
@@ -39,7 +36,8 @@ export function getDocLabels(locale: DocLocale) {
       gross: "К ОПЛАТЕ",
       notes: "Комментарий",
       signature: "Подпись клиента",
-      confirmation: SIGNATURE_CONFIRMATION_TEXT_RU,
+      confirmation: getWorkOrderLegalTexts("ru").confirmation,
+      vehiclePickup: getWorkOrderLegalTexts("ru").vehiclePickup,
       currency: "zł",
       empty: "—",
     };
@@ -68,7 +66,8 @@ export function getDocLabels(locale: DocLocale) {
     gross: "DO ZAPŁATY",
     notes: "Uwagi",
     signature: "Podpis klienta",
-    confirmation: SIGNATURE_CONFIRMATION_TEXT,
+    confirmation: getWorkOrderLegalTexts("pl").confirmation,
+    vehiclePickup: getWorkOrderLegalTexts("pl").vehiclePickup,
     currency: "zł",
     empty: "—",
   };
@@ -190,15 +189,20 @@ export function buildWorkOrderDocumentHtml(
       ? ["БЫСТРО", "ПРОФЕССИОНАЛЬНО", "ГАРАНТИЯ", "PREMIUM SERVICE"]
       : ["SZYBKO", "PROFESJONALNIE", "GWARANCJA", "PREMIUM SERVICE"];
 
+  const legalBlock = `
+      <p style="font-size:11px;color:${variant === "bw" ? P.textLight : "#ccc"};margin:0 0 10px;line-height:1.55;">${esc(L.confirmation)}</p>
+      <p style="font-size:11px;color:${variant === "bw" ? P.textLight : "#ccc"};margin:0 0 12px;line-height:1.55;">${esc(L.vehiclePickup)}</p>`;
+
   const sigBlock = order.signature
     ? `
     <div style="padding:16px;border:1px solid ${P.cardBorder};border-radius:10px;background:${variant === "bw" ? P.bgPanel : "rgba(20,20,20,0.95)"};">
-      <p style="font-size:11px;color:${variant === "bw" ? P.textLight : "#ccc"};margin:0 0 10px;line-height:1.5;">${esc(order.signature.confirmationText ?? L.confirmation)}</p>
+      ${legalBlock}
       ${order.signature.dataUrl ? `<img src="${order.signature.dataUrl}" alt="signature" style="height:56px;max-width:200px;display:block;margin-bottom:8px;${variant === "bw" ? "filter:grayscale(1);" : ""}" />` : ""}
       <p style="font-size:10px;color:${P.textMuted};margin:0;">${esc(order.signature.signedBy)} · ${esc(new Date(order.signature.signedAt).toLocaleString())}</p>
     </div>`
     : `<div style="padding:16px;border:2px dashed ${P.border};border-radius:10px;">
-        <p style="font-size:11px;color:${P.textMuted};">${L.signature}: ___________________________</p>
+        ${legalBlock}
+        <p style="font-size:11px;color:${P.textMuted};margin:12px 0 0;">${L.signature}: ___________________________</p>
       </div>`;
 
   const cardStyle =

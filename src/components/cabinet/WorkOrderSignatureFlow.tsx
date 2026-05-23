@@ -11,8 +11,8 @@ import { PremiumWorkOrderDocument } from "@/components/work-order/PremiumWorkOrd
 import {
   fetchClientIp,
   getDeviceInfo,
-  SIGNATURE_CONFIRMATION_TEXT,
-  SIGNATURE_CONFIRMATION_TEXT_RU,
+  getFullSignatureConfirmationText,
+  workOrderLegalLocaleFromUi,
 } from "@/lib/work-order-share";
 
 interface Props {
@@ -25,7 +25,7 @@ interface Props {
 export function WorkOrderSignatureFlow({ order, db, onDone, onCancel }: Props) {
   const { t, locale } = useI18n();
   const s = t.signature;
-  const ru = locale === "ru" || locale === "uk";
+  const docLocale = workOrderLegalLocaleFromUi(locale);
   const [signatureData, setSignatureData] = useState<string | null>(null);
   const [priceOk, setPriceOk] = useState(false);
   const [repairOk, setRepairOk] = useState(false);
@@ -35,7 +35,7 @@ export function WorkOrderSignatureFlow({ order, db, onDone, onCancel }: Props) {
   const vatRate = db.settings.vatRate ?? 23;
   const client = db.users.find((u) => u.id === order.userId);
   const vehicle = db.vehicles.find((v) => v.id === order.vehicleId);
-  const confirmText = ru ? SIGNATURE_CONFIRMATION_TEXT_RU : SIGNATURE_CONFIRMATION_TEXT;
+  const confirmText = getFullSignatureConfirmationText(docLocale);
 
   const submit = async () => {
     if (!signatureData || !priceOk || !repairOk || !worksOk || submitting) return;

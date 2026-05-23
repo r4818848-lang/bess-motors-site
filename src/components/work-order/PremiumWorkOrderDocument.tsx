@@ -17,6 +17,10 @@ import {
   type DocLocale,
   type WorkOrderDocVariant,
 } from "@/lib/work-order-document";
+import {
+  getWorkOrderLegalTexts,
+  workOrderLegalLocaleFromUi,
+} from "@/lib/work-order-share";
 import { WorkOrderPhotoGallery } from "./WorkOrderPhotoGallery";
 
 export type PremiumWorkOrderMode = "screen" | "print";
@@ -122,8 +126,9 @@ export function PremiumWorkOrderDocument({
   footerActions,
 }: Props) {
   const { locale, t } = useI18n();
-  const docLocale: DocLocale = locale === "ru" || locale === "uk" ? "ru" : "pl";
+  const docLocale: DocLocale = workOrderLegalLocaleFromUi(locale);
   const L = getDocLabels(docLocale);
+  const legal = getWorkOrderLegalTexts(docLocale);
   const p = t.premiumWo;
   const b = calcOrderBreakdown(order, vatRate);
   const sig = t.signature;
@@ -151,12 +156,6 @@ export function PremiumWorkOrderDocument({
     p.badgeWarranty,
     p.badgePremium,
   ];
-
-  const confirmText =
-    order.signature?.confirmationText ??
-    (docLocale === "ru"
-      ? "Клиент ознакомлен и согласен с перечнем работ и стоимостью ремонта"
-      : "Klient zapoznał się i zgadza się z zakresem prac oraz kosztem naprawy");
 
   const printClass = mode === "print" ? "print:shadow-none" : "";
   const variantClass =
@@ -350,7 +349,10 @@ export function PremiumWorkOrderDocument({
               <Shield className="w-4 h-4 shrink-0" />
               {sig.title}
             </p>
-            <p className="text-xs text-bm-muted leading-relaxed">{confirmText}</p>
+            <p className="text-xs text-bm-muted leading-relaxed">{legal.confirmation}</p>
+            <p className="text-xs text-bm-muted leading-relaxed mt-3 pt-3 border-t border-bm-border/40">
+              {legal.vehiclePickup}
+            </p>
             {order.signature ? (
               <div className="rounded-xl border border-emerald-500/40 bg-emerald-500/10 p-4">
                 {order.signature.dataUrl && (
