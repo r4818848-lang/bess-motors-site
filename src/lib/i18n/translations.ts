@@ -325,6 +325,7 @@ const pl = {
   auth: {
     subtitle: "Telefon i numer rejestracyjny — panel klienta",
     plateHint: "Jako dostęp użyj numeru rejestracyjnego swojego auta (bez spacji lub ze spacją).",
+    savedLoginHint: "Telefon i numer rejestracyjny są zapisywane w przeglądarce — przy następnej wizycie wypełnią się automatycznie.",
     invalidCredentials: "Nieprawidłowy telefon lub numer rejestracyjny.",
     phoneExists: "Ten numer lub auto jest już zarejestrowane.",
     phoneRequired: "Podaj numer telefonu.",
@@ -1110,6 +1111,7 @@ const ru: TranslationKeys = {
   auth: {
     subtitle: "Телефон и госномер — личный кабинет",
     plateHint: "Для входа используйте регистрационный номер вашего автомобиля.",
+    savedLoginHint: "Телефон и госномер сохраняются в браузере — при следующем визите поля заполнятся сами.",
     invalidCredentials: "Неверный телефон или госномер.",
     phoneExists: "Этот номер или авто уже зарегистрированы.",
     phoneRequired: "Укажите номер телефона.",
@@ -1693,6 +1695,7 @@ const en: TranslationKeys = {
   auth: {
     subtitle: "Phone and registration plate — client portal",
     plateHint: "Use your vehicle registration number to sign in.",
+    savedLoginHint: "Phone and plate are saved in your browser and will autofill next time.",
     invalidCredentials: "Invalid phone or registration number.",
     phoneExists: "This phone or plate is already registered.",
     phoneRequired: "Enter your phone number.",

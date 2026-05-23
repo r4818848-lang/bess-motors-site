@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Phone, Car, LogIn, UserPlus, ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useI18n } from "@/lib/i18n/context";
 import { useAuth } from "@/lib/auth/session-context";
 import { loginWithPhonePassword, registerClient, type AuthResult } from "@/lib/auth";
+import { loadClientCredentials } from "@/lib/client-credentials";
 import { Button } from "@/components/ui/Button";
 
 type Mode = "login" | "register";
@@ -24,6 +25,16 @@ export function PhoneAuthForm({ onSuccess }: PhoneAuthFormProps) {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [focused, setFocused] = useState<"phone" | "plate" | null>(null);
+  const [credentialsLoaded, setCredentialsLoaded] = useState(false);
+
+  useEffect(() => {
+    const saved = loadClientCredentials();
+    if (saved) {
+      setPhone(saved.phone);
+      setPlate(saved.plate);
+    }
+    setCredentialsLoaded(true);
+  }, []);
 
   const errorMessage = (result: Extract<AuthResult, { ok: false }>) => {
     switch (result.error) {
@@ -38,7 +49,8 @@ export function PhoneAuthForm({ onSuccess }: PhoneAuthFormProps) {
     }
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e?: React.FormEvent) => {
+    e?.preventDefault();
     setError("");
     setLoading(true);
     try {
@@ -113,17 +125,26 @@ export function PhoneAuthForm({ onSuccess }: PhoneAuthFormProps) {
             ))}
           </div>
 
-          <div className="space-y-4">
+          <form
+            id="bess-client-auth"
+            name="bess-client-auth"
+            method="post"
+            autoComplete="on"
+            onSubmit={handleSubmit}
+            className="space-y-4"
+          >
             <div className="relative group">
               <Phone
-                className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors ${
+                className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors z-10 ${
                   focused === "phone" ? "text-bm-red" : "text-bm-muted"
                 }`}
               />
               <input
+                id="bess-client-phone"
+                name="username"
                 type="tel"
                 inputMode="tel"
-                autoComplete="tel"
+                autoComplete={mode === "login" ? "username tel" : "tel username"}
                 className="input-premium pl-10 w-full bg-bm-black/60 backdrop-blur-md transition-all duration-300"
                 style={{
                   boxShadow:
@@ -136,20 +157,23 @@ export function PhoneAuthForm({ onSuccess }: PhoneAuthFormProps) {
                 onFocus={() => setFocused("phone")}
                 onBlur={() => setFocused(null)}
                 onChange={(e) => setPhone(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+                readOnly={!credentialsLoaded}
               />
             </div>
 
             <div className="relative group">
               <Car
-                className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors ${
+                className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors z-10 ${
                   focused === "plate" ? "text-bm-red" : "text-bm-muted"
                 }`}
               />
               <input
+                id="bess-client-plate"
+                name="password"
                 type="text"
-                autoComplete="off"
-                autoCapitalize="off"
+                autoComplete={mode === "login" ? "current-password" : "new-password"}
+                autoCapitalize="characters"
+                spellCheck={false}
                 className="input-premium pl-10 w-full bg-bm-black/60 backdrop-blur-md font-mono tracking-wider transition-all duration-300"
                 style={{
                   boxShadow:
@@ -161,30 +185,32 @@ export function PhoneAuthForm({ onSuccess }: PhoneAuthFormProps) {
                 value={plate}
                 onFocus={() => setFocused("plate")}
                 onBlur={() => setFocused(null)}
-                onChange={(e) => setPlate(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+                onChange={(e) => setPlate(e.target.value.toUpperCase())}
+                readOnly={!credentialsLoaded}
               />
             </div>
-          </div>
 
-          {error && <p className="mt-3 text-sm text-bm-red text-center">{error}</p>}
+            {error && <p className="text-sm text-bm-red text-center">{error}</p>}
 
-          <Button className="w-full mt-6 gap-2" onClick={handleSubmit} disabled={loading}>
-            {loading ? (
-              <span className="animate-pulse">{t.auth.loading}</span>
-            ) : mode === "register" ? (
-              <>
-                <UserPlus className="w-4 h-4" />
-                {t.cabinet.register}
-              </>
-            ) : (
-              <>
-                <LogIn className="w-4 h-4" />
-                {t.cabinet.login}
-                <ChevronRight className="w-4 h-4" />
-              </>
-            )}
-          </Button>
+            <Button type="submit" className="w-full mt-2 gap-2" disabled={loading}>
+              {loading ? (
+                <span className="animate-pulse">{t.auth.loading}</span>
+              ) : mode === "register" ? (
+                <>
+                  <UserPlus className="w-4 h-4" />
+                  {t.cabinet.register}
+                </>
+              ) : (
+                <>
+                  <LogIn className="w-4 h-4" />
+                  {t.cabinet.login}
+                  <ChevronRight className="w-4 h-4" />
+                </>
+              )}
+            </Button>
+          </form>
+
+          <p className="text-center text-[10px] text-bm-muted/70 mt-4">{t.auth.savedLoginHint}</p>
         </div>
       </div>
     </div>
