@@ -13,6 +13,7 @@ import {
   LogOut,
   CalendarDays,
   History,
+  Activity,
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import {
@@ -22,6 +23,14 @@ import {
   type RepairStatus,
   type Vehicle,
 } from "@/lib/store";
+import {
+  getUserNotifications,
+  getUnreadNotificationCount,
+  markNotificationRead,
+  markAllNotificationsRead,
+  maybeShowBrowserNotifications,
+  requestNotificationPermission,
+} from "@/lib/client-notifications";
 import { decodeVin } from "@/lib/vin";
 import { siteConfig } from "@/lib/site";
 import { useAuth } from "@/lib/auth/session-context";
@@ -40,8 +49,8 @@ import {
   defaultWorkOrderFilters,
 } from "@/lib/workorder-filters";
 import { getClientPaymentView } from "@/lib/payment";
-import { ClientNotificationsPanel } from "@/components/cabinet/ClientNotificationsPanel";
-import { getUnreadCount } from "@/lib/client-notifications";
+import { PremiumVehicleShowcase } from "@/components/vehicle/PremiumVehicleShowcase";
+import { VehicleThumbnail } from "@/components/vehicle/VehicleThumbnail";
 
 const statusOrder: RepairStatus[] = [
   "received",
@@ -71,6 +80,10 @@ function CabinetPageContent() {
     trim: "",
     power: "",
     transmission: "",
+    year: "",
+    engineVolume: "",
+    drivetrain: "",
+    fuelType: "",
   });
 
   const refreshDb = () => setDb(loadDb());
@@ -95,6 +108,14 @@ function CabinetPageContent() {
     }
   }, [searchParams]);
 
+  useEffect(() => {
+    if (!mounted || !sessionReady || !clientUser || !db) return;
+    maybeShowBrowserNotifications(db, clientUser.id, {
+      title: t.notifExt.carReadyTitle,
+      body: t.notifExt.carReadyBody,
+    });
+  }, [mounted, sessionReady, clientUser, db, t.notifExt.carReadyTitle, t.notifExt.carReadyBody]);
+
   const user = mounted && sessionReady ? clientUser : null;
 
   const logout = () => {
@@ -115,6 +136,10 @@ function CabinetPageContent() {
       trim: vinForm.trim,
       power: vinForm.power,
       transmission: vinForm.transmission,
+      year: vinForm.year || undefined,
+      engineVolume: vinForm.engineVolume || undefined,
+      drivetrain: vinForm.drivetrain || undefined,
+      fuelType: vinForm.fuelType || undefined,
       userId: user.id,
     };
     db.vehicles.push(vehicle);
@@ -130,6 +155,10 @@ function CabinetPageContent() {
       trim: "",
       power: "",
       transmission: "",
+      year: "",
+      engineVolume: "",
+      drivetrain: "",
+      fuelType: "",
     });
   };
 
@@ -146,6 +175,10 @@ function CabinetPageContent() {
         trim: d.trim,
         power: d.power,
         transmission: d.transmission,
+        year: d.year,
+        engineVolume: d.engineVolume,
+        drivetrain: d.drivetrain,
+        fuelType: d.fuelType,
       }));
     }
   };
@@ -186,16 +219,19 @@ function CabinetPageContent() {
     .filter((a) => a.userId === user.id)
     .sort((a, b) => `${b.date}${b.time}`.localeCompare(`${a.date}${a.time}`));
 
-  const unreadNotifications = getUnreadCount(activeDb, user.id);
-  const cn = t.clientNotifications;
+  const featuredVehicle =
+    myVehicles.find((v) => myOrders.some((o) => o.vehicleId === v.id)) ?? myVehicles[0];
+
+  const myNotifications = getUserNotifications(activeDb, user.id);
+  const unreadCount = getUnreadNotificationCount(activeDb, user.id);
 
   const tabs = [
     { id: "cars", icon: Car, label: t.cabinet.myCars },
     { id: "appointments", icon: CalendarDays, label: t.cabinet.appointments },
-    { id: "notifications", icon: Bell, label: cn.title, badge: unreadNotifications },
     { id: "history", icon: History, label: t.cabinet.history },
     { id: "orders", icon: FileText, label: t.cabinet.workOrders },
-    { id: "status", icon: Bell, label: t.cabinet.liveStatus },
+    { id: "notifications", icon: Bell, label: t.cabinet.notifications, badge: unreadCount },
+    { id: "status", icon: Activity, label: t.cabinet.liveStatus },
     { id: "warranty", icon: Shield, label: t.cabinet.warranties },
     { id: "expenses", icon: DollarSign, label: t.cabinet.expenses },
     { id: "photos", icon: ImageIcon, label: t.cabinet.photos },
@@ -221,37 +257,32 @@ function CabinetPageContent() {
             <button
               key={id}
               onClick={() => setTab(id)}
-              className={`relative flex items-center gap-2 px-4 py-2 rounded-lg text-sm whitespace-nowrap transition-all ${
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm whitespace-nowrap transition-all ${
                 tab === id ? "bg-bm-red shadow-neon-sm" : "glass text-bm-muted hover:text-white"
               }`}
             >
               <Icon size={16} /> {label}
               {badge ? (
-                <span className="ml-1 min-w-[18px] h-[18px] px-1 rounded-full bg-white text-bm-red text-[10px] font-bold">
-                  {badge > 9 ? "9+" : badge}
+                <span className="ml-1 min-w-[18px] h-[18px] px-1 rounded-full bg-bm-red text-[10px] font-bold flex items-center justify-center">
+                  {badge}
                 </span>
               ) : null}
             </button>
           ))}
         </div>
 
+
         {tab === "cars" && (
           <div className="grid lg:grid-cols-2 gap-8">
-            <div className="space-y-4">
-              {myVehicles.map((v) => (
-                <Card key={v.id} glow>
-                  <p className="font-display font-bold text-lg">
-                    {v.make} {v.model}
-                  </p>
-                  <p className="text-sm text-bm-muted font-mono mt-1">VIN: {v.vin}</p>
-                  <p className="text-sm text-bm-muted">
-                    {v.plate} · {v.mileage.toLocaleString()} km
-                  </p>
-                  <p className="text-xs text-bm-red mt-2">
-                    {v.engine} · {v.power} · {v.transmission}
-                  </p>
-                </Card>
-              ))}
+            <div className="space-y-6 lg:col-span-2">
+              {featuredVehicle && (
+                <PremiumVehicleShowcase key={featuredVehicle.id} vehicle={featuredVehicle} animate />
+              )}
+              {myVehicles
+                .filter((v) => v.id !== featuredVehicle?.id)
+                .map((v) => (
+                  <PremiumVehicleShowcase key={v.id} vehicle={v} compact animate={false} />
+                ))}
             </div>
             <Card glow>
               <h3 className="font-display uppercase text-bm-red mb-4">{t.cabinet.addCar}</h3>
@@ -342,6 +373,13 @@ function CabinetPageContent() {
         )}
 
         {tab === "status" && activeOrder && (
+          <div className="space-y-6 max-w-3xl">
+            {(() => {
+              const statusVehicle = activeDb.vehicles.find((v) => v.id === activeOrder.vehicleId);
+              return statusVehicle ? (
+                <PremiumVehicleShowcase vehicle={statusVehicle} animate />
+              ) : null;
+            })()}
           <Card glow className="max-w-3xl">
             <h3 className="font-display uppercase mb-6">{t.cabinet.liveStatus}</h3>
             <p className="text-sm text-bm-muted mb-6">Order {activeOrder.number}</p>
@@ -378,9 +416,8 @@ function CabinetPageContent() {
               })}
             </div>
           </Card>
+          </div>
         )}
-
-        {tab === "notifications" && <ClientNotificationsPanel />}
 
         {tab === "history" && (
           <>
@@ -439,12 +476,12 @@ function CabinetPageContent() {
                         className="cursor-pointer hover:border-bm-red/60"
                         onClick={() => setSelectedOrderId(order.id)}
                       >
-                        <div className="flex flex-wrap justify-between gap-4">
-                          <div>
-                            <p className="font-display font-bold">{order.number}</p>
-                            <p className="text-sm text-bm-muted">
-                              {vehicle?.make} {vehicle?.model} · {order.createdAt}
-                            </p>
+                        <div className="flex flex-wrap items-center justify-between gap-4">
+                          <div className="flex items-center gap-4 min-w-0">
+                            <VehicleThumbnail vehicle={vehicle} showLabel={false} />
+                            <div>
+                              <p className="font-display font-bold">{order.number}</p>
+                              <p className="text-sm text-bm-muted">{order.createdAt}</p>
                             <span className="status-pill bg-bm-red/20 text-bm-red text-[10px] mt-2 inline-block mr-2">
                               {t.repairStatus[order.status]}
                             </span>
@@ -453,6 +490,7 @@ function CabinetPageContent() {
                                 {payLabel}
                               </span>
                             )}
+                            </div>
                           </div>
                           <p className="font-display text-xl text-bm-red">
                             {calcClientTotal(order).toFixed(2)} zł
@@ -465,6 +503,111 @@ function CabinetPageContent() {
               </div>
             )}
           </>
+        )}
+
+        {tab === "notifications" && (
+          <div className="space-y-4 max-w-3xl">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h3 className="font-display uppercase text-bm-red">{t.cabinet.notifications}</h3>
+              <div className="flex gap-2">
+                {typeof Notification !== "undefined" && Notification.permission !== "granted" && (
+                  <Button
+                    variant="outline"
+                    className="text-xs"
+                    onClick={() => requestNotificationPermission()}
+                  >
+                    {t.notifExt.enablePush}
+                  </Button>
+                )}
+                {unreadCount > 0 && (
+                  <Button
+                    variant="ghost"
+                    className="text-xs"
+                    onClick={() => {
+                      const fresh = loadDb();
+                      markAllNotificationsRead(fresh, user.id);
+                      saveDb(fresh);
+                      refreshDb();
+                    }}
+                  >
+                    {t.notifExt.markAllRead}
+                  </Button>
+                )}
+              </div>
+            </div>
+            {myNotifications.length === 0 ? (
+              <Card glow className="text-center py-12 text-bm-muted">
+                {t.notifExt.noNotifications}
+              </Card>
+            ) : (
+              myNotifications.map((n) => {
+                const order = activeDb.workOrders.find((o) => o.id === n.workOrderId);
+                const vehicle = order
+                  ? activeDb.vehicles.find((v) => v.id === order.vehicleId)
+                  : null;
+                const vehicleLabel = vehicle
+                  ? `${vehicle.make} ${vehicle.model} · ${vehicle.plate}`
+                  : order?.number ?? "";
+                return (
+                  <Card
+                    key={n.id}
+                    glow
+                    className={n.read ? "opacity-70" : "border-green-500/40"}
+                  >
+                    <div className="flex flex-wrap items-start justify-between gap-4">
+                      <div>
+                        <p className="font-display font-bold text-green-400">
+                          {t.notifExt.carReadyTitle}
+                        </p>
+                        <p className="text-sm text-bm-muted mt-1">
+                          {t.notifExt.carReadyBody.replace("{vehicle}", vehicleLabel)}
+                        </p>
+                        {order && (
+                          <p className="text-xs font-mono text-bm-red mt-2">{order.number}</p>
+                        )}
+                      </div>
+                      {!n.read && (
+                        <Button
+                          variant="outline"
+                          className="text-xs shrink-0"
+                          onClick={() => {
+                            const fresh = loadDb();
+                            markNotificationRead(fresh, n.id);
+                            saveDb(fresh);
+                            refreshDb();
+                          }}
+                        >
+                          OK
+                        </Button>
+                      )}
+                    </div>
+                    <div className="flex flex-wrap gap-3 mt-4">
+                      <a
+                        href={siteConfig.googleMapsReviewsUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-bm-red hover:underline"
+                      >
+                        {t.notifExt.leaveReview}
+                      </a>
+                      {order && (
+                        <button
+                          type="button"
+                          className="text-xs text-bm-muted hover:text-white"
+                          onClick={() => {
+                            setTab("orders");
+                            setSelectedOrderId(order.id);
+                          }}
+                        >
+                          {t.cabinet.workOrders}
+                        </button>
+                      )}
+                    </div>
+                  </Card>
+                );
+              })
+            )}
+          </div>
         )}
 
         {tab === "expenses" && <SpendingStats db={activeDb} userId={user.id} />}

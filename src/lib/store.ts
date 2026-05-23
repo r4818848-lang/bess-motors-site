@@ -160,6 +160,19 @@ export interface WorkOrder {
   paidCashAmount?: number;
   /** For paymentMethod card_cash — card/transfer portion (PLN) */
   paidCardAmount?: number;
+  /** ISO date — client notified when status became ready */
+  readyNotifiedAt?: string;
+}
+
+export type ClientNotificationType = "car_ready";
+
+export interface ClientNotification {
+  id: string;
+  userId: string;
+  workOrderId: string;
+  type: ClientNotificationType;
+  read: boolean;
+  createdAt: string;
 }
 
 export interface ServiceExpense {
@@ -199,24 +212,6 @@ export interface PasswordResetRecord {
 }
 
 export type AppointmentStatus = "scheduled" | "confirmed" | "completed" | "cancelled";
-
-export type ClientNotificationType = "status_change" | "appointment" | "sign_required";
-
-export interface ClientNotification {
-  id: string;
-  userId: string;
-  type: ClientNotificationType;
-  workOrderId?: string;
-  workOrderNumber?: string;
-  appointmentId?: string;
-  statusKey?: RepairStatus;
-  appointmentDate?: string;
-  appointmentTime?: string;
-  /** For appointment notifications */
-  appointmentKind?: "created" | "confirmed" | "rescheduled";
-  read: boolean;
-  createdAt: string;
-}
 
 export type CallRequestStatus = "needs_call" | "called" | "done";
 
@@ -297,9 +292,7 @@ export function purgeAllClientsFromDb(db: Database): Database {
     passwordResets: [],
     currentUserId:
       db.currentUserId && clientIds.has(db.currentUserId) ? null : db.currentUserId,
-    clientNotifications: (db.clientNotifications ?? []).filter(
-      (n) => !clientIds.has(n.userId)
-    ),
+    notifications: (db.notifications ?? []).filter((n) => !clientIds.has(n.userId)),
   };
 }
 
@@ -316,7 +309,7 @@ export interface Database {
   settings: AppSettings;
   passwordResets: PasswordResetRecord[];
   currentUserId: string | null;
-  clientNotifications: ClientNotification[];
+  notifications: ClientNotification[];
 }
 
 const defaultDb: Database = {
@@ -345,7 +338,7 @@ const defaultDb: Database = {
     { id: "wh2", name: "Klocki hamulcowe Brembo", sku: "P85020", qty: 12, purchasePrice: 120, sellPrice: 220, supplier: "Auto Partner", qrCode: "BM-WH-002" },
   ],
   currentUserId: null,
-  clientNotifications: [],
+  notifications: [],
 };
 
 export function deriveDocumentStatus(
@@ -474,7 +467,7 @@ function mergeStoredDb(parsed: Partial<Database>): Database {
       ...(parsed.settings ?? {}),
     },
     passwordResets: parsed.passwordResets ?? defaultDb.passwordResets,
-    clientNotifications: parsed.clientNotifications ?? defaultDb.clientNotifications,
+    notifications: parsed.notifications ?? defaultDb.notifications,
   };
 }
 

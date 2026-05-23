@@ -1,216 +1,129 @@
-import type {
-  Appointment,
-  ClientNotification,
-  ClientNotificationType,
-  Database,
-  RepairStatus,
-  WorkOrder,
-} from "./store";
+import type { Database, RepairStatus, WorkOrder, ClientNotification } from "./store";
+import { siteConfig } from "./site";
 
-const MAX_PER_USER = 80;
+export type { ClientNotification, ClientNotificationType } from "./store";
 
-function isRealClient(userId: string | undefined): userId is string {
-  return !!userId && userId !== "guest" && userId !== "admin-1";
-}
-
-function trimNotifications(db: Database, userId: string): void {
-  const list = db.clientNotifications.filter((n) => n.userId === userId);
-  if (list.length <= MAX_PER_USER) return;
-  const toRemove = new Set(list.slice(MAX_PER_USER).map((n) => n.id));
-  db.clientNotifications = db.clientNotifications.filter((n) => !toRemove.has(n.id));
-}
-
-function hasRecentDuplicate(
+/** When CRM sets status to ready — create in-app notification for the client */
+export function handleWorkOrderReadyTransition(
   db: Database,
-  userId: string,
-  type: ClientNotificationType,
-  workOrderId?: string,
-  appointmentId?: string,
-  statusKey?: RepairStatus
+  order: WorkOrder,
+  previousStatus?: RepairStatus
 ): boolean {
-  const hourAgo = Date.now() - 60 * 60 * 1000;
-  return db.clientNotifications.some(
-    (n) =>
-      n.userId === userId &&
-      n.type === type &&
-      n.workOrderId === workOrderId &&
-      n.appointmentId === appointmentId &&
-      n.statusKey === statusKey &&
-      new Date(n.createdAt).getTime() > hourAgo
+  if (order.status !== "ready") return false;
+  if (previousStatus === "ready") return false;
+  if (order.readyNotifiedAt) return false;
+
+  db.notifications = db.notifications ?? [];
+  const duplicate = db.notifications.some(
+    (n) => n.workOrderId === order.id && n.type === "car_ready"
   );
-}
+  if (duplicate) return false;
 
-export function pushClientNotification(
-  db: Database,
-  data: Omit<ClientNotification, "id" | "read" | "createdAt">
-): ClientNotification | null {
-  if (!isRealClient(data.userId)) return null;
-
-  if (
-    hasRecentDuplicate(
-      db,
-      data.userId,
-      data.type,
-      data.workOrderId,
-      data.appointmentId,
-      data.statusKey
-    )
-  ) {
-    return null;
-  }
-
-  const item: ClientNotification = {
-    ...data,
-    id: `cn-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+  db.notifications.push({
+    id: `n-${Date.now()}-${order.id}`,
+    userId: order.userId,
+    workOrderId: order.id,
+    type: "car_ready",
     read: false,
     createdAt: new Date().toISOString(),
-  };
-
-  db.clientNotifications.unshift(item);
-  trimNotifications(db, data.userId);
-
-  return item;
+  });
+  order.readyNotifiedAt = new Date().toISOString();
+  return true;
 }
 
-export function getUnreadCount(db: Database, userId: string): number {
-  return db.clientNotifications.filter((n) => n.userId === userId && !n.read).length;
-}
-
-export function getNotificationsForUser(db: Database, userId: string): ClientNotification[] {
-  return db.clientNotifications
+export function getUserNotifications(db: Database, userId: string): ClientNotification[] {
+  return (db.notifications ?? [])
     .filter((n) => n.userId === userId)
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }
 
+export function getUnreadNotificationCount(db: Database, userId: string): number {
+  return getUserNotifications(db, userId).filter((n) => !n.read).length;
+}
+
 export function markNotificationRead(db: Database, notificationId: string): void {
-  const n = db.clientNotifications.find((x) => x.id === notificationId);
+  const n = (db.notifications ?? []).find((x) => x.id === notificationId);
   if (n) n.read = true;
 }
 
 export function markAllNotificationsRead(db: Database, userId: string): void {
-  for (const n of db.clientNotifications) {
+  for (const n of db.notifications ?? []) {
     if (n.userId === userId) n.read = true;
   }
 }
 
-export function markWorkOrderNotificationsRead(
+function phoneDigits(phone: string): string {
+  return phone.replace(/\D/g, "");
+}
+
+/** Pre-filled WhatsApp message when car is ready + Google review link */
+export function buildCarReadyWhatsAppUrl(
+  clientPhone: string,
+  orderNumber: string,
+  vehicleLabel: string,
+  locale: "pl" | "ru" | "en" | "uk"
+): string {
+  const reviewUrl = siteConfig.googleMapsReviewsUrl;
+  const loc = locale === "ru" || locale === "uk" ? "ru" : locale === "en" ? "en" : "pl";
+
+  const messages: Record<string, string> = {
+    pl: `Dzień dobry! Państwa ${vehicleLabel} jest gotowy do odbioru (${orderNumber}). Prosimy o odbiór w ciągu 7 dni. Będziemy wdzięczni za opinię w Google Maps: ${reviewUrl}`,
+    ru: `Здравствуйте! Ваш автомобиль ${vehicleLabel} готов к выдаче (${orderNumber}). Заберите в течение 7 дней. Будем благодарны за отзыв в Google Maps: ${reviewUrl}`,
+    en: `Hello! Your ${vehicleLabel} is ready for pickup (${orderNumber}). Please collect within 7 days. We would appreciate a Google Maps review: ${reviewUrl}`,
+  };
+
+  const text = messages[loc] ?? messages.pl;
+  const digits = phoneDigits(clientPhone);
+  return `https://wa.me/${digits}?text=${encodeURIComponent(text)}`;
+}
+
+const PUSH_SEEN_PREFIX = "bess-notif-pushed-";
+
+/** Browser push when client has the site open */
+export function maybeShowBrowserNotifications(
   db: Database,
   userId: string,
-  workOrderId: string
+  copy: { title: string; body: string }
 ): void {
-  for (const n of db.clientNotifications) {
-    if (n.userId === userId && n.workOrderId === workOrderId) n.read = true;
-  }
-}
-
-export function notifyWorkOrderStatusChange(
-  db: Database,
-  order: WorkOrder,
-  status: RepairStatus
-): void {
-  pushClientNotification(db, {
-    userId: order.userId,
-    type: "status_change",
-    workOrderId: order.id,
-    workOrderNumber: order.number,
-    statusKey: status,
-  });
-}
-
-export function notifyWorkOrderSignRequired(db: Database, order: WorkOrder): void {
-  if (order.confirmationStatus !== "awaiting_confirmation" || order.signature) return;
-  if (
-    db.clientNotifications.some(
-      (n) =>
-        n.userId === order.userId &&
-        n.type === "sign_required" &&
-        n.workOrderId === order.id &&
-        !n.read
-    )
-  ) {
-    return;
-  }
-  pushClientNotification(db, {
-    userId: order.userId,
-    type: "sign_required",
-    workOrderId: order.id,
-    workOrderNumber: order.number,
-  });
-}
-
-export function applyWorkOrderNotifications(
-  db: Database,
-  prev: WorkOrder | null,
-  next: WorkOrder
-): void {
-  if (!isRealClient(next.userId)) return;
-
-  if (!prev || prev.status !== next.status) {
-    notifyWorkOrderStatusChange(db, next, next.status);
-  }
-
-  const needsSign =
-    next.confirmationStatus === "awaiting_confirmation" && !next.signature;
-  const prevNeedsSign =
-    prev?.confirmationStatus === "awaiting_confirmation" && !prev.signature;
-
-  if (needsSign && (!prev || !prevNeedsSign)) {
-    notifyWorkOrderSignRequired(db, next);
-  }
-}
-
-export function notifyAppointment(
-  db: Database,
-  apt: Appointment,
-  kind: "created" | "confirmed" | "rescheduled"
-): void {
-  if (!isRealClient(apt.userId)) return;
-  pushClientNotification(db, {
-    userId: apt.userId,
-    type: "appointment",
-    appointmentId: apt.id,
-    workOrderId: apt.workOrderId,
-    appointmentDate: apt.date,
-    appointmentTime: apt.time,
-    appointmentKind: kind,
-  });
-}
-
-const notificationTextCache = new Map<string, { title: string; body: string; url: string }>();
-
-export function registerNotificationText(
-  id: string,
-  title: string,
-  body: string,
-  url: string
-): void {
-  notificationTextCache.set(id, { title, body, url });
-  setTimeout(() => notificationTextCache.delete(id), 60_000);
-}
-
-export function showBrowserNotification(title: string, body: string, url: string): void {
   if (typeof window === "undefined" || !("Notification" in window)) return;
   if (Notification.permission !== "granted") return;
-  try {
-    const n = new Notification(title, { body, icon: "/favicon.ico" });
-    n.onclick = () => {
-      window.focus();
-      window.location.href = url;
-      n.close();
-    };
-  } catch {
-    /* ignore */
+
+  const unread = getUserNotifications(db, userId).filter((n) => !n.read && n.type === "car_ready");
+
+  for (const n of unread) {
+    const seenKey = `${PUSH_SEEN_PREFIX}${n.id}`;
+    if (sessionStorage.getItem(seenKey)) continue;
+
+    const order = db.workOrders.find((o) => o.id === n.workOrderId);
+    const vehicle = order ? db.vehicles.find((v) => v.id === order.vehicleId) : null;
+    const label = vehicle
+      ? `${vehicle.make} ${vehicle.model} · ${vehicle.plate}`.trim()
+      : order?.number ?? "";
+
+    try {
+      const notification = new Notification(copy.title, {
+        body: copy.body.replace("{vehicle}", label || order?.number || ""),
+        icon: siteConfig.logoImage || "/images/logo.png",
+        tag: n.id,
+      });
+      notification.onclick = () => {
+        window.focus();
+        window.location.href = "/cabinet?tab=notifications";
+      };
+      sessionStorage.setItem(seenKey, "1");
+    } catch {
+      /* ignore */
+    }
   }
 }
 
-export async function requestClientNotificationPermission(): Promise<boolean> {
-  if (typeof window === "undefined" || !("Notification" in window)) return false;
-  if (Notification.permission === "granted") return true;
-  if (Notification.permission === "denied") return false;
+export async function requestNotificationPermission(): Promise<NotificationPermission | null> {
+  if (typeof window === "undefined" || !("Notification" in window)) return null;
+  if (Notification.permission === "granted") return "granted";
+  if (Notification.permission === "denied") return "denied";
   try {
-    const result = await Notification.requestPermission();
-    return result === "granted";
+    return await Notification.requestPermission();
   } catch {
-    return false;
+    return null;
   }
 }

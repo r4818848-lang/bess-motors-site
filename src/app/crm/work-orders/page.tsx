@@ -14,6 +14,7 @@ import { calcClientTotal } from "@/lib/workorder-calc";
 import { filterWorkOrders, defaultWorkOrderFilters } from "@/lib/workorder-filters";
 import { WorkOrderFilters } from "@/components/crm/WorkOrderFilters";
 import { Button } from "@/components/ui/Button";
+import { VehicleThumbnail } from "@/components/vehicle/VehicleThumbnail";
 
 function WorkOrdersPageContent() {
   const { t } = useI18n();
@@ -137,7 +138,7 @@ function WorkOrdersPageContent() {
                     <td>{order.createdAt}</td>
                     <td>{client?.name ?? "—"}</td>
                     <td>
-                      {vehicle ? `${vehicle.make} ${vehicle.model}` : "—"}
+                      <VehicleThumbnail vehicle={vehicle} />
                     </td>
                     <td className="font-mono">{calcClientTotal(order).toFixed(2)} zł</td>
                     <td>

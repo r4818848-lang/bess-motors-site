@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import { Plus, Trash2, Search, Save, X, Upload, FileText } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
+import { handleWorkOrderReadyTransition, buildCarReadyWhatsAppUrl } from "@/lib/client-notifications";
 import {
   loadDb,
   saveDb,
@@ -35,7 +36,6 @@ import {
   generateOrderNumber,
 } from "@/lib/workorder-calc";
 import { Button } from "@/components/ui/Button";
-import { applyWorkOrderNotifications } from "@/lib/client-notifications";
 import { VehicleClientEditor } from "@/components/crm/VehicleClientEditor";
 import { WorkOrderDocumentActions } from "@/components/work-order/WorkOrderDocumentActions";
 
@@ -88,7 +88,7 @@ interface WorkOrderFormProps {
 }
 
 export function WorkOrderForm({ orderId, onClose, onSaved }: WorkOrderFormProps) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const w = t.wo;
   const c = t.crm;
   const doc = t.document;
@@ -189,7 +189,7 @@ export function WorkOrderForm({ orderId, onClose, onSaved }: WorkOrderFormProps)
     }
     const fresh = loadDb();
     const idx = fresh.workOrders.findIndex((o) => o.id === order.id);
-    const prev = idx >= 0 ? fresh.workOrders[idx] : null;
+    const previousStatus = idx >= 0 ? fresh.workOrders[idx].status : undefined;
     const documentStatus =
       order.documentStatus ??
       deriveDocumentStatus(order.status, order.confirmationStatus);
@@ -210,7 +210,7 @@ export function WorkOrderForm({ orderId, onClose, onSaved }: WorkOrderFormProps)
     };
     if (idx >= 0) fresh.workOrders[idx] = updated;
     else fresh.workOrders.push(updated);
-    applyWorkOrderNotifications(fresh, prev, updated);
+    handleWorkOrderReadyTransition(fresh, updated, previousStatus);
     saveDb(fresh);
     onSaved();
   };
@@ -362,6 +362,21 @@ export function WorkOrderForm({ orderId, onClose, onSaved }: WorkOrderFormProps)
               </option>
             ))}
           </select>
+          {order.status === "ready" && client?.phone && vehicle && (
+            <a
+              href={buildCarReadyWhatsAppUrl(
+                client.phone,
+                order.number,
+                `${vehicle.make} ${vehicle.model} · ${vehicle.plate}`,
+                locale
+              )}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-2 inline-block text-xs text-green-400 hover:text-green-300 underline"
+            >
+              {t.notifExt.whatsAppReady}
+            </a>
+          )}
         </div>
         <div>
           <label className="text-xs uppercase text-bm-muted">{w.assignMechanic}</label>
