@@ -340,7 +340,7 @@ export function BookingQuoteFlow({ onDone }: Props) {
       })),
     });
     onDone?.();
-    router.push("/booking/thank-you");
+    router.replace("/booking/thank-you");
   };
 
   return (
