@@ -113,10 +113,6 @@ export async function restoreSessionFromToken(): Promise<User | null> {
   if (user.role === "client") {
     const freshToken = await issueToken(user.id, "client");
     localStorage.setItem(TOKEN_KEY, freshToken);
-    const vehicle = db.vehicles.find((v) => v.userId === user.id);
-    if (vehicle?.plate) {
-      saveClientCredentials(user.phone, vehicle.plate);
-    }
   }
 
   return user;
@@ -221,7 +217,7 @@ export async function loginWithPhonePassword(
 
   const token = await issueToken(user.id, "client");
   persistSession(token, "client", user.id);
-  saveClientCredentials(normalized, credential);
+  saveClientCredentials(phone, credential);
   return { ok: true, role: "client", user };
 }
 
@@ -280,7 +276,7 @@ export async function registerClient(phone: string, plate: string): Promise<Auth
 
   const token = await issueToken(user.id, "client");
   persistSession(token, "client", user.id);
-  saveClientCredentials(normalized, displayPlate);
+  saveClientCredentials(phone, plate);
   return { ok: true, role: "client", user };
 }
 

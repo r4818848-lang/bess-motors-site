@@ -1,42 +1,46 @@
-/** Saved client login (phone + registration plate) for browser autofill */
-const STORAGE_KEY = "bess-client-saved-login";
+const CLIENT_CREDS_KEY = "bess-client-saved-creds";
 
-export interface SavedClientLogin {
+export interface SavedClientCredentials {
   phone: string;
   plate: string;
 }
 
-export function saveClientCredentials(phone: string, plate: string): void {
-  if (typeof window === "undefined") return;
-  const phoneTrim = phone.trim();
-  const plateTrim = plate.trim();
-  if (!phoneTrim || !plateTrim) return;
-  try {
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({ phone: phoneTrim, plate: plateTrim })
-    );
-  } catch {
-    /* quota / private mode */
-  }
+function normalizePhone(phone: string): string {
+  const digits = phone.replace(/\D/g, "");
+  if (!digits) return "";
+  if (digits.startsWith("48") && digits.length >= 11) return `+${digits}`;
+  if (digits.length === 9) return `+48${digits}`;
+  return phone.replace(/\s/g, "").replace(/-/g, "");
 }
 
-export function loadClientCredentials(): SavedClientLogin | null {
+/** Remember client phone + plate in this browser (for autofill on next login) */
+export function saveClientCredentials(phone: string, plate: string): void {
+  if (typeof window === "undefined") return;
+  const normalized = normalizePhone(phone);
+  const trimmedPlate = plate.trim();
+  if (!normalized || trimmedPlate.length < 2) return;
+
+  const payload: SavedClientCredentials = {
+    phone: normalized,
+    plate: trimmedPlate,
+  };
+  localStorage.setItem(CLIENT_CREDS_KEY, JSON.stringify(payload));
+}
+
+export function loadClientCredentials(): SavedClientCredentials | null {
   if (typeof window === "undefined") return null;
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(CLIENT_CREDS_KEY);
     if (!raw) return null;
-    const parsed = JSON.parse(raw) as SavedClientLogin;
-    if (parsed?.phone?.trim() && parsed?.plate?.trim()) {
-      return { phone: parsed.phone.trim(), plate: parsed.plate.trim() };
-    }
+    const parsed = JSON.parse(raw) as SavedClientCredentials;
+    if (!parsed.phone || !parsed.plate) return null;
+    return parsed;
   } catch {
-    /* ignore corrupt data */
+    return null;
   }
-  return null;
 }
 
 export function clearClientCredentials(): void {
   if (typeof window === "undefined") return;
-  localStorage.removeItem(STORAGE_KEY);
+  localStorage.removeItem(CLIENT_CREDS_KEY);
 }
