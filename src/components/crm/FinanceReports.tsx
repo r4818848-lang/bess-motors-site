@@ -3,39 +3,15 @@
 import { useMemo, useState } from "react";
 import { useI18n } from "@/lib/i18n/context";
 import { loadDb } from "@/lib/store";
-import {
-  calcClientTotal,
-  calcPartsProfit,
-  calcMechanicEarnings,
-} from "@/lib/workorder-calc";
 import { aggregatePaymentBreakdown } from "@/lib/payment";
+import {
+  computeCrmAnalytics,
+  filterByPeriod,
+  type ReportPeriod,
+} from "@/lib/crm-analytics";
 import { AnalyticsCharts } from "./AnalyticsCharts";
+import { CrmExtendedReports } from "./CrmExtendedReports";
 import { Card } from "@/components/ui/Card";
-
-type Period = "day" | "week" | "month" | "year" | "2years" | "custom";
-
-function filterByPeriod(
-  dateStr: string,
-  period: Period,
-  from: string,
-  to: string
-): boolean {
-  const d = new Date(dateStr);
-  const now = new Date();
-  if (period === "custom") {
-    return dateStr >= from && dateStr <= to;
-  }
-  const days: Record<Period, number> = {
-    day: 1,
-    week: 7,
-    month: 30,
-    year: 365,
-    "2years": 730,
-    custom: 0,
-  };
-  const diff = (now.getTime() - d.getTime()) / (1000 * 60 * 60 * 24);
-  return diff <= days[period];
-}
 
 export function FinanceReports() {
   const { t } = useI18n();
@@ -43,53 +19,23 @@ export function FinanceReports() {
   const c = t.crm;
   const pm = t.paymentMethods;
   const db = loadDb();
-  const [period, setPeriod] = useState<Period>("month");
+  const [period, setPeriod] = useState<ReportPeriod>("month");
   const [dateFrom, setDateFrom] = useState("2025-01-01");
-  const [dateTo, setDateTo] = useState("2025-12-31");
+  const [dateTo, setDateTo] = useState("2026-12-31");
 
-  const stats = useMemo(() => {
+  const stats = useMemo(
+    () => computeCrmAnalytics(db, period, dateFrom, dateTo),
+    [db, period, dateFrom, dateTo]
+  );
+
+  const payments = useMemo(() => {
     const orders = db.workOrders.filter((o) =>
       filterByPeriod(o.createdAt, period, dateFrom, dateTo)
     );
-    const expenses = db.expenses.filter((e) =>
-      filterByPeriod(e.date, period, dateFrom, dateTo)
-    );
-
-    const revenue = orders.reduce((s, o) => s + calcClientTotal(o), 0);
-    const partsProfit = orders.reduce((s, o) => s + calcPartsProfit(o), 0);
-    const expenseTotal = expenses.reduce((s, e) => s + e.amount, 0);
-
-    let salaries = 0;
-    orders.forEach((o) => {
-      const m = db.mechanics.find((x) => x.id === o.mechanicId);
-      salaries += calcMechanicEarnings(o, db.settings, m).total;
-    });
-
-    const profit = revenue - expenseTotal - salaries;
-    const avgCheck = orders.length ? revenue / orders.length : 0;
-
-    const clientTotals = new Map<string, number>();
-    orders.forEach((o) => {
-      clientTotals.set(o.userId, (clientTotals.get(o.userId) ?? 0) + calcClientTotal(o));
-    });
-    const topClient = [...clientTotals.entries()].sort((a, b) => b[1] - a[1])[0];
-
-    const payments = aggregatePaymentBreakdown(orders);
-
-    return {
-      revenue,
-      partsProfit,
-      expenseTotal,
-      salaries,
-      profit,
-      avgCheck,
-      orderCount: orders.length,
-      topClient,
-      payments,
-    };
+    return aggregatePaymentBreakdown(orders);
   }, [db, period, dateFrom, dateTo]);
 
-  const periods: { id: Period; label: string }[] = [
+  const periods: { id: ReportPeriod; label: string }[] = [
     { id: "day", label: w.periodDay },
     { id: "week", label: w.periodWeek },
     { id: "month", label: w.periodMonth },
@@ -98,11 +44,13 @@ export function FinanceReports() {
     { id: "custom", label: w.periodCustom },
   ];
 
+  const periodLabel = periods.find((p) => p.id === period)?.label ?? period;
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 print:text-black">
       <h2 className="font-display text-xl uppercase text-glow">{w.reports}</h2>
 
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2 print:hidden">
         {periods.map((p) => (
           <button
             key={p.id}
@@ -118,9 +66,19 @@ export function FinanceReports() {
       </div>
 
       {period === "custom" && (
-        <div className="flex flex-wrap gap-4">
-          <input type="date" className="input-premium w-auto" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
-          <input type="date" className="input-premium w-auto" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
+        <div className="flex flex-wrap gap-4 print:hidden">
+          <input
+            type="date"
+            className="input-premium w-auto"
+            value={dateFrom}
+            onChange={(e) => setDateFrom(e.target.value)}
+          />
+          <input
+            type="date"
+            className="input-premium w-auto"
+            value={dateTo}
+            onChange={(e) => setDateTo(e.target.value)}
+          />
         </div>
       )}
 
@@ -159,11 +117,11 @@ export function FinanceReports() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 text-sm">
           {(
             [
-              ["cash", stats.payments.cash],
-              ["cash_receipt", stats.payments.cash_receipt],
-              ["card", stats.payments.card],
-              ["transfer", stats.payments.transfer],
-              ["blik", stats.payments.blik],
+              ["cash", payments.cash],
+              ["cash_receipt", payments.cash_receipt],
+              ["card", payments.card],
+              ["transfer", payments.transfer],
+              ["blik", payments.blik],
             ] as const
           ).map(([key, val]) => (
             <div key={key} className="glass rounded-lg p-3">
@@ -171,34 +129,23 @@ export function FinanceReports() {
               <p className="font-mono text-lg text-white mt-1">{val.toFixed(2)} zł</p>
             </div>
           ))}
-          <div className="glass rounded-lg p-3">
-            <p className="text-[10px] uppercase text-bm-muted">{pm.card_cash} (nal)</p>
-            <p className="font-mono text-lg text-white mt-1">
-              {stats.payments.card_cash_cash.toFixed(2)} zł
-            </p>
-          </div>
-          <div className="glass rounded-lg p-3">
-            <p className="text-[10px] uppercase text-bm-muted">{pm.card_cash} (karta)</p>
-            <p className="font-mono text-lg text-white mt-1">
-              {stats.payments.card_cash_card.toFixed(2)} zł
-            </p>
-          </div>
           <div className="glass rounded-lg p-3 border border-amber-500/30">
             <p className="text-[10px] uppercase text-amber-400">{w.paymentUnpaid}</p>
             <p className="font-mono text-lg text-amber-300 mt-1">
-              {stats.payments.unpaid.toFixed(2)} zł
+              {payments.unpaid.toFixed(2)} zł
             </p>
           </div>
           <div className="glass rounded-lg p-3 border border-green-500/30">
             <p className="text-[10px] uppercase text-green-400">{w.paymentPaidTotal}</p>
             <p className="font-mono text-lg text-green-300 mt-1">
-              {stats.payments.paidTotal.toFixed(2)} zł
+              {payments.paidTotal.toFixed(2)} zł
             </p>
           </div>
         </div>
       </div>
 
-      <AnalyticsCharts />
+      <AnalyticsCharts stats={stats} />
+      <CrmExtendedReports stats={stats} periodLabel={periodLabel} />
     </div>
   );
 }

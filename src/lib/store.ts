@@ -204,7 +204,18 @@ export type CallRequestStatus = "needs_call" | "called" | "done";
 
 export type OrderSource = "website" | "manual";
 
-export interface CallRequest {
+export interface MarketingAttributionFields {
+  marketing?: {
+    utmSource?: string;
+    utmMedium?: string;
+    utmCampaign?: string;
+    utmContent?: string;
+    utmTerm?: string;
+    landingPage?: string;
+  };
+}
+
+export interface CallRequest extends MarketingAttributionFields {
   id: string;
   phone: string;
   clientName?: string;
@@ -217,7 +228,7 @@ export interface CallRequest {
   createdAt: string;
 }
 
-export interface Appointment {
+export interface Appointment extends MarketingAttributionFields {
   id: string;
   userId: string;
   vehicleId: string;

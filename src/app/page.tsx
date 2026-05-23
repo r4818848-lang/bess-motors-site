@@ -6,6 +6,7 @@ import { StatsSection } from "@/components/home/StatsSection";
 import { ServicesPreview } from "@/components/home/ServicesPreview";
 import { Advantages } from "@/components/home/Advantages";
 import { Reviews } from "@/components/home/Reviews";
+import { PartnersSection } from "@/components/home/PartnersSection";
 
 export default function HomePage() {
   return (
@@ -15,6 +16,7 @@ export default function HomePage() {
       <StatsSection />
       <ServicesPreview />
       <Advantages />
+      <PartnersSection />
       <Reviews />
     </>
   );

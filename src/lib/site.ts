@@ -46,7 +46,19 @@ export const siteConfig = {
 
   workingHours: "Pn–Nd 7:00–20:00",
 
+  /** Google Maps — reviews (replace with your place review URL) */
+  googleMapsReviewsUrl:
+    "https://www.google.com/maps/search/?api=1&query=BESS+MOTORS+Aleja+Krakowska+48+52+Warszawa",
 };
+
+export const sitePartners = [
+  { id: "intercars", name: "Inter Cars", tagPl: "Dostawca części", tagRu: "Поставщик запчастей" },
+  { id: "motul", name: "Motul", tagPl: "Oleje silnikowe", tagRu: "Моторные масла" },
+  { id: "castrol", name: "Castrol", tagPl: "Oleje i płyny", tagRu: "Масла и жидкости" },
+  { id: "michelin", name: "Michelin", tagPl: "Opony", tagRu: "Шины" },
+  { id: "bosch", name: "Bosch", tagPl: "Części zamienne", tagRu: "Запчасти" },
+  { id: "hella", name: "Hella", tagPl: "Elektryka / klimatyzacja", tagRu: "Электрика / кондиционер" },
+] as const;
 
 /** Service boxes on home page banner section — opens smart booking for serviceId */export const bannerServices = [
   { id: "tires" as const, serviceId: "tires" as ServiceId, fast: true },

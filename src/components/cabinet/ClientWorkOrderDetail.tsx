@@ -11,6 +11,7 @@ import { WorkOrderDocumentActions } from "@/components/work-order/WorkOrderDocum
 import { SignLinkShareBlock } from "@/components/work-order/SignLinkShareBlock";
 import { PremiumWorkOrderDocument } from "@/components/work-order/PremiumWorkOrderDocument";
 import { getClientPaymentView } from "@/lib/payment";
+import { RepairStatusStepper } from "@/components/cabinet/RepairStatusStepper";
 
 interface Props {
   order: WorkOrder;
@@ -70,6 +71,8 @@ export function ClientWorkOrderDetail({ order, db, onBack }: Props) {
       <button type="button" onClick={onBack} className="text-sm text-bm-red hover:underline">
         ← {t.cabinet.workOrders}
       </button>
+
+      <RepairStatusStepper status={localOrder.status} />
 
       <PremiumWorkOrderDocument
         order={localOrder}

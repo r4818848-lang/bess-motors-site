@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ShoppingCart,
@@ -257,6 +258,7 @@ interface Props {
 }
 
 export function BookingQuoteFlow({ onDone }: Props) {
+  const router = useRouter();
   const { t, locale } = useI18n();
   const bq = t.bookingQuote;
   const loc = locale === "ru" || locale === "uk" ? "ru" : "pl";
@@ -338,6 +340,7 @@ export function BookingQuoteFlow({ onDone }: Props) {
       })),
     });
     onDone?.();
+    router.push("/booking/thank-you");
   };
 
   return (

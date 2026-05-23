@@ -1,5 +1,6 @@
 import { loadDb, saveDb } from "./store";
 import type { ServiceId } from "./services-catalog";
+import { getStoredAttribution } from "./utm";
 
 export function createCallRequest(params: {
   phone: string;
@@ -12,6 +13,7 @@ export function createCallRequest(params: {
   const user = db.currentUserId
     ? db.users.find((u) => u.id === db.currentUserId)
     : null;
+  const marketing = getStoredAttribution() ?? undefined;
   db.callRequests.push({
     id: `call-${Date.now()}`,
     phone: params.phone,
@@ -22,6 +24,7 @@ export function createCallRequest(params: {
     comment: params.comment ?? "",
     status: "needs_call",
     source: "website",
+    marketing: marketing ?? undefined,
     createdAt: new Date().toISOString(),
   });
   saveDb(db);
@@ -41,6 +44,7 @@ export function createBookingAppointment(params: {
   const db = loadDb();
   const userId = db.currentUserId ?? "guest";
   const vehicle = db.vehicles.find((v) => v.userId === userId);
+  const marketing = getStoredAttribution() ?? undefined;
   db.appointments.push({
     id: `apt-${Date.now()}`,
     userId,
@@ -55,6 +59,7 @@ export function createBookingAppointment(params: {
     clientName: params.clientName,
     clientPhone: params.clientPhone,
     source: "website",
+    marketing: marketing ?? undefined,
     createdAt: new Date().toISOString(),
   });
   saveDb(db);
