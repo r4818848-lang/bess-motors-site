@@ -8,10 +8,12 @@ import {
   Plus,
   Trash2,
   ChevronRight,
+  ChevronLeft,
   Check,
   AlertTriangle,
   Minus,
 } from "lucide-react";
+import { BookingStepBack } from "@/components/booking/BookingStepBack";
 import { useI18n } from "@/lib/i18n/context";
 import {
   priceCategories,
@@ -428,6 +430,7 @@ export function BookingQuoteFlow({ onDone }: Props) {
             animate={{ opacity: 1, x: 0 }}
             className="max-w-lg mx-auto space-y-6"
           >
+            <BookingStepBack label={bq.back} onClick={() => setPhase("services")} />
             <CartPanel
               lines={cart}
               locale={loc}
@@ -471,6 +474,7 @@ export function BookingQuoteFlow({ onDone }: Props) {
             )}
             <div className="flex gap-3">
               <Button variant="outline" className="flex-1" onClick={() => setPhase("services")}>
+                <ChevronLeft className="w-4 h-4" />
                 {bq.back}
               </Button>
               <Button
@@ -479,6 +483,7 @@ export function BookingQuoteFlow({ onDone }: Props) {
                 onClick={() => setPhase("confirm")}
               >
                 {bq.continue}
+                <ChevronRight className="w-4 h-4" />
               </Button>
             </div>
           </motion.div>
@@ -491,6 +496,7 @@ export function BookingQuoteFlow({ onDone }: Props) {
             animate={{ opacity: 1, x: 0 }}
             className="max-w-xl mx-auto space-y-6"
           >
+            <BookingStepBack label={bq.back} onClick={() => setPhase("datetime")} />
             <div className="glass-red rounded-2xl p-6 neon-border border-2 border-bm-red/40">
               <h2 className="font-display text-xl uppercase text-center text-glow mb-4">
                 {bq.finalTotalTitle}
@@ -550,6 +556,7 @@ export function BookingQuoteFlow({ onDone }: Props) {
 
             <div className="flex gap-3">
               <Button variant="outline" className="flex-1" onClick={() => setPhase("datetime")}>
+                <ChevronLeft className="w-4 h-4" />
                 {bq.back}
               </Button>
               <Button className="flex-1" disabled={!contactValid} onClick={submit}>

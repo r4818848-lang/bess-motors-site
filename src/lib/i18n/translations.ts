@@ -1654,6 +1654,11 @@ const en: TranslationKeys = {
     confirm: "Confirm booking",
     success: "Booking confirmed!",
   },
+  bookingQuote: {
+    ...pl.bookingQuote,
+    back: "Back",
+    continue: "Continue",
+  },
   cabinet: {
     title: "Client Portal",
     login: "Sign In",

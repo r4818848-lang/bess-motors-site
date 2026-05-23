@@ -3,7 +3,8 @@
 import { useState, useMemo, useCallback } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Phone, ArrowRight, Check, List } from "lucide-react";
+import { X, Phone, ArrowRight, ChevronLeft, Check, List } from "lucide-react";
+import { BookingStepBack } from "@/components/booking/BookingStepBack";
 import { useI18n } from "@/lib/i18n/context";
 import { serviceFlows, type ServiceId, type FlowOption } from "@/lib/services-catalog";
 import { timeSlots } from "@/lib/data";
@@ -225,6 +226,39 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
     setPhase("date");
   };
 
+  const goBack = () => {
+    setPicked([]);
+    if (phase === "contact") {
+      setPhase(submitMode === "call" ? "manager" : "problem");
+      return;
+    }
+    if (phase === "problem") {
+      setPhase("time");
+      return;
+    }
+    if (phase === "time") {
+      setPhase("date");
+      return;
+    }
+    if (phase === "date") {
+      const max = serviceId === "oil" ? oilFlowSteps : screens.length;
+      if (max > 0) {
+        setScreenIdx(max - 1);
+        setPhase("flow");
+      } else {
+        setPhase("manager");
+      }
+      return;
+    }
+    if (phase === "flow") {
+      if (screenIdx > 0) {
+        setScreenIdx((i) => i - 1);
+      } else {
+        setPhase("manager");
+      }
+    }
+  };
+
   const goContact = (mode: SubmitMode) => {
     setSubmitMode(mode);
     setPhase("contact");
@@ -393,17 +427,23 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
             )}
           </p>
         )}
-        <Button
-          className="w-full mt-4"
-          disabled={multi ? picked.length === 0 : !picked[0]}
-          onClick={() => {
-            if (multi) addOptionsToCart(picked);
-            else if (picked[0]) addOptionsToCart(picked);
-            nextFlow();
-          }}
-        >
-          {bf.next}
-        </Button>
+        <div className="flex gap-2 mt-4">
+          <Button variant="outline" className="flex-1" onClick={goBack}>
+            <ChevronLeft className="w-4 h-4" />
+            {bq.back}
+          </Button>
+          <Button
+            className="flex-1"
+            disabled={multi ? picked.length === 0 : !picked[0]}
+            onClick={() => {
+              if (multi) addOptionsToCart(picked);
+              else if (picked[0]) addOptionsToCart(picked);
+              nextFlow();
+            }}
+          >
+            {bf.next}
+          </Button>
+        </div>
       </>
     );
   };
@@ -463,6 +503,10 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
           {bq.hourlyNote} {HOURLY_RATE_PLN} zł/h
         </p>
 
+        {phase !== "manager" && phase !== "done" && (
+          <BookingStepBack label={bq.back} onClick={goBack} className="mt-1" />
+        )}
+
         <AnimatePresence mode="wait">
           {phase === "manager" && (
             <motion.div
@@ -514,9 +558,15 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
           {phase === "flow" && !screen && screens.length === 0 && serviceId !== "oil" && (
             <motion.div className="pt-4 space-y-4">
               {runningTotalBar}
-              <Button className="w-full" onClick={() => setPhase("date")}>
-                {bf.next}
-              </Button>
+              <motion.div className="flex gap-2">
+                <Button variant="outline" className="flex-1" onClick={goBack}>
+                  <ChevronLeft className="w-4 h-4" />
+                  {bq.back}
+                </Button>
+                <Button className="flex-1" onClick={() => setPhase("date")}>
+                  {bf.next}
+                </Button>
+              </motion.div>
             </motion.div>
           )}
 
@@ -525,9 +575,15 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
               <h2 className="font-display text-lg uppercase text-center">{t.booking.selectDate}</h2>
               {runningTotalBar}
               <BookingCalendar selected={date} onSelect={setDate} locale={locale} />
-              <Button className="w-full" disabled={!date} onClick={() => setPhase("time")}>
-                {bf.next}
-              </Button>
+              <div className="flex gap-2">
+                <Button variant="outline" className="flex-1" onClick={goBack}>
+                  <ChevronLeft className="w-4 h-4" />
+                  {bq.back}
+                </Button>
+                <Button className="flex-1" disabled={!date} onClick={() => setPhase("time")}>
+                  {bf.next}
+                </Button>
+              </div>
             </motion.div>
           )}
 
@@ -549,9 +605,15 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
                   </button>
                 ))}
               </div>
-              <Button className="w-full" disabled={!time} onClick={() => setPhase("problem")}>
-                {bf.next}
-              </Button>
+              <div className="flex gap-2">
+                <Button variant="outline" className="flex-1" onClick={goBack}>
+                  <ChevronLeft className="w-4 h-4" />
+                  {bq.back}
+                </Button>
+                <Button className="flex-1" disabled={!time} onClick={() => setPhase("problem")}>
+                  {bf.next}
+                </Button>
+              </div>
             </motion.div>
           )}
 
@@ -569,13 +631,19 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
                 value={problem}
                 onChange={(e) => setProblem(e.target.value)}
               />
-              <Button
-                className="w-full"
-                disabled={!problemValid}
-                onClick={() => goContact("booking")}
-              >
-                {bf.next}
-              </Button>
+              <div className="flex gap-2">
+                <Button variant="outline" className="flex-1" onClick={goBack}>
+                  <ChevronLeft className="w-4 h-4" />
+                  {bq.back}
+                </Button>
+                <Button
+                  className="flex-1"
+                  disabled={!problemValid}
+                  onClick={() => goContact("booking")}
+                >
+                  {bf.next}
+                </Button>
+              </div>
             </motion.div>
           )}
 
@@ -589,13 +657,19 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
                 fromWarning={bq.fromWarning}
               />
               {contactFields}
-              <Button
-                className="w-full"
-                disabled={!contactValid || (submitMode === "booking" && cart.length === 0)}
-                onClick={submitMode === "call" ? submitCall : submitBooking}
-              >
-                {submitMode === "call" ? bf.orderCall : bq.submit}
-              </Button>
+              <div className="flex gap-2">
+                <Button variant="outline" className="flex-1" onClick={goBack}>
+                  <ChevronLeft className="w-4 h-4" />
+                  {bq.back}
+                </Button>
+                <Button
+                  className="flex-1"
+                  disabled={!contactValid || (submitMode === "booking" && cart.length === 0)}
+                  onClick={submitMode === "call" ? submitCall : submitBooking}
+                >
+                  {submitMode === "call" ? bf.orderCall : bq.submit}
+                </Button>
+              </div>
             </motion.div>
           )}
 
