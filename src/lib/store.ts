@@ -31,6 +31,7 @@ export interface Vehicle {
   engineVolume?: string;
   trim: string;
   power: string;
+  powerKw?: string;
   transmission: string;
   drivetrain?: string;
   year?: string;
@@ -441,6 +442,7 @@ function migrateVehicle(v: Partial<Vehicle> & { id: string; userId: string }): V
     engineVolume: v.engineVolume ?? "",
     trim: v.trim ?? "",
     power: v.power ?? "",
+    powerKw: v.powerKw ?? "",
     transmission: v.transmission ?? "",
     drivetrain: v.drivetrain ?? "",
     year: v.year ?? "",

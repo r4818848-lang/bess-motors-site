@@ -23,12 +23,18 @@ export function AIModules({ onVinDecoded }: { onVinDecoded?: (data: Record<strin
     if (decoded.found) {
       setResult(`${decoded.make} ${decoded.model} — ${decoded.engine}, ${decoded.power}`);
       onVinDecoded?.({
+        vin: vinInput.replace(/\s/g, "").toUpperCase(),
         make: decoded.make,
         model: decoded.model,
         engine: decoded.engine,
         trim: decoded.trim,
         power: decoded.power,
+        powerKw: decoded.powerKw,
         transmission: decoded.transmission,
+        year: decoded.year,
+        engineVolume: decoded.engineVolume,
+        drivetrain: decoded.drivetrain,
+        fuelType: decoded.fuelType,
       });
     } else {
       setResult("VIN not found — enter details manually.");

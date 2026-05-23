@@ -78,10 +78,11 @@ export function VehicleClientEditor({ userId, vehicleId, onVehicleId }: Props) {
   const history = vehicle ? getVehicleHistory(loadDb(), vehicle.id).slice(0, 8) : [];
 
   const onVinDecode = async (vin: string) => {
-    if (vin.length < 11) return;
+    if (vin.length !== 17) return;
     setDecoding(true);
     const result = await decodeVin(vin);
     setDecoding(false);
+    if (!result.found) return;
     const id = vehicle?.id ?? ensureVehicle();
     persist(undefined, {
       vin,
@@ -91,6 +92,7 @@ export function VehicleClientEditor({ userId, vehicleId, onVehicleId }: Props) {
       engineVolume: result.engineVolume || vehicle?.engineVolume,
       trim: result.trim || vehicle?.trim,
       power: result.power || vehicle?.power,
+      powerKw: result.powerKw || vehicle?.powerKw,
       transmission: result.transmission || vehicle?.transmission,
       drivetrain: result.drivetrain || vehicle?.drivetrain,
       fuelType: result.fuelType || vehicle?.fuelType,
@@ -173,7 +175,7 @@ export function VehicleClientEditor({ userId, vehicleId, onVehicleId }: Props) {
               <Button
                 variant="outline"
                 className="mt-5 shrink-0"
-                disabled={decoding || (vehicle.vin?.length ?? 0) < 11}
+                disabled={decoding || (vehicle.vin?.length ?? 0) !== 17}
                 onClick={() => onVinDecode(vehicle.vin)}
               >
                 <ScanLine size={16} />

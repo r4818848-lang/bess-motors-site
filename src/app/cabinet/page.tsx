@@ -14,6 +14,7 @@ import {
   CalendarDays,
   History,
   Activity,
+  Search,
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import {
@@ -32,7 +33,7 @@ import {
   requestNotificationPermission,
   getNotificationCopy,
 } from "@/lib/client-notifications";
-import { decodeVin } from "@/lib/vin";
+import { decodeVin, applyVinDecodeToForm } from "@/lib/vin";
 import { siteConfig } from "@/lib/site";
 import { useAuth } from "@/lib/auth/session-context";
 import { PhoneAuthForm } from "@/components/auth/PhoneAuthForm";
@@ -62,6 +63,23 @@ const statusOrder: RepairStatus[] = [
   "delivered",
 ];
 
+const emptyVinForm = {
+  vin: "",
+  plate: "",
+  mileage: "",
+  make: "",
+  model: "",
+  engine: "",
+  trim: "",
+  power: "",
+  powerKw: "",
+  transmission: "",
+  year: "",
+  engineVolume: "",
+  drivetrain: "",
+  fuelType: "",
+};
+
 function CabinetPageContent() {
   const { t } = useI18n();
   const searchParams = useSearchParams();
@@ -71,21 +89,9 @@ function CabinetPageContent() {
   const [tab, setTab] = useState("cars");
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [orderFilters, setOrderFilters] = useState(defaultWorkOrderFilters);
-  const [vinForm, setVinForm] = useState({
-    vin: "",
-    plate: "",
-    mileage: "",
-    make: "",
-    model: "",
-    engine: "",
-    trim: "",
-    power: "",
-    transmission: "",
-    year: "",
-    engineVolume: "",
-    drivetrain: "",
-    fuelType: "",
-  });
+  const [vinForm, setVinForm] = useState(emptyVinForm);
+  const [vinDecoding, setVinDecoding] = useState(false);
+  const [vinMessage, setVinMessage] = useState<{ type: "ok" | "err"; text: string } | null>(null);
 
   const refreshDb = () => setDb(loadDb());
 
@@ -136,6 +142,7 @@ function CabinetPageContent() {
       engine: vinForm.engine,
       trim: vinForm.trim,
       power: vinForm.power,
+      powerKw: vinForm.powerKw || undefined,
       transmission: vinForm.transmission,
       year: vinForm.year || undefined,
       engineVolume: vinForm.engineVolume || undefined,
@@ -146,42 +153,46 @@ function CabinetPageContent() {
     db.vehicles.push(vehicle);
     saveDb(db);
     setDb({ ...db });
-    setVinForm({
-      vin: "",
-      plate: "",
-      mileage: "",
-      make: "",
-      model: "",
-      engine: "",
-      trim: "",
-      power: "",
-      transmission: "",
-      year: "",
-      engineVolume: "",
-      drivetrain: "",
-      fuelType: "",
-    });
+    setVinForm(emptyVinForm);
+    setVinMessage(null);
   };
 
-  const handleVinDecode = async (vin: string) => {
+  const searchVin = async () => {
+    const vin = vinForm.vin.replace(/\s/g, "").toUpperCase();
     setVinForm((f) => ({ ...f, vin }));
-    const d = await decodeVin(vin);
-    if (d.found) {
-      setVinForm((f) => ({
-        ...f,
-        vin,
-        make: d.make,
-        model: d.model,
-        engine: d.engine,
-        trim: d.trim,
-        power: d.power,
-        transmission: d.transmission,
-        year: d.year,
-        engineVolume: d.engineVolume,
-        drivetrain: d.drivetrain,
-        fuelType: d.fuelType,
-      }));
+
+    if (vin.length !== 17) {
+      setVinMessage({ type: "err", text: t.cabinet.vinInvalidLength });
+      return;
     }
+
+    setVinDecoding(true);
+    setVinMessage(null);
+    const d = await decodeVin(vin);
+    setVinDecoding(false);
+
+    if (d.found) {
+      setVinForm((f) => applyVinDecodeToForm(f, d, vin) as typeof emptyVinForm);
+      setVinMessage({ type: "ok", text: t.cabinet.vinDecoded });
+    } else {
+      setVinMessage({ type: "err", text: t.cabinet.vinNotFound });
+    }
+  };
+
+  const deleteVehicle = (vehicleId: string) => {
+    if (!user) return;
+    const fresh = loadDb();
+    const hasOrders = fresh.workOrders.some(
+      (o) => o.vehicleId === vehicleId && o.userId === user.id
+    );
+    const msg = hasOrders
+      ? t.cabinet.confirmDeleteCarWithOrders
+      : t.cabinet.confirmDeleteCar;
+    if (!confirm(msg)) return;
+
+    fresh.vehicles = fresh.vehicles.filter((v) => v.id !== vehicleId);
+    saveDb(fresh);
+    setDb({ ...fresh });
   };
 
   if (!mounted || !sessionReady) {
@@ -211,6 +222,7 @@ function CabinetPageContent() {
     b.createdAt.localeCompare(a.createdAt)
   );
   const cp = t.clientPayment;
+  const wo = t.wo;
   const activeOrder = myOrders[0];
   const activeStatusIdx = activeOrder
     ? statusOrder.indexOf(activeOrder.status)
@@ -288,23 +300,62 @@ function CabinetPageContent() {
           <div className="grid lg:grid-cols-2 gap-8">
             <div className="space-y-6 lg:col-span-2">
               {featuredVehicle && (
-                <PremiumVehicleShowcase key={featuredVehicle.id} vehicle={featuredVehicle} animate />
+                <PremiumVehicleShowcase
+                  key={featuredVehicle.id}
+                  vehicle={featuredVehicle}
+                  animate
+                  onDelete={() => deleteVehicle(featuredVehicle.id)}
+                  deleteLabel={t.cabinet.deleteCar}
+                />
               )}
               {myVehicles
                 .filter((v) => v.id !== featuredVehicle?.id)
                 .map((v) => (
-                  <PremiumVehicleShowcase key={v.id} vehicle={v} compact animate={false} />
+                  <PremiumVehicleShowcase
+                    key={v.id}
+                    vehicle={v}
+                    compact
+                    animate={false}
+                    onDelete={() => deleteVehicle(v.id)}
+                    deleteLabel={t.cabinet.deleteCar}
+                  />
                 ))}
             </div>
             <Card glow>
               <h3 className="font-display uppercase text-bm-red mb-4">{t.cabinet.addCar}</h3>
               <div className="space-y-3">
-                <input
-                  className="input-premium font-mono text-sm"
-                  placeholder={t.cabinet.vin}
-                  value={vinForm.vin}
-                  onChange={(e) => handleVinDecode(e.target.value)}
-                />
+                <div className="flex gap-2">
+                  <input
+                    className="input-premium font-mono text-sm flex-1"
+                    placeholder={t.cabinet.vin}
+                    maxLength={17}
+                    value={vinForm.vin}
+                    onChange={(e) =>
+                      setVinForm((f) => ({
+                        ...f,
+                        vin: e.target.value.replace(/\s/g, "").toUpperCase(),
+                      }))
+                    }
+                    onKeyDown={(e) => e.key === "Enter" && searchVin()}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="shrink-0 gap-2"
+                    disabled={vinDecoding || vinForm.vin.length !== 17}
+                    onClick={searchVin}
+                  >
+                    <Search size={16} />
+                    {vinDecoding ? wo.decodingVin : wo.decodeVin}
+                  </Button>
+                </div>
+                {vinMessage && (
+                  <p
+                    className={`text-xs ${vinMessage.type === "ok" ? "text-green-400" : "text-amber-400"}`}
+                  >
+                    {vinMessage.text}
+                  </p>
+                )}
                 <input
                   className="input-premium"
                   placeholder={t.cabinet.plate}
@@ -318,27 +369,46 @@ function CabinetPageContent() {
                   value={vinForm.mileage}
                   onChange={(e) => setVinForm((f) => ({ ...f, mileage: e.target.value }))}
                 />
-                {["make", "model", "engine", "power", "transmission"].map((field) => (
+                {(
+                  [
+                    ["make", wo.make],
+                    ["model", wo.model],
+                    ["year", wo.year],
+                    ["trim", wo.trim],
+                    ["engine", wo.engine],
+                    ["engineVolume", wo.engineVolume],
+                    ["power", wo.power],
+                    ["powerKw", wo.powerKw],
+                    ["transmission", wo.transmission],
+                    ["drivetrain", wo.drivetrain],
+                    ["fuelType", wo.fuelType],
+                  ] as const
+                ).map(([field, label]) => (
                   <input
                     key={field}
                     className="input-premium text-sm"
-                    placeholder={field}
-                    value={vinForm[field as keyof typeof vinForm]}
+                    placeholder={label}
+                    value={vinForm[field]}
                     onChange={(e) =>
                       setVinForm((f) => ({ ...f, [field]: e.target.value }))
                     }
                   />
                 ))}
               </div>
-              <Button className="w-full mt-4" onClick={addVehicle}>
+              <Button
+                className="w-full mt-4"
+                onClick={addVehicle}
+                disabled={!vinForm.make.trim() || !vinForm.plate.trim()}
+              >
                 {t.cabinet.addCar}
               </Button>
             </Card>
             <div className="lg:col-span-2">
               <AIModules
-                onVinDecoded={(data) =>
-                  setVinForm((f) => ({ ...f, ...data }))
-                }
+                onVinDecoded={(data) => {
+                  setVinForm((f) => ({ ...f, ...data }));
+                  if (data.make) setVinMessage({ type: "ok", text: t.cabinet.vinDecoded });
+                }}
               />
             </div>
           </div>

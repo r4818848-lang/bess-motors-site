@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { Trash2 } from "lucide-react";
 import type { Vehicle } from "@/lib/store";
 import {
   getVehicleVisualProfile,
@@ -16,6 +17,8 @@ interface Props {
   animate?: boolean;
   compact?: boolean;
   className?: string;
+  onDelete?: () => void;
+  deleteLabel?: string;
 }
 
 export function PremiumVehicleShowcase({
@@ -23,6 +26,8 @@ export function PremiumVehicleShowcase({
   animate = true,
   compact = false,
   className = "",
+  onDelete,
+  deleteLabel = "Delete",
 }: Props) {
   const profile = getVehicleVisualProfile(vehicle);
   const [ready, setReady] = useState(!animate);
@@ -44,6 +49,17 @@ export function PremiumVehicleShowcase({
         boxShadow: `0 0 40px ${profile.glow}, inset 0 1px 0 rgba(255,255,255,0.06)`,
       }}
     >
+      {onDelete && (
+        <button
+          type="button"
+          onClick={onDelete}
+          className="absolute top-3 right-3 z-20 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] uppercase font-semibold bg-red-500/15 border border-red-500/40 text-red-400 hover:bg-red-500/30 transition-colors"
+          title={deleteLabel}
+        >
+          <Trash2 size={14} />
+          {!compact && <span>{deleteLabel}</span>}
+        </button>
+      )}
       {/* ambient glow */}
       <motion.div
         className="absolute inset-0 pointer-events-none"
