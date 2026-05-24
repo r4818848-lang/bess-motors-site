@@ -1,23 +1,27 @@
 "use client";
 
-import { useState, useEffect, useCallback, Suspense } from "react";
+import { useState, useEffect, useCallback, Suspense, useMemo } from "react";
 import { useDbSync } from "@/hooks/useDbSync";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Search, LogOut, FileText, Wallet, BarChart3, Receipt, Settings, Flame } from "lucide-react";
+import { LogOut, FileText, Wallet, BarChart3, Receipt, Settings, Flame, Users, History } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { DashboardLayout } from "@/components/crm/DashboardLayout";
 import { ExpensesPanel } from "@/components/crm/ExpensesPanel";
 import { FinanceReports } from "@/components/crm/FinanceReports";
 import { SettingsPanel } from "@/components/crm/SettingsPanel";
 import { HotOrdersPanel } from "@/components/crm/HotOrdersPanel";
+import { ClientsListPanel } from "@/components/crm/ClientsListPanel";
+import { VehicleHistoryPanel } from "@/components/crm/VehicleHistoryPanel";
+import { CrmSearchInput } from "@/components/crm/CrmSearchInput";
 import { loadDb } from "@/lib/store";
 import { calcClientTotal } from "@/lib/workorder-calc";
+import { filterWorkOrdersByQuery } from "@/lib/crm-search";
 import { logoutAdmin } from "@/lib/auth";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 
-type CrmTab = "overview" | "hot" | "expenses" | "reports" | "settings";
+type CrmTab = "overview" | "hot" | "clients" | "vehicles" | "expenses" | "reports" | "settings";
 
 function CRMPageContent() {
   const { t } = useI18n();
@@ -33,7 +37,14 @@ function CRMPageContent() {
 
   useEffect(() => {
     const q = searchParams.get("tab");
-    if (q === "hot" || q === "expenses" || q === "reports" || q === "settings") {
+    if (
+      q === "hot" ||
+      q === "clients" ||
+      q === "vehicles" ||
+      q === "expenses" ||
+      q === "reports" ||
+      q === "settings"
+    ) {
       setTab(q);
     } else {
       setTab("overview");
@@ -47,18 +58,19 @@ function CRMPageContent() {
 
   const db = loadDb();
 
-  const filteredOrders = db.workOrders.filter(
-    (o) =>
-      !search ||
-      o.number.toLowerCase().includes(search.toLowerCase()) ||
-      db.vehicles.find((v) => v.id === o.vehicleId)?.vin.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredOrders = useMemo(() => {
+    const fresh = loadDb();
+    const orders = filterWorkOrdersByQuery(fresh, fresh.workOrders, search);
+    return orders.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  }, [search, dbTick]);
 
   const totalRevenue = db.workOrders.reduce((s, o) => s + calcClientTotal(o), 0);
 
   const navTabs = [
     { id: "overview" as const, icon: FileText, label: c.dashboard },
     { id: "hot" as const, icon: Flame, label: c.hotOrders },
+    { id: "clients" as const, icon: Users, label: c.clientsList },
+    { id: "vehicles" as const, icon: History, label: c.vehicleHistoryList },
     { id: "expenses" as const, icon: Wallet, label: t.wo.internalExpenses },
     { id: "reports" as const, icon: BarChart3, label: t.wo.reports },
     { id: "settings" as const, icon: Settings, label: t.wo.settingsTitle },
@@ -96,15 +108,7 @@ function CRMPageContent() {
 
         {tab === "overview" && (
           <>
-            <div className="relative max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-bm-muted" />
-              <input
-                className="input-premium pl-10 w-full text-sm"
-                placeholder={c.search}
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-            </div>
+            <CrmSearchInput value={search} onChange={setSearch} placeholder={c.search} />
 
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               {[
@@ -160,6 +164,10 @@ function CRMPageContent() {
         )}
 
         {tab === "hot" && <HotOrdersPanel onUpdate={refresh} />}
+
+        {tab === "clients" && <ClientsListPanel />}
+
+        {tab === "vehicles" && <VehicleHistoryPanel />}
 
         {tab === "expenses" && <ExpensesPanel onUpdate={refresh} />}
         {tab === "reports" && <FinanceReports />}

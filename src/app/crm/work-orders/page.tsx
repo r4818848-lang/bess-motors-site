@@ -12,7 +12,9 @@ import { logoutAdmin } from "@/lib/auth";
 import { loadDb } from "@/lib/store";
 import { calcClientTotal } from "@/lib/workorder-calc";
 import { filterWorkOrders, defaultWorkOrderFilters } from "@/lib/workorder-filters";
+import { filterWorkOrdersByQuery } from "@/lib/crm-search";
 import { WorkOrderFilters } from "@/components/crm/WorkOrderFilters";
+import { CrmSearchInput } from "@/components/crm/CrmSearchInput";
 import { Button } from "@/components/ui/Button";
 import { VehicleThumbnail } from "@/components/vehicle/VehicleThumbnail";
 
@@ -26,6 +28,7 @@ function WorkOrdersPageContent() {
   const [creating, setCreating] = useState(false);
   const [tick, setTick] = useState(0);
   const [filters, setFilters] = useState(defaultWorkOrderFilters);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const refresh = useCallback(() => setTick((n) => n + 1), []);
 
@@ -39,13 +42,11 @@ function WorkOrdersPageContent() {
   const pm = t.paymentMethods;
   const ps = t.paymentStatus;
 
-  const filteredOrders = useMemo(
-    () =>
-      filterWorkOrders([...db.workOrders], filters).sort((a, b) =>
-        b.createdAt.localeCompare(a.createdAt)
-      ),
-    [db.workOrders, filters]
-  );
+  const filteredOrders = useMemo(() => {
+    const byStatus = filterWorkOrders([...db.workOrders], filters);
+    const bySearch = filterWorkOrdersByQuery(db, byStatus, searchQuery);
+    return bySearch.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  }, [db, filters, searchQuery]);
 
   if (creating || editingId) {
     return (
@@ -96,6 +97,13 @@ function WorkOrdersPageContent() {
             </Button>
           </div>
         </div>
+
+        <CrmSearchInput
+          value={searchQuery}
+          onChange={setSearchQuery}
+          placeholder={c.search}
+          className="max-w-xl"
+        />
 
         <WorkOrderFilters filters={filters} onChange={setFilters} />
 
