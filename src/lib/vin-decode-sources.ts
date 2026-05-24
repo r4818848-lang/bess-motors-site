@@ -1,191 +1,86 @@
 import type { VinDecodeResult } from "./vin-decode";
-import { parseNhtsaVinRow, decodeVinLocal, emptyVinResult } from "./vin-decode";
+import { decodeVinLocal, emptyVinResult } from "./vin-decode";
+import { buildConsensus } from "./vin-decode-consensus";
 import { normalizeVinDecode } from "./vin-decode-normalize";
-import { fetchVincario } from "./vincario-decode";
+import { fetchAutoDevHit } from "./vin-providers/autodev";
+import { fetchNhtsaExtendedHit, fetchNhtsaValuesHit } from "./vin-providers/nhtsa";
+import { fetchTecDocVin } from "./vin-providers/tecdoc";
+import type { VinProviderHit } from "./vin-providers/types";
+import { fetchVincarioHit } from "./vin-providers/vincario";
+import { fetchVindata } from "./vin-providers/vindata";
+import { fetchVindecoderPl } from "./vin-providers/vindecoder-pl";
 
-function clean(value: unknown): string {
-  if (typeof value !== "string") return "";
-  const s = value.trim();
-  if (!s || s === "Not Applicable" || s === "NULL" || s === "0") return "";
-  return s;
+export type { VinSourceId } from "./vin-providers/types";
+
+export interface VinDecodeMeta {
+  sourcesUsed: string[];
+  confidence: number;
 }
 
-function mergeResults(base: VinDecodeResult, extra: Partial<VinDecodeResult>): VinDecodeResult {
-  return {
-    found: base.found || Boolean(extra.make),
-    make: base.make || extra.make || "",
-    model: base.model || extra.model || "",
-    engine: base.engine || extra.engine || "",
-    engineVolume: base.engineVolume || extra.engineVolume || "",
-    trim: base.trim || extra.trim || "",
-    power: base.power || extra.power || "",
-    powerKw: base.powerKw || extra.powerKw || "",
-    transmission: base.transmission || extra.transmission || "",
-    drivetrain: base.drivetrain || extra.drivetrain || "",
-    fuelType: base.fuelType || extra.fuelType || "",
-    year: base.year || extra.year || "",
-    color: base.color || extra.color,
-    colorHex: base.colorHex || extra.colorHex,
-    error: base.error || extra.error,
-  };
-}
-
-async function fetchNhtsaValues(vin: string): Promise<VinDecodeResult | null> {
-  const res = await fetch(
-    `https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValues/${encodeURIComponent(vin)}?format=json`,
-    { next: { revalidate: 86400 } }
-  );
-  if (!res.ok) return null;
-  const data = await res.json();
-  const row = data.Results?.[0];
-  if (!row) return null;
-  const parsed = parseNhtsaVinRow(row);
-  return parsed.found ? parsed : null;
-}
-
-async function fetchNhtsaExtended(
-  vin: string
-): Promise<{ partial: Partial<VinDecodeResult>; series: string; bodyClass: string } | null> {
-  const res = await fetch(
-    `https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinExtended/${encodeURIComponent(vin)}?format=json`,
-    { next: { revalidate: 86400 } }
-  );
-  if (!res.ok) return null;
-  const data = await res.json();
-  const results = data.Results as Array<{ Variable: string; Value: string }> | undefined;
-  if (!results?.length) return null;
-
-  const map = new Map<string, string>();
-  for (const row of results) {
-    if (row.Variable && row.Value) map.set(row.Variable, row.Value);
-  }
-
-  const make = clean(map.get("Make"));
-  if (!make) return null;
-
-  const series = clean(map.get("Series"));
-  const bodyClass = clean(map.get("Body Class")) || clean(map.get("Body Type"));
-
-  const hp = clean(map.get("Engine HP")) || clean(map.get("Engine Brake (hp) From"));
-  const kw = clean(map.get("Engine kW"));
-  let power = "";
-  let powerKw = "";
-  const hpNum = parseFloat(hp);
-  const kwNum = parseFloat(kw);
-  if (!Number.isNaN(hpNum) && hpNum > 0) {
-    power = `${Math.round(hpNum)} HP`;
-    powerKw = `${Number.isNaN(kwNum) || kwNum <= 0 ? Math.round(hpNum * 0.7457) : Math.round(kwNum)} kW`;
-  } else if (!Number.isNaN(kwNum) && kwNum > 0) {
-    powerKw = `${Math.round(kwNum)} kW`;
-    power = `${Math.round(kwNum / 0.7457)} HP`;
-  }
-
-  const dispL = clean(map.get("Displacement (L)"));
-  const engineVolume = dispL ? `${dispL}L` : "";
-
-  let model =
-    clean(map.get("Model")) ||
-    clean(map.get("Model - Model Year")) ||
-    clean(map.get("Vehicle Descriptor"));
-
-  if (!model && series && !/^RR\d$/i.test(series)) model = series;
-
-  return {
-    series,
-    bodyClass,
-    partial: {
-      make,
-      model,
-      year: clean(map.get("Model Year")),
-      trim: [clean(map.get("Trim")), series, clean(map.get("Trim2"))]
-        .filter(Boolean)
-        .join(" "),
-      engine: [
-        engineVolume,
-        clean(map.get("Engine Configuration")),
-        clean(map.get("Engine Number of Cylinders"))
-          ? `${clean(map.get("Engine Number of Cylinders"))} cyl`
-          : "",
-      ]
-        .filter(Boolean)
-        .join(" · "),
-      engineVolume,
-      power,
-      powerKw,
-      transmission: clean(map.get("Transmission Style")) || clean(map.get("Transmission Speeds")),
-      drivetrain: clean(map.get("Drive Type")),
-      fuelType: clean(map.get("Fuel Type - Primary")) || clean(map.get("Fuel Type - Secondary")),
-    },
-  };
-}
-
-async function fetchAutoDev(vin: string): Promise<Partial<VinDecodeResult> | null> {
-  const key = process.env.AUTO_DEV_API_KEY?.trim();
-  if (!key) return null;
-
-  try {
-    const res = await fetch(`https://api.auto.dev/vin/${encodeURIComponent(vin)}`, {
-      headers: { Authorization: `Bearer ${key}` },
-      next: { revalidate: 86400 },
-    });
-    if (!res.ok) return null;
-    const data = (await res.json()) as {
-      make?: { name?: string };
-      model?: { name?: string };
-      years?: Array<{ year?: number; styles?: Array<{ trim?: string; engine?: { horsepower?: number } }> }>;
-    };
-
-    const make = data.make?.name?.trim();
-    if (!make) return null;
-
-    const yearEntry = data.years?.[0];
-    const style = yearEntry?.styles?.[0];
-    const hp = style?.engine?.horsepower;
-
-    return {
-      make,
-      model: data.model?.name?.trim() || "",
-      year: yearEntry?.year ? String(yearEntry.year) : "",
-      trim: style?.trim || "",
-      power: hp ? `${Math.round(hp)} HP` : "",
-      powerKw: hp ? `${Math.round(hp * 0.7457)} kW` : "",
-    };
-  } catch {
-    return null;
-  }
-}
-
-/** Multi-source VIN decode: Vincario + NHTSA + Auto.dev + WMI fallback */
-export async function decodeVinFromSources(vin: string): Promise<VinDecodeResult> {
-  let result: VinDecodeResult = { ...emptyVinResult };
-  let series = "";
-  let bodyClass = "";
-
-  const [values, extended, vincario, autoDev] = await Promise.all([
-    fetchNhtsaValues(vin),
-    fetchNhtsaExtended(vin),
-    fetchVincario(vin),
-    fetchAutoDev(vin),
+/** Run all configured VIN providers in parallel */
+async function collectProviderHits(vin: string): Promise<VinProviderHit[]> {
+  const results = await Promise.all([
+    fetchTecDocVin(vin),
+    fetchVindecoderPl(vin),
+    fetchVincarioHit(vin),
+    fetchVindata(vin),
+    fetchAutoDevHit(vin),
+    fetchNhtsaValuesHit(vin),
+    fetchNhtsaExtendedHit(vin),
   ]);
 
-  if (values) result = values;
-  if (extended) {
-    series = extended.series;
-    bodyClass = extended.bodyClass;
-    result = mergeResults(result, extended.partial);
-  }
-  if (autoDev) result = mergeResults(result, autoDev);
-  if (vincario) result = mergeResults(result, vincario);
+  return results.filter((h): h is VinProviderHit => h != null);
+}
 
-  if (result.found && result.make) {
-    return normalizeVinDecode(vin, { ...result, found: true }, { series, bodyClass });
+/**
+ * Multi-source VIN decode with weighted consensus.
+ * Parts-catalog APIs (TecDoc, VINdecoder.pl) are preferred for EU vehicles.
+ */
+export async function decodeVinFromSources(
+  vin: string,
+  options?: { includeMeta?: boolean }
+): Promise<VinDecodeResult & Partial<VinDecodeMeta>> {
+  const hits = await collectProviderHits(vin);
+
+  if (hits.length > 0) {
+    const { result, series, bodyClass, sourcesUsed, confidence } = buildConsensus(hits);
+    if (result.make) {
+      const normalized = normalizeVinDecode(
+        vin,
+        { ...emptyVinResult, ...result, found: true },
+        { series, bodyClass }
+      );
+      if (options?.includeMeta) {
+        return { ...normalized, sourcesUsed, confidence };
+      }
+      return normalized;
+    }
   }
 
   const local = decodeVinLocal(vin);
   if (local.found) {
-    const merged = mergeResults({ ...emptyVinResult, found: false }, local);
-    return normalizeVinDecode(vin, { ...merged, found: true }, { series, bodyClass });
+    const normalized = normalizeVinDecode(vin, local, {});
+    const meta: VinDecodeMeta = {
+      sourcesUsed: ["wmi"],
+      confidence: local.model ? 35 : 20,
+    };
+    return options?.includeMeta ? { ...normalized, ...meta } : normalized;
   }
 
   return { ...emptyVinResult, error: "not_found" };
+}
+
+/** Which optional providers are configured (for admin/debug UI) */
+export function listConfiguredVinProviders(): string[] {
+  const list = ["nhtsa", "nhtsa-extended", "wmi"];
+  if (process.env.TECDOC_API_KEY?.trim()) list.push("tecdoc");
+  if (process.env.VINDECODER_PL_API_UID?.trim() && process.env.VINDECODER_PL_API_KEY?.trim()) {
+    list.push("vindecoder-pl");
+  }
+  if (process.env.VINCARIO_API_KEY?.trim() && process.env.VINCARIO_API_SECRET?.trim()) {
+    list.push("vincario");
+  }
+  if (process.env.VINDATA_API_KEY?.trim()) list.push("vindata");
+  if (process.env.AUTO_DEV_API_KEY?.trim()) list.push("autodev");
+  return list;
 }

@@ -14,6 +14,10 @@ export interface VinDecodeResult {
   colorHex?: string;
   found: boolean;
   error?: string;
+  /** Present when API called with debug=1 — which data sources contributed */
+  sourcesUsed?: string[];
+  /** 0–100 estimate of decode agreement across sources */
+  confidence?: number;
 }
 
 export const emptyVinResult: VinDecodeResult = {

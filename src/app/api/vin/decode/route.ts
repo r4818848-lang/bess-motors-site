@@ -22,8 +22,10 @@ export async function GET(request: Request) {
     );
   }
 
+  const debug = new URL(request.url).searchParams.get("debug") === "1";
+
   try {
-    const decoded = await decodeVinFromSources(vin);
+    const decoded = await decodeVinFromSources(vin, { includeMeta: debug });
     if (decoded.found && decoded.make) {
       const paint = decodeVinPaint(vin, decoded.make);
       return NextResponse.json({
