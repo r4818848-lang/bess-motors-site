@@ -10,6 +10,8 @@ export interface VinDecodeResult {
   drivetrain: string;
   fuelType: string;
   year: string;
+  color?: string;
+  colorHex?: string;
   found: boolean;
   error?: string;
 }

@@ -34,6 +34,7 @@ import {
   getNotificationCopy,
 } from "@/lib/client-notifications";
 import { decodeVin, applyVinDecodeToForm } from "@/lib/vin";
+import { enrichVehicleMedia } from "@/lib/vehicle-image";
 import { siteConfig } from "@/lib/site";
 import { useAuth } from "@/lib/auth/session-context";
 import { PhoneAuthForm } from "@/components/auth/PhoneAuthForm";
@@ -52,6 +53,7 @@ import {
 import { getClientPaymentView } from "@/lib/payment";
 import { PremiumVehicleShowcase } from "@/components/vehicle/PremiumVehicleShowcase";
 import { VehicleThumbnail } from "@/components/vehicle/VehicleThumbnail";
+import { VehiclePhoto } from "@/components/vehicle/VehiclePhoto";
 
 const statusOrder: RepairStatus[] = [
   "received",
@@ -77,6 +79,8 @@ const emptyVinForm = {
   engineVolume: "",
   drivetrain: "",
   fuelType: "",
+  color: "",
+  colorHex: "",
 };
 
 function CabinetPageContent() {
@@ -131,7 +135,7 @@ function CabinetPageContent() {
 
   const addVehicle = () => {
     if (!db || !user) return;
-    const vehicle: Vehicle = {
+    const base: Vehicle = {
       id: `v-${Date.now()}`,
       vin: vinForm.vin,
       plate: vinForm.plate,
@@ -147,8 +151,11 @@ function CabinetPageContent() {
       engineVolume: vinForm.engineVolume || undefined,
       drivetrain: vinForm.drivetrain || undefined,
       fuelType: vinForm.fuelType || undefined,
+      color: vinForm.color || undefined,
+      colorHex: vinForm.colorHex || undefined,
       userId: user.id,
     };
+    const vehicle = enrichVehicleMedia(base) as Vehicle;
     db.vehicles.push(vehicle);
     saveDb(db);
     setDb({ ...db });
@@ -355,6 +362,17 @@ function CabinetPageContent() {
                     {vinMessage.text}
                   </p>
                 )}
+                {vinForm.make.trim() && (
+                  <div className="rounded-xl border border-bm-border bg-black/30 p-3">
+                    <VehiclePhoto
+                      vehicle={{
+                        ...vinForm,
+                        mileage: Number(vinForm.mileage) || 0,
+                      }}
+                      compact
+                    />
+                  </div>
+                )}
                 <input
                   className="input-premium"
                   placeholder={t.cabinet.plate}
@@ -381,6 +399,7 @@ function CabinetPageContent() {
                     ["transmission", wo.transmission],
                     ["drivetrain", wo.drivetrain],
                     ["fuelType", wo.fuelType],
+                    ["color", wo.color],
                   ] as const
                 ).map(([field, label]) => (
                   <input

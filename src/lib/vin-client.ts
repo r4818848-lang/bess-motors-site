@@ -20,6 +20,8 @@ export function applyVinDecodeToForm(
     engineVolume: decoded.engineVolume || current.engineVolume,
     drivetrain: decoded.drivetrain || current.drivetrain,
     fuelType: decoded.fuelType || current.fuelType,
+    color: decoded.color || current.color,
+    colorHex: decoded.colorHex || current.colorHex,
   };
 }
 

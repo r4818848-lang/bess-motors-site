@@ -9,7 +9,8 @@ import {
   vehicleDisplaySubtitle,
   vehicleDisplayTitle,
 } from "@/lib/vehicle-visual";
-import { CarSilhouetteSvg } from "./CarSilhouetteSvg";
+import { enrichVehicleMedia } from "@/lib/vehicle-image";
+import { VehiclePhoto } from "./VehiclePhoto";
 
 interface Props {
   vehicle: Vehicle;
@@ -29,7 +30,8 @@ export function PremiumVehicleShowcase({
   onDelete,
   deleteLabel = "Delete",
 }: Props) {
-  const profile = getVehicleVisualProfile(vehicle);
+  const enriched = enrichVehicleMedia(vehicle) as Vehicle;
+  const profile = getVehicleVisualProfile(enriched);
   const [ready, setReady] = useState(!animate);
 
   useEffect(() => {
@@ -38,8 +40,8 @@ export function PremiumVehicleShowcase({
     return () => cancelAnimationFrame(t);
   }, [animate]);
 
-  const title = vehicleDisplayTitle(vehicle);
-  const subtitle = vehicleDisplaySubtitle(vehicle);
+  const title = vehicleDisplayTitle(enriched);
+  const subtitle = vehicleDisplaySubtitle(enriched);
 
   return (
     <motion.div
@@ -105,11 +107,7 @@ export function PremiumVehicleShowcase({
           velocity: 2,
         }}
       >
-        <CarSilhouetteSvg
-          bodyType={profile.bodyType}
-          colors={profile}
-          wheelSpin={animate && ready}
-        />
+        <VehiclePhoto vehicle={enriched} priority={animate} />
       </motion.div>
 
       {/* dust / speed lines during entry */}
@@ -152,19 +150,24 @@ export function PremiumVehicleShowcase({
           animate={ready ? { opacity: 1 } : {}}
           transition={{ delay: 0.85 }}
         >
-          {vehicle.plate && (
+          {enriched.plate && (
             <span className="px-3 py-1 rounded-lg bg-black/50 border border-bm-border font-mono text-xs tracking-widest">
-              {vehicle.plate}
+              {enriched.plate}
             </span>
           )}
-          {vehicle.vin && (
+          {enriched.vin && (
             <span className="px-2 py-1 rounded-lg bg-black/30 text-[10px] text-bm-muted font-mono">
-              VIN …{vehicle.vin.slice(-6)}
+              VIN …{enriched.vin.slice(-6)}
             </span>
           )}
-          {vehicle.mileage > 0 && (
+          {enriched.mileage > 0 && (
             <span className="px-2 py-1 rounded-lg bg-bm-red/10 text-[10px] text-bm-red">
-              {vehicle.mileage.toLocaleString()} km
+              {enriched.mileage.toLocaleString()} km
+            </span>
+          )}
+          {enriched.color && (
+            <span className="px-2 py-1 rounded-lg bg-white/5 text-[10px] text-bm-muted">
+              {enriched.color}
             </span>
           )}
         </motion.div>

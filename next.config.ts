@@ -4,6 +4,13 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   images: {
     formats: ["image/avif", "image/webp"],
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "cdn.imagin.studio",
+        pathname: "/getImage**",
+      },
+    ],
   },
   async redirects() {
     return [

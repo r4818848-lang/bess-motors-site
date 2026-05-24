@@ -92,6 +92,15 @@ export function getVehicleVisualProfile(vehicle: Partial<Vehicle>): VehicleVisua
   const palette = resolveBrandPalette(make);
   const bodyType = detectBodyType(make, model, vehicle.trim);
 
+  if (vehicle.colorHex?.trim()) {
+    return {
+      bodyType,
+      ...palette,
+      primary: vehicle.colorHex.trim(),
+      secondary: palette.secondary,
+    };
+  }
+
   if (vehicle.color?.trim()) {
     return {
       bodyType,

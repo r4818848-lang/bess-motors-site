@@ -36,6 +36,8 @@ export interface Vehicle {
   drivetrain?: string;
   year?: string;
   color?: string;
+  colorHex?: string;
+  imageUrl?: string;
   fuelType?: string;
   notes?: string;
   userId: string;
@@ -447,6 +449,8 @@ function migrateVehicle(v: Partial<Vehicle> & { id: string; userId: string }): V
     drivetrain: v.drivetrain ?? "",
     year: v.year ?? "",
     color: v.color ?? "",
+    colorHex: v.colorHex ?? "",
+    imageUrl: v.imageUrl ?? "",
     fuelType: v.fuelType ?? "",
     notes: v.notes ?? "",
     ...v,

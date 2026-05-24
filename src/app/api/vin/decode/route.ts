@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { parseNhtsaVinRow, decodeVinLocal } from "@/lib/vin-decode";
+import { decodeVinPaint } from "@/lib/vin-paint";
 
 export async function GET(request: Request) {
   const vin = new URL(request.url).searchParams
@@ -33,7 +34,8 @@ export async function GET(request: Request) {
       if (row) {
         const parsed = parseNhtsaVinRow(row);
         if (parsed.found) {
-          return NextResponse.json(parsed);
+          const paint = decodeVinPaint(vin, parsed.make);
+          return NextResponse.json({ ...parsed, color: paint.color, colorHex: paint.colorHex });
         }
       }
     }
@@ -43,7 +45,8 @@ export async function GET(request: Request) {
 
   const local = decodeVinLocal(vin);
   if (local.found) {
-    return NextResponse.json(local);
+    const paint = decodeVinPaint(vin, local.make);
+    return NextResponse.json({ ...local, color: paint.color, colorHex: paint.colorHex });
   }
 
   return NextResponse.json({ found: false, error: "not_found" });
