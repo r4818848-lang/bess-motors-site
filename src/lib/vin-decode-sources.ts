@@ -1,5 +1,7 @@
 import type { VinDecodeResult } from "./vin-decode";
 import { parseNhtsaVinRow, decodeVinLocal, emptyVinResult } from "./vin-decode";
+import { normalizeVinDecode } from "./vin-decode-normalize";
+import { fetchVincario } from "./vincario-decode";
 
 function clean(value: unknown): string {
   if (typeof value !== "string") return "";
@@ -41,7 +43,9 @@ async function fetchNhtsaValues(vin: string): Promise<VinDecodeResult | null> {
   return parsed.found ? parsed : null;
 }
 
-async function fetchNhtsaExtended(vin: string): Promise<Partial<VinDecodeResult> | null> {
+async function fetchNhtsaExtended(
+  vin: string
+): Promise<{ partial: Partial<VinDecodeResult>; series: string; bodyClass: string } | null> {
   const res = await fetch(
     `https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinExtended/${encodeURIComponent(vin)}?format=json`,
     { next: { revalidate: 86400 } }
@@ -58,6 +62,9 @@ async function fetchNhtsaExtended(vin: string): Promise<Partial<VinDecodeResult>
 
   const make = clean(map.get("Make"));
   if (!make) return null;
+
+  const series = clean(map.get("Series"));
+  const bodyClass = clean(map.get("Body Class")) || clean(map.get("Body Type"));
 
   const hp = clean(map.get("Engine HP")) || clean(map.get("Engine Brake (hp) From"));
   const kw = clean(map.get("Engine kW"));
@@ -76,28 +83,39 @@ async function fetchNhtsaExtended(vin: string): Promise<Partial<VinDecodeResult>
   const dispL = clean(map.get("Displacement (L)"));
   const engineVolume = dispL ? `${dispL}L` : "";
 
+  let model =
+    clean(map.get("Model")) ||
+    clean(map.get("Model - Model Year")) ||
+    clean(map.get("Vehicle Descriptor"));
+
+  if (!model && series && !/^RR\d$/i.test(series)) model = series;
+
   return {
-    make,
-    model: clean(map.get("Model")) || clean(map.get("Model - Model Year")),
-    year: clean(map.get("Model Year")),
-    trim: [clean(map.get("Trim")), clean(map.get("Series")), clean(map.get("Trim2"))]
-      .filter(Boolean)
-      .join(" "),
-    engine: [
+    series,
+    bodyClass,
+    partial: {
+      make,
+      model,
+      year: clean(map.get("Model Year")),
+      trim: [clean(map.get("Trim")), series, clean(map.get("Trim2"))]
+        .filter(Boolean)
+        .join(" "),
+      engine: [
+        engineVolume,
+        clean(map.get("Engine Configuration")),
+        clean(map.get("Engine Number of Cylinders"))
+          ? `${clean(map.get("Engine Number of Cylinders"))} cyl`
+          : "",
+      ]
+        .filter(Boolean)
+        .join(" · "),
       engineVolume,
-      clean(map.get("Engine Configuration")),
-      clean(map.get("Engine Number of Cylinders"))
-        ? `${clean(map.get("Engine Number of Cylinders"))} cyl`
-        : "",
-    ]
-      .filter(Boolean)
-      .join(" · "),
-    engineVolume,
-    power,
-    powerKw,
-    transmission: clean(map.get("Transmission Style")) || clean(map.get("Transmission Speeds")),
-    drivetrain: clean(map.get("Drive Type")),
-    fuelType: clean(map.get("Fuel Type - Primary")) || clean(map.get("Fuel Type - Secondary")),
+      power,
+      powerKw,
+      transmission: clean(map.get("Transmission Style")) || clean(map.get("Transmission Speeds")),
+      drivetrain: clean(map.get("Drive Type")),
+      fuelType: clean(map.get("Fuel Type - Primary")) || clean(map.get("Fuel Type - Secondary")),
+    },
   };
 }
 
@@ -137,27 +155,36 @@ async function fetchAutoDev(vin: string): Promise<Partial<VinDecodeResult> | nul
   }
 }
 
-/** Multi-source VIN decode: NHTSA values + extended + Auto.dev + WMI fallback */
+/** Multi-source VIN decode: Vincario + NHTSA + Auto.dev + WMI fallback */
 export async function decodeVinFromSources(vin: string): Promise<VinDecodeResult> {
   let result: VinDecodeResult = { ...emptyVinResult };
+  let series = "";
+  let bodyClass = "";
 
-  const [values, extended, autoDev] = await Promise.all([
+  const [values, extended, vincario, autoDev] = await Promise.all([
     fetchNhtsaValues(vin),
     fetchNhtsaExtended(vin),
+    fetchVincario(vin),
     fetchAutoDev(vin),
   ]);
 
   if (values) result = values;
-  if (extended) result = mergeResults(result, extended);
+  if (extended) {
+    series = extended.series;
+    bodyClass = extended.bodyClass;
+    result = mergeResults(result, extended.partial);
+  }
   if (autoDev) result = mergeResults(result, autoDev);
+  if (vincario) result = mergeResults(result, vincario);
 
   if (result.found && result.make) {
-    return { ...result, found: true };
+    return normalizeVinDecode(vin, { ...result, found: true }, { series, bodyClass });
   }
 
   const local = decodeVinLocal(vin);
   if (local.found) {
-    return { ...mergeResults({ ...emptyVinResult, found: false }, local), found: true };
+    const merged = mergeResults({ ...emptyVinResult, found: false }, local);
+    return normalizeVinDecode(vin, { ...merged, found: true }, { series, bodyClass });
   }
 
   return { ...emptyVinResult, error: "not_found" };

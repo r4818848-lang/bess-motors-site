@@ -135,11 +135,16 @@ export function vehicleDisplayTitle(vehicle: Partial<Vehicle>): string {
 }
 
 export function vehicleDisplaySubtitle(vehicle: Partial<Vehicle>): string {
-  const parts = [
-    vehicle.year,
-    vehicle.trim,
-    vehicle.engineVolume || vehicle.engine,
-    vehicle.power,
-  ].filter(Boolean);
+  const year = vehicle.year?.trim();
+  const trim = vehicle.trim?.trim();
+  const engine = (vehicle.engineVolume || vehicle.engine)?.trim();
+  const power = vehicle.power?.trim();
+
+  const parts: string[] = [];
+  if (year && /^(19|20)\d{2}$/.test(year)) parts.push(year);
+  if (trim && trim !== vehicle.model?.trim() && !trim.includes(year ?? "")) parts.push(trim);
+  if (engine && engine !== power) parts.push(engine);
+  if (power) parts.push(power);
+
   return parts.join(" · ");
 }

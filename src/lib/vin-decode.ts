@@ -85,7 +85,14 @@ export function parseNhtsaVinRow(row: Record<string, unknown>): VinDecodeResult 
   const make = clean(row.Make);
   if (!make) return { ...emptyVinResult, error: "not_found" };
 
-  const model = clean(row.Model);
+  let model = clean(row.Model);
+  const series = clean(row.Series);
+  if (!model && series && !/^RR\d$/i.test(series)) model = series;
+  if (!model) {
+    const trimHint = clean(row.Trim);
+    if (/class|klasse|series|wraith|ghost|cullinan/i.test(trimHint)) model = trimHint;
+  }
+
   const year = clean(row.ModelYear);
   const trim = [clean(row.Trim), clean(row.Series), clean(row.Trim2)]
     .filter(Boolean)
@@ -175,6 +182,13 @@ const wmiDatabase: Record<string, Omit<VinDecodeResult, "found">> = {
   KNA: { make: "Kia", model: "", engine: "", engineVolume: "", trim: "", power: "", powerKw: "", transmission: "", drivetrain: "", fuelType: "", year: "" },
   WMA: { make: "MAN", model: "", engine: "", engineVolume: "", trim: "", power: "", powerKw: "", transmission: "", drivetrain: "", fuelType: "", year: "" },
   W0L: { make: "Opel", model: "", engine: "", engineVolume: "", trim: "", power: "", powerKw: "", transmission: "", drivetrain: "", fuelType: "", year: "" },
+  SCA: { make: "Rolls-Royce", model: "", engine: "", engineVolume: "", trim: "", power: "", powerKw: "", transmission: "", drivetrain: "", fuelType: "", year: "" },
+  WDD: { make: "Mercedes-Benz", model: "", engine: "", engineVolume: "", trim: "", power: "", powerKw: "", transmission: "", drivetrain: "", fuelType: "", year: "" },
+  WDF: { make: "Mercedes-Benz", model: "", engine: "", engineVolume: "", trim: "", power: "", powerKw: "", transmission: "", drivetrain: "", fuelType: "", year: "" },
+  W1K: { make: "Mercedes-Benz", model: "", engine: "", engineVolume: "", trim: "", power: "", powerKw: "", transmission: "", drivetrain: "", fuelType: "", year: "" },
+  W1N: { make: "Mercedes-Benz", model: "", engine: "", engineVolume: "", trim: "", power: "", powerKw: "", transmission: "", drivetrain: "", fuelType: "", year: "" },
+  WBY: { make: "BMW", model: "", engine: "", engineVolume: "", trim: "", power: "", powerKw: "", transmission: "", drivetrain: "", fuelType: "", year: "" },
+  WMW: { make: "MINI", model: "", engine: "", engineVolume: "", trim: "", power: "", powerKw: "", transmission: "", drivetrain: "", fuelType: "", year: "" },
 };
 
 function vinModelYear(vin: string): string {

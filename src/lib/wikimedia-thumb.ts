@@ -2,6 +2,7 @@
 const FILE_HASH: Record<string, string> = {
   "2015_BMW_M4_(F82)_Coupe_2.jpg": "b/bc",
   "2016_Jaguar_F-Type_R_Coupé_1.jpg": "7/75",
+  "2016_Rolls-Royce_Wraith_V12_Auto_6.6_Front.jpg": "4/49",
   "2017_BMW_530e_iPerformance_(G30)_1.jpg": "a/ab",
   "2017_Mercedes-Benz_E220d_AMG_Line_(W213)_1.jpg": "f/f9",
   "2018_Audi_Q5_40_TDI_quattro_S_line_1.jpg": "a/ab",
@@ -9,7 +10,6 @@ const FILE_HASH: Record<string, string> = {
   "2018_BMW_M5_(F90)_Front.jpg": "9/9a",
   "2018_BMW_X3_(G01)_xDrive20d_1.jpg": "c/c6",
   "2018_Ford_Mustang_GT_1.jpg": "e/ee",
-  "2018_Rolls-Royce_Cullinan_(UK)_1.jpg": "3/36",
   "2018_Toyota_Camry_XSE_V6_1.jpg": "e/ee",
   "2018_Volkswagen_Tiguan_R-Line_1.jpg": "c/c6",
   "2018_Volvo_XC60_T5_R-Design_1.jpg": "0/0f",
@@ -24,6 +24,7 @@ const FILE_HASH: Record<string, string> = {
   "2019_Mercedes-Benz_GLE_350_de_4MATIC_(V167)_1.jpg": "2/2a",
   "2019_Porsche_Cayenne_S_1.jpg": "7/75",
   "2019_Porsche_Macan_S_1.jpg": "4/42",
+  "2019_Rolls-Royce_Ghost_Zenith.jpg": "f/f9",
   "2019_Tesla_Model_3_Performance_AWD_Front.jpg": "9/91",
   "2019_Toyota_Corolla_Hybrid_Design_1.jpg": "5/5d",
   "2019_Toyota_RAV4_Hybrid_Design_1.jpg": "3/3b",
@@ -52,8 +53,7 @@ const FILE_HASH: Record<string, string> = {
   "Mercedes_s-class_w223_black_(1).jpg": "d/db",
   "Porsche_911_Carrera_S_(992)_IMG_5113.jpg": "6/62",
   "Porsche_Taycan_4S_IMG_4183.jpg": "3/36",
-  "Rolls-Royce_Ghost,_Geneva_Motor_Show_2014_(14227462412).jpg": "8/81",
-  "Rolls-Royce_Wraith,_Geneva_Motor_Show_2013_(8711475097).jpg": "0/00",
+  "Rolls-Royce_Cullinan_Midnight_Sapphire_(1).jpg": "c/c8",
 };
 
 export function wikimediaThumbUrl(filename: string, width = 1280): string {

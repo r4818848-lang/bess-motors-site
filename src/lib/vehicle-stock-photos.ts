@@ -44,9 +44,9 @@ export const VEHICLE_STOCK_PHOTOS: StockPhotoMatch[] = [
   },
 
   // Rolls-Royce
-  { make: /rolls.?royce/i, model: /wraith/i, file: "Rolls-Royce_Wraith,_Geneva_Motor_Show_2013_(8711475097).jpg", bodyType: "sport" },
-  { make: /rolls.?royce/i, model: /ghost/i, file: "Rolls-Royce_Ghost,_Geneva_Motor_Show_2014_(14227462412).jpg", bodyType: "sedan" },
-  { make: /rolls.?royce/i, model: /cullinan/i, file: "2018_Rolls-Royce_Cullinan_(UK)_1.jpg", bodyType: "suv" },
+  { make: /rolls.?royce/i, model: /wraith/i, file: "2016_Rolls-Royce_Wraith_V12_Auto_6.6_Front.jpg", bodyType: "sport" },
+  { make: /rolls.?royce/i, model: /ghost/i, file: "2019_Rolls-Royce_Ghost_Zenith.jpg", bodyType: "sedan" },
+  { make: /rolls.?royce/i, model: /cullinan/i, file: "Rolls-Royce_Cullinan_Midnight_Sapphire_(1).jpg", bodyType: "suv" },
 
   // Audi
   { make: /audi/i, model: /a4|b9/i, file: "2019_Audi_A4_40_TFSI_S_line_1.jpg", bodyType: "sedan" },
@@ -172,11 +172,11 @@ export function resolveStockPhotoUrl(vehicle: {
   trim?: string;
 }): { url: string; bodyType?: VehicleBodyType } | null {
   const make = vehicle.make?.trim() || "";
-  const text = `${vehicle.model ?? ""} ${vehicle.trim ?? ""}`.trim();
+  const searchText = `${make} ${vehicle.model ?? ""} ${vehicle.trim ?? ""}`.trim();
   if (!make) return null;
 
   for (const entry of VEHICLE_STOCK_PHOTOS) {
-    if (entry.make.test(make) && entry.model.test(text || vehicle.model || "")) {
+    if (entry.make.test(make) && entry.model.test(searchText)) {
       const url = entryUrl(entry);
       if (url) return { url, bodyType: entry.bodyType };
     }

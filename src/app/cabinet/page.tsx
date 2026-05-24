@@ -201,7 +201,10 @@ function CabinetPageContent() {
 
     if (d.found) {
       setVinForm((f) => applyVinDecodeToForm(f, d, vin) as typeof emptyVinForm);
-      setVinMessage({ type: "ok", text: t.cabinet.vinDecoded });
+      setVinMessage({
+        type: "ok",
+        text: d.model?.trim() ? t.cabinet.vinDecoded : t.cabinet.vinDecodedPartial,
+      });
     } else {
       setVinMessage({ type: "err", text: t.cabinet.vinNotFound });
     }
