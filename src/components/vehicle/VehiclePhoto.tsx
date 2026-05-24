@@ -56,6 +56,7 @@ export function VehiclePhoto({
         width={900}
         height={height}
         priority={priority}
+        unoptimized
         className="w-full h-auto object-contain drop-shadow-2xl"
         style={{
           filter: `drop-shadow(0 12px 28px ${profile.glow})`,

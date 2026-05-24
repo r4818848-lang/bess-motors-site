@@ -11,13 +11,14 @@ export interface VehicleImageInfo {
 
 /** Resolve image: Wikimedia stock photo or premium SVG render (never watermarked CDN) */
 export function resolveVehicleImage(vehicle: Partial<Vehicle>): VehicleImageInfo {
-  if (vehicle.imageUrl?.trim() && !vehicle.imageUrl.includes("imagin.studio")) {
-    return { source: "stock", url: vehicle.imageUrl.trim() };
-  }
-
   const stock = resolveStockPhotoUrl(vehicle);
   if (stock && !isLogoStockUrl(stock.url)) {
     return { source: "stock", url: stock.url };
+  }
+
+  const saved = vehicle.imageUrl?.trim();
+  if (saved && !saved.includes("imagin.studio") && !saved.includes("upload.wikimedia.org")) {
+    return { source: "stock", url: saved };
   }
 
   return { source: "render" };
