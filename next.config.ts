@@ -7,8 +7,8 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "cdn.imagin.studio",
-        pathname: "/getImage**",
+        hostname: "upload.wikimedia.org",
+        pathname: "/wikipedia/commons/**",
       },
     ],
   },

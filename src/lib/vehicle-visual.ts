@@ -45,6 +45,22 @@ const BRAND_PALETTES: Record<string, Omit<VehicleVisualProfile, "bodyType">> = {
     rim: "#94a3b8",
     glass: "#1e293b",
   },
+  Ferrari: {
+    primary: "#8b0000",
+    secondary: "#1a1a1a",
+    accent: "#d40000",
+    glow: "rgba(212,0,0,0.55)",
+    rim: "#c0c0c0",
+    glass: "#111827",
+  },
+  Lamborghini: {
+    primary: "#1a1a1a",
+    secondary: "#2d2d2d",
+    accent: "#f4c430",
+    glow: "rgba(244,196,48,0.45)",
+    rim: "#cbd5e1",
+    glass: "#0f172a",
+  },
   Audi: {
     primary: "#111827",
     secondary: "#1f2937",
@@ -66,7 +82,7 @@ const DEFAULT_PALETTE: Omit<VehicleVisualProfile, "bodyType"> = {
 
 function detectBodyType(make: string, model: string, trim?: string): VehicleBodyType {
   const text = `${make} ${model} ${trim ?? ""}`.toLowerCase();
-  if (/911|carrera|gt3|gt4|rs3|rs4|rs5|rs6|rs7|m2|m3|m4|m5|amg gt|corvette|supra|z4|tt |718|boxster|i8|sport/i.test(text)) {
+  if (/911|carrera|gt3|gt4|rs3|rs4|rs5|rs6|rs7|m2|m3|m4|m5|amg gt|corvette|supra|z4|tt |718|boxster|i8|roma|hurac|aventador|ferrari|lamborghini|maserati|sport/i.test(text)) {
     return "sport";
   }
   if (/x[1-7]|q[2-8]|glc|gle|gla|macan|cayenne|tiguan|touareg|kuga|rav4|xc\d|suv|discovery|range rover/i.test(text)) {

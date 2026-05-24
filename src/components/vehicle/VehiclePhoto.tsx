@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import type { Vehicle } from "@/lib/store";
-import { buildVehicleImageUrl, enrichVehicleMedia } from "@/lib/vehicle-image";
+import { enrichVehicleMedia, resolveVehicleImage } from "@/lib/vehicle-image";
 import { getVehicleVisualProfile } from "@/lib/vehicle-visual";
 import { CarSilhouetteSvg } from "./CarSilhouetteSvg";
 
@@ -12,20 +12,32 @@ interface Props {
   compact?: boolean;
   className?: string;
   priority?: boolean;
+  wheelSpin?: boolean;
 }
 
-/** Photo render from VIN data (make, model, year, color) with SVG fallback */
-export function VehiclePhoto({ vehicle, compact = false, className = "", priority = false }: Props) {
-  const [failed, setFailed] = useState(false);
+/**
+ * Vehicle visual: stock photo (Wikimedia, no watermark) or
+ * premium SVG render in decoded color when no photo exists.
+ */
+export function VehiclePhoto({
+  vehicle,
+  compact = false,
+  className = "",
+  priority = false,
+  wheelSpin = false,
+}: Props) {
+  const [photoFailed, setPhotoFailed] = useState(false);
   const enriched = enrichVehicleMedia(vehicle);
   const profile = getVehicleVisualProfile(enriched);
-  const src = buildVehicleImageUrl(enriched, compact ? 480 : 900);
+  const imageInfo = resolveVehicleImage(enriched);
+  const usePhoto = imageInfo.source === "stock" && imageInfo.url && !photoFailed;
 
-  if (failed || !enriched.make?.trim()) {
+  if (!usePhoto) {
     return (
       <CarSilhouetteSvg
         bodyType={profile.bodyType}
         colors={profile}
+        wheelSpin={wheelSpin}
         className={className}
       />
     );
@@ -39,18 +51,17 @@ export function VehiclePhoto({ vehicle, compact = false, className = "", priorit
       style={{ minHeight: height }}
     >
       <Image
-        src={src}
+        src={imageInfo.url!}
         alt={`${enriched.make ?? ""} ${enriched.model ?? ""}`.trim() || "Vehicle"}
         width={900}
         height={height}
         priority={priority}
-        unoptimized
         className="w-full h-auto object-contain drop-shadow-2xl"
         style={{
           filter: `drop-shadow(0 12px 28px ${profile.glow})`,
           maxHeight: height,
         }}
-        onError={() => setFailed(true)}
+        onError={() => setPhotoFailed(true)}
       />
       {enriched.color && !compact && (
         <span

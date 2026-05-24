@@ -135,10 +135,31 @@ function CabinetPageContent() {
 
   const addVehicle = () => {
     if (!db || !user) return;
+
+    const vin = vinForm.vin.replace(/\s/g, "").toUpperCase();
+    if (vin.length !== 17) {
+      setVinMessage({ type: "err", text: t.cabinet.vinInvalidLength });
+      return;
+    }
+    if (!vinForm.make.trim()) {
+      setVinMessage({ type: "err", text: t.cabinet.vinDecodeFirst });
+      return;
+    }
+
+    const duplicate = db.vehicles.some(
+      (v) => v.userId === user.id && v.vin.replace(/\s/g, "").toUpperCase() === vin
+    );
+    if (duplicate) {
+      setVinMessage({ type: "err", text: t.cabinet.vinAlreadyAdded });
+      return;
+    }
+
+    const plate = vinForm.plate.trim() || `VIN-${vin.slice(-6)}`;
+
     const base: Vehicle = {
       id: `v-${Date.now()}`,
-      vin: vinForm.vin,
-      plate: vinForm.plate,
+      vin,
+      plate,
       mileage: Number(vinForm.mileage) || 0,
       make: vinForm.make,
       model: vinForm.model,
@@ -156,11 +177,12 @@ function CabinetPageContent() {
       userId: user.id,
     };
     const vehicle = enrichVehicleMedia(base) as Vehicle;
-    db.vehicles.push(vehicle);
-    saveDb(db);
-    setDb({ ...db });
+    const fresh = loadDb();
+    fresh.vehicles.push(vehicle);
+    saveDb(fresh);
+    setDb({ ...fresh });
     setVinForm(emptyVinForm);
-    setVinMessage(null);
+    setVinMessage({ type: "ok", text: t.cabinet.carAdded });
   };
 
   const searchVin = async () => {
@@ -375,7 +397,7 @@ function CabinetPageContent() {
                 )}
                 <input
                   className="input-premium"
-                  placeholder={t.cabinet.plate}
+                  placeholder={`${t.cabinet.plate} (${t.cabinet.plateOptional})`}
                   value={vinForm.plate}
                   onChange={(e) => setVinForm((f) => ({ ...f, plate: e.target.value }))}
                 />
@@ -416,7 +438,9 @@ function CabinetPageContent() {
               <Button
                 className="w-full mt-4"
                 onClick={addVehicle}
-                disabled={!vinForm.make.trim() || !vinForm.plate.trim()}
+                disabled={
+                  vinForm.vin.replace(/\s/g, "").length !== 17 || !vinForm.make.trim()
+                }
               >
                 {t.cabinet.addCar}
               </Button>

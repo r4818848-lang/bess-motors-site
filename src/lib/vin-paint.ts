@@ -28,6 +28,14 @@ const MERCEDES_PAINT: Record<string, VinPaintInfo> = {
   "992": { color: "Selenite Grey Metallic", colorHex: "#8a9099" },
 };
 
+const FERRARI_PAINT: Record<string, VinPaintInfo> = {
+  "001": { color: "Rosso Corsa", colorHex: "#d40000" },
+  "002": { color: "Giallo Modena", colorHex: "#f4c430" },
+  "101": { color: "Bianco Avus", colorHex: "#f5f5f5" },
+  "125": { color: "Nero Daytona", colorHex: "#1a1a1a" },
+  "456": { color: "Blu Tour de France", colorHex: "#1a3a6e" },
+};
+
 const BRAND_FALLBACK_PALETTES: Record<string, VinPaintInfo[]> = {
   BMW: [
     { color: "Carbon Black Metallic", colorHex: "#1a1a1a" },
@@ -54,6 +62,20 @@ const BRAND_FALLBACK_PALETTES: Record<string, VinPaintInfo[]> = {
     { color: "Carrara White Metallic", colorHex: "#ececec" },
     { color: "GT Silver Metallic", colorHex: "#b0b5bc" },
     { color: "Guards Red", colorHex: "#c41e1e" },
+  ],
+  Ferrari: [
+    { color: "Rosso Corsa", colorHex: "#d40000" },
+    { color: "Rosso Fiorano", colorHex: "#b80000" },
+    { color: "Bianco Avus", colorHex: "#f5f5f5" },
+    { color: "Nero Daytona", colorHex: "#1a1a1a" },
+    { color: "Giallo Modena", colorHex: "#f4c430" },
+    { color: "Blu Tour de France", colorHex: "#1a3a6e" },
+  ],
+  Lamborghini: [
+    { color: "Giallo Orion", colorHex: "#f4c430" },
+    { color: "Nero Noctis", colorHex: "#1a1a1a" },
+    { color: "Bianco Monocerus", colorHex: "#f5f5f5" },
+    { color: "Verde Mantis", colorHex: "#3d5249" },
   ],
   Volkswagen: [
     { color: "Deep Black Pearl", colorHex: "#1a1a1a" },
@@ -104,6 +126,10 @@ export function decodeVinPaint(vin: string, make: string): VinPaintInfo {
   }
   if (/mercedes/i.test(makeNorm)) {
     const hit = lookupPaintTable(cleaned, MERCEDES_PAINT);
+    if (hit) return hit;
+  }
+  if (/ferrari/i.test(makeNorm)) {
+    const hit = lookupPaintTable(cleaned, FERRARI_PAINT);
     if (hit) return hit;
   }
 

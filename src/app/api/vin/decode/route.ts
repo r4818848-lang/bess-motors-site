@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { parseNhtsaVinRow, decodeVinLocal } from "@/lib/vin-decode";
+import { decodeVinFromSources } from "@/lib/vin-decode-sources";
 import { decodeVinPaint } from "@/lib/vin-paint";
 
 export async function GET(request: Request) {
@@ -23,31 +23,17 @@ export async function GET(request: Request) {
   }
 
   try {
-    const res = await fetch(
-      `https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValues/${encodeURIComponent(vin)}?format=json`,
-      { next: { revalidate: 86400 } }
-    );
-
-    if (res.ok) {
-      const data = await res.json();
-      const row = data.Results?.[0];
-      if (row) {
-        const parsed = parseNhtsaVinRow(row);
-        if (parsed.found) {
-          const paint = decodeVinPaint(vin, parsed.make);
-          return NextResponse.json({ ...parsed, color: paint.color, colorHex: paint.colorHex });
-        }
-      }
+    const decoded = await decodeVinFromSources(vin);
+    if (decoded.found && decoded.make) {
+      const paint = decodeVinPaint(vin, decoded.make);
+      return NextResponse.json({
+        ...decoded,
+        color: decoded.color || paint.color,
+        colorHex: decoded.colorHex || paint.colorHex,
+      });
     }
+    return NextResponse.json({ found: false, error: decoded.error ?? "not_found" });
   } catch {
-    /* fall through to local WMI map */
+    return NextResponse.json({ found: false, error: "server_error" }, { status: 500 });
   }
-
-  const local = decodeVinLocal(vin);
-  if (local.found) {
-    const paint = decodeVinPaint(vin, local.make);
-    return NextResponse.json({ ...local, color: paint.color, colorHex: paint.colorHex });
-  }
-
-  return NextResponse.json({ found: false, error: "not_found" });
 }
