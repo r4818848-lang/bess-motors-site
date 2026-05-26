@@ -1,63 +1,53 @@
-import { normalizePhone, normalizePlateKey } from "@/lib/server/normalize-phone";
-import type { Database, OrderSignature, User, Vehicle, WorkOrder } from "@/lib/store";
+import type { OrderSignature, User, Vehicle, WorkOrder } from "@/lib/store";
 import { cloudGetCrmStore, cloudPutCrmStore } from "@/lib/server/crm-cloud";
 import { isSupabaseConfigured } from "@/lib/server/supabase-config";
+import {
+  cloudClientPortalAccess,
+  type ClientPortalSlice,
+} from "@/lib/server/client-portal-cloud";
+import { ensureClientForSign, pickWorkOrderForClient } from "@/lib/client-sign";
+import { normalizePhone, normalizePlateKey } from "@/lib/server/normalize-phone";
 
 export type SignOrderPayload = {
   order: WorkOrder;
   client: User;
   vehicle: Vehicle | null;
+  portal: ClientPortalSlice;
 };
 
-function orderAccessOk(
-  db: Database,
-  orderId: string,
+export async function cloudAccessSignOrder(
   phone: string,
-  plate?: string
-): { order: WorkOrder; clientName: string } | null {
-  const order = db.workOrders.find((o) => o.id === orderId);
-  if (!order) return null;
+  plate: string,
+  orderId?: string
+): Promise<SignOrderPayload | null> {
+  const result = await cloudClientPortalAccess(phone, plate, orderId);
+  if (!result) return null;
 
-  const client = db.users.find((u) => u.id === order.userId);
-  if (!client) return null;
+  const vehicle =
+    result.slice.vehicles.find((v) => v.id === result.order.vehicleId) ?? null;
 
-  if (normalizePhone(phone) !== normalizePhone(client.phone)) return null;
-
-  const vehicle = db.vehicles.find((v) => v.id === order.vehicleId);
-  if (vehicle?.plate?.trim()) {
-    const plateKey = normalizePlateKey(plate ?? "");
-    if (!plateKey || normalizePlateKey(vehicle.plate) !== plateKey) return null;
-  }
-
-  return { order, clientName: client.name };
+  return {
+    order: result.order,
+    client: result.slice.user,
+    vehicle,
+    portal: result.slice,
+  };
 }
 
+/** @deprecated Use cloudAccessSignOrder */
 export async function cloudVerifySignOrder(
   orderId: string,
   phone: string,
   plate?: string
 ): Promise<SignOrderPayload | null> {
-  if (!isSupabaseConfigured()) return null;
-  const snap = await cloudGetCrmStore();
-  if (!snap) return null;
-
-  const match = orderAccessOk(snap.doc, orderId, phone, plate);
-  if (!match) return null;
-
-  const client = snap.doc.users.find((u) => u.id === match.order.userId)!;
-  const vehicle = snap.doc.vehicles.find((v) => v.id === match.order.vehicleId) ?? null;
-
-  return {
-    order: match.order,
-    client,
-    vehicle,
-  };
+  if (!plate?.trim()) return null;
+  return cloudAccessSignOrder(phone, plate, orderId);
 }
 
 export async function cloudSubmitWorkOrderSignature(
   orderId: string,
   phone: string,
-  plate: string | undefined,
+  plate: string,
   signature: OrderSignature,
   clientSignature: string
 ): Promise<boolean> {
@@ -65,10 +55,27 @@ export async function cloudSubmitWorkOrderSignature(
   const snap = await cloudGetCrmStore();
   if (!snap) return false;
 
-  const match = orderAccessOk(snap.doc, orderId, phone, plate);
-  if (!match) return false;
-
   const db = snap.doc;
+  const orderHint = db.workOrders.find((o) => o.id === orderId) ?? null;
+  if (!orderHint) return false;
+
+  try {
+    await ensureClientForSign(db, phone, plate, orderHint);
+  } catch {
+    return false;
+  }
+
+  const order = pickWorkOrderForClient(db, orderHint.userId, orderId);
+  if (!order || order.id !== orderId) return false;
+
+  const client = db.users.find((u) => u.id === order.userId);
+  if (!client || normalizePhone(client.phone) !== normalizePhone(phone)) {
+    return false;
+  }
+
+  const plateKey = normalizePlateKey(plate);
+  if (plateKey.length < 2) return false;
+
   const wo = db.workOrders.find((o) => o.id === orderId);
   if (!wo) return false;
 

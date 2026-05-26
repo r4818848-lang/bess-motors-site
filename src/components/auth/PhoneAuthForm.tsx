@@ -1,15 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Phone, Car, LogIn, UserPlus, ChevronRight } from "lucide-react";
+import { Phone, Car, LogIn, ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useI18n } from "@/lib/i18n/context";
 import { useAuth } from "@/lib/auth/session-context";
-import { loginWithPhonePassword, registerClient, type AuthResult } from "@/lib/auth";
+import { loginWithPhonePassword, type AuthResult } from "@/lib/auth";
 import { loadClientCredentials } from "@/lib/client-credentials";
+import { pullClientPortalFromCloud } from "@/lib/client-portal";
 import { Button } from "@/components/ui/Button";
-
-type Mode = "login" | "register";
 
 interface PhoneAuthFormProps {
   onSuccess?: () => void;
@@ -19,7 +18,6 @@ export function PhoneAuthForm({ onSuccess }: PhoneAuthFormProps) {
   const { t } = useI18n();
   const router = useRouter();
   const { refreshAuth } = useAuth();
-  const [mode, setMode] = useState<Mode>("login");
   const [phone, setPhone] = useState("");
   const [plate, setPlate] = useState("");
   const [error, setError] = useState("");
@@ -36,8 +34,6 @@ export function PhoneAuthForm({ onSuccess }: PhoneAuthFormProps) {
 
   const errorMessage = (result: Extract<AuthResult, { ok: false }>) => {
     switch (result.error) {
-      case "phone_exists":
-        return t.auth.phoneExists;
       case "phone_required":
         return t.auth.phoneRequired;
       case "plate_required":
@@ -52,10 +48,7 @@ export function PhoneAuthForm({ onSuccess }: PhoneAuthFormProps) {
     setError("");
     setLoading(true);
     try {
-      const result =
-        mode === "register"
-          ? await registerClient(phone, plate)
-          : await loginWithPhonePassword(phone, plate);
+      const result = await loginWithPhonePassword(phone, plate);
 
       if (!result.ok) {
         setError(errorMessage(result));
@@ -66,6 +59,8 @@ export function PhoneAuthForm({ onSuccess }: PhoneAuthFormProps) {
         router.push("/crm");
         return;
       }
+
+      await pullClientPortalFromCloud().catch(() => null);
 
       refreshAuth();
       onSuccess?.();
@@ -96,36 +91,13 @@ export function PhoneAuthForm({ onSuccess }: PhoneAuthFormProps) {
           }}
         />
 
-        <form
-          className="relative z-10"
-          autoComplete="on"
-          onSubmit={handleSubmit}
-        >
+        <form className="relative z-10" autoComplete="on" onSubmit={handleSubmit}>
           <h1 className="font-display text-2xl sm:text-3xl font-bold uppercase text-center tracking-widest text-glow">
             {t.cabinet.title}
           </h1>
           <p className="text-center text-sm text-bm-muted mt-2 mb-2">{t.auth.subtitle}</p>
           <p className="text-center text-[10px] text-bm-muted/80 mb-6">{t.auth.plateHint}</p>
-
-          <div className="flex rounded-xl border border-bm-border/60 p-1 mb-6 bg-bm-black/50 backdrop-blur-sm">
-            {(["login", "register"] as Mode[]).map((m) => (
-              <button
-                key={m}
-                type="button"
-                onClick={() => {
-                  setMode(m);
-                  setError("");
-                }}
-                className={`flex-1 py-2.5 text-xs font-display font-semibold uppercase tracking-wider rounded-lg transition-all duration-300 ${
-                  mode === m
-                    ? "bg-bm-red text-white shadow-neon-sm"
-                    : "text-bm-muted hover:text-white"
-                }`}
-              >
-                {m === "login" ? t.cabinet.login : t.cabinet.register}
-              </button>
-            ))}
-          </div>
+          <p className="text-center text-[10px] text-amber-400/90 mb-4">{t.auth.signCreatesAccount}</p>
 
           <div className="space-y-4">
             <div className="relative group">
@@ -165,7 +137,7 @@ export function PhoneAuthForm({ onSuccess }: PhoneAuthFormProps) {
                 id="bess-client-plate"
                 name="password"
                 type="text"
-                autoComplete={mode === "register" ? "new-password" : "current-password"}
+                autoComplete="current-password"
                 autoCapitalize="characters"
                 spellCheck={false}
                 className="input-premium pl-10 w-full bg-bm-black/60 backdrop-blur-md font-mono tracking-wider transition-all duration-300"
@@ -189,11 +161,6 @@ export function PhoneAuthForm({ onSuccess }: PhoneAuthFormProps) {
           <Button type="submit" className="w-full mt-6 gap-2" disabled={loading}>
             {loading ? (
               <span className="animate-pulse">{t.auth.loading}</span>
-            ) : mode === "register" ? (
-              <>
-                <UserPlus className="w-4 h-4" />
-                {t.cabinet.register}
-              </>
             ) : (
               <>
                 <LogIn className="w-4 h-4" />

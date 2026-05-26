@@ -17,6 +17,7 @@ import {
   History,
   Activity,
   Search,
+  KeyRound,
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import {
@@ -42,6 +43,8 @@ import { normalizePhone } from "@/lib/auth";
 import { linkGuestBookingsToClient } from "@/lib/link-client-bookings";
 import { useAuth } from "@/lib/auth/session-context";
 import { useCloudAppointmentsSync } from "@/hooks/useCloudAppointmentsSync";
+import { useCloudClientSync } from "@/hooks/useCloudClientSync";
+import { ChangePasswordPanel } from "@/components/cabinet/ChangePasswordPanel";
 import { PhoneAuthForm } from "@/components/auth/PhoneAuthForm";
 import { getAppointmentContext } from "@/lib/appointments";
 import { calcClientTotal } from "@/lib/workorder-calc";
@@ -93,6 +96,7 @@ function CabinetPageContent() {
   const searchParams = useSearchParams();
   const { sessionReady, clientUser, signOut } = useAuth();
   useCloudAppointmentsSync(!!clientUser);
+  useCloudClientSync(!!clientUser);
   const [mounted, setMounted] = useState(false);
   const [db, setDb] = useState<Database | null>(null);
   const [tab, setTab] = useState("cars");
@@ -297,6 +301,7 @@ function CabinetPageContent() {
     { id: "warranty", icon: Shield, label: t.cabinet.warranties },
     { id: "expenses", icon: DollarSign, label: t.cabinet.expenses },
     { id: "photos", icon: ImageIcon, label: t.cabinet.photos },
+    { id: "settings", icon: KeyRound, label: t.cabinet.settings },
   ];
 
   return (
@@ -793,6 +798,10 @@ function CabinetPageContent() {
               </Card>
             )}
           </div>
+        )}
+
+        {tab === "settings" && (
+          <ChangePasswordPanel userId={user.id} phone={user.phone} />
         )}
 
         {tab === "photos" && (

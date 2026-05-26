@@ -1,11 +1,12 @@
 "use client";
 
-import { use, useEffect, useState, useMemo } from "react";
+import { use, useEffect, useState } from "react";
 import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
-import { loadDb, mergeStoredDb, type Database, type User, type Vehicle, type WorkOrder } from "@/lib/store";
-import { restoreSessionFromToken, isClientAuthenticated } from "@/lib/auth";
+import { loadDb, type Database, type User, type Vehicle, type WorkOrder } from "@/lib/store";
+import type { ClientPortalSlice } from "@/lib/client-sign";
+import { restoreSessionFromToken } from "@/lib/auth";
 import { hasSignOrderAccess, setSignOrderAccess } from "@/lib/sign-order-access";
 import { SignOrderGuestForm } from "@/components/sign/SignOrderGuestForm";
 import { WorkOrderSignatureFlow } from "@/components/cabinet/WorkOrderSignatureFlow";
@@ -18,7 +19,8 @@ type CloudSignState = {
   client: User;
   vehicle: Vehicle | null;
   phone: string;
-  plate?: string;
+  plate: string;
+  portal?: ClientPortalSlice;
 };
 
 export default function SignWorkOrderPage({
@@ -34,6 +36,7 @@ export default function SignWorkOrderPage({
   const [signMode, setSignMode] = useState<SignMode>(null);
   const [cloudSign, setCloudSign] = useState<CloudSignState | null>(null);
   const [signed, setSigned] = useState(false);
+  const [resolvedOrder, setResolvedOrder] = useState<WorkOrder | null>(null);
   const [guestVerified, setGuestVerified] = useState(() => hasSignOrderAccess(orderId));
 
   useEffect(() => {
@@ -51,31 +54,30 @@ export default function SignWorkOrderPage({
     : null;
   const isOwner = Boolean(user && localOrder && localOrder.userId === user.id);
 
-  const order = cloudSign?.order ?? localOrder;
+  const order = cloudSign?.order ?? resolvedOrder ?? localOrder;
 
-  const signDb: Database = useMemo(() => {
-    if (cloudSign) {
-      return mergeStoredDb({
-        users: [cloudSign.client],
-        vehicles: cloudSign.vehicle ? [cloudSign.vehicle] : [],
-        workOrders: [cloudSign.order],
-      });
-    }
-    return db;
-  }, [cloudSign, db]);
+  const signDb: Database = db;
 
   const canAccess =
     Boolean(order) &&
-    (isOwner || guestVerified || hasSignOrderAccess(orderId));
+    (isOwner || guestVerified || hasSignOrderAccess(order.id));
 
   const handleGuestVerified = (
     verifiedOrder: WorkOrder,
     mode: "local" | "cloud",
-    cloud?: { client: User; vehicle: Vehicle | null; phone: string; plate?: string }
+    cloud?: {
+      client: User;
+      vehicle: Vehicle | null;
+      phone: string;
+      plate: string;
+      portal?: ClientPortalSlice;
+    }
   ) => {
     setSignMode(mode);
     setGuestVerified(true);
-    setSignOrderAccess(orderId);
+    setResolvedOrder(verifiedOrder);
+    setSignOrderAccess(verifiedOrder.id);
+    setDb(loadDb());
     if (mode === "cloud" && cloud) {
       setCloudSign({
         order: verifiedOrder,
@@ -83,9 +85,8 @@ export default function SignWorkOrderPage({
         vehicle: cloud.vehicle,
         phone: cloud.phone,
         plate: cloud.plate,
+        portal: cloud.portal,
       });
-    } else {
-      setDb(loadDb());
     }
     if (verifiedOrder.confirmationStatus !== "confirmed") {
       setShowSign(true);

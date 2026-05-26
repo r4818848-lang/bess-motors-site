@@ -205,6 +205,14 @@ async function checkClientPlate(user: User, plateInput: string): Promise<boolean
  * Login: admin = phone + password → CRM;
  * client = phone + vehicle registration plate
  */
+/** Apply JWT from server (e.g. after signing a work order in the cloud) */
+export async function establishClientSessionFromToken(token: string): Promise<User | null> {
+  const session = await verifyToken(token);
+  if (!session || session.role !== "client") return null;
+  persistSession(token, "client", session.sub);
+  return getCurrentUser();
+}
+
 export async function loginWithPhonePassword(
   phone: string,
   credential: string

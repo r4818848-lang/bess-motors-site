@@ -17,7 +17,7 @@ import {
 
 type CloudSignContext = {
   phone: string;
-  plate?: string;
+  plate: string;
 };
 
 interface Props {
