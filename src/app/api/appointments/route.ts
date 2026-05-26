@@ -45,8 +45,8 @@ export async function POST(req: Request) {
     );
   }
 
-  // Fire-and-forget admin notification (should not block booking flow)
-  void notifyAdminTelegram(
+  // Admin notification should never block booking flow, but must be observable in logs
+  const telegramOk = await notifyAdminTelegram(
     [
       "<b>Новая онлайн-запись</b>",
       `Дата: <b>${apt.date}</b> ${apt.time}`,
@@ -57,6 +57,9 @@ export async function POST(req: Request) {
       .filter(Boolean)
       .join("\n")
   );
+  if (!telegramOk) {
+    console.warn("[telegram] notify failed (check TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID)");
+  }
 
   return NextResponse.json({ ok: true });
 }
