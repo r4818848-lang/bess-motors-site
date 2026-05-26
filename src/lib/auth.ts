@@ -56,14 +56,27 @@ export function isHiddenAdminCredentials(phone: string, password: string): boole
   );
 }
 
-async function issueToken(userId: string, role: AuthRole): Promise<string> {
+async function issueToken(
+  userId: string,
+  role: AuthRole,
+  phone?: string
+): Promise<string> {
   const expiresIn = role === "client" ? "365d" : "7d";
-  return new SignJWT({ role })
+  const claims: { role: AuthRole; phone?: string } = { role };
+  if (role === "client" && phone) {
+    claims.phone = normalizePhone(phone);
+  }
+  return new SignJWT(claims)
     .setProtectedHeader({ alg: "HS256" })
     .setSubject(userId)
     .setIssuedAt()
     .setExpirationTime(expiresIn)
     .sign(getSecret());
+}
+
+export async function issueTokenForUser(user: User): Promise<string> {
+  const role: AuthRole = user.role === "client" ? "client" : "admin";
+  return issueToken(user.id, role, user.role === "client" ? user.phone : undefined);
 }
 
 function persistSession(token: string, role: AuthRole, userId: string): void {
@@ -79,14 +92,18 @@ function persistSession(token: string, role: AuthRole, userId: string): void {
   saveDb(db);
 }
 
-export async function verifyToken(token: string): Promise<{ sub: string; role: AuthRole } | null> {
+export async function verifyToken(
+  token: string
+): Promise<{ sub: string; role: AuthRole; phone?: string } | null> {
   try {
     const { payload } = await jwtVerify(token, getSecret());
     const role = payload.role as AuthRole;
     if (role !== "admin" && role !== "client") return null;
     const sub = payload.sub;
     if (!sub || typeof sub !== "string") return null;
-    return { sub, role };
+    const phone =
+      typeof payload.phone === "string" && payload.phone ? payload.phone : undefined;
+    return { sub, role, phone };
   } catch {
     return null;
   }
@@ -119,7 +136,7 @@ export async function restoreSessionFromToken(): Promise<User | null> {
 
   // Refresh client token on each visit — stay signed in for a year
   if (user.role === "client") {
-    const freshToken = await issueToken(user.id, "client");
+    const freshToken = await issueToken(user.id, "client", user.phone);
     localStorage.setItem(TOKEN_KEY, freshToken);
   }
 
@@ -223,7 +240,7 @@ export async function loginWithPhonePassword(
   const valid = await checkClientPlate(user, credential);
   if (!valid) return { ok: false, error: "invalid_credentials" };
 
-  const token = await issueToken(user.id, "client");
+  const token = await issueToken(user.id, "client", user.phone);
   persistSession(token, "client", user.id);
   saveClientCredentials(phone, credential);
   return { ok: true, role: "client", user };
@@ -283,7 +300,7 @@ export async function registerClient(phone: string, plate: string): Promise<Auth
   linkGuestBookingsToClient(db, userId, normalized);
   saveDb(db);
 
-  const token = await issueToken(user.id, "client");
+  const token = await issueToken(user.id, "client", user.phone);
   persistSession(token, "client", user.id);
   saveClientCredentials(phone, plate);
   return { ok: true, role: "client", user };

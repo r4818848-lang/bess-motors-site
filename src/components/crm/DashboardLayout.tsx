@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { useHotOrdersBadgeCount } from "@/components/crm/HotOrdersPanel";
+import { useCloudAppointmentsSync } from "@/hooks/useCloudAppointmentsSync";
 
 type NavItem = {
   href: string;
@@ -38,6 +39,7 @@ function DashboardLayoutInner({
   const searchParams = useSearchParams();
   const tab = searchParams.get("tab");
   const c = t.crm;
+  useCloudAppointmentsSync(role === "admin");
   const hotBadge = useHotOrdersBadgeCount();
 
   const adminNav: NavItem[] = [

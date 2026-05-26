@@ -3,6 +3,7 @@ import type { ServiceId } from "./services-catalog";
 import { getStoredAttribution } from "./utm";
 import { handleAppointmentNotification } from "./client-notifications";
 import { ensureClientForBooking } from "./create-work-order-from-booking";
+import { pushAppointmentToCloud } from "./cloud-appointments";
 
 export function createCallRequest(params: {
   phone: string;
@@ -71,4 +72,5 @@ export function createBookingAppointment(params: {
   const apt = db.appointments[db.appointments.length - 1];
   handleAppointmentNotification(db, apt, "scheduled");
   saveDb(db);
+  void pushAppointmentToCloud(apt);
 }

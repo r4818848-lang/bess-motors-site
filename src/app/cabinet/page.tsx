@@ -41,6 +41,7 @@ import { siteConfig } from "@/lib/site";
 import { normalizePhone } from "@/lib/auth";
 import { linkGuestBookingsToClient } from "@/lib/link-client-bookings";
 import { useAuth } from "@/lib/auth/session-context";
+import { useCloudAppointmentsSync } from "@/hooks/useCloudAppointmentsSync";
 import { PhoneAuthForm } from "@/components/auth/PhoneAuthForm";
 import { getAppointmentContext } from "@/lib/appointments";
 import { calcClientTotal } from "@/lib/workorder-calc";
@@ -91,6 +92,7 @@ function CabinetPageContent() {
   const { t } = useI18n();
   const searchParams = useSearchParams();
   const { sessionReady, clientUser, signOut } = useAuth();
+  useCloudAppointmentsSync(!!clientUser);
   const [mounted, setMounted] = useState(false);
   const [db, setDb] = useState<Database | null>(null);
   const [tab, setTab] = useState("cars");
