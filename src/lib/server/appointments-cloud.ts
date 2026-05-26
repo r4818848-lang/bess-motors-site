@@ -5,11 +5,34 @@ export type CloudUpsertResult =
   | { ok: true }
   | { ok: false; status?: number; error: string };
 
+/** Remove arrows, BOM, cyrillic spaces from copy-paste in Vercel env */
+function cleanEnvValue(raw: string | undefined): string {
+  if (!raw) return "";
+  return raw
+    .replace(/[\u200B-\u200D\uFEFF]/g, "")
+    .replace(/[^\x20-\x7E]/g, "")
+    .trim();
+}
+
+function validateServiceRoleKey(key: string): string | null {
+  if (!key.startsWith("eyJ")) {
+    return "bad_service_role_key_use_secret_from_supabase_api_not_anon";
+  }
+  if (!/^[A-Za-z0-9._-]+$/.test(key)) {
+    return "service_role_key_has_invalid_characters";
+  }
+  if (key.length < 80) {
+    return "service_role_key_too_short_recopy_from_supabase";
+  }
+  return null;
+}
+
 function supabaseConfig(): { url: string; key: string } | null {
-  const url = process.env.SUPABASE_URL?.trim();
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
+  const url = cleanEnvValue(process.env.SUPABASE_URL);
+  const key = cleanEnvValue(process.env.SUPABASE_SERVICE_ROLE_KEY);
   if (!url || !key) return null;
   if (!/^https:\/\/[a-z0-9-]+\.supabase\.co\/?$/i.test(url)) return null;
+  if (validateServiceRoleKey(key)) return null;
   return { url: url.replace(/\/$/, ""), key };
 }
 
@@ -18,10 +41,13 @@ export function isCloudAppointmentsEnabled(): boolean {
 }
 
 export async function cloudUpsertAppointment(apt: Appointment): Promise<CloudUpsertResult> {
-  const cfg = supabaseConfig();
-  if (!cfg) {
-    return { ok: false, error: "cloud_misconfigured" };
+  const url = cleanEnvValue(process.env.SUPABASE_URL);
+  const key = cleanEnvValue(process.env.SUPABASE_SERVICE_ROLE_KEY);
+  const keyError = key ? validateServiceRoleKey(key) : "missing_service_role_key";
+  if (!url || !key || keyError) {
+    return { ok: false, error: keyError ?? "cloud_misconfigured" };
   }
+  const cfg = { url: url.replace(/\/$/, ""), key };
 
   const phone = normalizePhone(apt.clientPhone ?? "") || "";
   const row = {
