@@ -23,6 +23,8 @@ import {
   type HotOrderFilter,
 } from "@/lib/hot-orders";
 import { createWorkOrderFromAppointment } from "@/lib/create-work-order-from-booking";
+import { deleteAppointmentFromCloud } from "@/lib/cloud-appointments";
+import { pushCrmToCloud } from "@/lib/cloud-crm-db";
 import { Button } from "@/components/ui/Button";
 
 const FILTERS: HotOrderFilter[] = [
@@ -103,10 +105,15 @@ export function HotOrdersPanel({ onUpdate }: { onUpdate?: () => void }) {
   const workOrderIdFor = (row: (typeof orders)[0]) =>
     row.kind === "booking" ? row.workOrderId ?? null : null;
 
-  const deleteHotOrder = (row: (typeof orders)[0]) => {
+  const deleteHotOrder = async (row: (typeof orders)[0]) => {
     const woId = workOrderIdFor(row);
     const msg = woId ? c.confirmDeleteHotOrderWithWo : c.confirmDeleteHotOrder;
     if (!confirm(msg)) return;
+
+    if (row.kind === "booking") {
+      await deleteAppointmentFromCloud(row.id);
+    }
+
     const next = loadDb();
     if (row.kind === "booking") {
       const apt = next.appointments.find((x) => x.id === row.id);
@@ -118,6 +125,7 @@ export function HotOrdersPanel({ onUpdate }: { onUpdate?: () => void }) {
       next.callRequests = next.callRequests.filter((x) => x.id !== row.id);
     }
     saveDb(next);
+    await pushCrmToCloud(next);
     refresh();
   };
 

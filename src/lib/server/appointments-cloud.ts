@@ -48,6 +48,35 @@ export async function cloudUpsertAppointment(apt: Appointment): Promise<CloudUps
   }
 }
 
+export async function cloudDeleteAppointment(id: string): Promise<CloudUpsertResult> {
+  const cfg = getSupabaseConfig();
+  if (!cfg) {
+    return { ok: false, error: "cloud_misconfigured" };
+  }
+
+  try {
+    const res = await fetch(
+      `${cfg.url}/rest/v1/appointments?id=eq.${encodeURIComponent(id)}`,
+      {
+        method: "DELETE",
+        headers: {
+          apikey: cfg.key,
+          Authorization: `Bearer ${cfg.key}`,
+        },
+      }
+    );
+
+    if (!res.ok) {
+      const text = (await res.text()).slice(0, 500);
+      return { ok: false, status: res.status, error: text || `http_${res.status}` };
+    }
+    return { ok: true };
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    return { ok: false, error: msg };
+  }
+}
+
 export async function cloudListAppointmentsForAdmin(): Promise<Appointment[]> {
   const cfg = getSupabaseConfig();
   if (!cfg) return [];

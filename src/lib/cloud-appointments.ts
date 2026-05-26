@@ -17,7 +17,7 @@ export function mergeAppointmentsIntoDb(cloud: Appointment[]): boolean {
       changed = true;
     }
   }
-  if (changed) saveDb(db);
+  if (changed) saveDb(db, { skipCloudPush: true });
   return changed;
 }
 
@@ -39,6 +39,22 @@ export async function syncAppointmentsFromCloud(): Promise<boolean> {
     };
     if (!data.cloud || !data.appointments?.length) return false;
     return mergeAppointmentsIntoDb(data.appointments);
+  } catch {
+    return false;
+  }
+}
+
+export async function deleteAppointmentFromCloud(id: string): Promise<boolean> {
+  if (typeof window === "undefined") return false;
+  const token = localStorage.getItem(TOKEN_KEY);
+  if (!token) return false;
+
+  try {
+    const res = await fetch(`/api/appointments?id=${encodeURIComponent(id)}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return res.ok;
   } catch {
     return false;
   }

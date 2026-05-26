@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { verifyToken } from "@/lib/server/verify-session";
 import type { Appointment } from "@/lib/store";
 import {
+  cloudDeleteAppointment,
   cloudListAppointmentsByPhone,
   cloudListAppointmentsForAdmin,
   cloudUpsertAppointment,
@@ -71,4 +72,34 @@ export async function GET(req: Request) {
   }
 
   return NextResponse.json({ error: "forbidden" }, { status: 403 });
+}
+
+export async function DELETE(req: Request) {
+  if (!isCloudAppointmentsEnabled()) {
+    return NextResponse.json({ ok: false, error: "cloud_disabled" }, { status: 503 });
+  }
+
+  const token = bearerToken(req);
+  if (!token) {
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  }
+
+  const session = await verifyToken(token);
+  if (!session || session.role !== "admin") {
+    return NextResponse.json({ error: "admin_only" }, { status: 403 });
+  }
+
+  const id = new URL(req.url).searchParams.get("id")?.trim();
+  if (!id) {
+    return NextResponse.json({ ok: false, error: "invalid" }, { status: 400 });
+  }
+
+  const result = await cloudDeleteAppointment(id);
+  if (!result.ok) {
+    return NextResponse.json(
+      { ok: false, error: result.error },
+      { status: result.status === 401 ? 401 : 502 }
+    );
+  }
+  return NextResponse.json({ ok: true });
 }
