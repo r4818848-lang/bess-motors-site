@@ -75,7 +75,8 @@ export function BookingCalendar({ selected, onSelect, locale }: BookingCalendarP
           <div key={`pad-${i}`} />
         ))}
         {days.map((day) => {
-          const disabled = isBefore(day, today);
+          const isSunday = day.getDay() === 0;
+          const disabled = isBefore(day, today) || isSunday;
           const isSelected = selected && isSameDay(day, selected);
           const isCurrentMonth = isSameMonth(day, current);
 

@@ -44,7 +44,7 @@ export const siteConfig = {
 
   jwtSecret: "bess-motors-jwt-secret-change-in-production-2025",
 
-  workingHours: "Pn–Nd 7:00–20:00",
+  workingHours: "Pn–Sb 8:00–20:00",
 
   /** Google Maps — reviews (replace with your place review URL) */
   googleMapsReviewsUrl:
