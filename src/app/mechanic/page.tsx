@@ -14,13 +14,10 @@ import {
 import { useI18n } from "@/lib/i18n/context";
 import { DashboardLayout } from "@/components/crm/DashboardLayout";
 import { AppointmentCalendar } from "@/components/crm/AppointmentCalendar";
-import { MechanicAuthForm } from "@/components/auth/MechanicAuthForm";
 import {
   getMechanicProfileId,
   getCurrentUser,
-  isMechanicAuthenticated,
   logout,
-  restoreSessionFromToken,
 } from "@/lib/auth";
 import { loadDb, saveDb, type RepairStatus } from "@/lib/store";
 import { handleWorkOrderClientNotifications } from "@/lib/client-notifications";
@@ -47,15 +44,8 @@ function MechanicPageContent() {
   const w = t.wo;
   const cal = t.calendar;
   const searchParams = useSearchParams();
-  const [sessionReady, setSessionReady] = useState(false);
   const [tick, setTick] = useState(0);
   const [tab, setTab] = useState<MechTab>("tasks");
-
-  useEffect(() => {
-    restoreSessionFromToken()
-      .catch(() => null)
-      .finally(() => setSessionReady(true));
-  }, []);
 
   useEffect(() => {
     const view = searchParams.get("view");
@@ -70,7 +60,6 @@ function MechanicPageContent() {
 
   void tick;
 
-  const loggedIn = isMechanicAuthenticated();
   const mechanicId = getMechanicProfileId();
   const user = getCurrentUser();
   const db = loadDb();
@@ -129,28 +118,14 @@ function MechanicPageContent() {
     }
   };
 
-  if (!sessionReady) {
-    return (
-      <div className="pt-28 pb-20 min-h-[70vh] flex items-center justify-center">
-        <div className="h-10 w-10 rounded-full border-2 border-bm-red border-t-transparent animate-spin" />
-      </div>
-    );
-  }
-
-  if (!loggedIn || !mechanicId || !user) {
-    return (
-      <div className="pt-28 pb-20 min-h-[70vh] flex items-center justify-center px-4">
-        <MechanicAuthForm onSuccess={() => setTick((n) => n + 1)} />
-      </div>
-    );
-  }
-
   const tabs: { id: MechTab; icon: typeof Wrench; label: string }[] = [
     { id: "tasks", icon: Wrench, label: m.myTasks },
     { id: "appointments", icon: CalendarDays, label: m.myAppointments },
     { id: "salary", icon: Wallet, label: m.mySalary },
     { id: "calendar", icon: CalendarDays, label: cal.title },
   ];
+
+  if (!mechanicId || !user) return null;
 
   return (
     <DashboardLayout role="mechanic">

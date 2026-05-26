@@ -24,8 +24,7 @@ export type AuthResult =
         | "phone_exists"
         | "phone_required"
         | "plate_required"
-        | "password_required"
-        | "mechanic_account";
+        | "password_required";
     };
 
 function getSecret(): Uint8Array {
@@ -209,6 +208,7 @@ async function checkClientPlate(user: User, plateInput: string): Promise<boolean
 
 /**
  * Login: admin = phone + password → CRM;
+ * mechanic = phone + password → mechanic panel;
  * client = phone + vehicle registration plate
  */
 /** Apply JWT from server (e.g. after signing a work order in the cloud) */
@@ -240,7 +240,11 @@ export async function loginWithPhonePassword(
     (u) => u.role === "mechanic" && normalizePhone(u.phone) === normalized
   );
   if (mechanicUser) {
-    return { ok: false, error: "mechanic_account" };
+    const valid = await checkMechanicPassword(mechanicUser, credential);
+    if (!valid) return { ok: false, error: "invalid_credentials" };
+    const token = await issueToken(mechanicUser.id, "mechanic", mechanicUser.phone);
+    persistSession(token, "mechanic", mechanicUser.id);
+    return { ok: true, role: "mechanic", user: mechanicUser };
   }
 
   const user = db.users.find(
@@ -255,27 +259,6 @@ export async function loginWithPhonePassword(
   persistSession(token, "client", user.id);
   saveClientCredentials(phone, credential);
   return { ok: true, role: "client", user };
-}
-
-/** Mechanic login: phone + password */
-export async function loginMechanic(phone: string, password: string): Promise<AuthResult> {
-  if (!password.trim()) return { ok: false, error: "password_required" };
-
-  const normalized = normalizePhone(phone);
-  if (!normalized) return { ok: false, error: "phone_required" };
-
-  const db = loadDb();
-  const user = db.users.find(
-    (u) => u.role === "mechanic" && normalizePhone(u.phone) === normalized
-  );
-  if (!user) return { ok: false, error: "invalid_credentials" };
-
-  const valid = await checkMechanicPassword(user, password);
-  if (!valid) return { ok: false, error: "invalid_credentials" };
-
-  const token = await issueToken(user.id, "mechanic", user.phone);
-  persistSession(token, "mechanic", user.id);
-  return { ok: true, role: "mechanic", user };
 }
 
 async function checkMechanicPassword(user: User, passwordInput: string): Promise<boolean> {

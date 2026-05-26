@@ -372,9 +372,6 @@ const pl = {
     plateHint: "Jako hasło użyj numeru rejestracyjnego auta (bez spacji lub ze spacją).",
     signCreatesAccount:
       "Konto tworzy się automatycznie przy podpisie zlecenia — rejestracja nie jest potrzebna.",
-    mechanicAccountHint:
-      "Ten numer należy do mechanika — zaloguj się w panelu mechanika (telefon + hasło).",
-    mechanicLoginLink: "Panel mechanika — logowanie dla pracowników",
     invalidCredentials: "Nieprawidłowy telefon lub numer rejestracyjny.",
     phoneExists: "Ten numer lub auto jest już zarejestrowane.",
     phoneRequired: "Podaj numer telefonu.",
@@ -805,7 +802,7 @@ const pl = {
     addMechanic: "Dodaj mechanika",
     mechanicPassword: "Hasło (panel)",
     passwordKeepHint: "Puste = bez zmian",
-    mechanicLoginHint: "Mechanik loguje się na /mechanic — telefon i hasło z tej tabeli.",
+    mechanicLoginHint: "Mechanik loguje się w «Strefie klienta» (/cabinet) — telefon i hasło z tej tabeli.",
     confirmDeleteMechanic: "Usunąć tego mechanika? Zlecenia zostaną przypisane do innego.",
     cannotDeleteLastMechanic: "Musi pozostać co najmniej jeden mechanik.",
     confirmDelete: "Usunąć to zlecenie?",
@@ -1260,9 +1257,6 @@ const ru: TranslationKeys = {
     plateHint: "Для входа используйте регистрационный номер вашего автомобиля.",
     signCreatesAccount:
       "Аккаунт создаётся автоматически при подписании заказ-наряда — отдельная регистрация не нужна.",
-    mechanicAccountHint:
-      "Этот номер принадлежит механику — войдите в панель механика (телефон + пароль).",
-    mechanicLoginLink: "Панель механика — вход для сотрудников",
     invalidCredentials: "Неверный телефон или госномер.",
     phoneExists: "Этот номер или авто уже зарегистрированы.",
     phoneRequired: "Укажите номер телефона.",
@@ -1681,7 +1675,7 @@ const ru: TranslationKeys = {
     addMechanic: "Добавить механика",
     mechanicPassword: "Пароль (кабинет)",
     passwordKeepHint: "Пусто = не менять",
-    mechanicLoginHint: "Механик входит на /mechanic — телефон и пароль из этой таблицы.",
+    mechanicLoginHint: "Механик входит в «Личный кабинет» (/cabinet) — телефон и пароль из этой таблицы.",
     confirmDeleteMechanic: "Удалить механика? Его заказ-наряды будут переданы другому.",
     cannotDeleteLastMechanic: "Должен остаться хотя бы один механик.",
     confirmDelete: "Удалить этот заказ-наряд?",
@@ -1947,9 +1941,6 @@ const en: TranslationKeys = {
     plateHint: "Use your vehicle registration number to sign in.",
     signCreatesAccount:
       "Your account is created automatically when you sign a work order — no separate registration.",
-    mechanicAccountHint:
-      "This phone belongs to a mechanic — sign in at the mechanic panel (phone + password).",
-    mechanicLoginLink: "Mechanic panel — staff login",
     invalidCredentials: "Invalid phone or registration number.",
     phoneExists: "This phone or plate is already registered.",
     phoneRequired: "Enter your phone number.",
@@ -2081,7 +2072,7 @@ const en: TranslationKeys = {
     mechanicProfiles: "Mechanic profiles",
     mechanicPassword: "Password (panel)",
     passwordKeepHint: "Empty = keep current",
-    mechanicLoginHint: "Mechanic signs in at /mechanic with phone and password from this table.",
+    mechanicLoginHint: "Mechanic signs in at Client area (/cabinet) with phone and password from this table.",
   },
   common: { ...pl.common, currency: "PLN", loading: "Loading..." },
 };
