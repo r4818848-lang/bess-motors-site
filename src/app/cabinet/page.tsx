@@ -38,6 +38,8 @@ import {
 import { decodeVin, applyVinDecodeToForm } from "@/lib/vin";
 import { enrichVehicleMedia } from "@/lib/vehicle-image";
 import { siteConfig } from "@/lib/site";
+import { normalizePhone } from "@/lib/auth";
+import { linkGuestBookingsToClient } from "@/lib/link-client-bookings";
 import { useAuth } from "@/lib/auth/session-context";
 import { PhoneAuthForm } from "@/components/auth/PhoneAuthForm";
 import { getAppointmentContext } from "@/lib/appointments";
@@ -106,7 +108,12 @@ function CabinetPageContent() {
   }, []);
 
   useEffect(() => {
-    if (sessionReady) refreshDb();
+    if (!sessionReady || !clientUser) return;
+    const fresh = loadDb();
+    if (linkGuestBookingsToClient(fresh, clientUser.id, clientUser.phone)) {
+      saveDb(fresh);
+    }
+    refreshDb();
   }, [sessionReady, clientUser]);
 
   useEffect(() => {
@@ -261,8 +268,15 @@ function CabinetPageContent() {
     ? statusOrder.indexOf(activeOrder.status)
     : 0;
 
+  const userPhone = normalizePhone(user.phone);
   const myAppointments = activeDb.appointments
-    .filter((a) => a.userId === user.id)
+    .filter(
+      (a) =>
+        a.userId === user.id ||
+        (a.userId === "guest" &&
+          userPhone &&
+          normalizePhone(a.clientPhone ?? "") === userPhone)
+    )
     .sort((a, b) => `${b.date}${b.time}`.localeCompare(`${a.date}${a.time}`));
 
   const featuredVehicle =

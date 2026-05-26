@@ -2,6 +2,7 @@ import { loadDb, saveDb } from "./store";
 import type { ServiceId } from "./services-catalog";
 import { getStoredAttribution } from "./utm";
 import { handleAppointmentNotification } from "./client-notifications";
+import { ensureClientForBooking } from "./create-work-order-from-booking";
 
 export function createCallRequest(params: {
   phone: string;
@@ -43,13 +44,17 @@ export function createBookingAppointment(params: {
   cartLines?: { itemId: string; label: string; lineTotal: number; priceFrom: boolean }[];
 }): void {
   const db = loadDb();
-  const userId = db.currentUserId ?? "guest";
-  const vehicle = db.vehicles.find((v) => v.userId === userId);
+  const { userId, vehicleId } = ensureClientForBooking(
+    db,
+    params.clientName,
+    params.clientPhone,
+    db.currentUserId ?? undefined
+  );
   const marketing = getStoredAttribution() ?? undefined;
   db.appointments.push({
     id: `apt-${Date.now()}`,
     userId,
-    vehicleId: vehicle?.id ?? "",
+    vehicleId,
     serviceIds: params.serviceIds.length ? params.serviceIds : [params.serviceId],
     date: params.date,
     time: params.time,

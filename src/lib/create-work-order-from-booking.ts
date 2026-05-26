@@ -6,7 +6,7 @@ import {
   handleWorkOrderClientNotifications,
 } from "./client-notifications";
 
-function ensureClientForBooking(
+export function ensureClientForBooking(
   db: Database,
   name: string,
   phone: string,

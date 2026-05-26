@@ -1,6 +1,7 @@
 import { SignJWT, jwtVerify } from "jose";
 
 import { loadDb, saveDb, type User, type Vehicle } from "./store";
+import { linkGuestBookingsToClient } from "./link-client-bookings";
 
 import { siteConfig } from "./site";
 
@@ -71,6 +72,10 @@ function persistSession(token: string, role: AuthRole, userId: string): void {
   localStorage.setItem(SESSION_ROLE_KEY, role);
   const db = loadDb();
   db.currentUserId = userId;
+  if (role === "client") {
+    const user = db.users.find((u) => u.id === userId);
+    if (user) linkGuestBookingsToClient(db, userId, user.phone);
+  }
   saveDb(db);
 }
 
@@ -106,6 +111,9 @@ export async function restoreSessionFromToken(): Promise<User | null> {
     return null;
   }
   db.currentUserId = user.id;
+  if (user.role === "client") {
+    linkGuestBookingsToClient(db, user.id, user.phone);
+  }
   saveDb(db);
   localStorage.setItem(SESSION_ROLE_KEY, session.role);
 
@@ -272,6 +280,7 @@ export async function registerClient(phone: string, plate: string): Promise<Auth
   db.users.push(user);
   db.vehicles.push(vehicle);
   db.currentUserId = userId;
+  linkGuestBookingsToClient(db, userId, normalized);
   saveDb(db);
 
   const token = await issueToken(user.id, "client");
