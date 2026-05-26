@@ -3,6 +3,8 @@
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { BookingLink } from "@/components/analytics/BookingLink";
+import { SocialContactLink } from "@/components/analytics/SocialContactLink";
 import {
   Car,
   FileText,
@@ -457,9 +459,9 @@ function CabinetPageContent() {
             {myAppointments.length === 0 ? (
               <Card glow>
                 <p className="text-bm-muted text-sm">{t.crm.noBookings}</p>
-                <Link href="/booking" className="btn-primary inline-block mt-4 text-sm">
+                <BookingLink trackSource="cabinet" className="btn-primary inline-block mt-4 text-sm">
                   {t.booking.title}
-                </Link>
+                </BookingLink>
               </Card>
             ) : (
               myAppointments.map((apt) => {
@@ -804,22 +806,12 @@ function CabinetPageContent() {
             {t.integrations.telegram} / {t.integrations.whatsapp}
           </h3>
           <div className="flex gap-4">
-            <a
-              href="https://t.me/bessmotors"
-              className="btn-outline text-xs"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
+            <SocialContactLink kind="telegram" trackSource="cabinet" className="btn-outline text-xs">
               Telegram @bessmotors
-            </a>
-            <a
-              href="https://wa.me/48791257229"
-              className="btn-outline text-xs"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
+            </SocialContactLink>
+            <SocialContactLink kind="whatsapp" trackSource="cabinet" className="btn-outline text-xs">
               WhatsApp {siteConfig.phone}
-            </a>
+            </SocialContactLink>
           </div>
         </section>
       </div>

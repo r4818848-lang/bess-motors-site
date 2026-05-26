@@ -1,8 +1,8 @@
 "use client";
 
 import { motion } from "framer-motion";
-import Link from "next/link";
 import { useI18n } from "@/lib/i18n/context";
+import { BookingLink } from "@/components/analytics/BookingLink";
 
 export default function FaqPage() {
   const { t } = useI18n();
@@ -38,9 +38,9 @@ export default function FaqPage() {
 
         <div className="mt-12 text-center glass-red rounded-2xl p-8 neon-border">
           <p className="text-bm-silver mb-4">{f.cta}</p>
-          <Link href="/booking" className="btn-primary inline-flex">
+          <BookingLink trackSource="faq" className="btn-primary inline-flex">
             {f.ctaButton}
-          </Link>
+          </BookingLink>
         </div>
       </div>
     </div>

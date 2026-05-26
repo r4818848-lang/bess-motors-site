@@ -3,9 +3,11 @@
 import { motion } from "framer-motion";
 import { useI18n } from "@/lib/i18n/context";
 import { BookingQuoteFlow } from "@/components/booking/BookingQuoteFlow";
+import { useMetaViewContent } from "@/hooks/useMetaViewContent";
 
 export default function BookingPage() {
   const { t } = useI18n();
+  useMetaViewContent("Booking Page");
 
   return (
     <motion.div className="pt-28 pb-20">

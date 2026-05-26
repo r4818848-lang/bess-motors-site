@@ -16,7 +16,7 @@ fbq('init','${pixelId}');
 fbq('track','PageView');`;
 }
 
-/** Track standard Meta events from client components (Lead, Contact, etc.) */
+/** Track standard Meta events from client components */
 export function trackMetaEvent(
   event: string,
   params?: Record<string, unknown>
@@ -32,4 +32,20 @@ export function trackMetaContact(source?: string): void {
 
 export function trackMetaLead(source?: string): void {
   trackMetaEvent("Lead", source ? { content_name: source } : undefined);
+}
+
+export function trackMetaSchedule(source?: string): void {
+  trackMetaEvent("Schedule", source ? { content_name: source } : undefined);
+}
+
+export function trackMetaInitiateCheckout(source?: string): void {
+  trackMetaEvent("InitiateCheckout", source ? { content_name: source } : undefined);
+}
+
+export function trackMetaAddToCart(source?: string): void {
+  trackMetaEvent("AddToCart", source ? { content_name: source } : undefined);
+}
+
+export function trackMetaViewContent(contentName: string): void {
+  trackMetaEvent("ViewContent", { content_name: contentName });
 }

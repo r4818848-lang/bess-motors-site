@@ -34,6 +34,7 @@ import {
   type CartLine,
 } from "@/lib/booking-cart";
 import { createBookingAppointment } from "@/lib/booking-actions";
+import { trackMetaAddToCart } from "@/lib/meta-pixel";
 import { useAuth } from "@/lib/auth/session-context";
 import { BookingCalendar } from "@/components/booking/BookingCalendar";
 import { timeSlots } from "@/lib/data";
@@ -414,7 +415,10 @@ export function BookingQuoteFlow({ onDone }: Props) {
               <Button
                 className="w-full mt-4"
                 disabled={cart.length === 0}
-                onClick={() => setPhase("datetime")}
+                onClick={() => {
+                  trackMetaAddToCart("booking_cart");
+                  setPhase("datetime");
+                }}
               >
                 {bq.continue}
                 <ChevronRight className="w-4 h-4" />

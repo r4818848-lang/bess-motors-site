@@ -5,6 +5,8 @@ import { MapPin, Phone, Mail, Instagram, Facebook } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { siteConfig } from "@/lib/site";
 import { PhoneLink } from "@/components/analytics/PhoneLink";
+import { BookingLink } from "@/components/analytics/BookingLink";
+import { SocialContactLink } from "@/components/analytics/SocialContactLink";
 import { Logo } from "@/components/brand/Logo";
 
 export function Footer() {
@@ -24,9 +26,9 @@ export function Footer() {
             <Link href="/services" className="text-bm-muted hover:text-bm-red transition-colors">
               {t.nav.services}
             </Link>
-            <Link href="/booking" className="text-bm-muted hover:text-bm-red transition-colors">
+            <BookingLink trackSource="footer" className="text-bm-muted hover:text-bm-red transition-colors">
               {t.nav.booking}
-            </Link>
+            </BookingLink>
             <Link href="/cabinet" className="text-bm-muted hover:text-bm-red transition-colors">
               {t.nav.cabinet}
             </Link>
@@ -55,22 +57,20 @@ export function Footer() {
               {siteConfig.email}
             </a>
             <div className="flex flex-wrap gap-4 pt-2">
-              <a
-                href={siteConfig.telegram}
-                target="_blank"
-                rel="noopener noreferrer"
+              <SocialContactLink
+                kind="telegram"
+                trackSource="footer"
                 className="text-bm-muted hover:text-bm-red text-xs uppercase"
               >
                 Telegram @bessmotors
-              </a>
-              <a
-                href={siteConfig.whatsapp}
-                target="_blank"
-                rel="noopener noreferrer"
+              </SocialContactLink>
+              <SocialContactLink
+                kind="whatsapp"
+                trackSource="footer"
                 className="text-bm-muted hover:text-bm-red text-xs uppercase"
               >
                 WhatsApp
-              </a>
+              </SocialContactLink>
               <a
                 href={siteConfig.instagram}
                 target="_blank"

@@ -2,7 +2,7 @@ import { loadDb, saveDb } from "./store";
 import type { ServiceId } from "./services-catalog";
 import { getStoredAttribution } from "./utm";
 import { handleAppointmentNotification } from "./client-notifications";
-import { trackMetaContact, trackMetaLead } from "./meta-pixel";
+import { trackMetaContact, trackMetaLead, trackMetaSchedule } from "./meta-pixel";
 
 export function createCallRequest(params: {
   phone: string;
@@ -69,4 +69,5 @@ export function createBookingAppointment(params: {
   handleAppointmentNotification(db, apt, "scheduled");
   saveDb(db);
   trackMetaLead("booking_submit");
+  trackMetaSchedule("booking_submit");
 }

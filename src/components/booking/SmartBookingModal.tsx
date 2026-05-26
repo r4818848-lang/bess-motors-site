@@ -9,6 +9,7 @@ import { useI18n } from "@/lib/i18n/context";
 import { serviceFlows, type ServiceId, type FlowOption } from "@/lib/services-catalog";
 import { timeSlots } from "@/lib/data";
 import { createCallRequest, createBookingAppointment } from "@/lib/booking-actions";
+import { BookingLink } from "@/components/analytics/BookingLink";
 import { useAuth } from "@/lib/auth/session-context";
 import { BookingCalendar } from "@/components/booking/BookingCalendar";
 import { Button } from "@/components/ui/Button";
@@ -518,14 +519,14 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
               <h2 className="font-display text-xl font-bold uppercase text-glow text-center">
                 {bf.managerTitle}
               </h2>
-              <Link
-                href="/booking"
+              <BookingLink
+                trackSource="booking_modal"
                 onClick={onClose}
                 className="flex items-center justify-center gap-2 w-full py-3 rounded-xl border border-bm-red/50 text-bm-red text-xs uppercase tracking-wide hover:bg-bm-red/10"
               >
                 <List className="w-4 h-4" />
                 {bf.fullPriceList}
-              </Link>
+              </BookingLink>
               <button
                 type="button"
                 className="w-full py-4 rounded-xl bg-bm-red/20 border-2 border-bm-red shadow-neon-sm font-display uppercase text-sm flex items-center justify-center gap-2"

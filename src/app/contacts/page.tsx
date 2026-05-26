@@ -4,6 +4,7 @@ import { MapPin, Phone, Mail, Clock, MessageCircle } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { siteConfig } from "@/lib/site";
 import { PhoneLink } from "@/components/analytics/PhoneLink";
+import { SocialContactLink } from "@/components/analytics/SocialContactLink";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 
@@ -66,12 +67,12 @@ export default function ContactsPage() {
                 {t.integrations.telegram} / {t.integrations.whatsapp}
               </p>
               <div className="flex flex-wrap gap-3">
-                <a href={siteConfig.telegram} className="btn-outline text-xs" target="_blank" rel="noopener noreferrer">
+                <SocialContactLink kind="telegram" trackSource="contacts" className="btn-outline text-xs">
                   Telegram @bessmotors
-                </a>
-                <a href={siteConfig.whatsapp} className="btn-outline text-xs" target="_blank" rel="noopener noreferrer">
+                </SocialContactLink>
+                <SocialContactLink kind="whatsapp" trackSource="contacts" className="btn-outline text-xs">
                   WhatsApp
-                </a>
+                </SocialContactLink>
                 <a href={siteConfig.viber} className="btn-outline text-xs">
                   Viber
                 </a>

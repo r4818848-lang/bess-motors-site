@@ -5,6 +5,7 @@ import { Phone, Calendar } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useI18n } from "@/lib/i18n/context";
 import { PhoneLink } from "@/components/analytics/PhoneLink";
+import { BookingLink } from "@/components/analytics/BookingLink";
 
 const hiddenPaths = ["/crm", "/mechanic", "/admin", "/sign"];
 
@@ -24,12 +25,12 @@ export function StickyContactBar() {
         >
           <Phone size={18} /> {sc.call}
         </PhoneLink>
-        <Link
-          href="/booking"
+        <BookingLink
+          trackSource="sticky_bar"
           className="flex items-center justify-center gap-2 py-3.5 text-sm font-bold uppercase border-l border-bm-red/30 text-white"
         >
           <Calendar size={18} /> {sc.book}
-        </Link>
+        </BookingLink>
       </div>
     </div>
   );

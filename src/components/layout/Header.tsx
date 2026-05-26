@@ -10,6 +10,7 @@ import { useAuth } from "@/lib/auth/session-context";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { Logo } from "@/components/brand/Logo";
 import { PhoneLink } from "@/components/analytics/PhoneLink";
+import { BookingLink } from "@/components/analytics/BookingLink";
 
 const navPaths = [
   { href: "/", key: "home" as const },
@@ -33,26 +34,37 @@ export function Header() {
         <Logo size="sm" showTagline={false} />
 
         <nav className="hidden items-center gap-1 xl:flex">
-          {navPaths.map(({ href, key }) => (
-            <Link
-              key={href}
-              href={href}
-              className={clsx(
-                "rounded-lg px-3 py-2 text-sm transition-all relative",
-                pathname === href
-                  ? "bg-bm-red/20 text-bm-red shadow-neon-sm"
-                  : "text-bm-muted hover:text-white hover:bg-white/5",
-                href === "/cabinet" && isClientLoggedIn && "text-white"
-              )}
-            >
-              {key === "cabinet" && isClientLoggedIn && clientUser
+          {navPaths.map(({ href, key }) => {
+            const navClass = clsx(
+              "rounded-lg px-3 py-2 text-sm transition-all relative",
+              pathname === href
+                ? "bg-bm-red/20 text-bm-red shadow-neon-sm"
+                : "text-bm-muted hover:text-white hover:bg-white/5",
+              href === "/cabinet" && isClientLoggedIn && "text-white"
+            );
+            const label =
+              key === "cabinet" && isClientLoggedIn && clientUser
                 ? clientUser.name.split(" ")[0] || t.nav.cabinet
-                : t.nav[key]}
-              {href === "/cabinet" && isClientLoggedIn && (
+                : t.nav[key];
+            const badge =
+              href === "/cabinet" && isClientLoggedIn ? (
                 <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.8)]" />
-              )}
-            </Link>
-          ))}
+              ) : null;
+            if (href === "/booking") {
+              return (
+                <BookingLink key={href} href={href} trackSource="nav" className={navClass}>
+                  {label}
+                  {badge}
+                </BookingLink>
+              );
+            }
+            return (
+              <Link key={href} href={href} className={navClass}>
+                {label}
+                {badge}
+              </Link>
+            );
+          })}
         </nav>
 
         <div className="hidden items-center gap-3 md:flex">
@@ -74,19 +86,35 @@ export function Header() {
       {open && (
         <div className="xl:hidden border-t border-bm-border glass px-4 py-4">
           <nav className="flex flex-col gap-2">
-            {navPaths.map(({ href, key }) => (
-              <Link
-                key={href}
-                href={href}
-                onClick={() => setOpen(false)}
-                className={clsx(
-                  "rounded-lg px-4 py-3",
-                  pathname === href ? "bg-bm-red/20 text-bm-red" : "text-bm-muted"
-                )}
-              >
-                {t.nav[key]}
-              </Link>
-            ))}
+            {navPaths.map(({ href, key }) => {
+              const mobileClass = clsx(
+                "rounded-lg px-4 py-3",
+                pathname === href ? "bg-bm-red/20 text-bm-red" : "text-bm-muted"
+              );
+              if (href === "/booking") {
+                return (
+                  <BookingLink
+                    key={href}
+                    href={href}
+                    trackSource="nav_mobile"
+                    onClick={() => setOpen(false)}
+                    className={mobileClass}
+                  >
+                    {t.nav[key]}
+                  </BookingLink>
+                );
+              }
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  onClick={() => setOpen(false)}
+                  className={mobileClass}
+                >
+                  {t.nav[key]}
+                </Link>
+              );
+            })}
           </nav>
           <div className="mt-4 flex flex-col gap-3">
             <LanguageSwitcher />

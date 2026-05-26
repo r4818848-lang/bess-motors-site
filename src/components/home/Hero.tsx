@@ -7,6 +7,7 @@ import { ChevronRight, Phone, Timer, Shield, Tag } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { siteConfig } from "@/lib/site";
 import { PhoneLink } from "@/components/analytics/PhoneLink";
+import { BookingLink } from "@/components/analytics/BookingLink";
 import { Logo } from "@/components/brand/Logo";
 
 export function Hero() {
@@ -94,10 +95,10 @@ export function Hero() {
                 <Phone className="w-4 h-4" />
                 {t.hero.ctaCall}
               </PhoneLink>
-              <Link href="/booking" className="btn-outline group">
+              <BookingLink trackSource="hero" className="btn-outline group">
                 {t.hero.ctaBook}
                 <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </Link>
+              </BookingLink>
               <Link href="/cabinet" className="btn-outline group">
                 {t.nav.cabinet}
                 <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />

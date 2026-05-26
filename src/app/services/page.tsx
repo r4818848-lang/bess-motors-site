@@ -8,9 +8,11 @@ import { popularServices, type ServiceId } from "@/lib/services-catalog";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { LazySmartBookingModal } from "@/components/booking/LazySmartBookingModal";
+import { useMetaViewContent } from "@/hooks/useMetaViewContent";
 
 export default function ServicesPage() {
   const { t } = useI18n();
+  useMetaViewContent("Services Page");
   const [problem, setProblem] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [bookingService, setBookingService] = useState<ServiceId | null>(null);
