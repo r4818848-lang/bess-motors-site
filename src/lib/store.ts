@@ -343,8 +343,8 @@ export interface Database {
 const defaultDb: Database = {
   users: [
     { id: "admin-1", phone: "+48888838688", name: "Administrator BESS MOTORS", role: "admin", createdAt: "2024-01-01" },
-    { id: "mech-1", phone: "+48987654321", name: "Jan Kowalski", role: "mechanic", createdAt: "2024-01-01" },
-    { id: "mech-2", phone: "+48911122233", name: "Piotr Nowak", role: "mechanic", createdAt: "2024-02-01" },
+    { id: "mech-1", phone: "+48987654321", name: "Jan Kowalski", role: "mechanic", password: "1234", createdAt: "2024-01-01" },
+    { id: "mech-2", phone: "+48911122233", name: "Piotr Nowak", role: "mechanic", password: "1234", createdAt: "2024-02-01" },
   ],
   vehicles: [],
   workOrders: [],

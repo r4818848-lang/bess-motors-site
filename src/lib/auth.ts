@@ -13,7 +13,7 @@ const TOKEN_KEY = "bess-jwt";
 
 const SESSION_ROLE_KEY = "bess-session-role";
 
-export type AuthRole = "admin" | "client";
+export type AuthRole = "admin" | "client" | "mechanic";
 
 export type AuthResult =
   | { ok: true; role: AuthRole; user: User }
@@ -62,9 +62,9 @@ async function issueToken(
   role: AuthRole,
   phone?: string
 ): Promise<string> {
-  const expiresIn = role === "client" ? "365d" : "7d";
+  const expiresIn = role === "client" ? "365d" : "30d";
   const claims: { role: AuthRole; phone?: string } = { role };
-  if (role === "client" && phone) {
+  if ((role === "client" || role === "mechanic") && phone) {
     claims.phone = normalizePhone(phone);
   }
   return new SignJWT(claims)
@@ -76,8 +76,13 @@ async function issueToken(
 }
 
 export async function issueTokenForUser(user: User): Promise<string> {
-  const role: AuthRole = user.role === "client" ? "client" : "admin";
-  return issueToken(user.id, role, user.role === "client" ? user.phone : undefined);
+  const role: AuthRole =
+    user.role === "client" ? "client" : user.role === "mechanic" ? "mechanic" : "admin";
+  return issueToken(
+    user.id,
+    role,
+    user.role === "client" || user.role === "mechanic" ? user.phone : undefined
+  );
 }
 
 function persistSession(token: string, role: AuthRole, userId: string): void {
@@ -124,9 +129,9 @@ export async function restoreSessionFromToken(): Promise<User | null> {
   saveDb(db);
   localStorage.setItem(SESSION_ROLE_KEY, session.role);
 
-  // Refresh client token on each visit — stay signed in for a year
-  if (user.role === "client") {
-    const freshToken = await issueToken(user.id, "client", user.phone);
+  // Refresh long-lived tokens on visit
+  if (user.role === "client" || user.role === "mechanic") {
+    const freshToken = await issueToken(user.id, user.role, user.phone);
     localStorage.setItem(TOKEN_KEY, freshToken);
   }
 
@@ -244,6 +249,47 @@ export async function loginWithPhonePassword(
   return { ok: true, role: "client", user };
 }
 
+/** Mechanic login: phone + password */
+export async function loginMechanic(phone: string, password: string): Promise<AuthResult> {
+  if (!password.trim()) return { ok: false, error: "password_required" };
+
+  const normalized = normalizePhone(phone);
+  if (!normalized) return { ok: false, error: "phone_required" };
+
+  const db = loadDb();
+  const user = db.users.find(
+    (u) => u.role === "mechanic" && normalizePhone(u.phone) === normalized
+  );
+  if (!user) return { ok: false, error: "invalid_credentials" };
+
+  const valid = await checkMechanicPassword(user, password);
+  if (!valid) return { ok: false, error: "invalid_credentials" };
+
+  const token = await issueToken(user.id, "mechanic", user.phone);
+  persistSession(token, "mechanic", user.id);
+  return { ok: true, role: "mechanic", user };
+}
+
+async function checkMechanicPassword(user: User, passwordInput: string): Promise<boolean> {
+  if (user.passwordHash) {
+    return verifyPassword(passwordInput, user.passwordHash);
+  }
+  if (user.password) {
+    const legacyOk = user.password === passwordInput;
+    if (legacyOk) {
+      const db = loadDb();
+      const idx = db.users.findIndex((u) => u.id === user.id);
+      if (idx >= 0) {
+        const hash = await hashPassword(passwordInput);
+        db.users[idx] = { ...db.users[idx], passwordHash: hash, password: undefined };
+        saveDb(db);
+      }
+      return true;
+    }
+  }
+  return false;
+}
+
 /** Register: phone + registration plate; creates first vehicle with that plate */
 export async function registerClient(phone: string, plate: string): Promise<AuthResult> {
   const normalized = normalizePhone(phone);
@@ -307,13 +353,25 @@ export async function registerClient(phone: string, plate: string): Promise<Auth
 export function getSessionRole(): AuthRole | null {
   if (typeof window === "undefined") return null;
   const role = localStorage.getItem(SESSION_ROLE_KEY);
-  if (role === "admin" || role === "client") return role;
+  if (role === "admin" || role === "client" || role === "mechanic") return role;
   return null;
 }
 
 export function isAdminAuthenticated(): boolean {
   if (typeof window === "undefined") return false;
   return getSessionRole() === "admin" && !!localStorage.getItem(TOKEN_KEY);
+}
+
+export function isMechanicAuthenticated(): boolean {
+  if (typeof window === "undefined") return false;
+  const user = getCurrentUser();
+  return getSessionRole() === "mechanic" && !!localStorage.getItem(TOKEN_KEY) && user?.role === "mechanic";
+}
+
+export function getMechanicProfileId(): string | null {
+  const user = getCurrentUser();
+  if (!user || user.role !== "mechanic") return null;
+  return user.id;
 }
 
 export function isClientAuthenticated(): boolean {

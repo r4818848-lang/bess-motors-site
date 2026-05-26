@@ -1,7 +1,7 @@
 import { jwtVerify } from "jose";
 import { siteConfig } from "@/lib/site";
 
-export type SessionRole = "admin" | "client";
+export type SessionRole = "admin" | "client" | "mechanic";
 
 function getSecret(): Uint8Array {
   return new TextEncoder().encode(siteConfig.jwtSecret);
@@ -14,7 +14,7 @@ export async function verifyToken(
   try {
     const { payload } = await jwtVerify(token, getSecret());
     const role = payload.role as SessionRole;
-    if (role !== "admin" && role !== "client") return null;
+    if (role !== "admin" && role !== "client" && role !== "mechanic") return null;
     const sub = payload.sub;
     if (!sub || typeof sub !== "string") return null;
     const phone =
