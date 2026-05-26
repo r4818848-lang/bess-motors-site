@@ -11,8 +11,8 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { GoogleAdsTag } from "@/components/analytics/GoogleAdsTag";
 import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
-import { MetaPixel } from "@/components/analytics/MetaPixel";
 import { MetaPixelPageView } from "@/components/analytics/MetaPixelPageView";
+import { META_PIXEL_ID, metaPixelInitScript } from "@/lib/meta-pixel";
 import { StickyContactBar } from "@/components/layout/StickyContactBar";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { getSiteUrl, googleSiteVerification } from "@/lib/seo";
@@ -113,7 +113,25 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
       <head>
         <GoogleAdsTag />
-        <MetaPixel />
+        {/* Meta Pixel — inline in <head>, no next/script (Meta Pixel Helper) */}
+        {META_PIXEL_ID ? (
+          <>
+            <script
+              dangerouslySetInnerHTML={{
+                __html: metaPixelInitScript(META_PIXEL_ID),
+              }}
+            />
+            <noscript>
+              <img
+                height="1"
+                width="1"
+                style={{ display: "none" }}
+                alt=""
+                src={`https://www.facebook.com/tr?id=${META_PIXEL_ID}&ev=PageView&noscript=1`}
+              />
+            </noscript>
+          </>
+        ) : null}
         <style dangerouslySetInnerHTML={{ __html: criticalCss }} />
       </head>
 

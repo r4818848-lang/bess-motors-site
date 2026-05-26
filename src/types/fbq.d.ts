@@ -1,4 +1,4 @@
-/** Meta (Facebook) Pixel — loaded via MetaPixel in root layout */
+/** Meta (Facebook) Pixel — inline script in app/layout.tsx <head> */
 interface Window {
   fbq?: (
     action: "init" | "track" | "trackCustom",
