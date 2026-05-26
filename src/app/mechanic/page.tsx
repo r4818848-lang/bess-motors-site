@@ -2,14 +2,19 @@
 
 import { useState, useEffect, useMemo, Suspense } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import {
   Wrench,
+  CalendarDays,
   Wallet,
   LogOut,
+  Car,
+  User,
   Check,
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { DashboardLayout } from "@/components/crm/DashboardLayout";
+import { AppointmentCalendar } from "@/components/crm/AppointmentCalendar";
 import {
   getMechanicProfileId,
   getCurrentUser,
@@ -17,6 +22,7 @@ import {
 } from "@/lib/auth";
 import { loadDb, saveDb, type RepairStatus } from "@/lib/store";
 import { handleWorkOrderClientNotifications } from "@/lib/client-notifications";
+import { getAppointmentContext } from "@/lib/appointments";
 import { calcServiceLine, calcMechanicEarnings } from "@/lib/workorder-calc";
 import { pushCrmToCloud } from "@/lib/cloud-crm-db";
 import { Card } from "@/components/ui/Card";
@@ -32,17 +38,24 @@ const statuses: RepairStatus[] = [
   "delivered",
 ];
 
-type MechTab = "tasks" | "salary";
+type MechTab = "tasks" | "appointments" | "salary" | "calendar";
 
 function MechanicPageContent() {
   const { t } = useI18n();
   const m = t.mechanic;
   const w = t.wo;
+  const cal = t.calendar;
+  const searchParams = useSearchParams();
   const [tick, setTick] = useState(0);
   const [tab, setTab] = useState<MechTab>("tasks");
   const [pendingStatus, setPendingStatus] = useState<Record<string, RepairStatus>>({});
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
   const [syncError, setSyncError] = useState("");
+
+  useEffect(() => {
+    const view = searchParams.get("view");
+    if (view === "calendar") setTab("calendar");
+  }, [searchParams]);
 
   useEffect(() => {
     const onDb = () => setTick((n) => n + 1);
@@ -68,6 +81,14 @@ function MechanicPageContent() {
         : [],
     [db.workOrders, mechanicId]
   );
+
+  const myAppointments = useMemo(() => {
+    if (!mechanicId) return [];
+    const today = new Date().toISOString().slice(0, 10);
+    return db.appointments
+      .filter((a) => a.mechanicId === mechanicId && a.date >= today)
+      .sort((a, b) => `${a.date}${a.time}`.localeCompare(`${b.date}${b.time}`));
+  }, [db.appointments, mechanicId]);
 
   const earningsByOrder = useMemo(() => {
     if (!mechProfile) return [];
@@ -143,7 +164,9 @@ function MechanicPageContent() {
 
   const tabs: { id: MechTab; icon: typeof Wrench; label: string }[] = [
     { id: "tasks", icon: Wrench, label: m.myTasks },
+    { id: "appointments", icon: CalendarDays, label: m.myAppointments },
     { id: "salary", icon: Wallet, label: m.mySalary },
+    { id: "calendar", icon: CalendarDays, label: cal.title },
   ];
 
   if (!mechanicId || !user) return null;
@@ -174,10 +197,11 @@ function MechanicPageContent() {
           </Button>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-4 mb-8">
+        <div className="grid md:grid-cols-4 gap-4 mb-8">
           {[
             { label: m.activeOrders, count: activeOrders.length },
             { label: m.inProgress, count: inProgress.length },
+            { label: m.appointmentsToday, count: myAppointments.length },
             { label: m.monthEarnings, count: `${monthEarnings.toFixed(2)} zł` },
           ].map((stat, i) => (
             <Card key={i} glow className="text-center py-5">
@@ -204,6 +228,55 @@ function MechanicPageContent() {
 
         {syncError && (
           <p className="mb-4 text-sm text-amber-400 text-center">{syncError}</p>
+        )}
+
+        {tab === "calendar" && (
+          <AppointmentCalendar role="mechanic" mechanicId={mechanicId} />
+        )}
+
+        {tab === "appointments" && (
+          <div className="space-y-4">
+            <h2 className="font-display uppercase text-bm-red">{m.myAppointments}</h2>
+            {myAppointments.length === 0 ? (
+              <Card glow className="text-center py-12 text-bm-muted">
+                {m.noAppointments}
+              </Card>
+            ) : (
+              myAppointments.map((apt) => {
+                const ctx = getAppointmentContext(db, apt);
+                return (
+                  <Card key={apt.id} glow>
+                    <div className="flex flex-wrap justify-between gap-3">
+                      <div>
+                        <p className="font-display font-bold text-bm-red">
+                          {apt.date} · {apt.time}
+                        </p>
+                        <p className="text-lg font-semibold mt-1 flex items-center gap-2">
+                          <User className="w-4 h-4 text-bm-muted" />
+                          {ctx.contact.name}
+                        </p>
+                        <p className="text-sm text-bm-muted">{ctx.contact.phone}</p>
+                        {ctx.vehicle && (
+                          <p className="text-sm text-bm-muted flex items-center gap-2 mt-1">
+                            <Car className="w-4 h-4" />
+                            {ctx.vehicle.make} {ctx.vehicle.model} · {ctx.vehicle.plate}
+                          </p>
+                        )}
+                      </div>
+                      <span className="status-pill bg-bm-red/20 text-bm-red h-fit">
+                        {t.repairStatus[apt.repairStatus]}
+                      </span>
+                    </div>
+                    {apt.comment && (
+                      <p className="text-sm text-bm-muted mt-3 border-l-2 border-bm-border pl-3">
+                        {apt.comment}
+                      </p>
+                    )}
+                  </Card>
+                );
+              })
+            )}
+          </div>
         )}
 
         {tab === "salary" && mechProfile && (

@@ -1,5 +1,5 @@
 import type { Appointment } from "./store";
-import { loadDb, saveDb } from "./store";
+import { isKnownTestAppointment, loadDb, saveDb } from "./store";
 
 const TOKEN_KEY = "bess-jwt";
 
@@ -8,6 +8,7 @@ export function mergeAppointmentsIntoDb(cloud: Appointment[]): boolean {
   const db = loadDb();
   let changed = false;
   for (const apt of cloud) {
+    if (isKnownTestAppointment(db, apt)) continue;
     const idx = db.appointments.findIndex((a) => a.id === apt.id);
     if (idx < 0) {
       db.appointments.push(apt);

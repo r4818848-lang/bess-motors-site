@@ -58,6 +58,8 @@ function DashboardLayoutInner({
 
   const mechanicNav: NavItem[] = [
     { href: "/mechanic", path: "/mechanic", icon: Wrench, label: t.mechanic.title },
+    { href: "/mechanic?view=calendar", path: "/mechanic", icon: Calendar, label: t.calendar.title },
+    { href: "/crm/work-orders", path: "/crm/work-orders", icon: FileText, label: c.workOrders },
   ];
 
   const items = role === "admin" ? adminNav : mechanicNav;

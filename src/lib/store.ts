@@ -291,6 +291,131 @@ const DB_BACKUP_KEY = "bess-motors-db-backup";
 const DB_BACKUP_PREV_KEY = "bess-motors-db-backup-prev";
 /** One-time wipe of all client accounts from localStorage */
 const PURGE_CLIENTS_MIGRATION_KEY = "bess-motors-migration:purge-clients-v1";
+/** One-time removal of gibberish test bookings/work orders */
+const PURGE_TEST_DATA_MIGRATION_KEY = "bess-motors-migration:purge-test-bookings-v1";
+
+const TEST_PHONE_DIGITS = new Set(["123123123", "876767867897"]);
+const TEST_CLIENT_NAMES = new Set(["дожыф", "прврп", "ненгжбжд"]);
+const TEST_PLATE_KEYS = new Set(["ЦЙК"]);
+const TEST_ORDER_NUMBERS = new Set(["BM-2026-0001"]);
+
+function phoneDigitsOnly(phone: string): string {
+  return phone.replace(/\D/g, "");
+}
+
+function isTestPhone(phone: string): boolean {
+  const digits = phoneDigitsOnly(phone);
+  if (!digits) return false;
+  for (const test of TEST_PHONE_DIGITS) {
+    if (digits === test || digits.endsWith(test)) return true;
+  }
+  return false;
+}
+
+function isTestName(name: string): boolean {
+  return TEST_CLIENT_NAMES.has(name.trim().toLowerCase());
+}
+
+function isTestPlate(plate: string): boolean {
+  const key = plate.replace(/\s/g, "").replace(/-/g, "").toUpperCase();
+  return TEST_PLATE_KEYS.has(key);
+}
+
+function appointmentContact(db: Database, apt: Appointment): { name: string; phone: string } {
+  if (apt.clientName || apt.clientPhone) {
+    return {
+      name: apt.clientName?.trim() ?? "",
+      phone: apt.clientPhone?.trim() ?? "",
+    };
+  }
+  const client = db.users.find((u) => u.id === apt.userId);
+  return {
+    name: client?.name?.trim() ?? "",
+    phone: client?.phone?.trim() ?? "",
+  };
+}
+
+function isTestAppointment(db: Database, apt: Appointment): boolean {
+  const { name, phone } = appointmentContact(db, apt);
+  return isTestPhone(phone) || isTestName(name);
+}
+
+export function isKnownTestAppointment(db: Database, apt: Appointment): boolean {
+  return isTestAppointment(db, apt);
+}
+
+function isTestWorkOrder(db: Database, order: WorkOrder): boolean {
+  if (TEST_ORDER_NUMBERS.has(order.number)) return true;
+  const user = db.users.find((u) => u.id === order.userId);
+  if (user && isTestName(user.name)) return true;
+  if (user && isTestPhone(user.phone)) return true;
+  const vehicle = db.vehicles.find((v) => v.id === order.vehicleId);
+  if (vehicle && isTestPlate(vehicle.plate)) return true;
+  return false;
+}
+
+/** Remove known gibberish test bookings and work orders */
+export function purgeTestRecordsFromDb(db: Database): {
+  db: Database;
+  removedAppointmentIds: string[];
+} {
+  const removedAppointmentIds = db.appointments
+    .filter((a) => isTestAppointment(db, a))
+    .map((a) => a.id);
+  const removedWorkOrderIds = new Set(
+    db.workOrders.filter((o) => isTestWorkOrder(db, o)).map((o) => o.id)
+  );
+  const removedUserIds = new Set(
+    db.users
+      .filter((u) => u.role === "client" && (isTestName(u.name) || isTestPhone(u.phone)))
+      .map((u) => u.id)
+  );
+  const removedVehicleIds = new Set(
+    db.vehicles
+      .filter(
+        (v) =>
+          isTestPlate(v.plate) ||
+          removedUserIds.has(v.userId) ||
+          db.workOrders.some((o) => o.vehicleId === v.id && removedWorkOrderIds.has(o.id))
+      )
+      .map((v) => v.id)
+  );
+
+  for (const apt of db.appointments) {
+    if (apt.workOrderId && removedWorkOrderIds.has(apt.workOrderId)) {
+      removedAppointmentIds.push(apt.id);
+    }
+  }
+  const removedAptSet = new Set(removedAppointmentIds);
+
+  return {
+    db: {
+      ...db,
+      users: db.users.filter((u) => !removedUserIds.has(u.id)),
+      vehicles: db.vehicles.filter((v) => !removedVehicleIds.has(v.id)),
+      workOrders: db.workOrders.filter((o) => !removedWorkOrderIds.has(o.id)),
+      appointments: db.appointments.filter((a) => !removedAptSet.has(a.id)),
+      callRequests: db.callRequests.filter((c) => {
+        const user = db.users.find((u) => u.id === c.userId);
+        if (removedUserIds.has(c.userId)) return false;
+        if (isTestPhone(c.phone)) return false;
+        if (c.clientName && isTestName(c.clientName)) return false;
+        if (user && isTestPhone(user.phone)) return false;
+        return true;
+      }),
+      vehicleHistory: db.vehicleHistory.filter(
+        (h) => !removedUserIds.has(h.userId) && !removedVehicleIds.has(h.vehicleId)
+      ),
+      notifications: (db.notifications ?? []).filter(
+        (n) =>
+          !removedUserIds.has(n.userId) &&
+          (!n.workOrderId || !removedWorkOrderIds.has(n.workOrderId)) &&
+          (!n.appointmentId || !removedAptSet.has(n.appointmentId))
+      ),
+    },
+    removedAppointmentIds: [...removedAptSet],
+  };
+}
 
 function rotateDbBackupBeforeSave(nextJson: string): void {
   try {
@@ -532,6 +657,27 @@ export function loadDb(): Database {
       const mp = db.mechanics.find((x) => x.id === "mech-1");
       if (mp && mp.name === "Jan Kowalski") mp.name = "Siergiej";
       saveDb(db);
+    }
+
+    if (!localStorage.getItem(PURGE_TEST_DATA_MIGRATION_KEY)) {
+      const { db: cleaned, removedAppointmentIds } = purgeTestRecordsFromDb(db);
+      const changed =
+        cleaned.workOrders.length !== db.workOrders.length ||
+        cleaned.appointments.length !== db.appointments.length ||
+        cleaned.users.length !== db.users.length ||
+        cleaned.vehicles.length !== db.vehicles.length;
+      if (changed) {
+        db = cleaned;
+        saveDb(db);
+      }
+      localStorage.setItem(PURGE_TEST_DATA_MIGRATION_KEY, "1");
+      if (removedAppointmentIds.length) {
+        import("./cloud-appointments")
+          .then(({ deleteAppointmentFromCloud }) =>
+            Promise.all([...new Set(removedAppointmentIds)].map((id) => deleteAppointmentFromCloud(id)))
+          )
+          .catch(() => null);
+      }
     }
 
     return db;
