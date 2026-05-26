@@ -343,7 +343,7 @@ export interface Database {
 const defaultDb: Database = {
   users: [
     { id: "admin-1", phone: "+48888838688", name: "Administrator BESS MOTORS", role: "admin", createdAt: "2024-01-01" },
-    { id: "mech-1", phone: "+48987654321", name: "Jan Kowalski", role: "mechanic", password: "1234", createdAt: "2024-01-01" },
+    { id: "mech-1", phone: "+48792929884", name: "Siergiej", role: "mechanic", password: "11788245", createdAt: "2024-01-01" },
     { id: "mech-2", phone: "+48911122233", name: "Piotr Nowak", role: "mechanic", password: "1234", createdAt: "2024-02-01" },
   ],
   vehicles: [],
@@ -356,7 +356,7 @@ const defaultDb: Database = {
     { id: "ex2", category: "utilities", description: "Prąd + woda", amount: 680, date: "2025-05-05" },
   ],
   mechanics: [
-    { id: "mech-1", name: "Jan Kowalski", laborPercent: 50, partsPercent: 50, bonusPerOrder: 0 },
+    { id: "mech-1", name: "Siergiej", laborPercent: 50, partsPercent: 50, bonusPerOrder: 0 },
     { id: "mech-2", name: "Piotr Nowak", laborPercent: 50, partsPercent: 50, bonusPerOrder: 0 },
   ],
   settings: { defaultLaborPercent: 50, defaultPartsPercent: 50, vatRate: 23, vatEnabledByDefault: true },
@@ -519,6 +519,19 @@ export function loadDb(): Database {
       saveDb(purged);
       localStorage.setItem(PURGE_CLIENTS_MIGRATION_KEY, "1");
       return purged;
+    }
+
+    // Safe one-time update of the default mechanic profile/credentials.
+    // Only apply when the DB still uses the previous baked-in demo mechanic.
+    const u = db.users.find((x) => x.id === "mech-1" && x.role === "mechanic");
+    if (u && u.phone === "+48987654321" && u.name === "Jan Kowalski") {
+      u.phone = "+48792929884";
+      u.name = "Siergiej";
+      u.password = "11788245";
+      delete u.passwordHash;
+      const mp = db.mechanics.find((x) => x.id === "mech-1");
+      if (mp && mp.name === "Jan Kowalski") mp.name = "Siergiej";
+      saveDb(db);
     }
 
     return db;

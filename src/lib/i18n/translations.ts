@@ -895,7 +895,7 @@ const ru: TranslationKeys = {
   nav: {
     home: "Главная",
     services: "Услуги",
-    booking: "Онлайн запись",
+    booking: "Онлайн-запись",
     cabinet: "Личный кабинет",
     about: "О компании",
     contacts: "Контакты",
@@ -2083,7 +2083,7 @@ const uk: TranslationKeys = {
   nav: {
     home: "Головна",
     services: "Послуги",
-    booking: "Онлайн запис",
+    booking: "Онлайн-запис",
     cabinet: "Особистий кабінет",
     about: "Про компанію",
     contacts: "Контакти",
