@@ -9,6 +9,7 @@ import { useI18n } from "@/lib/i18n/context";
 import { serviceFlows, type ServiceId, type FlowOption } from "@/lib/services-catalog";
 import { timeSlots } from "@/lib/data";
 import { createCallRequest, createBookingAppointment } from "@/lib/booking-actions";
+import { trackMetaEvent } from "@/lib/meta-pixel";
 import { useAuth } from "@/lib/auth/session-context";
 import { BookingCalendar } from "@/components/booking/BookingCalendar";
 import { Button } from "@/components/ui/Button";
@@ -278,6 +279,7 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
       serviceLabel,
       comment: problem,
     });
+    trackMetaEvent("Contact", { content_name: "call_request_modal" });
     setDoneKind("call");
     setPhase("done");
     onSuccess?.("call");
@@ -316,6 +318,7 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
         priceFrom: l.priceFrom,
       })),
     });
+    trackMetaEvent("Lead", { content_name: "booking_modal" });
     setDoneKind("booking");
     setPhase("done");
     onSuccess?.("booking");
