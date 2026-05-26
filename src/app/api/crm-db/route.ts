@@ -1,0 +1,72 @@
+import { NextResponse } from "next/server";
+import { verifyToken } from "@/lib/server/verify-session";
+import type { Database } from "@/lib/store";
+import { cloudGetCrmStore, cloudPutCrmStore, isSupabaseConfigured } from "@/lib/server/crm-cloud";
+
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
+function bearerToken(req: Request): string | null {
+  const h = req.headers.get("authorization");
+  if (!h?.startsWith("Bearer ")) return null;
+  return h.slice(7).trim() || null;
+}
+
+async function requireCrmSession(req: Request) {
+  if (!isSupabaseConfigured()) {
+    return { error: NextResponse.json({ error: "cloud_disabled" }, { status: 503 }) };
+  }
+  const token = bearerToken(req);
+  if (!token) {
+    return { error: NextResponse.json({ error: "unauthorized" }, { status: 401 }) };
+  }
+  const session = await verifyToken(token);
+  if (!session || session.role !== "admin") {
+    return { error: NextResponse.json({ error: "admin_only" }, { status: 403 }) };
+  }
+  return { session };
+}
+
+/** Strip per-device session before cloud storage */
+function docForCloud(db: Database): Database {
+  return { ...db, currentUserId: null };
+}
+
+export async function GET(req: Request) {
+  const auth = await requireCrmSession(req);
+  if ("error" in auth && auth.error) return auth.error;
+
+  const snapshot = await cloudGetCrmStore();
+  if (!snapshot) {
+    return NextResponse.json({ cloud: true, db: null, updatedAt: null });
+  }
+  return NextResponse.json({
+    cloud: true,
+    db: snapshot.doc,
+    updatedAt: snapshot.updatedAt,
+  });
+}
+
+export async function PUT(req: Request) {
+  const auth = await requireCrmSession(req);
+  if ("error" in auth && auth.error) return auth.error;
+
+  let db: Database;
+  try {
+    db = (await req.json()) as Database;
+    if (!db || typeof db !== "object") {
+      return NextResponse.json({ error: "invalid" }, { status: 400 });
+    }
+  } catch {
+    return NextResponse.json({ error: "invalid" }, { status: 400 });
+  }
+
+  const result = await cloudPutCrmStore(docForCloud(db));
+  if (!result.ok) {
+    return NextResponse.json(
+      { ok: false, error: result.error },
+      { status: result.error === "cloud_disabled" ? 503 : 502 }
+    );
+  }
+  return NextResponse.json({ ok: true, updatedAt: result.updatedAt });
+}

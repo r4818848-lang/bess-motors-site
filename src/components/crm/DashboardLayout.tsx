@@ -18,6 +18,7 @@ import {
 import { useI18n } from "@/lib/i18n/context";
 import { useHotOrdersBadgeCount } from "@/components/crm/HotOrdersPanel";
 import { useCloudAppointmentsSync } from "@/hooks/useCloudAppointmentsSync";
+import { useCloudCrmSync } from "@/hooks/useCloudCrmSync";
 
 type NavItem = {
   href: string;
@@ -40,6 +41,7 @@ function DashboardLayoutInner({
   const tab = searchParams.get("tab");
   const c = t.crm;
   useCloudAppointmentsSync(role === "admin");
+  useCloudCrmSync(role === "admin");
   const hotBadge = useHotOrdersBadgeCount();
 
   const adminNav: NavItem[] = [

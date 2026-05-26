@@ -284,7 +284,7 @@ export interface WarehouseItem {
   qrCode: string;
 }
 
-import { notifyDbChanged } from "./db-events";
+import { DB_SAVED_EVENT, notifyDbChanged } from "./db-events";
 
 const STORAGE_KEY = "bess-motors-db";
 const DB_BACKUP_KEY = "bess-motors-db-backup";
@@ -528,13 +528,16 @@ export function loadDb(): Database {
   return { ...defaultDb };
 }
 
-export function saveDb(db: Database): void {
+export function saveDb(db: Database, options?: { skipCloudPush?: boolean }): void {
   if (typeof window === "undefined") return;
   try {
     const json = JSON.stringify(db);
     rotateDbBackupBeforeSave(json);
     localStorage.setItem(STORAGE_KEY, json);
     notifyDbChanged();
+    if (!options?.skipCloudPush) {
+      window.dispatchEvent(new CustomEvent(DB_SAVED_EVENT, { detail: db }));
+    }
   } catch {
     /* quota or private mode — avoid crashing the app */
   }
