@@ -112,6 +112,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
       <head>
         <GoogleAdsTag />
+        <MetaPixel />
         <style dangerouslySetInnerHTML={{ __html: criticalCss }} />
       </head>
 
@@ -126,7 +127,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       >
         <JsonLd />
         <GoogleAnalytics />
-        <MetaPixel />
         <Providers>
           <Header />
           <main className="min-h-screen pb-16 md:pb-0">{children}</main>

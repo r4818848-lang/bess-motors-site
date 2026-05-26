@@ -1,13 +1,18 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
-/** Re-fire PageView on client-side route changes (Next.js App Router) */
+/** PageView on in-app navigation only (initial PageView is in metaPixelInitScript) */
 export function MetaPixelPageView() {
   const pathname = usePathname();
+  const isFirst = useRef(true);
 
   useEffect(() => {
+    if (isFirst.current) {
+      isFirst.current = false;
+      return;
+    }
     if (typeof window.fbq !== "function") return;
     window.fbq("track", "PageView");
   }, [pathname]);
