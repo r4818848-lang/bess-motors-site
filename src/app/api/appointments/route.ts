@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { verifyToken } from "@/lib/auth";
+import { verifyToken } from "@/lib/server/verify-session";
 import type { Appointment } from "@/lib/store";
 import {
   cloudListAppointmentsByPhone,
@@ -9,6 +9,7 @@ import {
 } from "@/lib/server/appointments-cloud";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 function bearerToken(req: Request): string | null {
   const h = req.headers.get("authorization");
@@ -34,8 +35,14 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: "invalid" }, { status: 400 });
   }
 
-  const ok = await cloudUpsertAppointment(apt);
-  return NextResponse.json({ ok });
+  const result = await cloudUpsertAppointment(apt);
+  if (!result.ok) {
+    return NextResponse.json(
+      { ok: false, error: result.error, status: result.status },
+      { status: result.status === 401 ? 401 : 502 }
+    );
+  }
+  return NextResponse.json({ ok: true });
 }
 
 export async function GET(req: Request) {

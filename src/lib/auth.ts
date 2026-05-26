@@ -1,4 +1,5 @@
-import { SignJWT, jwtVerify } from "jose";
+import { SignJWT } from "jose";
+import { verifyToken as verifyTokenServer } from "@/lib/server/verify-session";
 
 import { loadDb, saveDb, type User, type Vehicle } from "./store";
 import { linkGuestBookingsToClient } from "./link-client-bookings";
@@ -95,18 +96,7 @@ function persistSession(token: string, role: AuthRole, userId: string): void {
 export async function verifyToken(
   token: string
 ): Promise<{ sub: string; role: AuthRole; phone?: string } | null> {
-  try {
-    const { payload } = await jwtVerify(token, getSecret());
-    const role = payload.role as AuthRole;
-    if (role !== "admin" && role !== "client") return null;
-    const sub = payload.sub;
-    if (!sub || typeof sub !== "string") return null;
-    const phone =
-      typeof payload.phone === "string" && payload.phone ? payload.phone : undefined;
-    return { sub, role, phone };
-  } catch {
-    return null;
-  }
+  return verifyTokenServer(token);
 }
 
 export async function restoreSessionFromToken(): Promise<User | null> {

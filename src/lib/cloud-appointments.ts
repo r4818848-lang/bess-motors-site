@@ -44,14 +44,20 @@ export async function syncAppointmentsFromCloud(): Promise<boolean> {
   }
 }
 
-export async function pushAppointmentToCloud(apt: Appointment): Promise<void> {
+export async function pushAppointmentToCloud(apt: Appointment): Promise<boolean> {
   try {
-    await fetch("/api/appointments", {
+    const res = await fetch("/api/appointments", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(apt),
     });
+    if (!res.ok) {
+      console.warn("[cloud] appointment push failed", res.status, await res.text());
+      return false;
+    }
+    const data = (await res.json()) as { ok?: boolean };
+    return data.ok === true;
   } catch {
-    /* offline — local save still works */
+    return false;
   }
 }
