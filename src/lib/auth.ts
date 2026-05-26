@@ -24,7 +24,8 @@ export type AuthResult =
         | "phone_exists"
         | "phone_required"
         | "plate_required"
-        | "password_required";
+        | "password_required"
+        | "mechanic_account";
     };
 
 function getSecret(): Uint8Array {
@@ -235,6 +236,13 @@ export async function loginWithPhonePassword(
   if (!normalized) return { ok: false, error: "phone_required" };
 
   const db = loadDb();
+  const mechanicUser = db.users.find(
+    (u) => u.role === "mechanic" && normalizePhone(u.phone) === normalized
+  );
+  if (mechanicUser) {
+    return { ok: false, error: "mechanic_account" };
+  }
+
   const user = db.users.find(
     (u) => u.role === "client" && normalizePhone(u.phone) === normalized
   );

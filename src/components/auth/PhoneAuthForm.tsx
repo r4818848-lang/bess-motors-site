@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Phone, Car, LogIn, ChevronRight } from "lucide-react";
+import Link from "next/link";
+import { Phone, Car, LogIn, ChevronRight, Wrench } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useI18n } from "@/lib/i18n/context";
 import { useAuth } from "@/lib/auth/session-context";
@@ -38,6 +39,8 @@ export function PhoneAuthForm({ onSuccess }: PhoneAuthFormProps) {
         return t.auth.phoneRequired;
       case "plate_required":
         return t.auth.plateRequired;
+      case "mechanic_account":
+        return t.auth.mechanicAccountHint;
       default:
         return t.auth.invalidCredentials;
     }
@@ -158,7 +161,15 @@ export function PhoneAuthForm({ onSuccess }: PhoneAuthFormProps) {
 
           {error && <p className="mt-3 text-sm text-bm-red text-center">{error}</p>}
 
-          <Button type="submit" className="w-full mt-6 gap-2" disabled={loading}>
+          <Link
+            href="/mechanic"
+            className="mt-4 flex items-center justify-center gap-2 text-xs text-bm-muted hover:text-bm-red transition-colors"
+          >
+            <Wrench className="w-3.5 h-3.5" />
+            {t.auth.mechanicLoginLink}
+          </Link>
+
+          <Button type="submit" className="w-full mt-4 gap-2" disabled={loading}>
             {loading ? (
               <span className="animate-pulse">{t.auth.loading}</span>
             ) : (

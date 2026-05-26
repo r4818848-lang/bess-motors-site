@@ -372,6 +372,9 @@ const pl = {
     plateHint: "Jako hasło użyj numeru rejestracyjnego auta (bez spacji lub ze spacją).",
     signCreatesAccount:
       "Konto tworzy się automatycznie przy podpisie zlecenia — rejestracja nie jest potrzebna.",
+    mechanicAccountHint:
+      "Ten numer należy do mechanika — zaloguj się w panelu mechanika (telefon + hasło).",
+    mechanicLoginLink: "Panel mechanika — logowanie dla pracowników",
     invalidCredentials: "Nieprawidłowy telefon lub numer rejestracyjny.",
     phoneExists: "Ten numer lub auto jest już zarejestrowane.",
     phoneRequired: "Podaj numer telefonu.",
@@ -1257,6 +1260,9 @@ const ru: TranslationKeys = {
     plateHint: "Для входа используйте регистрационный номер вашего автомобиля.",
     signCreatesAccount:
       "Аккаунт создаётся автоматически при подписании заказ-наряда — отдельная регистрация не нужна.",
+    mechanicAccountHint:
+      "Этот номер принадлежит механику — войдите в панель механика (телефон + пароль).",
+    mechanicLoginLink: "Панель механика — вход для сотрудников",
     invalidCredentials: "Неверный телефон или госномер.",
     phoneExists: "Этот номер или авто уже зарегистрированы.",
     phoneRequired: "Укажите номер телефона.",
@@ -1941,6 +1947,9 @@ const en: TranslationKeys = {
     plateHint: "Use your vehicle registration number to sign in.",
     signCreatesAccount:
       "Your account is created automatically when you sign a work order — no separate registration.",
+    mechanicAccountHint:
+      "This phone belongs to a mechanic — sign in at the mechanic panel (phone + password).",
+    mechanicLoginLink: "Mechanic panel — staff login",
     invalidCredentials: "Invalid phone or registration number.",
     phoneExists: "This phone or plate is already registered.",
     phoneRequired: "Enter your phone number.",
