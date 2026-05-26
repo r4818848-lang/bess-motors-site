@@ -15,14 +15,20 @@ import {
   workOrderLegalLocaleFromUi,
 } from "@/lib/work-order-share";
 
+type CloudSignContext = {
+  phone: string;
+  plate?: string;
+};
+
 interface Props {
   order: WorkOrder;
   db: Database;
   onDone: () => void;
   onCancel: () => void;
+  cloudSign?: CloudSignContext;
 }
 
-export function WorkOrderSignatureFlow({ order, db, onDone, onCancel }: Props) {
+export function WorkOrderSignatureFlow({ order, db, onDone, onCancel, cloudSign }: Props) {
   const { t, locale } = useI18n();
   const s = t.signature;
   const docLocale = workOrderLegalLocaleFromUi(locale);
@@ -53,20 +59,39 @@ export function WorkOrderSignatureFlow({ order, db, onDone, onCancel }: Props) {
       confirmationText: confirmText,
     };
 
-    const fresh = loadDb();
-    const wo = fresh.workOrders.find((o) => o.id === order.id);
-    if (wo) {
-      wo.confirmationStatus = "confirmed";
-      wo.signature = meta;
-      wo.clientSignature = signatureData;
-      wo.updatedAt = new Date().toISOString().slice(0, 10);
-      wo.documentStatus =
-        wo.status === "delivered"
-          ? "delivered"
-          : wo.status === "ready"
-            ? "completed"
-            : "signed";
-      saveDb(fresh);
+    if (cloudSign) {
+      const res = await fetch("/api/sign-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "submit",
+          orderId: order.id,
+          phone: cloudSign.phone,
+          plate: cloudSign.plate,
+          signature: meta,
+          clientSignature: signatureData,
+        }),
+      });
+      if (!res.ok) {
+        setSubmitting(false);
+        return;
+      }
+    } else {
+      const fresh = loadDb();
+      const wo = fresh.workOrders.find((o) => o.id === order.id);
+      if (wo) {
+        wo.confirmationStatus = "confirmed";
+        wo.signature = meta;
+        wo.clientSignature = signatureData;
+        wo.updatedAt = new Date().toISOString().slice(0, 10);
+        wo.documentStatus =
+          wo.status === "delivered"
+            ? "delivered"
+            : wo.status === "ready"
+              ? "completed"
+              : "signed";
+        saveDb(fresh);
+      }
     }
     setSubmitting(false);
     onDone();

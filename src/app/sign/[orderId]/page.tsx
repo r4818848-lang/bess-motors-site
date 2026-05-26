@@ -1,15 +1,25 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
+import { use, useEffect, useState, useMemo } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { Shield } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
-import { loadDb } from "@/lib/store";
+import { loadDb, mergeStoredDb, type Database, type User, type Vehicle, type WorkOrder } from "@/lib/store";
 import { restoreSessionFromToken, isClientAuthenticated } from "@/lib/auth";
-import { PhoneAuthForm } from "@/components/auth/PhoneAuthForm";
+import { hasSignOrderAccess, setSignOrderAccess } from "@/lib/sign-order-access";
+import { SignOrderGuestForm } from "@/components/sign/SignOrderGuestForm";
 import { WorkOrderSignatureFlow } from "@/components/cabinet/WorkOrderSignatureFlow";
 import { ClientWorkOrderDetail } from "@/components/cabinet/ClientWorkOrderDetail";
+
+type SignMode = "local" | "cloud" | null;
+
+type CloudSignState = {
+  order: WorkOrder;
+  client: User;
+  vehicle: Vehicle | null;
+  phone: string;
+  plate?: string;
+};
 
 export default function SignWorkOrderPage({
   params,
@@ -18,10 +28,13 @@ export default function SignWorkOrderPage({
 }) {
   const { orderId } = use(params);
   const { t } = useI18n();
-  const router = useRouter();
   const [ready, setReady] = useState(false);
   const [db, setDb] = useState(loadDb());
   const [showSign, setShowSign] = useState(false);
+  const [signMode, setSignMode] = useState<SignMode>(null);
+  const [cloudSign, setCloudSign] = useState<CloudSignState | null>(null);
+  const [signed, setSigned] = useState(false);
+  const [guestVerified, setGuestVerified] = useState(() => hasSignOrderAccess(orderId));
 
   useEffect(() => {
     restoreSessionFromToken()
@@ -32,11 +45,52 @@ export default function SignWorkOrderPage({
       });
   }, []);
 
-  const order = db.workOrders.find((o) => o.id === orderId);
+  const localOrder = db.workOrders.find((o) => o.id === orderId);
   const user = db.currentUserId
     ? db.users.find((u) => u.id === db.currentUserId && u.role === "client")
     : null;
-  const isOwner = user && order && order.userId === user.id;
+  const isOwner = Boolean(user && localOrder && localOrder.userId === user.id);
+
+  const order = cloudSign?.order ?? localOrder;
+
+  const signDb: Database = useMemo(() => {
+    if (cloudSign) {
+      return mergeStoredDb({
+        users: [cloudSign.client],
+        vehicles: cloudSign.vehicle ? [cloudSign.vehicle] : [],
+        workOrders: [cloudSign.order],
+      });
+    }
+    return db;
+  }, [cloudSign, db]);
+
+  const canAccess =
+    Boolean(order) &&
+    (isOwner || guestVerified || hasSignOrderAccess(orderId));
+
+  const handleGuestVerified = (
+    verifiedOrder: WorkOrder,
+    mode: "local" | "cloud",
+    cloud?: { client: User; vehicle: Vehicle | null; phone: string; plate?: string }
+  ) => {
+    setSignMode(mode);
+    setGuestVerified(true);
+    setSignOrderAccess(orderId);
+    if (mode === "cloud" && cloud) {
+      setCloudSign({
+        order: verifiedOrder,
+        client: cloud.client,
+        vehicle: cloud.vehicle,
+        phone: cloud.phone,
+        plate: cloud.plate,
+      });
+    } else {
+      setDb(loadDb());
+    }
+    if (verifiedOrder.confirmationStatus !== "confirmed") {
+      setShowSign(true);
+    }
+  };
 
   if (!ready) {
     return (
@@ -46,51 +100,60 @@ export default function SignWorkOrderPage({
     );
   }
 
-  if (!order) {
+  if (signed || order?.confirmationStatus === "confirmed") {
     return (
       <div className="pt-28 pb-20 px-4 text-center max-w-lg mx-auto">
-        <p className="text-bm-muted">{t.document.orderNotFound}</p>
-        <Link href="/cabinet" className="btn-primary mt-6 inline-block">
-          {t.cabinet.title}
+        <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto mb-4" />
+        <h1 className="font-display text-xl uppercase text-glow">{t.document.signDoneTitle}</h1>
+        <p className="text-bm-muted mt-2">{t.document.signDoneHint}</p>
+        {order && (
+          <p className="text-sm font-mono text-bm-muted mt-4">{order.number}</p>
+        )}
+        <Link href="/" className="btn-primary mt-8 inline-block">
+          {t.nav.home}
         </Link>
       </div>
     );
   }
 
-  if (!isClientAuthenticated() || !isOwner) {
+  if (!order) {
     return (
       <div className="pt-28 pb-20 px-4">
-        <div className="max-w-md mx-auto text-center mb-8">
-          <Shield className="w-12 h-12 text-bm-red mx-auto mb-4" />
-          <h1 className="font-display text-xl uppercase text-glow">{t.document.signLoginTitle}</h1>
-          <p className="text-sm text-bm-muted mt-2 font-mono">{order.number}</p>
-        </div>
-        <PhoneAuthForm
-          onSuccess={() => {
-            const fresh = loadDb();
-            setDb(fresh);
-            const u = fresh.users.find(
-              (x) => x.id === fresh.currentUserId && x.role === "client"
-            );
-            if (u && order.userId === u.id) {
-              setShowSign(order.confirmationStatus !== "confirmed");
-            } else {
-              router.push("/cabinet");
-            }
-          }}
+        <SignOrderGuestForm
+          orderId={orderId}
+          orderNumber={orderId}
+          onVerified={handleGuestVerified}
         />
       </div>
     );
   }
 
-  if (showSign && order.confirmationStatus !== "confirmed") {
+  if (!canAccess) {
+    return (
+      <div className="pt-28 pb-20 px-4">
+        <SignOrderGuestForm
+          orderId={orderId}
+          orderNumber={order.number}
+          onVerified={handleGuestVerified}
+        />
+      </div>
+    );
+  }
+
+  if (showSign) {
     return (
       <WorkOrderSignatureFlow
         order={order}
-        db={db}
+        db={signDb}
+        cloudSign={
+          signMode === "cloud" && cloudSign
+            ? { phone: cloudSign.phone, plate: cloudSign.plate }
+            : undefined
+        }
         onDone={() => {
-          setDb(loadDb());
+          setSigned(true);
           setShowSign(false);
+          if (signMode === "local") setDb(loadDb());
         }}
         onCancel={() => setShowSign(false)}
       />
@@ -99,19 +162,20 @@ export default function SignWorkOrderPage({
 
   return (
     <div className="pt-28 pb-20 px-4 max-w-3xl mx-auto">
-      {order.confirmationStatus !== "confirmed" && (
-        <button
-          type="button"
-          className="btn-primary w-full mb-6"
-          onClick={() => setShowSign(true)}
-        >
-          {t.signature.signNow}
-        </button>
+      <button
+        type="button"
+        className="btn-primary w-full mb-6"
+        onClick={() => setShowSign(true)}
+      >
+        {t.signature.signNow}
+      </button>
+      {!isOwner && (
+        <p className="text-xs text-bm-muted text-center mb-4">{t.document.signGuestHint}</p>
       )}
       <ClientWorkOrderDetail
         order={order}
-        db={db}
-        onBack={() => router.push("/cabinet?tab=history")}
+        db={signDb}
+        onBack={() => {}}
       />
     </div>
   );
