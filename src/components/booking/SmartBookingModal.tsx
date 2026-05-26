@@ -10,7 +10,6 @@ import { serviceFlows, type ServiceId, type FlowOption } from "@/lib/services-ca
 import { timeSlots } from "@/lib/data";
 import { createCallRequest, createBookingAppointment } from "@/lib/booking-actions";
 import { BookingLink } from "@/components/analytics/BookingLink";
-import { trackMetaLead } from "@/lib/meta-pixel";
 import { useAuth } from "@/lib/auth/session-context";
 import { BookingCalendar } from "@/components/booking/BookingCalendar";
 import { Button } from "@/components/ui/Button";
@@ -300,7 +299,6 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
       .filter(Boolean)
       .join(" | ");
 
-    trackMetaLead("booking_modal");
     createBookingAppointment({
       serviceId,
       serviceIds: cart.length
@@ -667,6 +665,7 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
                 </Button>
                 <Button
                   className="flex-1"
+                  data-fbq-track={submitMode === "call" ? "Contact" : "Lead"}
                   disabled={!contactValid || (submitMode === "booking" && cart.length === 0)}
                   onClick={submitMode === "call" ? submitCall : submitBooking}
                 >

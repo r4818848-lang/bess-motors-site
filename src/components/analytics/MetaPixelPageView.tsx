@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
+import { fireFbq } from "@/lib/meta-pixel";
 
 /** PageView on in-app navigation only (initial PageView is in metaPixelInitScript) */
 export function MetaPixelPageView() {
@@ -13,8 +14,7 @@ export function MetaPixelPageView() {
       isFirst.current = false;
       return;
     }
-    if (typeof window.fbq !== "function") return;
-    window.fbq("track", "PageView");
+    fireFbq("PageView");
   }, [pathname]);
 
   return null;

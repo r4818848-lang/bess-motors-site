@@ -2,7 +2,6 @@
 
 import type { ComponentProps } from "react";
 import { siteConfig } from "@/lib/site";
-import { trackMetaContact } from "@/lib/meta-pixel";
 
 type SocialKind = "whatsapp" | "telegram";
 
@@ -32,11 +31,10 @@ export function SocialContactLink({
       href={href ?? hrefByKind[kind]}
       target={target}
       rel={rel}
+      data-fbq-track="Contact"
+      data-fbq-params={JSON.stringify({ content_name: trackSource ?? kind })}
       {...props}
-      onClick={(e) => {
-        trackMetaContact(trackSource ?? kind);
-        onClick?.(e);
-      }}
+      onClick={onClick}
     >
       {children}
     </a>

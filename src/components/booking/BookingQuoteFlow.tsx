@@ -34,12 +34,7 @@ import {
   type CartLine,
 } from "@/lib/booking-cart";
 import { createBookingAppointment } from "@/lib/booking-actions";
-import {
-  trackMetaAddToCart,
-  trackMetaCustomizeProduct,
-  trackMetaInitiateCheckout,
-  trackMetaLead,
-} from "@/lib/meta-pixel";
+import { trackMetaCustomizeProduct } from "@/lib/meta-pixel";
 import { useAuth } from "@/lib/auth/session-context";
 import { BookingCalendar } from "@/components/booking/BookingCalendar";
 import { timeSlots } from "@/lib/data";
@@ -91,6 +86,7 @@ function ServiceCard({
         </div>
         <button
           type="button"
+          data-fbq-track="AddToCart"
           onClick={() => onAdd(qty)}
           className="shrink-0 w-9 h-9 rounded-full border border-bm-red/60 flex items-center justify-center text-bm-red hover:bg-bm-red/20 transition-colors"
           title={labels.addService}
@@ -304,7 +300,6 @@ export function BookingQuoteFlow({ onDone }: Props) {
       const without = prev.filter((l) => l.itemId !== item.id);
       return [...without, line];
     });
-    trackMetaAddToCart("booking_plus");
   };
 
   const cartIds = new Set(cart.map((l) => l.itemId));
@@ -332,7 +327,6 @@ export function BookingQuoteFlow({ onDone }: Props) {
       .filter(Boolean)
       .join(" | ");
 
-    trackMetaLead("booking_submit");
     createBookingAppointment({
       serviceId: "booking-quote",
       serviceIds: cart.map((l) => l.itemId),
@@ -421,11 +415,9 @@ export function BookingQuoteFlow({ onDone }: Props) {
               />
               <Button
                 className="w-full mt-4"
+                data-fbq-track="InitiateCheckout"
                 disabled={cart.length === 0}
-                onClick={() => {
-                  trackMetaInitiateCheckout("booking_services_continue");
-                  setPhase("datetime");
-                }}
+                onClick={() => setPhase("datetime")}
               >
                 {bq.continue}
                 <ChevronRight className="w-4 h-4" />
@@ -580,7 +572,12 @@ export function BookingQuoteFlow({ onDone }: Props) {
                 <ChevronLeft className="w-4 h-4" />
                 {bq.back}
               </Button>
-              <Button className="flex-1" disabled={!contactValid} onClick={submit}>
+              <Button
+                className="flex-1"
+                data-fbq-track="Lead"
+                disabled={!contactValid}
+                onClick={submit}
+              >
                 {bq.submit}
               </Button>
             </div>
@@ -601,11 +598,9 @@ export function BookingQuoteFlow({ onDone }: Props) {
             </div>
             <Button
               className="shrink-0"
+              data-fbq-track="InitiateCheckout"
               disabled={cart.length === 0}
-              onClick={() => {
-                trackMetaInitiateCheckout("booking_services_continue_mobile");
-                setPhase("datetime");
-              }}
+              onClick={() => setPhase("datetime")}
             >
               {bq.continue}
               <ChevronRight className="w-4 h-4" />

@@ -1,7 +1,6 @@
 "use client";
 
 import type { ComponentProps } from "react";
-import { trackMetaContact } from "@/lib/meta-pixel";
 import { siteConfig } from "@/lib/site";
 
 type PhoneLinkProps = ComponentProps<"a"> & {
@@ -20,11 +19,12 @@ export function PhoneLink({
   return (
     <a
       href={href}
+      data-fbq-track="Contact"
+      data-fbq-params={
+        trackSource ? JSON.stringify({ content_name: trackSource }) : undefined
+      }
       {...props}
-      onClick={(e) => {
-        trackMetaContact(trackSource);
-        onClick?.(e);
-      }}
+      onClick={onClick}
     >
       {children}
     </a>

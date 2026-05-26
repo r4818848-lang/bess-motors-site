@@ -2,7 +2,6 @@ import { loadDb, saveDb } from "./store";
 import type { ServiceId } from "./services-catalog";
 import { getStoredAttribution } from "./utm";
 import { handleAppointmentNotification } from "./client-notifications";
-import { trackMetaContact } from "./meta-pixel";
 
 export function createCallRequest(params: {
   phone: string;
@@ -30,7 +29,6 @@ export function createCallRequest(params: {
     createdAt: new Date().toISOString(),
   });
   saveDb(db);
-  trackMetaContact("call_request_form");
 }
 
 export function createBookingAppointment(params: {

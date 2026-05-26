@@ -16,14 +16,70 @@ fbq('init','${pixelId}');
 fbq('track','PageView');`;
 }
 
-/** Track standard Meta events from client components */
+type FbqFn = {
+  (...args: unknown[]): void;
+  callMethod?: { apply: (ctx: unknown, args: unknown[]) => void };
+  queue?: unknown[];
+};
+
+function getFbq(): FbqFn | null {
+  if (typeof window === "undefined") return null;
+  const fbq = (window as Window & { fbq?: FbqFn }).fbq;
+  return fbq ?? null;
+}
+
+/** Low-level send — same as fbq('track', event) in console */
+export function fireFbq(event: string, params?: Record<string, unknown>): void {
+  const fbq = getFbq();
+  if (!fbq) return;
+  try {
+    if (params !== undefined) fbq("track", event, params);
+    else fbq("track", event);
+  } catch {
+    /* pixel blocked or not ready */
+  }
+}
+
+const pending: { event: string; params?: Record<string, unknown> }[] = [];
+let flushTimer: ReturnType<typeof setInterval> | null = null;
+
+function flushPending(): void {
+  if (!getFbq()) return;
+  while (pending.length > 0) {
+    const { event, params } = pending.shift()!;
+    fireFbq(event, params);
+  }
+  if (flushTimer !== null) {
+    clearInterval(flushTimer);
+    flushTimer = null;
+  }
+}
+
+function scheduleFlush(): void {
+  if (flushTimer !== null || typeof window === "undefined") return;
+  let attempts = 0;
+  flushTimer = setInterval(() => {
+    attempts += 1;
+    flushPending();
+    if (!pending.length || attempts >= 50) {
+      clearInterval(flushTimer!);
+      flushTimer = null;
+    }
+  }, 100);
+}
+
+/** Track standard Meta events — queues until fbq stub exists (max ~5s) */
 export function trackMetaEvent(
   event: string,
   params?: Record<string, unknown>
 ): void {
-  if (typeof window === "undefined" || typeof window.fbq !== "function") return;
-  if (params) window.fbq("track", event, params);
-  else window.fbq("track", event);
+  if (typeof window === "undefined") return;
+  if (getFbq()) {
+    fireFbq(event, params);
+    return;
+  }
+  pending.push({ event, params });
+  scheduleFlush();
 }
 
 export function trackMetaContact(source?: string): void {
@@ -56,4 +112,10 @@ export function trackMetaCompleteRegistration(source?: string): void {
 
 export function trackMetaViewContent(contentName: string): void {
   trackMetaEvent("ViewContent", { content_name: contentName });
+}
+
+/** Console test: __bmFbq('Lead') */
+export function installMetaPixelDebug(): void {
+  if (typeof window === "undefined") return;
+  (window as Window & { __bmFbq?: typeof fireFbq }).__bmFbq = fireFbq;
 }
