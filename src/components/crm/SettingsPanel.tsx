@@ -5,6 +5,7 @@ import { Settings, Plus, Trash2 } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { loadDb, saveDb, type MechanicProfile } from "@/lib/store";
 import { Button } from "@/components/ui/Button";
+import { DataBackupPanel } from "@/components/crm/DataBackupPanel";
 
 export function SettingsPanel({ onUpdate }: { onUpdate: () => void }) {
   const { t } = useI18n();
@@ -185,6 +186,8 @@ export function SettingsPanel({ onUpdate }: { onUpdate: () => void }) {
           </tbody>
         </table>
       </div>
+
+      <DataBackupPanel onUpdate={onUpdate} />
 
       <Button onClick={save}>{t.common.save}</Button>
     </div>

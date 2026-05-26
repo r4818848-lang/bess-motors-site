@@ -287,8 +287,22 @@ export interface WarehouseItem {
 import { notifyDbChanged } from "./db-events";
 
 const STORAGE_KEY = "bess-motors-db";
+const DB_BACKUP_KEY = "bess-motors-db-backup";
+const DB_BACKUP_PREV_KEY = "bess-motors-db-backup-prev";
 /** One-time wipe of all client accounts from localStorage */
 const PURGE_CLIENTS_MIGRATION_KEY = "bess-motors-migration:purge-clients-v1";
+
+function rotateDbBackupBeforeSave(nextJson: string): void {
+  try {
+    const current = localStorage.getItem(STORAGE_KEY);
+    if (!current || current === nextJson) return;
+    const oldBackup = localStorage.getItem(DB_BACKUP_KEY);
+    if (oldBackup) localStorage.setItem(DB_BACKUP_PREV_KEY, oldBackup);
+    localStorage.setItem(DB_BACKUP_KEY, current);
+  } catch {
+    /* ignore quota */
+  }
+}
 
 /** Remove every client user and related records; keep admin, mechanics, CRM data */
 export function purgeAllClientsFromDb(db: Database): Database {
@@ -468,7 +482,7 @@ function migrateMechanic(m: Partial<MechanicProfile> & { id: string; commissionP
   };
 }
 
-function mergeStoredDb(parsed: Partial<Database>): Database {
+export function mergeStoredDb(parsed: Partial<Database>): Database {
   return {
     ...defaultDb,
     ...parsed,
@@ -517,7 +531,9 @@ export function loadDb(): Database {
 export function saveDb(db: Database): void {
   if (typeof window === "undefined") return;
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
+    const json = JSON.stringify(db);
+    rotateDbBackupBeforeSave(json);
+    localStorage.setItem(STORAGE_KEY, json);
     notifyDbChanged();
   } catch {
     /* quota or private mode — avoid crashing the app */

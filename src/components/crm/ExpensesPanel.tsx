@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { loadDb, saveDb, type ServiceExpense, type ExpenseCategory } from "@/lib/store";
+import { useDbSync } from "@/hooks/useDbSync";
 import { Button } from "@/components/ui/Button";
 
 const categories: ExpenseCategory[] = [
@@ -20,6 +21,7 @@ const categories: ExpenseCategory[] = [
 export function ExpensesPanel({ onUpdate }: { onUpdate: () => void }) {
   const { t } = useI18n();
   const w = t.wo;
+  useDbSync();
   const db = loadDb();
   const [form, setForm] = useState({
     category: "other" as ExpenseCategory,
