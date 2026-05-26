@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { verifyToken } from "@/lib/server/verify-session";
 import type { Appointment } from "@/lib/store";
+import { notifyAdminTelegram } from "@/lib/server/admin-telegram";
 import {
   cloudDeleteAppointment,
   cloudListAppointmentsByPhone,
@@ -43,7 +44,30 @@ export async function POST(req: Request) {
       { status: result.status === 401 ? 401 : 502 }
     );
   }
+
+  // Fire-and-forget admin notification (should not block booking flow)
+  void notifyAdminTelegram(
+    [
+      "<b>Новая онлайн-запись</b>",
+      `Дата: <b>${apt.date}</b> ${apt.time}`,
+      apt.clientName ? `Имя: <b>${escapeHtml(apt.clientName)}</b>` : null,
+      apt.clientPhone ? `Телефон: <b>${escapeHtml(apt.clientPhone)}</b>` : null,
+      apt.comment ? `Комментарий: ${escapeHtml(apt.comment).slice(0, 500)}` : null,
+    ]
+      .filter(Boolean)
+      .join("\n")
+  );
+
   return NextResponse.json({ ok: true });
+}
+
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
 
 export async function GET(req: Request) {

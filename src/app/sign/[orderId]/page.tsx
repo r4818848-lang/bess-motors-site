@@ -60,7 +60,7 @@ export default function SignWorkOrderPage({
 
   const canAccess =
     Boolean(order) &&
-    (isOwner || guestVerified || hasSignOrderAccess(order.id));
+    (isOwner || guestVerified || (order ? hasSignOrderAccess(order.id) : false));
 
   const handleGuestVerified = (
     verifiedOrder: WorkOrder,
