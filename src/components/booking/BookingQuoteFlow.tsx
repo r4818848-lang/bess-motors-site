@@ -34,7 +34,12 @@ import {
   type CartLine,
 } from "@/lib/booking-cart";
 import { createBookingAppointment } from "@/lib/booking-actions";
-import { trackMetaAddToCart } from "@/lib/meta-pixel";
+import {
+  trackMetaAddToCart,
+  trackMetaCustomizeProduct,
+  trackMetaInitiateCheckout,
+  trackMetaLead,
+} from "@/lib/meta-pixel";
 import { useAuth } from "@/lib/auth/session-context";
 import { BookingCalendar } from "@/components/booking/BookingCalendar";
 import { timeSlots } from "@/lib/data";
@@ -299,6 +304,7 @@ export function BookingQuoteFlow({ onDone }: Props) {
       const without = prev.filter((l) => l.itemId !== item.id);
       return [...without, line];
     });
+    trackMetaAddToCart("booking_plus");
   };
 
   const cartIds = new Set(cart.map((l) => l.itemId));
@@ -326,6 +332,7 @@ export function BookingQuoteFlow({ onDone }: Props) {
       .filter(Boolean)
       .join(" | ");
 
+    trackMetaLead("booking_submit");
     createBookingAppointment({
       serviceId: "booking-quote",
       serviceIds: cart.map((l) => l.itemId),
@@ -416,7 +423,7 @@ export function BookingQuoteFlow({ onDone }: Props) {
                 className="w-full mt-4"
                 disabled={cart.length === 0}
                 onClick={() => {
-                  trackMetaAddToCart("booking_cart");
+                  trackMetaInitiateCheckout("booking_services_continue");
                   setPhase("datetime");
                 }}
               >
@@ -454,7 +461,14 @@ export function BookingQuoteFlow({ onDone }: Props) {
             <h2 className="font-display text-lg uppercase text-center">
               {t.booking.selectDate}
             </h2>
-            <BookingCalendar selected={date} onSelect={setDate} locale={locale} />
+            <BookingCalendar
+              selected={date}
+              onSelect={(d) => {
+                setDate(d);
+                if (d) trackMetaCustomizeProduct("booking_date");
+              }}
+              locale={locale}
+            />
             {date && (
               <>
                 <h2 className="font-display text-lg uppercase text-center">
@@ -465,7 +479,10 @@ export function BookingQuoteFlow({ onDone }: Props) {
                     <button
                       key={slot}
                       type="button"
-                      onClick={() => setTime(slot)}
+                      onClick={() => {
+                        setTime(slot);
+                        trackMetaCustomizeProduct("booking_time");
+                      }}
                       className={`px-3 py-2 rounded-lg text-sm font-mono ${
                         time === slot ? "bg-bm-red shadow-neon-sm" : "glass"
                       }`}
@@ -585,7 +602,10 @@ export function BookingQuoteFlow({ onDone }: Props) {
             <Button
               className="shrink-0"
               disabled={cart.length === 0}
-              onClick={() => setPhase("datetime")}
+              onClick={() => {
+                trackMetaInitiateCheckout("booking_services_continue_mobile");
+                setPhase("datetime");
+              }}
             >
               {bq.continue}
               <ChevronRight className="w-4 h-4" />

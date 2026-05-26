@@ -46,6 +46,14 @@ export function trackMetaAddToCart(source?: string): void {
   trackMetaEvent("AddToCart", source ? { content_name: source } : undefined);
 }
 
+export function trackMetaCustomizeProduct(source?: string): void {
+  trackMetaEvent("CustomizeProduct", source ? { content_name: source } : undefined);
+}
+
+export function trackMetaCompleteRegistration(source?: string): void {
+  trackMetaEvent("CompleteRegistration", source ? { content_name: source } : undefined);
+}
+
 export function trackMetaViewContent(contentName: string): void {
   trackMetaEvent("ViewContent", { content_name: contentName });
 }
