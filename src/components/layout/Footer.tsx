@@ -4,6 +4,7 @@ import Link from "next/link";
 import { MapPin, Phone, Mail, Instagram, Facebook } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { siteConfig } from "@/lib/site";
+import { PhoneLink } from "@/components/analytics/PhoneLink";
 import { Logo } from "@/components/brand/Logo";
 
 export function Footer() {
@@ -35,13 +36,13 @@ export function Footer() {
           </div>
 
           <div className="space-y-3 text-sm">
-            <a
-              href={siteConfig.phoneHref}
+            <PhoneLink
+              trackSource="footer"
               className="flex items-center gap-2 text-white font-display text-lg font-bold hover:text-bm-red transition-colors"
             >
               <Phone className="w-5 h-5 text-bm-red" />
               {siteConfig.phone}
-            </a>
+            </PhoneLink>
             <p className="flex items-start gap-2 text-bm-muted">
               <MapPin className="w-4 h-4 text-bm-red shrink-0 mt-0.5" />
               {siteConfig.address}

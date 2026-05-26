@@ -3,6 +3,7 @@
 import { MapPin, Phone, Mail, Clock, MessageCircle } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { siteConfig } from "@/lib/site";
+import { PhoneLink } from "@/components/analytics/PhoneLink";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 
@@ -41,7 +42,14 @@ export default function ContactsPage() {
                 <item.icon className="w-6 h-6 text-bm-red shrink-0" />
                 <div>
                   <p className="text-xs uppercase text-bm-muted tracking-wide">{item.label}</p>
-                  {item.href ? (
+                  {item.href === siteConfig.phoneHref ? (
+                    <PhoneLink
+                      trackSource="contacts"
+                      className="mt-1 font-medium block hover:text-bm-red"
+                    >
+                      {item.value}
+                    </PhoneLink>
+                  ) : item.href ? (
                     <a href={item.href} className="mt-1 font-medium block hover:text-bm-red">
                       {item.value}
                     </a>

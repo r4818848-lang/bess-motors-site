@@ -9,7 +9,7 @@ import { useI18n } from "@/lib/i18n/context";
 import { useAuth } from "@/lib/auth/session-context";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { Logo } from "@/components/brand/Logo";
-import { siteConfig } from "@/lib/site";
+import { PhoneLink } from "@/components/analytics/PhoneLink";
 
 const navPaths = [
   { href: "/", key: "home" as const },
@@ -57,9 +57,9 @@ export function Header() {
 
         <div className="hidden items-center gap-3 md:flex">
           <LanguageSwitcher compact />
-          <a href={siteConfig.phoneHref} className="btn-primary text-xs py-2 px-4">
+          <PhoneLink trackSource="header" className="btn-primary text-xs py-2 px-4">
             {t.hero.ctaCall}
-          </a>
+          </PhoneLink>
         </div>
 
         <button
@@ -90,9 +90,9 @@ export function Header() {
           </nav>
           <div className="mt-4 flex flex-col gap-3">
             <LanguageSwitcher />
-            <a href={siteConfig.phoneHref} className="btn-primary text-center">
-              {siteConfig.phone}
-            </a>
+            <PhoneLink trackSource="header_mobile" className="btn-primary text-center">
+              {t.hero.ctaCall}
+            </PhoneLink>
           </div>
         </div>
       )}

@@ -4,15 +4,13 @@ import { useEffect } from "react";
 import Link from "next/link";
 import { Check, Phone } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
-import { siteConfig } from "@/lib/site";
-import { trackMetaEvent } from "@/lib/meta-pixel";
+import { PhoneLink } from "@/components/analytics/PhoneLink";
 
 export default function BookingThankYouPage() {
   const { t } = useI18n();
   const ty = t.thankYou;
 
   useEffect(() => {
-    trackMetaEvent("Lead", { content_name: "booking_thank_you" });
     if (typeof window !== "undefined" && typeof window.gtag === "function") {
       window.gtag("event", "conversion", {
         send_to: "booking_submit",
@@ -30,9 +28,9 @@ export default function BookingThankYouPage() {
         <p className="text-bm-muted mt-4 leading-relaxed">{ty.message}</p>
         <p className="text-sm text-bm-silver mt-6">{ty.hours}</p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center mt-8">
-          <a href={siteConfig.phoneHref} className="btn-primary inline-flex justify-center">
+          <PhoneLink trackSource="thank_you" className="btn-primary inline-flex justify-center">
             <Phone size={18} /> {ty.call}
-          </a>
+          </PhoneLink>
           <Link href="/cabinet" className="btn-outline inline-flex justify-center">
             {ty.cabinet}
           </Link>

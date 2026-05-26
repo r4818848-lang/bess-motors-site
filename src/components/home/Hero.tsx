@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { ChevronRight, Phone, Timer, Shield, Tag } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { siteConfig } from "@/lib/site";
+import { PhoneLink } from "@/components/analytics/PhoneLink";
 import { Logo } from "@/components/brand/Logo";
 
 export function Hero() {
@@ -89,10 +90,10 @@ export function Hero() {
             </div>
 
             <div className="mt-10 flex flex-wrap gap-4">
-              <a href={siteConfig.phoneHref} className="btn-primary group">
+              <PhoneLink trackSource="hero_cta" className="btn-primary group">
                 <Phone className="w-4 h-4" />
                 {t.hero.ctaCall}
-              </a>
+              </PhoneLink>
               <Link href="/booking" className="btn-outline group">
                 {t.hero.ctaBook}
                 <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -103,12 +104,12 @@ export function Hero() {
               </Link>
             </div>
 
-            <a
-              href={siteConfig.phoneHref}
+            <PhoneLink
+              trackSource="hero_phone"
               className="mt-8 inline-block font-display text-3xl md:text-4xl font-black text-white hover:text-bm-red transition-colors tracking-wide drop-shadow-lg"
             >
               {siteConfig.phone}
-            </a>
+            </PhoneLink>
           </motion.div>
         </div>
       </div>

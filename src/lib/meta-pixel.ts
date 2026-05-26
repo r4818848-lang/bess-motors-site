@@ -25,3 +25,11 @@ export function trackMetaEvent(
   if (params) window.fbq("track", event, params);
   else window.fbq("track", event);
 }
+
+export function trackMetaContact(source?: string): void {
+  trackMetaEvent("Contact", source ? { content_name: source } : undefined);
+}
+
+export function trackMetaLead(source?: string): void {
+  trackMetaEvent("Lead", source ? { content_name: source } : undefined);
+}
