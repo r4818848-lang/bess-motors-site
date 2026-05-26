@@ -12,6 +12,7 @@ import { Footer } from "@/components/layout/Footer";
 import { GoogleAdsTag } from "@/components/analytics/GoogleAdsTag";
 import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
 import { MetaPixel } from "@/components/analytics/MetaPixel";
+import { MetaPixelPageView } from "@/components/analytics/MetaPixelPageView";
 import { StickyContactBar } from "@/components/layout/StickyContactBar";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { getSiteUrl, googleSiteVerification } from "@/lib/seo";
@@ -127,6 +128,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       >
         <JsonLd />
         <GoogleAnalytics />
+        <MetaPixelPageView />
         <Providers>
           <Header />
           <main className="min-h-screen pb-16 md:pb-0">{children}</main>

@@ -1,17 +1,15 @@
-import Script from "next/script";
-import { Suspense } from "react";
 import { META_PIXEL_ID, metaPixelInitScript } from "@/lib/meta-pixel";
-import { MetaPixelPageView } from "./MetaPixelPageView";
 
-/** Meta (Facebook) Pixel — official snippet via dangerouslySetInnerHTML (reliable in Next.js) */
+/**
+ * Meta base pixel — place between <head> and </head> on every page (root layout).
+ * Plain <script> so the snippet is in server HTML, as Meta Events Manager expects.
+ */
 export function MetaPixel() {
   if (!META_PIXEL_ID) return null;
 
   return (
     <>
-      <Script
-        id="meta-pixel"
-        strategy="afterInteractive"
+      <script
         dangerouslySetInnerHTML={{
           __html: metaPixelInitScript(META_PIXEL_ID),
         }}
@@ -25,9 +23,6 @@ export function MetaPixel() {
           src={`https://www.facebook.com/tr?id=${META_PIXEL_ID}&ev=PageView&noscript=1`}
         />
       </noscript>
-      <Suspense fallback={null}>
-        <MetaPixelPageView />
-      </Suspense>
     </>
   );
 }
