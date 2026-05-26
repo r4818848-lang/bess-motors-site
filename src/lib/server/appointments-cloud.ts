@@ -15,14 +15,22 @@ function cleanEnvValue(raw: string | undefined): string {
 }
 
 function validateServiceRoleKey(key: string): string | null {
-  if (!key.startsWith("eyJ")) {
-    return "bad_service_role_key_use_secret_from_supabase_api_not_anon";
+  const isLegacyJwt = key.startsWith("eyJ");
+  const isNewSecret = key.startsWith("sb_secret_");
+  if (!isLegacyJwt && !isNewSecret) {
+    return "use_supabase_secret_key_not_publishable_sb_publishable";
+  }
+  if (key.startsWith("sb_publishable_")) {
+    return "use_secret_key_not_publishable";
   }
   if (!/^[A-Za-z0-9._-]+$/.test(key)) {
     return "service_role_key_has_invalid_characters";
   }
-  if (key.length < 80) {
+  if (isLegacyJwt && key.length < 80) {
     return "service_role_key_too_short_recopy_from_supabase";
+  }
+  if (isNewSecret && key.length < 24) {
+    return "secret_key_too_short_recopy_from_supabase";
   }
   return null;
 }
