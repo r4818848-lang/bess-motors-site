@@ -12,7 +12,7 @@ function bearerToken(req: Request): string | null {
   return h.slice(7).trim() || null;
 }
 
-async function requireCrmSession(req: Request) {
+async function requireStaffSession(req: Request, write = false) {
   if (!isSupabaseConfigured()) {
     return { error: NextResponse.json({ error: "cloud_disabled" }, { status: 503 }) };
   }
@@ -21,8 +21,15 @@ async function requireCrmSession(req: Request) {
     return { error: NextResponse.json({ error: "unauthorized" }, { status: 401 }) };
   }
   const session = await verifyToken(token);
-  if (!session || session.role !== "admin") {
-    return { error: NextResponse.json({ error: "admin_only" }, { status: 403 }) };
+  if (!session) {
+    return { error: NextResponse.json({ error: "unauthorized" }, { status: 401 }) };
+  }
+  if (write) {
+    if (session.role !== "admin" && session.role !== "mechanic") {
+      return { error: NextResponse.json({ error: "forbidden" }, { status: 403 }) };
+    }
+  } else if (session.role !== "admin" && session.role !== "mechanic") {
+    return { error: NextResponse.json({ error: "forbidden" }, { status: 403 }) };
   }
   return { session };
 }
@@ -33,7 +40,7 @@ function docForCloud(db: Database): Database {
 }
 
 export async function GET(req: Request) {
-  const auth = await requireCrmSession(req);
+  const auth = await requireStaffSession(req);
   if ("error" in auth && auth.error) return auth.error;
 
   const snapshot = await cloudGetCrmStore();
@@ -48,7 +55,7 @@ export async function GET(req: Request) {
 }
 
 export async function PUT(req: Request) {
-  const auth = await requireCrmSession(req);
+  const auth = await requireStaffSession(req, true);
   if ("error" in auth && auth.error) return auth.error;
 
   let db: Database;

@@ -9,10 +9,14 @@ const CLOUD_SYNCED_AT_KEY = "bess-crm-cloud-synced-at";
 let pushTimer: ReturnType<typeof setTimeout> | null = null;
 let pushInFlight = false;
 
-function isCrmCloudWriter(): boolean {
+function isStaffCloudWriter(): boolean {
   if (typeof window === "undefined") return false;
   const role = localStorage.getItem(SESSION_ROLE_KEY);
-  return role === "admin";
+  return role === "admin" || role === "mechanic";
+}
+
+function isCrmCloudWriter(): boolean {
+  return isStaffCloudWriter();
 }
 
 function dbForCloud(db: Database): Database {

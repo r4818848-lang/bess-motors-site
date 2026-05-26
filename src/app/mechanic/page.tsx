@@ -2,18 +2,14 @@
 
 import { useState, useEffect, useMemo, Suspense } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import {
   Wrench,
-  CalendarDays,
   Wallet,
   LogOut,
-  Car,
-  User,
+  Check,
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { DashboardLayout } from "@/components/crm/DashboardLayout";
-import { AppointmentCalendar } from "@/components/crm/AppointmentCalendar";
 import {
   getMechanicProfileId,
   getCurrentUser,
@@ -21,8 +17,8 @@ import {
 } from "@/lib/auth";
 import { loadDb, saveDb, type RepairStatus } from "@/lib/store";
 import { handleWorkOrderClientNotifications } from "@/lib/client-notifications";
-import { getAppointmentContext } from "@/lib/appointments";
 import { calcServiceLine, calcMechanicEarnings } from "@/lib/workorder-calc";
+import { pushCrmToCloud } from "@/lib/cloud-crm-db";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { DB_CHANGED_EVENT } from "@/lib/db-events";
@@ -36,21 +32,17 @@ const statuses: RepairStatus[] = [
   "delivered",
 ];
 
-type MechTab = "tasks" | "appointments" | "salary" | "calendar";
+type MechTab = "tasks" | "salary";
 
 function MechanicPageContent() {
   const { t } = useI18n();
   const m = t.mechanic;
   const w = t.wo;
-  const cal = t.calendar;
-  const searchParams = useSearchParams();
   const [tick, setTick] = useState(0);
   const [tab, setTab] = useState<MechTab>("tasks");
-
-  useEffect(() => {
-    const view = searchParams.get("view");
-    if (view === "calendar") setTab("calendar");
-  }, [searchParams]);
+  const [pendingStatus, setPendingStatus] = useState<Record<string, RepairStatus>>({});
+  const [confirmingId, setConfirmingId] = useState<string | null>(null);
+  const [syncError, setSyncError] = useState("");
 
   useEffect(() => {
     const onDb = () => setTick((n) => n + 1);
@@ -77,14 +69,6 @@ function MechanicPageContent() {
     [db.workOrders, mechanicId]
   );
 
-  const myAppointments = useMemo(() => {
-    if (!mechanicId) return [];
-    const today = new Date().toISOString().slice(0, 10);
-    return db.appointments
-      .filter((a) => a.mechanicId === mechanicId && a.date >= today)
-      .sort((a, b) => `${a.date}${a.time}`.localeCompare(`${b.date}${b.time}`));
-  }, [db.appointments, mechanicId]);
-
   const earningsByOrder = useMemo(() => {
     if (!mechProfile) return [];
     return myOrders.map((order) => ({
@@ -106,23 +90,60 @@ function MechanicPageContent() {
   const activeOrders = myOrders.filter((o) => o.status !== "delivered");
   const inProgress = myOrders.filter((o) => o.status === "repair");
 
-  const updateStatus = (orderId: string, status: RepairStatus) => {
+  const selectPendingStatus = (orderId: string, status: RepairStatus) => {
+    setSyncError("");
+    setPendingStatus((prev) => {
+      const order = myOrders.find((o) => o.id === orderId);
+      if (order && order.status === status) {
+        const next = { ...prev };
+        delete next[orderId];
+        return next;
+      }
+      return { ...prev, [orderId]: status };
+    });
+  };
+
+  const confirmStatus = async (orderId: string) => {
+    const status = pendingStatus[orderId];
+    if (!status) return;
+
+    setConfirmingId(orderId);
+    setSyncError("");
+
     const fresh = loadDb();
     const order = fresh.workOrders.find((o) => o.id === orderId);
-    if (order) {
-      const previous = { ...order };
-      order.status = status;
-      handleWorkOrderClientNotifications(fresh, order, previous);
-      saveDb(fresh);
-      setTick((n) => n + 1);
+    if (!order || order.status === status) {
+      setConfirmingId(null);
+      setPendingStatus((prev) => {
+        const next = { ...prev };
+        delete next[orderId];
+        return next;
+      });
+      return;
     }
+
+    const previous = { ...order };
+    order.status = status;
+    handleWorkOrderClientNotifications(fresh, order, previous);
+    saveDb(fresh);
+
+    const synced = await pushCrmToCloud(fresh);
+    if (!synced) {
+      setSyncError(m.statusSyncFailed);
+    }
+
+    setPendingStatus((prev) => {
+      const next = { ...prev };
+      delete next[orderId];
+      return next;
+    });
+    setConfirmingId(null);
+    setTick((n) => n + 1);
   };
 
   const tabs: { id: MechTab; icon: typeof Wrench; label: string }[] = [
     { id: "tasks", icon: Wrench, label: m.myTasks },
-    { id: "appointments", icon: CalendarDays, label: m.myAppointments },
     { id: "salary", icon: Wallet, label: m.mySalary },
-    { id: "calendar", icon: CalendarDays, label: cal.title },
   ];
 
   if (!mechanicId || !user) return null;
@@ -153,11 +174,10 @@ function MechanicPageContent() {
           </Button>
         </div>
 
-        <div className="grid md:grid-cols-4 gap-4 mb-8">
+        <div className="grid md:grid-cols-3 gap-4 mb-8">
           {[
             { label: m.activeOrders, count: activeOrders.length },
             { label: m.inProgress, count: inProgress.length },
-            { label: m.appointmentsToday, count: myAppointments.length },
             { label: m.monthEarnings, count: `${monthEarnings.toFixed(2)} zł` },
           ].map((stat, i) => (
             <Card key={i} glow className="text-center py-5">
@@ -182,53 +202,8 @@ function MechanicPageContent() {
           ))}
         </div>
 
-        {tab === "calendar" && (
-          <AppointmentCalendar role="mechanic" mechanicId={mechanicId} />
-        )}
-
-        {tab === "appointments" && (
-          <div className="space-y-4">
-            <h2 className="font-display uppercase text-bm-red">{m.myAppointments}</h2>
-            {myAppointments.length === 0 ? (
-              <Card glow className="text-center py-12 text-bm-muted">
-                {m.noAppointments}
-              </Card>
-            ) : (
-              myAppointments.map((apt) => {
-                const ctx = getAppointmentContext(db, apt);
-                return (
-                  <Card key={apt.id} glow>
-                    <div className="flex flex-wrap justify-between gap-3">
-                      <div>
-                        <p className="font-display font-bold text-bm-red">
-                          {apt.date} · {apt.time}
-                        </p>
-                        <p className="text-lg font-semibold mt-1 flex items-center gap-2">
-                          <User className="w-4 h-4 text-bm-muted" />
-                          {ctx.contact.name}
-                        </p>
-                        <p className="text-sm text-bm-muted">{ctx.contact.phone}</p>
-                        {ctx.vehicle && (
-                          <p className="text-sm text-bm-muted flex items-center gap-2 mt-1">
-                            <Car className="w-4 h-4" />
-                            {ctx.vehicle.make} {ctx.vehicle.model} · {ctx.vehicle.plate}
-                          </p>
-                        )}
-                      </div>
-                      <span className="status-pill bg-bm-red/20 text-bm-red h-fit">
-                        {t.repairStatus[apt.repairStatus]}
-                      </span>
-                    </div>
-                    {apt.comment && (
-                      <p className="text-sm text-bm-muted mt-3 border-l-2 border-bm-border pl-3">
-                        {apt.comment}
-                      </p>
-                    )}
-                  </Card>
-                );
-              })
-            )}
-          </div>
+        {syncError && (
+          <p className="mb-4 text-sm text-amber-400 text-center">{syncError}</p>
         )}
 
         {tab === "salary" && mechProfile && (
@@ -313,6 +288,10 @@ function MechanicPageContent() {
                 const vehicle = db.vehicles.find((v) => v.id === order.vehicleId);
                 const client = db.users.find((u) => u.id === order.userId);
                 const earn = calcMechanicEarnings(order, db.settings, mechProfile);
+                const draft = pendingStatus[order.id];
+                const displayStatus = draft ?? order.status;
+                const hasPendingChange = draft !== undefined && draft !== order.status;
+
                 return (
                   <Card key={order.id} glow>
                     <div className="flex flex-wrap justify-between gap-4 mb-4">
@@ -329,6 +308,11 @@ function MechanicPageContent() {
                         <span className="status-pill bg-bm-red/20 text-bm-red h-fit inline-block mb-2">
                           {t.repairStatus[order.status]}
                         </span>
+                        {hasPendingChange && (
+                          <p className="text-xs text-amber-400 mb-1">
+                            → {t.repairStatus[draft]}
+                          </p>
+                        )}
                         <p className="text-xs uppercase text-bm-muted">{m.yourEarnings}</p>
                         <p className="font-display text-xl font-bold text-amber-400">
                           {earn.total.toFixed(2)} zł
@@ -355,19 +339,54 @@ function MechanicPageContent() {
                       </p>
                     )}
 
-                    <p className="text-xs uppercase text-bm-muted mb-2">{m.updateStatus}</p>
+                    <p className="text-xs uppercase text-bm-muted mb-1">{m.updateStatus}</p>
+                    <p className="text-[10px] text-bm-muted/80 mb-2">{m.statusConfirmHint}</p>
                     <div className="flex flex-wrap gap-2">
                       {statuses.map((s) => (
                         <Button
                           key={s}
-                          variant={order.status === s ? "primary" : "outline"}
+                          variant={displayStatus === s ? "primary" : "outline"}
                           className="text-xs py-1 px-3"
-                          onClick={() => updateStatus(order.id, s)}
+                          disabled={confirmingId === order.id}
+                          onClick={() => selectPendingStatus(order.id, s)}
                         >
                           {t.repairStatus[s]}
                         </Button>
                       ))}
                     </div>
+
+                    {hasPendingChange && (
+                      <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-bm-border/50">
+                        <Button
+                          className="gap-2 text-xs"
+                          disabled={confirmingId === order.id}
+                          onClick={() => confirmStatus(order.id)}
+                        >
+                          {confirmingId === order.id ? (
+                            m.confirmingStatus
+                          ) : (
+                            <>
+                              <Check className="w-4 h-4" />
+                              {m.confirmStatus}
+                            </>
+                          )}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          className="text-xs"
+                          disabled={confirmingId === order.id}
+                          onClick={() =>
+                            setPendingStatus((prev) => {
+                              const next = { ...prev };
+                              delete next[order.id];
+                              return next;
+                            })
+                          }
+                        >
+                          {m.cancelStatus}
+                        </Button>
+                      </div>
+                    )}
                   </Card>
                 );
               })

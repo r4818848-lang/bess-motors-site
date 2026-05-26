@@ -41,7 +41,7 @@ function DashboardLayoutInner({
   const tab = searchParams.get("tab");
   const c = t.crm;
   useCloudAppointmentsSync(role === "admin");
-  useCloudCrmSync(role === "admin");
+  useCloudCrmSync(role === "admin" || role === "mechanic");
   const hotBadge = useHotOrdersBadgeCount();
 
   const adminNav: NavItem[] = [
@@ -58,8 +58,6 @@ function DashboardLayoutInner({
 
   const mechanicNav: NavItem[] = [
     { href: "/mechanic", path: "/mechanic", icon: Wrench, label: t.mechanic.title },
-    { href: "/mechanic?view=calendar", path: "/mechanic", icon: Calendar, label: t.calendar.title },
-    { href: "/crm/work-orders", path: "/crm/work-orders", icon: FileText, label: c.workOrders },
   ];
 
   const items = role === "admin" ? adminNav : mechanicNav;
