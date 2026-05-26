@@ -24,3 +24,8 @@ export const publicSitemapPaths: {
 export const googleSiteVerification =
   process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION ??
   process.env.GOOGLE_SITE_VERIFICATION;
+
+/** Meta Business Suite → Domains → verify bess-motors.com (HTML meta tag) */
+export const facebookDomainVerification =
+  process.env.NEXT_PUBLIC_FACEBOOK_DOMAIN_VERIFICATION?.trim() ||
+  "lt6qibm590hn899ajzy9ywie8qzgh9";

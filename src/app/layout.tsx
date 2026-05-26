@@ -15,7 +15,11 @@ import { MetaPixelPageView } from "@/components/analytics/MetaPixelPageView";
 import { META_PIXEL_ID, metaPixelInitScript } from "@/lib/meta-pixel";
 import { StickyContactBar } from "@/components/layout/StickyContactBar";
 import { JsonLd } from "@/components/seo/JsonLd";
-import { getSiteUrl, googleSiteVerification } from "@/lib/seo";
+import {
+  facebookDomainVerification,
+  getSiteUrl,
+  googleSiteVerification,
+} from "@/lib/seo";
 
 
 
@@ -112,6 +116,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="pl" className={`${inter.variable} ${orbitron.variable}`} suppressHydrationWarning>
 
       <head>
+        <meta
+          name="facebook-domain-verification"
+          content={facebookDomainVerification}
+        />
         <GoogleAdsTag />
         {/* Meta Pixel — inline in <head>, no next/script (Meta Pixel Helper) */}
         {META_PIXEL_ID ? (
