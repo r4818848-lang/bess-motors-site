@@ -19,7 +19,9 @@ const config: Config = {
         },
       },
       fontFamily: {
-        display: ["var(--font-orbitron)", "system-ui", "sans-serif"],
+        // Orbitron has no Cyrillic subset → Cyrillic headings rendered as tofu.
+        // Use Inter for display to ensure RU/UK text is readable everywhere.
+        display: ["var(--font-inter)", "system-ui", "sans-serif"],
         body: ["var(--font-inter)", "system-ui", "sans-serif"],
       },
       boxShadow: {
