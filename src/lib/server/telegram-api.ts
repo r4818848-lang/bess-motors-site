@@ -33,10 +33,16 @@ export function isAuthorizedChat(chatId: number | string | undefined): boolean {
   return cfg.adminChatIds.has(String(chatId));
 }
 
-async function telegramRequest<T>(
+type TelegramApiResponse = {
+  ok?: boolean;
+  description?: string;
+  result?: unknown;
+};
+
+async function telegramRequest(
   method: string,
   body: Record<string, unknown>
-): Promise<T | null> {
+): Promise<TelegramApiResponse | null> {
   const cfg = getTelegramConfig();
   if (!cfg) return null;
 
@@ -46,15 +52,63 @@ async function telegramRequest<T>(
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     });
-    if (!res.ok) {
-      console.warn(`[telegram] ${method} failed`, res.status, await res.text());
-      return null;
+    const data = (await res.json()) as TelegramApiResponse;
+    if (!res.ok || data.ok === false) {
+      console.warn(`[telegram] ${method} failed`, res.status, data);
+      return data.ok === false ? data : null;
     }
-    return (await res.json()) as T;
+    return data;
   } catch (e) {
     console.warn(`[telegram] ${method} error`, e);
     return null;
   }
+}
+
+export async function getTelegramBotInfo(): Promise<{
+  ok: boolean;
+  username?: string;
+  error?: string;
+}> {
+  const cfg = getTelegramConfig();
+  if (!cfg) {
+    return { ok: false, error: "TELEGRAM_BOT_TOKEN или TELEGRAM_CHAT_ID не заданы" };
+  }
+
+  const res = await telegramRequest("getMe", {});
+  if (!res?.ok) {
+    return {
+      ok: false,
+      error: res?.description ?? "Неверный TELEGRAM_BOT_TOKEN",
+    };
+  }
+  const username = (res.result as { username?: string } | undefined)?.username;
+  return { ok: true, username };
+}
+
+export async function deleteTelegramWebhook(): Promise<boolean> {
+  const res = await telegramRequest("deleteWebhook", { drop_pending_updates: true });
+  return res?.ok === true;
+}
+
+export async function setTelegramWebhook(
+  url: string,
+  secret?: string
+): Promise<{ ok: boolean; error?: string }> {
+  await deleteTelegramWebhook();
+
+  const body: Record<string, unknown> = {
+    url,
+    allowed_updates: ["message", "callback_query"],
+    drop_pending_updates: true,
+  };
+  if (secret) body.secret_token = secret;
+
+  const res = await telegramRequest("setWebhook", body);
+  if (res?.ok) return { ok: true };
+  return {
+    ok: false,
+    error: res?.description ?? "setWebhook failed",
+  };
 }
 
 export async function sendTelegramMessage(
@@ -70,8 +124,9 @@ export async function sendTelegramMessage(
   };
   if (replyMarkup) payload.reply_markup = replyMarkup;
 
-  const res = await telegramRequest<{ result?: { message_id?: number } }>("sendMessage", payload);
-  return res?.result?.message_id ?? null;
+  const res = await telegramRequest("sendMessage", payload);
+  const messageId = (res?.result as { message_id?: number } | undefined)?.message_id;
+  return messageId ?? null;
 }
 
 export async function editTelegramMessage(
@@ -89,7 +144,7 @@ export async function editTelegramMessage(
   };
   if (replyMarkup) payload.reply_markup = replyMarkup;
 
-  const res = await telegramRequest<{ ok?: boolean }>("editMessageText", payload);
+  const res = await telegramRequest("editMessageText", payload);
   return res?.ok === true;
 }
 
@@ -109,11 +164,4 @@ export async function notifyAdminTelegram(text: string): Promise<boolean> {
   if (!cfg) return false;
   const id = await sendTelegramMessage(cfg.chatId, text);
   return id !== null;
-}
-
-export async function setTelegramWebhook(url: string, secret?: string): Promise<boolean> {
-  const body: Record<string, unknown> = { url, allowed_updates: ["message", "callback_query"] };
-  if (secret) body.secret_token = secret;
-  const res = await telegramRequest<{ ok?: boolean }>("setWebhook", body);
-  return res?.ok === true;
 }

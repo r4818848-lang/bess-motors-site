@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { cleanEnvValue } from "@/lib/server/supabase-config";
-import { setTelegramWebhook } from "@/lib/server/telegram-api";
+import { getTelegramBotInfo, setTelegramWebhook } from "@/lib/server/telegram-api";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -19,12 +19,26 @@ export async function GET(req: Request) {
   const webhookUrl = `${siteUrl.replace(/\/$/, "")}/api/telegram/webhook`;
   const secret = cleanEnvValue(process.env.TELEGRAM_WEBHOOK_SECRET);
 
-  const ok = await setTelegramWebhook(webhookUrl, secret || undefined);
+  const bot = await getTelegramBotInfo();
+  if (!bot.ok) {
+    return NextResponse.json({
+      ok: false,
+      webhookUrl,
+      step: "getMe",
+      error: bot.error,
+      hint:
+        "Скопируйте токен заново из @BotFather → /mybots → ваш бот → API Token. В Vercel без пробелов и кавычек. Затем Redeploy.",
+    });
+  }
+
+  const result = await setTelegramWebhook(webhookUrl, secret || undefined);
   return NextResponse.json({
-    ok,
+    ok: result.ok,
+    bot: bot.username ? `@${bot.username}` : undefined,
     webhookUrl,
-    hint: ok
+    error: result.error,
+    hint: result.ok
       ? "Webhook установлен. Отправьте /start боту в Telegram."
-      : "Не удалось установить webhook. Проверьте TELEGRAM_BOT_TOKEN.",
+      : "Telegram отклонил webhook. Смотрите поле error выше.",
   });
 }
