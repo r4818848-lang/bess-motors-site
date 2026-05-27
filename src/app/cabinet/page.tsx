@@ -91,6 +91,26 @@ const emptyVinForm = {
   colorHex: "",
 };
 
+async function pushVehicleToCloud(vehicle: Vehicle): Promise<boolean> {
+  if (typeof window === "undefined") return false;
+  const token = localStorage.getItem("bess-jwt");
+  if (!token) return false;
+  try {
+    const res = await fetch("/api/client-portal", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ action: "upsert-vehicle", vehicle }),
+    });
+    const json = (await res.json()) as { ok?: boolean };
+    return res.ok && json.ok === true;
+  } catch {
+    return false;
+  }
+}
+
 function CabinetPageContent() {
   const { t } = useI18n();
   const searchParams = useSearchParams();
@@ -198,6 +218,16 @@ function CabinetPageContent() {
     setDb({ ...fresh });
     setVinForm(emptyVinForm);
     setVinMessage({ type: "ok", text: t.cabinet.carAdded });
+    void pushVehicleToCloud(vehicle).then((ok) => {
+      if (!ok) {
+        setVinMessage({
+          type: "err",
+          text:
+            (t as any)?.mechanic?.statusSyncFailed ??
+            "Сохранено локально, но синхронизация с сервером не удалась.",
+        });
+      }
+    });
   };
 
   const searchVin = async () => {

@@ -8,6 +8,7 @@ export const CLIENT = {
   myOrders: "📋 Заказ-наряды",
   notifications: "🔔 Уведомления",
   myCars: "🚗 Мои авто",
+  addVin: "➕ Добавить VIN",
   activate: "🔐 Подключить кабинет",
   contacts: "📍 Контакты",
   menu: "🏠 Главное меню",
@@ -65,6 +66,18 @@ export const CLIENT = {
   cabinetHint: "🌐 Полный кабинет: https://www.bess-motors.com/cabinet",
   contactsText:
     "<b>BESS MOTORS</b>\n\n📍 Aleja Krakowska 48/52, 02-284 Warszawa\n☎️ +48 791 257 229\n✉️ bessmotorss@gmail.com\n\n🕐 Pn–Sb 8:00–20:00\n\n🌐 https://www.bess-motors.com",
+  vinEnter: "🔎 Введите VIN (17 символов):",
+  vinInvalid: "❌ VIN должен содержать ровно 17 символов.",
+  vinNotFound: "❌ Не удалось распознать VIN. Проверьте номер и попробуйте ещё раз.",
+  vinPlateAsk:
+    "🚗 Введите госномер (не обязательно). Если пропустить — будет VIN-XXXXXX.\n\nНапример: WA12345",
+  vinConfirmTitle: "Проверить и добавить авто?",
+  vinConfirmYes: "✅ Добавить",
+  vinConfirmNo: "❌ Отмена",
+  vinEditVin: "🔄 Другой VIN",
+  vinEditPlate: "✏️ Изменить госномер",
+  vinAdded: "✅ Автомобиль добавлен и синхронизирован.",
+  vinDuplicate: "⚠️ Этот VIN уже есть в вашем гараже.",
 };
 
 export const APPOINTMENT_STATUS_CLIENT: Record<string, string> = {

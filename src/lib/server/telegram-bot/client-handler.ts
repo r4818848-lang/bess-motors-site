@@ -39,6 +39,8 @@ import {
   clientSkipCommentKeyboard,
   clientTimeKeyboard,
   formatClientBookingSummary,
+  vinAskPlateKeyboard,
+  vinConfirmKeyboard,
   linkConfirmKeyboard,
   linkEditPickKeyboard,
   linkPlateStepKeyboard,
@@ -52,6 +54,7 @@ import {
   type TelegramProfile,
 } from "./client-telegram-link";
 import { decodeTimeSlot, formatDateShort, getClientServiceLabel } from "./client-services";
+import { addVehicleByVinToLinkedClient, decodeVinForClient, formatVinPreview, normalizeVinInput } from "./client-vin";
 
 type TelegramUser = {
   id: number;
@@ -387,6 +390,39 @@ export async function handleClientMessage(msg: TelegramMessage): Promise<void> {
 
   const session = await getTelegramSession(chatKey);
 
+  if (session.step === "client_vin_input") {
+    const vin = normalizeVinInput(text);
+    if (vin.length !== 17) {
+      await sendTelegramMessage(chatId, CLIENT.vinInvalid);
+      return;
+    }
+    const decoded = await decodeVinForClient(vin);
+    if (!decoded.ok || !decoded.found || !decoded.vehicle) {
+      await sendTelegramMessage(chatId, CLIENT.vinNotFound);
+      return;
+    }
+    await setTelegramSession(chatKey, {
+      step: "client_vin_plate",
+      data: { vin, plate: "", ...Object.fromEntries(Object.entries(decoded.vehicle).map(([k, v]) => [k, String(v ?? "")])) },
+    });
+    await sendTelegramMessage(chatId, `${formatVinPreview(decoded.vehicle)}\n\n${CLIENT.vinPlateAsk}`, vinAskPlateKeyboard());
+    return;
+  }
+
+  if (session.step === "client_vin_plate") {
+    const plate = text.trim().toUpperCase();
+    const vin = session.data?.vin ?? "";
+    if (!vin) {
+      await showClientMenu(chatId);
+      return;
+    }
+    const next = { ...(session.data ?? {}), plate };
+    await setTelegramSession(chatKey, { step: "client_vin_confirm", data: next });
+    const preview = formatVinPreview({ ...next, vin });
+    await sendTelegramMessage(chatId, `${preview}\n\n${CLIENT.vinConfirmTitle}`, vinConfirmKeyboard());
+    return;
+  }
+
   if (session.step === "client_link_phone") {
     if (!isValidClientPhone(text)) {
       await sendTelegramMessage(chatId, CLIENT.invalidPhone, phoneRequestReplyKeyboard());
@@ -495,6 +531,76 @@ export async function handleClientCallback(cb: TelegramCallback): Promise<void> 
 
   if (data === "cl:menu") {
     await showClientMenu(chatId, messageId);
+    return;
+  }
+
+  if (data === "cl:vin") {
+    if (!slice) {
+      await startLinkFlow(chatId, messageId, chatKey, profile);
+      return;
+    }
+    await clearTelegramSession(chatKey);
+    await setTelegramSession(chatKey, { step: "client_vin_input", data: {} });
+    await replyOrEdit(chatId, messageId, CLIENT.vinEnter, { inline_keyboard: [[{ text: CLIENT.cancel, callback_data: "cl:menu" }]] });
+    return;
+  }
+
+  if (data === "cl:vin:plate:skip") {
+    const d = session.data ?? sessionData;
+    const vin = d.vin ?? "";
+    if (!vin) {
+      await showClientMenu(chatId, messageId);
+      return;
+    }
+    const next = { ...d, plate: "" };
+    await setTelegramSession(chatKey, { step: "client_vin_confirm", data: next });
+    const decoded = await decodeVinForClient(vin);
+    const preview = decoded.found && decoded.vehicle ? formatVinPreview(decoded.vehicle) : `VIN: <code>${vin}</code>`;
+    await replyOrEdit(chatId, messageId, `${preview}\n\n${CLIENT.vinConfirmTitle}`, vinConfirmKeyboard());
+    return;
+  }
+
+  if (data === "cl:vin:edit:plate") {
+    const d = session.data ?? sessionData;
+    if (!d.vin) {
+      await showClientMenu(chatId, messageId);
+      return;
+    }
+    await setTelegramSession(chatKey, { step: "client_vin_plate", data: d });
+    await replyOrEdit(chatId, messageId, CLIENT.vinPlateAsk, vinAskPlateKeyboard());
+    return;
+  }
+
+  if (data === "cl:vin:edit:vin") {
+    await clearTelegramSession(chatKey);
+    await setTelegramSession(chatKey, { step: "client_vin_input", data: {} });
+    await replyOrEdit(chatId, messageId, CLIENT.vinEnter, { inline_keyboard: [[{ text: CLIENT.cancel, callback_data: "cl:menu" }]] });
+    return;
+  }
+
+  if (data === "cl:vin:add") {
+    const d = session.data ?? sessionData;
+    const vin = d.vin ?? "";
+    if (!vin) {
+      await showClientMenu(chatId, messageId);
+      return;
+    }
+    const plate = (d.plate ?? "").trim();
+    const res = await addVehicleByVinToLinkedClient({ chatId: chatKey, vin, plate });
+    await clearTelegramSession(chatKey);
+    if (!res.ok) {
+      const msg =
+        res.error === "duplicate"
+          ? CLIENT.vinDuplicate
+          : res.error === "not_linked"
+            ? CLIENT.signIntro
+            : CLIENT.vinNotFound;
+      await replyOrEdit(chatId, messageId, msg, slice ? clientLinkedMenuKeyboard(slice, countPendingSign(slice), countUnread(slice)) : clientMainKeyboard(false));
+      return;
+    }
+    const fresh = await getClientPortalByChat(chatKey);
+    const kb = fresh ? clientLinkedMenuKeyboard(fresh, countPendingSign(fresh), countUnread(fresh)) : clientMainKeyboard(true);
+    await replyOrEdit(chatId, messageId, CLIENT.vinAdded, kb);
     return;
   }
 

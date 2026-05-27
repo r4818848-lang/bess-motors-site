@@ -60,7 +60,10 @@ export function clientLinkedMenuKeyboard(
         { text: notifLabel, callback_data: "cl:notif" },
         { text: CLIENT.myAppointments, callback_data: "cl:apts" },
       ],
-      [{ text: CLIENT.myCars, callback_data: "cl:cars" }],
+      [
+        { text: CLIENT.myCars, callback_data: "cl:cars" },
+        { text: CLIENT.addVin, callback_data: "cl:vin" },
+      ],
       [
         { text: CLIENT.book, callback_data: "cl:book" },
         { text: CLIENT.call, callback_data: "cl:call" },
@@ -69,6 +72,28 @@ export function clientLinkedMenuKeyboard(
         { text: CLIENT.contacts, callback_data: "cl:contacts" },
         { text: "🌐 Кабинет на сайте", url: `${siteBase()}/cabinet` },
       ],
+    ],
+  };
+}
+
+export function vinConfirmKeyboard(): InlineKeyboardMarkup {
+  return {
+    inline_keyboard: [
+      [{ text: CLIENT.vinConfirmYes, callback_data: "cl:vin:add" }],
+      [
+        { text: CLIENT.vinEditPlate, callback_data: "cl:vin:edit:plate" },
+        { text: CLIENT.vinEditVin, callback_data: "cl:vin:edit:vin" },
+      ],
+      [{ text: CLIENT.vinConfirmNo, callback_data: "cl:menu" }],
+    ],
+  };
+}
+
+export function vinAskPlateKeyboard(): InlineKeyboardMarkup {
+  return {
+    inline_keyboard: [
+      [{ text: CLIENT.skip, callback_data: "cl:vin:plate:skip" }],
+      [{ text: CLIENT.cancel, callback_data: "cl:menu" }],
     ],
   };
 }

@@ -14,7 +14,10 @@ export type TelegramSessionStep =
   | "client_link_phone"
   | "client_link_plate"
   | "client_link_confirm"
-  | "client_link_name";
+  | "client_link_name"
+  | "client_vin_input"
+  | "client_vin_plate"
+  | "client_vin_confirm";
 
 export type TelegramSession = {
   step?: TelegramSessionStep;
