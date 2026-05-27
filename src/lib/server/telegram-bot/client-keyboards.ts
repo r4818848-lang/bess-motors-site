@@ -93,6 +93,46 @@ export function phoneRequestReplyKeyboard() {
   };
 }
 
+export function linkPlateStepKeyboard(): InlineKeyboardMarkup {
+  return {
+    inline_keyboard: [
+      [{ text: CLIENT.linkEditPhone, callback_data: "cl:lk:edit:phone" }],
+      [{ text: CLIENT.cancel, callback_data: "cl:menu" }],
+    ],
+  };
+}
+
+export function formatLinkConfirmSummary(phone: string, plate: string): string {
+  return [
+    CLIENT.linkConfirmTitle,
+    "",
+    `${CLIENT.linkConfirmPhone}: <b>${phone}</b>`,
+    `${CLIENT.linkConfirmPlate}: <b>${plate.toUpperCase()}</b>`,
+    "",
+    CLIENT.linkConfirmHint,
+  ].join("\n");
+}
+
+export function linkConfirmKeyboard(): InlineKeyboardMarkup {
+  return {
+    inline_keyboard: [
+      [{ text: CLIENT.linkDataCorrect, callback_data: "cl:lk:ok" }],
+      [{ text: CLIENT.linkDataWrong, callback_data: "cl:lk:no" }],
+    ],
+  };
+}
+
+export function linkEditPickKeyboard(): InlineKeyboardMarkup {
+  return {
+    inline_keyboard: [
+      [{ text: CLIENT.linkEditPhone, callback_data: "cl:lk:edit:phone" }],
+      [{ text: CLIENT.linkEditPlate, callback_data: "cl:lk:edit:plate" }],
+      [{ text: CLIENT.linkRestart, callback_data: "cl:lk:restart" }],
+      [{ text: CLIENT.cancel, callback_data: "cl:menu" }],
+    ],
+  };
+}
+
 export function clientServiceKeyboard(intent: "book" | "call"): InlineKeyboardMarkup {
   const rows: InlineKeyboardMarkup["inline_keyboard"] = [];
   for (let i = 0; i < clientBookableServices.length; i += 2) {

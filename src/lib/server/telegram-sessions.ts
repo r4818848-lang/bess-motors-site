@@ -13,6 +13,7 @@ export type TelegramSessionStep =
   | "client_my_phone"
   | "client_link_phone"
   | "client_link_plate"
+  | "client_link_confirm"
   | "client_link_name";
 
 export type TelegramSession = {

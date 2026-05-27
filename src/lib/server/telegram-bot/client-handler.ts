@@ -39,6 +39,10 @@ import {
   clientSkipCommentKeyboard,
   clientTimeKeyboard,
   formatClientBookingSummary,
+  linkConfirmKeyboard,
+  linkEditPickKeyboard,
+  linkPlateStepKeyboard,
+  formatLinkConfirmSummary,
   phoneRequestReplyKeyboard,
 } from "./client-keyboards";
 import { CLIENT } from "./client-labels";
@@ -160,17 +164,67 @@ async function startLinkFlow(
   chatId: number,
   messageId: number | undefined,
   chatKey: string,
-  profile: TelegramProfile,
+  _profile: TelegramProfile,
   orderId?: string
 ): Promise<void> {
-  await setTelegramSession(chatKey, {
-    step: "client_link_phone",
-    data: orderId ? { orderId, linkIntent: "sign" } : { linkIntent: "cabinet" },
-  });
-  await sendTelegramMessage(chatId, CLIENT.linkIntro, phoneRequestReplyKeyboard());
+  const data: Record<string, string> = orderId
+    ? { orderId, linkIntent: "sign" }
+    : { linkIntent: "cabinet" };
+  await promptLinkPhone(chatId, chatKey, data);
   if (messageId) {
     await editTelegramMessage(chatId, messageId, CLIENT.linkIntro, clientMainKeyboard(false));
   }
+}
+
+async function promptLinkPhone(
+  chatId: number,
+  chatKey: string,
+  sessionData: Record<string, string>
+): Promise<void> {
+  await setTelegramSession(chatKey, {
+    step: "client_link_phone",
+    data: sessionData,
+  });
+  await sendTelegramMessage(chatId, CLIENT.linkIntro, phoneRequestReplyKeyboard());
+}
+
+async function hideReplyKeyboard(chatId: number): Promise<void> {
+  await sendTelegramMessage(chatId, "·", removeReplyKeyboard());
+}
+
+async function promptLinkPlate(
+  chatId: number,
+  chatKey: string,
+  sessionData: Record<string, string>
+): Promise<void> {
+  const phone = esc(sessionData.phone ?? "");
+  await setTelegramSession(chatKey, {
+    step: "client_link_plate",
+    data: sessionData,
+  });
+  await sendTelegramMessage(
+    chatId,
+    CLIENT.linkPhoneAccepted(phone),
+    linkPlateStepKeyboard()
+  );
+}
+
+async function showLinkConfirm(
+  chatId: number,
+  chatKey: string,
+  sessionData: Record<string, string>
+): Promise<void> {
+  const phone = sessionData.phone ?? "";
+  const plate = sessionData.plate ?? "";
+  await setTelegramSession(chatKey, {
+    step: "client_link_confirm",
+    data: sessionData,
+  });
+  await sendTelegramMessage(
+    chatId,
+    formatLinkConfirmSummary(esc(phone), esc(plate)),
+    linkConfirmKeyboard()
+  );
 }
 
 async function handleContactShare(msg: TelegramMessage): Promise<void> {
@@ -180,36 +234,31 @@ async function handleContactShare(msg: TelegramMessage): Promise<void> {
   if (!contact) return;
 
   const session = await getTelegramSession(chatKey);
+  if (session.step !== "client_link_phone") return;
+
   const fromId = msg.from?.id;
   if (contact.user_id && fromId && contact.user_id !== fromId) {
-    await sendTelegramMessage(chatId, CLIENT.wrongContact, removeReplyKeyboard());
+    await sendTelegramMessage(chatId, CLIENT.wrongContact, phoneRequestReplyKeyboard());
     return;
   }
 
   const phone = normalizePhone(contact.phone_number);
   if (!phone) {
-    await sendTelegramMessage(chatId, CLIENT.invalidPhone, removeReplyKeyboard());
+    await sendTelegramMessage(chatId, CLIENT.invalidPhone, phoneRequestReplyKeyboard());
     return;
   }
 
-  await sendTelegramMessage(
-    chatId,
-    `✅ Номер принят: <b>${esc(phone)}</b>\n\n${CLIENT.enterPlate}`,
-    removeReplyKeyboard()
-  );
+  await hideReplyKeyboard(chatId);
 
-  await setTelegramSession(chatKey, {
-    step: "client_link_plate",
-    data: {
-      ...(session.data ?? {}),
-      phone,
-      profileChatId: String(chatId),
-      telegramUserId: String(fromId ?? chatId),
-      telegramUsername: msg.from?.username ?? "",
-      firstName: msg.from?.first_name ?? "",
-      lastName: msg.from?.last_name ?? "",
-    },
-  });
+  const nextData: Record<string, string> = {
+    ...(session.data ?? {}),
+    phone,
+    telegramUserId: String(fromId ?? chatId),
+    telegramUsername: msg.from?.username ?? "",
+    firstName: msg.from?.first_name ?? "",
+    lastName: msg.from?.last_name ?? "",
+  };
+  await promptLinkPlate(chatId, chatKey, nextData);
 }
 
 async function completeLink(
@@ -343,37 +392,31 @@ export async function handleClientMessage(msg: TelegramMessage): Promise<void> {
       await sendTelegramMessage(chatId, CLIENT.invalidPhone, phoneRequestReplyKeyboard());
       return;
     }
-    await sendTelegramMessage(
-      chatId,
-      `✅ Номер: <b>${esc(normalizePhone(text))}</b>\n\n${CLIENT.enterPlate}`,
-      removeReplyKeyboard()
-    );
-    await setTelegramSession(chatKey, {
-      step: "client_link_plate",
-      data: {
-        ...(session.data ?? {}),
-        phone: normalizePhone(text),
-        telegramUserId: String(msg.from?.id ?? chatId),
-        telegramUsername: msg.from?.username ?? "",
-        firstName: msg.from?.first_name ?? "",
-        lastName: msg.from?.last_name ?? "",
-      },
-    });
+    const nextData: Record<string, string> = {
+      ...(session.data ?? {}),
+      phone: normalizePhone(text),
+      telegramUserId: String(msg.from?.id ?? chatId),
+      telegramUsername: msg.from?.username ?? "",
+      firstName: msg.from?.first_name ?? "",
+      lastName: msg.from?.last_name ?? "",
+    };
+    await hideReplyKeyboard(chatId);
+    await promptLinkPlate(chatId, chatKey, nextData);
     return;
   }
 
   if (session.step === "client_link_plate") {
     const plateKey = normalizePlateKey(text);
     if (plateKey.length < 2) {
-      await sendTelegramMessage(chatId, CLIENT.invalidPlate);
+      await sendTelegramMessage(chatId, CLIENT.invalidPlate, linkPlateStepKeyboard());
       return;
     }
     if (!session.data?.phone) {
-      await sendTelegramMessage(chatId, CLIENT.linkIntro, phoneRequestReplyKeyboard());
-      await setTelegramSession(chatKey, { step: "client_link_phone", data: session.data ?? {} });
+      await promptLinkPhone(chatId, chatKey, session.data ?? {});
       return;
     }
-    await completeLink(chatId, chatKey, text.trim(), session.data);
+    const nextData = { ...session.data, plate: text.trim().toUpperCase() };
+    await showLinkConfirm(chatId, chatKey, nextData);
     return;
   }
 
@@ -456,6 +499,46 @@ export async function handleClientCallback(cb: TelegramCallback): Promise<void> 
   }
 
   if (data === "cl:link") {
+    await startLinkFlow(chatId, messageId, chatKey, profile, sessionData.orderId);
+    return;
+  }
+
+  if (data === "cl:lk:ok") {
+    const d = session.data ?? sessionData;
+    if (!d.phone || !d.plate) {
+      await showClientMenu(chatId, messageId);
+      return;
+    }
+    await completeLink(chatId, chatKey, d.plate, d);
+    return;
+  }
+
+  if (data === "cl:lk:no") {
+    await replyOrEdit(chatId, messageId, CLIENT.linkWhatToFix, linkEditPickKeyboard());
+    return;
+  }
+
+  if (data === "cl:lk:edit:phone") {
+    const keep = { ...(session.data ?? sessionData) };
+    delete keep.phone;
+    delete keep.plate;
+    await promptLinkPhone(chatId, chatKey, keep);
+    return;
+  }
+
+  if (data === "cl:lk:edit:plate") {
+    const d = session.data ?? sessionData;
+    if (!d.phone) {
+      await promptLinkPhone(chatId, chatKey, d);
+      return;
+    }
+    const keep = { ...d };
+    delete keep.plate;
+    await promptLinkPlate(chatId, chatKey, keep);
+    return;
+  }
+
+  if (data === "cl:lk:restart") {
     await startLinkFlow(chatId, messageId, chatKey, profile, sessionData.orderId);
     return;
   }
