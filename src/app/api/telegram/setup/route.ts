@@ -15,8 +15,15 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
   }
 
-  const siteUrl = cleanEnvValue(process.env.NEXT_PUBLIC_SITE_URL) ?? "https://www.bess-motors.com";
-  const webhookUrl = `${siteUrl.replace(/\/$/, "")}/api/telegram/webhook`;
+  const siteFromEnv = cleanEnvValue(process.env.NEXT_PUBLIC_SITE_URL);
+  const siteFromRequest = new URL(req.url).origin;
+  const siteUrl =
+    siteFromEnv && siteFromEnv.startsWith("http")
+      ? siteFromEnv.replace(/\/$/, "")
+      : siteFromRequest.startsWith("http")
+        ? siteFromRequest
+        : "https://www.bess-motors.com";
+  const webhookUrl = `${siteUrl}/api/telegram/webhook`;
   const secret = cleanEnvValue(process.env.TELEGRAM_WEBHOOK_SECRET);
 
   const bot = await getTelegramBotInfo();
