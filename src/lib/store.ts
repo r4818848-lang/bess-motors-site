@@ -229,7 +229,7 @@ export type AppointmentStatus = "scheduled" | "confirmed" | "completed" | "cance
 
 export type CallRequestStatus = "needs_call" | "called" | "done";
 
-export type OrderSource = "website" | "manual";
+export type OrderSource = "website" | "manual" | "telegram";
 
 export interface MarketingAttributionFields {
   marketing?: {

@@ -5,7 +5,12 @@ const ROW_ID = "telegram_bot";
 export type TelegramSessionStep =
   | "expense_input"
   | "report_custom_from"
-  | "report_custom_to";
+  | "report_custom_to"
+  | "search_input"
+  | "client_name"
+  | "client_phone"
+  | "client_comment"
+  | "client_my_phone";
 
 export type TelegramSession = {
   step?: TelegramSessionStep;

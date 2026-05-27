@@ -2,7 +2,7 @@ import type { ReportPeriod } from "@/lib/crm-analytics";
 import { computeCrmAnalytics } from "@/lib/crm-analytics";
 import { getWebsiteHotOrders } from "@/lib/hot-orders";
 import { getPriceItem } from "@/lib/price-list";
-import type { ExpenseCategory } from "@/lib/store";
+import type { ExpenseCategory, RepairStatus } from "@/lib/store";
 import {
   answerCallbackQuery,
   editTelegramMessage,
@@ -14,29 +14,56 @@ import {
   getTelegramSession,
   setTelegramSession,
 } from "@/lib/server/telegram-sessions";
-import { addExpenseToCrm, isValidDateKey, loadCrmFromCloud, parseExpenseInput } from "./crm-actions";
+import {
+  addExpenseToCrm,
+  applyWorkOrderStatus,
+  confirmHotBooking,
+  isValidDateKey,
+  loadCrmFromCloud,
+  markCallAsCalled,
+  markWorkOrderPaid,
+  parseExpenseInput,
+  searchCrm,
+} from "./crm-actions";
 import {
   formatAppointments,
   formatExpensesList,
   formatFinanceReport,
+  formatHotBookingDetail,
+  formatHotCallDetail,
   formatHotOrders,
+  formatMarketingReport,
   formatMechanicsReport,
+  formatMonthCompare,
+  formatSearchResults,
   formatTodaySummary,
+  formatTopClients,
+  formatUnpaidList,
   formatWarehouse,
   formatWorkOrderDetail,
   formatWorkOrderList,
+  searchOrderNumbers,
   workOrderListKeyboard,
 } from "./format";
 import {
+  analyticsKeyboard,
   backMenuRow,
   expenseCategoryKeyboard,
   expenseMenuKeyboard,
   financePeriodKeyboard,
+  hotBookingDetailKeyboard,
+  hotCallDetailKeyboard,
+  hotOrdersListKeyboard,
   mainMenuKeyboard,
   mechanicPeriodKeyboard,
+  searchResultsKeyboard,
+  unpaidOrdersKeyboard,
   workOrderDetailKeyboard,
+  workOrderStatusConfirmKeyboard,
+  workOrderStatusPickKeyboard,
 } from "./keyboards";
-import { BOT } from "./labels";
+import { BOT, REPAIR_STATUS_RU } from "./labels";
+import { handleClientTelegramUpdate } from "./client-handler";
 
 type TelegramMessage = {
   message_id: number;
@@ -53,6 +80,20 @@ type TelegramCallback = {
 
 function serviceLabel(id: string): string {
   return getPriceItem(id)?.nameRu ?? id;
+}
+
+function parseWoStatus(
+  data: string,
+  prefix: string
+): { number: string; status: RepairStatus } | null {
+  if (!data.startsWith(prefix)) return null;
+  const rest = data.slice(prefix.length);
+  const lastColon = rest.lastIndexOf(":");
+  if (lastColon === -1) return null;
+  const number = rest.slice(0, lastColon);
+  const status = rest.slice(lastColon + 1) as RepairStatus;
+  if (!REPAIR_STATUS_RU[status]) return null;
+  return { number, status };
 }
 
 async function replyOrEdit(
@@ -74,10 +115,33 @@ async function showMainMenu(chatId: number, messageId?: number): Promise<void> {
   await replyOrEdit(chatId, messageId, BOT.welcome, mainMenuKeyboard());
 }
 
+async function runSearch(chatId: number, query: string, messageId?: number): Promise<void> {
+  const db = await loadCrmFromCloud();
+  if (!db) {
+    await replyOrEdit(chatId, messageId, BOT.cloudOff, mainMenuKeyboard());
+    return;
+  }
+
+  const hits = searchCrm(db, query);
+  const text = formatSearchResults(db, hits);
+  const orderNums = searchOrderNumbers(hits);
+  const keyboard =
+    orderNums.length > 0 ? searchResultsKeyboard(orderNums) : mainMenuKeyboard();
+  await replyOrEdit(chatId, messageId, text, keyboard);
+}
+
 export async function handleTelegramUpdate(update: {
   message?: TelegramMessage;
   callback_query?: TelegramCallback;
 }): Promise<void> {
+  const chatId =
+    update.message?.chat.id ?? update.callback_query?.message?.chat.id;
+
+  if (chatId !== undefined && !isAuthorizedChat(chatId)) {
+    await handleClientTelegramUpdate(update);
+    return;
+  }
+
   if (update.callback_query) {
     await handleCallback(update.callback_query);
     return;
@@ -89,11 +153,6 @@ export async function handleTelegramUpdate(update: {
 
 async function handleMessage(msg: TelegramMessage): Promise<void> {
   const chatId = msg.chat.id;
-  if (!isAuthorizedChat(chatId)) {
-    await sendTelegramMessage(chatId, BOT.unauthorized);
-    return;
-  }
-
   const text = msg.text?.trim() ?? "";
   const chatKey = String(chatId);
 
@@ -102,7 +161,35 @@ async function handleMessage(msg: TelegramMessage): Promise<void> {
     return;
   }
 
+  if (text.startsWith("/find ")) {
+    const query = text.slice(6).trim();
+    if (query.length < 2) {
+      await sendTelegramMessage(chatId, BOT.searchPrompt, mainMenuKeyboard());
+      return;
+    }
+    await clearTelegramSession(chatKey);
+    await runSearch(chatId, query);
+    return;
+  }
+
+  if (text === "/help") {
+    await sendTelegramMessage(chatId, BOT.helpText, mainMenuKeyboard());
+    return;
+  }
+
   const session = await getTelegramSession(chatKey);
+
+  if (session.step === "search_input") {
+    if (text.length < 2) {
+      await sendTelegramMessage(chatId, BOT.searchPrompt, {
+        inline_keyboard: [[{ text: BOT.cancel, callback_data: "menu" }]],
+      });
+      return;
+    }
+    await clearTelegramSession(chatKey);
+    await runSearch(chatId, text);
+    return;
+  }
 
   if (session.step === "expense_input" && session.data?.category) {
     const parsed = parseExpenseInput(text, session.data.category as ExpenseCategory);
@@ -155,7 +242,7 @@ async function handleMessage(msg: TelegramMessage): Promise<void> {
   }
 
   if (text.startsWith("/")) {
-    await sendTelegramMessage(chatId, "Используйте /start для меню CRM.", mainMenuKeyboard());
+    await sendTelegramMessage(chatId, BOT.helpText, mainMenuKeyboard());
   }
 }
 
@@ -178,6 +265,20 @@ async function handleCallback(cb: TelegramCallback): Promise<void> {
 
   if (data === "menu") {
     await showMainMenu(chatId, messageId);
+    return;
+  }
+
+  if (data === "help") {
+    await replyOrEdit(chatId, messageId, BOT.helpText, mainMenuKeyboard());
+    return;
+  }
+
+  if (data === "search:menu") {
+    const chatKey = String(chatId);
+    await setTelegramSession(chatKey, { step: "search_input", data: {} });
+    await replyOrEdit(chatId, messageId, BOT.searchPrompt, {
+      inline_keyboard: [[{ text: BOT.cancel, callback_data: "menu" }]],
+    });
     return;
   }
 
@@ -221,6 +322,81 @@ async function handleCallback(cb: TelegramCallback): Promise<void> {
     return;
   }
 
+  if (data.startsWith("wo:chg:")) {
+    const number = data.slice(7);
+    await replyOrEdit(
+      chatId,
+      messageId,
+      `🔄 Выберите новый статус для <b>${number}</b>:`,
+      workOrderStatusPickKeyboard(number)
+    );
+    return;
+  }
+
+  if (data.startsWith("wo:pre:")) {
+    const parsed = parseWoStatus(data, "wo:pre:");
+    if (!parsed) {
+      await replyOrEdit(chatId, messageId, "Ошибка данных.", mainMenuKeyboard());
+      return;
+    }
+    const { number, status } = parsed;
+    const order = db.workOrders.find((x) => x.number === number);
+    if (!order) {
+      await replyOrEdit(chatId, messageId, "Заказ-наряд не найден.", workOrderListKeyboard(db, 0));
+      return;
+    }
+    await replyOrEdit(
+      chatId,
+      messageId,
+      `Подтвердите смену статуса <b>${number}</b>:\n${REPAIR_STATUS_RU[order.status]} → <b>${REPAIR_STATUS_RU[status]}</b>`,
+      workOrderStatusConfirmKeyboard(number, status)
+    );
+    return;
+  }
+
+  if (data.startsWith("wo:cf:")) {
+    const parsed = parseWoStatus(data, "wo:cf:");
+    if (!parsed) {
+      await replyOrEdit(chatId, messageId, "Ошибка данных.", mainMenuKeyboard());
+      return;
+    }
+    const result = await applyWorkOrderStatus(parsed.number, parsed.status);
+    const freshDb = (await loadCrmFromCloud()) ?? db;
+    const detail = formatWorkOrderDetail(freshDb, parsed.number);
+    const order = freshDb.workOrders.find((x) => x.number === parsed.number);
+    if (!result.ok || !detail) {
+      await replyOrEdit(chatId, messageId, BOT.saveFailed, workOrderListKeyboard(freshDb, 0));
+      return;
+    }
+    await replyOrEdit(
+      chatId,
+      messageId,
+      `${BOT.statusChanged}\n\n${detail}`,
+      workOrderDetailKeyboard(parsed.number, order?.paymentStatus === "paid")
+    );
+    return;
+  }
+
+  if (data.startsWith("wo:pay:") || data.startsWith("wo:unpay:")) {
+    const paid = data.startsWith("wo:pay:");
+    const number = data.slice(paid ? 7 : 9);
+    const result = await markWorkOrderPaid(number, paid);
+    const freshDb = (await loadCrmFromCloud()) ?? db;
+    const detail = formatWorkOrderDetail(freshDb, number);
+    const order = freshDb.workOrders.find((x) => x.number === number);
+    if (!result.ok || !detail) {
+      await replyOrEdit(chatId, messageId, BOT.saveFailed, workOrderListKeyboard(freshDb, 0));
+      return;
+    }
+    await replyOrEdit(
+      chatId,
+      messageId,
+      `${BOT.saved}\n\n${detail}`,
+      workOrderDetailKeyboard(number, order?.paymentStatus === "paid")
+    );
+    return;
+  }
+
   if (data.startsWith("wo:n:")) {
     const number = data.slice(5);
     const detail = formatWorkOrderDetail(db, number);
@@ -228,21 +404,119 @@ async function handleCallback(cb: TelegramCallback): Promise<void> {
       await replyOrEdit(chatId, messageId, "Заказ-наряд не найден.", workOrderListKeyboard(db, 0));
       return;
     }
-    await replyOrEdit(chatId, messageId, detail, workOrderDetailKeyboard(number));
+    const order = db.workOrders.find((x) => x.number === number);
+    await replyOrEdit(
+      chatId,
+      messageId,
+      detail,
+      workOrderDetailKeyboard(number, order?.paymentStatus === "paid")
+    );
+    return;
+  }
+
+  if (data.startsWith("hot:d:")) {
+    const rest = data.slice(6);
+    const colon = rest.indexOf(":");
+    const kind = rest.slice(0, colon);
+    const id = rest.slice(colon + 1);
+    if (kind === "b") {
+      const detail = formatHotBookingDetail(db, id);
+      if (!detail) {
+        await replyOrEdit(chatId, messageId, "Запись не найдена.", mainMenuKeyboard());
+        return;
+      }
+      const apt = db.appointments.find((a) => a.id === id);
+      await replyOrEdit(
+        chatId,
+        messageId,
+        detail,
+        hotBookingDetailKeyboard(id, Boolean(apt?.workOrderId))
+      );
+      return;
+    }
+    if (kind === "c") {
+      const detail = formatHotCallDetail(db, id);
+      if (!detail) {
+        await replyOrEdit(chatId, messageId, "Заявка не найдена.", mainMenuKeyboard());
+        return;
+      }
+      await replyOrEdit(chatId, messageId, detail, hotCallDetailKeyboard(id));
+      return;
+    }
+    return;
+  }
+
+  if (data.startsWith("hot:cb:")) {
+    const aptId = data.slice(7);
+    const result = await confirmHotBooking(aptId);
+    const freshDb = (await loadCrmFromCloud()) ?? db;
+    const detail = formatHotBookingDetail(freshDb, aptId);
+    if (!result.ok || !detail) {
+      await replyOrEdit(chatId, messageId, BOT.saveFailed, mainMenuKeyboard());
+      return;
+    }
+    const msg = result.woNumber
+      ? `${BOT.saved}\nСоздан заказ-наряд: <b>${result.woNumber}</b>\n\n${detail}`
+      : `${BOT.saved}\n\n${detail}`;
+    await replyOrEdit(
+      chatId,
+      messageId,
+      msg,
+      hotBookingDetailKeyboard(aptId, true)
+    );
+    return;
+  }
+
+  if (data.startsWith("hot:cl:")) {
+    const callId = data.slice(7);
+    const result = await markCallAsCalled(callId);
+    const freshDb = (await loadCrmFromCloud()) ?? db;
+    const detail = formatHotCallDetail(freshDb, callId);
+    if (!result.ok || !detail) {
+      await replyOrEdit(chatId, messageId, BOT.saveFailed, mainMenuKeyboard());
+      return;
+    }
+    await replyOrEdit(
+      chatId,
+      messageId,
+      `${BOT.saved}\n\n${detail}`,
+      hotCallDetailKeyboard(callId)
+    );
     return;
   }
 
   if (data.startsWith("hot:")) {
     const page = Number(data.slice(4)) || 0;
     const rows = getWebsiteHotOrders(db, serviceLabel);
-    const { text, totalPages } = formatHotOrders(rows, page);
-    const nav = [];
-    if (page > 0) nav.push({ text: "◀️", callback_data: `hot:${page - 1}` });
-    nav.push({ text: `${page + 1}/${totalPages}`, callback_data: "noop" });
-    if (page < totalPages - 1) nav.push({ text: "▶️", callback_data: `hot:${page + 1}` });
-    await replyOrEdit(chatId, messageId, text, {
-      inline_keyboard: [nav, backMenuRow()],
-    });
+    const { text } = formatHotOrders(rows, page);
+    await replyOrEdit(chatId, messageId, text, hotOrdersListKeyboard(rows, page));
+    return;
+  }
+
+  if (data.startsWith("unpaid:")) {
+    const page = Number(data.slice(7)) || 0;
+    const { text, orders } = formatUnpaidList(db, page);
+    await replyOrEdit(chatId, messageId, text, unpaidOrdersKeyboard(orders, page));
+    return;
+  }
+
+  if (data === "an:menu") {
+    await replyOrEdit(chatId, messageId, "📈 <b>Аналитика</b>", analyticsKeyboard());
+    return;
+  }
+
+  if (data === "an:clients") {
+    await replyOrEdit(chatId, messageId, formatTopClients(db), analyticsKeyboard());
+    return;
+  }
+
+  if (data === "an:marketing") {
+    await replyOrEdit(chatId, messageId, formatMarketingReport(db), analyticsKeyboard());
+    return;
+  }
+
+  if (data === "an:compare") {
+    await replyOrEdit(chatId, messageId, formatMonthCompare(db), analyticsKeyboard());
     return;
   }
 

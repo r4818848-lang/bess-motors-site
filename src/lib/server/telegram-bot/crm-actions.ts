@@ -1,5 +1,16 @@
-import type { Database, ExpenseCategory, ServiceExpense } from "@/lib/store";
+import { normalizePhone } from "@/lib/auth";
+import { handleWorkOrderClientNotifications } from "@/lib/client-notifications";
+import { createWorkOrderFromAppointment } from "@/lib/create-work-order-from-booking";
+import { getPriceItem } from "@/lib/price-list";
 import { cloudGetCrmStore, cloudPutCrmStore } from "@/lib/server/crm-cloud";
+import type {
+  Database,
+  ExpenseCategory,
+  RepairStatus,
+  ServiceExpense,
+  WorkOrder,
+} from "@/lib/store";
+import { calcClientTotal } from "@/lib/workorder-calc";
 
 export async function loadCrmFromCloud(): Promise<Database | null> {
   const snap = await cloudGetCrmStore();
@@ -7,15 +18,74 @@ export async function loadCrmFromCloud(): Promise<Database | null> {
 }
 
 export async function mutateCrm(
-  mutator: (db: Database) => void
-): Promise<{ ok: boolean; error?: string }> {
+  mutator: (db: Database) => void | string | false
+): Promise<{ ok: boolean; error?: string; result?: string }> {
   const snap = await cloudGetCrmStore();
   if (!snap?.doc) return { ok: false, error: "cloud_empty" };
 
   const db = structuredClone(snap.doc) as Database;
-  mutator(db);
+  const extra = mutator(db);
+  if (extra === false) return { ok: false, error: "not_found" };
+
   const result = await cloudPutCrmStore(db);
-  return result.ok ? { ok: true } : { ok: false, error: result.error };
+  if (!result.ok) return { ok: false, error: result.error };
+  return { ok: true, result: typeof extra === "string" ? extra : undefined };
+}
+
+function findOrder(db: Database, orderNumber: string): WorkOrder | undefined {
+  return db.workOrders.find((x) => x.number === orderNumber);
+}
+
+function serviceLabel(id: string): string {
+  return getPriceItem(id)?.nameRu ?? id;
+}
+
+export async function applyWorkOrderStatus(
+  orderNumber: string,
+  status: RepairStatus
+): Promise<{ ok: boolean; error?: string }> {
+  return mutateCrm((db) => {
+    const order = findOrder(db, orderNumber);
+    if (!order) return false;
+    const previous = { ...order };
+    order.status = status;
+    order.updatedAt = new Date().toISOString().slice(0, 10);
+    handleWorkOrderClientNotifications(db, order, previous);
+    return orderNumber;
+  });
+}
+
+export async function markWorkOrderPaid(
+  orderNumber: string,
+  paid: boolean
+): Promise<{ ok: boolean; error?: string }> {
+  return mutateCrm((db) => {
+    const order = findOrder(db, orderNumber);
+    if (!order) return false;
+    order.paymentStatus = paid ? "paid" : "unpaid";
+    order.updatedAt = new Date().toISOString().slice(0, 10);
+    return orderNumber;
+  });
+}
+
+export async function confirmHotBooking(aptId: string): Promise<{ ok: boolean; error?: string; woNumber?: string }> {
+  const res = await mutateCrm((db) => {
+    const apt = db.appointments.find((x) => x.id === aptId);
+    if (!apt) return false;
+    createWorkOrderFromAppointment(db, apt, serviceLabel);
+    const wo = db.workOrders.find((o) => o.id === apt.workOrderId);
+    return wo?.number ?? apt.workOrderId ?? "";
+  });
+  return { ok: res.ok, error: res.error, woNumber: res.result };
+}
+
+export async function markCallAsCalled(callId: string): Promise<{ ok: boolean; error?: string }> {
+  return mutateCrm((db) => {
+    const call = db.callRequests.find((x) => x.id === callId);
+    if (!call) return false;
+    call.status = "called";
+    return callId;
+  });
 }
 
 export async function addExpenseToCrm(expense: Omit<ServiceExpense, "id">): Promise<{ ok: boolean; error?: string }> {
@@ -55,4 +125,79 @@ export function parseExpenseInput(
 
 export function isValidDateKey(s: string): boolean {
   return /^\d{4}-\d{2}-\d{2}$/.test(s) && !Number.isNaN(Date.parse(s));
+}
+
+export type SearchHit =
+  | { kind: "order"; order: WorkOrder; label: string }
+  | { kind: "client"; name: string; phone: string; userId: string }
+  | { kind: "vehicle"; plate: string; make: string; model: string; userId: string };
+
+export function searchCrm(db: Database, query: string): SearchHit[] {
+  const q = query.trim().toLowerCase();
+  if (q.length < 2) return [];
+
+  const hits: SearchHit[] = [];
+  const phoneDigits = q.replace(/\D/g, "");
+  const plateKey = q.replace(/\s/g, "").replace(/-/g, "").toUpperCase();
+
+  for (const o of db.workOrders) {
+    if (
+      o.number.toLowerCase().includes(q) ||
+      o.id.toLowerCase().includes(q)
+    ) {
+      const vehicle = db.vehicles.find((v) => v.id === o.vehicleId);
+      hits.push({
+        kind: "order",
+        order: o,
+        label: `${o.number} · ${vehicle?.plate ?? "—"}`,
+      });
+    }
+  }
+
+  for (const u of db.users.filter((x) => x.role === "client")) {
+    const phone = normalizePhone(u.phone);
+    if (
+      u.name.toLowerCase().includes(q) ||
+      (phoneDigits && phone.replace(/\D/g, "").includes(phoneDigits))
+    ) {
+      hits.push({ kind: "client", name: u.name, phone: u.phone, userId: u.id });
+    }
+  }
+
+  for (const v of db.vehicles) {
+    const pk = v.plate.replace(/\s/g, "").replace(/-/g, "").toUpperCase();
+    if (
+      pk.includes(plateKey) ||
+      v.vin.toLowerCase().includes(q) ||
+      `${v.make} ${v.model}`.toLowerCase().includes(q)
+    ) {
+      hits.push({
+        kind: "vehicle",
+        plate: v.plate,
+        make: v.make,
+        model: v.model,
+        userId: v.userId,
+      });
+    }
+  }
+
+  const seen = new Set<string>();
+  return hits.filter((h) => {
+    const key =
+      h.kind === "order"
+        ? `o:${h.order.id}`
+        : h.kind === "client"
+          ? `c:${h.userId}`
+          : `v:${h.plate}:${h.userId}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  }).slice(0, 12);
+}
+
+export function getUnpaidOrders(db: Database): { order: WorkOrder; total: number }[] {
+  return db.workOrders
+    .filter((o) => o.paymentStatus !== "paid")
+    .map((o) => ({ order: o, total: calcClientTotal(o) }))
+    .sort((a, b) => b.total - a.total);
 }

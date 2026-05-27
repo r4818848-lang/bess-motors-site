@@ -29,7 +29,7 @@ export type HotOrderRow = {
 };
 
 function isWebsiteAppointment(a: Appointment): boolean {
-  if (a.source === "website") return true;
+  if (a.source === "website" || a.source === "telegram") return true;
   if (a.source === "manual") return false;
   return Boolean(a.clientName && a.clientPhone);
 }

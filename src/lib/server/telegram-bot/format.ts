@@ -1,9 +1,10 @@
-import type { Database, WorkOrder } from "@/lib/store";
+import type { Database, RepairStatus, WorkOrder } from "@/lib/store";
 import type { CrmAnalytics, ReportPeriod } from "@/lib/crm-analytics";
-import { computeCrmAnalytics } from "@/lib/crm-analytics";
+import { computeCrmAnalytics, filterByPeriod } from "@/lib/crm-analytics";
 import { calcClientTotal } from "@/lib/workorder-calc";
 import type { InlineKeyboardMarkup } from "@/lib/server/telegram-api";
 import type { HotOrderRow } from "@/lib/hot-orders";
+import type { SearchHit } from "./crm-actions";
 import { EXPENSE_CATEGORY_RU, PERIOD_RU, REPAIR_STATUS_RU } from "./labels";
 
 function zl(n: number): string {
@@ -294,4 +295,173 @@ export function workOrderListKeyboard(db: Database, page: number, pageSize = 5):
   rows.push([{ text: "🏠 Меню", callback_data: "menu" }]);
 
   return { inline_keyboard: rows };
+}
+
+export function formatUnpaidList(
+  db: Database,
+  page: number,
+  pageSize = 5
+): { text: string; totalPages: number; orders: { number: string }[] } {
+  const unpaid = db.workOrders
+    .filter((o) => o.paymentStatus !== "paid")
+    .map((o) => ({ order: o, total: calcClientTotal(o) }))
+    .sort((a, b) => b.total - a.total);
+
+  const totalPages = Math.max(1, Math.ceil(unpaid.length / pageSize));
+  const slice = unpaid.slice(page * pageSize, page * pageSize + pageSize);
+  const totalDebt = unpaid.reduce((s, u) => s + u.total, 0);
+
+  if (slice.length === 0) {
+    return {
+      text: "⏳ <b>Долги</b>\n\nВсе заказ-наряды оплачены.",
+      totalPages: 1,
+      orders: [],
+    };
+  }
+
+  const lines = [
+    `⏳ <b>Неоплаченные заказ-наряды</b> (стр. ${page + 1}/${totalPages})`,
+    `Всего долг: <b>${zl(totalDebt)}</b> · ${unpaid.length} шт.`,
+    "",
+  ];
+  for (const { order: o, total } of slice) {
+    const vehicle = db.vehicles.find((v) => v.id === o.vehicleId);
+    const client = db.users.find((u) => u.id === o.userId);
+    lines.push(
+      `<b>${esc(o.number)}</b> · ${zl(total)}`,
+      `${esc(client?.name ?? "—")} · ${esc(vehicle?.plate ?? "—")}`,
+      `${REPAIR_STATUS_RU[o.status]}`,
+      ""
+    );
+  }
+  lines.push("<i>Нажмите номер для деталей</i>");
+  return {
+    text: lines.join("\n"),
+    totalPages,
+    orders: slice.map(({ order }) => ({ number: order.number })),
+  };
+}
+
+export function formatSearchResults(db: Database, hits: SearchHit[]): string {
+  if (hits.length === 0) return "🔍 <b>Поиск</b>\n\nНичего не найдено.";
+
+  const lines = [`🔍 <b>Результаты</b> (${hits.length})`, ""];
+  for (const h of hits) {
+    if (h.kind === "order") {
+      lines.push(`📋 <b>${esc(h.order.number)}</b> · ${REPAIR_STATUS_RU[h.order.status]}`);
+      lines.push(`   ${esc(h.label)}`, "");
+    } else if (h.kind === "client") {
+      lines.push(`👤 <b>${esc(h.name)}</b> · ${esc(h.phone)}`, "");
+    } else {
+      lines.push(
+        `🚗 <b>${esc(h.plate)}</b> · ${esc(h.make)} ${esc(h.model)}`,
+        ""
+      );
+    }
+  }
+  return lines.join("\n");
+}
+
+export function formatTopClients(db: Database): string {
+  const orders = db.workOrders.filter((o) =>
+    filterByPeriod(o.createdAt, "month", "", "")
+  );
+  const map = new Map<string, number>();
+  for (const o of orders) {
+    map.set(o.userId, (map.get(o.userId) ?? 0) + calcClientTotal(o));
+  }
+  const rows = [...map.entries()]
+    .map(([userId, total]) => ({
+      name: db.users.find((u) => u.id === userId)?.name ?? userId,
+      total,
+    }))
+    .sort((a, b) => b.total - a.total)
+    .slice(0, 10);
+
+  if (rows.length === 0) {
+    return "👥 <b>Топ клиентов</b> (месяц)\n\nНет заказ-нарядов за месяц.";
+  }
+
+  const lines = ["👥 <b>Топ клиентов</b> (месяц)", ""];
+  rows.forEach((r, i) => {
+    lines.push(`${i + 1}. ${esc(r.name)} — <b>${zl(r.total)}</b>`);
+  });
+  return lines.join("\n");
+}
+
+export function formatMarketingReport(db: Database): string {
+  const stats = computeCrmAnalytics(db, "month", "", "");
+  if (stats.marketing.length === 0) {
+    return "📣 <b>Маркетинг</b> (месяц)\n\nНет данных UTM за месяц.";
+  }
+
+  const lines = ["📣 <b>Маркетинг</b> (месяц)", ""];
+  for (const m of stats.marketing.slice(0, 10)) {
+    lines.push(
+      `<b>${esc(m.source)}</b>`,
+      `  Записи: ${m.bookings} · Звонки: ${m.calls} · Заказ-наряды: ${m.ordersLinked}`,
+      ""
+    );
+  }
+  return lines.join("\n");
+}
+
+export function formatMonthCompare(db: Database): string {
+  const stats = computeCrmAnalytics(db, "month", "", "");
+  const months = stats.revenueByMonth.filter((m) => m.revenue > 0 || m.orders > 0).slice(-6);
+
+  if (months.length === 0) {
+    return "📊 <b>Сравнение месяцев</b>\n\nНет данных.";
+  }
+
+  const lines = ["📊 <b>Выручка по месяцам</b>", ""];
+  for (const m of months) {
+    lines.push(`${m.label}: <b>${zl(m.revenue)}</b> · ${m.orders} заказ-нарядов`);
+  }
+  return lines.join("\n");
+}
+
+export function formatHotBookingDetail(db: Database, aptId: string): string | null {
+  const apt = db.appointments.find((a) => a.id === aptId);
+  if (!apt) return null;
+
+  const client = db.users.find((u) => u.id === apt.userId);
+  const vehicle = db.vehicles.find((v) => v.id === apt.vehicleId);
+  const name = apt.clientName || client?.name || "—";
+  const phone = apt.clientPhone || client?.phone || "—";
+
+  return [
+    "📅 <b>Запись с сайта</b>",
+    `Дата: <b>${apt.date} · ${apt.time}</b>`,
+    `Клиент: ${esc(name)} · ${esc(phone)}`,
+    vehicle
+      ? `Авто: ${esc(vehicle.make)} ${esc(vehicle.model)} · ${esc(vehicle.plate)}`
+      : "",
+    `Статус: ${apt.appointmentStatus}`,
+    apt.workOrderId ? `Заказ-наряд: ${apt.workOrderId}` : "⚠️ Заказ-наряд не создан",
+    apt.comment ? `💬 ${esc(apt.comment)}` : "",
+  ]
+    .filter(Boolean)
+    .join("\n");
+}
+
+export function formatHotCallDetail(db: Database, callId: string): string | null {
+  const call = db.callRequests.find((c) => c.id === callId);
+  if (!call) return null;
+
+  return [
+    "📞 <b>Заявка на звонок</b>",
+    `Клиент: <b>${esc(call.clientName ?? "—")}</b>`,
+    `Телефон: ${esc(call.phone)}`,
+    `Услуга: ${esc(call.serviceLabel)}`,
+    `Статус: ${call.status}`,
+    call.comment ? `💬 ${esc(call.comment)}` : "",
+    `Создана: ${call.createdAt.slice(0, 10)}`,
+  ]
+    .filter(Boolean)
+    .join("\n");
+}
+
+export function searchOrderNumbers(hits: SearchHit[]): string[] {
+  return hits.filter((h) => h.kind === "order").map((h) => h.order.number);
 }

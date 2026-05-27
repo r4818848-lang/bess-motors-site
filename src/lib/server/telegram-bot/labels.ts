@@ -48,6 +48,10 @@ export const BOT = {
   mechanics: "👷 Механики",
   expenses: "💸 Расходы",
   warehouse: "🏭 Склад",
+  search: "🔍 Поиск",
+  unpaid: "⏳ Долги",
+  analytics: "📈 Аналитика",
+  help: "ℹ️ Помощь",
   choosePeriod: "Выберите период отчёта:",
   chooseCategory: "Выберите категорию расхода:",
   expensePrompt:
@@ -61,4 +65,16 @@ export const BOT = {
   noHot: "Нет горячих заказов.",
   noApts: "Нет предстоящих записей.",
   noExpenses: "Расходов пока нет.",
+  searchPrompt: "🔍 Введите госномер, телефон, имя клиента или номер заказ-наряда:",
+  searchEmpty: "Ничего не найдено.",
+  confirmStatus: "✅ Подтвердить статус",
+  cancel: "❌ Отмена",
+  changeStatus: "🔄 Сменить статус",
+  markPaid: "💳 Отметить оплаченным",
+  markUnpaid: "⏳ Сделать неоплаченным",
+  confirmBooking: "✅ Подтвердить запись",
+  markCalled: "📞 Позвонил",
+  statusChanged: "Статус обновлён.",
+  helpText:
+    "<b>Команды:</b>\n/start — меню\n/find WA12345 — поиск\n\n<b>Расход:</b> Расходы → Добавить → категория → <code>450 Описание</code>",
 };
