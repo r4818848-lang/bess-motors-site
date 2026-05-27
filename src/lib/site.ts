@@ -13,7 +13,7 @@ export const siteConfig = {
 
   whatsapp: "https://wa.me/48791257229",
 
-  telegram: "https://t.me/bessmotors",
+  telegram: "https://t.me/BessMotors_bot",
 
   viber: "viber://chat?number=48791257229",
 

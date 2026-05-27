@@ -10,6 +10,23 @@ export type InlineKeyboardMarkup = {
   inline_keyboard: InlineKeyboardButton[][];
 };
 
+export type ReplyKeyboardButton = {
+  text: string;
+  request_contact?: boolean;
+};
+
+export type ReplyKeyboardMarkup = {
+  keyboard: ReplyKeyboardButton[][];
+  resize_keyboard?: boolean;
+  one_time_keyboard?: boolean;
+};
+
+export type TelegramReplyMarkup = InlineKeyboardMarkup | ReplyKeyboardMarkup;
+
+export function removeReplyKeyboard(): { remove_keyboard: true } {
+  return { remove_keyboard: true };
+}
+
 export function getTelegramConfig(): { token: string; chatId: string; adminChatIds: Set<string> } | null {
   const token = cleanEnvValue(process.env.TELEGRAM_BOT_TOKEN);
   const chatId = cleanEnvValue(process.env.TELEGRAM_CHAT_ID);
@@ -114,7 +131,7 @@ export async function setTelegramWebhook(
 export async function sendTelegramMessage(
   chatId: number | string,
   text: string,
-  replyMarkup?: InlineKeyboardMarkup
+  replyMarkup?: TelegramReplyMarkup | { remove_keyboard: true }
 ): Promise<number | null> {
   const payload: Record<string, unknown> = {
     chat_id: chatId,

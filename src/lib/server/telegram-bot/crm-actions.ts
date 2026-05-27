@@ -44,15 +44,27 @@ export async function applyWorkOrderStatus(
   orderNumber: string,
   status: RepairStatus
 ): Promise<{ ok: boolean; error?: string }> {
-  return mutateCrm((db) => {
+  const snap = await cloudGetCrmStore();
+  const previous = snap?.doc
+    ? structuredClone(findOrder(snap.doc as Database, orderNumber))
+    : undefined;
+
+  const result = await mutateCrm((db) => {
     const order = findOrder(db, orderNumber);
     if (!order) return false;
-    const previous = { ...order };
+    const prev = { ...order };
     order.status = status;
     order.updatedAt = new Date().toISOString().slice(0, 10);
-    handleWorkOrderClientNotifications(db, order, previous);
+    handleWorkOrderClientNotifications(db, order, prev);
     return orderNumber;
   });
+
+  if (result.ok) {
+    const { notifyTelegramAfterOrderMutation } = await import("./client-telegram-notify");
+    void notifyTelegramAfterOrderMutation(orderNumber, previous ?? null);
+  }
+
+  return result;
 }
 
 export async function markWorkOrderPaid(

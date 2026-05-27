@@ -9,6 +9,7 @@ import { loginWithPhonePassword, type AuthResult } from "@/lib/auth";
 import { loadClientCredentials } from "@/lib/client-credentials";
 import { pullClientPortalFromCloud } from "@/lib/client-portal";
 import { Button } from "@/components/ui/Button";
+import { TelegramLoginButton } from "@/components/auth/TelegramLoginButton";
 
 interface PhoneAuthFormProps {
   onSuccess?: () => void;
@@ -174,6 +175,8 @@ export function PhoneAuthForm({ onSuccess }: PhoneAuthFormProps) {
               </>
             )}
           </Button>
+
+          <TelegramLoginButton />
         </form>
       </div>
     </div>

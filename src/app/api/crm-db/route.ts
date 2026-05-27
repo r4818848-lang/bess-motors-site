@@ -68,12 +68,22 @@ export async function PUT(req: Request) {
     return NextResponse.json({ error: "invalid" }, { status: 400 });
   }
 
-  const result = await cloudPutCrmStore(docForCloud(db));
+  const before = await cloudGetCrmStore();
+  const payload = docForCloud(db);
+  const result = await cloudPutCrmStore(payload);
   if (!result.ok) {
     return NextResponse.json(
       { ok: false, error: result.error },
       { status: result.error === "cloud_disabled" ? 503 : 502 }
     );
   }
+
+  if (before?.doc) {
+    const { dispatchTelegramFromCrmSave } = await import(
+      "@/lib/server/telegram-bot/client-telegram-notify"
+    );
+    void dispatchTelegramFromCrmSave(before.doc, payload);
+  }
+
   return NextResponse.json({ ok: true, updatedAt: result.updatedAt });
 }

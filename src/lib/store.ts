@@ -65,6 +65,11 @@ export interface User {
   name: string;
   role: "client" | "admin" | "mechanic";
   createdAt: string;
+  /** Linked Telegram client bot chat */
+  telegramChatId?: string;
+  telegramUserId?: number;
+  telegramUsername?: string;
+  telegramLinkedAt?: string;
 }
 
 export type ConfirmationStatus = "awaiting_confirmation" | "confirmed";
