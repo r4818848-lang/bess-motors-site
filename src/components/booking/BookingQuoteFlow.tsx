@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, useCallback } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ShoppingCart,
@@ -40,6 +40,18 @@ import { BookingCalendar } from "@/components/booking/BookingCalendar";
 import { timeSlots } from "@/lib/data";
 import { Button } from "@/components/ui/Button";
 import { siteConfig } from "@/lib/site";
+import { CarProblemWizard } from "@/components/booking/CarProblemWizard";
+import { BookingAvailability } from "@/components/booking/BookingAvailability";
+import { BookingVinLookup } from "@/components/booking/BookingVinLookup";
+import {
+  parseBookingItemsFromSearch,
+  saveLastBooking,
+} from "@/lib/booking-url";
+import {
+  applyPromoDiscount,
+  getPromoRules,
+  matchPromoCode,
+} from "@/lib/promo-codes";
 
 type Phase = "services" | "datetime" | "confirm" | "done";
 
@@ -263,6 +275,7 @@ interface Props {
 
 export function BookingQuoteFlow({ onDone }: Props) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { t, locale } = useI18n();
   const { clientUser, sessionReady } = useAuth();
   const bq = t.bookingQuote;
@@ -276,6 +289,25 @@ export function BookingQuoteFlow({ onDone }: Props) {
   const [note, setNote] = useState("");
   const [clientName, setClientName] = useState("");
   const [clientPhone, setClientPhone] = useState("");
+  const [vehicleNote, setVehicleNote] = useState("");
+  const [promoInput, setPromoInput] = useState("");
+  const [promoApplied, setPromoApplied] = useState<ReturnType<typeof matchPromoCode>>(null);
+
+  const prefillFromUrl = useCallback(() => {
+    const ids = parseBookingItemsFromSearch(searchParams.toString());
+    if (!ids.length) return;
+    const lines: CartLine[] = [];
+    for (const id of ids) {
+      const item = priceListItems.find((i) => i.id === id);
+      if (!item) continue;
+      lines.push(buildCartLine(item, itemName(item, loc), defaultQuantity(item)));
+    }
+    if (lines.length) setCart(lines);
+  }, [searchParams, loc]);
+
+  useEffect(() => {
+    prefillFromUrl();
+  }, [prefillFromUrl]);
 
   useEffect(() => {
     if (!sessionReady || !clientUser) return;
@@ -303,8 +335,10 @@ export function BookingQuoteFlow({ onDone }: Props) {
   };
 
   const cartIds = new Set(cart.map((l) => l.itemId));
-  const total = cartSubtotal(cart);
+  const subtotal = cartSubtotal(cart);
+  const total = promoApplied ? applyPromoDiscount(subtotal, promoApplied) : subtotal;
   const hasFrom = cartHasFromPrices(cart);
+  const hasPromos = getPromoRules().length > 0;
 
   const contactValid =
     clientName.trim().length >= 2 && clientPhone.trim().length >= 9;
@@ -319,6 +353,8 @@ export function BookingQuoteFlow({ onDone }: Props) {
       .join("; ");
     const comment = [
       `[KOSZT SZACUNKOWY: ${formatPln(total)}]`,
+      promoApplied ? `Promo: ${promoApplied.code} (-${promoApplied.percentOff}%)` : "",
+      vehicleNote.trim() ? `Auto: ${vehicleNote.trim()}` : "",
       breakdown,
       hasFrom ? bq.fromWarningShort : "",
       note.trim() ? `Uwagi: ${note.trim()}` : "",
@@ -326,6 +362,14 @@ export function BookingQuoteFlow({ onDone }: Props) {
     ]
       .filter(Boolean)
       .join(" | ");
+
+    saveLastBooking({
+      date: date.toISOString().slice(0, 10),
+      time,
+      clientName: clientName.trim(),
+      estimatedTotal: total,
+      serviceLabels: cart.map((l) => l.label).join(", "),
+    });
 
     createBookingAppointment({
       serviceId: "booking-quote",
@@ -354,6 +398,25 @@ export function BookingQuoteFlow({ onDone }: Props) {
         {bq.hourlyNote} <strong className="text-bm-red">{HOURLY_RATE_PLN} zł/h</strong>
       </p>
 
+      <BookingAvailability
+        onPick={(d, tm) => {
+          setDate(new Date(d + "T12:00:00"));
+          setTime(tm);
+          if (cart.length) setPhase("datetime");
+        }}
+      />
+
+      <CarProblemWizard
+        onApply={(lines, cat) => {
+          setCart((prev) => {
+            const map = new Map(prev.map((l) => [l.itemId, l]));
+            for (const line of lines) map.set(line.itemId, line);
+            return [...map.values()];
+          });
+          setCategory(cat);
+        }}
+      />
+
       <AnimatePresence mode="wait">
         {phase === "services" && (
           <motion.div
@@ -363,6 +426,14 @@ export function BookingQuoteFlow({ onDone }: Props) {
             className="grid lg:grid-cols-[1fr_320px] gap-8"
           >
             <div>
+              <BookingVinLookup
+                onDecoded={(info) => {
+                  const label = [info.make, info.model, info.year].filter(Boolean).join(" ");
+                  setVehicleNote(label);
+                  if (note.trim()) return;
+                  setNote(label);
+                }}
+              />
               <div className="flex flex-wrap gap-2 mb-6">
                 {priceCategories.map((cat) => (
                   <button
@@ -541,7 +612,31 @@ export function BookingQuoteFlow({ onDone }: Props) {
                   {labels.fromWarning}
                 </p>
               )}
+              {promoApplied && subtotal > total && (
+                <p className="text-xs text-green-400 mt-2">
+                  {t.bookingPromo.applied}: −{promoApplied.percentOff}% (
+                  {formatPln(subtotal - total)})
+                </p>
+              )}
             </div>
+
+            {hasPromos && (
+              <div className="flex flex-col sm:flex-row gap-2">
+                <input
+                  className="input-premium flex-1 uppercase"
+                  placeholder={t.bookingPromo.placeholder}
+                  value={promoInput}
+                  onChange={(e) => setPromoInput(e.target.value.toUpperCase())}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setPromoApplied(matchPromoCode(promoInput))}
+                >
+                  {t.bookingPromo.apply}
+                </Button>
+              </div>
+            )}
 
             <div className="space-y-3">
               <label className="text-[10px] uppercase text-bm-muted">{bq.yourName}</label>

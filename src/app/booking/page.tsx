@@ -1,9 +1,14 @@
 "use client";
 
+import { Suspense } from "react";
 import { motion } from "framer-motion";
 import { useI18n } from "@/lib/i18n/context";
 import { BookingQuoteFlow } from "@/components/booking/BookingQuoteFlow";
 import { useMetaViewContent } from "@/hooks/useMetaViewContent";
+
+function BookingContent() {
+  return <BookingQuoteFlow />;
+}
 
 export default function BookingPage() {
   const { t } = useI18n();
@@ -22,7 +27,13 @@ export default function BookingPage() {
           </h1>
           <p className="mt-3 text-bm-muted max-w-2xl mx-auto">{t.bookingQuote.subtitle}</p>
         </motion.div>
-        <BookingQuoteFlow />
+        <Suspense
+          fallback={
+            <p className="text-center text-bm-muted py-20 animate-pulse">{t.common.loading}</p>
+          }
+        >
+          <BookingContent />
+        </Suspense>
       </motion.div>
     </motion.div>
   );

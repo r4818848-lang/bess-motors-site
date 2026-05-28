@@ -802,8 +802,17 @@ export function WorkOrderForm({ orderId, onClose, onSaved }: WorkOrderFormProps)
             </label>
           ))}
         </div>
+        <label className="flex items-center gap-2 mt-4 text-sm text-bm-muted cursor-pointer">
+          <input
+            type="checkbox"
+            checked={!!order.showInGallery}
+            onChange={(e) => setOrder({ ...order, showInGallery: e.target.checked })}
+            className="accent-bm-red"
+          />
+          {w.showInGallery}
+        </label>
         {order.files.length > 0 && (
-          <ul className="grid sm:grid-cols-2 gap-2 text-sm">
+          <ul className="grid sm:grid-cols-2 gap-2 text-sm mt-4">
             {order.files.map((f) => (
               <li key={f.id} className="flex justify-between glass rounded p-2">
                 <span className="truncate">

@@ -60,6 +60,7 @@ import {
 } from "@/lib/workorder-filters";
 import { getClientPaymentView } from "@/lib/payment";
 import { PremiumVehicleShowcase } from "@/components/vehicle/PremiumVehicleShowcase";
+import { MaintenanceRemindersPanel } from "@/components/cabinet/MaintenanceRemindersPanel";
 import { VehicleThumbnail } from "@/components/vehicle/VehicleThumbnail";
 import { VehiclePhoto } from "@/components/vehicle/VehiclePhoto";
 
@@ -384,13 +385,19 @@ function CabinetPageContent() {
           <div className="grid lg:grid-cols-2 gap-8">
             <div className="space-y-6 lg:col-span-2">
               {featuredVehicle && (
-                <PremiumVehicleShowcase
-                  key={featuredVehicle.id}
-                  vehicle={featuredVehicle}
-                  animate
-                  onDelete={() => deleteVehicle(featuredVehicle.id)}
-                  deleteLabel={t.cabinet.deleteCar}
-                />
+                <>
+                  <PremiumVehicleShowcase
+                    key={featuredVehicle.id}
+                    vehicle={featuredVehicle}
+                    animate
+                    onDelete={() => deleteVehicle(featuredVehicle.id)}
+                    deleteLabel={t.cabinet.deleteCar}
+                  />
+                  <MaintenanceRemindersPanel
+                    vehicle={featuredVehicle}
+                    workOrders={myOrders}
+                  />
+                </>
               )}
               {myVehicles
                 .filter((v) => v.id !== featuredVehicle?.id)
@@ -554,7 +561,11 @@ function CabinetPageContent() {
             })()}
           <Card glow className="max-w-3xl">
             <h3 className="font-display uppercase mb-6">{t.cabinet.liveStatus}</h3>
-            <p className="text-sm text-bm-muted mb-6">Order {activeOrder.number}</p>
+            <p className="text-sm text-bm-muted mb-2">Order {activeOrder.number}</p>
+            <p className="text-sm text-bm-red font-semibold mb-6">
+              {t.cabinet.repairProgress}:{" "}
+              {Math.round((activeStatusIdx / Math.max(1, statusOrder.length - 1)) * 100)}%
+            </p>
             <div className="flex justify-between relative">
               <div className="absolute top-4 left-0 right-0 h-0.5 bg-bm-border" />
               <div

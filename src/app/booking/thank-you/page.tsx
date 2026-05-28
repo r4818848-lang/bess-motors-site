@@ -6,6 +6,7 @@ import { Check, Phone } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { PhoneLink } from "@/components/analytics/PhoneLink";
 import { trackLead } from "@/lib/gtag";
+import { ThankYouExtras } from "@/components/booking/ThankYouExtras";
 
 export default function BookingThankYouPage() {
   const { t } = useI18n();
@@ -39,6 +40,8 @@ export default function BookingThankYouPage() {
             {ty.cabinet}
           </Link>
         </div>
+        <ThankYouExtras />
+
         <Link href="/" className="block mt-8 text-sm text-bm-muted hover:text-bm-red">
           ← {ty.home}
         </Link>

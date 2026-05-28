@@ -17,6 +17,9 @@ import { unitPriceHint } from "@/lib/booking-cart";
 import { BookingLink } from "@/components/analytics/BookingLink";
 import { PhoneLink } from "@/components/analytics/PhoneLink";
 import { siteConfig } from "@/lib/site";
+import { PriceListCalculator } from "@/components/pricing/PriceListCalculator";
+import { downloadPriceListPdf } from "@/lib/price-list-pdf";
+import { Download } from "lucide-react";
 
 function itemLabel(item: PriceListItem, locale: "pl" | "ru") {
   return locale === "ru" ? item.nameRu : item.namePl;
@@ -49,7 +52,17 @@ export function FullPriceListView() {
             {siteConfig.phone}
           </PhoneLink>
         </div>
+        <button
+          type="button"
+          onClick={() => downloadPriceListPdf(loc)}
+          className="mt-4 inline-flex items-center gap-2 text-sm text-bm-red hover:underline"
+        >
+          <Download size={16} />
+          {t.priceList.downloadPdf}
+        </button>
       </div>
+
+      <PriceListCalculator />
 
       <div className="flex flex-wrap gap-2 mb-8">
         {priceCategories.map((cat) => (

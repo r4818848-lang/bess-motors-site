@@ -170,6 +170,8 @@ export interface WorkOrder {
   paidCardAmount?: number;
   /** ISO date — client notified when status became ready */
   readyNotifiedAt?: string;
+  /** Show before/after photos on public /gallery */
+  showInGallery?: boolean;
 }
 
 export type ClientNotificationType =

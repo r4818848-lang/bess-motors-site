@@ -65,6 +65,13 @@ function CRMPageContent() {
   }, [search, dbTick]);
 
   const totalRevenue = db.workOrders.reduce((s, o) => s + calcClientTotal(o), 0);
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const appointmentsToday = db.appointments.filter(
+    (a) => a.date === todayStr && a.appointmentStatus !== "cancelled"
+  ).length;
+  const inProgressOrders = db.workOrders.filter(
+    (o) => o.status !== "ready" && o.status !== "delivered"
+  ).length;
 
   const navTabs = [
     { id: "overview" as const, icon: FileText, label: c.dashboard },
@@ -110,11 +117,13 @@ function CRMPageContent() {
           <>
             <CrmSearchInput value={search} onChange={setSearch} placeholder={c.search} />
 
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
               {[
                 { label: c.clients, value: db.users.filter((u) => u.role === "client").length },
                 { label: c.workOrders, value: db.workOrders.length },
                 { label: c.appointments, value: db.appointments.length },
+                { label: c.appointmentsToday, value: appointmentsToday },
+                { label: c.inProgress, value: inProgressOrders },
                 { label: c.revenue, value: `${totalRevenue.toLocaleString()} zł` },
               ].map((kpi, i) => (
                 <Card key={i} glow className="text-center py-6">
