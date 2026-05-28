@@ -14,6 +14,7 @@ export const publicSitemapPaths: {
 }[] = [
   { path: "", changeFrequency: "weekly", priority: 1 },
   { path: "/services", changeFrequency: "weekly", priority: 0.9 },
+  { path: "/cennik", changeFrequency: "weekly", priority: 0.9 },
   { path: "/booking", changeFrequency: "weekly", priority: 0.9 },
   { path: "/contacts", changeFrequency: "monthly", priority: 0.85 },
   { path: "/about", changeFrequency: "monthly", priority: 0.7 },

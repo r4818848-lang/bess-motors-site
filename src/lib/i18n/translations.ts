@@ -8,6 +8,7 @@ const pl = {
   nav: {
     home: "Strona główna",
     services: "Usługi",
+    priceList: "Cennik",
     booking: "Rezerwacja online",
     cabinet: "Konto klienta",
     about: "O nas",
@@ -68,9 +69,18 @@ const pl = {
     { title: "Nowoczesny sprzęt", desc: "Diagnostyka klasy premium" },
     { title: "Szybkie terminy", desc: "Wiele usług od ręki" },
   ],
+  priceList: {
+    title: "Pełny cennik serwisu",
+    subtitle:
+      "Oficjalne ceny BESS MOTORS — diagnostyka, mechanika, klimatyzacja, chip tuning i więcej. Wybierz usługi i umów wizytę online.",
+    hourlyRate: "Norma-godzina",
+    bookCta: "Rezerwacja z cennika",
+    notesTitle: "Ważne informacje",
+  },
   services: {
     title: "Usługi",
     subtitle: "Kompleksowy serwis i tuning premium",
+    viewPriceList: "Zobacz pełny cennik",
     categories: "Kategorie",
     customRequest: "Indywidualne zgłoszenie",
     describeProblem: "Opisz problem",
@@ -900,6 +910,7 @@ const ru: TranslationKeys = {
   nav: {
     home: "Главная",
     services: "Услуги",
+    priceList: "Прайс",
     booking: "Онлайн-запись",
     cabinet: "Личный кабинет",
     about: "О компании",
@@ -959,9 +970,18 @@ const ru: TranslationKeys = {
     { title: "Гарантия качества", desc: "Полная документация и PDF заказ-наряды" },
     { title: "Live статус", desc: "Отслеживание ремонта в реальном времени" },
   ],
+  priceList: {
+    title: "Полный прайс-лист сервиса",
+    subtitle:
+      "Официальные цены BESS MOTORS — диагностика, механика, кондиционер, chip tuning и другое. Выберите услуги и запишитесь онлайн.",
+    hourlyRate: "Норма-час",
+    bookCta: "Запись с прайса",
+    notesTitle: "Важная информация",
+  },
   services: {
     title: "Услуги",
     subtitle: "Комплексный premium сервис и тюнинг",
+    viewPriceList: "Смотреть полный прайс",
     categories: "Категории",
     customRequest: "Индивидуальный запрос",
     describeProblem: "Опишите проблему",
@@ -1790,6 +1810,7 @@ const en: TranslationKeys = {
   nav: {
     home: "Home",
     services: "Services",
+    priceList: "Price list",
     booking: "Online Booking",
     cabinet: "Client Portal",
     about: "About",
@@ -1797,6 +1818,14 @@ const en: TranslationKeys = {
     faq: "FAQ",
     crm: "CRM Admin",
     mechanic: "Mechanic Panel",
+  },
+  priceList: {
+    title: "Full service price list",
+    subtitle:
+      "Official BESS MOTORS prices — diagnostics, mechanics, A/C, chip tuning and more. Book online.",
+    hourlyRate: "Labour rate",
+    bookCta: "Book from price list",
+    notesTitle: "Important notes",
   },
   hero: {
     title: "BESS",
@@ -1847,6 +1876,7 @@ const en: TranslationKeys = {
   services: {
     title: "Services",
     subtitle: "Comprehensive premium service and tuning",
+    viewPriceList: "View full price list",
     categories: "Categories",
     customRequest: "Custom Request",
     describeProblem: "Describe the problem",
@@ -2098,6 +2128,7 @@ const uk: TranslationKeys = {
   nav: {
     home: "Головна",
     services: "Послуги",
+    priceList: "Прайс",
     booking: "Онлайн-запис",
     cabinet: "Особистий кабінет",
     about: "Про компанію",

@@ -59,11 +59,11 @@ export const flowOptionPriceIds: Record<string, string | string[]> = {
   grmPump: "water_pump",
   grmDiag: "engine_diag",
 
-  dsgOil: "oil_filter",
+  dsgOil: "gearbox_oil_dsg",
   dsgDiag: "computer_diag",
   dsgRepair: "engine_diag",
   dsgAdapt: "computer_diag",
-  dsgClutch: "clutch",
+  dsgClutch: "clutch_dsg",
 
   filtersCabin: "cabin_filter",
   filtersAir: "air_filter",

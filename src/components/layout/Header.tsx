@@ -15,6 +15,7 @@ import { BookingLink } from "@/components/analytics/BookingLink";
 const navPaths = [
   { href: "/", key: "home" as const },
   { href: "/services", key: "services" as const },
+  { href: "/cennik", key: "priceList" as const },
   { href: "/booking", key: "booking" as const },
   { href: "/cabinet", key: "cabinet" as const },
   { href: "/about", key: "about" as const },

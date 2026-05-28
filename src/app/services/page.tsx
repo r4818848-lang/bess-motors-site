@@ -7,6 +7,7 @@ import { useI18n } from "@/lib/i18n/context";
 import { popularServices, type ServiceId } from "@/lib/services-catalog";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import Link from "next/link";
 import { LazySmartBookingModal } from "@/components/booking/LazySmartBookingModal";
 import { useMetaViewContent } from "@/hooks/useMetaViewContent";
 
@@ -27,6 +28,12 @@ export default function ServicesPage() {
             </h1>
             <p className="mt-4 text-bm-muted text-lg max-w-2xl">{t.services.subtitle}</p>
             <div className="mt-4 h-1 w-24 bg-bm-red shadow-neon-sm" />
+            <Link
+              href="/cennik"
+              className="mt-6 inline-flex items-center gap-2 rounded-xl border border-bm-red/50 bg-bm-red/10 px-5 py-3 text-sm font-bold uppercase tracking-wide text-bm-red hover:bg-bm-red/20 transition-colors"
+            >
+              {t.services.viewPriceList} →
+            </Link>
           </motion.div>
 
           <section className="mt-16">
