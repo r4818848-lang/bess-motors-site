@@ -19,6 +19,7 @@ export const publicSitemapPaths: {
   { path: "/contacts", changeFrequency: "monthly", priority: 0.85 },
   { path: "/about", changeFrequency: "monthly", priority: 0.7 },
   { path: "/gallery", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/status", changeFrequency: "monthly", priority: 0.65 },
   { path: "/faq", changeFrequency: "monthly", priority: 0.75 },
   { path: "/diagnostyka", changeFrequency: "weekly", priority: 0.85 },
   { path: "/zawieszenie", changeFrequency: "weekly", priority: 0.85 },

@@ -7,6 +7,7 @@ import { useI18n } from "@/lib/i18n/context";
 import { PhoneLink } from "@/components/analytics/PhoneLink";
 import { trackLead } from "@/lib/gtag";
 import { ThankYouExtras } from "@/components/booking/ThankYouExtras";
+import { PwaInstallHint } from "@/components/pwa/PwaInstallHint";
 
 export default function BookingThankYouPage() {
   const { t } = useI18n();
@@ -30,6 +31,7 @@ export default function BookingThankYouPage() {
       <div className="mx-auto max-w-lg px-4 text-center">
         <Check className="w-20 h-20 text-bm-red mx-auto mb-6" />
         <h1 className="font-display text-3xl font-bold uppercase text-glow">{ty.title}</h1>
+        <PwaInstallHint />
         <p className="text-bm-muted mt-4 leading-relaxed">{ty.message}</p>
         <p className="text-sm text-bm-silver mt-6">{ty.hours}</p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center mt-8">

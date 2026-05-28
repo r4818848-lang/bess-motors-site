@@ -44,9 +44,10 @@ import { CarProblemWizard } from "@/components/booking/CarProblemWizard";
 import { BookingAvailability } from "@/components/booking/BookingAvailability";
 import { BookingVinLookup } from "@/components/booking/BookingVinLookup";
 import {
-  parseBookingItemsFromSearch,
+  parseBookingParamsFromSearch,
   saveLastBooking,
 } from "@/lib/booking-url";
+import { WaitTimeEstimator } from "@/components/booking/WaitTimeEstimator";
 import {
   applyPromoDiscount,
   getPromoRules,
@@ -294,7 +295,8 @@ export function BookingQuoteFlow({ onDone }: Props) {
   const [promoApplied, setPromoApplied] = useState<ReturnType<typeof matchPromoCode>>(null);
 
   const prefillFromUrl = useCallback(() => {
-    const ids = parseBookingItemsFromSearch(searchParams.toString());
+    const { items: ids, plate } = parseBookingParamsFromSearch(searchParams.toString());
+    if (plate) setVehicleNote(plate);
     if (!ids.length) return;
     const lines: CartLine[] = [];
     for (const id of ids) {
@@ -343,6 +345,25 @@ export function BookingQuoteFlow({ onDone }: Props) {
   const contactValid =
     clientName.trim().length >= 2 && clientPhone.trim().length >= 9;
 
+  useEffect(() => {
+    if (phase === "done" || clientPhone.trim().length < 9) return;
+    const t = setTimeout(() => {
+      void fetch("/api/booking/draft", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          phone: clientPhone.trim(),
+          name: clientName.trim(),
+          step: phase,
+          serviceSummary: cart.map((l) => l.label).join(", ").slice(0, 200),
+          date: date?.toISOString().slice(0, 10),
+          time,
+        }),
+      });
+    }, 2000);
+    return () => clearTimeout(t);
+  }, [phase, clientPhone, clientName, cart, date, time]);
+
   const submit = () => {
     if (!contactValid || cart.length === 0 || !date || !time) return;
     const breakdown = cart
@@ -369,6 +390,7 @@ export function BookingQuoteFlow({ onDone }: Props) {
       clientName: clientName.trim(),
       estimatedTotal: total,
       serviceLabels: cart.map((l) => l.label).join(", "),
+      serviceIds: cart.map((l) => l.itemId),
     });
 
     createBookingAppointment({
@@ -405,6 +427,10 @@ export function BookingQuoteFlow({ onDone }: Props) {
           if (cart.length) setPhase("datetime");
         }}
       />
+
+      <div className="max-w-xl mx-auto px-4 mb-6">
+        <WaitTimeEstimator serviceId={cart[0]?.itemId} />
+      </div>
 
       <CarProblemWizard
         onApply={(lines, cat) => {

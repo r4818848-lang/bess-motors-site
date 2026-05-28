@@ -1,0 +1,795 @@
+/** Client Telegram bot — UI strings (PL / RU / UK / EN) */
+
+export type BotLocale = "pl" | "ru" | "uk" | "en";
+
+export const BOT_LOCALES: BotLocale[] = ["pl", "ru", "uk", "en"];
+
+export function isBotLocale(v: string): v is BotLocale {
+  return BOT_LOCALES.includes(v as BotLocale);
+}
+
+export type ClientBotLabels = {
+  startBtn: string;
+  startKeyboardHint: string;
+  chooseLanguage: string;
+  languageSaved: (name: string) => string;
+  welcome: string;
+  welcomeLinked: string;
+  linkedWelcome: (name: string) => string;
+  book: string;
+  call: string;
+  myAppointments: string;
+  myOrders: string;
+  notifications: string;
+  myCars: string;
+  addVin: string;
+  activate: string;
+  contacts: string;
+  menu: string;
+  back: string;
+  site: string;
+  cabinetSite: string;
+  chooseService: string;
+  chooseDate: string;
+  chooseTime: string;
+  enterName: string;
+  enterPhone: string;
+  enterComment: string;
+  linkIntro: string;
+  linkPhoneAccepted: (phone: string) => string;
+  enterPlate: string;
+  linkConfirmTitle: string;
+  linkConfirmPhone: string;
+  linkConfirmPlate: string;
+  linkConfirmHint: string;
+  linkDataCorrect: string;
+  linkDataWrong: string;
+  linkEditPhone: string;
+  linkEditPlate: string;
+  linkRestart: string;
+  linkWhatToFix: string;
+  linkSuccess: string;
+  linkPhoneBtn: string;
+  signIntro: string;
+  confirmBooking: string;
+  confirmCall: string;
+  skip: string;
+  cancel: string;
+  saved: string;
+  callSaved: string;
+  saveFailed: string;
+  invalidName: string;
+  invalidPhone: string;
+  invalidPlate: string;
+  wrongContact: string;
+  noAppointments: string;
+  cabinetHint: string;
+  contactsText: string;
+  vinEnter: string;
+  vinInvalid: string;
+  vinNotFound: string;
+  vinPlateAsk: string;
+  vinConfirmTitle: string;
+  vinConfirmYes: string;
+  vinConfirmNo: string;
+  vinEditVin: string;
+  vinEditPlate: string;
+  vinAdded: string;
+  vinDuplicate: string;
+  confirmSummaryTitle: string;
+  bookOnSite: string;
+  signOnSite: string;
+  backToList: string;
+  appointmentStatus: Record<string, string>;
+  ordersEmpty: string;
+  ordersTitle: (page: number, total: number) => string;
+  orderNotFound: string;
+  changeLanguage: string;
+  myStatus: string;
+  rebook: string;
+  galleryPhotos: string;
+  referralShare: string;
+  quietHours: string;
+  quietHoursOn: string;
+  quietHoursOff: string;
+  referralText: (link: string) => string;
+  sendPhoto: string;
+  serviceHistory: string;
+  rebookWeek: string;
+  photoSaved: (number: string) => string;
+  photoFailed: string;
+  notificationsTitle: string;
+  notificationsEmpty: string;
+  notifCarReady: string;
+  notifSignRequired: string;
+  notifAppointment: string;
+  notifDefault: string;
+  notifStatusUpdated: string;
+  appointmentsTitle: string;
+  appointmentsEmpty: string;
+  carsTitle: string;
+  carsEmpty: string;
+  paid: string;
+  unpaid: string;
+  needsSignBadge: string;
+  orderStatus: string;
+  signed: string;
+  needsSignature: string;
+  works: string;
+  smartBookHint: string;
+  symptomQuiz: string;
+  symptomIntro: string;
+  symptomDone: string;
+  symptomPickOne: string;
+  concierge: string;
+  notifySettings: string;
+  notifySettingsIntro: string;
+  muteWeekOn: string;
+  muteWeekOff: string;
+  shareApt: string;
+  postFollowupTitle: string;
+  postFollowupOk: string;
+  postFollowupIssue: string;
+  extraWorkTitle: string;
+  extraWorkPrompt: string;
+  extraApprove: string;
+  extraReject: string;
+  promoTitle: string;
+  promoEmpty: string;
+  packagesBtn: string;
+  locationBtn: string;
+  warrantyBtn: string;
+  vehiclePick: string;
+  repairStatus: Record<string, string>;
+};
+
+const LABELS: Record<BotLocale, ClientBotLabels> = {
+  pl: {
+    startBtn: "🏠 Start",
+    startKeyboardHint: "Użyj przycisku <b>Start</b> poniżej, aby wrócić do menu.",
+    chooseLanguage: "🌐 <b>Wybierz język / Choose language</b>\n\nWybierz język obsługi w bocie:",
+    languageSaved: (name) => `✅ Język: <b>${name}</b>`,
+    welcome:
+      "🛠 <b>BESS MOTORS</b>\n\nSerwis samochodowy w Warszawie.\nPołącz konto klienta — statusy napraw, dokumenty do podpisu i wizyty w Telegramie.",
+    welcomeLinked: "Twoje konto jest aktywne.",
+    linkedWelcome: (name) =>
+      `👋 <b>Witaj, ${name}!</b>\n\nKonto klienta jest podłączone.\nZlecenia, wizyty i powiadomienia — tutaj.`,
+    book: "📅 Umów wizytę",
+    call: "📞 Zamów telefon",
+    myAppointments: "📅 Moje wizyty",
+    myOrders: "📋 Zlecenia",
+    notifications: "🔔 Powiadomienia",
+    myCars: "🚗 Moje auta",
+    addVin: "➕ Dodaj VIN",
+    activate: "🔐 Połącz konto",
+    contacts: "📍 Kontakt",
+    menu: "🏠 Menu główne",
+    back: "◀️ Wstecz",
+    site: "🌐 Strona",
+    cabinetSite: "🌐 Konto na stronie",
+    chooseService: "Wybierz usługę:",
+    chooseDate: "Wybierz datę wizyty:",
+    chooseTime: "Wybierz godzinę:",
+    enterName: "✏️ Podaj imię i nazwisko:",
+    enterPhone: "📱 Podaj numer telefonu:",
+    enterComment: "💬 Opisz problem (lub «Pomiń»):",
+    linkIntro:
+      "🔐 <b>Połączenie konta</b>\n\nWyślij <b>numer telefonu</b> powiązany z Telegramem.\n\nPrzycisk poniżej lub wpisz ręcznie (+48...).",
+    linkPhoneAccepted: (phone) =>
+      `✅ Telefon: <b>${phone}</b>\n\nTeraz wpisz <b>numer rejestracyjny</b> (np. WA12345).\n\nTo hasło do logowania na stronie.\n\n<i>Błąd? «Zmień telefon».</i>`,
+    enterPlate:
+      "🚗 Wpisz <b>numer rejestracyjny</b> (np. WA12345).\n\nHasło do strony:\n<code>telefon + tablica</code>",
+    linkConfirmTitle: "📋 <b>Sprawdź dane</b>",
+    linkConfirmPhone: "📱 Telefon",
+    linkConfirmPlate: "🚗 Tablica",
+    linkConfirmHint: "Jeśli OK — potwierdź. Jeśli nie — popraw.",
+    linkDataCorrect: "✅ Dane poprawne",
+    linkDataWrong: "❌ Dane niepoprawne",
+    linkEditPhone: "📱 Zmień telefon",
+    linkEditPlate: "🚗 Zmień tablicę",
+    linkRestart: "🔄 Od nowa",
+    linkWhatToFix: "Co poprawić?",
+    linkSuccess:
+      "✅ <b>Konto połączone!</b>\n\nStatusy napraw, podpisy i przypomnienia — w Telegramie.\n\nStrona: telefon + tablica → bess-motors.com/cabinet",
+    linkPhoneBtn: "📱 Wyślij mój numer",
+    signIntro: "✍️ <b>Podpis zlecenia</b>\n\nPołącz konto — telefon i tablica rejestracyjna.",
+    confirmBooking: "✅ Potwierdź wizytę",
+    confirmCall: "✅ Potwierdź prośbę",
+    skip: "⏭ Pomiń",
+    cancel: "❌ Anuluj",
+    saved:
+      "✅ <b>Przyjęto!</b>\n\nSkontaktujemy się w celu potwierdzenia.\n\n📍 Aleja Krakowska 48/52, Warszawa\n☎️ +48 791 257 229",
+    callSaved:
+      "✅ <b>Prośba o telefon przyjęta!</b>\n\nOddzwonimy w godzinach pracy.\n\n☎️ +48 791 257 229",
+    saveFailed: "❌ Nie udało się zapisać. Spróbuj później lub zadzwoń.",
+    invalidName: "❌ Podaj imię (min. 2 znaki).",
+    invalidPhone: "❌ Podaj poprawny numer (min. 9 cyfr).",
+    invalidPlate: "❌ Podaj numer rejestracyjny (min. 2 znaki).",
+    wrongContact: "❌ Wyślij <b>swój</b> numer przyciskiem «Wyślij numer», nie cudzy.",
+    noAppointments: "Brak nadchodzących wizyt.",
+    cabinetHint: "🌐 Pełne konto: https://www.bess-motors.com/cabinet",
+    contactsText:
+      "<b>BESS MOTORS</b>\n\n📍 Aleja Krakowska 48/52, 02-284 Warszawa\n☎️ +48 791 257 229\n✉️ bessmotorss@gmail.com\n\n🕐 Pn–Sb 8:00–20:00\n\n🌐 https://www.bess-motors.com",
+    vinEnter: "🔎 Wpisz VIN (17 znaków):",
+    vinInvalid: "❌ VIN musi mieć dokładnie 17 znaków.",
+    vinNotFound: "❌ Nie rozpoznano VIN. Sprawdź i spróbuj ponownie.",
+    vinPlateAsk: "🚗 Tablica (opcjonalnie). Pomiń → VIN-XXXXXX.\n\nNp. WA12345",
+    vinConfirmTitle: "Dodać auto?",
+    vinConfirmYes: "✅ Dodaj",
+    vinConfirmNo: "❌ Anuluj",
+    vinEditVin: "🔄 Inny VIN",
+    vinEditPlate: "✏️ Zmień tablicę",
+    vinAdded: "✅ Auto dodane i zsynchronizowane.",
+    vinDuplicate: "⚠️ Ten VIN jest już w garażu.",
+    confirmSummaryTitle: "<b>Sprawdź dane:</b>",
+    bookOnSite: "🌐 Rezerwacja online",
+    signOnSite: "✍️ Podpis na stronie",
+    backToList: "◀️ Do listy",
+    appointmentStatus: {
+      scheduled: "Oczekuje potwierdzenia",
+      confirmed: "Potwierdzona",
+      completed: "Zakończona",
+      cancelled: "Anulowana",
+    },
+    ordersEmpty: "📋 <b>Zlecenia</b>\n\nBrak zleceń.",
+    ordersTitle: (p, t) => `📋 <b>Zlecenia</b> (${p}/${t})`,
+    orderNotFound: "Nie znaleziono zlecenia.",
+    changeLanguage: "🌐 Język",
+    myStatus: "📊 Status",
+    rebook: "🔁 Ponów wizytę",
+    galleryPhotos: "🖼 Galeria",
+    referralShare: "🎁 Polec znajomego",
+    quietHours: "🌙 Cisza nocna",
+    quietHoursOn: "✅ Cisza nocna włączona (22–8)",
+    quietHoursOff: "🔔 Powiadomienia o każdej porze",
+    referralText: (link) =>
+      `🎁 <b>Poleć BESS MOTORS</b>\n\nWyślij link znajomemu:\n${link}`,
+    sendPhoto: "📷 Wyślij zdjęcie",
+    serviceHistory: "📜 Historia",
+    rebookWeek: "📅 Za 7 dni",
+    photoSaved: (n) => `✅ Zdjęcie zapisane (${n})`,
+    photoFailed: "❌ Nie udało się zapisać zdjęcia.",
+    notificationsTitle: "🔔 <b>Powiadomienia</b>",
+    notificationsEmpty: "🔔 <b>Powiadomienia</b>\n\nBrak nowych.",
+    notifCarReady: "Auto gotowe",
+    notifSignRequired: "Wymagany podpis",
+    notifAppointment: "Wizyta",
+    notifDefault: "Powiadomienie",
+    notifStatusUpdated: "zaktualizowany",
+    appointmentsTitle: "📅 <b>Nadchodzące wizyty</b>",
+    appointmentsEmpty: "📅 <b>Wizyty</b>\n\nBrak nadchodzących.",
+    carsTitle: "🚗 <b>Moje auta</b>",
+    carsEmpty: "🚗 <b>Moje auta</b>\n\nPojawią się po pierwszej wizycie.",
+    paid: "opłacone",
+    unpaid: "nieopłacone",
+    needsSignBadge: " · ✍️ podpis",
+    orderStatus: "Status",
+    signed: "Podpisane",
+    needsSignature: "✍️ <b>Wymagany podpis</b>",
+    works: "Prace",
+    smartBookHint: "💡 Napisz np.: <i>jutro 17:30 wymiana oleju</i>",
+    symptomQuiz: "🔍 Objawy / wycena",
+    symptomIntro: "🔍 <b>Co się dzieje z autem?</b>\n\nZaznacz objawy (wiele OK), potem «Gotowe».",
+    symptomDone: "✅ Gotowe",
+    symptomPickOne: "Wybierz co najmniej jeden objaw.",
+    concierge: "🤖 Asystent",
+    notifySettings: "🔕 Powiadomienia",
+    notifySettingsIntro:
+      "🔕 <b>Ustawienia powiadomień</b>\n\nWybierz kategorie. «Wycisz 7 dni» — bez marketingu i przypomnień (podpis nadal możliwy).",
+    muteWeekOn: "🔇 Wycisz na 7 dni",
+    muteWeekOff: "🔔 Włącz powiadomienia",
+    shareApt: "📤 Udostępnij wizytę",
+    postFollowupTitle: "Kontrola po serwisie",
+    postFollowupOk: "✅ Wszystko OK",
+    postFollowupIssue: "⚠️ Jest pytanie",
+    extraWorkTitle: "➕ <b>Dodatkowe prace</b>",
+    extraWorkPrompt: "Zatwierdzić pozycje w kosztorysie?",
+    extraApprove: "✅ Zgadzam się",
+    extraReject: "❌ Odmawiam",
+    promoTitle: "🏷 <b>Promocje</b>",
+    promoEmpty: "Brak aktywnych kodów — sprawdź stronę.",
+    packagesBtn: "📦 Pakiety usług",
+    locationBtn: "📍 Dojazd",
+    warrantyBtn: "🛡 Gwarancja",
+    vehiclePick: "🚗 Wybierz auto",
+    repairStatus: {
+      received: "Przyjęty",
+      diagnostic: "Diagnostyka",
+      repair: "Naprawa",
+      waitingParts: "Czeka na części",
+      ready: "Gotowy",
+      delivered: "Wydany",
+    },
+  },
+  ru: {
+    startBtn: "🏠 Старт",
+    startKeyboardHint: "Нажмите <b>Старт</b> внизу экрана, чтобы открыть главное меню.",
+    chooseLanguage: "🌐 <b>Выберите язык</b>\n\nНа каком языке вести диалог?",
+    languageSaved: (name) => `✅ Язык: <b>${name}</b>`,
+    welcome:
+      "🛠 <b>BESS MOTORS</b>\n\nАвтосервис в Варшаве.\nПодключите личный кабинет — статусы заказов, документы на подпись и записи в Telegram.",
+    welcomeLinked: "Ваш кабинет активен.",
+    linkedWelcome: (name) =>
+      `👋 <b>Здравствуйте, ${name}!</b>\n\nВаш личный кабинет подключён.\nЗдесь — заказ-наряды, записи и уведомления.`,
+    book: "📅 Записаться",
+    call: "📞 Заказать звонок",
+    myAppointments: "📅 Мои записи",
+    myOrders: "📋 Заказ-наряды",
+    notifications: "🔔 Уведомления",
+    myCars: "🚗 Мои авто",
+    addVin: "➕ Добавить VIN",
+    activate: "🔐 Подключить кабинет",
+    contacts: "📍 Контакты",
+    menu: "🏠 Главное меню",
+    back: "◀️ Назад",
+    site: "🌐 Сайт",
+    cabinetSite: "🌐 Кабинет на сайте",
+    chooseService: "Выберите услугу:",
+    chooseDate: "Выберите дату визита:",
+    chooseTime: "Выберите время:",
+    enterName: "✏️ Введите ваше имя:",
+    enterPhone: "📱 Введите номер телефона:",
+    enterComment: "💬 Опишите проблему (или «Пропустить»):",
+    linkIntro:
+      "🔐 <b>Подключение личного кабинета</b>\n\nОтправьте <b>номер телефона</b>, привязанный к Telegram.\n\nКнопка ниже или введите вручную (+48...).",
+    linkPhoneAccepted: (phone) =>
+      `✅ Телефон: <b>${phone}</b>\n\nВведите <b>госномер</b> (например WA12345).\n\nПароль для сайта.\n\n<i>Ошиблись? «Изменить телефон».</i>`,
+    enterPlate:
+      "🚗 Введите <b>госномер</b> (например WA12345).\n\nПароль для входа:\n<code>телефон + госномер</code>",
+    linkConfirmTitle: "📋 <b>Проверьте данные</b>",
+    linkConfirmPhone: "📱 Телефон",
+    linkConfirmPlate: "🚗 Госномер",
+    linkConfirmHint: "Если всё верно — подтвердите. Если нет — исправьте.",
+    linkDataCorrect: "✅ Данные верны",
+    linkDataWrong: "❌ Данные неверны",
+    linkEditPhone: "📱 Изменить телефон",
+    linkEditPlate: "🚗 Изменить госномер",
+    linkRestart: "🔄 Начать заново",
+    linkWhatToFix: "Что нужно исправить?",
+    linkSuccess:
+      "✅ <b>Кабинет подключён!</b>\n\nСтатусы ремонта, подписи и напоминания — в Telegram.\n\nСайт: телефон + госномер → bess-motors.com/cabinet",
+    linkPhoneBtn: "📱 Отправить мой номер телефона",
+    signIntro:
+      "✍️ <b>Подписание заказ-наряда</b>\n\nПодключите кабинет — телефон и госномер.",
+    confirmBooking: "✅ Подтвердить запись",
+    confirmCall: "✅ Подтвердить заявку",
+    skip: "⏭ Пропустить",
+    cancel: "❌ Отмена",
+    saved:
+      "✅ <b>Заявка принята!</b>\n\nМы свяжемся для подтверждения.\n\n📍 Aleja Krakowska 48/52, Warszawa\n☎️ +48 791 257 229",
+    callSaved:
+      "✅ <b>Заявка на звонок принята!</b>\n\nПерезвоним в рабочее время.\n\n☎️ +48 791 257 229",
+    saveFailed: "❌ Не удалось сохранить. Попробуйте позже или позвоните.",
+    invalidName: "❌ Введите имя (минимум 2 символа).",
+    invalidPhone: "❌ Нужен корректный номер (минимум 9 цифр).",
+    invalidPlate: "❌ Введите госномер (минимум 2 символа).",
+    wrongContact: "❌ Отправьте <b>свой</b> номер через кнопку «Отправить контакт».",
+    noAppointments: "Нет предстоящих записей.",
+    cabinetHint: "🌐 Полный кабинет: https://www.bess-motors.com/cabinet",
+    contactsText:
+      "<b>BESS MOTORS</b>\n\n📍 Aleja Krakowska 48/52, 02-284 Warszawa\n☎️ +48 791 257 229\n✉️ bessmotorss@gmail.com\n\n🕐 Pn–Sb 8:00–20:00\n\n🌐 https://www.bess-motors.com",
+    vinEnter: "🔎 Введите VIN (17 символов):",
+    vinInvalid: "❌ VIN должен содержать ровно 17 символов.",
+    vinNotFound: "❌ Не удалось распознать VIN.",
+    vinPlateAsk: "🚗 Госномер (необязательно). Пропуск → VIN-XXXXXX.\n\nНапример: WA12345",
+    vinConfirmTitle: "Добавить автомобиль?",
+    vinConfirmYes: "✅ Добавить",
+    vinConfirmNo: "❌ Отмена",
+    vinEditVin: "🔄 Другой VIN",
+    vinEditPlate: "✏️ Изменить госномер",
+    vinAdded: "✅ Автомобиль добавлен.",
+    vinDuplicate: "⚠️ Этот VIN уже в гараже.",
+    confirmSummaryTitle: "<b>Проверьте данные:</b>",
+    bookOnSite: "🌐 Запись на сайте",
+    signOnSite: "✍️ Подписать на сайте",
+    backToList: "◀️ К списку",
+    appointmentStatus: {
+      scheduled: "Ожидает подтверждения",
+      confirmed: "Подтверждена",
+      completed: "Завершена",
+      cancelled: "Отменена",
+    },
+    ordersEmpty: "📋 <b>Заказ-наряды</b>\n\nПока нет заказ-нарядов.",
+    ordersTitle: (p, t) => `📋 <b>Заказ-наряды</b> (${p}/${t})`,
+    orderNotFound: "Заказ-наряд не найден.",
+    changeLanguage: "🌐 Язык",
+    myStatus: "📊 Статус",
+    rebook: "🔁 Записаться снова",
+    galleryPhotos: "🖼 Фото работ",
+    referralShare: "🎁 Пригласить друга",
+    quietHours: "🌙 Тихие часы",
+    quietHoursOn: "✅ Тихие часы 22:00–08:00",
+    quietHoursOff: "🔔 Уведомления в любое время",
+    referralText: (link) =>
+      `🎁 <b>Пригласите в BESS MOTORS</b>\n\nСсылка для друга:\n${link}`,
+    sendPhoto: "📷 Отправить фото",
+    serviceHistory: "📜 История",
+    rebookWeek: "📅 Через 7 дней",
+    photoSaved: (n) => `✅ Фото сохранено (${n})`,
+    photoFailed: "❌ Не удалось сохранить фото.",
+    notificationsTitle: "🔔 <b>Уведомления</b>",
+    notificationsEmpty: "🔔 <b>Уведомления</b>\n\nНет новых уведомлений.",
+    notifCarReady: "Авто готово",
+    notifSignRequired: "Нужна подпись",
+    notifAppointment: "Запись",
+    notifDefault: "Уведомление",
+    notifStatusUpdated: "обновлён",
+    appointmentsTitle: "📅 <b>Ближайшие записи</b>",
+    appointmentsEmpty: "📅 <b>Записи</b>\n\nНет предстоящих записей.",
+    carsTitle: "🚗 <b>Мои автомобили</b>",
+    carsEmpty: "🚗 <b>Мои авто</b>\n\nАвтомобили появятся после первого визита.",
+    paid: "оплачен",
+    unpaid: "не оплачен",
+    needsSignBadge: " · ✍️ нужна подпись",
+    orderStatus: "Статус",
+    signed: "✅ Подписан",
+    needsSignature: "✍️ <b>Требуется подпись</b>",
+    works: "Работы",
+    smartBookHint: "💡 Напишите, например: <i>завтра 17:30 замена масла</i>",
+    symptomQuiz: "🔍 Симптомы / смета",
+    symptomIntro: "🔍 <b>Что беспокоит в авто?</b>\n\nОтметьте симптомы, затем «Готово».",
+    symptomDone: "✅ Готово",
+    symptomPickOne: "Выберите хотя бы один симптом.",
+    concierge: "🤖 Консьерж",
+    notifySettings: "🔕 Уведомления",
+    notifySettingsIntro:
+      "🔕 <b>Настройки уведомлений</b>\n\nКатегории можно отключить. «Тишина 7 дней» — без напоминаний (подпись документов остаётся).",
+    muteWeekOn: "🔇 Тишина 7 дней",
+    muteWeekOff: "🔔 Включить уведомления",
+    shareApt: "📤 Поделиться записью",
+    postFollowupTitle: "Контроль после сервиса",
+    postFollowupOk: "✅ Всё отлично",
+    postFollowupIssue: "⚠️ Есть вопрос",
+    extraWorkTitle: "➕ <b>Дополнительные работы</b>",
+    extraWorkPrompt: "Согласовать позиции в смете?",
+    extraApprove: "✅ Согласен",
+    extraReject: "❌ Отказ",
+    promoTitle: "🏷 <b>Промокоды</b>",
+    promoEmpty: "Нет активных кодов — смотрите сайт.",
+    packagesBtn: "📦 Пакеты услуг",
+    locationBtn: "📍 Как доехать",
+    warrantyBtn: "🛡 Гарантия",
+    vehiclePick: "🚗 Выбрать авто",
+    repairStatus: {
+      received: "Принят",
+      diagnostic: "Диагностика",
+      repair: "Ремонт",
+      waitingParts: "Ожидание запчастей",
+      ready: "Готов",
+      delivered: "Выдан",
+    },
+  },
+  uk: {
+    startBtn: "🏠 Старт",
+    startKeyboardHint: "Натисніть <b>Старт</b> внизу, щоб відкрити головне меню.",
+    chooseLanguage: "🌐 <b>Оберіть мову</b>\n\nМовою спілкування в боті:",
+    languageSaved: (name) => `✅ Мова: <b>${name}</b>`,
+    welcome:
+      "🛠 <b>BESS MOTORS</b>\n\nАвтосервіс у Варшаві.\nПідключіть кабінет — статуси ремонту, документи та записи в Telegram.",
+    welcomeLinked: "Ваш кабінет активний.",
+    linkedWelcome: (name) =>
+      `👋 <b>Вітаємо, ${name}!</b>\n\nОсобистий кабінет підключено.\nЗамовлення, записи та сповіщення — тут.`,
+    book: "📅 Записатися",
+    call: "📞 Замовити дзвінок",
+    myAppointments: "📅 Мої записи",
+    myOrders: "📋 Замовлення",
+    notifications: "🔔 Сповіщення",
+    myCars: "🚗 Мої авто",
+    addVin: "➕ Додати VIN",
+    activate: "🔐 Підключити кабінет",
+    contacts: "📍 Контакти",
+    menu: "🏠 Головне меню",
+    back: "◀️ Назад",
+    site: "🌐 Сайт",
+    cabinetSite: "🌐 Кабінет на сайті",
+    chooseService: "Оберіть послугу:",
+    chooseDate: "Оберіть дату візиту:",
+    chooseTime: "Оберіть час:",
+    enterName: "✏️ Введіть ім'я:",
+    enterPhone: "📱 Введіть номер телефону:",
+    enterComment: "💬 Опишіть проблему (або «Пропустити»):",
+    linkIntro:
+      "🔐 <b>Підключення кабінету</b>\n\nНадішліть <b>номер телефону</b>, прив'язаний до Telegram.\n\nКнопка нижче або +48...",
+    linkPhoneAccepted: (phone) =>
+      `✅ Телефон: <b>${phone}</b>\n\nВведіть <b>держномер</b> (наприклад WA12345).\n\nПароль для сайту.`,
+    enterPlate: "🚗 Введіть <b>держномер</b>.\n\nПароль: <code>телефон + номер</code>",
+    linkConfirmTitle: "📋 <b>Перевірте дані</b>",
+    linkConfirmPhone: "📱 Телефон",
+    linkConfirmPlate: "🚗 Держномер",
+    linkConfirmHint: "Якщо все вірно — підтвердіть.",
+    linkDataCorrect: "✅ Дані вірні",
+    linkDataWrong: "❌ Дані невірні",
+    linkEditPhone: "📱 Змінити телефон",
+    linkEditPlate: "🚗 Змінити номер",
+    linkRestart: "🔄 Спочатку",
+    linkWhatToFix: "Що виправити?",
+    linkSuccess: "✅ <b>Кабінет підключено!</b>\n\nСтатуси та документи — у Telegram.",
+    linkPhoneBtn: "📱 Надіслати мій номер",
+    signIntro: "✍️ <b>Підпис замовлення</b>\n\nПідключіть кабінет.",
+    confirmBooking: "✅ Підтвердити запис",
+    confirmCall: "✅ Підтвердити заявку",
+    skip: "⏭ Пропустити",
+    cancel: "❌ Скасувати",
+    saved: "✅ <b>Прийнято!</b>\n\nМи зв'яжемося для підтвердження.\n\n☎️ +48 791 257 229",
+    callSaved: "✅ <b>Заявку на дзвінок прийнято!</b>\n\n☎️ +48 791 257 229",
+    saveFailed: "❌ Не вдалося зберегти. Спробуйте пізніше.",
+    invalidName: "❌ Введіть ім'я (мін. 2 символи).",
+    invalidPhone: "❌ Коректний номер (мін. 9 цифр).",
+    invalidPlate: "❌ Введіть держномер.",
+    wrongContact: "❌ Надішліть <b>свій</b> номер кнопкою контакту.",
+    noAppointments: "Немає майбутніх записів.",
+    cabinetHint: "🌐 Кабінет: https://www.bess-motors.com/cabinet",
+    contactsText:
+      "<b>BESS MOTORS</b>\n\n📍 Aleja Krakowska 48/52, Warszawa\n☎️ +48 791 257 229\n\n🕐 Pn–Sb 8:00–20:00",
+    vinEnter: "🔎 VIN (17 символів):",
+    vinInvalid: "❌ VIN — 17 символів.",
+    vinNotFound: "❌ VIN не розпізнано.",
+    vinPlateAsk: "🚗 Держномер (необов'язково).",
+    vinConfirmTitle: "Додати авто?",
+    vinConfirmYes: "✅ Додати",
+    vinConfirmNo: "❌ Скасувати",
+    vinEditVin: "🔄 Інший VIN",
+    vinEditPlate: "✏️ Змінити номер",
+    vinAdded: "✅ Авто додано.",
+    vinDuplicate: "⚠️ VIN вже є.",
+    confirmSummaryTitle: "<b>Перевірте дані:</b>",
+    bookOnSite: "🌐 Запис на сайті",
+    signOnSite: "✍️ Підпис на сайті",
+    backToList: "◀️ До списку",
+    appointmentStatus: {
+      scheduled: "Очікує підтвердження",
+      confirmed: "Підтверджено",
+      completed: "Завершено",
+      cancelled: "Скасовано",
+    },
+    ordersEmpty: "📋 <b>Замовлення</b>\n\nПоки немає.",
+    ordersTitle: (p, t) => `📋 <b>Замовлення</b> (${p}/${t})`,
+    orderNotFound: "Замовлення не знайдено.",
+    changeLanguage: "🌐 Мова",
+    myStatus: "📊 Статус",
+    rebook: "🔁 Запис знову",
+    galleryPhotos: "🖼 Галерея",
+    referralShare: "🎁 Запросити друга",
+    quietHours: "🌙 Тихі години",
+    quietHoursOn: "✅ Тихі години 22–8",
+    quietHoursOff: "🔔 Сповіщення завжди",
+    referralText: (link) =>
+      `🎁 <b>Запросіть до BESS MOTORS</b>\n\nПосилання:\n${link}`,
+    sendPhoto: "📷 Надіслати фото",
+    serviceHistory: "📜 Історія",
+    rebookWeek: "📅 Через 7 днів",
+    photoSaved: (n) => `✅ Фото збережено (${n})`,
+    photoFailed: "❌ Не вдалося зберегти фото.",
+    notificationsTitle: "🔔 <b>Сповіщення</b>",
+    notificationsEmpty: "🔔 <b>Сповіщення</b>\n\nНемає нових.",
+    notifCarReady: "Авто готове",
+    notifSignRequired: "Потрібен підпис",
+    notifAppointment: "Запис",
+    notifDefault: "Сповіщення",
+    notifStatusUpdated: "оновлено",
+    appointmentsTitle: "📅 <b>Найближчі записи</b>",
+    appointmentsEmpty: "📅 <b>Записи</b>\n\nНемає майбутніх.",
+    carsTitle: "🚗 <b>Мої авто</b>",
+    carsEmpty: "🚗 <b>Мої авто</b>\n\nЗ'являться після першого візиту.",
+    paid: "оплачено",
+    unpaid: "не оплачено",
+    needsSignBadge: " · ✍️ підпис",
+    orderStatus: "Статус",
+    signed: "✅ Підписано",
+    needsSignature: "✍️ <b>Потрібен підпис</b>",
+    works: "Роботи",
+    smartBookHint: "💡 Напишіть, напр.: <i>завтра 17:30 заміна масла</i>",
+    symptomQuiz: "🔍 Симптоми / кошторис",
+    symptomIntro: "🔍 <b>Що з авто?</b>\n\nОберіть симптоми, потім «Готово».",
+    symptomDone: "✅ Готово",
+    symptomPickOne: "Оберіть хоча б один симптом.",
+    concierge: "🤖 Асистент",
+    notifySettings: "🔕 Сповіщення",
+    notifySettingsIntro: "🔕 <b>Налаштування сповіщень</b>\n\nКатегорії та «Тиша 7 днів».",
+    muteWeekOn: "🔇 Тиша 7 днів",
+    muteWeekOff: "🔔 Увімкнути сповіщення",
+    shareApt: "📤 Поділитися записом",
+    postFollowupTitle: "Контроль після сервісу",
+    postFollowupOk: "✅ Все добре",
+    postFollowupIssue: "⚠️ Є питання",
+    extraWorkTitle: "➕ <b>Додаткові роботи</b>",
+    extraWorkPrompt: "Погодити позиції?",
+    extraApprove: "✅ Погоджую",
+    extraReject: "❌ Відмова",
+    promoTitle: "🏷 <b>Промокоди</b>",
+    promoEmpty: "Немає активних кодів.",
+    packagesBtn: "📦 Пакети послуг",
+    locationBtn: "📍 Маршрут",
+    warrantyBtn: "🛡 Гарантія",
+    vehiclePick: "🚗 Обрати авто",
+    repairStatus: {
+      received: "Прийнято",
+      diagnostic: "Діагностика",
+      repair: "Ремонт",
+      waitingParts: "Очікування запчастин",
+      ready: "Готовий",
+      delivered: "Видано",
+    },
+  },
+  en: {
+    startBtn: "🏠 Start",
+    startKeyboardHint: "Tap <b>Start</b> below to open the main menu.",
+    chooseLanguage: "🌐 <b>Choose your language</b>\n\nSelect bot language:",
+    languageSaved: (name) => `✅ Language: <b>${name}</b>`,
+    welcome:
+      "🛠 <b>BESS MOTORS</b>\n\nCar service in Warsaw.\nLink your account for repair status, documents to sign, and bookings in Telegram.",
+    welcomeLinked: "Your account is active.",
+    linkedWelcome: (name) =>
+      `👋 <b>Hello, ${name}!</b>\n\nYour account is linked.\nWork orders, appointments and notifications are here.`,
+    book: "📅 Book visit",
+    call: "📞 Request call",
+    myAppointments: "📅 My appointments",
+    myOrders: "📋 Work orders",
+    notifications: "🔔 Notifications",
+    myCars: "🚗 My cars",
+    addVin: "➕ Add VIN",
+    activate: "🔐 Link account",
+    contacts: "📍 Contacts",
+    menu: "🏠 Main menu",
+    back: "◀️ Back",
+    site: "🌐 Website",
+    cabinetSite: "🌐 Web account",
+    chooseService: "Choose a service:",
+    chooseDate: "Choose visit date:",
+    chooseTime: "Choose time:",
+    enterName: "✏️ Enter your name:",
+    enterPhone: "📱 Enter phone number:",
+    enterComment: "💬 Describe the issue (or Skip):",
+    linkIntro:
+      "🔐 <b>Link your account</b>\n\nSend your <b>phone number</b> linked to Telegram.\n\nButton below or type +48...",
+    linkPhoneAccepted: (phone) =>
+      `✅ Phone: <b>${phone}</b>\n\nEnter <b>license plate</b> (e.g. WA12345).\n\nSite password.`,
+    enterPlate: "🚗 Enter <b>license plate</b>.\n\nLogin: <code>phone + plate</code>",
+    linkConfirmTitle: "📋 <b>Check details</b>",
+    linkConfirmPhone: "📱 Phone",
+    linkConfirmPlate: "🚗 Plate",
+    linkConfirmHint: "Confirm or edit.",
+    linkDataCorrect: "✅ Correct",
+    linkDataWrong: "❌ Incorrect",
+    linkEditPhone: "📱 Change phone",
+    linkEditPlate: "🚗 Change plate",
+    linkRestart: "🔄 Start over",
+    linkWhatToFix: "What to fix?",
+    linkSuccess: "✅ <b>Account linked!</b>\n\nStatuses and reminders in Telegram.\n\nbess-motors.com/cabinet",
+    linkPhoneBtn: "📱 Send my phone number",
+    signIntro: "✍️ <b>Sign work order</b>\n\nLink your account first.",
+    confirmBooking: "✅ Confirm booking",
+    confirmCall: "✅ Confirm request",
+    skip: "⏭ Skip",
+    cancel: "❌ Cancel",
+    saved: "✅ <b>Request received!</b>\n\nWe will confirm shortly.\n\n☎️ +48 791 257 229",
+    callSaved: "✅ <b>Call request received!</b>\n\n☎️ +48 791 257 229",
+    saveFailed: "❌ Could not save. Try again or call us.",
+    invalidName: "❌ Enter name (min. 2 characters).",
+    invalidPhone: "❌ Valid phone required (min. 9 digits).",
+    invalidPlate: "❌ Enter license plate.",
+    wrongContact: "❌ Send <b>your</b> contact via the button.",
+    noAppointments: "No upcoming appointments.",
+    cabinetHint: "🌐 Full account: https://www.bess-motors.com/cabinet",
+    contactsText:
+      "<b>BESS MOTORS</b>\n\n📍 Aleja Krakowska 48/52, Warsaw\n☎️ +48 791 257 229\n\n🕐 Mon–Sat 8:00–20:00",
+    vinEnter: "🔎 Enter VIN (17 chars):",
+    vinInvalid: "❌ VIN must be 17 characters.",
+    vinNotFound: "❌ VIN not recognized.",
+    vinPlateAsk: "🚗 Plate (optional).",
+    vinConfirmTitle: "Add vehicle?",
+    vinConfirmYes: "✅ Add",
+    vinConfirmNo: "❌ Cancel",
+    vinEditVin: "🔄 Other VIN",
+    vinEditPlate: "✏️ Edit plate",
+    vinAdded: "✅ Vehicle added.",
+    vinDuplicate: "⚠️ VIN already in garage.",
+    confirmSummaryTitle: "<b>Please confirm:</b>",
+    bookOnSite: "🌐 Book online",
+    signOnSite: "✍️ Sign on website",
+    backToList: "◀️ Back to list",
+    appointmentStatus: {
+      scheduled: "Awaiting confirmation",
+      confirmed: "Confirmed",
+      completed: "Completed",
+      cancelled: "Cancelled",
+    },
+    ordersEmpty: "📋 <b>Work orders</b>\n\nNone yet.",
+    ordersTitle: (p, t) => `📋 <b>Work orders</b> (${p}/${t})`,
+    orderNotFound: "Work order not found.",
+    changeLanguage: "🌐 Language",
+    myStatus: "📊 Status",
+    rebook: "🔁 Book again",
+    galleryPhotos: "🖼 Gallery",
+    referralShare: "🎁 Refer a friend",
+    quietHours: "🌙 Quiet hours",
+    quietHoursOn: "✅ Quiet hours on (22:00–08:00)",
+    quietHoursOff: "🔔 Notifications anytime",
+    referralText: (link) =>
+      `🎁 <b>Refer BESS MOTORS</b>\n\nShare this link:\n${link}`,
+    sendPhoto: "📷 Send photo",
+    serviceHistory: "📜 History",
+    rebookWeek: "📅 In 7 days",
+    photoSaved: (n) => `✅ Photo saved (${n})`,
+    photoFailed: "❌ Could not save photo.",
+    notificationsTitle: "🔔 <b>Notifications</b>",
+    notificationsEmpty: "🔔 <b>Notifications</b>\n\nNo new notifications.",
+    notifCarReady: "Car ready",
+    notifSignRequired: "Signature required",
+    notifAppointment: "Appointment",
+    notifDefault: "Notification",
+    notifStatusUpdated: "updated",
+    appointmentsTitle: "📅 <b>Upcoming appointments</b>",
+    appointmentsEmpty: "📅 <b>Appointments</b>\n\nNo upcoming visits.",
+    carsTitle: "🚗 <b>My cars</b>",
+    carsEmpty: "🚗 <b>My cars</b>\n\nVehicles appear after your first visit.",
+    paid: "paid",
+    unpaid: "unpaid",
+    needsSignBadge: " · ✍️ sign required",
+    orderStatus: "Status",
+    signed: "✅ Signed",
+    needsSignature: "✍️ <b>Signature required</b>",
+    works: "Services",
+    smartBookHint: "💡 Type e.g. <i>tomorrow 5pm oil change</i>",
+    symptomQuiz: "🔍 Symptoms / estimate",
+    symptomIntro: "🔍 <b>What is wrong with the car?</b>\n\nPick symptoms, then «Done».",
+    symptomDone: "✅ Done",
+    symptomPickOne: "Pick at least one symptom.",
+    concierge: "🤖 Concierge",
+    notifySettings: "🔕 Notifications",
+    notifySettingsIntro:
+      "🔕 <b>Notification settings</b>\n\nToggle categories. «Mute 7 days» pauses reminders (signatures still work).",
+    muteWeekOn: "🔇 Mute for 7 days",
+    muteWeekOff: "🔔 Unmute",
+    shareApt: "📤 Share appointment",
+    postFollowupTitle: "Post-service check",
+    postFollowupOk: "✅ All good",
+    postFollowupIssue: "⚠️ I have a question",
+    extraWorkTitle: "➕ <b>Additional work</b>",
+    extraWorkPrompt: "Approve these items?",
+    extraApprove: "✅ Approve",
+    extraReject: "❌ Decline",
+    promoTitle: "🏷 <b>Promo codes</b>",
+    promoEmpty: "No active codes — check the website.",
+    packagesBtn: "📦 Service packages",
+    locationBtn: "📍 Directions",
+    warrantyBtn: "🛡 Warranty",
+    vehiclePick: "🚗 Pick vehicle",
+    repairStatus: {
+      received: "Received",
+      diagnostic: "Diagnostics",
+      repair: "In repair",
+      waitingParts: "Waiting for parts",
+      ready: "Ready",
+      delivered: "Delivered",
+    },
+  },
+};
+
+export function getClientBotLabels(locale: BotLocale): ClientBotLabels {
+  return LABELS[locale];
+}
+
+export const LANGUAGE_NAMES: Record<BotLocale, string> = {
+  pl: "Polski",
+  ru: "Русский",
+  uk: "Українська",
+  en: "English",
+};
+
+/** All localized Start button labels + commands */
+const START_TEXTS = new Set(
+  BOT_LOCALES.flatMap((loc) => [
+    getClientBotLabels(loc).startBtn,
+    getClientBotLabels(loc).menu,
+    "/start",
+    "/menu",
+  ])
+);
+
+export function isStartCommand(text: string): boolean {
+  const t = text.trim();
+  if (t.startsWith("/start")) return true;
+  if (t === "/menu") return true;
+  return START_TEXTS.has(t);
+}

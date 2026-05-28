@@ -3,6 +3,8 @@ import { ensureClientForSign, sliceForClient, type ClientPortalSlice } from "@/l
 import { verifyPassword } from "@/lib/crypto";
 import { cloudGetCrmStore, cloudPutCrmStore } from "@/lib/server/crm-cloud";
 import type { Database, User, WorkOrder } from "@/lib/store";
+import type { BotLocale } from "./client-i18n";
+import { ensureReferralCode } from "./client-extras";
 import { loadCrmFromCloud } from "./crm-actions";
 
 export type TelegramProfile = {
@@ -92,6 +94,7 @@ export async function linkTelegramClient(params: {
   plate: string;
   name?: string;
   orderId?: string;
+  locale?: BotLocale;
 }): Promise<{ ok: boolean; error?: string; userId?: string }> {
   const snap = await cloudGetCrmStore();
   if (!snap?.doc) return { ok: false, error: "cloud_empty" };
@@ -113,6 +116,10 @@ export async function linkTelegramClient(params: {
       user.name = displayName(params.profile);
     }
     applyTelegramProfile(user, params.profile);
+    if (params.locale) {
+      user.telegramLocale = params.locale;
+    }
+    ensureReferralCode(user);
 
     const put = await cloudPutCrmStore(db);
     if (!put.ok) return { ok: false, error: put.error ?? "save_failed" };

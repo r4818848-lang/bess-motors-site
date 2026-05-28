@@ -42,7 +42,6 @@ import { siteConfig } from "@/lib/site";
 import { normalizePhone } from "@/lib/auth";
 import { linkGuestBookingsToClient } from "@/lib/link-client-bookings";
 import { useAuth } from "@/lib/auth/session-context";
-import { useCloudAppointmentsSync } from "@/hooks/useCloudAppointmentsSync";
 import { useCloudClientSync } from "@/hooks/useCloudClientSync";
 import { ChangePasswordPanel } from "@/components/cabinet/ChangePasswordPanel";
 import { PhoneAuthForm } from "@/components/auth/PhoneAuthForm";
@@ -61,6 +60,28 @@ import {
 import { getClientPaymentView } from "@/lib/payment";
 import { PremiumVehicleShowcase } from "@/components/vehicle/PremiumVehicleShowcase";
 import { MaintenanceRemindersPanel } from "@/components/cabinet/MaintenanceRemindersPanel";
+import { LocaleSync } from "@/components/cabinet/LocaleSync";
+import { DB_CHANGED_EVENT } from "@/lib/db-events";
+import { WorkOrderCompare } from "@/components/cabinet/WorkOrderCompare";
+import { CabinetDashboard } from "@/components/cabinet/CabinetDashboard";
+import { CabinetTimeline } from "@/components/cabinet/CabinetTimeline";
+import { WarrantyCountdown } from "@/components/cabinet/WarrantyCountdown";
+import { GarageCompare } from "@/components/cabinet/GarageCompare";
+import { ReferralPanel } from "@/components/cabinet/ReferralPanel";
+import { RepeatLastVisitButton } from "@/components/cabinet/RepeatLastVisitButton";
+import { LoyaltyPanel } from "@/components/cabinet/LoyaltyPanel";
+import { InsuranceClaimChecklist } from "@/components/cabinet/InsuranceClaimChecklist";
+import { ActiveRepairCard } from "@/components/cabinet/ActiveRepairCard";
+import { ExtraWorkApprovalCabinet } from "@/components/cabinet/ExtraWorkApprovalCabinet";
+import { WebPushPrompt } from "@/components/pwa/WebPushPrompt";
+import { HistoryExportButton } from "@/components/cabinet/HistoryExportButton";
+import { HistoryYearExportButton } from "@/components/cabinet/HistoryYearExportButton";
+import { CabinetCompareFromUrl } from "@/components/cabinet/CabinetCompareFromUrl";
+import { VehicleHealthScore } from "@/components/cabinet/VehicleHealthScore";
+import { LastVisitCountdown } from "@/components/cabinet/LastVisitCountdown";
+import { MaintenanceCalculator } from "@/components/pricing/MaintenanceCalculator";
+import { CabinetRatingPanel } from "@/components/cabinet/CabinetRatingPanel";
+import { TelegramOpenButton } from "@/components/shared/TelegramOpenButton";
 import { VehicleThumbnail } from "@/components/vehicle/VehicleThumbnail";
 import { VehiclePhoto } from "@/components/vehicle/VehiclePhoto";
 
@@ -116,7 +137,7 @@ function CabinetPageContent() {
   const { t } = useI18n();
   const searchParams = useSearchParams();
   const { sessionReady, clientUser, signOut } = useAuth();
-  useCloudAppointmentsSync(!!clientUser);
+  // One cloud pull is enough for cabinet (both hooks merged behavior via shared DB event)
   useCloudClientSync(!!clientUser);
   const [mounted, setMounted] = useState(false);
   const [db, setDb] = useState<Database | null>(null);
@@ -132,6 +153,9 @@ function CabinetPageContent() {
   useEffect(() => {
     refreshDb();
     setMounted(true);
+    const onDbChange = () => refreshDb();
+    window.addEventListener(DB_CHANGED_EVENT, onDbChange);
+    return () => window.removeEventListener(DB_CHANGED_EVENT, onDbChange);
   }, []);
 
   useEffect(() => {
@@ -300,7 +324,10 @@ function CabinetPageContent() {
   );
   const cp = t.clientPayment;
   const wo = t.wo;
-  const activeOrder = myOrders[0];
+  const activeOrder =
+    [...myOrders]
+      .filter((o) => o.status !== "delivered")
+      .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))[0] ?? myOrders[0];
   const activeStatusIdx = activeOrder
     ? statusOrder.indexOf(activeOrder.status)
     : 0;
@@ -337,6 +364,7 @@ function CabinetPageContent() {
 
   return (
     <div className="pt-28 pb-20">
+      <LocaleSync userId={user.id} />
       <div className="mx-auto max-w-7xl px-4 lg:px-8">
         <div className="flex flex-wrap items-center justify-between gap-4 mb-10">
           <div>
@@ -369,6 +397,44 @@ function CabinetPageContent() {
           ))}
         </div>
 
+        <ActiveRepairCard user={user} db={activeDb} />
+        <ExtraWorkApprovalCabinet orders={myOrders} />
+        <CabinetDashboard
+          user={user}
+          db={activeDb}
+          orders={myOrders}
+          appointments={myAppointments}
+          vehicles={myVehicles}
+          unreadNotifications={unreadCount}
+          onOpenTab={setTab}
+        />
+        <CabinetTimeline
+          db={activeDb}
+          userId={user.id}
+          onOpenOrder={(id) => {
+            setSelectedOrderId(id);
+            setTab("orders");
+          }}
+        />
+        <WarrantyCountdown orders={myOrders} user={user} vehicles={myVehicles} />
+        <GarageCompare vehicles={myVehicles} orders={myOrders} />
+        <RepeatLastVisitButton orders={myOrders} />
+        <LoyaltyPanel user={user} />
+        <ReferralPanel user={user} />
+        <InsuranceClaimChecklist />
+        <div className="flex flex-wrap gap-2 mb-6">
+          <HistoryExportButton user={user} db={activeDb} orders={myOrders} />
+          <HistoryYearExportButton
+            orders={myOrders}
+            vehicleLabel={
+              featuredVehicle
+                ? `${featuredVehicle.make} ${featuredVehicle.model}`
+                : user.name
+            }
+          />
+        </div>
+        <CabinetCompareFromUrl userId={user.id} />
+
         {unreadCount > 0 && tab !== "notifications" && (
           <Card
             glow
@@ -397,6 +463,9 @@ function CabinetPageContent() {
                     vehicle={featuredVehicle}
                     workOrders={myOrders}
                   />
+                  <VehicleHealthScore vehicle={featuredVehicle} orders={myOrders} />
+                  <LastVisitCountdown vehicleId={featuredVehicle.id} orders={myOrders} />
+                  <MaintenanceCalculator vehicles={myVehicles} workOrders={myOrders} />
                 </>
               )}
               {myVehicles
@@ -624,13 +693,21 @@ function CabinetPageContent() {
         {tab === "orders" && (
           <>
             {selectedOrderId && myOrders.find((o) => o.id === selectedOrderId) ? (
-              <ClientWorkOrderDetail
-                order={myOrders.find((o) => o.id === selectedOrderId)!}
-                db={activeDb}
-                onBack={() => setSelectedOrderId(null)}
-              />
+              <div className="space-y-4">
+                <CabinetRatingPanel
+                  order={myOrders.find((o) => o.id === selectedOrderId)!}
+                  userId={user.id}
+                  clientName={user.name}
+                />
+                <ClientWorkOrderDetail
+                  order={myOrders.find((o) => o.id === selectedOrderId)!}
+                  db={activeDb}
+                  onBack={() => setSelectedOrderId(null)}
+                />
+              </div>
             ) : (
               <div className="space-y-4">
+                <WorkOrderCompare orders={myOrders} db={activeDb} />
                 <WorkOrderFilters
                   filters={orderFilters}
                   onChange={setOrderFilters}
@@ -842,18 +919,26 @@ function CabinetPageContent() {
         )}
 
         {tab === "settings" && (
-          <ChangePasswordPanel userId={user.id} phone={user.phone} />
+          <div className="space-y-6 max-w-lg">
+            <WebPushPrompt userId={user.id} />
+            <ChangePasswordPanel userId={user.id} phone={user.phone} />
+          </div>
         )}
 
         {tab === "photos" && (
           <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
             {myOrders.flatMap((o) =>
               (o.files ?? [])
-                .filter((f) => f.type === "image" && f.dataUrl && f.category !== "internal")
+                .filter(
+                  (f) =>
+                    f.type === "image" &&
+                    (f.dataUrl || f.storageUrl) &&
+                    f.category !== "internal"
+                )
                 .map((f) => (
                   <img
                     key={f.id}
-                    src={f.dataUrl}
+                    src={f.storageUrl ?? f.dataUrl}
                     alt={f.name}
                     className="rounded-xl border border-bm-border aspect-video object-cover"
                   />

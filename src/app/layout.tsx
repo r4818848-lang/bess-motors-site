@@ -15,6 +15,7 @@ import { GoogleAnalyticsPageView } from "@/components/analytics/GoogleAnalyticsP
 import { MetaPixelPageView } from "@/components/analytics/MetaPixelPageView";
 import { META_PIXEL_ID, metaPixelInitScript } from "@/lib/meta-pixel";
 import { StickyContactBar } from "@/components/layout/StickyContactBar";
+import { BookNowSticky } from "@/components/layout/BookNowSticky";
 import { JsonLd } from "@/components/seo/JsonLd";
 import {
   facebookDomainVerification,
@@ -162,6 +163,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <main className="min-h-screen pb-16 md:pb-0">{children}</main>
           <Footer />
           <StickyContactBar />
+          <BookNowSticky />
         </Providers>
 
       </body>

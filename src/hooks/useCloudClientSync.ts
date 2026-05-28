@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { DB_CHANGED_EVENT } from "@/lib/db-events";
 import { pullClientPortalFromCloud } from "@/lib/client-portal";
+import { useVisibleInterval } from "@/hooks/useVisibleInterval";
 
 /** Pull client work orders and profile from Supabase */
 export function useCloudClientSync(enabled = true): {
@@ -27,9 +28,9 @@ export function useCloudClientSync(enabled = true): {
   useEffect(() => {
     if (!enabled) return;
     void resync();
-    const interval = setInterval(() => void resync(), 60_000);
-    return () => clearInterval(interval);
   }, [enabled, resync]);
+
+  useVisibleInterval(() => void resync(), 120_000, enabled);
 
   return { syncing, resync };
 }

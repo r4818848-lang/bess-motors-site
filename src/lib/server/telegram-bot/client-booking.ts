@@ -15,7 +15,7 @@ function escapeHtml(s: string): string {
 }
 
 async function notifyAdminNewBooking(apt: Appointment, kind: "booking" | "call"): Promise<void> {
-  const label = apt.serviceIds.map(getClientServiceLabel).join(", ");
+  const label = apt.serviceIds.map((id) => getClientServiceLabel(id)).join(", ");
   if (kind === "booking") {
     await notifyAdminTelegram(
       [
@@ -120,6 +120,7 @@ export async function createTelegramCallRequest(params: {
       serviceLabel: label,
       comment,
       status: "needs_call",
+      priority: params.comment?.includes("[URGENT") ? "urgent" : "normal",
       source: "telegram",
       marketing: { utmSource: "telegram" },
       createdAt: new Date().toISOString(),

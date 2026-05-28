@@ -6,12 +6,14 @@ import { useI18n } from "@/lib/i18n/context";
 import { useMetaViewContent } from "@/hooks/useMetaViewContent";
 import type { PublicGalleryItem } from "@/app/api/gallery/route";
 import Link from "next/link";
+import { GalleryBeforeAfter } from "@/components/gallery/GalleryBeforeAfter";
 
 export default function GalleryPage() {
   const { t } = useI18n();
   const g = t.galleryPage;
   useMetaViewContent("Gallery");
   const [items, setItems] = useState<PublicGalleryItem[]>([]);
+  const [makeFilter, setMakeFilter] = useState<string>("all");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -34,6 +36,38 @@ export default function GalleryPage() {
           <p className="mt-16 text-center text-bm-muted animate-pulse">{g.loading}</p>
         )}
 
+        {!loading && items.length > 0 && <GalleryBeforeAfter items={items} />}
+
+        {!loading && items.length > 0 && (
+          <div className="mt-8 flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => setMakeFilter("all")}
+              className={`px-3 py-1.5 rounded-full text-xs font-bold uppercase border ${
+                makeFilter === "all"
+                  ? "bg-bm-red/20 border-bm-red text-bm-red"
+                  : "border-bm-border text-bm-muted"
+              }`}
+            >
+              All
+            </button>
+            {[...new Set(items.map((i) => i.make).filter(Boolean))].map((make) => (
+              <button
+                key={make}
+                type="button"
+                onClick={() => setMakeFilter(make!)}
+                className={`px-3 py-1.5 rounded-full text-xs font-bold uppercase border ${
+                  makeFilter === make
+                    ? "bg-bm-red/20 border-bm-red text-bm-red"
+                    : "border-bm-border text-bm-muted"
+                }`}
+              >
+                {make}
+              </button>
+            ))}
+          </div>
+        )}
+
         {!loading && items.length === 0 && (
           <div className="mt-16 text-center glass-red rounded-2xl p-10 neon-border max-w-xl mx-auto">
             <p className="text-bm-muted">{g.empty}</p>
@@ -45,7 +79,9 @@ export default function GalleryPage() {
         )}
 
         <div className="mt-12 grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {items.map((item, i) => (
+          {items
+            .filter((item) => makeFilter === "all" || item.make === makeFilter)
+            .map((item, i) => (
             <motion.article
               key={item.id}
               initial={{ opacity: 0, y: 12 }}

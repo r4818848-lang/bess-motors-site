@@ -6,6 +6,12 @@ import type {
   WorkOrder,
 } from "./store";
 import { siteConfig } from "./site";
+import {
+  isReferralQualifiedWorkOrder,
+  recomputeReferrerFromDb,
+  unlockInviteeRewardIfEligible,
+} from "./referral-system";
+import { incrementLoyaltyOnDelivered } from "./loyalty";
 
 export type { ClientNotification, ClientNotificationType } from "./store";
 
@@ -146,6 +152,79 @@ export function handleWorkOrderSignRequired(
 }
 
 /** Status change, car ready, signature required — call on every work order save/update */
+export function notifyReferralFriendJoined(db: Database, referrerId: string): void {
+  if (!isClientUserId(referrerId)) return;
+  pushNotification(db, {
+    userId: referrerId,
+    type: "referral_friend_joined",
+  });
+}
+
+export function notifyReferralFriendQualified(
+  db: Database,
+  referrerId: string,
+  workOrderId: string
+): void {
+  if (!isClientUserId(referrerId)) return;
+  if (
+    hasNotification(
+      db,
+      (n) =>
+        n.type === "referral_friend_qualified" &&
+        n.userId === referrerId &&
+        n.workOrderId === workOrderId
+    )
+  ) {
+    return;
+  }
+  pushNotification(db, {
+    userId: referrerId,
+    type: "referral_friend_qualified",
+    workOrderId,
+  });
+}
+
+export function notifyReferralRewardUnlocked(db: Database, referrerId: string): void {
+  if (!isClientUserId(referrerId)) return;
+  if (
+    hasNotification(db, (n) => n.userId === referrerId && n.type === "referral_reward_unlocked")
+  ) {
+    return;
+  }
+  pushNotification(db, {
+    userId: referrerId,
+    type: "referral_reward_unlocked",
+  });
+}
+
+/** After WO save: update referrer when referred client gets first paid+delivered order. */
+export function processReferralAfterWorkOrderSave(
+  db: Database,
+  order: WorkOrder,
+  previous?: WorkOrder | null
+): void {
+  if (!isReferralQualifiedWorkOrder(order)) return;
+  if (previous && isReferralQualifiedWorkOrder(previous)) return;
+
+  const client = db.users.find((u) => u.id === order.userId && u.role === "client");
+  if (!client?.referredByUserId) return;
+
+  if (unlockInviteeRewardIfEligible(db, client)) {
+    pushNotification(db, {
+      userId: client.id,
+      type: "referral_invitee_reward",
+    });
+  }
+
+  const result = recomputeReferrerFromDb(db, client.referredByUserId);
+  if (!result) return;
+
+  notifyReferralFriendQualified(db, client.referredByUserId, order.id);
+  if (result.justUnlocked) {
+    notifyReferralRewardUnlocked(db, client.referredByUserId);
+  }
+}
+
 export function handleWorkOrderClientNotifications(
   db: Database,
   order: WorkOrder,
@@ -153,6 +232,8 @@ export function handleWorkOrderClientNotifications(
 ): void {
   handleWorkOrderStatusChange(db, order, previous?.status);
   handleWorkOrderSignRequired(db, order, previous);
+  processReferralAfterWorkOrderSave(db, order, previous);
+  incrementLoyaltyOnDelivered(db, order, previous);
 }
 
 export function handleAppointmentNotification(
@@ -320,6 +401,30 @@ export function getNotificationCopy(
         accent: "amber",
         signHref: order ? `/sign/${order.id}` : undefined,
         orderId: order?.id,
+      };
+    case "referral_friend_joined":
+      return {
+        title: "🎁 Referral",
+        body: "A friend registered using your link.",
+        accent: "green",
+      };
+    case "referral_friend_qualified":
+      return {
+        title: "✅ Referral confirmed",
+        body: `Friend completed a paid visit${order?.number ? ` (${order.number})` : ""}.`,
+        accent: "green",
+      };
+    case "referral_reward_unlocked":
+      return {
+        title: "🎉 15% discount unlocked",
+        body: "You invited 5 friends with paid visits — 15% off your next order.",
+        accent: "green",
+      };
+    case "referral_invitee_reward":
+      return {
+        title: "🎁 Welcome bonus",
+        body: "5% discount on your next visit — thank you for joining via referral.",
+        accent: "green",
       };
     default:
       return { title: "", body: "", accent: "blue" };

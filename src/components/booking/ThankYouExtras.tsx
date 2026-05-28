@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { CalendarPlus, QrCode } from "lucide-react";
+import Link from "next/link";
+import { CalendarPlus, QrCode, Share2, Send } from "lucide-react";
 import QRCode from "qrcode";
 import { useI18n } from "@/lib/i18n/context";
 import { loadLastBooking } from "@/lib/booking-url";
@@ -10,11 +11,15 @@ import { buildBookingIcs, downloadIcsFile } from "@/lib/ics-calendar";
 import { siteConfig } from "@/lib/site";
 import { getSiteUrl } from "@/lib/seo";
 
+const BOT_USERNAME = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME ?? "BessMotors_bot";
+
 export function ThankYouExtras() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const e = t.thankYouExtras;
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
   const booking = loadLastBooking();
+
+  const tgLink = `https://t.me/${BOT_USERNAME}?start=rebook`;
 
   useEffect(() => {
     const url = `${getSiteUrl()}/cabinet`;
@@ -35,18 +40,55 @@ export function ThankYouExtras() {
     downloadIcsFile(ics);
   };
 
+  const shareVisit = async () => {
+    if (!booking?.date || !booking?.time) return;
+    const text = `BESS MOTORS — ${booking.date} ${booking.time}\n${siteConfig.address}`;
+    if (navigator.share) {
+      await navigator.share({ title: "BESS MOTORS", text }).catch(() => undefined);
+    }
+  };
+
+  const tgLabel =
+    locale === "ru" || locale === "uk"
+      ? "Открыть в Telegram"
+      : locale === "en"
+        ? "Open in Telegram"
+        : "Otwórz w Telegramie";
+
   return (
     <div className="mt-10 space-y-6">
       {booking?.date && booking?.time && (
-        <button
-          type="button"
-          onClick={addToCalendar}
-          className="w-full btn-outline inline-flex items-center justify-center gap-2"
-        >
-          <CalendarPlus size={18} />
-          {e.addCalendar}
-        </button>
+        <>
+          <button
+            type="button"
+            onClick={addToCalendar}
+            className="w-full btn-outline inline-flex items-center justify-center gap-2"
+          >
+            <CalendarPlus size={18} />
+            {e.addCalendar}
+          </button>
+          {typeof navigator !== "undefined" && "share" in navigator && (
+            <button
+              type="button"
+              onClick={shareVisit}
+              className="w-full btn-outline inline-flex items-center justify-center gap-2"
+            >
+              <Share2 size={18} />
+              {locale === "en" ? "Share visit" : locale === "ru" ? "Поделиться" : "Udostępnij wizytę"}
+            </button>
+          )}
+        </>
       )}
+
+      <Link
+        href={tgLink}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="w-full btn-primary inline-flex items-center justify-center gap-2"
+      >
+        <Send size={18} />
+        {tgLabel}
+      </Link>
 
       <div className="rounded-xl border border-bm-border/50 bg-bm-card/40 p-5">
         <div className="flex items-center gap-2 text-bm-red mb-3 justify-center">

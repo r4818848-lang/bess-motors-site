@@ -70,6 +70,8 @@ export async function PUT(req: Request) {
 
   const before = await cloudGetCrmStore();
   const payload = docForCloud(db);
+  const { runCrmAutomation } = await import("@/lib/crm-automation");
+  runCrmAutomation(payload, before?.doc ?? null);
   const result = await cloudPutCrmStore(payload);
   if (!result.ok) {
     return NextResponse.json(
@@ -83,6 +85,8 @@ export async function PUT(req: Request) {
       "@/lib/server/telegram-bot/client-telegram-notify"
     );
     void dispatchTelegramFromCrmSave(before.doc, payload);
+    const { dispatchWebPushFromCrmSave } = await import("@/lib/web-push-order-events");
+    void dispatchWebPushFromCrmSave(before.doc, payload);
   }
 
   return NextResponse.json({ ok: true, updatedAt: result.updatedAt });

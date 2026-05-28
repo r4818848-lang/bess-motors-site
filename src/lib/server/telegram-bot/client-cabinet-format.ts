@@ -1,9 +1,8 @@
 import type { ClientPortalSlice } from "@/lib/client-sign";
-import type { Database, WorkOrder } from "@/lib/store";
+import type { WorkOrder } from "@/lib/store";
 import { calcClientTotal } from "@/lib/workorder-calc";
-import { APPOINTMENT_STATUS_CLIENT } from "./client-labels";
+import { type BotLocale, getClientBotLabels } from "./client-i18n";
 import { getClientServiceLabel } from "./client-services";
-import { REPAIR_STATUS_RU } from "./labels";
 
 function esc(text: string): string {
   return text
@@ -16,19 +15,22 @@ function zl(n: number): string {
   return `${n.toFixed(2)} zł`;
 }
 
-export function formatLinkedWelcome(name: string): string {
-  return [
-    `👋 <b>Здравствуйте, ${esc(name)}!</b>`,
-    "",
-    "Ваш личный кабинет подключён.",
-    "Здесь — заказ-наряды, записи и уведомления.",
-  ].join("\n");
+function repairLabel(locale: BotLocale, status: string): string {
+  const L = getClientBotLabels(locale);
+  return L.repairStatus[status] ?? status;
 }
 
-export function formatWorkOrdersList(slice: ClientPortalSlice, page = 0, pageSize = 4): {
-  text: string;
-  totalPages: number;
-} {
+export function formatLinkedWelcome(locale: BotLocale, name: string): string {
+  return getClientBotLabels(locale).linkedWelcome(name);
+}
+
+export function formatWorkOrdersList(
+  locale: BotLocale,
+  slice: ClientPortalSlice,
+  page = 0,
+  pageSize = 4
+): { text: string; totalPages: number } {
+  const L = getClientBotLabels(locale);
   const orders = [...slice.workOrders].sort((a, b) =>
     b.createdAt.localeCompare(a.createdAt)
   );
@@ -36,35 +38,43 @@ export function formatWorkOrdersList(slice: ClientPortalSlice, page = 0, pageSiz
   const chunk = orders.slice(page * pageSize, page * pageSize + pageSize);
 
   if (chunk.length === 0) {
-    return { text: "📋 <b>Заказ-наряды</b>\n\nПока нет заказ-нарядов.", totalPages: 1 };
+    return { text: L.ordersEmpty, totalPages: 1 };
   }
 
-  const lines = [`📋 <b>Заказ-наряды</b> (${page + 1}/${totalPages})`, ""];
+  const lines = [L.ordersTitle(page + 1, totalPages), ""];
   for (const o of chunk) {
-    lines.push(formatOrderLine(slice, o), "");
+    lines.push(formatOrderLine(locale, slice, o), "");
   }
   return { text: lines.join("\n"), totalPages };
 }
 
-function formatOrderLine(slice: ClientPortalSlice, o: WorkOrder): string {
+function formatOrderLine(
+  locale: BotLocale,
+  slice: ClientPortalSlice,
+  o: WorkOrder
+): string {
+  const L = getClientBotLabels(locale);
   const vehicle = slice.vehicles.find((v) => v.id === o.vehicleId);
   const car = vehicle
     ? `${vehicle.make} ${vehicle.model} · ${vehicle.plate}`.trim()
     : "—";
-  const pay = o.paymentStatus === "paid" ? "✅ оплачен" : "⏳ не оплачен";
+  const pay = o.paymentStatus === "paid" ? L.paid : L.unpaid;
   const sign =
-    o.confirmationStatus !== "confirmed"
-      ? " · ✍️ нужна подпись"
-      : "";
+    o.confirmationStatus !== "confirmed" ? L.needsSignBadge : "";
   return [
     `<b>${esc(o.number)}</b>`,
-    `${REPAIR_STATUS_RU[o.status]}${sign}`,
+    `${repairLabel(locale, o.status)}${sign}`,
     `🚗 ${esc(car)}`,
     `💰 ${zl(calcClientTotal(o))} · ${pay}`,
   ].join("\n");
 }
 
-export function formatWorkOrderDetail(slice: ClientPortalSlice, orderId: string): string | null {
+export function formatWorkOrderDetail(
+  locale: BotLocale,
+  slice: ClientPortalSlice,
+  orderId: string
+): string | null {
+  const L = getClientBotLabels(locale);
   const o = slice.workOrders.find((x) => x.id === orderId);
   if (!o) return null;
 
@@ -75,26 +85,30 @@ export function formatWorkOrderDetail(slice: ClientPortalSlice, orderId: string)
 
   return [
     `📋 <b>${esc(o.number)}</b>`,
-    `Статус: <b>${REPAIR_STATUS_RU[o.status]}</b>`,
+    `${L.orderStatus}: <b>${repairLabel(locale, o.status)}</b>`,
     vehicle
       ? `🚗 ${esc(vehicle.make)} ${esc(vehicle.model)} · ${esc(vehicle.plate)}`
       : "",
-    `💰 <b>${zl(calcClientTotal(o))}</b> · ${o.paymentStatus === "paid" ? "оплачен" : "не оплачен"}`,
-    o.confirmationStatus !== "confirmed" ? "✍️ <b>Требуется подпись</b>" : "✅ Подписан",
-    services ? `\n🔧 <b>Работы:</b>\n${services}` : "",
+    `💰 <b>${zl(calcClientTotal(o))}</b> · ${o.paymentStatus === "paid" ? L.paid : L.unpaid}`,
+    o.confirmationStatus !== "confirmed" ? L.needsSignature : L.signed,
+    services ? `\n🔧 <b>${L.works}:</b>\n${services}` : "",
     o.clientNotes ? `\n📝 ${esc(o.clientNotes)}` : "",
   ]
     .filter(Boolean)
     .join("\n");
 }
 
-export function formatNotifications(slice: ClientPortalSlice): string {
+export function formatNotifications(
+  locale: BotLocale,
+  slice: ClientPortalSlice
+): string {
+  const L = getClientBotLabels(locale);
   const notes = slice.notifications.slice(0, 8);
   if (notes.length === 0) {
-    return "🔔 <b>Уведомления</b>\n\nНет новых уведомлений.";
+    return L.notificationsEmpty;
   }
 
-  const lines = ["🔔 <b>Уведомления</b>", ""];
+  const lines = [L.notificationsTitle, ""];
   for (const n of notes) {
     const order = n.workOrderId
       ? slice.workOrders.find((o) => o.id === n.workOrderId)
@@ -103,19 +117,19 @@ export function formatNotifications(slice: ClientPortalSlice): string {
     let title = "";
     switch (n.type) {
       case "car_ready":
-        title = "Авто готово";
+        title = L.notifCarReady;
         break;
       case "status_change":
-        title = `Статус: ${n.status ? REPAIR_STATUS_RU[n.status] : "обновлён"}`;
+        title = `${L.orderStatus}: ${n.status ? repairLabel(locale, n.status) : L.notifStatusUpdated}`;
         break;
       case "sign_required":
-        title = "Нужна подпись";
+        title = L.notifSignRequired;
         break;
       case "appointment_invite":
-        title = `Запись ${n.appointmentDate ?? ""} ${n.appointmentTime ?? ""}`.trim();
+        title = `${L.notifAppointment} ${n.appointmentDate ?? ""} ${n.appointmentTime ?? ""}`.trim();
         break;
       default:
-        title = "Уведомление";
+        title = L.notifDefault;
     }
     lines.push(
       `${prefix} <b>${title}</b>`,
@@ -126,7 +140,11 @@ export function formatNotifications(slice: ClientPortalSlice): string {
   return lines.join("\n");
 }
 
-export function formatAppointmentsSlice(slice: ClientPortalSlice): string {
+export function formatAppointmentsSlice(
+  locale: BotLocale,
+  slice: ClientPortalSlice
+): string {
+  const L = getClientBotLabels(locale);
   const today = new Date().toISOString().slice(0, 10);
   const apts = slice.appointments
     .filter((a) => a.date >= today)
@@ -134,28 +152,29 @@ export function formatAppointmentsSlice(slice: ClientPortalSlice): string {
     .slice(0, 6);
 
   if (apts.length === 0) {
-    return "📅 <b>Записи</b>\n\nНет предстоящих записей.";
+    return L.appointmentsEmpty;
   }
 
-  const lines = ["📅 <b>Ближайшие записи</b>", ""];
+  const lines = [L.appointmentsTitle, ""];
   for (const a of apts) {
-    const service = a.serviceIds.map(getClientServiceLabel).join(", ");
+    const service = a.serviceIds.map((id) => getClientServiceLabel(id, locale)).join(", ");
     lines.push(
       `<b>${a.date} · ${a.time}</b>`,
       `🔧 ${esc(service)}`,
-      `📌 ${APPOINTMENT_STATUS_CLIENT[a.appointmentStatus] ?? a.appointmentStatus}`,
+      `📌 ${L.appointmentStatus[a.appointmentStatus] ?? a.appointmentStatus}`,
       ""
     );
   }
   return lines.join("\n");
 }
 
-export function formatCarsSlice(slice: ClientPortalSlice): string {
+export function formatCarsSlice(locale: BotLocale, slice: ClientPortalSlice): string {
+  const L = getClientBotLabels(locale);
   if (slice.vehicles.length === 0) {
-    return "🚗 <b>Мои авто</b>\n\nАвтомобили появятся после первого визита.";
+    return L.carsEmpty;
   }
 
-  const lines = ["🚗 <b>Мои автомобили</b>", ""];
+  const lines = [L.carsTitle, ""];
   for (const v of slice.vehicles) {
     lines.push(
       `<b>${esc(v.plate)}</b>`,

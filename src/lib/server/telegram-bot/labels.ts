@@ -49,6 +49,13 @@ export const BOT = {
   expenses: "💸 Расходы",
   warehouse: "🏭 Склад",
   search: "🔍 Поиск",
+  unsigned: "✍️ Подписи",
+  calls: "📞 Звонки",
+  quickApt: "➕ Запись",
+  mechLoad: "🔧 Загрузка цеха",
+  extraWork: "➕ Доп. работы",
+  customMsg: "✉️ Свой текст",
+  notifyClient: "📨 Клиенту",
   unpaid: "⏳ Долги",
   analytics: "📈 Аналитика",
   help: "ℹ️ Помощь",
@@ -77,4 +84,10 @@ export const BOT = {
   statusChanged: "Статус обновлён.",
   helpText:
     "<b>Команды:</b>\n/start — меню\n/find WA12345 — поиск\n\n<b>Расход:</b> Расходы → Добавить → категория → <code>450 Описание</code>",
+  quickAptPrompt:
+    "➕ <b>Быстрая запись</b>\n\nОтправьте одной строкой:\n<code>+48123456789 2026-06-01 10:00 комментарий</code>",
+  extraWorkPrompt:
+    "➕ <b>Доп. работы</b> для <b>{number}</b>\n\nКаждая строка:\n<code>Название;цена</code> или <code>Название 200</code>\nПервая строка — комментарий клиенту.",
+  customMsgPrompt:
+    "✉️ <b>Сообщение клиенту</b> (заказ <b>{number}</b>):\n\nВведите текст — уйдёт в Telegram.",
 };

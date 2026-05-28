@@ -24,8 +24,12 @@ export async function mutateCrm(
   if (!snap?.doc) return { ok: false, error: "cloud_empty" };
 
   const db = structuredClone(snap.doc) as Database;
+  const prevDb = structuredClone(snap.doc) as Database;
   const extra = mutator(db);
   if (extra === false) return { ok: false, error: "not_found" };
+
+  const { runCrmAutomation } = await import("@/lib/crm-automation");
+  runCrmAutomation(db, prevDb);
 
   const result = await cloudPutCrmStore(db);
   if (!result.ok) return { ok: false, error: result.error };
@@ -62,6 +66,17 @@ export async function applyWorkOrderStatus(
   if (result.ok) {
     const { notifyTelegramAfterOrderMutation } = await import("./client-telegram-notify");
     void notifyTelegramAfterOrderMutation(orderNumber, previous ?? null);
+    const snap2 = await cloudGetCrmStore();
+    const order = snap2?.doc ? findOrder(snap2.doc as Database, orderNumber) : undefined;
+    if (order && previous) {
+      const { runReferralTelegramEffects } = await import("@/lib/server/referral-telegram-notify");
+      await runReferralTelegramEffects(snap2!.doc as Database, order, previous);
+    }
+    if (order) {
+      const user = (snap2!.doc as Database).users.find((u) => u.id === order.userId);
+      const { pushForOrderChange } = await import("@/lib/web-push-order-events");
+      await pushForOrderChange(user, order, previous ?? null);
+    }
   }
 
   return result;
@@ -71,13 +86,36 @@ export async function markWorkOrderPaid(
   orderNumber: string,
   paid: boolean
 ): Promise<{ ok: boolean; error?: string }> {
-  return mutateCrm((db) => {
+  const snap = await cloudGetCrmStore();
+  const previous = snap?.doc
+    ? structuredClone(findOrder(snap.doc as Database, orderNumber))
+    : undefined;
+
+  const result = await mutateCrm((db) => {
     const order = findOrder(db, orderNumber);
     if (!order) return false;
+    const prev = { ...order };
     order.paymentStatus = paid ? "paid" : "unpaid";
     order.updatedAt = new Date().toISOString().slice(0, 10);
+    handleWorkOrderClientNotifications(db, order, prev);
     return orderNumber;
   });
+
+  if (result.ok && previous) {
+    const snap2 = await cloudGetCrmStore();
+    const order = snap2?.doc
+      ? findOrder(snap2.doc as Database, orderNumber)
+      : undefined;
+    if (order) {
+      const { runReferralTelegramEffects } = await import("@/lib/server/referral-telegram-notify");
+      await runReferralTelegramEffects(snap2!.doc as Database, order, previous);
+      const user = (snap2!.doc as Database).users.find((u) => u.id === order.userId);
+      const { pushForOrderChange } = await import("@/lib/web-push-order-events");
+      await pushForOrderChange(user, order, previous);
+    }
+  }
+
+  return result;
 }
 
 export async function confirmHotBooking(aptId: string): Promise<{ ok: boolean; error?: string; woNumber?: string }> {

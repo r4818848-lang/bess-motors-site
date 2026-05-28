@@ -70,6 +70,51 @@ export interface User {
   telegramUserId?: number;
   telegramUsername?: string;
   telegramLinkedAt?: string;
+  /** Client Telegram bot UI language */
+  telegramLocale?: "pl" | "ru" | "uk" | "en";
+  /** Who referred this client (user id) */
+  referredByUserId?: string;
+  /** When referral link was applied */
+  referredAt?: string;
+  /** Short code for referral links */
+  referralCode?: string;
+  /** Cached count of referred clients with paid+delivered work orders */
+  referralQualifiedCount?: number;
+  /** ISO — 5 qualified referrals reached */
+  referralRewardUnlockedAt?: string;
+  /** ISO — 15% discount consumed */
+  referralDiscountUsedAt?: string;
+  referralDiscountUsedOnOrderId?: string;
+  /** 15% reward valid until (ISO) — default 90 days after unlock */
+  referralDiscountExpiresAt?: string;
+  /** Referred friend: 5% unlocked after first paid+delivered visit */
+  referredFriendRewardUnlockedAt?: string;
+  referredFriendDiscountUsedAt?: string;
+  /** Paid oil changes counted toward loyalty (10 = 10% reward) */
+  loyaltyOilChanges?: number;
+  loyaltyRewardUsedAt?: string;
+  /** Browser Web Push subscription */
+  pushSubscription?: {
+    endpoint: string;
+    p256dh: string;
+    auth: string;
+    updatedAt: string;
+  };
+  /** Suppress Telegram pushes 22:00–08:00 Warsaw */
+  botQuietHours?: boolean;
+  /** Mute all non-critical Telegram pushes until this ISO time */
+  botMuteUntil?: string;
+  /** Per-category Telegram notification toggles */
+  botNotifyPrefs?: {
+    booking?: boolean;
+    status?: boolean;
+    promo?: boolean;
+  };
+  /** Preferred vehicle for Telegram bot context */
+  telegramActiveVehicleId?: string;
+  /** Quick-book favorite service in Telegram */
+  favoriteServiceId?: string;
+  lastMileageRemindAt?: string;
 }
 
 export type ConfirmationStatus = "awaiting_confirmation" | "confirmed";
@@ -131,6 +176,8 @@ export interface AttachedFile {
   type: "pdf" | "image" | "video" | "document";
   category: FileCategory;
   dataUrl?: string;
+  /** Supabase Storage public URL when uploaded */
+  storageUrl?: string;
   uploadedAt: string;
 }
 
@@ -172,13 +219,56 @@ export interface WorkOrder {
   readyNotifiedAt?: string;
   /** Show before/after photos on public /gallery */
   showInGallery?: boolean;
+  /** Client star rating 1–5 */
+  clientRating?: { stars: number; comment?: string; createdAt: string };
+  ratingRequestSentAt?: string;
+  postFollowup3dSentAt?: string;
+  postFollowup7dSentAt?: string;
+  postFollowup14dSentAt?: string;
+  /** Client must approve before lines are merged into services */
+  pendingExtraApproval?: {
+    id: string;
+    lines: WorkOrderLine[];
+    note: string;
+    status: "pending" | "approved" | "rejected";
+    createdAt: string;
+  };
+  /** Snapshot for estimate-change notifications */
+  lastNotifiedClientTotal?: number;
+  /** 15% referral reward applied to this order */
+  referralDiscountApplied?: boolean;
+  /** 5% invitee (referred friend) discount */
+  referralInviteeDiscountApplied?: boolean;
+  /** Client-visible parts pipeline */
+  clientPartsStatus?: "ordered" | "in_transit" | "arrived";
+  /** Auto ETA shown to client (ISO date) */
+  estimatedReadyAt?: string;
+  slaLevel?: "ok" | "warn" | "critical";
+  auditLog?: { at: string; field: string; from?: string; to?: string }[];
+}
+
+export interface ClientRating {
+  id: string;
+  userId?: string;
+  workOrderId?: string;
+  stars: number;
+  comment?: string;
+  clientName?: string;
+  showOnSite: boolean;
+  source: "telegram" | "cabinet" | "site";
+  tag?: string;
+  createdAt: string;
 }
 
 export type ClientNotificationType =
   | "car_ready"
   | "status_change"
   | "appointment_invite"
-  | "sign_required";
+  | "sign_required"
+  | "referral_friend_joined"
+  | "referral_friend_qualified"
+  | "referral_reward_unlocked"
+  | "referral_invitee_reward";
 
 export interface ClientNotification {
   id: string;
@@ -212,12 +302,31 @@ export interface MechanicProfile {
   bonusPerOrder: number;
 }
 
+export interface AbandonedBookingDraft {
+  id: string;
+  phone: string;
+  name?: string;
+  step: string;
+  serviceSummary?: string;
+  date?: string;
+  time?: string;
+  updatedAt: string;
+  reminderSentAt?: string;
+}
+
 export interface AppSettings {
   defaultLaborPercent: number;
   defaultPartsPercent: number;
   /** Default VAT % (Poland 23%) */
   vatRate: number;
   vatEnabledByDefault: boolean;
+  /** Incomplete online bookings for recovery cron */
+  abandonedBookingDrafts?: AbandonedBookingDraft[];
+  /** Master switch for runCrmAutomation */
+  automationDisabled?: boolean;
+  /** Auto WO when appointment date is today and no WO yet */
+  autoCreateWorkOrderFromBooking?: boolean;
+  defaultWarrantyMonths?: number;
 }
 
 export interface PasswordResetRecord {
@@ -260,6 +369,7 @@ export interface CallRequest extends MarketingAttributionFields {
   status: CallRequestStatus;
   source?: OrderSource;
   createdAt: string;
+  priority?: "normal" | "urgent";
 }
 
 export interface Appointment extends MarketingAttributionFields {
@@ -278,6 +388,8 @@ export interface Appointment extends MarketingAttributionFields {
   clientPhone?: string;
   source?: OrderSource;
   createdAt: string;
+  reminderDayBeforeSentAt?: string;
+  reminder2hSentAt?: string;
 }
 
 export interface WarehouseItem {
@@ -285,6 +397,7 @@ export interface WarehouseItem {
   name: string;
   sku: string;
   qty: number;
+  minQty?: number;
   purchasePrice: number;
   sellPrice: number;
   supplier: string;
@@ -292,6 +405,10 @@ export interface WarehouseItem {
 }
 
 import { DB_SAVED_EVENT, notifyDbChanged } from "./db-events";
+import { clearDbCache, getCachedDb, setCachedDb } from "./db-cache";
+import { trimDatabaseFiles } from "./file-storage-trim";
+import { runCrmAutomation } from "./crm-automation";
+import { migrateWarehouseItem } from "./warehouse-stock";
 
 const STORAGE_KEY = "bess-motors-db";
 const DB_BACKUP_KEY = "bess-motors-db-backup";
@@ -470,6 +587,7 @@ export interface Database {
   passwordResets: PasswordResetRecord[];
   currentUserId: string | null;
   notifications: ClientNotification[];
+  clientRatings: ClientRating[];
 }
 
 const defaultDb: Database = {
@@ -499,6 +617,7 @@ const defaultDb: Database = {
   ],
   currentUserId: null,
   notifications: [],
+  clientRatings: [],
 };
 
 export function deriveDocumentStatus(
@@ -631,11 +750,15 @@ export function mergeStoredDb(parsed: Partial<Database>): Database {
     },
     passwordResets: parsed.passwordResets ?? defaultDb.passwordResets,
     notifications: parsed.notifications ?? defaultDb.notifications,
+    clientRatings: parsed.clientRatings ?? defaultDb.clientRatings,
+    warehouse: (parsed.warehouse ?? defaultDb.warehouse).map(migrateWarehouseItem),
   };
 }
 
 export function loadDb(): Database {
   if (typeof window === "undefined") return defaultDb;
+  const mem = getCachedDb();
+  if (mem) return mem;
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     let db: Database;
@@ -687,17 +810,24 @@ export function loadDb(): Database {
       }
     }
 
+    setCachedDb(db);
     return db;
   } catch {
     /* ignore */
   }
-  return { ...defaultDb };
+  const fallback = { ...defaultDb };
+  setCachedDb(fallback);
+  return fallback;
 }
 
 export function saveDb(db: Database, options?: { skipCloudPush?: boolean }): void {
   if (typeof window === "undefined") return;
   try {
-    const json = JSON.stringify(db);
+    const prev = getCachedDb();
+    runCrmAutomation(db, prev);
+    const trimmed = trimDatabaseFiles(db);
+    setCachedDb(trimmed);
+    const json = JSON.stringify(trimmed);
     rotateDbBackupBeforeSave(json);
     localStorage.setItem(STORAGE_KEY, json);
     notifyDbChanged();

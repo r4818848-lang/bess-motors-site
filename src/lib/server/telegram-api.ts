@@ -19,6 +19,7 @@ export type ReplyKeyboardMarkup = {
   keyboard: ReplyKeyboardButton[][];
   resize_keyboard?: boolean;
   one_time_keyboard?: boolean;
+  is_persistent?: boolean;
 };
 
 export type TelegramReplyMarkup = InlineKeyboardMarkup | ReplyKeyboardMarkup;
@@ -176,9 +177,42 @@ export async function answerCallbackQuery(
   });
 }
 
+export async function setClientBotCommands(): Promise<void> {
+  await telegramRequest("setMyCommands", {
+    commands: [
+      { command: "start", description: "Start / Старт / Menu" },
+      { command: "menu", description: "Main menu" },
+      { command: "language", description: "Change language / Język" },
+    ],
+  });
+}
+
 export async function notifyAdminTelegram(text: string): Promise<boolean> {
   const cfg = getTelegramConfig();
   if (!cfg) return false;
   const id = await sendTelegramMessage(cfg.chatId, text);
   return id !== null;
+}
+
+/** Download Telegram file as data URL (for CRM attachments) */
+export async function downloadTelegramPhotoAsDataUrl(
+  fileId: string
+): Promise<string | null> {
+  const cfg = getTelegramConfig();
+  if (!cfg) return null;
+
+  const fileRes = await telegramRequest("getFile", { file_id: fileId });
+  const filePath = (fileRes?.result as { file_path?: string } | undefined)?.file_path;
+  if (!filePath) return null;
+
+  try {
+    const res = await fetch(`https://api.telegram.org/file/bot${cfg.token}/${filePath}`);
+    if (!res.ok) return null;
+    const buf = Buffer.from(await res.arrayBuffer());
+    if (buf.length > 4_500_000) return null;
+    const mime = filePath.toLowerCase().endsWith(".png") ? "image/png" : "image/jpeg";
+    return `data:${mime};base64,${buf.toString("base64")}`;
+  } catch {
+    return null;
+  }
 }

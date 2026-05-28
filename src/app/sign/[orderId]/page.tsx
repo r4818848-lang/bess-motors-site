@@ -11,6 +11,7 @@ import { hasSignOrderAccess, setSignOrderAccess } from "@/lib/sign-order-access"
 import { SignOrderGuestForm } from "@/components/sign/SignOrderGuestForm";
 import { WorkOrderSignatureFlow } from "@/components/cabinet/WorkOrderSignatureFlow";
 import { ClientWorkOrderDetail } from "@/components/cabinet/ClientWorkOrderDetail";
+import { TelegramOpenButton } from "@/components/shared/TelegramOpenButton";
 
 type SignMode = "local" | "cloud" | null;
 
@@ -163,13 +164,16 @@ export default function SignWorkOrderPage({
 
   return (
     <div className="pt-28 pb-20 px-4 max-w-3xl mx-auto">
-      <button
-        type="button"
-        className="btn-primary w-full mb-6"
-        onClick={() => setShowSign(true)}
-      >
-        {t.signature.signNow}
-      </button>
+      <div className="flex flex-col sm:flex-row gap-3 mb-6">
+        <button
+          type="button"
+          className="btn-primary flex-1"
+          onClick={() => setShowSign(true)}
+        >
+          {t.signature.signNow}
+        </button>
+        <TelegramOpenButton startParam={`sign_${orderId}`} />
+      </div>
       {!isOwner && (
         <p className="text-xs text-bm-muted text-center mb-4">{t.document.signGuestHint}</p>
       )}

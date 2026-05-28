@@ -6,6 +6,7 @@ import { siteConfig } from "@/lib/site";
 import { PhoneLink } from "@/components/analytics/PhoneLink";
 import { SocialContactLink } from "@/components/analytics/SocialContactLink";
 import { Card } from "@/components/ui/Card";
+import { OfflinePriceBanner } from "@/components/pwa/OfflinePriceBanner";
 import { Button } from "@/components/ui/Button";
 
 export default function ContactsPage() {
@@ -35,6 +36,10 @@ export default function ContactsPage() {
         <p className="mt-2 text-bm-red font-display uppercase tracking-wide text-sm">
           {t.hero.ctaCall}
         </p>
+
+        <div className="mt-6">
+          <OfflinePriceBanner />
+        </div>
 
         <div className="mt-12 grid lg:grid-cols-2 gap-10">
           <div className="space-y-4">

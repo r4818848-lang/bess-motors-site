@@ -9,6 +9,7 @@ import {
 } from "@/lib/cloud-crm-db";
 import { DB_CHANGED_EVENT } from "@/lib/db-events";
 import type { Database } from "@/lib/store";
+import { useVisibleInterval } from "@/hooks/useVisibleInterval";
 
 /** Sync full CRM database with Supabase for admin (all devices) */
 export function useCloudCrmSync(enabled = true): {
@@ -35,7 +36,6 @@ export function useCloudCrmSync(enabled = true): {
     if (!enabled) return;
 
     void resync();
-    const interval = setInterval(() => void resync(), 60_000);
 
     const onSaved = (e: Event) => {
       const detail = (e as CustomEvent<Database>).detail;
@@ -44,10 +44,11 @@ export function useCloudCrmSync(enabled = true): {
     window.addEventListener(DB_SAVED_EVENT, onSaved);
 
     return () => {
-      clearInterval(interval);
       window.removeEventListener(DB_SAVED_EVENT, onSaved);
     };
   }, [enabled, resync]);
+
+  useVisibleInterval(() => void resync(), 120_000, enabled);
 
   return { syncing, resync };
 }

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { syncAppointmentsFromCloud } from "@/lib/cloud-appointments";
 import { DB_CHANGED_EVENT } from "@/lib/db-events";
+import { useVisibleInterval } from "@/hooks/useVisibleInterval";
 
 /** Download server appointments into localStorage (CRM + cabinet, all devices) */
 export function useCloudAppointmentsSync(enabled = true): {
@@ -22,9 +23,9 @@ export function useCloudAppointmentsSync(enabled = true): {
   useEffect(() => {
     if (!enabled) return;
     void resync();
-    const interval = setInterval(() => void resync(), 60_000);
-    return () => clearInterval(interval);
   }, [enabled, resync]);
+
+  useVisibleInterval(() => void resync(), 120_000, enabled);
 
   return { cloudReady, resync };
 }

@@ -304,3 +304,38 @@ export function exportReportsCsv(
   ];
   return lines.join("\n");
 }
+
+/** Per-order revenue lines for accounting export */
+export function exportOrdersDetailCsv(
+  db: Database,
+  period: ReportPeriod,
+  from: string,
+  to: string
+): string {
+  const rows = db.workOrders
+    .filter((o) => filterByPeriod(o.updatedAt, period, from, to))
+    .filter((o) => o.paymentStatus === "paid")
+    .sort((a, b) => a.updatedAt.localeCompare(b.updatedAt));
+
+  const header =
+    "Numer;Data;Klient;Pojazd;Status;Przychód klienta;Zysk części;Metoda płatności";
+  const lines = rows.map((o) => {
+    const user = db.users.find((u) => u.id === o.userId);
+    const vehicle = db.vehicles.find((v) => v.id === o.vehicleId);
+    const client = user?.name ?? "—";
+    const veh = vehicle ? `${vehicle.make} ${vehicle.model} ${vehicle.plate}` : "—";
+    const total = calcClientTotal(o);
+    const profit = calcPartsProfit(o);
+    return [
+      o.number,
+      o.updatedAt,
+      client,
+      veh,
+      o.status,
+      total.toFixed(2),
+      profit.toFixed(2),
+      o.paymentMethod ?? "",
+    ].join(";");
+  });
+  return ["\uFEFF" + header, ...lines].join("\n");
+}

@@ -7,6 +7,30 @@
     {
       "path": "/api/telegram/cron/daily-report?kind=evening",
       "schedule": "0 17 * * *"
+    },
+    {
+      "path": "/api/telegram/cron/appointment-reminders",
+      "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/telegram/cron/post-service-followup",
+      "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/telegram/cron/mileage-reminders",
+      "schedule": "0 8 * * 1"
+    },
+    {
+      "path": "/api/telegram/cron/call-escalation",
+      "schedule": "0 */2 * * *"
+    },
+    {
+      "path": "/api/telegram/cron/abandoned-booking",
+      "schedule": "0 10,18 * * *"
+    },
+    {
+      "path": "/api/telegram/cron/stale-orders",
+      "schedule": "0 7 * * *"
     }
   ]
 }

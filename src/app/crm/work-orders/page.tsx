@@ -17,6 +17,7 @@ import { WorkOrderFilters } from "@/components/crm/WorkOrderFilters";
 import { CrmSearchInput } from "@/components/crm/CrmSearchInput";
 import { Button } from "@/components/ui/Button";
 import { VehicleThumbnail } from "@/components/vehicle/VehicleThumbnail";
+import { WorkOrderKanban } from "@/components/crm/WorkOrderKanban";
 
 function WorkOrdersPageContent() {
   const { t } = useI18n();
@@ -106,6 +107,11 @@ function WorkOrdersPageContent() {
         />
 
         <WorkOrderFilters filters={filters} onChange={setFilters} />
+
+        <section>
+          <h2 className="font-display uppercase text-sm text-bm-muted mb-3">Kanban</h2>
+          <WorkOrderKanban />
+        </section>
 
         <div className="glass-red rounded-xl overflow-hidden neon-border">
           <table className="dashboard-table">

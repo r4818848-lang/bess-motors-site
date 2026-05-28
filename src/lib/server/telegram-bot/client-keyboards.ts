@@ -1,12 +1,19 @@
-import type { InlineKeyboardMarkup } from "@/lib/server/telegram-api";
+import type { InlineKeyboardMarkup, ReplyKeyboardMarkup } from "@/lib/server/telegram-api";
 import { timeSlots } from "@/lib/data";
 import { siteConfig } from "@/lib/site";
-import { CLIENT } from "./client-labels";
+import {
+  BOT_LOCALES,
+  type BotLocale,
+  getClientBotLabels,
+  LANGUAGE_NAMES,
+  type ClientBotLabels,
+} from "./client-i18n";
 import {
   clientBookableServices,
   decodeTimeSlot,
   encodeTimeSlot,
   formatDateShort,
+  getClientServiceLabel,
   nextBookableDates,
 } from "./client-services";
 import type { ClientPortalSlice } from "@/lib/client-sign";
@@ -15,153 +22,263 @@ function siteBase(): string {
   return process.env.NEXT_PUBLIC_SITE_URL || "https://www.bess-motors.com";
 }
 
-export function clientMainKeyboard(linked = false): InlineKeyboardMarkup {
+export function clientLanguageKeyboard(): InlineKeyboardMarkup {
+  const rows: InlineKeyboardMarkup["inline_keyboard"] = [];
+  for (let i = 0; i < BOT_LOCALES.length; i += 2) {
+    rows.push(
+      BOT_LOCALES.slice(i, i + 2).map((loc) => ({
+        text: LANGUAGE_NAMES[loc],
+        callback_data: `cl:lang:${loc}`,
+      }))
+    );
+  }
+  return { inline_keyboard: rows };
+}
+
+export function clientStartReplyKeyboard(L: ClientBotLabels): ReplyKeyboardMarkup {
+  return {
+    keyboard: [[{ text: L.startBtn }]],
+    resize_keyboard: true,
+    is_persistent: true,
+  };
+}
+
+export function clientMainKeyboard(locale: BotLocale, linked = false): InlineKeyboardMarkup {
+  const L = getClientBotLabels(locale);
   const rows: InlineKeyboardMarkup["inline_keyboard"] = [];
 
   if (linked) {
     rows.push(
-      [{ text: CLIENT.myOrders, callback_data: "cl:orders:0" }],
+      [{ text: L.myOrders, callback_data: "cl:orders:0" }],
       [
-        { text: CLIENT.notifications, callback_data: "cl:notif" },
-        { text: CLIENT.myAppointments, callback_data: "cl:apts" },
+        { text: L.notifications, callback_data: "cl:notif" },
+        { text: L.myAppointments, callback_data: "cl:apts" },
       ],
-      [{ text: CLIENT.myCars, callback_data: "cl:cars" }]
+      [{ text: L.myCars, callback_data: "cl:cars" }]
     );
   } else {
-    rows.push([{ text: CLIENT.activate, callback_data: "cl:link" }]);
+    rows.push([{ text: L.activate, callback_data: "cl:link" }]);
   }
 
   rows.push(
-    [{ text: CLIENT.book, callback_data: "cl:book" }],
-    [{ text: CLIENT.call, callback_data: "cl:call" }],
+    [{ text: L.book, callback_data: "cl:book" }],
+    [{ text: L.call, callback_data: "cl:call" }],
     [
-      { text: CLIENT.contacts, callback_data: "cl:contacts" },
-      { text: "🌐 Сайт", url: `${siteBase()}/cabinet` },
-    ]
+      { text: L.symptomQuiz, callback_data: "cl:sym:start" },
+      { text: L.concierge, callback_data: "cl:concierge" },
+    ],
+    [
+      { text: L.packagesBtn, callback_data: "cl:pkg:menu" },
+      { text: L.locationBtn, callback_data: "cl:location" },
+    ],
+    [
+      { text: L.myStatus, callback_data: "cl:status" },
+      { text: L.rebook, callback_data: "cl:rebook" },
+    ],
+    [
+      { text: L.contacts, callback_data: "cl:contacts" },
+      { text: L.site, url: `${siteBase()}/cabinet` },
+    ],
+    [{ text: L.changeLanguage, callback_data: "cl:lang:pick" }]
   );
 
   return { inline_keyboard: rows };
 }
 
 export function clientLinkedMenuKeyboard(
+  locale: BotLocale,
   slice: ClientPortalSlice,
   pendingSign: number,
   unread: number
 ): InlineKeyboardMarkup {
+  const L = getClientBotLabels(locale);
   const notifLabel =
-    unread > 0 ? `${CLIENT.notifications} (${unread})` : CLIENT.notifications;
+    unread > 0 ? `${L.notifications} (${unread})` : L.notifications;
   const ordersLabel =
-    pendingSign > 0 ? `${CLIENT.myOrders} (✍️${pendingSign})` : CLIENT.myOrders;
+    pendingSign > 0 ? `${L.myOrders} (✍️${pendingSign})` : L.myOrders;
 
   return {
     inline_keyboard: [
       [{ text: ordersLabel, callback_data: "cl:orders:0" }],
       [
         { text: notifLabel, callback_data: "cl:notif" },
-        { text: CLIENT.myAppointments, callback_data: "cl:apts" },
+        { text: L.myAppointments, callback_data: "cl:apts" },
       ],
       [
-        { text: CLIENT.myCars, callback_data: "cl:cars" },
-        { text: CLIENT.addVin, callback_data: "cl:vin" },
+        { text: L.myCars, callback_data: "cl:cars" },
+        { text: L.addVin, callback_data: "cl:vin" },
       ],
       [
-        { text: CLIENT.book, callback_data: "cl:book" },
-        { text: CLIENT.call, callback_data: "cl:call" },
+        { text: L.book, callback_data: "cl:book" },
+        { text: L.call, callback_data: "cl:call" },
       ],
       [
-        { text: CLIENT.contacts, callback_data: "cl:contacts" },
-        { text: "🌐 Кабинет на сайте", url: `${siteBase()}/cabinet` },
+        { text: L.symptomQuiz, callback_data: "cl:sym:start" },
+        { text: L.concierge, callback_data: "cl:concierge" },
       ],
+      [
+        { text: L.myStatus, callback_data: "cl:status" },
+        { text: L.rebook, callback_data: "cl:rebook" },
+      ],
+      [
+        { text: L.sendPhoto, callback_data: "cl:photo" },
+        { text: L.serviceHistory, callback_data: "cl:history" },
+      ],
+      [
+        { text: L.rebookWeek, callback_data: "cl:rebook7" },
+        { text: L.galleryPhotos, callback_data: "cl:photos" },
+      ],
+      [
+        { text: L.packagesBtn, callback_data: "cl:pkg:menu" },
+        { text: "🏷 Promo", callback_data: "cl:promo" },
+      ],
+      [
+        { text: L.locationBtn, callback_data: "cl:location" },
+        { text: L.warrantyBtn, callback_data: "cl:warranty" },
+      ],
+      [{ text: L.vehiclePick, callback_data: "cl:veh:pick" }],
+      [{ text: L.referralShare, callback_data: "cl:referral" }],
+      [
+        { text: L.contacts, callback_data: "cl:contacts" },
+        { text: L.cabinetSite, url: `${siteBase()}/cabinet` },
+      ],
+      [
+        { text: L.notifySettings, callback_data: "cl:notify" },
+        { text: L.quietHours, callback_data: "cl:quiet" },
+      ],
+      [{ text: locale === "ru" ? "⚡ Ещё" : "⚡ More", callback_data: "cl:more" }],
+      [{ text: L.changeLanguage, callback_data: "cl:lang:pick" }],
     ],
   };
 }
 
-export function vinConfirmKeyboard(): InlineKeyboardMarkup {
+export function vinConfirmKeyboard(locale: BotLocale): InlineKeyboardMarkup {
+  const L = getClientBotLabels(locale);
   return {
     inline_keyboard: [
-      [{ text: CLIENT.vinConfirmYes, callback_data: "cl:vin:add" }],
+      [{ text: L.vinConfirmYes, callback_data: "cl:vin:add" }],
       [
-        { text: CLIENT.vinEditPlate, callback_data: "cl:vin:edit:plate" },
-        { text: CLIENT.vinEditVin, callback_data: "cl:vin:edit:vin" },
+        { text: L.vinEditPlate, callback_data: "cl:vin:edit:plate" },
+        { text: L.vinEditVin, callback_data: "cl:vin:edit:vin" },
       ],
-      [{ text: CLIENT.vinConfirmNo, callback_data: "cl:menu" }],
+      [{ text: L.vinConfirmNo, callback_data: "cl:menu" }],
     ],
   };
 }
 
-export function vinAskPlateKeyboard(): InlineKeyboardMarkup {
+export function vinAskPlateKeyboard(locale: BotLocale): InlineKeyboardMarkup {
+  const L = getClientBotLabels(locale);
   return {
     inline_keyboard: [
-      [{ text: CLIENT.skip, callback_data: "cl:vin:plate:skip" }],
-      [{ text: CLIENT.cancel, callback_data: "cl:menu" }],
+      [{ text: L.skip, callback_data: "cl:vin:plate:skip" }],
+      [{ text: L.cancel, callback_data: "cl:menu" }],
     ],
   };
 }
 
-export function clientBackMenuRow(): InlineKeyboardMarkup["inline_keyboard"][number] {
-  return [{ text: CLIENT.menu, callback_data: "cl:menu" }];
+export function clientBackMenuRow(locale: BotLocale): InlineKeyboardMarkup["inline_keyboard"][number] {
+  const L = getClientBotLabels(locale);
+  return [{ text: L.menu, callback_data: "cl:menu" }];
 }
 
-export function clientLinkPhoneKeyboard(): InlineKeyboardMarkup {
-  return {
-    inline_keyboard: [
-      [{ text: CLIENT.cancel, callback_data: "cl:menu" }],
-    ],
-  };
+export function clientAppointmentsKeyboard(
+  locale: BotLocale,
+  slice: ClientPortalSlice
+): InlineKeyboardMarkup {
+  const L = getClientBotLabels(locale);
+  const today = new Date().toISOString().slice(0, 10);
+  const apts = slice.appointments
+    .filter((a) => a.date >= today)
+    .sort((a, b) => `${a.date}${a.time}`.localeCompare(`${b.date}${b.time}`))
+    .slice(0, 4);
+  const rows: InlineKeyboardMarkup["inline_keyboard"] = [];
+  for (const a of apts) {
+    rows.push([
+      {
+        text: `${L.shareApt} · ${a.date}`,
+        callback_data: `cl:share:apt:${a.id}`,
+      },
+    ]);
+    rows.push([
+      {
+        text: locale === "pl" ? "📅 +1 dzień" : locale === "en" ? "📅 +1 day" : "📅 +1 день",
+        callback_data: `cl:apt:+1:${a.id}`,
+      },
+      {
+        text: "+7",
+        callback_data: `cl:apt:+7:${a.id}`,
+      },
+    ]);
+  }
+  rows.push(clientBackMenuRow(locale));
+  return { inline_keyboard: rows };
 }
 
-export function phoneRequestReplyKeyboard() {
+export function phoneRequestReplyKeyboard(locale: BotLocale): ReplyKeyboardMarkup {
+  const L = getClientBotLabels(locale);
   return {
-    keyboard: [[{ text: CLIENT.linkPhoneBtn, request_contact: true }]],
+    keyboard: [[{ text: L.linkPhoneBtn, request_contact: true }]],
     resize_keyboard: true,
     one_time_keyboard: true,
   };
 }
 
-export function linkPlateStepKeyboard(): InlineKeyboardMarkup {
+export function linkPlateStepKeyboard(locale: BotLocale): InlineKeyboardMarkup {
+  const L = getClientBotLabels(locale);
   return {
     inline_keyboard: [
-      [{ text: CLIENT.linkEditPhone, callback_data: "cl:lk:edit:phone" }],
-      [{ text: CLIENT.cancel, callback_data: "cl:menu" }],
+      [{ text: L.linkEditPhone, callback_data: "cl:lk:edit:phone" }],
+      [{ text: L.cancel, callback_data: "cl:menu" }],
     ],
   };
 }
 
-export function formatLinkConfirmSummary(phone: string, plate: string): string {
+export function formatLinkConfirmSummary(
+  locale: BotLocale,
+  phone: string,
+  plate: string
+): string {
+  const L = getClientBotLabels(locale);
   return [
-    CLIENT.linkConfirmTitle,
+    L.linkConfirmTitle,
     "",
-    `${CLIENT.linkConfirmPhone}: <b>${phone}</b>`,
-    `${CLIENT.linkConfirmPlate}: <b>${plate.toUpperCase()}</b>`,
+    `${L.linkConfirmPhone}: <b>${phone}</b>`,
+    `${L.linkConfirmPlate}: <b>${plate.toUpperCase()}</b>`,
     "",
-    CLIENT.linkConfirmHint,
+    L.linkConfirmHint,
   ].join("\n");
 }
 
-export function linkConfirmKeyboard(): InlineKeyboardMarkup {
+export function linkConfirmKeyboard(locale: BotLocale): InlineKeyboardMarkup {
+  const L = getClientBotLabels(locale);
   return {
     inline_keyboard: [
-      [{ text: CLIENT.linkDataCorrect, callback_data: "cl:lk:ok" }],
-      [{ text: CLIENT.linkDataWrong, callback_data: "cl:lk:no" }],
+      [{ text: L.linkDataCorrect, callback_data: "cl:lk:ok" }],
+      [{ text: L.linkDataWrong, callback_data: "cl:lk:no" }],
     ],
   };
 }
 
-export function linkEditPickKeyboard(): InlineKeyboardMarkup {
+export function linkEditPickKeyboard(locale: BotLocale): InlineKeyboardMarkup {
+  const L = getClientBotLabels(locale);
   return {
     inline_keyboard: [
-      [{ text: CLIENT.linkEditPhone, callback_data: "cl:lk:edit:phone" }],
-      [{ text: CLIENT.linkEditPlate, callback_data: "cl:lk:edit:plate" }],
-      [{ text: CLIENT.linkRestart, callback_data: "cl:lk:restart" }],
-      [{ text: CLIENT.cancel, callback_data: "cl:menu" }],
+      [{ text: L.linkEditPhone, callback_data: "cl:lk:edit:phone" }],
+      [{ text: L.linkEditPlate, callback_data: "cl:lk:edit:plate" }],
+      [{ text: L.linkRestart, callback_data: "cl:lk:restart" }],
+      [{ text: L.cancel, callback_data: "cl:menu" }],
     ],
   };
 }
 
-export function clientServiceKeyboard(intent: "book" | "call"): InlineKeyboardMarkup {
+export function clientServiceKeyboard(
+  locale: BotLocale,
+  intent: "book" | "call"
+): InlineKeyboardMarkup {
+  const services = clientBookableServices(locale);
   const rows: InlineKeyboardMarkup["inline_keyboard"] = [];
-  for (let i = 0; i < clientBookableServices.length; i += 2) {
-    const chunk = clientBookableServices.slice(i, i + 2);
+  for (let i = 0; i < services.length; i += 2) {
+    const chunk = services.slice(i, i + 2);
     rows.push(
       chunk.map((s) => ({
         text: s.label.slice(0, 28),
@@ -169,28 +286,30 @@ export function clientServiceKeyboard(intent: "book" | "call"): InlineKeyboardMa
       }))
     );
   }
-  rows.push(clientBackMenuRow());
+  rows.push(clientBackMenuRow(locale));
   return { inline_keyboard: rows };
 }
 
-export function clientDateKeyboard(): InlineKeyboardMarkup {
+export function clientDateKeyboard(locale: BotLocale): InlineKeyboardMarkup {
+  const L = getClientBotLabels(locale);
   const dates = nextBookableDates(10);
   const rows: InlineKeyboardMarkup["inline_keyboard"] = [];
   for (let i = 0; i < dates.length; i += 2) {
     const chunk = dates.slice(i, i + 2);
     rows.push(
       chunk.map((d) => ({
-        text: formatDateShort(d),
+        text: formatDateShort(d, locale),
         callback_data: `cl:dt:${d}`,
       }))
     );
   }
-  rows.push([{ text: CLIENT.back, callback_data: "cl:book" }]);
-  rows.push(clientBackMenuRow());
+  rows.push([{ text: L.back, callback_data: "cl:book" }]);
+  rows.push(clientBackMenuRow(locale));
   return { inline_keyboard: rows };
 }
 
-export function clientTimeKeyboard(): InlineKeyboardMarkup {
+export function clientTimeKeyboard(locale: BotLocale): InlineKeyboardMarkup {
+  const L = getClientBotLabels(locale);
   const rows: InlineKeyboardMarkup["inline_keyboard"] = [];
   for (let i = 0; i < timeSlots.length; i += 3) {
     const chunk = timeSlots.slice(i, i + 3);
@@ -201,54 +320,54 @@ export function clientTimeKeyboard(): InlineKeyboardMarkup {
       }))
     );
   }
-  rows.push([{ text: CLIENT.back, callback_data: "cl:book" }]);
-  rows.push(clientBackMenuRow());
+  rows.push([{ text: L.back, callback_data: "cl:book" }]);
+  rows.push(clientBackMenuRow(locale));
   return { inline_keyboard: rows };
 }
 
-export function clientSkipCommentKeyboard(): InlineKeyboardMarkup {
+export function clientSkipCommentKeyboard(locale: BotLocale): InlineKeyboardMarkup {
+  const L = getClientBotLabels(locale);
   return {
     inline_keyboard: [
-      [{ text: CLIENT.skip, callback_data: "cl:skip" }],
-      [{ text: CLIENT.cancel, callback_data: "cl:menu" }],
+      [{ text: L.skip, callback_data: "cl:skip" }],
+      [{ text: L.cancel, callback_data: "cl:menu" }],
     ],
   };
 }
 
-export function clientConfirmBookingKeyboard(): InlineKeyboardMarkup {
+export function clientConfirmBookingKeyboard(locale: BotLocale): InlineKeyboardMarkup {
+  const L = getClientBotLabels(locale);
   return {
     inline_keyboard: [
-      [{ text: CLIENT.confirmBooking, callback_data: "cl:cf:book" }],
-      [{ text: CLIENT.cancel, callback_data: "cl:menu" }],
+      [{ text: L.confirmBooking, callback_data: "cl:cf:book" }],
+      [{ text: L.cancel, callback_data: "cl:menu" }],
     ],
   };
 }
 
-export function clientConfirmCallKeyboard(): InlineKeyboardMarkup {
+export function clientConfirmCallKeyboard(locale: BotLocale): InlineKeyboardMarkup {
+  const L = getClientBotLabels(locale);
   return {
     inline_keyboard: [
-      [{ text: CLIENT.confirmCall, callback_data: "cl:cf:call" }],
-      [{ text: CLIENT.cancel, callback_data: "cl:menu" }],
+      [{ text: L.confirmCall, callback_data: "cl:cf:call" }],
+      [{ text: L.cancel, callback_data: "cl:menu" }],
     ],
   };
 }
 
-export function clientContactsKeyboard(): InlineKeyboardMarkup {
+export function clientContactsKeyboard(locale: BotLocale): InlineKeyboardMarkup {
+  const L = getClientBotLabels(locale);
   return {
     inline_keyboard: [
       [{ text: "💬 WhatsApp", url: siteConfig.whatsapp }],
-      [
-        {
-          text: "🌐 Запись на сайте",
-          url: `${siteBase()}/booking`,
-        },
-      ],
-      clientBackMenuRow(),
+      [{ text: L.bookOnSite, url: `${siteBase()}/booking` }],
+      clientBackMenuRow(locale),
     ],
   };
 }
 
 export function clientOrdersKeyboard(
+  locale: BotLocale,
   orders: { id: string; number: string; needsSign: boolean }[],
   page: number,
   totalPages: number
@@ -265,35 +384,47 @@ export function clientOrdersKeyboard(
   nav.push({ text: `${page + 1}/${totalPages}`, callback_data: "noop" });
   if (page < totalPages - 1) nav.push({ text: "▶️", callback_data: `cl:orders:${page + 1}` });
   if (nav.length) kb.push(nav);
-  kb.push(clientBackMenuRow());
+  kb.push(clientBackMenuRow(locale));
   return { inline_keyboard: kb };
 }
 
 export function clientOrderDetailKeyboard(
+  locale: BotLocale,
   orderId: string,
   needsSign: boolean
 ): InlineKeyboardMarkup {
+  const L = getClientBotLabels(locale);
   const rows: InlineKeyboardMarkup["inline_keyboard"] = [];
   if (needsSign) {
     rows.push([
       {
-        text: "✍️ Подписать на сайте",
+        text: L.signOnSite,
         url: `${siteBase()}/sign/${orderId}`,
       },
     ]);
   }
+  rows.push([
+    {
+      text: locale === "pl" ? "🔁 Powtórz zlecenie" : locale === "en" ? "🔁 Repeat order" : "🔁 Повторить заказ",
+      callback_data: `cl:repeat:${orderId}`,
+    },
+  ]);
   rows.push(
-    [{ text: "◀️ К списку", callback_data: "cl:orders:0" }],
-    clientBackMenuRow()
+    [{ text: L.backToList, callback_data: "cl:orders:0" }],
+    clientBackMenuRow(locale)
   );
   return { inline_keyboard: rows };
 }
 
-export function formatClientBookingSummary(data: Record<string, string>): string {
+export function formatClientBookingSummary(
+  locale: BotLocale,
+  data: Record<string, string>
+): string {
+  const L = getClientBotLabels(locale);
   const service = data.serviceLabel ?? data.serviceId ?? "—";
-  const lines = ["<b>Проверьте данные:</b>", "", `🔧 ${service}`];
+  const lines = [L.confirmSummaryTitle, "", `🔧 ${service}`];
   if (data.date && data.time) {
-    lines.push(`📅 ${formatDateShort(data.date)} · ${decodeTimeSlot(data.time)}`);
+    lines.push(`📅 ${formatDateShort(data.date, locale)} · ${decodeTimeSlot(data.time)}`);
   }
   lines.push(`👤 ${data.name ?? "—"}`, `📱 ${data.phone ?? "—"}`);
   if (data.comment) lines.push(`💬 ${data.comment}`);

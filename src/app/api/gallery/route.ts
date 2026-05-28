@@ -8,6 +8,7 @@ export const runtime = "nodejs";
 export type PublicGalleryItem = {
   id: string;
   title: string;
+  make?: string;
   beforeUrl?: string;
   afterUrl?: string;
 };
@@ -35,6 +36,7 @@ export async function GET() {
     items.push({
       id: order.id,
       title,
+      make: vehicle?.make,
       beforeUrl,
       afterUrl,
     });

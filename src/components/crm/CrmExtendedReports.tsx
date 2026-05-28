@@ -5,7 +5,7 @@ import { Download, Printer } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { loadDb } from "@/lib/store";
 import type { CrmAnalytics } from "@/lib/crm-analytics";
-import { exportReportsCsv } from "@/lib/crm-analytics";
+import { exportReportsCsv, exportOrdersDetailCsv } from "@/lib/crm-analytics";
 import type { RepairStatus } from "@/lib/store";
 import { Card } from "@/components/ui/Card";
 
@@ -29,6 +29,17 @@ export function CrmExtendedReports({ stats, periodLabel }: Props) {
   const rs = t.repairStatus;
   const db = loadDb();
 
+  const downloadDetailCsv = () => {
+    const csv = exportOrdersDetailCsv(db, "month", "", "");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `zlecenia-szczegoly-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const downloadCsv = () => {
     const csv = exportReportsCsv(db, stats, periodLabel);
     const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
@@ -45,6 +56,9 @@ export function CrmExtendedReports({ stats, periodLabel }: Props) {
       <div className="flex flex-wrap gap-2">
         <button type="button" className="btn-primary text-xs py-2" onClick={downloadCsv}>
           <Download size={16} /> {rx.exportCsv}
+        </button>
+        <button type="button" className="btn-outline text-xs py-2" onClick={downloadDetailCsv}>
+          <Download size={16} /> CSV zleceń
         </button>
         <button type="button" className="btn-outline text-xs py-2" onClick={() => window.print()}>
           <Printer size={16} /> {rx.printReport}

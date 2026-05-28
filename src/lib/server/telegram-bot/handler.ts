@@ -39,12 +39,16 @@ import {
   formatTodaySummary,
   formatTopClients,
   formatUnpaidList,
-  formatWarehouse,
   formatWorkOrderDetail,
   formatWorkOrderList,
   searchOrderNumbers,
   workOrderListKeyboard,
 } from "./format";
+import {
+  formatWarehouseDetailed,
+  formatWarehouseLowOnly,
+  warehouseKeyboard,
+} from "./admin-warehouse";
 import {
   analyticsKeyboard,
   backMenuRow,
@@ -64,6 +68,30 @@ import {
 } from "./keyboards";
 import { BOT, REPAIR_STATUS_RU } from "./labels";
 import { handleClientTelegramUpdate } from "./client-handler";
+import {
+  formatUnsignedList,
+  remindClientToSign,
+  unsignedKeyboard,
+} from "./admin-unsigned";
+import {
+  formatOpenCallsList,
+  markCallDone,
+  openCallsKeyboard,
+} from "./admin-calls";
+import {
+  createQuickAppointment,
+  parseQuickAptLine,
+} from "./admin-quick-apt";
+import {
+  masterTemplateKeyboard,
+  sendMasterTemplateToClient,
+  type MasterTemplate,
+} from "./admin-client-notify";
+import { formatMechanicDashboard } from "./admin-mechanic-dash";
+import {
+  parseExtraWorkLines,
+  requestExtraWorkApproval,
+} from "./extra-work-approval";
 
 type TelegramMessage = {
   message_id: number;
@@ -179,6 +207,60 @@ async function handleMessage(msg: TelegramMessage): Promise<void> {
 
   const session = await getTelegramSession(chatKey);
 
+  if (session.step === "admin_extra_work" && session.data?.orderNumber) {
+    const lines = text.split("\n");
+    const note = lines[0] ?? "Дополнительные работы";
+    const workLines = parseExtraWorkLines(
+      (lines.slice(1).join("\n") || lines[0]) ?? ""
+    );
+    await clearTelegramSession(chatKey);
+    const res = await requestExtraWorkApproval(
+      session.data.orderNumber,
+      workLines.length ? workLines : parseExtraWorkLines(text),
+      note
+    );
+    await sendTelegramMessage(chatId, res.message, mainMenuKeyboard());
+    return;
+  }
+
+  if (session.step === "admin_custom_msg" && session.data?.orderNumber) {
+    const number = session.data.orderNumber;
+    const db = await loadCrmFromCloud();
+    const order = db?.workOrders.find((o) => o.number === number);
+    const user = order ? db?.users.find((u) => u.id === order.userId) : undefined;
+    await clearTelegramSession(chatKey);
+    if (user?.telegramChatId) {
+      await sendTelegramMessage(user.telegramChatId, `📨 <b>BESS MOTORS</b>\n\n${text}`);
+      await sendTelegramMessage(chatId, BOT.saved, mainMenuKeyboard());
+    } else {
+      await sendTelegramMessage(chatId, "Клиент не в Telegram.", mainMenuKeyboard());
+    }
+    return;
+  }
+
+  if (session.step === "admin_quick_apt") {
+    const parsed = parseQuickAptLine(text);
+    await clearTelegramSession(chatKey);
+    if (!parsed.ok || !parsed.phone || !parsed.date || !parsed.time) {
+      await sendTelegramMessage(chatId, BOT.quickAptPrompt, mainMenuKeyboard());
+      return;
+    }
+    const result = await createQuickAppointment({
+      phone: parsed.phone,
+      date: parsed.date,
+      time: parsed.time,
+      comment: parsed.comment ?? "Telegram CRM",
+    });
+    await sendTelegramMessage(
+      chatId,
+      result.ok
+        ? `${BOT.saved}\n📅 ${parsed.date} ${parsed.time}\n📱 ${parsed.phone}`
+        : BOT.saveFailed,
+      mainMenuKeyboard()
+    );
+    return;
+  }
+
   if (session.step === "search_input") {
     if (text.length < 2) {
       await sendTelegramMessage(chatId, BOT.searchPrompt, {
@@ -238,6 +320,26 @@ async function handleMessage(msg: TelegramMessage): Promise<void> {
     const stats = computeCrmAnalytics(db, "custom", from, to);
     const report = formatFinanceReport(stats, "custom", `${from} — ${to}`);
     await sendTelegramMessage(chatId, report, financePeriodKeyboard());
+    return;
+  }
+
+  if (text.startsWith("/tpl")) {
+    const { formatTemplatesList, getTemplateById } = await import("./admin-templates");
+    const id = text.trim().split(/\s+/)[1];
+    if (!id) {
+      await sendTelegramMessage(
+        chatId,
+        `📋 <b>Szablony wiadomości</b>\n\n${formatTemplatesList()}`,
+        mainMenuKeyboard()
+      );
+      return;
+    }
+    const tpl = getTemplateById(id);
+    await sendTelegramMessage(
+      chatId,
+      tpl ? `${tpl.label}:\n\n${tpl.pl}` : "Nie znaleziono. /tpl",
+      mainMenuKeyboard()
+    );
     return;
   }
 
@@ -312,6 +414,18 @@ async function handleCallback(cb: TelegramCallback): Promise<void> {
 
   if (data === "sum:day") {
     await replyOrEdit(chatId, messageId, formatTodaySummary(db), mainMenuKeyboard());
+    return;
+  }
+
+  if (data === "unsigned:0") {
+    await replyOrEdit(chatId, messageId, formatUnsignedList(db), unsignedKeyboard(db));
+    return;
+  }
+
+  if (data.startsWith("unsigned:remind:")) {
+    const orderId = data.slice(16);
+    const res = await remindClientToSign(db, orderId);
+    await sendTelegramMessage(chatId, res.message, unsignedKeyboard(db));
     return;
   }
 
@@ -394,6 +508,59 @@ async function handleCallback(cb: TelegramCallback): Promise<void> {
       `${BOT.saved}\n\n${detail}`,
       workOrderDetailKeyboard(number, order?.paymentStatus === "paid")
     );
+    return;
+  }
+
+  if (data.startsWith("wo:msg:")) {
+    const number = data.slice(7);
+    await replyOrEdit(chatId, messageId, `📨 Шаблон для <b>${number}</b>:`, masterTemplateKeyboard(number));
+    return;
+  }
+
+  if (data.startsWith("wo:tpl:")) {
+    const rest = data.slice(7);
+    const lastColon = rest.lastIndexOf(":");
+    const number = rest.slice(0, lastColon);
+    const template = rest.slice(lastColon + 1) as MasterTemplate;
+    const res = await sendMasterTemplateToClient(db, number, template);
+    await sendTelegramMessage(chatId, res.message, masterTemplateKeyboard(number));
+    return;
+  }
+
+  if (data.startsWith("wo:extra:")) {
+    const number = data.slice(9);
+    const chatKey = String(chatId);
+    await setTelegramSession(chatKey, {
+      step: "admin_extra_work",
+      data: { orderNumber: number },
+    });
+    await sendTelegramMessage(
+      chatId,
+      BOT.extraWorkPrompt.replace("{number}", number),
+      { inline_keyboard: [[{ text: BOT.cancel, callback_data: "menu" }]] }
+    );
+    return;
+  }
+
+  if (data.startsWith("wo:custom:")) {
+    const number = data.slice(10);
+    const chatKey = String(chatId);
+    await setTelegramSession(chatKey, {
+      step: "admin_custom_msg",
+      data: { orderNumber: number },
+    });
+    await sendTelegramMessage(
+      chatId,
+      BOT.customMsgPrompt.replace("{number}", number),
+      { inline_keyboard: [[{ text: BOT.cancel, callback_data: "menu" }]] }
+    );
+    return;
+  }
+
+  if (data.startsWith("mech:dash:")) {
+    const period = data.slice(10) as ReportPeriod;
+    const report = formatMechanicDashboard(db, period);
+    await replyOrEdit(chatId, messageId, report, mainMenuKeyboard());
     return;
   }
 
@@ -569,7 +736,12 @@ async function handleCallback(cb: TelegramCallback): Promise<void> {
   }
 
   if (data === "wh:0") {
-    await replyOrEdit(chatId, messageId, formatWarehouse(db), mainMenuKeyboard());
+    await replyOrEdit(chatId, messageId, formatWarehouseDetailed(db), warehouseKeyboard());
+    return;
+  }
+
+  if (data === "wh:low") {
+    await replyOrEdit(chatId, messageId, formatWarehouseLowOnly(db), warehouseKeyboard());
     return;
   }
 

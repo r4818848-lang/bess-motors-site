@@ -13,6 +13,9 @@ import { BookingLink } from "@/components/analytics/BookingLink";
 import { LazySmartBookingModal } from "@/components/booking/LazySmartBookingModal";
 import { Card } from "@/components/ui/Card";
 import { useMetaViewContent } from "@/hooks/useMetaViewContent";
+import { BrandServiceBlock } from "@/components/seo/BrandServiceBlock";
+import { SeoServiceFaq } from "@/components/seo/SeoServiceFaq";
+import { SeoHowItWorks } from "@/components/seo/SeoHowItWorks";
 
 type Props = {
   page: SeoLandingPage;
@@ -111,9 +114,18 @@ export function SeoLandingPageView({ page }: Props) {
             </PhoneLink>
           </div>
 
+          <BrandServiceBlock slug={page.slug} />
+
+          <SeoHowItWorks serviceId={page.serviceId} />
+          <SeoServiceFaq serviceId={page.serviceId} />
+
           <p className="mt-8 text-center text-sm text-bm-muted">
             <Link href="/services" className="hover:text-bm-red transition-colors">
               Wszystkie usługi
+            </Link>
+            {" · "}
+            <Link href="/status" className="hover:text-bm-red transition-colors">
+              Status naprawy
             </Link>
             {" · "}
             <Link href="/contacts" className="hover:text-bm-red transition-colors">

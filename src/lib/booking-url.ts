@@ -1,4 +1,29 @@
 import { getPriceItem } from "@/lib/price-list";
+import type { ServiceId } from "@/lib/services-catalog";
+import { serviceBasePriceId } from "@/lib/service-price-map";
+
+export type BookingUrlParams = {
+  items: string[];
+  plate?: string;
+  serviceId?: string;
+};
+
+/** Parse ?items=... &service=diagnostic &plate=WA123 */
+export function parseBookingParamsFromSearch(search: string): BookingUrlParams {
+  const params = new URLSearchParams(search.startsWith("?") ? search.slice(1) : search);
+  const items = parseBookingItemsFromSearch(search);
+  const plate = params.get("plate")?.trim().toUpperCase();
+  const serviceRaw = params.get("service")?.trim() as ServiceId | undefined;
+  let serviceId: string | undefined;
+  if (serviceRaw && serviceBasePriceId[serviceRaw]) {
+    const priceId = serviceBasePriceId[serviceRaw];
+    if (priceId && !items.includes(priceId)) {
+      items.push(priceId);
+    }
+    serviceId = serviceRaw;
+  }
+  return { items, plate: plate || undefined, serviceId };
+}
 
 /** Parse ?items=oil_filter,brake_pads_front from URL */
 export function parseBookingItemsFromSearch(search: string): string[] {
@@ -25,6 +50,8 @@ export type LastBookingSnapshot = {
   clientName: string;
   estimatedTotal?: number;
   serviceLabels?: string;
+  serviceIds?: string[];
+  appointmentId?: string;
 };
 
 export function saveLastBooking(snapshot: LastBookingSnapshot): void {

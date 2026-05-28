@@ -1,60 +1,65 @@
-/** Generate .ics file for calendar apps (no external APIs). */
-
-export function buildBookingIcs(params: {
+export function buildIcsEvent(opts: {
   title: string;
-  description: string;
-  location: string;
-  date: string; // YYYY-MM-DD
-  time: string; // HH:mm
+  date: string;
+  time: string;
   durationMinutes?: number;
+  description?: string;
+  location?: string;
 }): string {
-  const start = parseLocalDateTime(params.date, params.time);
-  const end = new Date(start.getTime() + (params.durationMinutes ?? 60) * 60_000);
-  const uid = `bess-booking-${params.date}-${params.time}@bess-motors.com`;
+  const [hh, mm] = opts.time.split(":").map(Number);
+  const start = new Date(`${opts.date}T12:00:00`);
+  start.setHours(hh || 10, mm || 0, 0, 0);
+  const end = new Date(start.getTime() + (opts.durationMinutes ?? 60) * 60 * 1000);
+  const fmt = (d: Date) =>
+    d
+      .toISOString()
+      .replace(/[-:]/g, "")
+      .replace(/\.\d{3}Z/, "Z");
 
   const lines = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//BESS MOTORS//Booking//PL",
-    "CALSCALE:GREGORIAN",
-    "METHOD:PUBLISH",
+    "PRODID:-//BESS MOTORS//Booking//EN",
     "BEGIN:VEVENT",
-    `UID:${uid}`,
-    `DTSTAMP:${formatIcsUtc(new Date())}`,
-    `DTSTART:${formatIcsUtc(start)}`,
-    `DTEND:${formatIcsUtc(end)}`,
-    `SUMMARY:${escapeIcs(params.title)}`,
-    `DESCRIPTION:${escapeIcs(params.description)}`,
-    `LOCATION:${escapeIcs(params.location)}`,
+    `UID:bess-${opts.date}-${opts.time}@bess-motors.com`,
+    `DTSTAMP:${fmt(new Date())}`,
+    `DTSTART:${fmt(start)}`,
+    `DTEND:${fmt(end)}`,
+    `SUMMARY:${opts.title.replace(/\n/g, " ")}`,
+    opts.description ? `DESCRIPTION:${opts.description.replace(/\n/g, "\\n")}` : "",
+    opts.location ? `LOCATION:${opts.location}` : "",
     "END:VEVENT",
     "END:VCALENDAR",
-  ];
+  ].filter(Boolean);
   return lines.join("\r\n");
 }
 
-function parseLocalDateTime(date: string, time: string): Date {
-  const [y, m, d] = date.split("-").map(Number);
-  const [hh, mm] = time.split(":").map(Number);
-  return new Date(y, (m ?? 1) - 1, d ?? 1, hh ?? 0, mm ?? 0, 0);
+export function buildBookingIcs(opts: {
+  title: string;
+  description?: string;
+  location?: string;
+  date: string;
+  time: string;
+}): string {
+  return buildIcsEvent({
+    title: opts.title,
+    date: opts.date,
+    time: opts.time,
+    description: opts.description,
+    location: opts.location,
+  });
 }
 
-function formatIcsUtc(d: Date): string {
-  return d
-    .toISOString()
-    .replace(/[-:]/g, "")
-    .replace(/\.\d{3}/, "");
-}
-
-function escapeIcs(s: string): string {
-  return s.replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\n/g, "\\n");
-}
-
-export function downloadIcsFile(icsContent: string, filename = "bess-motors-wizyta.ics"): void {
-  const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8" });
+export function downloadIcs(filename: string, content: string): void {
+  const blob = new Blob([content], { type: "text/calendar;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
   a.download = filename;
   a.click();
   URL.revokeObjectURL(url);
+}
+
+export function downloadIcsFile(content: string, filename = "bess-motors-wizyta.ics"): void {
+  downloadIcs(filename, content);
 }

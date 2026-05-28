@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { PenLine } from "lucide-react";
+import { Download, PenLine } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import type { WorkOrder, Database } from "@/lib/store";
 import { loadDb } from "@/lib/store";
@@ -12,6 +12,7 @@ import { SignLinkShareBlock } from "@/components/work-order/SignLinkShareBlock";
 import { PremiumWorkOrderDocument } from "@/components/work-order/PremiumWorkOrderDocument";
 import { getClientPaymentView } from "@/lib/payment";
 import { RepairStatusStepper } from "@/components/cabinet/RepairStatusStepper";
+import { downloadWorkOrderPdf } from "@/lib/work-order-pdf";
 
 interface Props {
   order: WorkOrder;
@@ -20,7 +21,7 @@ interface Props {
 }
 
 export function ClientWorkOrderDetail({ order, db, onBack }: Props) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const sig = t.signature;
   const docSt = t.documentStatus;
   const cp = t.clientPayment;
@@ -89,6 +90,19 @@ export function ClientWorkOrderDetail({ order, db, onBack }: Props) {
                 <PenLine className="w-4 h-4" /> {sig.signNow}
               </Button>
             )}
+            <button
+              type="button"
+              className="btn-outline text-xs inline-flex items-center gap-1"
+              onClick={() =>
+                downloadWorkOrderPdf(
+                  localOrder,
+                  `${vehicle.make} ${vehicle.model} · ${vehicle.plate}`,
+                  locale === "ru" || locale === "uk" ? "ru" : "pl"
+                )
+              }
+            >
+              <Download size={14} /> PDF
+            </button>
             <WorkOrderDocumentActions
               order={localOrder}
               client={client}

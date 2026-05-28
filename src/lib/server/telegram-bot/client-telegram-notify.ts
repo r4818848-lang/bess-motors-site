@@ -2,7 +2,12 @@ import { cleanEnvValue } from "@/lib/server/supabase-config";
 import { sendTelegramMessage } from "@/lib/server/telegram-api";
 import type { Database, User, WorkOrder } from "@/lib/store";
 import { calcClientTotal } from "@/lib/workorder-calc";
+import { getClientBotLabels, type BotLocale } from "./client-i18n";
+import { ratingKeyboard } from "./client-extras";
+import { mutateCrm } from "./crm-actions";
 import { REPAIR_STATUS_RU } from "./labels";
+import { canSendBotNotify } from "./bot-notify-guard";
+import { isQuietHours } from "@/lib/quiet-hours";
 
 function siteUrl(): string {
   return cleanEnvValue(process.env.NEXT_PUBLIC_SITE_URL) || "https://www.bess-motors.com";
@@ -49,10 +54,13 @@ function orderNeedsSignature(order: WorkOrder): boolean {
 async function sendToClient(
   user: User,
   text: string,
-  keyboard?: { inline_keyboard: { text: string; url?: string; callback_data?: string }[][] }
+  keyboard?: { inline_keyboard: { text: string; url?: string; callback_data?: string }[][] },
+  opts?: { category?: "booking" | "status" | "promo"; critical?: boolean }
 ): Promise<void> {
-  if (!user.telegramChatId) return;
-  await sendTelegramMessage(user.telegramChatId, text, keyboard);
+  const category = opts?.category ?? "status";
+  if (!canSendBotNotify(user, category, { critical: opts?.critical })) return;
+  if (!opts?.critical && isQuietHours(new Date(), user.botQuietHours !== false)) return;
+  await sendTelegramMessage(user.telegramChatId!, text, keyboard);
 }
 
 export async function notifyTelegramWorkOrderChange(
@@ -100,7 +108,33 @@ export async function notifyTelegramWorkOrderChange(
           "",
           "Можете забрать авто в рабочие часы.",
           `🌐 ${cabinetUrl()}`,
-        ].join("\n")
+        ].join("\n"),
+        undefined,
+        { category: "status" }
+      );
+      return;
+    }
+
+    if (order.status === "delivered" && !order.clientRating && !order.ratingRequestSentAt) {
+      const loc: BotLocale = user.telegramLocale ?? "ru";
+      await mutateCrm((db) => {
+        const o = db.workOrders.find((x) => x.id === order.id);
+        if (o && !o.ratingRequestSentAt) {
+          o.ratingRequestSentAt = new Date().toISOString();
+        }
+      });
+      await sendToClient(
+        user,
+        [
+          loc === "pl"
+            ? "⭐ <b>Oceń naszą obsługę</b>"
+            : loc === "en"
+              ? "⭐ <b>Rate our service</b>"
+              : "⭐ <b>Оцените наш сервис</b>",
+          "",
+          `📋 ${esc(order.number)}`,
+        ].join("\n"),
+        ratingKeyboard(loc, order.id)
       );
       return;
     }
@@ -137,13 +171,44 @@ export async function dispatchTelegramFromCrmSave(
   for (const order of next.workOrders) {
     const old = previous.workOrders.find((o) => o.id === order.id);
     if (!old) continue;
+    const oldTotal = calcClientTotal(old);
+    const newTotal = calcClientTotal(order);
+    const servicesChanged =
+      old.services.length !== order.services.length || Math.abs(oldTotal - newTotal) > 0.01;
+
     if (
       old.status === order.status &&
       old.confirmationStatus === order.confirmationStatus &&
-      old.documentStatus === order.documentStatus
+      old.documentStatus === order.documentStatus &&
+      !servicesChanged
     ) {
       continue;
     }
+
+    if (servicesChanged && old.status === order.status) {
+      const user = next.users.find((u) => u.id === order.userId);
+      if (user?.telegramChatId && canSendBotNotify(user, "status")) {
+        const loc = user.telegramLocale ?? "ru";
+        const delta = newTotal - oldTotal;
+        await sendToClient(
+          user,
+          [
+            loc === "pl"
+              ? "📊 <b>Kosztorys zaktualizowany</b>"
+              : loc === "en"
+                ? "📊 <b>Estimate updated</b>"
+                : "📊 <b>Смета обновлена</b>",
+            "",
+            `📋 ${order.number}`,
+            `💰 ${oldTotal.toFixed(2)} → <b>${newTotal.toFixed(2)} zł</b> (${delta >= 0 ? "+" : ""}${delta.toFixed(2)})`,
+          ].join("\n"),
+          undefined,
+          { category: "status" }
+        );
+        order.lastNotifiedClientTotal = newTotal;
+      }
+    }
+
     await notifyTelegramWorkOrderChange(next, order, old);
   }
 }
@@ -166,6 +231,7 @@ export async function notifyTelegramSignByPhone(
       "",
       "Подпишите заказ-наряд в один клик:",
     ].join("\n"),
-    signKeyboard(order.id)
+    signKeyboard(order.id),
+    { critical: true }
   );
 }

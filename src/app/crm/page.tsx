@@ -4,7 +4,15 @@ import { useState, useEffect, useCallback, Suspense, useMemo } from "react";
 import { useDbSync } from "@/hooks/useDbSync";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { LogOut, FileText, Wallet, BarChart3, Receipt, Settings, Flame, Users, History } from "lucide-react";
+import { LogOut, FileText, Wallet, BarChart3, Receipt, Settings, Flame, Users, History, Package, TrendingUp } from "lucide-react";
+import { WarehousePanel } from "@/components/crm/WarehousePanel";
+import {
+  ClientsCsvExport,
+  InactiveClientsExport,
+  FunnelPanel,
+  MarketingAttributionPanel,
+  ReferralDashboard,
+} from "@/components/crm/MarketingPanels";
 import { useI18n } from "@/lib/i18n/context";
 import { DashboardLayout } from "@/components/crm/DashboardLayout";
 import { ExpensesPanel } from "@/components/crm/ExpensesPanel";
@@ -20,8 +28,18 @@ import { filterWorkOrdersByQuery } from "@/lib/crm-search";
 import { logoutAdmin } from "@/lib/auth";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { CrmTodayPanel } from "@/components/crm/CrmTodayPanel";
 
-type CrmTab = "overview" | "hot" | "clients" | "vehicles" | "expenses" | "reports" | "settings";
+type CrmTab =
+  | "overview"
+  | "hot"
+  | "clients"
+  | "vehicles"
+  | "warehouse"
+  | "marketing"
+  | "expenses"
+  | "reports"
+  | "settings";
 
 function CRMPageContent() {
   const { t } = useI18n();
@@ -41,6 +59,8 @@ function CRMPageContent() {
       q === "hot" ||
       q === "clients" ||
       q === "vehicles" ||
+      q === "warehouse" ||
+      q === "marketing" ||
       q === "expenses" ||
       q === "reports" ||
       q === "settings"
@@ -78,6 +98,8 @@ function CRMPageContent() {
     { id: "hot" as const, icon: Flame, label: c.hotOrders },
     { id: "clients" as const, icon: Users, label: c.clientsList },
     { id: "vehicles" as const, icon: History, label: c.vehicleHistoryList },
+    { id: "warehouse" as const, icon: Package, label: "Magazyn" },
+    { id: "marketing" as const, icon: TrendingUp, label: "Marketing" },
     { id: "expenses" as const, icon: Wallet, label: t.wo.internalExpenses },
     { id: "reports" as const, icon: BarChart3, label: t.wo.reports },
     { id: "settings" as const, icon: Settings, label: t.wo.settingsTitle },
@@ -115,6 +137,7 @@ function CRMPageContent() {
 
         {tab === "overview" && (
           <>
+            <CrmTodayPanel />
             <CrmSearchInput value={search} onChange={setSearch} placeholder={c.search} />
 
             <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
@@ -177,6 +200,20 @@ function CRMPageContent() {
         {tab === "clients" && <ClientsListPanel />}
 
         {tab === "vehicles" && <VehicleHistoryPanel />}
+
+        {tab === "warehouse" && <WarehousePanel />}
+
+        {tab === "marketing" && (
+          <div className="space-y-8">
+            <div className="flex flex-wrap gap-2">
+              <ClientsCsvExport />
+              <InactiveClientsExport />
+            </div>
+            <FunnelPanel />
+            <ReferralDashboard />
+            <MarketingAttributionPanel />
+          </div>
+        )}
 
         {tab === "expenses" && <ExpensesPanel onUpdate={refresh} />}
         {tab === "reports" && <FinanceReports />}

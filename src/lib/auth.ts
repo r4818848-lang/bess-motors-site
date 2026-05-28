@@ -3,6 +3,8 @@ import { verifyToken as verifyTokenServer } from "@/lib/server/verify-session";
 
 import { loadDb, saveDb, type User, type Vehicle } from "./store";
 import { linkGuestBookingsToClient } from "./link-client-bookings";
+import { applyPendingReferralForUser } from "./referral-capture";
+import { ensureReferralCode } from "./referral-code";
 
 import { siteConfig } from "./site";
 
@@ -255,6 +257,10 @@ export async function loginWithPhonePassword(
   const valid = await checkClientPlate(user, credential);
   if (!valid) return { ok: false, error: "invalid_credentials" };
 
+  ensureReferralCode(user, db);
+  applyPendingReferralForUser(db, user.id);
+  saveDb(db);
+
   const token = await issueToken(user.id, "client", user.phone);
   persistSession(token, "client", user.id);
   saveClientCredentials(phone, credential);
@@ -329,10 +335,12 @@ export async function registerClient(phone: string, plate: string): Promise<Auth
     userId,
   };
 
+  ensureReferralCode(user, db);
   db.users.push(user);
   db.vehicles.push(vehicle);
   db.currentUserId = userId;
   linkGuestBookingsToClient(db, userId, normalized);
+  applyPendingReferralForUser(db, userId);
   saveDb(db);
 
   const token = await issueToken(user.id, "client", user.phone);

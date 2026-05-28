@@ -19,6 +19,15 @@ import {
   deriveDocumentStatus,
 } from "@/lib/store";
 import { PAYMENT_METHODS } from "@/lib/payment";
+import { syncWarehouseFromWorkOrder } from "@/lib/warehouse-stock";
+import {
+  applyInviteeDiscountToOrder,
+  applyReferralDiscountToOrder,
+  canUseInviteeDiscount,
+  canUseReferralDiscount,
+  markInviteeDiscountUsed,
+  markReferralDiscountUsed,
+} from "@/lib/referral-system";
 import { searchClientsAndVehicles } from "@/lib/workorder-search";
 import {
   calcServiceLine,
@@ -38,6 +47,7 @@ import {
 import { Button } from "@/components/ui/Button";
 import { VehicleClientEditor } from "@/components/crm/VehicleClientEditor";
 import { WorkOrderDocumentActions } from "@/components/work-order/WorkOrderDocumentActions";
+import { CrmMessageTemplates } from "@/components/crm/CrmMessageTemplates";
 
 const statuses: RepairStatus[] = [
   "received",
@@ -211,7 +221,13 @@ export function WorkOrderForm({ orderId, onClose, onSaved }: WorkOrderFormProps)
     if (idx >= 0) fresh.workOrders[idx] = updated;
     else fresh.workOrders.push(updated);
     handleWorkOrderClientNotifications(fresh, updated, previousOrder);
-    saveDb(fresh);
+    if (updated.referralDiscountApplied && updated.paymentStatus === "paid") {
+      markReferralDiscountUsed(fresh, updated.userId, updated);
+    }
+    if (updated.referralInviteeDiscountApplied && updated.paymentStatus === "paid") {
+      markInviteeDiscountUsed(fresh, updated.userId, updated);
+    }
+    saveDb(syncWarehouseFromWorkOrder(fresh, updated));
     onSaved();
   };
 
@@ -227,6 +243,8 @@ export function WorkOrderForm({ orderId, onClose, onSaved }: WorkOrderFormProps)
   const vehicle = db.vehicles.find((v) => v.id === order.vehicleId);
   const vatRate = db.settings.vatRate ?? 23;
   const breakdown = calcOrderBreakdown(order, vatRate);
+  const referralDiscountReady = client ? canUseReferralDiscount(client, db) : false;
+  const inviteeDiscountReady = client ? canUseInviteeDiscount(client) : false;
 
   return (
     <div className="space-y-6">
@@ -251,6 +269,44 @@ export function WorkOrderForm({ orderId, onClose, onSaved }: WorkOrderFormProps)
           </Button>
         </div>
       </div>
+
+      {referralDiscountReady && client && (
+        <div className="glass rounded-xl p-4 border border-green-500/40 flex flex-wrap items-center justify-between gap-3">
+          <p className="text-sm text-green-400">
+            🎁 Klient ma <b>15% rabatu referral</b> (5 potwierdzonych poleceń). Jednorazowo na to
+            zlecenie.
+            {client.referralDiscountExpiresAt && (
+              <span className="block text-xs text-bm-muted mt-1">
+                Ważne do: {client.referralDiscountExpiresAt.slice(0, 10)}
+              </span>
+            )}
+          </p>
+          <Button
+            type="button"
+            variant="outline"
+            className="text-xs border-green-500/50 text-green-400"
+            onClick={() => setOrder((o) => applyReferralDiscountToOrder(o))}
+          >
+            Zastosuj 15% rabat
+          </Button>
+        </div>
+      )}
+
+      {inviteeDiscountReady && client && (
+        <div className="glass rounded-xl p-4 border border-blue-500/40 flex flex-wrap items-center justify-between gap-3">
+          <p className="text-sm text-blue-300">
+            🎁 Klient przyszedł z polecenia — <b>5% rabatu</b> na to zlecenie (po pierwszym WZ).
+          </p>
+          <Button
+            type="button"
+            variant="outline"
+            className="text-xs border-blue-500/50 text-blue-300"
+            onClick={() => setOrder((o) => applyInviteeDiscountToOrder(o))}
+          >
+            Zastosuj 5% (polecony)
+          </Button>
+        </div>
+      )}
 
       {/* Client / vehicle search */}
       <div className="glass-red rounded-xl p-6 neon-border">
@@ -362,6 +418,34 @@ export function WorkOrderForm({ orderId, onClose, onSaved }: WorkOrderFormProps)
               </option>
             ))}
           </select>
+        </div>
+        <div>
+          <label className="text-xs uppercase text-bm-muted">Części (widok klienta)</label>
+          <select
+            className="input-premium mt-1"
+            value={order.clientPartsStatus ?? ""}
+            onChange={(e) =>
+              setOrder({
+                ...order,
+                clientPartsStatus: (e.target.value || undefined) as
+                  | WorkOrder["clientPartsStatus"]
+                  | undefined,
+              })
+            }
+          >
+            <option value="">—</option>
+            <option value="ordered">Zamówione</option>
+            <option value="in_transit">W drodze</option>
+            <option value="arrived">Dotarły</option>
+          </select>
+          {client?.phone && vehicle && (
+            <CrmMessageTemplates
+              clientPhone={client.phone}
+              orderNumber={order.number}
+              vehicleLabel={`${vehicle.make} ${vehicle.model} · ${vehicle.plate}`}
+              locale={locale === "uk" ? "uk" : locale === "ru" ? "ru" : locale === "en" ? "en" : "pl"}
+            />
+          )}
           {order.status === "ready" && client?.phone && vehicle && (
             <a
               href={buildCarReadyWhatsAppUrl(

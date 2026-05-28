@@ -28,16 +28,22 @@ export function mainMenuKeyboard(): InlineKeyboardMarkup {
       ],
       [
         { text: BOT.unpaid, callback_data: "unpaid:0" },
-        { text: BOT.search, callback_data: "search:menu" },
+        { text: BOT.unsigned, callback_data: "unsigned:0" },
       ],
       [
+        { text: BOT.calls, callback_data: "calls:0" },
+        { text: BOT.quickApt, callback_data: "qapt:menu" },
+      ],
+      [{ text: BOT.search, callback_data: "search:menu" }],
+      [
+        { text: BOT.mechLoad, callback_data: "mech:dash:day" },
         { text: BOT.mechanics, callback_data: "mech:menu" },
-        { text: BOT.expenses, callback_data: "exp:menu" },
       ],
       [
+        { text: BOT.expenses, callback_data: "exp:menu" },
         { text: BOT.analytics, callback_data: "an:menu" },
-        { text: BOT.warehouse, callback_data: "wh:0" },
       ],
+      [{ text: BOT.warehouse, callback_data: "wh:0" }],
       [{ text: BOT.help, callback_data: "help" }],
     ],
   };
@@ -146,6 +152,11 @@ export function workOrderDetailKeyboard(
           text: isPaid ? BOT.markUnpaid : BOT.markPaid,
           callback_data: isPaid ? `wo:unpay:${orderNumber}` : `wo:pay:${orderNumber}`,
         },
+      ],
+      [{ text: BOT.notifyClient, callback_data: `wo:msg:${orderNumber}` }],
+      [
+        { text: BOT.extraWork, callback_data: `wo:extra:${orderNumber}` },
+        { text: BOT.customMsg, callback_data: `wo:custom:${orderNumber}` },
       ],
       [{ text: "◀️ К списку", callback_data: "wo:p:0" }],
       backMenuRow(),

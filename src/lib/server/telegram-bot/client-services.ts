@@ -2,6 +2,7 @@ import { bookingGridServiceIds } from "@/lib/services-catalog";
 import { getPriceItem } from "@/lib/price-list";
 import { serviceBasePriceId } from "@/lib/service-price-map";
 import type { ServiceId } from "@/lib/services-catalog";
+import type { BotLocale } from "./client-i18n";
 
 const FALLBACK_RU: Record<string, string> = {
   oil: "Замена масла",
@@ -18,19 +19,27 @@ const FALLBACK_RU: Record<string, string> = {
   otherReason: "Другая услуга",
 };
 
-export function getClientServiceLabel(serviceId: string): string {
+export function getClientServiceLabel(
+  serviceId: string,
+  locale: BotLocale = "ru"
+): string {
   const baseId = serviceBasePriceId[serviceId as ServiceId];
   if (baseId) {
     const item = getPriceItem(baseId);
-    if (item) return item.nameRu;
+    if (item) {
+      if (locale === "pl") return item.namePl;
+      return item.nameRu;
+    }
   }
   return FALLBACK_RU[serviceId] ?? serviceId;
 }
 
-export const clientBookableServices = bookingGridServiceIds.map((id) => ({
-  id,
-  label: getClientServiceLabel(id),
-}));
+export function clientBookableServices(locale: BotLocale) {
+  return bookingGridServiceIds.map((id) => ({
+    id,
+    label: getClientServiceLabel(id, locale),
+  }));
+}
 
 export function encodeTimeSlot(time: string): string {
   return time.replace(":", "");
@@ -57,9 +66,16 @@ export function nextBookableDates(count = 12): string[] {
   return dates;
 }
 
-export function formatDateShort(dateKey: string): string {
+const WEEKDAYS: Record<BotLocale, string[]> = {
+  pl: ["Nd", "Pn", "Wt", "Śr", "Cz", "Pt", "Sb"],
+  ru: ["Вс", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"],
+  uk: ["Нд", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"],
+  en: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+};
+
+export function formatDateShort(dateKey: string, locale: BotLocale = "ru"): string {
   const d = new Date(`${dateKey}T12:00:00`);
-  const weekdays = ["Вс", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"];
+  const weekdays = WEEKDAYS[locale];
   const dd = String(d.getDate()).padStart(2, "0");
   const mm = String(d.getMonth() + 1).padStart(2, "0");
   return `${dd}.${mm} ${weekdays[d.getDay()]}`;

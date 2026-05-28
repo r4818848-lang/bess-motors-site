@@ -61,6 +61,31 @@ export async function POST(req: Request) {
     console.warn("[telegram] notify failed (check TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID)");
   }
 
+  try {
+    const { cloudGetCrmStore, cloudPutCrmStore } = await import("@/lib/server/crm-cloud");
+    const { runCrmAutomation } = await import("@/lib/crm-automation");
+    const snap = await cloudGetCrmStore();
+    if (snap?.doc) {
+      const db = structuredClone(snap.doc) as import("@/lib/store").Database;
+      const idx = db.appointments.findIndex((a) => a.id === apt.id);
+      if (idx >= 0) db.appointments[idx] = apt;
+      else db.appointments.push(apt);
+      runCrmAutomation(db, snap.doc as import("@/lib/store").Database);
+      await cloudPutCrmStore(db);
+      const user = db.users.find((u) => u.id === apt.userId);
+      if (user?.pushSubscription?.endpoint) {
+        const { sendWebPushToUser } = await import("@/lib/server/web-push-send");
+        await sendWebPushToUser(user, {
+          title: "BESS MOTORS",
+          body: `Zapisano wizytę: ${apt.date} ${apt.time}`,
+          url: "/cabinet",
+        });
+      }
+    }
+  } catch (e) {
+    console.warn("[crm] auto-sync appointment failed", e);
+  }
+
   return NextResponse.json({ ok: true });
 }
 

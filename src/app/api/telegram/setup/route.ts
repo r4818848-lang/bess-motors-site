@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { cleanEnvValue } from "@/lib/server/supabase-config";
-import { getTelegramBotInfo, setTelegramWebhook } from "@/lib/server/telegram-api";
+import {
+  getTelegramBotInfo,
+  setClientBotCommands,
+  setTelegramWebhook,
+} from "@/lib/server/telegram-api";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -39,6 +43,9 @@ export async function GET(req: Request) {
   }
 
   const result = await setTelegramWebhook(webhookUrl, secret || undefined);
+  if (result.ok) {
+    await setClientBotCommands().catch(() => null);
+  }
   return NextResponse.json({
     ok: result.ok,
     bot: bot.username ? `@${bot.username}` : undefined,

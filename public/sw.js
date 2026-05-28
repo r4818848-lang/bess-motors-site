@@ -1,5 +1,5 @@
-const CACHE = "bess-motors-v1";
-const PRECACHE = ["/", "/cennik", "/booking", "/offline.html"];
+const CACHE = "bess-motors-v2";
+const PRECACHE = ["/", "/cennik", "/booking", "/contacts", "/status", "/offline.html", "/api/price-list", "/offline-contacts.json"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -17,6 +17,28 @@ self.addEventListener("activate", (event) => {
   self.clients.claim();
 });
 
+self.addEventListener("push", (event) => {
+  let data = { title: "BESS MOTORS", body: "", url: "/cabinet" };
+  try {
+    if (event.data) data = { ...data, ...event.data.json() };
+  } catch {
+    /* ignore */
+  }
+  event.waitUntil(
+    self.registration.showNotification(data.title, {
+      body: data.body,
+      icon: "/images/logo.png",
+      data: { url: data.url || "/cabinet" },
+    })
+  );
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const url = event.notification.data?.url || "/cabinet";
+  event.waitUntil(clients.openWindow(url));
+});
+
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
   event.respondWith(
@@ -30,7 +52,15 @@ self.addEventListener("fetch", (event) => {
           return res;
         })
         .catch(() => cached);
-      return cached || network;
+      return (
+        cached ||
+        network.catch(() => {
+          if (event.request.mode === "navigate") {
+            return caches.match("/offline.html");
+          }
+          return undefined;
+        })
+      );
     })
   );
 });

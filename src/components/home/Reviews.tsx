@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Star, ExternalLink } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { siteConfig } from "@/lib/site";
@@ -8,9 +8,25 @@ import { Card } from "@/components/ui/Card";
 
 type ReviewTag = "all" | "chip" | "brakes" | "diagnostic" | "detailing";
 
+type ApiRating = {
+  id: string;
+  stars: number;
+  comment?: string;
+  clientName: string;
+  tag?: string;
+};
+
 export function Reviews() {
   const { t } = useI18n();
   const [filter, setFilter] = useState<ReviewTag>("all");
+  const [apiReviews, setApiReviews] = useState<ApiRating[]>([]);
+
+  useEffect(() => {
+    fetch("/api/ratings")
+      .then((r) => r.json())
+      .then((data: { ratings?: ApiRating[] }) => setApiReviews(data.ratings ?? []))
+      .catch(() => setApiReviews([]));
+  }, []);
 
   const tags: { id: ReviewTag; label: string }[] = [
     { id: "all", label: t.reviewsFilter.all },
@@ -20,10 +36,21 @@ export function Reviews() {
     { id: "detailing", label: t.reviewsFilter.detailing },
   ];
 
+  const merged = useMemo(() => {
+    const fromApi = apiReviews.map((r) => ({
+      name: r.clientName,
+      car: "BESS MOTORS",
+      rating: r.stars,
+      text: r.comment ?? "",
+      tag: (r.tag as ReviewTag) ?? ("all" as ReviewTag),
+    }));
+    return [...fromApi, ...t.reviews];
+  }, [apiReviews, t.reviews]);
+
   const filtered = useMemo(() => {
-    if (filter === "all") return t.reviews;
-    return t.reviews.filter((r) => r.tag === filter);
-  }, [t.reviews, filter]);
+    if (filter === "all") return merged;
+    return merged.filter((r) => r.tag === filter);
+  }, [merged, filter]);
 
   return (
     <section className="py-24">
@@ -67,7 +94,9 @@ export function Reviews() {
                   <Star key={j} className="w-4 h-4 fill-bm-red text-bm-red" />
                 ))}
               </div>
-              <p className="text-bm-muted italic">&ldquo;{r.text}&rdquo;</p>
+              <p className="text-bm-muted italic">
+                {r.text ? `“${r.text}”` : "★".repeat(r.rating)}
+              </p>
               <div className="mt-4 pt-4 border-t border-bm-border">
                 <p className="font-semibold">{r.name}</p>
                 <p className="text-xs text-bm-red">{r.car}</p>
