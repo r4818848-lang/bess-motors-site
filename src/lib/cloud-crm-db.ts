@@ -71,6 +71,29 @@ export async function pushCrmToCloud(db?: Database): Promise<boolean> {
   const token = localStorage.getItem(TOKEN_KEY);
   if (!token) return false;
 
+  // Prevent overwriting newer cloud updates (e.g. Telegram bot mutations).
+  // If cloud has a newer updatedAt than what this device last pulled,
+  // pull+merge first, then push the latest merged local state.
+  try {
+    const lastSynced = localStorage.getItem(CLOUD_SYNCED_AT_KEY) ?? "";
+    const res = await fetch("/api/crm-db", {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+    });
+    if (res.ok) {
+      const data = (await res.json()) as {
+        cloud?: boolean;
+        db?: Database | null;
+        updatedAt?: string | null;
+      };
+      if (data.cloud && data.updatedAt && data.updatedAt > lastSynced) {
+        await pullCrmFromCloud();
+      }
+    }
+  } catch {
+    // If check fails, fall back to normal push (may still be blocked by fetch errors below).
+  }
+
   const payload = dbForCloud(db ?? loadDb());
   pushInFlight = true;
   try {

@@ -5,12 +5,16 @@ import Link from "next/link";
 import { Check, Phone } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { PhoneLink } from "@/components/analytics/PhoneLink";
+import { trackLead } from "@/lib/gtag";
 
 export default function BookingThankYouPage() {
   const { t } = useI18n();
   const ty = t.thankYou;
 
   useEffect(() => {
+    // GA4 conversion (primary lead)
+    trackLead("booking", { source: "thank_you_page" });
+
     if (typeof window !== "undefined" && typeof window.gtag === "function") {
       window.gtag("event", "conversion", {
         send_to: "booking_submit",

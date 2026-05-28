@@ -11,6 +11,7 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { GoogleAdsTag } from "@/components/analytics/GoogleAdsTag";
 import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
+import { GoogleAnalyticsPageView } from "@/components/analytics/GoogleAnalyticsPageView";
 import { MetaPixelPageView } from "@/components/analytics/MetaPixelPageView";
 import { META_PIXEL_ID, metaPixelInitScript } from "@/lib/meta-pixel";
 import { StickyContactBar } from "@/components/layout/StickyContactBar";
@@ -154,6 +155,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       >
         <JsonLd />
         <GoogleAnalytics />
+        <GoogleAnalyticsPageView />
         <MetaPixelPageView />
         <Providers>
           <Header />

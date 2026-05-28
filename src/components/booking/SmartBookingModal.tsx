@@ -14,6 +14,7 @@ import { useAuth } from "@/lib/auth/session-context";
 import { BookingCalendar } from "@/components/booking/BookingCalendar";
 import { Button } from "@/components/ui/Button";
 import { BookingTotalSummary } from "@/components/booking/BookingTotalSummary";
+import { trackLead } from "@/lib/gtag";
 import {
   buildCartLine,
   cartSubtotal,
@@ -279,6 +280,8 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
       serviceLabel,
       comment: problem,
     });
+    // GA4 conversion (lead B: "call me back")
+    trackLead("call_request", { source: "smart_booking_modal", serviceId });
     setDoneKind("call");
     setPhase("done");
     onSuccess?.("call");
@@ -317,6 +320,9 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
         priceFrom: l.priceFrom,
       })),
     });
+    // GA4 conversion for booking submit inside modal (doesn't navigate to thank-you).
+    // We still keep /booking/thank-you as a separate conversion entrypoint.
+    trackLead("booking", { source: "smart_booking_modal", serviceId });
     setDoneKind("booking");
     setPhase("done");
     onSuccess?.("booking");

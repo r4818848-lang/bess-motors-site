@@ -2,6 +2,7 @@
 
 import {
   Battery,
+  Calendar,
   Camera,
   Circle,
   CircleDot,
@@ -26,6 +27,7 @@ import {
   Snowflake,
   Sparkles,
   Sun,
+  Tag,
   Thermometer,
   Volume2,
   Wind,
@@ -65,6 +67,8 @@ const iconMap: Record<string, LucideIcon> = {
   Shield,
   Fuel,
   HelpCircle,
+  Calendar,
+  Tag,
 };
 
 interface Props {
