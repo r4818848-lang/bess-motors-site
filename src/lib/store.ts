@@ -115,6 +115,8 @@ export interface User {
   /** Quick-book favorite service in Telegram */
   favoriteServiceId?: string;
   lastMileageRemindAt?: string;
+  /** Auto: VIP when lifetime spend exceeds threshold */
+  clientTags?: string[];
 }
 
 export type ConfirmationStatus = "awaiting_confirmation" | "confirmed";
@@ -245,6 +247,8 @@ export interface WorkOrder {
   estimatedReadyAt?: string;
   slaLevel?: "ok" | "warn" | "critical";
   auditLog?: { at: string; field: string; from?: string; to?: string }[];
+  receptionChecklist?: Record<string, boolean>;
+  deliveryChecklist?: Record<string, boolean>;
 }
 
 export interface ClientRating {
@@ -327,6 +331,12 @@ export interface AppSettings {
   /** Auto WO when appointment date is today and no WO yet */
   autoCreateWorkOrderFromBooking?: boolean;
   defaultWarrantyMonths?: number;
+  /** Auto-confirm website appointments (default on) */
+  autoConfirmWebBookings?: boolean;
+  /** Blocked slots: "yyyy-MM-dd|HH:mm" */
+  blockedBookingSlots?: string[];
+  lunchBreakStart?: string;
+  lunchBreakEnd?: string;
 }
 
 export interface PasswordResetRecord {
@@ -609,7 +619,17 @@ const defaultDb: Database = {
     { id: "mech-1", name: "Siergiej", laborPercent: 50, partsPercent: 50, bonusPerOrder: 0 },
     { id: "mech-2", name: "Piotr Nowak", laborPercent: 50, partsPercent: 50, bonusPerOrder: 0 },
   ],
-  settings: { defaultLaborPercent: 50, defaultPartsPercent: 50, vatRate: 23, vatEnabledByDefault: true },
+  settings: {
+    defaultLaborPercent: 50,
+    defaultPartsPercent: 50,
+    vatRate: 23,
+    vatEnabledByDefault: true,
+    autoCreateWorkOrderFromBooking: true,
+    autoConfirmWebBookings: true,
+    defaultWarrantyMonths: 12,
+    lunchBreakStart: "13:00",
+    lunchBreakEnd: "14:00",
+  },
   passwordResets: [],
   warehouse: [
     { id: "wh1", name: "Filtr oleju Mann", sku: "HU7008z", qty: 24, purchasePrice: 22, sellPrice: 45, supplier: "Inter Cars", qrCode: "BM-WH-001" },

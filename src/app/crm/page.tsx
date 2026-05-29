@@ -18,6 +18,7 @@ import { DashboardLayout } from "@/components/crm/DashboardLayout";
 import { ExpensesPanel } from "@/components/crm/ExpensesPanel";
 import { FinanceReports } from "@/components/crm/FinanceReports";
 import { SettingsPanel } from "@/components/crm/SettingsPanel";
+import { CrmBroadcastPanel } from "@/components/crm/CrmBroadcastPanel";
 import { HotOrdersPanel } from "@/components/crm/HotOrdersPanel";
 import { ClientsListPanel } from "@/components/crm/ClientsListPanel";
 import { VehicleHistoryPanel } from "@/components/crm/VehicleHistoryPanel";
@@ -205,6 +206,7 @@ function CRMPageContent() {
 
         {tab === "marketing" && (
           <div className="space-y-8">
+            <CrmBroadcastPanel />
             <div className="flex flex-wrap gap-2">
               <ClientsCsvExport />
               <InactiveClientsExport />

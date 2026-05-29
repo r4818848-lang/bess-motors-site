@@ -49,6 +49,25 @@ export default function SignWorkOrderPage({
       });
   }, []);
 
+  useEffect(() => {
+    const script = document.createElement("script");
+    script.src = "https://telegram.org/js/telegram-web-app.js";
+    script.async = true;
+    script.onload = () => {
+      const tg = (
+        window as unknown as {
+          Telegram?: { WebApp?: { ready: () => void; expand: () => void } };
+        }
+      ).Telegram?.WebApp;
+      tg?.ready();
+      tg?.expand();
+    };
+    document.head.appendChild(script);
+    return () => {
+      script.remove();
+    };
+  }, []);
+
   const localOrder = db.workOrders.find((o) => o.id === orderId);
   const user = db.currentUserId
     ? db.users.find((u) => u.id === db.currentUserId && u.role === "client")

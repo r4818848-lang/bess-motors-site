@@ -73,5 +73,21 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   }
 
   await cloudPutCrmStore(db);
+
+  if (stars <= 2) {
+    const { notifyAdminTelegram } = await import("@/lib/server/telegram-api");
+    await notifyAdminTelegram(
+      [
+        "⭐ <b>Niska ocena klienta</b>",
+        `Ocena: <b>${stars}/5</b>`,
+        body.workOrderId ? `WZ: ${body.workOrderId}` : null,
+        body.clientName ? `Klient: ${body.clientName}` : null,
+        rating.comment ? `Komentarz: ${rating.comment.slice(0, 300)}` : null,
+      ]
+        .filter(Boolean)
+        .join("\n")
+    );
+  }
+
   return NextResponse.json({ ok: true, id: rating.id });
 }

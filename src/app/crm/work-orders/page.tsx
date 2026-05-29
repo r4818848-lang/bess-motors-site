@@ -18,6 +18,7 @@ import { CrmSearchInput } from "@/components/crm/CrmSearchInput";
 import { Button } from "@/components/ui/Button";
 import { VehicleThumbnail } from "@/components/vehicle/VehicleThumbnail";
 import { WorkOrderKanban } from "@/components/crm/WorkOrderKanban";
+import { CrmWorkOrderPresets } from "@/components/crm/CrmWorkOrderPresets";
 
 function WorkOrdersPageContent() {
   const { t } = useI18n();
@@ -106,6 +107,10 @@ function WorkOrdersPageContent() {
           className="max-w-xl"
         />
 
+        <CrmWorkOrderPresets
+          active={filters.preset ?? (filters.repairStatus !== "all" ? "parts" : "all")}
+          onApply={(patch) => setFilters({ ...filters, ...patch })}
+        />
         <WorkOrderFilters filters={filters} onChange={setFilters} />
 
         <section>

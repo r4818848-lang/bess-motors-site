@@ -38,10 +38,17 @@ const statuses: RepairStatus[] = [
   "delivered",
 ];
 
+const QUICK_NEXT: Partial<Record<RepairStatus, RepairStatus>> = {
+  received: "diagnostic",
+  diagnostic: "repair",
+  waitingParts: "repair",
+  repair: "ready",
+};
+
 type MechTab = "tasks" | "appointments" | "salary" | "calendar";
 
 function MechanicPageContent() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const m = t.mechanic;
   const w = t.wo;
   const cal = t.calendar;
@@ -124,10 +131,16 @@ function MechanicPageContent() {
     });
   };
 
-  const confirmStatus = async (orderId: string) => {
-    const status = pendingStatus[orderId];
-    if (!status) return;
+  const quickAdvance = async (orderId: string) => {
+    const order = myOrders.find((o) => o.id === orderId);
+    if (!order) return;
+    const next = QUICK_NEXT[order.status];
+    if (!next) return;
+    setPendingStatus((prev) => ({ ...prev, [orderId]: next }));
+    await confirmStatusWithStatus(orderId, next);
+  };
 
+  const confirmStatusWithStatus = async (orderId: string, status: RepairStatus) => {
     setConfirmingId(orderId);
     setSyncError("");
 
@@ -160,6 +173,12 @@ function MechanicPageContent() {
     });
     setConfirmingId(null);
     setTick((n) => n + 1);
+  };
+
+  const confirmStatus = async (orderId: string) => {
+    const status = pendingStatus[orderId];
+    if (!status) return;
+    await confirmStatusWithStatus(orderId, status);
   };
 
   const tabs: { id: MechTab; icon: typeof Wrench; label: string }[] = [
@@ -410,6 +429,22 @@ function MechanicPageContent() {
                       <p className="text-sm text-bm-muted border-l-2 border-bm-border pl-3 mb-4">
                         {order.clientNotes}
                       </p>
+                    )}
+
+                    {QUICK_NEXT[order.status] && order.status !== "delivered" && (
+                      <Button
+                        className="w-full mb-3 text-xs gap-2"
+                        disabled={confirmingId === order.id}
+                        onClick={() => void quickAdvance(order.id)}
+                      >
+                        <Check className="w-4 h-4" />
+                        {locale === "ru"
+                          ? "Следующий этап"
+                          : locale === "en"
+                            ? "Next stage"
+                            : "Następny etap"}{" "}
+                        → {t.repairStatus[QUICK_NEXT[order.status]!]}
+                      </Button>
                     )}
 
                     <p className="text-xs uppercase text-bm-muted mb-1">{m.updateStatus}</p>

@@ -5,6 +5,9 @@ import {
   cloudListAppointmentsForAdmin,
   isCloudAppointmentsEnabled,
 } from "@/lib/server/appointments-cloud";
+import { cloudGetCrmStore } from "@/lib/server/crm-cloud";
+import { isSlotBlocked } from "@/lib/booking-slots";
+import type { AppSettings, Database } from "@/lib/store";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -16,6 +19,19 @@ export async function GET(req: Request) {
 
   const slots: { date: string; time: string; available: boolean }[] = [];
   const busy = new Set<string>();
+
+  let settings: AppSettings = {
+    defaultLaborPercent: 50,
+    defaultPartsPercent: 50,
+    vatRate: 23,
+    vatEnabledByDefault: true,
+    lunchBreakStart: "13:00",
+    lunchBreakEnd: "14:00",
+  };
+  const crmSnap = await cloudGetCrmStore();
+  if (crmSnap?.doc) {
+    settings = { ...settings, ...(crmSnap.doc as Database).settings };
+  }
 
   if (isCloudAppointmentsEnabled()) {
     const appointments = await cloudListAppointmentsForAdmin();
@@ -34,7 +50,8 @@ export async function GET(req: Request) {
 
     for (const time of timeSlots) {
       const key = `${dateStr}|${time}`;
-      slots.push({ date: dateStr, time, available: !busy.has(key) });
+      const blocked = isSlotBlocked(settings, dateStr, time);
+      slots.push({ date: dateStr, time, available: !busy.has(key) && !blocked });
     }
   }
 

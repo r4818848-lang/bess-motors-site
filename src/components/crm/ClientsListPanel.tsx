@@ -45,7 +45,14 @@ export function ClientsListPanel() {
             ) : (
               rows.map(({ user, vehicles }) => (
                 <tr key={user.id} className="hover:bg-white/5 align-top">
-                  <td className="font-semibold">{user.name || "—"}</td>
+                  <td className="font-semibold">
+                    {user.name || "—"}
+                    {user.clientTags?.includes("VIP") && (
+                      <span className="ml-2 text-[10px] uppercase bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded">
+                        VIP
+                      </span>
+                    )}
+                  </td>
                   <td className="font-mono text-sm text-bm-red">{user.phone}</td>
                   <td>
                     {vehicles.length === 0 ? (

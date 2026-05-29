@@ -115,6 +115,77 @@ export function SettingsPanel({ onUpdate }: { onUpdate: () => void }) {
         <Settings className="text-bm-red" /> {w.settingsTitle}
       </h2>
 
+      <div className="glass-red rounded-xl p-6 neon-border space-y-4">
+        <h3 className="font-display text-sm uppercase text-bm-red">Automatyzacja</h3>
+        <label className="flex items-center gap-2 text-sm cursor-pointer">
+          <input
+            type="checkbox"
+            checked={settings.autoCreateWorkOrderFromBooking !== false}
+            onChange={(e) =>
+              setSettings({ ...settings, autoCreateWorkOrderFromBooking: e.target.checked })
+            }
+          />
+          Auto WZ z wizyt (dziś/jutro)
+        </label>
+        <label className="flex items-center gap-2 text-sm cursor-pointer">
+          <input
+            type="checkbox"
+            checked={settings.autoConfirmWebBookings !== false}
+            onChange={(e) =>
+              setSettings({ ...settings, autoConfirmWebBookings: e.target.checked })
+            }
+          />
+          Auto potwierdzenie zapisów ze strony
+        </label>
+        <label className="flex items-center gap-2 text-sm cursor-pointer">
+          <input
+            type="checkbox"
+            checked={!settings.automationDisabled}
+            onChange={(e) =>
+              setSettings({ ...settings, automationDisabled: !e.target.checked })
+            }
+          />
+          Silnik automatyzacji CRM włączony
+        </label>
+        <div>
+          <label className="text-xs text-bm-muted uppercase">Zablokowane sloty (data|godzina, linia)</label>
+          <textarea
+            className="input-premium mt-1 w-full min-h-[72px] font-mono text-xs"
+            value={(settings.blockedBookingSlots ?? []).join("\n")}
+            onChange={(e) =>
+              setSettings({
+                ...settings,
+                blockedBookingSlots: e.target.value
+                  .split("\n")
+                  .map((s) => s.trim())
+                  .filter(Boolean),
+              })
+            }
+            placeholder="2026-06-01|10:00"
+          />
+        </div>
+        <div className="grid md:grid-cols-2 gap-4">
+          <div>
+            <label className="text-xs text-bm-muted uppercase">Przerwa obiadowa od</label>
+            <input
+              type="time"
+              className="input-premium mt-1"
+              value={settings.lunchBreakStart ?? "13:00"}
+              onChange={(e) => setSettings({ ...settings, lunchBreakStart: e.target.value })}
+            />
+          </div>
+          <div>
+            <label className="text-xs text-bm-muted uppercase">do</label>
+            <input
+              type="time"
+              className="input-premium mt-1"
+              value={settings.lunchBreakEnd ?? "14:00"}
+              onChange={(e) => setSettings({ ...settings, lunchBreakEnd: e.target.value })}
+            />
+          </div>
+        </div>
+      </div>
+
       <div className="glass-red rounded-xl p-6 neon-border grid md:grid-cols-2 gap-6">
         <h3 className="md:col-span-2 font-display text-sm uppercase text-bm-red">
           {w.defaultRates}

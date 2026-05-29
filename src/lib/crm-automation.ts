@@ -3,12 +3,15 @@ import { handleWorkOrderClientNotifications } from "@/lib/client-notifications";
 import { recomputeAllReferrals } from "@/lib/referral-system";
 import { getPriceItem } from "@/lib/price-list";
 import { syncWarehouseFromWorkOrder } from "@/lib/warehouse-stock";
+import { calcClientTotal } from "@/lib/workorder-calc";
 import type {
   AppSettings,
   Database,
   RepairStatus,
   WorkOrder,
 } from "@/lib/store";
+
+const VIP_SPEND_PLN = 3000;
 
 export type WorkOrderAuditEntry = {
   at: string;
@@ -120,6 +123,32 @@ function autoMechanic(order: WorkOrder, db: Database): void {
   order.mechanicId = id;
 }
 
+function autoConfirmWebBookings(db: Database, settings: AppSettings): void {
+  if (settings.autoConfirmWebBookings === false) return;
+  for (const apt of db.appointments) {
+    if (apt.appointmentStatus !== "scheduled") continue;
+    if (apt.source === "website") {
+      apt.appointmentStatus = "confirmed";
+    }
+  }
+}
+
+function autoClientVipTags(db: Database): void {
+  for (const u of db.users) {
+    if (u.role !== "client") continue;
+    const spend = db.workOrders
+      .filter((o) => o.userId === u.id && o.status === "delivered")
+      .reduce((s, o) => s + calcClientTotal(o), 0);
+    const tags = new Set(u.clientTags ?? []);
+    if (spend >= VIP_SPEND_PLN) tags.add("VIP");
+    else tags.delete("VIP");
+    const next = [...tags];
+    if (JSON.stringify(next) !== JSON.stringify(u.clientTags ?? [])) {
+      u.clientTags = next.length ? next : undefined;
+    }
+  }
+}
+
 function autoAppointments(db: Database, settings: AppSettings): number {
   if (settings.autoCreateWorkOrderFromBooking === false) return 0;
   const today = new Date().toISOString().slice(0, 10);
@@ -166,8 +195,10 @@ export function runCrmAutomation(
     return { createdWorkOrders: 0 };
   }
 
+  autoConfirmWebBookings(db, db.settings);
   const created = autoAppointments(db, db.settings);
   autoSyncOrders(db, prev ?? undefined);
+  autoClientVipTags(db);
   recomputeAllReferrals(db);
   return { createdWorkOrders: created };
 }

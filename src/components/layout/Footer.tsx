@@ -32,6 +32,12 @@ export function Footer() {
             <Link href="/cabinet" className="text-bm-muted hover:text-bm-red transition-colors">
               {t.nav.cabinet}
             </Link>
+            <Link href="/status" className="text-bm-muted hover:text-bm-red transition-colors">
+              Status naprawy
+            </Link>
+            <Link href="/referral" className="text-bm-muted hover:text-bm-red transition-colors">
+              Program poleceń
+            </Link>
             <Link href="/contacts" className="text-bm-muted hover:text-bm-red transition-colors">
               {t.nav.contacts}
             </Link>

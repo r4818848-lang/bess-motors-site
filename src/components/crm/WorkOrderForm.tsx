@@ -48,6 +48,9 @@ import { Button } from "@/components/ui/Button";
 import { VehicleClientEditor } from "@/components/crm/VehicleClientEditor";
 import { WorkOrderDocumentActions } from "@/components/work-order/WorkOrderDocumentActions";
 import { CrmMessageTemplates } from "@/components/crm/CrmMessageTemplates";
+import { WorkOrderAuditPanel } from "@/components/crm/WorkOrderAuditPanel";
+import { WorkOrderChecklistPanel } from "@/components/crm/WorkOrderChecklistPanel";
+import { downloadReceptionAct, downloadDeliveryAct } from "@/lib/vehicle-doc-pdf";
 
 const statuses: RepairStatus[] = [
   "received",
@@ -374,8 +377,31 @@ export function WorkOrderForm({ orderId, onClose, onSaved }: WorkOrderFormProps)
               {order.signature.deviceInfo && <p className="truncate">{order.signature.deviceInfo}</p>}
             </div>
           )}
+          {client && vehicle && (
+            <div className="flex flex-wrap gap-2 mt-4">
+              <Button
+                type="button"
+                variant="outline"
+                className="text-xs"
+                onClick={() => void downloadReceptionAct(order, vehicle, client)}
+              >
+                PDF przyjęcie
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="text-xs"
+                onClick={() => void downloadDeliveryAct(order, vehicle, client)}
+              >
+                PDF wydanie
+              </Button>
+            </div>
+          )}
         </div>
       )}
+
+      <WorkOrderChecklistPanel order={order} onChange={(patch) => setOrder({ ...order, ...patch })} />
+      <WorkOrderAuditPanel order={order} />
 
       {/* Status + mechanic */}
       <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
