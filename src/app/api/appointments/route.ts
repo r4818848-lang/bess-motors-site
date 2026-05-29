@@ -67,6 +67,19 @@ export async function POST(req: Request) {
     const snap = await cloudGetCrmStore();
     if (snap?.doc) {
       const db = structuredClone(snap.doc) as import("@/lib/store").Database;
+      const { ensureClientCredentialsForBooking } = await import(
+        "@/lib/create-work-order-from-booking"
+      );
+      const { userId, vehicleId } = await ensureClientCredentialsForBooking(
+        db,
+        apt.clientName ?? "—",
+        apt.clientPhone ?? "",
+        apt.clientPlate,
+        apt.userId
+      );
+      apt.userId = userId;
+      apt.vehicleId = vehicleId;
+
       const idx = db.appointments.findIndex((a) => a.id === apt.id);
       if (idx >= 0) db.appointments[idx] = apt;
       else db.appointments.push(apt);

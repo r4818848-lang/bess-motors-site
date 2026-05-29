@@ -57,6 +57,31 @@ export function ThankYouExtras() {
 
   return (
     <div className="mt-10 space-y-6">
+      <p className="text-sm text-center text-bm-muted glass rounded-xl p-4">
+        {locale === "ru" || locale === "uk" ? (
+          <>
+            Личный кабинет: войдите с <b>тем же телефоном</b> и <b>госномером</b>, что указали при записи.{" "}
+            <Link href="/cabinet" className="text-bm-red hover:underline">
+              Открыть кабинет
+            </Link>
+          </>
+        ) : locale === "en" ? (
+          <>
+            Client area: sign in with the <b>same phone</b> and <b>plate number</b> you used when booking.{" "}
+            <Link href="/cabinet" className="text-bm-red hover:underline">
+              Open account
+            </Link>
+          </>
+        ) : (
+          <>
+            Konto klienta: zaloguj się tym samym <b>telefonem</b> i <b>numerem rejestracyjnym</b> co przy zapisie.{" "}
+            <Link href="/cabinet" className="text-bm-red hover:underline">
+              Otwórz konto
+            </Link>
+          </>
+        )}
+      </p>
+
       {booking?.date && booking?.time && (
         <>
           <button

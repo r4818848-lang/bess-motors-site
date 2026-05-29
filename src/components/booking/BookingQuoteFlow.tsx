@@ -291,12 +291,16 @@ export function BookingQuoteFlow({ onDone }: Props) {
   const [clientName, setClientName] = useState("");
   const [clientPhone, setClientPhone] = useState("");
   const [vehicleNote, setVehicleNote] = useState("");
+  const [clientPlate, setClientPlate] = useState("");
   const [promoInput, setPromoInput] = useState("");
   const [promoApplied, setPromoApplied] = useState<ReturnType<typeof matchPromoCode>>(null);
 
   const prefillFromUrl = useCallback(() => {
     const { items: ids, plate } = parseBookingParamsFromSearch(searchParams.toString());
-    if (plate) setVehicleNote(plate);
+    if (plate) {
+      setVehicleNote(plate);
+      setClientPlate(plate);
+    }
     if (!ids.length) return;
     const lines: CartLine[] = [];
     for (const id of ids) {
@@ -343,7 +347,9 @@ export function BookingQuoteFlow({ onDone }: Props) {
   const hasPromos = getPromoRules().length > 0;
 
   const contactValid =
-    clientName.trim().length >= 2 && clientPhone.trim().length >= 9;
+    clientName.trim().length >= 2 &&
+    clientPhone.trim().length >= 9 &&
+    clientPlate.replace(/\s/g, "").length >= 2;
 
   useEffect(() => {
     if (phase === "done" || clientPhone.trim().length < 9) return;
@@ -393,7 +399,7 @@ export function BookingQuoteFlow({ onDone }: Props) {
       serviceIds: cart.map((l) => l.itemId),
     });
 
-    createBookingAppointment({
+    void createBookingAppointment({
       serviceId: "booking-quote",
       serviceIds: cart.map((l) => l.itemId),
       date: date.toISOString().slice(0, 10),
@@ -401,6 +407,7 @@ export function BookingQuoteFlow({ onDone }: Props) {
       comment,
       clientName: clientName.trim(),
       clientPhone: clientPhone.trim(),
+      clientPlate: clientPlate.trim(),
       estimatedTotal: total,
       cartLines: cart.map((l) => ({
         itemId: l.itemId,
@@ -679,6 +686,17 @@ export function BookingQuoteFlow({ onDone }: Props) {
                 value={clientPhone}
                 onChange={(e) => setClientPhone(e.target.value)}
               />
+              <label className="text-[10px] uppercase text-bm-muted">
+                {t.cabinet.registrationPlate}
+              </label>
+              <input
+                type="text"
+                className="input-premium w-full font-mono uppercase"
+                value={clientPlate}
+                onChange={(e) => setClientPlate(e.target.value)}
+                placeholder="WA 12345"
+              />
+              <p className="text-[10px] text-bm-muted">{t.auth.plateHint}</p>
               <label className="text-[10px] uppercase text-bm-muted">{bq.note}</label>
               <textarea
                 className="input-premium w-full min-h-[80px]"

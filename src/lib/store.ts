@@ -396,6 +396,8 @@ export interface Appointment extends MarketingAttributionFields {
   comment: string;
   clientName?: string;
   clientPhone?: string;
+  /** Registration plate — used for cabinet login after online booking */
+  clientPlate?: string;
   source?: OrderSource;
   createdAt: string;
   reminderDayBeforeSentAt?: string;

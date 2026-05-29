@@ -100,6 +100,7 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
   const [problem, setProblem] = useState("");
   const [clientName, setClientName] = useState("");
   const [clientPhone, setClientPhone] = useState("");
+  const [clientPlate, setClientPlate] = useState("");
   const [doneKind, setDoneKind] = useState<"call" | "booking">("booking");
 
   useEffect(() => {
@@ -267,7 +268,9 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
   };
 
   const contactValid =
-    clientName.trim().length >= 2 && clientPhone.trim().length >= 9;
+    clientName.trim().length >= 2 &&
+    clientPhone.trim().length >= 9 &&
+    clientPlate.replace(/\s/g, "").length >= 2;
 
   const problemValid = !isOtherReason || problem.trim().length >= 3;
 
@@ -287,7 +290,7 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
     onSuccess?.("call");
   };
 
-  const submitBooking = () => {
+  const submitBooking = async () => {
     if (!contactValid) return;
     const breakdown = cart
       .map((l) => `${l.label}: ${l.isFree ? bq.free : formatPln(l.lineTotal)}`)
@@ -302,7 +305,7 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
       .filter(Boolean)
       .join(" | ");
 
-    createBookingAppointment({
+    await createBookingAppointment({
       serviceId,
       serviceIds: cart.length
         ? cart.map((l) => l.itemId)
@@ -312,6 +315,7 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
       comment,
       clientName: clientName.trim(),
       clientPhone: clientPhone.trim(),
+      clientPlate: clientPlate.trim(),
       estimatedTotal: total,
       cartLines: cart.map((l) => ({
         itemId: l.itemId,
@@ -486,6 +490,20 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
           onChange={(e) => setClientPhone(e.target.value)}
           autoComplete="tel"
         />
+      </div>
+      <div>
+        <label className="text-[10px] uppercase text-bm-muted tracking-wide">
+          {t.cabinet.registrationPlate}
+        </label>
+        <input
+          type="text"
+          className="input-premium w-full mt-1 font-mono uppercase"
+          value={clientPlate}
+          onChange={(e) => setClientPlate(e.target.value)}
+          autoComplete="off"
+          placeholder="WA 12345"
+        />
+        <p className="text-[10px] text-bm-muted mt-1">{t.auth.plateHint}</p>
       </div>
     </div>
   );

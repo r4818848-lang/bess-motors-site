@@ -87,7 +87,7 @@ export async function issueTokenForUser(user: User): Promise<string> {
   );
 }
 
-function persistSession(token: string, role: AuthRole, userId: string): void {
+export function persistSession(token: string, role: AuthRole, userId: string): void {
   if (typeof window === "undefined") return;
   localStorage.setItem(TOKEN_KEY, token);
   localStorage.setItem(SESSION_ROLE_KEY, role);
@@ -249,22 +249,49 @@ export async function loginWithPhonePassword(
     return { ok: true, role: "mechanic", user: mechanicUser };
   }
 
-  const user = db.users.find(
+  let user = db.users.find(
     (u) => u.role === "client" && normalizePhone(u.phone) === normalized
   );
-  if (!user) return { ok: false, error: "invalid_credentials" };
 
-  const valid = await checkClientPlate(user, credential);
-  if (!valid) return { ok: false, error: "invalid_credentials" };
+  if (user) {
+    const valid = await checkClientPlate(user, credential);
+    if (!valid) {
+      if (typeof window !== "undefined") {
+        const { loginClientViaCloudApi } = await import("@/lib/client-cloud-login");
+        const cloud = await loginClientViaCloudApi(phone, credential);
+        if (cloud) {
+          const db2 = loadDb();
+          ensureReferralCode(cloud.user, db2);
+          applyPendingReferralForUser(db2, cloud.user.id);
+          saveDb(db2);
+          return { ok: true, role: "client", user: cloud.user };
+        }
+      }
+      return { ok: false, error: "invalid_credentials" };
+    }
+  } else if (typeof window !== "undefined") {
+    const { loginClientViaCloudApi } = await import("@/lib/client-cloud-login");
+    const cloud = await loginClientViaCloudApi(phone, credential);
+    if (cloud) {
+      const db2 = loadDb();
+      ensureReferralCode(cloud.user, db2);
+      applyPendingReferralForUser(db2, cloud.user.id);
+      saveDb(db2);
+      return { ok: true, role: "client", user: cloud.user };
+    }
+    return { ok: false, error: "invalid_credentials" };
+  } else {
+    return { ok: false, error: "invalid_credentials" };
+  }
 
-  ensureReferralCode(user, db);
-  applyPendingReferralForUser(db, user.id);
+  ensureReferralCode(user!, db);
+  applyPendingReferralForUser(db, user!.id);
   saveDb(db);
 
-  const token = await issueToken(user.id, "client", user.phone);
-  persistSession(token, "client", user.id);
+  const token = await issueToken(user!.id, "client", user!.phone);
+  persistSession(token, "client", user!.id);
   saveClientCredentials(phone, credential);
-  return { ok: true, role: "client", user };
+  return { ok: true, role: "client", user: user! };
 }
 
 async function checkMechanicPassword(user: User, passwordInput: string): Promise<boolean> {

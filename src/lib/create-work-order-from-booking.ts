@@ -1,4 +1,5 @@
-import { normalizePhone } from "./auth";
+import { normalizePhone, normalizePlateKey } from "./auth";
+import { hashPassword } from "./crypto";
 import { generateOrderNumber } from "./workorder-calc";
 import type { Appointment, Database, WorkOrder, WorkOrderLine } from "./store";
 import {
@@ -63,6 +64,31 @@ export function ensureClientForBooking(
   }
 
   return { userId: user.id, vehicleId: vehicle.id };
+}
+
+/** Sets plate + password hash for cabinet login (online booking). */
+export async function ensureClientCredentialsForBooking(
+  db: Database,
+  name: string,
+  phone: string,
+  plate: string | undefined,
+  existingUserId?: string
+): Promise<{ userId: string; vehicleId: string }> {
+  const { userId, vehicleId } = ensureClientForBooking(db, name, phone, existingUserId);
+  const plateKey = normalizePlateKey(plate ?? "");
+  if (plateKey.length < 2) return { userId, vehicleId };
+
+  const user = db.users.find((u) => u.id === userId);
+  const vehicle = db.vehicles.find((v) => v.id === vehicleId);
+  if (!user || !vehicle) return { userId, vehicleId };
+
+  user.passwordHash = await hashPassword(plateKey);
+  delete user.password;
+  if (!vehicle.plate?.trim() || vehicle.plate === "—") {
+    vehicle.plate = plate!.trim();
+  }
+
+  return { userId, vehicleId };
 }
 
 /** Creates work order from website appointment; links apt.workOrderId. Returns work order id. */
