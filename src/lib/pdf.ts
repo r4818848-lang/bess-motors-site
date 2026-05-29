@@ -18,7 +18,7 @@ async function renderHtmlToPdf(
     import("jspdf"),
   ]);
 
-  const bg = variant === "bw" ? "#ffffff" : "#0a0a0a";
+  const bg = "#ffffff";
   const host = document.createElement("div");
   host.style.cssText =
     `position:fixed;left:-9999px;top:0;z-index:-1;background:${bg};`;
@@ -71,7 +71,6 @@ function assetUrls() {
   const origin = typeof window !== "undefined" ? window.location.origin : "";
   return {
     logoUrl: `${origin}${siteConfig.logoImage}`,
-    carbonUrl: `${origin}${siteConfig.forgedCarbonImage}`,
   };
 }
 
@@ -83,7 +82,7 @@ export async function generateWorkOrderPdf(
   vatRate = 23,
   variant: WorkOrderDocVariant = "color"
 ): Promise<void> {
-  const { logoUrl, carbonUrl } = assetUrls();
+  const { logoUrl } = assetUrls();
   const html = buildWorkOrderDocumentHtml(
     order,
     vehicle,
@@ -91,8 +90,7 @@ export async function generateWorkOrderPdf(
     locale,
     vatRate,
     logoUrl,
-    variant,
-    carbonUrl
+    variant
   );
   const suffix = variant === "bw" ? "-BW" : "";
   await renderHtmlToPdf(
@@ -134,7 +132,7 @@ export async function getWorkOrderPdfBlob(
     import("html2canvas"),
     import("jspdf"),
   ]);
-  const { logoUrl, carbonUrl } = assetUrls();
+  const { logoUrl } = assetUrls();
   const html = buildWorkOrderDocumentHtml(
     order,
     vehicle,
@@ -142,11 +140,10 @@ export async function getWorkOrderPdfBlob(
     locale,
     vatRate,
     logoUrl,
-    variant,
-    carbonUrl
+    variant
   );
 
-  const bg = variant === "bw" ? "#ffffff" : "#0a0a0a";
+  const bg = "#ffffff";
   const host = document.createElement("div");
   host.style.cssText = `position:fixed;left:-9999px;top:0;z-index:-1;background:${bg};`;
   host.innerHTML = html;

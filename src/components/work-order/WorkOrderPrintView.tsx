@@ -14,7 +14,7 @@ interface Props {
   docLocale?: DocLocale;
 }
 
-/** Premium layout for print / PDF capture */
+/** A4 form layout for print / PDF capture */
 export function WorkOrderPrintView({
   order,
   vehicle,
@@ -24,13 +24,7 @@ export function WorkOrderPrintView({
   docLocale,
 }: Props) {
   return (
-    <div
-      className={
-        variant === "bw"
-          ? "bg-white min-h-screen py-6 print:py-0"
-          : "bg-bm-black min-h-screen py-6 print:py-0"
-      }
-    >
+    <div className="bg-white min-h-screen py-4 print:py-0">
       <PremiumWorkOrderDocument
         id="work-order-print"
         order={order}
@@ -40,7 +34,7 @@ export function WorkOrderPrintView({
         mode="print"
         variant={variant}
         docLocale={docLocale}
-        className="max-w-[794px] mx-auto"
+        className="max-w-[794px] mx-auto shadow-none border-0"
       />
     </div>
   );

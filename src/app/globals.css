@@ -548,6 +548,184 @@
     @apply relative px-4 sm:px-10 py-8 sm:py-10 space-y-10;
   }
 
+  /* Classic white work order form (A4 blank style) */
+  .wo-form-root {
+    @apply bg-white text-gray-900 rounded-lg overflow-hidden;
+    font-family: "Segoe UI", system-ui, sans-serif;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
+    border: 1px solid #e5e5e5;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .wo-form-bw {
+    filter: grayscale(1);
+  }
+
+  .wo-form-screen-bar {
+    @apply flex flex-wrap items-center justify-between gap-2 px-4 py-3 bg-gray-100 border-b border-gray-200;
+  }
+
+  .wo-form-header {
+    @apply px-6 pt-6 pb-4 border-b border-gray-300;
+  }
+
+  .wo-form-header-top {
+    @apply grid gap-4 items-start;
+    grid-template-columns: 1fr;
+  }
+
+  @media (min-width: 640px) {
+    .wo-form-header-top {
+      grid-template-columns: auto 1fr auto;
+    }
+  }
+
+  .wo-form-logo img {
+    filter: none;
+  }
+
+  .wo-form-title-block {
+    @apply text-center self-center;
+  }
+
+  .wo-form-title {
+    @apply text-lg sm:text-xl font-bold uppercase tracking-wide text-gray-900 m-0;
+  }
+
+  .wo-form-title-num {
+    @apply text-[#c00000] font-mono;
+  }
+
+  .wo-form-contact {
+    @apply text-[10px] sm:text-xs text-gray-700 space-y-1 sm:text-right;
+  }
+
+  .wo-form-dates {
+    @apply grid grid-cols-2 gap-6 mt-5 pt-4 border-t border-gray-200;
+  }
+
+  .wo-form-date-field {
+    @apply flex flex-col gap-1 text-xs text-gray-700;
+  }
+
+  .wo-form-date-line {
+    @apply border-b border-gray-400 min-h-[1.25rem] font-medium text-gray-900;
+  }
+
+  .wo-form-info-grid {
+    @apply grid md:grid-cols-2 gap-0 border-b border-gray-300;
+  }
+
+  .wo-form-info-grid section {
+    @apply px-6 py-4 border-b md:border-b-0 md:border-r border-gray-200 last:border-r-0;
+  }
+
+  .wo-form-section-title {
+    @apply text-[11px] font-bold uppercase tracking-wider text-[#c00000] mb-3 pb-1 border-b border-[#c00000]/30;
+  }
+
+  .wo-form-field {
+    @apply flex items-baseline gap-2 text-xs mb-2.5;
+  }
+
+  .wo-form-field-label {
+    @apply text-gray-600 shrink-0 min-w-[7rem];
+  }
+
+  .wo-form-field-value {
+    @apply flex-1 border-b border-gray-400 min-h-[1.1rem] text-gray-900 font-medium;
+  }
+
+  .wo-form-tables-grid {
+    @apply grid lg:grid-cols-2 gap-0 border-b border-gray-300;
+  }
+
+  .wo-form-tables-grid section {
+    @apply px-4 sm:px-6 py-4 border-b lg:border-b-0 lg:border-r border-gray-200 last:border-r-0;
+  }
+
+  .wo-form-table {
+    @apply w-full text-[11px] border-collapse;
+  }
+
+  .wo-form-table thead tr {
+    @apply bg-gray-100 border-y border-gray-400;
+  }
+
+  .wo-form-table th {
+    @apply px-2 py-2 text-left font-bold uppercase text-[9px] text-gray-800 border border-gray-300;
+  }
+
+  .wo-form-table td {
+    @apply px-2 py-1.5 border border-gray-300 text-gray-800 min-h-[1.5rem];
+    height: 1.75rem;
+  }
+
+  .wo-form-bottom-grid {
+    @apply grid lg:grid-cols-2 gap-0 border-b border-gray-300;
+  }
+
+  .wo-form-bottom-grid section {
+    @apply px-6 py-4 border-b lg:border-b-0 lg:border-r border-gray-200 last:border-r-0;
+  }
+
+  .wo-form-notes {
+    @apply min-h-[120px] text-xs text-gray-800 leading-relaxed border border-gray-300 rounded p-3 bg-gray-50;
+  }
+
+  .wo-form-totals {
+    @apply w-full text-xs border-collapse;
+  }
+
+  .wo-form-totals td {
+    @apply px-3 py-2 border border-gray-400 text-gray-800;
+  }
+
+  .wo-form-total-row td {
+    @apply bg-gray-100 font-bold text-[#c00000] text-sm uppercase;
+  }
+
+  .wo-form-signatures {
+    @apply grid md:grid-cols-2 gap-6 px-6 py-5 border-b border-gray-300;
+  }
+
+  .wo-form-sign-role {
+    @apply text-xs font-semibold text-gray-800 mb-3;
+  }
+
+  .wo-form-sign-line {
+    @apply border-b border-gray-500 min-h-[2.5rem] mb-2;
+  }
+
+  .wo-form-sign-labels {
+    @apply flex justify-between text-[10px] text-gray-600 uppercase;
+  }
+
+  .wo-form-footer {
+    @apply px-6 py-5 bg-white;
+  }
+
+  .wo-form-benefits {
+    @apply grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4;
+  }
+
+  .wo-form-benefit {
+    @apply flex gap-2 items-start text-[9px] leading-snug text-gray-700;
+  }
+
+  .wo-form-benefit-icon {
+    @apply shrink-0 w-9 h-9 rounded-full border-2 border-[#c00000] text-[#c00000] flex items-center justify-center;
+  }
+
+  .wo-form-slogan {
+    @apply text-center text-xs sm:text-sm mt-2 pt-3 border-t border-gray-200;
+  }
+
+  .wo-form-actions {
+    @apply px-6 py-4 border-t border-gray-200 bg-gray-50;
+  }
+
   @keyframes fade-in-up {
     from {
       opacity: 0;
@@ -579,12 +757,12 @@
     print-color-adjust: exact;
   }
 
-  #work-order-print.wo-premium-color,
-  #work-order-print.wo-premium-color ~ * {
-    background: transparent;
-  }
-
-  #work-order-print.wo-premium-bw {
+  #work-order-print.wo-form-root,
+  #work-order-print.wo-form-color,
+  #work-order-print.wo-form-bw {
     background: #fff !important;
+    box-shadow: none;
+    border: none;
+    border-radius: 0;
   }
 }

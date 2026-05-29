@@ -6,6 +6,11 @@ import {
   calcPartLine,
 } from "./workorder-calc";
 import { getWorkOrderLegalTexts } from "./work-order-share";
+import {
+  getFormDocLabels,
+  getFormFooterContent,
+  formatDocDate,
+} from "./work-order-form-labels";
 
 export type DocLocale = "pl" | "ru" | "en";
 export type WorkOrderDocVariant = "color" | "bw";
@@ -112,261 +117,190 @@ function esc(s: string): string {
     .replace(/"/g, "&quot;");
 }
 
-function docPalette(variant: WorkOrderDocVariant) {
-  if (variant === "bw") {
-    return {
-      accent: "#000000",
-      accentMid: "#333333",
-      text: "#111111",
-      textLight: "#444444",
-      textMuted: "#666666",
-      textOnDark: "#ffffff",
-      bg: "#ffffff",
-      bgPanel: "#f4f4f4",
-      rowA: "#ffffff",
-      rowB: "#f8f8f8",
-      border: "#cccccc",
-      cardBorder: "#999999",
-      headerOverlay: "rgba(255,255,255,0.92)",
-      bodyOverlay: "rgba(255,255,255,0.96)",
-      logoFilter: "grayscale(1) contrast(1.1)",
-      glow: "",
-    };
-  }
-  return {
-    accent: "#e10600",
-    accentMid: "#a00400",
-    text: "#e8e8e8",
-    textLight: "#c0c0c0",
-    textMuted: "#888888",
-    textOnDark: "#ffffff",
-    bg: "#0a0a0a",
-    bgPanel: "rgba(10,10,10,0.85)",
-    rowA: "rgba(10,10,10,0.85)",
-    rowB: "rgba(20,20,20,0.9)",
-    border: "#2a2a2a",
-    cardBorder: "rgba(225,6,0,0.35)",
-    headerOverlay: "rgba(0,0,0,0.55)",
-    bodyOverlay: "rgba(0,0,0,0.72)",
-    logoFilter: "drop-shadow(0 0 12px rgba(225,6,0,0.5))",
-    glow: "0 0 40px rgba(225,6,0,0.2)",
-  };
+function formField(label: string, value: string, accent: string): string {
+  return `<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:8px;font-size:11px;">
+    <span style="color:#666;min-width:110px;">${esc(label)}</span>
+    <span style="flex:1;border-bottom:1px solid #999;color:#111;font-weight:500;">${esc(value) || "&nbsp;"}</span>
+  </div>`;
 }
 
-function tableRows(
-  items: { name: string; qty: number; price: number; discount: number; line: number }[],
-  variant: WorkOrderDocVariant
-): string {
-  const P = docPalette(variant);
-  if (!items.length) {
-    return `<tr><td colspan="5" style="padding:12px;text-align:center;color:${P.textMuted};">—</td></tr>`;
-  }
-  return items
-    .map(
-      (r, i) => `
-    <tr style="background:${i % 2 ? P.rowB : P.rowA};">
-      <td style="padding:10px 12px;border-bottom:1px solid ${P.border};color:${P.text};">${esc(r.name)}</td>
-      <td style="padding:10px;text-align:center;border-bottom:1px solid ${P.border};color:${P.textLight};">${r.qty}</td>
-      <td style="padding:10px;text-align:right;border-bottom:1px solid ${P.border};color:${P.textLight};">${r.price.toFixed(2)}</td>
-      <td style="padding:10px;text-align:center;border-bottom:1px solid ${P.border};color:${P.textMuted};">${r.discount > 0 ? `-${r.discount}%` : "—"}</td>
-      <td style="padding:10px;text-align:right;border-bottom:1px solid ${P.border};font-weight:700;color:${P.accent};">${r.line.toFixed(2)}</td>
-    </tr>`
-    )
-    .join("");
-}
-
-function premiumSlogan(locale: DocLocale): string {
-  return locale === "ru"
-    ? "ВАШ АВТОМОБИЛЬ В НАДЁЖНЫХ РУКАХ!"
-    : "TWÓJ SAMOCHÓD W DOBRYCH RĘKACH!";
-}
-
-/** Premium HTML for print / PDF capture (color = forged carbon, bw = print-friendly) */
+/** Classic A4 form HTML for print / PDF capture */
 export function buildWorkOrderDocumentHtml(
   order: WorkOrder,
   vehicle: Vehicle,
   client: User,
-  locale: DocLocale = "ru",
+  locale: DocLocale = "pl",
   vatRate = 23,
   logoUrl?: string,
-  variant: WorkOrderDocVariant = "color",
-  carbonUrl?: string
+  variant: WorkOrderDocVariant = "color"
 ): string {
-  const L = getDocLabels(locale);
-  const P = docPalette(variant);
+  const L = getFormDocLabels(locale);
+  const footer = getFormFooterContent(locale);
   const b = calcOrderBreakdown(order, vatRate);
   const logo = logoUrl ?? "/images/logo.png";
-  const carbon = carbonUrl ?? siteConfig.forgedCarbonImage;
+  const accent = variant === "bw" ? "#000" : "#c00000";
+  const completionDate =
+    order.estimatedReadyAt?.slice(0, 10) ??
+    (order.status === "ready" || order.status === "delivered" ? order.updatedAt : "");
 
-  const services = order.services.map((s) => ({
-    name: s.name,
-    qty: s.qty,
-    price: s.price,
-    discount: s.discount,
-    line: calcServiceLine(s),
-  }));
+  const serviceRows = order.services
+    .map(
+      (s, i) => `<tr>
+      <td style="border:1px solid #bbb;padding:4px 6px;text-align:center;width:28px;">${i + 1}</td>
+      <td style="border:1px solid #bbb;padding:4px 6px;">${esc(s.name)}</td>
+      <td style="border:1px solid #bbb;padding:4px 6px;text-align:right;font-family:monospace;">${calcServiceLine(s).toFixed(2)}</td>
+    </tr>`
+    )
+    .join("");
 
-  const parts = order.parts.map((p) => ({
-    name: p.name,
-    qty: p.qty,
-    price: p.sellPrice,
-    discount: p.discount,
-    line: calcPartLine(p),
-  }));
+  const emptyServiceRows = Array.from(
+    { length: Math.max(0, 10 - order.services.length) },
+    (_, i) => `<tr>
+      <td style="border:1px solid #bbb;padding:4px 6px;text-align:center;">${order.services.length + i + 1}</td>
+      <td style="border:1px solid #bbb;padding:4px 6px;">&nbsp;</td>
+      <td style="border:1px solid #bbb;padding:4px 6px;">&nbsp;</td>
+    </tr>`
+  ).join("");
 
-  const slogan = premiumSlogan(locale);
-  const badges =
-    locale === "ru"
-      ? ["БЫСТРО", "ПРОФЕССИОНАЛЬНО", "ГАРАНТИЯ", "PREMIUM SERVICE"]
-      : ["SZYBKO", "PROFESJONALNIE", "GWARANCJA", "PREMIUM SERVICE"];
+  const partRows = order.parts
+    .map(
+      (p) => `<tr>
+      <td style="border:1px solid #bbb;padding:4px 6px;">${esc(p.name)}</td>
+      <td style="border:1px solid #bbb;padding:4px 6px;text-align:center;width:36px;">${p.qty}</td>
+      <td style="border:1px solid #bbb;padding:4px 6px;text-align:right;font-family:monospace;">${calcPartLine(p).toFixed(2)}</td>
+    </tr>`
+    )
+    .join("");
 
-  const legalBlock = `
-      <p style="font-size:11px;color:${variant === "bw" ? P.textLight : "#ccc"};margin:0 0 10px;line-height:1.55;">${esc(L.confirmation)}</p>
-      <p style="font-size:11px;color:${variant === "bw" ? P.textLight : "#ccc"};margin:0 0 12px;line-height:1.55;">${esc(L.vehiclePickup)}</p>`;
+  const emptyPartRows = Array.from(
+    { length: Math.max(0, 10 - order.parts.length) },
+    () => `<tr>
+      <td style="border:1px solid #bbb;padding:4px 6px;">&nbsp;</td>
+      <td style="border:1px solid #bbb;padding:4px 6px;">&nbsp;</td>
+      <td style="border:1px solid #bbb;padding:4px 6px;">&nbsp;</td>
+    </tr>`
+  ).join("");
 
-  const sigBlock = order.signature
-    ? `
-    <div style="padding:16px;border:1px solid ${P.cardBorder};border-radius:10px;background:${variant === "bw" ? P.bgPanel : "rgba(20,20,20,0.95)"};">
-      ${legalBlock}
-      ${order.signature.dataUrl ? `<img src="${order.signature.dataUrl}" alt="signature" style="height:56px;max-width:200px;display:block;margin-bottom:8px;${variant === "bw" ? "filter:grayscale(1);" : ""}" />` : ""}
-      <p style="font-size:10px;color:${P.textMuted};margin:0;">${esc(order.signature.signedBy)} · ${esc(new Date(order.signature.signedAt).toLocaleString())}</p>
-    </div>`
-    : `<div style="padding:16px;border:2px dashed ${P.border};border-radius:10px;">
-        ${legalBlock}
-        <p style="font-size:11px;color:${P.textMuted};margin:12px 0 0;">${L.signature}: ___________________________</p>
-      </div>`;
+  const benefitsHtml = footer.benefits
+    .map(
+      (item) => `<td style="width:25%;vertical-align:top;padding:8px;font-size:9px;color:#444;line-height:1.35;">
+        <div style="width:32px;height:32px;border:2px solid ${accent};border-radius:50%;margin-bottom:6px;"></div>
+        <strong style="color:${accent};">${esc(item.title)}</strong><br/>${esc(item.desc)}
+      </td>`
+    )
+    .join("");
 
-  const cardStyle =
-    variant === "bw"
-      ? `background:${P.bgPanel};border:1px solid ${P.cardBorder};border-radius:10px;padding:16px;vertical-align:top;`
-      : `background:linear-gradient(145deg,#1a1a1a 0%,#0e0e0e 100%);border:1px solid ${P.cardBorder};border-radius:10px;padding:16px;vertical-align:top;`;
+  const sigImg = order.signature?.dataUrl
+    ? `<img src="${order.signature.dataUrl}" alt="" style="height:40px;max-width:180px;display:block;margin:4px 0;${variant === "bw" ? "filter:grayscale(1);" : ""}" />`
+    : "";
 
-  const rootBg =
-    variant === "color"
-      ? `background-color:#0a0a0a;background-image:url('${esc(carbon)}');background-size:cover;background-position:center;`
-      : `background:${P.bg};`;
-
-  const headerBg =
-    variant === "color"
-      ? `background:${P.headerOverlay};`
-      : `background:${P.bgPanel};border-bottom:2px solid #000;`;
-
-  const badgeRadius = "border-radius:9999px;";
-  const badgeStyle =
-    variant === "bw"
-      ? `display:inline-block;margin:0 6px 6px 0;padding:10px 16px;border:1px solid #000;color:#000;font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;background:#fff;${badgeRadius}`
-      : `display:inline-block;margin:0 6px 6px 0;padding:10px 16px;border:1px solid rgba(225,6,0,0.9);color:#e10600;font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;background:transparent;${badgeRadius}`;
-
-  const worksHead =
-    variant === "bw"
-      ? `background:linear-gradient(90deg,#333,#666,#eee);color:#fff;`
-      : `background:linear-gradient(90deg,#e10600,#a00400,#1a1a1a);color:#fff;`;
-
-  const partsHead =
-    variant === "bw"
-      ? `background:linear-gradient(90deg,#eee,#ccc,#fff);color:#000;`
-      : `background:linear-gradient(90deg,#1a1a1a,#333,#0a0a0a);color:#fff;`;
-
-  const redGlow =
-    variant === "color"
-      ? `<div style="position:absolute;top:0;right:0;width:240px;height:240px;background:radial-gradient(circle,rgba(225,6,0,0.35) 0%,transparent 70%);"></div>`
-      : "";
-
-  const divider =
-    variant === "bw"
-      ? `height:2px;background:#000;margin-top:20px;`
-      : `height:3px;background:linear-gradient(90deg,transparent,#e10600,#ff4444,#e10600,transparent);margin-top:20px;`;
-
-  const totalBox =
-    variant === "bw"
-      ? `display:inline-block;min-width:260px;padding:22px;border:2px solid #000;border-radius:12px;background:#f8f8f8;`
-      : `display:inline-block;min-width:260px;padding:22px;border:2px solid #e10600;border-radius:12px;background:linear-gradient(145deg,#1a1a1a,#0a0a0a);box-shadow:0 0 32px rgba(225,6,0,0.25);`;
-
-  const grossShadow = variant === "color" ? "text-shadow:0 0 16px rgba(225,6,0,0.5);" : "";
-
-  return `<div id="bm-work-order-doc" data-variant="${variant}" style="width:794px;font-family:'Segoe UI',system-ui,sans-serif;color:${P.text};${rootBg}box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact;">
-  <div style="${headerBg}color:${variant === "bw" ? P.text : "#fff"};padding:28px 32px 24px;position:relative;overflow:hidden;">
-    ${redGlow}
-    <table style="width:100%;border-collapse:collapse;position:relative;z-index:1;">
+  return `<div id="bm-work-order-doc" data-variant="${variant}" style="width:794px;font-family:'Segoe UI',system-ui,sans-serif;color:#111;background:#fff;box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact;${variant === "bw" ? "filter:grayscale(1);" : ""}">
+  <div style="padding:24px 28px 16px;border-bottom:1px solid #ccc;">
+    <table style="width:100%;border-collapse:collapse;">
       <tr>
-        <td style="vertical-align:top;width:48%;">
-          <img src="${esc(logo)}" alt="BESS MOTORS" style="height:52px;width:auto;margin-bottom:12px;display:block;filter:${P.logoFilter};" />
-          <p style="margin:0;font-size:10px;letter-spacing:0.2em;color:${P.accent};font-weight:700;">${L.title}</p>
-          <p style="margin:8px 0 0;font-size:26px;font-weight:800;font-family:Consolas,monospace;color:${P.accent};">${esc(order.number)}</p>
-          <p style="margin:6px 0 0;font-size:11px;color:${variant === "bw" ? P.textMuted : "#aaa"};">${L.date}: ${esc(order.createdAt)}</p>
+        <td style="width:28%;vertical-align:top;"><img src="${esc(logo)}" alt="BESS MOTORS" style="height:52px;width:auto;" /></td>
+        <td style="text-align:center;vertical-align:middle;">
+          <h1 style="margin:0;font-size:20px;font-weight:800;text-transform:uppercase;">${esc(L.titleNo)} <span style="color:${accent};font-family:Consolas,monospace;">${esc(order.number)}</span></h1>
         </td>
-        <td style="vertical-align:top;text-align:right;width:52%;">
-          <p style="margin:0;font-size:22px;font-weight:700;text-transform:uppercase;line-height:1.15;color:${variant === "bw" ? P.text : "#ffffff"};letter-spacing:0.02em;text-shadow:${P.glow};">${esc(slogan)}</p>
-          <p style="margin:14px 0 0;font-size:0;line-height:0;">
-            ${badges.map((b) => `<span style="${badgeStyle}">${esc(b)}</span>`).join("")}
-          </p>
+        <td style="width:30%;vertical-align:top;text-align:right;font-size:10px;color:#444;line-height:1.5;">
+          <div>${esc(siteConfig.phone)}</div>
+          <div>${esc(L.website)}</div>
+          <div>${esc(siteConfig.address)}</div>
         </td>
       </tr>
     </table>
-    <div style="${divider}"></div>
+    <table style="width:100%;margin-top:16px;border-top:1px solid #eee;padding-top:12px;">
+      <tr>
+        <td style="width:50%;font-size:11px;color:#555;">${esc(L.receptionDate)}<div style="border-bottom:1px solid #999;margin-top:4px;font-weight:600;color:#111;">${esc(formatDocDate(order.createdAt))}</div></td>
+        <td style="width:50%;font-size:11px;color:#555;padding-left:24px;">${esc(L.completionDate)}<div style="border-bottom:1px solid #999;margin-top:4px;font-weight:600;color:#111;">${esc(formatDocDate(completionDate))}</div></td>
+      </tr>
+    </table>
   </div>
 
-  <div style="padding:24px 32px 32px;${variant === "color" ? `background:${P.bodyOverlay};` : `background:${P.bg};`}">
-    <table style="width:100%;border-collapse:separate;border-spacing:12px 0;margin-bottom:20px;">
-      <tr>
-        <td style="width:50%;${cardStyle}">
-          <p style="margin:0 0 10px;font-size:10px;font-weight:700;color:${P.accent};text-transform:uppercase;">${L.client}</p>
-          <p style="margin:0;font-size:17px;font-weight:700;color:${variant === "bw" ? P.text : "#fff"};">${esc(client.name)}</p>
-          <p style="margin:6px 0 0;font-size:12px;color:${P.textLight};font-family:monospace;">${esc(client.phone)}</p>
-        </td>
-        <td style="width:50%;${cardStyle}">
-          <p style="margin:0 0 10px;font-size:10px;font-weight:700;color:${variant === "bw" ? P.textMuted : "#c0c0c0"};text-transform:uppercase;">${L.vehicle}</p>
-          <p style="margin:0;font-size:17px;font-weight:700;color:${variant === "bw" ? P.text : "#fff"};">${esc(vehicle.make)} ${esc(vehicle.model)}</p>
-          <p style="margin:8px 0 0;font-size:10px;color:${P.textMuted};font-family:monospace;">${L.vin}: ${esc(vehicle.vin)}</p>
-          <p style="margin:4px 0 0;font-size:11px;color:${P.textLight};">${L.plate}: <strong style="color:${P.accent};">${esc(vehicle.plate)}</strong> · ${L.mileage}: ${vehicle.mileage.toLocaleString()} km</p>
-        </td>
-      </tr>
-    </table>
-
-    ${order.clientNotes ? `<p style="margin:0 0 16px;padding:12px 16px;border-left:4px solid ${P.accent};background:${variant === "bw" ? "#f0f0f0" : "rgba(225,6,0,0.08)"};font-size:12px;color:${P.textLight};font-style:italic;">${esc(order.clientNotes)}</p>` : ""}
-
-    <p style="margin:0 0 8px;font-size:10px;font-weight:700;color:${P.accent};text-transform:uppercase;">${L.works}</p>
-    <table style="width:100%;border-collapse:collapse;margin-bottom:20px;border:1px solid ${P.cardBorder};border-radius:8px;overflow:hidden;">
-      <thead><tr style="${worksHead}">
-        <th style="padding:10px 12px;text-align:left;font-size:9px;text-transform:uppercase;">${L.works}</th>
-        <th style="padding:10px;font-size:9px;text-align:center;">${L.qty}</th>
-        <th style="padding:10px;font-size:9px;text-align:right;">${L.price}</th>
-        <th style="padding:10px;font-size:9px;text-align:center;">${L.discount}</th>
-        <th style="padding:10px;font-size:9px;text-align:right;">${L.total}</th>
-      </tr></thead>
-      <tbody>${tableRows(services, variant)}</tbody>
-    </table>
-
-    <p style="margin:0 0 8px;font-size:10px;font-weight:700;color:${variant === "bw" ? P.textMuted : "#c0c0c0"};text-transform:uppercase;">${L.parts}</p>
-    <table style="width:100%;border-collapse:collapse;margin-bottom:24px;border:1px solid ${P.cardBorder};border-radius:8px;overflow:hidden;">
-      <thead><tr style="${partsHead}">
-        <th style="padding:10px 12px;text-align:left;font-size:9px;text-transform:uppercase;">${L.parts}</th>
-        <th style="padding:10px;font-size:9px;text-align:center;">${L.qty}</th>
-        <th style="padding:10px;font-size:9px;text-align:right;">${L.price}</th>
-        <th style="padding:10px;font-size:9px;text-align:center;">${L.discount}</th>
-        <th style="padding:10px;font-size:9px;text-align:right;">${L.total}</th>
-      </tr></thead>
-      <tbody>${tableRows(parts, variant)}</tbody>
-    </table>
-
-    <table style="width:100%;"><tr>
-      <td style="vertical-align:top;width:52%;">${sigBlock}</td>
-      <td style="vertical-align:top;text-align:right;">
-        <div style="${totalBox}">
-          <div style="display:flex;justify-content:space-between;font-size:12px;color:${P.textMuted};margin-bottom:6px;"><span>${L.subtotal}</span><span style="color:${P.textLight};">${b.subtotal.toFixed(2)} ${L.currency}</span></div>
-          ${b.discount > 0 ? `<div style="display:flex;justify-content:space-between;font-size:12px;color:${P.accent};margin-bottom:6px;"><span>${L.orderDiscount}</span><span>-${b.discount.toFixed(2)} ${L.currency}</span></div>` : ""}
-          ${order.vatEnabled && b.vatAmount > 0 ? `<div style="display:flex;justify-content:space-between;font-size:12px;color:${P.textMuted};margin-bottom:6px;"><span>${L.vat} (${b.vatRate}%)</span><span>${b.vatAmount.toFixed(2)} ${L.currency}</span></div>` : ""}
-          <div style="height:2px;background:${variant === "bw" ? "#000" : "linear-gradient(90deg,transparent,#e10600,transparent)"};margin:14px 0;"></div>
-          <div style="display:flex;justify-content:space-between;align-items:baseline;">
-            <span style="font-size:10px;font-weight:700;text-transform:uppercase;color:${P.accent};">${L.gross}</span>
-            <span style="font-size:28px;font-weight:800;color:${P.accent};font-family:Consolas,monospace;${grossShadow}">${b.grossTotal.toFixed(2)} <span style="font-size:14px;">${L.currency}</span></span>
-          </div>
-        </div>
+  <table style="width:100%;border-collapse:collapse;border-bottom:1px solid #ccc;">
+    <tr>
+      <td style="width:50%;vertical-align:top;padding:16px 20px;border-right:1px solid #eee;">
+        <p style="margin:0 0 10px;font-size:11px;font-weight:800;color:${accent};text-transform:uppercase;border-bottom:1px solid ${accent}33;padding-bottom:4px;">${esc(L.vehicleData)}</p>
+        ${formField(L.makeModel, `${vehicle.make} ${vehicle.model}`.trim(), accent)}
+        ${formField(L.year, vehicle.year ? String(vehicle.year) : "—", accent)}
+        ${formField(L.plate, vehicle.plate, accent)}
+        ${formField(L.vin, vehicle.vin || "—", accent)}
+        ${formField(L.mileage, vehicle.mileage ? `${vehicle.mileage.toLocaleString()} km` : "—", accent)}
       </td>
-    </tr></table>
+      <td style="width:50%;vertical-align:top;padding:16px 20px;">
+        <p style="margin:0 0 10px;font-size:11px;font-weight:800;color:${accent};text-transform:uppercase;border-bottom:1px solid ${accent}33;padding-bottom:4px;">${esc(L.clientData)}</p>
+        ${formField(L.fullName, client.name, accent)}
+        ${formField(L.phone, client.phone, accent)}
+        ${formField(L.email, client.email || siteConfig.email, accent)}
+      </td>
+    </tr>
+  </table>
 
-    <p style="margin-top:28px;padding-top:12px;border-top:1px solid ${P.border};font-size:9px;color:${P.textMuted};text-align:center;">
-      ${esc(siteConfig.name)} · ${esc(siteConfig.address)} · ${esc(siteConfig.phone)}
+  <table style="width:100%;border-collapse:collapse;border-bottom:1px solid #ccc;">
+    <tr>
+      <td style="width:50%;vertical-align:top;padding:12px 16px;border-right:1px solid #eee;">
+        <p style="margin:0 0 8px;font-size:11px;font-weight:800;color:${accent};text-transform:uppercase;">${esc(L.workList)}</p>
+        <table style="width:100%;border-collapse:collapse;font-size:10px;">
+          <thead><tr style="background:#f3f3f3;">
+            <th style="border:1px solid #bbb;padding:5px;">${esc(L.numberCol)}</th>
+            <th style="border:1px solid #bbb;padding:5px;text-align:left;">${esc(L.workName)}</th>
+            <th style="border:1px solid #bbb;padding:5px;text-align:right;">${esc(L.cost)}</th>
+          </tr></thead>
+          <tbody>${serviceRows}${emptyServiceRows}</tbody>
+        </table>
+      </td>
+      <td style="width:50%;vertical-align:top;padding:12px 16px;">
+        <p style="margin:0 0 8px;font-size:11px;font-weight:800;color:${accent};text-transform:uppercase;">${esc(L.partsMaterials)}</p>
+        <table style="width:100%;border-collapse:collapse;font-size:10px;">
+          <thead><tr style="background:#f3f3f3;">
+            <th style="border:1px solid #bbb;padding:5px;text-align:left;">${esc(L.partName)}</th>
+            <th style="border:1px solid #bbb;padding:5px;">${esc(L.qty)}</th>
+            <th style="border:1px solid #bbb;padding:5px;text-align:right;">${esc(L.cost)}</th>
+          </tr></thead>
+          <tbody>${partRows}${emptyPartRows}</tbody>
+        </table>
+      </td>
+    </tr>
+  </table>
+
+  <table style="width:100%;border-collapse:collapse;border-bottom:1px solid #ccc;">
+    <tr>
+      <td style="width:55%;vertical-align:top;padding:16px 20px;border-right:1px solid #eee;">
+        <p style="margin:0 0 8px;font-size:11px;font-weight:800;color:${accent};text-transform:uppercase;">${esc(L.additionalInfo)}</p>
+        <div style="min-height:90px;border:1px solid #bbb;background:#fafafa;padding:10px;font-size:11px;line-height:1.5;">${esc(order.clientNotes || "")}</div>
+      </td>
+      <td style="width:45%;vertical-align:top;padding:16px 20px;">
+        <table style="width:100%;border-collapse:collapse;font-size:11px;">
+          <tr><td style="border:1px solid #bbb;padding:8px;">${esc(L.worksCost)}</td><td style="border:1px solid #bbb;padding:8px;text-align:right;font-family:monospace;">${b.servicesSub.toFixed(2)}</td></tr>
+          <tr><td style="border:1px solid #bbb;padding:8px;">${esc(L.partsCost)}</td><td style="border:1px solid #bbb;padding:8px;text-align:right;font-family:monospace;">${b.partsSub.toFixed(2)}</td></tr>
+          ${b.discount > 0 ? `<tr><td style="border:1px solid #bbb;padding:8px;">${esc(L.orderDiscount)}</td><td style="border:1px solid #bbb;padding:8px;text-align:right;color:${accent};">-${b.discount.toFixed(2)}</td></tr>` : ""}
+          ${order.vatEnabled && b.vatAmount > 0 ? `<tr><td style="border:1px solid #bbb;padding:8px;">${esc(L.vat)} (${b.vatRate}%)</td><td style="border:1px solid #bbb;padding:8px;text-align:right;">${b.vatAmount.toFixed(2)}</td></tr>` : ""}
+          <tr style="background:#f3f3f3;"><td style="border:1px solid #bbb;padding:10px;font-weight:800;color:${accent};text-transform:uppercase;">${esc(L.totalToPay)}</td><td style="border:1px solid #bbb;padding:10px;text-align:right;font-family:monospace;font-weight:800;color:${accent};font-size:14px;">${b.grossTotal.toFixed(2)} ${esc(L.currency)}</td></tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+
+  <table style="width:100%;border-collapse:collapse;border-bottom:1px solid #ccc;">
+    <tr>
+      <td style="width:50%;padding:16px 20px;border-right:1px solid #eee;vertical-align:top;">
+        <p style="margin:0 0 12px;font-size:11px;font-weight:600;">${esc(L.executor)}</p>
+        <div style="border-bottom:1px solid #666;height:32px;margin-bottom:8px;"></div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:#666;text-transform:uppercase;"><span>${esc(L.signLabel)}</span><span>${esc(L.dateLabel)}</span></div>
+      </td>
+      <td style="width:50%;padding:16px 20px;vertical-align:top;">
+        <p style="margin:0 0 12px;font-size:11px;font-weight:600;">${esc(L.clientSign)}</p>
+        ${sigImg}
+        <div style="border-bottom:1px solid #666;height:${sigImg ? "8" : "32"}px;margin-bottom:8px;"></div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:#666;text-transform:uppercase;"><span>${esc(L.signLabel)}</span><span>${esc(L.dateLabel)}</span></div>
+      </td>
+    </tr>
+  </table>
+
+  <div style="padding:16px 20px 20px;">
+    <table style="width:100%;border-collapse:collapse;margin-bottom:12px;"><tr>${benefitsHtml}</tr></table>
+    <p style="margin:0;text-align:center;font-size:12px;padding-top:10px;border-top:1px solid #eee;">
+      <strong style="color:${accent};">BESS MOTORS</strong> — ${esc(footer.slogan.replace(/^BESS MOTORS — /, ""))}
     </p>
   </div>
 </div>`;
