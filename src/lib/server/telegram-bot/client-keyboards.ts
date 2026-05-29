@@ -63,6 +63,10 @@ export function clientMainKeyboard(locale: BotLocale, linked = false): InlineKey
         { text: L.contacts, callback_data: "cl:contacts" },
       ],
       [
+        { text: L.symptomQuiz, callback_data: "cl:sym:start" },
+        { text: "❓ FAQ", callback_data: "cl:more" },
+      ],
+      [
         { text: L.site, url: `${siteBase()}/cabinet` },
         { text: L.changeLanguage, callback_data: "cl:lang:pick" },
       ],
@@ -106,6 +110,10 @@ export function clientLinkedMenuKeyboard(
       ],
       [
         { text: L.notifySettings, callback_data: "cl:notify" },
+        { text: L.sendPhoto, callback_data: "cl:photo" },
+      ],
+      [
+        { text: "❓ FAQ", callback_data: "cl:more" },
         { text: L.changeLanguage, callback_data: "cl:lang:pick" },
       ],
     ],
@@ -183,8 +191,33 @@ export function clientAppointmentsKeyboard(
       { text: "+7", callback_data: `cl:apt:+7:${a.id}` },
     ]);
   }
+  rows.push([{ text: L.back, callback_data: "cl:apts" }]);
   rows.push(clientBackMenuRow(locale));
   return { inline_keyboard: rows };
+}
+
+export function clientAppointmentDetailKeyboard(
+  locale: BotLocale,
+  aptId: string
+): InlineKeyboardMarkup {
+  const L = getClientBotLabels(locale);
+  return {
+    inline_keyboard: [
+      [
+        {
+          text: locale === "pl" ? "📤 Udostępnij" : locale === "en" ? "📤 Share" : "📤 Поделиться",
+          callback_data: `cl:share:apt:${aptId}`,
+        },
+        {
+          text: locale === "pl" ? "+1 dzień" : locale === "en" ? "+1 day" : "+1 день",
+          callback_data: `cl:apt:+1:${aptId}`,
+        },
+        { text: "+7", callback_data: `cl:apt:+7:${aptId}` },
+      ],
+      [{ text: L.back, callback_data: "cl:apts" }],
+      clientBackMenuRow(locale),
+    ],
+  };
 }
 
 export function phoneRequestReplyKeyboard(locale: BotLocale): ReplyKeyboardMarkup {

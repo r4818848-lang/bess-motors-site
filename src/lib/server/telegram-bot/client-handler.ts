@@ -59,6 +59,7 @@ import {
   phoneRequestReplyKeyboard,
   clientBackMenuRow,
   clientAppointmentsKeyboard,
+  clientAppointmentDetailKeyboard,
 } from "./client-keyboards";
 import {
   getClientPortalByChat,
@@ -76,10 +77,19 @@ import {
   handleAptStartParam,
   rebookLastAppointment,
   saveTelegramRating,
+  sendGalleryPhotosLink,
+  startRebookPlus7,
   telegramBotDeepLink,
+  toggleQuietHours,
 } from "./client-extras";
 import { saveClientTelegramPhoto } from "./client-photo";
 import { tryParseSmartBooking } from "./client-smart-booking";
+import {
+  finishSymptomQuiz,
+  startSymptomQuiz,
+  toggleSymptom,
+} from "./client-symptom-quiz";
+import { formatConciergeMessage } from "./client-concierge";
 import {
   formatNotifyPrefsIntro,
   notifyPrefsKeyboard,
@@ -89,13 +99,24 @@ import {
 } from "./client-notify-prefs";
 import { sendShareAppointment } from "./client-share-apt";
 import type { ClientPortalSlice } from "@/lib/client-sign";
+import type { WizardSymptomId } from "@/lib/car-problem-wizard";
+import { markAllNotificationsRead } from "@/lib/client-notifications";
 import { resolveExtraWorkApproval } from "./extra-work-approval";
 import { rescheduleAppointment } from "./client-apt-reschedule";
 import {
   aptRescheduleKeyboard,
   formatWarrantyList,
+  packagesKeyboard,
+  sendLocation,
+  sendPromoList,
+  startPackageBooking,
   startRepeatOrder,
 } from "./client-features-v3";
+import {
+  vehiclePickKeyboard,
+  setActiveVehicle,
+} from "./client-vehicle-pick";
+import { mutateCrm } from "./crm-actions";
 import {
   handleClientTextCommands,
   handleExtrasV4Callback,
@@ -244,61 +265,27 @@ function clientUserMenu(
   return clientMainKeyboard(locale);
 }
 
-async function redirectLegacyCallback(
+async function markInboxRead(userId: string): Promise<void> {
+  await mutateCrm((db) => {
+    markAllNotificationsRead(db, userId);
+  });
+}
+
+async function continueBookingDraft(
   chatId: number,
   messageId: number | undefined,
   chatKey: string,
   locale: BotLocale,
-  data: string,
-  slice: ClientPortalSlice | null | undefined
-): Promise<boolean> {
+  draft: Record<string, string>
+): Promise<void> {
   const L = getClientBotLabels(locale);
-
-  if (
-    data === "cl:concierge" ||
-    data === "cl:sym:start" ||
-    data === "cl:sym:done" ||
-    data.startsWith("cl:sym:") ||
-    data === "cl:pkg:menu" ||
-    (data.startsWith("cl:pkg:") && data !== "cl:pkg:menu") ||
-    data === "cl:rebook7"
-  ) {
+  if (!draft.serviceId) {
     await clearTelegramSessionKeepLocale(chatKey);
-    await setClientTelegramSession(chatKey, { data: { intent: "book" } });
     await replyOrEdit(chatId, messageId, locale, L.chooseService, clientServiceKeyboard(locale, "book"));
-    return true;
+    return;
   }
-
-  if (data === "cl:promo" || data === "cl:location") {
-    await replyOrEdit(chatId, messageId, locale, L.contactsText, clientContactsKeyboard(locale));
-    return true;
-  }
-
-  if (data === "cl:quiet") {
-    if (!slice) {
-      await showClientMenu(chatId, messageId, locale);
-      return true;
-    }
-    await replyOrEdit(
-      chatId,
-      messageId,
-      locale,
-      formatNotifyPrefsIntro(locale),
-      notifyPrefsKeyboard(locale, slice.user)
-    );
-    return true;
-  }
-
-  if (
-    data === "cl:photos" ||
-    data === "cl:veh:pick" ||
-    data.startsWith("cl:veh:")
-  ) {
-    await showClientMenu(chatId, messageId, locale);
-    return true;
-  }
-
-  return false;
+  await setClientTelegramSession(chatKey, { data: { ...draft, intent: "book" } });
+  await replyOrEdit(chatId, messageId, locale, L.chooseDate, clientDateKeyboard(locale));
 }
 
 async function showClientMenu(
@@ -573,7 +560,7 @@ async function showConfirm(
     intent === "call"
       ? clientConfirmCallKeyboard(locale)
       : clientConfirmBookingKeyboard(locale);
-  await setClientTelegramSession(chatKey, { data });
+  await setClientTelegramSession(chatKey, { step: undefined, data });
   await replyOrEdit(chatId, messageId, locale, summary, keyboard);
 }
 
@@ -665,8 +652,18 @@ export async function handleClientMessage(msg: TelegramMessage): Promise<void> {
   }
 
   if (msg.photo?.length) {
-    const fileId = msg.photo[msg.photo.length - 1]!.file_id;
     const session = await getTelegramSession(chatKey);
+    if (session.step !== "client_photo_upload") {
+      const hint =
+        locale === "pl"
+          ? "📷 Aby wysłać zdjęcie do zlecenia — użyj «Wyślij zdjęcie» w menu."
+          : locale === "en"
+            ? "📷 To attach a photo to your order — use «Send photo» in the menu."
+            : "📷 Чтобы прикрепить фото к заказу — нажмите «Отправить фото» в меню.";
+      await sendTelegramMessage(chatId, hint, clientUserMenu(locale, await getClientPortalByChat(chatKey)));
+      return;
+    }
+    const fileId = msg.photo[msg.photo.length - 1]!.file_id;
     const res = await saveClientTelegramPhoto({
       chatKey,
       fileId,
@@ -849,6 +846,18 @@ export async function handleClientMessage(msg: TelegramMessage): Promise<void> {
     }
   }
 
+  const pendingSession = await getTelegramSession(chatKey);
+  if (!pendingSession.step && pendingSession.data?.serviceId && pendingSession.data?.intent) {
+    const hint =
+      locale === "pl"
+        ? "👆 Potwierdź wizytę przyciskiem powyżej lub wpisz /menu, aby anulować."
+        : locale === "en"
+          ? "👆 Confirm with the button above or type /menu to cancel."
+          : "👆 Подтвердите кнопкой выше или /menu для отмены.";
+    await sendTelegramMessage(chatId, hint);
+    return;
+  }
+
   if (text.startsWith("/")) {
     await showClientMenu(chatId, undefined, locale);
   }
@@ -917,7 +926,100 @@ export async function handleClientCallback(cb: TelegramCallback): Promise<void> 
     return;
   }
 
-  if (await redirectLegacyCallback(chatId, messageId, chatKey, locale, data, slice)) {
+  if (data === "cl:sym:start") {
+    await startSymptomQuiz(chatId, chatKey, locale);
+    return;
+  }
+
+  if (data === "cl:sym:done") {
+    await finishSymptomQuiz(chatId, chatKey, locale);
+    return;
+  }
+
+  if (data.startsWith("cl:sym:")) {
+    const sid = data.slice(7) as WizardSymptomId;
+    await toggleSymptom(chatId, chatKey, locale, sid, messageId);
+    return;
+  }
+
+  if (data === "cl:pkg:menu") {
+    await replyOrEdit(chatId, messageId, locale, L.packagesBtn, packagesKeyboard(locale));
+    return;
+  }
+
+  if (data.startsWith("cl:pkg:") && data !== "cl:pkg:menu") {
+    await startPackageBooking(chatId, chatKey, locale, data.slice(7));
+    return;
+  }
+
+  if (data === "cl:rebook7") {
+    await startRebookPlus7(chatId, chatKey, locale);
+    return;
+  }
+
+  if (data === "cl:promo") {
+    await sendPromoList(chatId, locale);
+    return;
+  }
+
+  if (data === "cl:location") {
+    await sendLocation(chatId, locale);
+    return;
+  }
+
+  if (data === "cl:photos") {
+    await sendGalleryPhotosLink(chatId, locale);
+    return;
+  }
+
+  if (data === "cl:concierge") {
+    if (!slice) {
+      await startLinkFlow(chatId, messageId, chatKey, locale, profile);
+      return;
+    }
+    const text = await formatConciergeMessage(locale, chatKey);
+    await replyOrEdit(
+      chatId,
+      messageId,
+      locale,
+      text ?? L.signIntro,
+      clientUserMenu(locale, slice)
+    );
+    return;
+  }
+
+  if (data === "cl:quiet") {
+    const on = await toggleQuietHours(chatKey);
+    await replyOrEdit(
+      chatId,
+      messageId,
+      locale,
+      on ? L.quietHoursOn : L.quietHoursOff,
+      clientUserMenu(locale, slice)
+    );
+    return;
+  }
+
+  if (data === "cl:veh:pick" && slice) {
+    const kb = vehiclePickKeyboard(locale, slice);
+    if (kb) await replyOrEdit(chatId, messageId, locale, L.vehiclePick, kb);
+    return;
+  }
+
+  if (data.startsWith("cl:veh:") && data !== "cl:veh:pick") {
+    await setActiveVehicle(chatKey, data.slice(7));
+    await replyOrEdit(
+      chatId,
+      messageId,
+      locale,
+      "✅ OK",
+      clientUserMenu(locale, slice)
+    );
+    return;
+  }
+
+  if (data === "cl:book:draft") {
+    await continueBookingDraft(chatId, messageId, chatKey, locale, sessionData);
     return;
   }
 
@@ -1003,7 +1105,7 @@ export async function handleClientCallback(cb: TelegramCallback): Promise<void> 
       `🔧 ${services}`,
       `📌 ${L.appointmentStatus[apt.appointmentStatus] ?? apt.appointmentStatus}`,
     ].join("\n");
-    await replyOrEdit(chatId, messageId, locale, text, clientAppointmentsKeyboard(locale, slice));
+    await replyOrEdit(chatId, messageId, locale, text, clientAppointmentDetailKeyboard(locale, aptId));
     return;
   }
 
@@ -1102,7 +1204,11 @@ export async function handleClientCallback(cb: TelegramCallback): Promise<void> 
   if (data.startsWith("cl:apt:+1:") || data.startsWith("cl:apt:+7:")) {
     const days = data.includes("+7:") ? 7 : 1;
     const aptId = data.split(":").pop()!;
-    const res = await rescheduleAppointment(aptId, days);
+    if (!slice?.appointments.some((a) => a.id === aptId && a.userId === slice.user.id)) {
+      await sendTelegramMessage(chatId, L.saveFailed);
+      return;
+    }
+    const res = await rescheduleAppointment(aptId, days, slice.user.id);
     if (!res.ok) {
       await sendTelegramMessage(chatId, L.saveFailed);
       return;
@@ -1163,7 +1269,9 @@ export async function handleClientCallback(cb: TelegramCallback): Promise<void> 
         chatId,
         locale === "pl"
           ? "📞 Prośba o kontakt wysłana — oddzwonimy."
-          : "📞 Заявка на звонок отправлена — перезвоним."
+          : locale === "en"
+            ? "📞 Call request sent — we will call you back."
+            : "📞 Заявка на звонок отправлена — перезвоним."
       );
     } else {
       await startLinkFlow(chatId, messageId, chatKey, locale, profile);
@@ -1408,7 +1516,10 @@ export async function handleClientCallback(cb: TelegramCallback): Promise<void> 
       await startLinkFlow(chatId, messageId, chatKey, locale, profile);
       return;
     }
-    await replyOrEdit(chatId, messageId, locale, formatNotifications(locale, slice), {
+    await markInboxRead(slice.user.id);
+    const fresh = await getClientPortalByChat(chatKey);
+    const view = fresh ?? slice;
+    await replyOrEdit(chatId, messageId, locale, formatNotifications(locale, view), {
       inline_keyboard: [clientBackMenuRow(locale)],
     });
     return;
@@ -1438,6 +1549,10 @@ export async function handleClientCallback(cb: TelegramCallback): Promise<void> 
   }
 
   if (data === "cl:book") {
+    if (sessionData.serviceId && sessionData.intent === "book") {
+      await continueBookingDraft(chatId, messageId, chatKey, locale, sessionData);
+      return;
+    }
     await clearTelegramSessionKeepLocale(chatKey);
     await replyOrEdit(chatId, messageId, locale, L.chooseService, clientServiceKeyboard(locale, "book"));
     return;
@@ -1501,7 +1616,8 @@ export async function handleClientCallback(cb: TelegramCallback): Promise<void> 
   }
 
   if (data === "cl:cf:book") {
-    const d = sessionData;
+    const freshSession = await getTelegramSession(chatKey);
+    const d = freshSession.data ?? sessionData;
     if (!d.serviceId || !d.date || !d.time || !d.name || !d.phone) {
       await showClientMenu(chatId, messageId, locale);
       return;
@@ -1534,7 +1650,8 @@ export async function handleClientCallback(cb: TelegramCallback): Promise<void> 
   }
 
   if (data === "cl:cf:call") {
-    const d = sessionData;
+    const freshSession = await getTelegramSession(chatKey);
+    const d = freshSession.data ?? sessionData;
     if (!d.serviceId || !d.name || !d.phone) {
       await showClientMenu(chatId, messageId, locale);
       return;

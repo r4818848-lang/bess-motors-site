@@ -172,7 +172,7 @@ export async function finishSymptomQuiz(
 
   await sendTelegramMessage(chatId, est.text, {
     inline_keyboard: [
-      [{ text: L.book, callback_data: "cl:book" }],
+      [{ text: L.book, callback_data: "cl:book:draft" }],
       [{ text: L.menu, callback_data: "cl:menu" }],
     ],
   });

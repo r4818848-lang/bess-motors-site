@@ -5,7 +5,7 @@ import type { BotLocale } from "./client-i18n";
 import type { WorkOrder } from "@/lib/store";
 import { getClientBotLabels } from "./client-i18n";
 import { getClientPortalByChat } from "./client-telegram-link";
-import { clientMainKeyboard, clientLinkedMenuKeyboard } from "./client-keyboards";
+import { clientMainKeyboard, clientLinkedMenuKeyboard, clientConfirmBookingKeyboard, formatClientBookingSummary } from "./client-keyboards";
 import { countPendingSign, countUnread } from "./client-cabinet-format";
 import { mutateCrm } from "./crm-actions";
 import type { ClientRating, Database, User } from "@/lib/store";
@@ -209,16 +209,42 @@ export async function startRebookPlus7(
   const date = baseDate.toISOString().slice(0, 10);
   const time = apt?.time ?? "10:00";
   const serviceId = apt?.serviceIds[0] ?? "diagnostic";
+  const serviceLabel = getClientServiceLabel(serviceId, locale);
+
+  const draft = {
+    intent: "book",
+    serviceId,
+    serviceLabel,
+    date,
+    time,
+  };
+
+  if (slice.user.name?.trim() && slice.user.phone?.trim()) {
+    const data = {
+      ...draft,
+      name: slice.user.name.trim(),
+      phone: slice.user.phone.trim(),
+    };
+    await setClientTelegramSession(chatKey, { data });
+    await sendTelegramMessage(
+      chatId,
+      [
+        locale === "pl"
+          ? "📅 <b>Ta sama wizyta za 7 dni</b>"
+          : locale === "en"
+            ? "📅 <b>Same visit in 7 days</b>"
+            : "📅 <b>Та же запись через 7 дней</b>",
+        "",
+        formatClientBookingSummary(locale, data),
+      ].join("\n"),
+      clientConfirmBookingKeyboard(locale)
+    );
+    return;
+  }
 
   await setClientTelegramSession(chatKey, {
     step: "client_name",
-    data: {
-      intent: "book",
-      serviceId,
-      serviceLabel: getClientServiceLabel(serviceId, locale),
-      date,
-      time,
-    },
+    data: draft,
   });
 
   await sendTelegramMessage(
@@ -231,7 +257,7 @@ export async function startRebookPlus7(
           : "📅 <b>Та же запись через 7 дней</b>",
       "",
       `📅 ${formatDateShort(date, locale)} · ${time}`,
-      `🔧 ${getClientServiceLabel(serviceId, locale)}`,
+      `🔧 ${serviceLabel}`,
       "",
       L.enterName,
     ].join("\n"),

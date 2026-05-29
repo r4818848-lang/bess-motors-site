@@ -17,7 +17,8 @@ function shiftDate(dateKey: string, days: number): string {
 
 export async function rescheduleAppointment(
   aptId: string,
-  days: number
+  days: number,
+  userId?: string
 ): Promise<{ ok: boolean; apt?: Appointment }> {
   const snap = await cloudGetCrmStore();
   if (!snap?.doc) return { ok: false };
@@ -25,6 +26,7 @@ export async function rescheduleAppointment(
   const db = structuredClone(snap.doc) as Database;
   const apt = db.appointments.find((a) => a.id === aptId);
   if (!apt) return { ok: false };
+  if (userId && apt.userId !== userId) return { ok: false };
 
   apt.date = shiftDate(apt.date, days);
   await cloudPutCrmStore(db);
