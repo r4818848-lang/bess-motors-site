@@ -582,6 +582,22 @@ export function purgeAllClientsFromDb(db: Database): Database {
     currentUserId:
       db.currentUserId && clientIds.has(db.currentUserId) ? null : db.currentUserId,
     notifications: (db.notifications ?? []).filter((n) => !clientIds.has(n.userId)),
+    clientRatings: (db.clientRatings ?? []).filter(
+      (r) => !r.userId || !clientIds.has(r.userId)
+    ),
+    settings: {
+      ...db.settings,
+      abandonedBookingDrafts: [],
+    },
+  };
+}
+
+/** Production reset: drop all clients and empty warehouse stock. */
+export function sanitizeProductionDb(db: Database): Database {
+  return {
+    ...purgeAllClientsFromDb(db),
+    warehouse: [],
+    clientRatings: [],
   };
 }
 
