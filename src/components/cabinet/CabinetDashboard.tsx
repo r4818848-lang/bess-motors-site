@@ -38,12 +38,13 @@ export function CabinetDashboard({
     (n, o) => n + o.files.filter((f) => f.category !== "internal").length,
     0
   );
+  const referralCode = user.referralCode?.trim();
 
   return (
     <Card className="p-6 mb-8 border-bm-red/30">
       <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
         <h2 className="font-display text-lg uppercase">{t.cabinet.dashboardTitle}</h2>
-        <TelegramOpenButton startParam={`ref_${user.referralCode ?? ""}`} />
+        {referralCode ? <TelegramOpenButton startParam={`ref_${referralCode}`} /> : null}
       </div>
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">

@@ -1,3 +1,4 @@
+import { cloudPutCrmStore } from "@/lib/server/crm-cloud";
 import { oilChangeRemindersFromHistory } from "@/lib/mileage-from-history";
 import { sendTelegramMessage } from "@/lib/server/telegram-api";
 import type { Database } from "@/lib/store";
@@ -5,6 +6,8 @@ import type { BotLocale } from "../telegram-bot/client-i18n";
 
 export async function runMileageReminders(db: Database): Promise<number> {
   let sent = 0;
+  const stamp = new Date().toISOString();
+  let dirty = false;
   const clients = db.users.filter((u) => u.role === "client" && u.telegramChatId);
 
   for (const user of clients) {
@@ -29,9 +32,16 @@ export async function runMileageReminders(db: Database): Promise<number> {
       const r = reminders[0]!;
       const text = locale === "pl" ? r.detailPl : r.detailRu;
       const ok = await sendTelegramMessage(user.telegramChatId!, `🛢 ${text}`);
-      if (ok) sent++;
+      if (ok) {
+        sent++;
+        user.lastMileageRemindAt = stamp;
+        dirty = true;
+        break;
+      }
     }
   }
+
+  if (dirty) await cloudPutCrmStore(db);
 
   return sent;
 }

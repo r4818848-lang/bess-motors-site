@@ -28,20 +28,29 @@ export function removeReplyKeyboard(): { remove_keyboard: true } {
   return { remove_keyboard: true };
 }
 
-export function getTelegramConfig(): { token: string; chatId: string; adminChatIds: Set<string> } | null {
-  const token = cleanEnvValue(process.env.TELEGRAM_BOT_TOKEN);
-  const chatId = cleanEnvValue(process.env.TELEGRAM_CHAT_ID);
-  if (!token || !chatId) return null;
+export function getTelegramBotToken(): string | null {
+  return cleanEnvValue(process.env.TELEGRAM_BOT_TOKEN);
+}
 
+function buildAdminChatIds(primaryChatId: string | null): Set<string> {
+  const adminChatIds = new Set<string>();
+  if (primaryChatId) adminChatIds.add(primaryChatId);
   const extra = cleanEnvValue(process.env.TELEGRAM_ADMIN_CHAT_IDS);
-  const adminChatIds = new Set<string>([chatId]);
   if (extra) {
     for (const id of extra.split(",")) {
       const trimmed = id.trim();
       if (trimmed) adminChatIds.add(trimmed);
     }
   }
-  return { token, chatId, adminChatIds };
+  return adminChatIds;
+}
+
+export function getTelegramConfig(): { token: string; chatId: string; adminChatIds: Set<string> } | null {
+  const token = getTelegramBotToken();
+  if (!token) return null;
+
+  const chatId = cleanEnvValue(process.env.TELEGRAM_CHAT_ID) ?? "";
+  return { token, chatId, adminChatIds: buildAdminChatIds(chatId || null) };
 }
 
 export function isAuthorizedChat(chatId: number | string | undefined): boolean {
@@ -61,11 +70,11 @@ async function telegramRequest(
   method: string,
   body: Record<string, unknown>
 ): Promise<TelegramApiResponse | null> {
-  const cfg = getTelegramConfig();
-  if (!cfg) return null;
+  const token = getTelegramBotToken();
+  if (!token) return null;
 
   try {
-    const res = await fetch(`https://api.telegram.org/bot${cfg.token}/${method}`, {
+    const res = await fetch(`https://api.telegram.org/bot${token}/${method}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
@@ -87,9 +96,9 @@ export async function getTelegramBotInfo(): Promise<{
   username?: string;
   error?: string;
 }> {
-  const cfg = getTelegramConfig();
-  if (!cfg) {
-    return { ok: false, error: "TELEGRAM_BOT_TOKEN или TELEGRAM_CHAT_ID не заданы" };
+  const token = getTelegramBotToken();
+  if (!token) {
+    return { ok: false, error: "TELEGRAM_BOT_TOKEN не задан" };
   }
 
   const res = await telegramRequest("getMe", {});
@@ -198,15 +207,15 @@ export async function notifyAdminTelegram(text: string): Promise<boolean> {
 export async function downloadTelegramPhotoAsDataUrl(
   fileId: string
 ): Promise<string | null> {
-  const cfg = getTelegramConfig();
-  if (!cfg) return null;
+  const token = getTelegramBotToken();
+  if (!token) return null;
 
   const fileRes = await telegramRequest("getFile", { file_id: fileId });
   const filePath = (fileRes?.result as { file_path?: string } | undefined)?.file_path;
   if (!filePath) return null;
 
   try {
-    const res = await fetch(`https://api.telegram.org/file/bot${cfg.token}/${filePath}`);
+    const res = await fetch(`https://api.telegram.org/file/bot${token}/${filePath}`);
     if (!res.ok) return null;
     const buf = Buffer.from(await res.arrayBuffer());
     if (buf.length > 4_500_000) return null;

@@ -22,13 +22,28 @@ export function Footer() {
             <p className="mt-4 text-sm text-bm-muted max-w-xs">{t.footer.desc}</p>
           </div>
 
-          <div className="grid grid-cols-2 gap-3 text-sm">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">
             <Link href="/services" className="text-bm-muted hover:text-bm-red transition-colors">
               {t.nav.services}
+            </Link>
+            <Link href="/cennik" className="text-bm-muted hover:text-bm-red transition-colors">
+              {t.nav.priceList}
             </Link>
             <BookingLink trackSource="footer" className="text-bm-muted hover:text-bm-red transition-colors">
               {t.nav.booking}
             </BookingLink>
+            <Link href="/about" className="text-bm-muted hover:text-bm-red transition-colors">
+              {t.nav.about}
+            </Link>
+            <Link href="/gallery" className="text-bm-muted hover:text-bm-red transition-colors">
+              {t.nav.gallery}
+            </Link>
+            <Link href="/faq" className="text-bm-muted hover:text-bm-red transition-colors">
+              {t.nav.faq}
+            </Link>
+            <Link href="/blog" className="text-bm-muted hover:text-bm-red transition-colors">
+              {t.nav.blog}
+            </Link>
             <Link href="/cabinet" className="text-bm-muted hover:text-bm-red transition-colors">
               {t.nav.cabinet}
             </Link>

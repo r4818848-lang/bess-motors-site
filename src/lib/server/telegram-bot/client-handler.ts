@@ -32,9 +32,13 @@ import {
 } from "./client-i18n";
 import {
   clearTelegramSessionKeepLocale,
+  consumePendingRefCode,
+  consumePendingStartParam,
   getClientLocale,
   saveClientLocale,
   setClientTelegramSession,
+  stashPendingRefCode,
+  stashPendingStartParam,
 } from "./client-locale";
 import {
   clientConfirmBookingKeyboard,
@@ -214,6 +218,7 @@ async function onLocaleChosen(
   startParam?: string
 ): Promise<void> {
   const chatKey = String(chatId);
+  const pending = startParam ?? (await consumePendingStartParam(chatKey));
   await saveClientLocale(chatKey, locale);
   const L = getClientBotLabels(locale);
   const savedText = L.languageSaved(LANGUAGE_NAMES[locale]);
@@ -223,8 +228,15 @@ async function onLocaleChosen(
     await sendTelegramMessage(chatId, savedText);
   }
   await attachStartKeyboard(chatId, locale);
-  await showClientMenu(chatId, undefined, locale, startParam);
-  await handleStartDeepLinks(chatId, locale, startParam);
+  await showClientMenu(chatId, undefined, locale, pending);
+  await handleStartDeepLinks(chatId, locale, pending);
+}
+
+function minimalTelegramProfile(chatId: number): TelegramProfile {
+  return {
+    chatId: String(chatId),
+    telegramUserId: chatId,
+  };
 }
 
 async function handleStartDeepLinks(
@@ -234,16 +246,50 @@ async function handleStartDeepLinks(
 ): Promise<void> {
   if (!startParam) return;
   const chatKey = String(chatId);
+
+  if (startParam === "link") {
+    await startLinkFlow(chatId, undefined, chatKey, locale, minimalTelegramProfile(chatId));
+    return;
+  }
+  if (startParam === "rebook" || startParam.startsWith("rebook_")) {
+    const aptId = startParam.startsWith("rebook_") ? startParam.slice(7) || undefined : undefined;
+    await rebookLastAppointment(chatId, chatKey, locale, aptId);
+    return;
+  }
+  if (startParam === "booking") {
+    const L = getClientBotLabels(locale);
+    await clearTelegramSessionKeepLocale(chatKey);
+    await sendTelegramMessage(chatId, L.chooseService, clientServiceKeyboard(locale, "book"));
+    return;
+  }
+
   if (startParam.startsWith("ref_")) {
-    await applyReferralFromStart(chatKey, startParam.slice(4));
+    const code = startParam.slice(4).trim();
+    if (!code) return;
+    const slice = await getClientPortalByChat(chatKey);
+    if (slice) {
+      await applyReferralFromStart(chatKey, code);
+    } else {
+      await stashPendingRefCode(chatKey, code);
+    }
     return;
   }
   if (startParam.startsWith("apt_")) {
     await handleAptStartParam(chatId, locale, startParam.slice(4));
     return;
   }
-  if (startParam.startsWith("rebook_")) {
-    await rebookLastAppointment(chatId, chatKey, locale, startParam.slice(7) || undefined);
+  if (startParam.startsWith("sign_")) {
+    const slice = await getClientPortalByChat(chatKey);
+    if (!slice) {
+      await startLinkFlow(
+        chatId,
+        undefined,
+        chatKey,
+        locale,
+        minimalTelegramProfile(chatId),
+        startParam.slice(5)
+      );
+    }
   }
 }
 
@@ -476,6 +522,11 @@ async function completeLink(
       );
     }
   }
+
+  const pendingRef = await consumePendingRefCode(chatKey);
+  if (pendingRef) {
+    await applyReferralFromStart(chatKey, pendingRef);
+  }
 }
 
 export async function handleClientMessage(msg: TelegramMessage): Promise<void> {
@@ -486,6 +537,8 @@ export async function handleClientMessage(msg: TelegramMessage): Promise<void> {
   if (text.startsWith("/start") || text === "/menu" || isStartCommand(text)) {
     const locale = await getClientLocale(chatKey);
     if (!locale) {
+      const startParam = parseStartParam(text);
+      if (startParam) await stashPendingStartParam(chatKey, startParam);
       await promptLanguage(chatId);
       return;
     }
@@ -759,7 +812,8 @@ export async function handleClientCallback(cb: TelegramCallback): Promise<void> 
   if (data.startsWith("cl:lang:") && data !== "cl:lang:pick") {
     const code = data.slice(8);
     if (isBotLocale(code)) {
-      await onLocaleChosen(chatId, code, messageId);
+      const pending = await consumePendingStartParam(chatKey);
+      await onLocaleChosen(chatId, code, messageId, pending);
     }
     return;
   }

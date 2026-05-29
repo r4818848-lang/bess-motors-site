@@ -10,8 +10,7 @@ import { loadLastBooking } from "@/lib/booking-url";
 import { buildBookingIcs, downloadIcsFile } from "@/lib/ics-calendar";
 import { siteConfig } from "@/lib/site";
 import { getSiteUrl } from "@/lib/seo";
-
-const BOT_USERNAME = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME ?? "BessMotors_bot";
+import { telegramBotUrl } from "@/lib/telegram-links";
 
 export function ThankYouExtras() {
   const { t } = useI18n();
@@ -19,7 +18,7 @@ export function ThankYouExtras() {
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
   const booking = loadLastBooking();
 
-  const tgLink = `https://t.me/${BOT_USERNAME}?start=rebook`;
+  const tgLink = telegramBotUrl("rebook");
 
   useEffect(() => {
     const url = `${getSiteUrl()}/cabinet`;

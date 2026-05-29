@@ -386,6 +386,8 @@ export interface CallRequest extends MarketingAttributionFields {
   source?: OrderSource;
   createdAt: string;
   priority?: "normal" | "urgent";
+  /** Set after admin escalation Telegram ping (call-escalation cron) */
+  escalatedAt?: string;
 }
 
 export interface Appointment extends MarketingAttributionFields {

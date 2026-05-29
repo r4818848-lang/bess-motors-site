@@ -79,6 +79,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       unsigned > 0 ? `✍️ Ждут подпись: <b>${unsigned}</b> (меню → «Подписи»)` : "",
       hotCount > 0 ? `🔥 Требуют внимания: <b>${hotCount}</b> заявок с сайта` : "",
       stats.unpaidCount > 0 ? `⏳ Долги: ${stats.unpaidTotal.toFixed(2)} zł (${stats.unpaidCount})` : "",
+      formatSeasonalCampaignHint(db),
       "",
       formatLowStockReport(db.warehouse),
       "",

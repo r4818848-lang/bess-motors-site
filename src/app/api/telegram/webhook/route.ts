@@ -7,6 +7,10 @@ export const runtime = "nodejs";
 
 export async function POST(req: Request) {
   const secret = cleanEnvValue(process.env.TELEGRAM_WEBHOOK_SECRET);
+  if (process.env.NODE_ENV === "production" && !secret) {
+    console.error("[telegram webhook] TELEGRAM_WEBHOOK_SECRET required in production");
+    return NextResponse.json({ ok: false, error: "webhook_secret_required" }, { status: 503 });
+  }
   if (secret) {
     const header = req.headers.get("x-telegram-bot-api-secret-token");
     if (header !== secret) {
@@ -20,6 +24,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true });
   } catch (e) {
     console.error("[telegram webhook]", e);
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: false }, { status: 500 });
   }
 }

@@ -63,12 +63,64 @@ export async function setClientTelegramSession(
 }
 
 export async function clearTelegramSessionKeepLocale(chatKey: string): Promise<void> {
+  const session = await getTelegramSession(chatKey);
   const locale = await getClientLocale(chatKey);
-  if (locale) {
-    await setTelegramSession(chatKey, { data: { locale } });
+  const pendingStartParam = session.data?.pendingStartParam;
+  const pendingRefCode = session.data?.pendingRefCode;
+  if (locale || pendingStartParam || pendingRefCode) {
+    const data: Record<string, string> = {};
+    if (locale) data.locale = locale;
+    if (pendingStartParam) data.pendingStartParam = pendingStartParam;
+    if (pendingRefCode) data.pendingRefCode = pendingRefCode;
+    await setTelegramSession(chatKey, { data });
   } else {
     await setTelegramSession(chatKey, null);
   }
+}
+
+export async function stashPendingStartParam(
+  chatKey: string,
+  startParam: string
+): Promise<void> {
+  const session = await getTelegramSession(chatKey);
+  await setTelegramSession(chatKey, {
+    step: session.step,
+    data: { ...(session.data ?? {}), pendingStartParam: startParam },
+  });
+}
+
+export async function consumePendingStartParam(chatKey: string): Promise<string | undefined> {
+  const session = await getTelegramSession(chatKey);
+  const param = session.data?.pendingStartParam;
+  if (!param) return undefined;
+  const data = { ...(session.data ?? {}) };
+  delete data.pendingStartParam;
+  await setTelegramSession(chatKey, {
+    step: session.step,
+    data: Object.keys(data).length ? data : undefined,
+  });
+  return param;
+}
+
+export async function stashPendingRefCode(chatKey: string, refCode: string): Promise<void> {
+  const session = await getTelegramSession(chatKey);
+  await setTelegramSession(chatKey, {
+    step: session.step,
+    data: { ...(session.data ?? {}), pendingRefCode: refCode },
+  });
+}
+
+export async function consumePendingRefCode(chatKey: string): Promise<string | undefined> {
+  const session = await getTelegramSession(chatKey);
+  const code = session.data?.pendingRefCode;
+  if (!code) return undefined;
+  const data = { ...(session.data ?? {}) };
+  delete data.pendingRefCode;
+  await setTelegramSession(chatKey, {
+    step: session.step,
+    data: Object.keys(data).length ? data : undefined,
+  });
+  return code;
 }
 
 export function languageDisplayName(locale: BotLocale): string {

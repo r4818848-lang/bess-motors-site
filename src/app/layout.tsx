@@ -6,16 +6,12 @@ import "./globals.css";
 
 import { Providers } from "./providers";
 
-import { Header } from "@/components/layout/Header";
-
-import { Footer } from "@/components/layout/Footer";
+import { SiteShell } from "@/components/layout/SiteShell";
 import { GoogleAdsTag } from "@/components/analytics/GoogleAdsTag";
 import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
 import { GoogleAnalyticsPageView } from "@/components/analytics/GoogleAnalyticsPageView";
 import { MetaPixelPageView } from "@/components/analytics/MetaPixelPageView";
 import { META_PIXEL_ID, metaPixelInitScript } from "@/lib/meta-pixel";
-import { StickyContactBar } from "@/components/layout/StickyContactBar";
-import { BookNowSticky } from "@/components/layout/BookNowSticky";
 import { JsonLd } from "@/components/seo/JsonLd";
 import {
   facebookDomainVerification,
@@ -159,11 +155,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <GoogleAnalyticsPageView />
         <MetaPixelPageView />
         <Providers>
-          <Header />
-          <main className="min-h-screen pb-16 md:pb-0">{children}</main>
-          <Footer />
-          <StickyContactBar />
-          <BookNowSticky />
+          <SiteShell>{children}</SiteShell>
         </Providers>
 
       </body>

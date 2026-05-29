@@ -9,7 +9,7 @@ export default function MechanicLayout({ children }: { children: React.ReactNode
   return (
     <div
       className="relative z-10 w-full"
-      style={{ minHeight: "calc(100vh - 8rem)", backgroundColor: "#0a0a0a" }}
+      style={{ minHeight: "100vh", backgroundColor: "#0a0a0a" }}
     >
       <MechanicGuard>{children}</MechanicGuard>
     </div>

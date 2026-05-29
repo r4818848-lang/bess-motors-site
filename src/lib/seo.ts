@@ -24,21 +24,6 @@ export const publicSitemapPaths: {
   { path: "/blog", changeFrequency: "weekly", priority: 0.7 },
   { path: "/referral", changeFrequency: "monthly", priority: 0.7 },
   { path: "/privacy", changeFrequency: "monthly", priority: 0.3 },
-  { path: "/diagnostyka", changeFrequency: "weekly", priority: 0.85 },
-  { path: "/zawieszenie", changeFrequency: "weekly", priority: 0.85 },
-  { path: "/wymiana-oleju", changeFrequency: "weekly", priority: 0.85 },
-  { path: "/hamulce", changeFrequency: "weekly", priority: 0.85 },
-  { path: "/klimatyzacja", changeFrequency: "weekly", priority: 0.85 },
-  { path: "/geometria", changeFrequency: "weekly", priority: 0.85 },
-  { path: "/silnik", changeFrequency: "weekly", priority: 0.85 },
-  { path: "/elektryka", changeFrequency: "weekly", priority: 0.85 },
-  { path: "/przeglad", changeFrequency: "weekly", priority: 0.85 },
-  { path: "/opony", changeFrequency: "weekly", priority: 0.85 },
-  { path: "/bmw", changeFrequency: "weekly", priority: 0.8 },
-  { path: "/mercedes", changeFrequency: "weekly", priority: 0.8 },
-  { path: "/vag", changeFrequency: "weekly", priority: 0.8 },
-  { path: "/kontakt", changeFrequency: "weekly", priority: 0.9 },
-  { path: "/promocje", changeFrequency: "weekly", priority: 0.75 },
 ];
 
 export const googleSiteVerification =

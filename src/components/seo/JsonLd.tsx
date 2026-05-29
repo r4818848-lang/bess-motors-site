@@ -58,10 +58,17 @@ export function JsonLd() {
         url: siteUrl,
         name: siteConfig.name,
         publisher: { "@id": `${siteUrl}/#business` },
-        inLanguage: ["pl", "ru"],
+        inLanguage: ["pl", "ru", "en"],
         potentialAction: {
           "@type": "ReserveAction",
-          target: `${siteUrl}/booking`,
+          target: {
+            "@type": "EntryPoint",
+            urlTemplate: `${siteUrl}/booking`,
+            actionPlatform: [
+              "http://schema.org/DesktopWebPlatform",
+              "http://schema.org/MobileWebPlatform",
+            ],
+          },
         },
       },
     ],
