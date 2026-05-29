@@ -26,6 +26,7 @@ import { WorkOrderPrintView } from "./WorkOrderPrintView";
 import { DocumentLocalePicker } from "./DocumentLocalePicker";
 import { buildShareMessage, whatsappShareUrl, telegramShareUrl } from "@/lib/work-order-share";
 import { SignLinkShareBlock } from "./SignLinkShareBlock";
+import { openWorkOrderPreview } from "@/lib/work-order-preview";
 
 interface Props {
   order: WorkOrder;
@@ -73,8 +74,6 @@ export function WorkOrderDocumentActions({
   const d = t.document;
   const [showPrint, setShowPrint] = useState(false);
   const [printVariant, setPrintVariant] = useState<WorkOrderDocVariant>("color");
-  const [showPreview, setShowPreview] = useState(false);
-  const [previewVariant, setPreviewVariant] = useState<WorkOrderDocVariant>("color");
   const [pdfLoading, setPdfLoading] = useState<"color" | "bw" | null>(null);
   const db = loadDb();
   const vatRate = db.settings.vatRate ?? 23;
@@ -112,10 +111,7 @@ export function WorkOrderDocumentActions({
       {localePicker}
       <WoDocIconButton
         title={d.preview}
-        onClick={() => {
-          setPreviewVariant("color");
-          setShowPreview(true);
-        }}
+        onClick={() => openWorkOrderPreview(order.id, { lang: docLang, variant: "color" })}
       >
         <Eye size={iconSize} />
       </WoDocIconButton>
@@ -160,22 +156,14 @@ export function WorkOrderDocumentActions({
     return (
       <>
         {docIcons}
-        {(showPreview || showPrint) && (
-          <PrintPreviewOverlay
-            showPreview={showPreview}
-            showPrint={showPrint}
-            previewVariant={previewVariant}
+        {showPrint && (
+          <PrintOverlay
             printVariant={printVariant}
-            onPreviewVariant={setPreviewVariant}
-            onClosePreview={() => setShowPreview(false)}
-            onPrintColor={() => handlePrint("color")}
-            onPrintBw={() => handlePrint("bw")}
             order={order}
             vehicle={vehicle}
             client={client}
             vatRate={vatRate}
             docLocale={docLang}
-            d={d}
           />
         )}
       </>
@@ -222,113 +210,44 @@ export function WorkOrderDocumentActions({
         </a>
       </div>
 
-      {(showPreview || showPrint) && (
-        <PrintPreviewOverlay
-          showPreview={showPreview}
-          showPrint={showPrint}
-          previewVariant={previewVariant}
+      {showPrint && (
+        <PrintOverlay
           printVariant={printVariant}
-          onPreviewVariant={setPreviewVariant}
-          onClosePreview={() => setShowPreview(false)}
-          onPrintColor={() => handlePrint("color")}
-          onPrintBw={() => handlePrint("bw")}
           order={order}
           vehicle={vehicle}
           client={client}
           vatRate={vatRate}
           docLocale={docLang}
-          d={d}
         />
       )}
     </>
   );
 }
 
-function PrintPreviewOverlay({
-  showPreview,
-  showPrint,
-  previewVariant,
+function PrintOverlay({
   printVariant,
-  onPreviewVariant,
-  onClosePreview,
-  onPrintColor,
   order,
   vehicle,
   client,
   vatRate,
   docLocale,
-  d,
 }: {
-  showPreview: boolean;
-  showPrint: boolean;
-  previewVariant: WorkOrderDocVariant;
   printVariant: WorkOrderDocVariant;
-  onPreviewVariant: (v: WorkOrderDocVariant) => void;
-  onClosePreview: () => void;
-  onPrintColor: () => void;
-  onPrintBw: () => void;
   order: WorkOrder;
   vehicle: Vehicle;
   client: User;
   vatRate: number;
   docLocale: DocLocale;
-  d: {
-    printColor: string;
-    printBw: string;
-    preview: string;
-  };
 }) {
-  const variant = showPrint ? printVariant : previewVariant;
-
   return (
-    <div
-      className={`fixed inset-0 z-[200] bg-black/90 overflow-y-auto p-4 ${showPrint ? "print:p-0 print:bg-white" : ""}`}
-      onClick={() => !showPrint && onClosePreview()}
-    >
-      {showPreview && !showPrint && (
-        <div
-          className="sticky top-0 z-10 flex flex-wrap justify-center items-center gap-2 py-3 print:hidden"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <button
-            type="button"
-            className={`wo-doc-icon-btn ${previewVariant === "color" ? "wo-doc-icon-btn-active" : ""}`}
-            onClick={() => onPreviewVariant("color")}
-            title={d.printColor}
-          >
-            <Palette size={16} />
-          </button>
-          <button
-            type="button"
-            className={`wo-doc-icon-btn ${previewVariant === "bw" ? "wo-doc-icon-btn-active" : ""}`}
-            onClick={() => onPreviewVariant("bw")}
-            title={d.printBw}
-          >
-            <Contrast size={16} />
-          </button>
-          <button type="button" className="wo-doc-icon-btn" onClick={onPrintColor} title={d.printColor}>
-            <Printer size={16} />
-          </button>
-          <button
-            type="button"
-            className="wo-doc-icon-btn text-bm-muted hover:text-white"
-            onClick={onClosePreview}
-            title={d.preview}
-          >
-            ✕
-          </button>
-        </div>
-      )}
-      <div
-        className="max-w-[820px] mx-auto print:max-w-none"
-        onClick={(e) => e.stopPropagation()}
-      >
+    <div className="fixed inset-0 z-[200] bg-white overflow-y-auto print:p-0">
+      <div className="max-w-[820px] mx-auto print:max-w-none">
         <WorkOrderPrintView
           order={order}
           vehicle={vehicle}
           client={client}
           vatRate={vatRate}
-          variant={variant}
+          variant={printVariant}
           docLocale={docLocale}
         />
       </div>
