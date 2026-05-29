@@ -21,6 +21,7 @@ import {
   getWorkOrderLegalTexts,
   workOrderLegalLocaleFromUi,
 } from "@/lib/work-order-share";
+import { getPremiumWoContent } from "@/lib/work-order-locale";
 import { WorkOrderPhotoGallery } from "./WorkOrderPhotoGallery";
 
 export type PremiumWorkOrderMode = "screen" | "print";
@@ -32,6 +33,8 @@ interface Props {
   vatRate?: number;
   mode?: PremiumWorkOrderMode;
   variant?: WorkOrderDocVariant;
+  /** Override document language (print / client sign) */
+  docLocale?: DocLocale;
   className?: string;
   id?: string;
   repairStatusLabel?: string;
@@ -116,6 +119,7 @@ export function PremiumWorkOrderDocument({
   vatRate = 23,
   mode = "screen",
   variant = "color",
+  docLocale: docLocaleProp,
   className = "",
   id,
   repairStatusLabel,
@@ -126,13 +130,16 @@ export function PremiumWorkOrderDocument({
   footerActions,
 }: Props) {
   const { locale, t } = useI18n();
-  const docLocale: DocLocale = workOrderLegalLocaleFromUi(locale);
+  const docLocale: DocLocale =
+    docLocaleProp ?? workOrderLegalLocaleFromUi(locale);
   const L = getDocLabels(docLocale);
   const legal = getWorkOrderLegalTexts(docLocale);
-  const p = t.premiumWo;
+  const premium = getPremiumWoContent(docLocale);
   const b = calcOrderBreakdown(order, vatRate);
   const sig = t.signature;
   const clientFiles = order.files.filter((f) => f.category !== "internal");
+  const isPrint = mode === "print";
+  const MotionWrap = isPrint ? "div" : motion.div;
 
   const serviceRows = order.services.map((s) => [
     s.name || "—",
@@ -151,10 +158,10 @@ export function PremiumWorkOrderDocument({
   ]);
 
   const badges = [
-    p.badgeFast,
-    p.badgePro,
-    p.badgeWarranty,
-    p.badgePremium,
+    premium.badges[0],
+    premium.badges[1],
+    premium.badges[2],
+    premium.badges[3],
   ];
 
   const printClass = mode === "print" ? "print:shadow-none" : "";
@@ -166,16 +173,14 @@ export function PremiumWorkOrderDocument({
       id={id}
       className={`wo-premium-root ${variantClass} ${printClass} ${className}`}
     >
-      {/* Banner header — как на баннере сайта */}
+      <div className="wo-premium-accent-bar" aria-hidden />
       <header className="wo-premium-header">
         <div className="wo-premium-scan top-12" />
         <div className="absolute inset-0 wo-glow-br pointer-events-none" />
-        <div className="absolute inset-0 grid-bg opacity-[0.15] pointer-events-none" />
-        <div className="relative z-10 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-10">
-          <motion.div
-            initial={{ opacity: 0, x: -16 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6 }}
+        <div className="absolute inset-0 grid-bg opacity-[0.12] pointer-events-none" />
+        <div className="relative z-10 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8">
+          <MotionWrap
+            {...(isPrint ? {} : { initial: { opacity: 0, x: -16 }, animate: { opacity: 1, x: 0 }, transition: { duration: 0.6 } })}
             className="flex flex-col items-start"
           >
             <div className="relative mb-5">
@@ -183,32 +188,35 @@ export function PremiumWorkOrderDocument({
               <Image
                 src={siteConfig.logoImage}
                 alt={siteConfig.name}
-                width={240}
-                height={72}
-                className="relative h-16 sm:h-[4.5rem] w-auto object-contain wo-premium-logo-glow"
+                width={260}
+                height={78}
+                className="relative h-[4.25rem] sm:h-[5rem] w-auto object-contain wo-premium-logo-glow"
                 unoptimized
                 priority
               />
             </div>
-            <p className="text-[10px] uppercase tracking-[0.3em] text-bm-red/90 font-display">
+            <p className="text-[10px] uppercase tracking-[0.35em] text-bm-red/90 font-display">
               {L.title}
             </p>
-            <p className="font-mono text-3xl sm:text-4xl font-bold text-white mt-2 tracking-wider">
-              <span className="text-bm-red text-glow">{order.number}</span>
+            <p className="text-[9px] uppercase tracking-[0.2em] text-bm-muted/90 mt-1">
+              {L.subtitle}
             </p>
-            <p className="text-xs text-bm-muted mt-2 font-display uppercase tracking-widest">
+            <div className="wo-premium-number-frame mt-4">
+              <span className="font-mono text-2xl sm:text-3xl font-bold text-white tracking-wider">
+                <span className="text-bm-red">{order.number}</span>
+              </span>
+            </div>
+            <p className="text-xs text-bm-muted mt-3 font-display uppercase tracking-widest">
               {L.date} · {order.createdAt}
             </p>
-          </motion.div>
+          </MotionWrap>
 
-          <motion.div
-            initial={{ opacity: 0, x: 16 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
+          <MotionWrap
+            {...(isPrint ? {} : { initial: { opacity: 0, x: 16 }, animate: { opacity: 1, x: 0 }, transition: { duration: 0.6, delay: 0.1 } })}
             className="lg:text-right w-full lg:max-w-2xl"
           >
-            <h2 className="wo-premium-slogan text-xl sm:text-2xl md:text-3xl lg:text-[2rem] xl:text-4xl">
-              {p.slogan}
+            <h2 className="wo-premium-slogan text-xl sm:text-2xl md:text-3xl lg:text-[2rem] xl:text-[2.25rem]">
+              {premium.slogan}
             </h2>
             <div className="mt-6 flex flex-wrap gap-2 sm:gap-3 lg:justify-end">
               {badges.map((label) => (
@@ -217,7 +225,7 @@ export function PremiumWorkOrderDocument({
                 </span>
               ))}
             </div>
-          </motion.div>
+          </MotionWrap>
         </div>
         <div className="relative z-10 h-px mt-10 bg-gradient-to-r from-transparent via-bm-red/70 to-transparent" />
       </header>
@@ -424,7 +432,7 @@ export function PremiumWorkOrderDocument({
           <div className="pt-4 border-t border-bm-border/50">{footerActions}</div>
         )}
 
-        <p className="text-[9px] text-center text-bm-muted/80 pb-2">
+        <p className="text-[9px] text-center text-bm-muted/80 pb-2 wo-premium-footer-line">
           {siteConfig.name} · {siteConfig.address} · {siteConfig.phone} · {siteConfig.email}
         </p>
       </div>

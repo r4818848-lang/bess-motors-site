@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useState, useMemo, type ReactNode } from "react";
 import {
   Printer,
   FileDown,
@@ -11,7 +11,6 @@ import {
   Contrast,
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
-import { pdfLocale as getPdfLocale } from "@/lib/i18n/locale-utils";
 import type { WorkOrder, Vehicle, User } from "@/lib/store";
 import { loadDb } from "@/lib/store";
 import {
@@ -19,7 +18,12 @@ import {
   generateWorkOrderPdfBw,
 } from "@/lib/pdf";
 import type { WorkOrderDocVariant } from "@/lib/work-order-document";
+import {
+  resolveOrderDocumentLocale,
+  type DocLocale,
+} from "@/lib/work-order-locale";
 import { WorkOrderPrintView } from "./WorkOrderPrintView";
+import { DocumentLocalePicker } from "./DocumentLocalePicker";
 import { buildShareMessage, whatsappShareUrl, telegramShareUrl } from "@/lib/work-order-share";
 import { SignLinkShareBlock } from "./SignLinkShareBlock";
 
@@ -28,8 +32,8 @@ interface Props {
   client: User;
   vehicle: Vehicle | undefined;
   compact?: boolean;
-  /** Icon toolbar in the top-right of the work order card */
   iconToolbar?: boolean;
+  onDocumentLocaleChange?: (locale: DocLocale) => void;
 }
 
 function WoDocIconButton({
@@ -63,6 +67,7 @@ export function WorkOrderDocumentActions({
   vehicle,
   compact,
   iconToolbar,
+  onDocumentLocaleChange,
 }: Props) {
   const { t, locale } = useI18n();
   const d = t.document;
@@ -73,8 +78,13 @@ export function WorkOrderDocumentActions({
   const [pdfLoading, setPdfLoading] = useState<"color" | "bw" | null>(null);
   const db = loadDb();
   const vatRate = db.settings.vatRate ?? 23;
-  const lang = getPdfLocale(locale);
-  const shareText = buildShareMessage(order, client, lang);
+  const docLang = resolveOrderDocumentLocale(order, locale);
+  const shareText = useMemo(
+    () => buildShareMessage(order, client, docLang),
+    [order, client, docLang]
+  );
+
+  const setDocLang = (loc: DocLocale) => onDocumentLocaleChange?.(loc);
 
   const handlePrint = (variant: WorkOrderDocVariant) => {
     setPrintVariant(variant);
@@ -85,14 +95,21 @@ export function WorkOrderDocumentActions({
     });
   };
 
-  const pdfLocale = lang;
-
   if (!vehicle) return null;
 
   const iconSize = 18;
 
+  const localePicker = (
+    <DocumentLocalePicker
+      value={docLang}
+      onChange={setDocLang}
+      compact={iconToolbar}
+    />
+  );
+
   const docIcons = (
     <div className="flex flex-wrap items-center gap-2 justify-end">
+      {localePicker}
       <WoDocIconButton
         title={d.preview}
         onClick={() => {
@@ -114,7 +131,7 @@ export function WorkOrderDocumentActions({
         onClick={async () => {
           setPdfLoading("color");
           try {
-            await generateWorkOrderPdfColor(order, vehicle, client, pdfLocale, vatRate);
+            await generateWorkOrderPdfColor(order, vehicle, client, docLang, vatRate);
           } finally {
             setPdfLoading(null);
           }
@@ -128,7 +145,7 @@ export function WorkOrderDocumentActions({
         onClick={async () => {
           setPdfLoading("bw");
           try {
-            await generateWorkOrderPdfBw(order, vehicle, client, pdfLocale, vatRate);
+            await generateWorkOrderPdfBw(order, vehicle, client, docLang, vatRate);
           } finally {
             setPdfLoading(null);
           }
@@ -157,6 +174,7 @@ export function WorkOrderDocumentActions({
             vehicle={vehicle}
             client={client}
             vatRate={vatRate}
+            docLocale={docLang}
             d={d}
           />
         )}
@@ -166,11 +184,24 @@ export function WorkOrderDocumentActions({
 
   return (
     <>
-      {!compact && <SignLinkShareBlock order={order} client={client} />}
+      {!compact && (
+        <SignLinkShareBlock
+          order={order}
+          client={client}
+          onDocumentLocaleChange={onDocumentLocaleChange}
+        />
+      )}
 
       <div className={`flex flex-wrap items-center gap-3 ${compact ? "" : "mt-4"}`}>
         {docIcons}
-        {compact && <SignLinkShareBlock order={order} client={client} inline />}
+        {compact && (
+          <SignLinkShareBlock
+            order={order}
+            client={client}
+            inline
+            onDocumentLocaleChange={onDocumentLocaleChange}
+          />
+        )}
         <a
           href={whatsappShareUrl(shareText)}
           target="_blank"
@@ -205,6 +236,7 @@ export function WorkOrderDocumentActions({
           vehicle={vehicle}
           client={client}
           vatRate={vatRate}
+          docLocale={docLang}
           d={d}
         />
       )}
@@ -220,11 +252,11 @@ function PrintPreviewOverlay({
   onPreviewVariant,
   onClosePreview,
   onPrintColor,
-  onPrintBw,
   order,
   vehicle,
   client,
   vatRate,
+  docLocale,
   d,
 }: {
   showPreview: boolean;
@@ -239,6 +271,7 @@ function PrintPreviewOverlay({
   vehicle: Vehicle;
   client: User;
   vatRate: number;
+  docLocale: DocLocale;
   d: {
     printColor: string;
     printBw: string;
@@ -296,6 +329,7 @@ function PrintPreviewOverlay({
           client={client}
           vatRate={vatRate}
           variant={variant}
+          docLocale={docLocale}
         />
       </div>
     </div>

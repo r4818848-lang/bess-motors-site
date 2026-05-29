@@ -13,15 +13,17 @@ import { PremiumWorkOrderDocument } from "@/components/work-order/PremiumWorkOrd
 import { getClientPaymentView } from "@/lib/payment";
 import { RepairStatusStepper } from "@/components/cabinet/RepairStatusStepper";
 import { downloadWorkOrderPdf } from "@/lib/work-order-pdf";
-import { pdfLocale as getPdfLocale } from "@/lib/i18n/locale-utils";
+import type { DocLocale } from "@/lib/work-order-locale";
+import { resolveOrderDocumentLocale } from "@/lib/work-order-locale";
 
 interface Props {
   order: WorkOrder;
   db: Database;
   onBack: () => void;
+  documentLocale?: DocLocale;
 }
 
-export function ClientWorkOrderDetail({ order, db, onBack }: Props) {
+export function ClientWorkOrderDetail({ order, db, onBack, documentLocale }: Props) {
   const { t, locale } = useI18n();
   const sig = t.signature;
   const docSt = t.documentStatus;
@@ -31,6 +33,7 @@ export function ClientWorkOrderDetail({ order, db, onBack }: Props) {
   const client = db.users.find((u) => u.id === order.userId)!;
   const vehicle = db.vehicles.find((v) => v.id === order.vehicleId);
   const vatRate = db.settings.vatRate ?? 23;
+  const docLang = documentLocale ?? resolveOrderDocumentLocale(localOrder, locale);
 
   const clientPay = getClientPaymentView(localOrder.paymentMethod, localOrder.paymentStatus);
   const clientPayLabel =
@@ -81,6 +84,7 @@ export function ClientWorkOrderDetail({ order, db, onBack }: Props) {
         vehicle={vehicle}
         client={client}
         vatRate={vatRate}
+        docLocale={docLang}
         repairStatusLabel={t.repairStatus[localOrder.status]}
         documentStatusLabel={docSt[localOrder.documentStatus ?? "awaiting_signature"]}
         clientPaymentLabel={clientPayLabel}
@@ -98,7 +102,7 @@ export function ClientWorkOrderDetail({ order, db, onBack }: Props) {
                 downloadWorkOrderPdf(
                   localOrder,
                   `${vehicle.make} ${vehicle.model} · ${vehicle.plate}`,
-                  getPdfLocale(locale)
+                  docLang
                 )
               }
             >

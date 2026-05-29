@@ -2,15 +2,21 @@ import { siteConfig } from "./site";
 import type { WorkOrder, User } from "./store";
 
 /** Public URL for signing — uses production domain when configured */
-export function getSignUrl(orderId: string): string {
+export function getSignUrl(orderId: string, lang?: "pl" | "ru" | "en"): string {
   const path = `/sign/${orderId}`;
   const publicBase =
     typeof process !== "undefined" && process.env.NEXT_PUBLIC_SITE_URL
       ? process.env.NEXT_PUBLIC_SITE_URL.replace(/\/$/, "")
       : null;
-  if (publicBase) return `${publicBase}${path}`;
-  if (typeof window !== "undefined") return `${window.location.origin}${path}`;
-  return path;
+  const base =
+    publicBase ??
+    (typeof window !== "undefined" ? window.location.origin : "");
+  const url = base ? `${base}${path}` : path;
+  if (lang) {
+    const sep = url.includes("?") ? "&" : "?";
+    return `${url}${sep}lang=${lang}`;
+  }
+  return url;
 }
 
 export function getCabinetOrderUrl(orderId: string): string {
@@ -19,7 +25,7 @@ export function getCabinetOrderUrl(orderId: string): string {
 }
 
 export function buildShareMessage(order: WorkOrder, client: User, lang: "pl" | "ru" | "en" = "ru"): string {
-  const link = getSignUrl(order.id);
+  const link = getSignUrl(order.id, lang);
   if (lang === "pl") {
     return `BESS MOTORS — zlecenie ${order.number}\n${client.name}, prosimy o zapoznanie i podpis:\n${link}`;
   }

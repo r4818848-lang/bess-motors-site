@@ -12,8 +12,11 @@ import {
   fetchClientIp,
   getDeviceInfo,
   getFullSignatureConfirmationText,
-  workOrderLegalLocaleFromUi,
 } from "@/lib/work-order-share";
+import {
+  resolveOrderDocumentLocale,
+  type DocLocale,
+} from "@/lib/work-order-locale";
 
 type CloudSignContext = {
   phone: string;
@@ -26,12 +29,23 @@ interface Props {
   onDone: () => void;
   onCancel: () => void;
   cloudSign?: CloudSignContext;
+  /** Document language for client (from order or URL) */
+  documentLocale?: DocLocale;
+  urlLang?: string | null;
 }
 
-export function WorkOrderSignatureFlow({ order, db, onDone, onCancel, cloudSign }: Props) {
+export function WorkOrderSignatureFlow({
+  order,
+  db,
+  onDone,
+  onCancel,
+  cloudSign,
+  documentLocale,
+  urlLang,
+}: Props) {
   const { t, locale } = useI18n();
   const s = t.signature;
-  const docLocale = workOrderLegalLocaleFromUi(locale);
+  const docLocale = documentLocale ?? resolveOrderDocumentLocale(order, locale, urlLang);
   const [signatureData, setSignatureData] = useState<string | null>(null);
   const [priceOk, setPriceOk] = useState(false);
   const [repairOk, setRepairOk] = useState(false);
@@ -113,6 +127,7 @@ export function WorkOrderSignatureFlow({ order, db, onDone, onCancel, cloudSign 
           vehicle={vehicle}
           client={client}
           vatRate={vatRate}
+          docLocale={docLocale}
           signatureSlot={
             <div className="space-y-4">
               <div className="space-y-2">

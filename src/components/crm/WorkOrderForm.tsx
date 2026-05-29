@@ -51,6 +51,9 @@ import { CrmMessageTemplates } from "@/components/crm/CrmMessageTemplates";
 import { WorkOrderAuditPanel } from "@/components/crm/WorkOrderAuditPanel";
 import { WorkOrderChecklistPanel } from "@/components/crm/WorkOrderChecklistPanel";
 import { downloadReceptionAct, downloadDeliveryAct } from "@/lib/vehicle-doc-pdf";
+import type { DocLocale } from "@/lib/work-order-locale";
+
+type CreateStep = "client" | "works" | "more";
 
 const statuses: RepairStatus[] = [
   "received",
@@ -68,7 +71,7 @@ function emptyOrder(db: Database): WorkOrder {
     userId: "",
     vehicleId: "",
     status: "received",
-    services: [],
+    services: [{ id: `s-${Date.now()}`, name: "", qty: 1, price: 0, discount: 0 }],
     parts: [],
     mechanicId: db.mechanics[0]?.id ?? "",
     mechanicLaborPercent: -1,
@@ -111,10 +114,13 @@ export function WorkOrderForm({ orderId, onClose, onSaved }: WorkOrderFormProps)
 
   const db = loadDb();
   const existing = orderId ? db.workOrders.find((o) => o.id === orderId) : null;
+  const isNew = !existing;
 
   const [order, setOrder] = useState<WorkOrder>(existing ?? emptyOrder(db));
   const [searchQ, setSearchQ] = useState("");
   const [showSearch, setShowSearch] = useState(!existing);
+  const [createStep, setCreateStep] = useState<CreateStep>("client");
+  const [saveError, setSaveError] = useState("");
 
   const searchResults = useMemo(
     () => (searchQ.length >= 2 ? searchClientsAndVehicles(db, searchQ) : []),
@@ -150,6 +156,12 @@ export function WorkOrderForm({ orderId, onClose, onSaved }: WorkOrderFormProps)
     }));
     setShowSearch(false);
     setSearchQ("");
+    setSaveError("");
+    if (isNew) setCreateStep("works");
+  };
+
+  const setDocumentLocale = (documentLocale: DocLocale) => {
+    setOrder((o) => ({ ...o, documentLocale }));
   };
 
   const updateService = (i: number, patch: Partial<WorkOrderLine>) => {
@@ -197,9 +209,11 @@ export function WorkOrderForm({ orderId, onClose, onSaved }: WorkOrderFormProps)
 
   const save = () => {
     if (!order.userId || !order.vehicleId) {
-      alert(w.selectClientVehicle);
+      setSaveError(w.selectClientVehicle);
+      if (isNew) setCreateStep("client");
       return;
     }
+    setSaveError("");
     const fresh = loadDb();
     const idx = fresh.workOrders.findIndex((o) => o.id === order.id);
     const previousOrder = idx >= 0 ? { ...fresh.workOrders[idx] } : null;
@@ -249,6 +263,16 @@ export function WorkOrderForm({ orderId, onClose, onSaved }: WorkOrderFormProps)
   const referralDiscountReady = client ? canUseReferralDiscount(client, db) : false;
   const inviteeDiscountReady = client ? canUseInviteeDiscount(client) : false;
 
+  const createSteps: { id: CreateStep; label: string }[] = [
+    { id: "client", label: w.stepClient },
+    { id: "works", label: w.stepWorks },
+    { id: "more", label: w.stepMore },
+  ];
+
+  const showClient = !isNew || createStep === "client";
+  const showWorks = !isNew || createStep === "works" || createStep === "more";
+  const showMore = !isNew || createStep === "more";
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -257,6 +281,9 @@ export function WorkOrderForm({ orderId, onClose, onSaved }: WorkOrderFormProps)
             {existing ? w.editOrder : w.newOrder}
           </h2>
           <p className="font-mono text-bm-red mt-1">{order.number}</p>
+          {isNew && (
+            <p className="text-xs text-bm-muted mt-2 max-w-md">{w.quickCreateHint}</p>
+          )}
         </div>
         <div className="flex gap-2">
           {existing && (
@@ -273,7 +300,39 @@ export function WorkOrderForm({ orderId, onClose, onSaved }: WorkOrderFormProps)
         </div>
       </div>
 
-      {referralDiscountReady && client && (
+      {saveError && (
+        <p className="text-sm text-red-400 bg-red-500/10 border border-red-500/30 rounded-lg px-4 py-2">
+          {saveError}
+        </p>
+      )}
+
+      {isNew && (
+        <div className="flex flex-wrap gap-2">
+          {createSteps.map(({ id, label }, i) => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => {
+                if (id !== "client" && (!order.userId || !order.vehicleId)) {
+                  setSaveError(w.selectClientVehicle);
+                  setCreateStep("client");
+                  return;
+                }
+                setCreateStep(id);
+              }}
+              className={`px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wide border transition-all ${
+                createStep === id
+                  ? "bg-bm-red/25 border-bm-red text-bm-red shadow-neon-sm"
+                  : "border-bm-border text-bm-muted hover:text-white"
+              }`}
+            >
+              {i + 1}. {label}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {(showMore || !isNew) && referralDiscountReady && client && (
         <div className="glass rounded-xl p-4 border border-green-500/40 flex flex-wrap items-center justify-between gap-3">
           <p className="text-sm text-green-400">
             🎁 Klient ma <b>15% rabatu referral</b> (5 potwierdzonych poleceń). Jednorazowo na to
@@ -295,7 +354,7 @@ export function WorkOrderForm({ orderId, onClose, onSaved }: WorkOrderFormProps)
         </div>
       )}
 
-      {inviteeDiscountReady && client && (
+      {(showMore || !isNew) && inviteeDiscountReady && client && (
         <div className="glass rounded-xl p-4 border border-blue-500/40 flex flex-wrap items-center justify-between gap-3">
           <p className="text-sm text-blue-300">
             🎁 Klient przyszedł z polecenia — <b>5% rabatu</b> na to zlecenie (po pierwszym WZ).
@@ -311,7 +370,7 @@ export function WorkOrderForm({ orderId, onClose, onSaved }: WorkOrderFormProps)
         </div>
       )}
 
-      {/* Client / vehicle search */}
+      {showClient && (
       <div className="glass-red rounded-xl p-6 neon-border">
         <h3 className="font-display text-sm uppercase text-bm-red mb-4">{w.searchClient}</h3>
         {client && !showSearch ? (
@@ -362,13 +421,36 @@ export function WorkOrderForm({ orderId, onClose, onSaved }: WorkOrderFormProps)
           </>
         )}
       </div>
+      )}
 
-      {client && vehicle && (
+      {isNew && createStep === "client" && (
+        <div className="flex justify-end">
+          <Button
+            type="button"
+            onClick={() => {
+              if (!order.userId || !order.vehicleId) {
+                setSaveError(w.selectClientVehicle);
+                return;
+              }
+              setCreateStep("works");
+            }}
+          >
+            {w.stepNext}
+          </Button>
+        </div>
+      )}
+
+      {client && vehicle && (!isNew || showMore) && (
         <div className="glass-red rounded-xl p-6 neon-border">
           <h3 className="font-display text-sm uppercase text-bm-red mb-4 flex items-center gap-2">
             <FileText size={16} /> {w.sendDocuments}
           </h3>
-          <WorkOrderDocumentActions order={order} client={client} vehicle={vehicle} />
+          <WorkOrderDocumentActions
+            order={order}
+            client={client}
+            vehicle={vehicle}
+            onDocumentLocaleChange={setDocumentLocale}
+          />
           {order.signature && (
             <div className="mt-4 pt-4 border-t border-bm-border text-xs text-bm-muted">
               <p className="text-green-400">{t.signature.confirmed}</p>
@@ -400,10 +482,15 @@ export function WorkOrderForm({ orderId, onClose, onSaved }: WorkOrderFormProps)
         </div>
       )}
 
+      {showMore && (
+        <>
       <WorkOrderChecklistPanel order={order} onChange={(patch) => setOrder({ ...order, ...patch })} />
       <WorkOrderAuditPanel order={order} />
+        </>
+      )}
 
-      {/* Status + mechanic */}
+      {showMore && (
+      <>
       <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
         <div>
           <label className="text-xs uppercase text-bm-muted">{doc.documentStatus}</label>
@@ -652,8 +739,10 @@ export function WorkOrderForm({ orderId, onClose, onSaved }: WorkOrderFormProps)
           )}
         </div>
       </div>
+      </>
+      )}
 
-      {/* Services table */}
+      {showWorks && (
       <div className="glass-red rounded-xl overflow-hidden neon-border">
         <div className="px-4 py-3 border-b border-bm-border bg-bm-red/10 flex justify-between items-center">
           <h3 className="font-display text-sm uppercase font-bold text-bm-red">{w.worksTable}</h3>
@@ -739,7 +828,10 @@ export function WorkOrderForm({ orderId, onClose, onSaved }: WorkOrderFormProps)
           </table>
         </div>
       </div>
+      )}
 
+      {showMore && (
+      <>
       {/* Parts table */}
       <div className="glass-red rounded-xl overflow-hidden neon-border">
         <div className="px-4 py-3 border-b border-bm-border bg-bm-red/10 flex justify-between items-center">
@@ -942,8 +1034,10 @@ export function WorkOrderForm({ orderId, onClose, onSaved }: WorkOrderFormProps)
           </ul>
         )}
       </div>
+      </>
+      )}
 
-      {/* Totals panel */}
+      {showWorks && (
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="glass-red rounded-xl p-4 neon-border">
           <p className="text-xs text-bm-muted uppercase">{w.worksTotal}</p>
@@ -984,6 +1078,31 @@ export function WorkOrderForm({ orderId, onClose, onSaved }: WorkOrderFormProps)
           </p>
         </div>
       </div>
+      )}
+
+      {isNew && createStep === "works" && (
+        <div className="flex flex-wrap justify-between gap-2">
+          <Button type="button" variant="outline" onClick={() => setCreateStep("client")}>
+            {w.stepBack}
+          </Button>
+          <div className="flex gap-2">
+            <Button type="button" variant="outline" onClick={() => setCreateStep("more")}>
+              {w.stepMore}
+            </Button>
+            <Button type="button" onClick={save}>
+              <Save size={16} /> {t.common.save}
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {isNew && createStep === "more" && (
+        <div className="flex justify-start">
+          <Button type="button" variant="outline" onClick={() => setCreateStep("works")}>
+            {w.stepBack}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

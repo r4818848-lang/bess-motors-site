@@ -1,7 +1,8 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
+import { use, useEffect, useState, Suspense } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { CheckCircle2 } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { loadDb, type Database, type User, type Vehicle, type WorkOrder } from "@/lib/store";
@@ -12,6 +13,11 @@ import { SignOrderGuestForm } from "@/components/sign/SignOrderGuestForm";
 import { WorkOrderSignatureFlow } from "@/components/cabinet/WorkOrderSignatureFlow";
 import { ClientWorkOrderDetail } from "@/components/cabinet/ClientWorkOrderDetail";
 import { TelegramOpenButton } from "@/components/shared/TelegramOpenButton";
+import { DocumentLocalePicker } from "@/components/work-order/DocumentLocalePicker";
+import {
+  resolveOrderDocumentLocale,
+  type DocLocale,
+} from "@/lib/work-order-locale";
 
 type SignMode = "local" | "cloud" | null;
 
@@ -29,8 +35,29 @@ export default function SignWorkOrderPage({
 }: {
   params: Promise<{ orderId: string }>;
 }) {
+  return (
+    <Suspense
+      fallback={
+        <div className="pt-28 pb-20 min-h-[70vh] flex items-center justify-center">
+          <p className="text-bm-muted">…</p>
+        </div>
+      }
+    >
+      <SignWorkOrderContent params={params} />
+    </Suspense>
+  );
+}
+
+function SignWorkOrderContent({
+  params,
+}: {
+  params: Promise<{ orderId: string }>;
+}) {
   const { orderId } = use(params);
-  const { t } = useI18n();
+  const searchParams = useSearchParams();
+  const urlLang = searchParams.get("lang");
+  const { t, locale } = useI18n();
+  const [viewLang, setViewLang] = useState<DocLocale | null>(null);
   const [ready, setReady] = useState(false);
   const [db, setDb] = useState(loadDb());
   const [showSign, setShowSign] = useState(false);
@@ -75,6 +102,8 @@ export default function SignWorkOrderPage({
   const isOwner = Boolean(user && localOrder && localOrder.userId === user.id);
 
   const order = cloudSign?.order ?? resolvedOrder ?? localOrder;
+  const docLocale =
+    viewLang ?? resolveOrderDocumentLocale(order ?? {}, locale, urlLang);
 
   const signDb: Database = db;
 
@@ -166,6 +195,8 @@ export default function SignWorkOrderPage({
       <WorkOrderSignatureFlow
         order={order}
         db={signDb}
+        documentLocale={docLocale}
+        urlLang={urlLang}
         cloudSign={
           signMode === "cloud" && cloudSign
             ? { phone: cloudSign.phone, plate: cloudSign.plate }
@@ -183,7 +214,12 @@ export default function SignWorkOrderPage({
 
   return (
     <div className="pt-28 pb-20 px-4 max-w-3xl mx-auto">
-      <div className="flex flex-col sm:flex-row gap-3 mb-6">
+      <div className="flex flex-col sm:flex-row gap-3 mb-4 items-stretch sm:items-center">
+        <DocumentLocalePicker
+          value={docLocale}
+          onChange={setViewLang}
+          className="sm:mr-auto"
+        />
         <button
           type="button"
           className="btn-primary flex-1"
@@ -199,6 +235,7 @@ export default function SignWorkOrderPage({
       <ClientWorkOrderDetail
         order={order}
         db={signDb}
+        documentLocale={docLocale}
         onBack={() => {}}
       />
     </div>

@@ -249,6 +249,8 @@ export interface WorkOrder {
   auditLog?: { at: string; field: string; from?: string; to?: string }[];
   receptionChecklist?: Record<string, boolean>;
   deliveryChecklist?: Record<string, boolean>;
+  /** Language for printed/signed work order (pl | ru | en) */
+  documentLocale?: "pl" | "ru" | "en";
 }
 
 export interface ClientRating {

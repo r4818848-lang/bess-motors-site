@@ -2,6 +2,7 @@
 
 import type { WorkOrder, Vehicle, User } from "@/lib/store";
 import type { WorkOrderDocVariant } from "@/lib/work-order-document";
+import type { DocLocale } from "@/lib/work-order-locale";
 import { PremiumWorkOrderDocument } from "./PremiumWorkOrderDocument";
 
 interface Props {
@@ -10,6 +11,7 @@ interface Props {
   client: User;
   vatRate?: number;
   variant?: WorkOrderDocVariant;
+  docLocale?: DocLocale;
 }
 
 /** Premium layout for print / PDF capture */
@@ -19,6 +21,7 @@ export function WorkOrderPrintView({
   client,
   vatRate = 23,
   variant = "color",
+  docLocale,
 }: Props) {
   return (
     <div
@@ -36,6 +39,7 @@ export function WorkOrderPrintView({
         vatRate={vatRate}
         mode="print"
         variant={variant}
+        docLocale={docLocale}
         className="max-w-[794px] mx-auto"
       />
     </div>

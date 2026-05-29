@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { Link2, Copy, Check, MessageSquare, Smartphone } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
-import { pdfLocale as getPdfLocale } from "@/lib/i18n/locale-utils";
 import type { WorkOrder, User } from "@/lib/store";
 import { Button } from "@/components/ui/Button";
 import {
@@ -11,12 +10,17 @@ import {
   getSignUrl,
   smsShareUrl,
 } from "@/lib/work-order-share";
+import {
+  resolveOrderDocumentLocale,
+  type DocLocale,
+} from "@/lib/work-order-locale";
+import { DocumentLocalePicker } from "./DocumentLocalePicker";
 
 interface Props {
   order: WorkOrder;
   client: User;
-  /** Compact row in table */
   inline?: boolean;
+  onDocumentLocaleChange?: (locale: DocLocale) => void;
 }
 
 async function copyText(text: string): Promise<boolean> {
@@ -40,12 +44,20 @@ async function copyText(text: string): Promise<boolean> {
   }
 }
 
-export function SignLinkShareBlock({ order, client, inline }: Props) {
+export function SignLinkShareBlock({
+  order,
+  client,
+  inline,
+  onDocumentLocaleChange,
+}: Props) {
   const { t, locale } = useI18n();
   const d = t.document;
-  const lang = getPdfLocale(locale);
-  const signUrl = getSignUrl(order.id);
-  const smsText = buildShareMessage(order, client, lang);
+  const docLang = resolveOrderDocumentLocale(order, locale);
+  const signUrl = useMemo(() => getSignUrl(order.id, docLang), [order.id, docLang]);
+  const smsText = useMemo(
+    () => buildShareMessage(order, client, docLang),
+    [order, client, docLang]
+  );
 
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedSms, setCopiedSms] = useState(false);
@@ -63,9 +75,18 @@ export function SignLinkShareBlock({ order, client, inline }: Props) {
     if (await copyText(smsText)) flash(setCopiedSms);
   }, [smsText]);
 
+  const localePicker = (
+    <DocumentLocalePicker
+      value={docLang}
+      onChange={(loc) => onDocumentLocaleChange?.(loc)}
+      className={inline ? "" : "mb-1"}
+    />
+  );
+
   if (inline) {
     return (
       <div className="flex flex-wrap items-center gap-1">
+        {localePicker}
         <button
           type="button"
           title={d.copySignLink}
@@ -91,13 +112,19 @@ export function SignLinkShareBlock({ order, client, inline }: Props) {
 
   return (
     <div className="rounded-xl border-2 border-bm-red/40 bg-bm-red/5 p-4 neon-border space-y-3">
-      <div className="flex items-center gap-2">
-        <Link2 className="w-5 h-5 text-bm-red shrink-0" />
-        <div>
-          <h4 className="font-display text-sm font-bold uppercase text-bm-red">{d.signLinkTitle}</h4>
-          <p className="text-[10px] text-bm-muted mt-0.5">{d.signLinkHint}</p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="flex items-center gap-2 min-w-0">
+          <Link2 className="w-5 h-5 text-bm-red shrink-0" />
+          <div>
+            <h4 className="font-display text-sm font-bold uppercase text-bm-red">
+              {d.signLinkTitle}
+            </h4>
+            <p className="text-[10px] text-bm-muted mt-0.5">{d.signLinkHint}</p>
+          </div>
         </div>
+        {localePicker}
       </div>
+      <p className="text-[10px] text-bm-muted">{d.docLanguageHint}</p>
 
       <div className="flex gap-2">
         <input
