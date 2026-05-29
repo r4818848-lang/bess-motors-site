@@ -352,11 +352,14 @@ export function PremiumWorkOrderDocument({
         </section>
       </div>
 
-      {/* Signatures */}
+      {/* Signatures + footer — keep together on one page */}
+      <div className="wo-form-doc-end">
       <div className="wo-form-signatures">
         <div className="wo-form-sign-block">
           <p className="wo-form-sign-role">{L.executor}</p>
-          <div className="wo-form-sign-line" />
+          <div className="wo-form-sign-area">
+            <div className="wo-form-sign-line" aria-hidden />
+          </div>
           <div className="wo-form-sign-labels">
             <span>{L.signLabel}</span>
             <span>{L.dateLabel}</span>
@@ -364,26 +367,28 @@ export function PremiumWorkOrderDocument({
         </div>
         <div className="wo-form-sign-block">
           <p className="wo-form-sign-role">{L.clientSign}</p>
-          {signatureMode === "electronic" && order.signature?.dataUrl && !signatureSlot ? (
-            <div className="wo-form-sign-electronic">
-              <p className="wo-form-sign-electronic-label">{L.electronicSignNote}</p>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={order.signature.dataUrl}
-                alt=""
-                className="h-14 object-contain my-1"
-              />
-            </div>
-          ) : signatureSlot ? (
-            signatureSlot
-          ) : (
-            <>
-              <div className="wo-form-sign-line" />
-              {signatureMode === "physical" && (
-                <p className="wo-form-sign-physical-hint">{L.physicalSignNote}</p>
-              )}
-            </>
-          )}
+          <div className="wo-form-sign-area">
+            {signatureMode === "electronic" && order.signature?.dataUrl && !signatureSlot ? (
+              <div className="wo-form-sign-electronic">
+                <p className="wo-form-sign-electronic-label">{L.electronicSignNote}</p>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={order.signature.dataUrl}
+                  alt=""
+                  className="wo-form-sign-image"
+                />
+              </div>
+            ) : signatureSlot ? (
+              signatureSlot
+            ) : (
+              <>
+                <div className="wo-form-sign-line" aria-hidden />
+                {signatureMode === "physical" && (
+                  <p className="wo-form-sign-physical-hint">{L.physicalSignNote}</p>
+                )}
+              </>
+            )}
+          </div>
           <div className="wo-form-sign-labels">
             <span>{L.signLabel}</span>
             <span>
@@ -396,7 +401,6 @@ export function PremiumWorkOrderDocument({
         </div>
       </div>
 
-      {/* Footer benefits */}
       <footer className="wo-form-footer">
         <div className="wo-form-benefits">
           {footer.benefits.map((item, i) => {
@@ -423,6 +427,7 @@ export function PremiumWorkOrderDocument({
           </span>
         </div>
       </footer>
+      </div>
 
       {footerActions && <div className="wo-form-actions print:hidden">{footerActions}</div>}
     </div>

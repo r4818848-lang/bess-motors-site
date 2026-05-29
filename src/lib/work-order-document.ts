@@ -199,22 +199,28 @@ export function buildWorkOrderDocumentHtml(
     .join("");
 
   const signatureMode = resolveSignatureMode(order);
-  const sigImg =
-    signatureMode === "electronic" && order.signature?.dataUrl
-      ? `<div style="margin:4px 0;">
-        <div style="font-size:9px;color:#666;margin-bottom:4px;">${esc(L.electronicSignNote)}</div>
-        <img src="${order.signature.dataUrl}" alt="" style="height:48px;max-width:200px;display:block;${variant === "bw" ? "filter:grayscale(1);" : ""}" />
+  const hasElectronicSig =
+    signatureMode === "electronic" && Boolean(order.signature?.dataUrl);
+  const sigImg = hasElectronicSig
+    ? `<div style="margin:0 0 8px;">
+        <div style="font-size:9px;color:#666;margin-bottom:6px;">${esc(L.electronicSignNote)}</div>
+        <img src="${order.signature!.dataUrl}" alt="" style="height:52px;max-width:220px;display:block;${variant === "bw" ? "filter:grayscale(1);" : ""}" />
       </div>`
-      : "";
+    : "";
   const physicalHint =
     signatureMode === "physical"
-      ? `<p style="font-size:9px;color:#666;margin:6px 0 0;font-style:italic;">${esc(L.physicalSignNote)}</p>`
+      ? `<p style="font-size:9px;color:#666;margin:8px 0 0;font-style:italic;">${esc(L.physicalSignNote)}</p>`
       : "";
-  const signLineHeight = sigImg ? "8" : "32";
   const signedDate =
-    signatureMode === "electronic" && order.signature
+    hasElectronicSig && order.signature
       ? formatDocDate(order.signature.signedAt)
       : "";
+  const signLabelsRow = (dateSuffix: string) =>
+    `<div style="display:flex;justify-content:space-between;font-size:10px;color:#666;text-transform:uppercase;letter-spacing:0.04em;margin-top:12px;padding-top:2px;"><span>${esc(L.signLabel)}</span><span>${esc(L.dateLabel)}${dateSuffix}</span></div>`;
+  const signLineHtml = `<div style="height:44px;border-bottom:1px solid #666;"></div>`;
+  const clientSignBody = hasElectronicSig
+    ? `${sigImg}${signLabelsRow(signedDate ? `: ${esc(signedDate)}` : "")}`
+    : `${signLineHtml}${physicalHint}${signLabelsRow("")}`;
 
   return `<div id="bm-work-order-doc" data-variant="${variant}" style="width:794px;font-family:'Segoe UI',system-ui,sans-serif;color:#111;background:#fff;box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact;${variant === "bw" ? "filter:grayscale(1);" : ""}">
   <div style="padding:24px 28px 16px;border-bottom:1px solid #ccc;">
@@ -312,28 +318,27 @@ export function buildWorkOrderDocumentHtml(
     </tr>
   </table>
 
-  <table style="width:100%;border-collapse:collapse;border-bottom:1px solid #ccc;">
+  <div style="break-inside:avoid;page-break-inside:avoid;">
+  <table style="width:100%;border-collapse:collapse;">
     <tr>
-      <td style="width:50%;padding:16px 20px;border-right:1px solid #eee;vertical-align:top;">
-        <p style="margin:0 0 12px;font-size:11px;font-weight:600;">${esc(L.executor)}</p>
-        <div style="border-bottom:1px solid #666;height:32px;margin-bottom:8px;"></div>
-        <div style="display:flex;justify-content:space-between;font-size:10px;color:#666;text-transform:uppercase;"><span>${esc(L.signLabel)}</span><span>${esc(L.dateLabel)}</span></div>
+      <td style="width:50%;padding:16px 20px 12px;border-right:1px solid #eee;vertical-align:top;">
+        <p style="margin:0 0 10px;font-size:11px;font-weight:600;">${esc(L.executor)}</p>
+        ${signLineHtml}
+        ${signLabelsRow("")}
       </td>
-      <td style="width:50%;padding:16px 20px;vertical-align:top;">
-        <p style="margin:0 0 12px;font-size:11px;font-weight:600;">${esc(L.clientSign)}</p>
-        ${sigImg}
-        <div style="border-bottom:1px solid #666;height:${signLineHeight}px;margin-bottom:8px;"></div>
-        ${physicalHint}
-        <div style="display:flex;justify-content:space-between;font-size:10px;color:#666;text-transform:uppercase;"><span>${esc(L.signLabel)}</span><span>${esc(L.dateLabel)}${signedDate ? `: ${esc(signedDate)}` : ""}</span></div>
+      <td style="width:50%;padding:16px 20px 12px;vertical-align:top;">
+        <p style="margin:0 0 10px;font-size:11px;font-weight:600;">${esc(L.clientSign)}</p>
+        ${clientSignBody}
       </td>
     </tr>
   </table>
 
-  <div style="padding:16px 20px 0;">
+  <div style="padding:16px 20px 0;border-top:1px solid #eee;">
     <table style="width:100%;border-collapse:collapse;margin-bottom:12px;"><tr>${benefitsHtml}</tr></table>
   </div>
   <div style="background:#1a1a1a;color:#fff;text-align:center;font-size:12px;font-weight:700;text-transform:uppercase;padding:12px 16px;">
     <span style="color:${accent};">BESS MOTORS</span> — ${esc(footer.slogan.replace(/^BESS MOTORS — /, ""))}
+  </div>
   </div>
 </div>`;
 }

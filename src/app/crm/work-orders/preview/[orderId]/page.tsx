@@ -81,7 +81,7 @@ function WorkOrderPreviewContent({
   }
 
   return (
-    <div className="min-h-screen bg-gray-200 print:bg-white">
+    <div className="min-h-screen bg-gray-200 print:bg-white print:min-h-0">
       <div className="sticky top-0 z-20 print:hidden bg-[#1a1a1a] border-b border-white/10 shadow-lg">
         <div className="max-w-[900px] mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
