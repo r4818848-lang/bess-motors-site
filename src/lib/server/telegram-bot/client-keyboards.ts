@@ -96,7 +96,10 @@ export function clientLinkedMenuKeyboard(
         { text: L.myAppointments, callback_data: "cl:apts" },
         { text: notifLabel, callback_data: "cl:notif" },
       ],
-      [{ text: L.referralShare, callback_data: "cl:referral" }],
+      [
+        { text: L.myCars, callback_data: "cl:cars" },
+        { text: L.referralShare, callback_data: "cl:referral" },
+      ],
       [
         { text: L.contacts, callback_data: "cl:contacts" },
         { text: L.cabinetSite, url: `${siteBase()}/cabinet` },
@@ -165,12 +168,16 @@ export function clientAppointmentsKeyboard(
     rows.push([
       {
         text: `${a.date} ${a.time}`,
-        callback_data: `cl:share:apt:${a.id}`,
+        callback_data: `cl:apt:view:${a.id}`,
       },
     ]);
     rows.push([
       {
-        text: locale === "pl" ? "📅 +1 dzień" : locale === "en" ? "📅 +1 day" : "📅 +1 день",
+        text: locale === "pl" ? "📤 Udostępnij" : locale === "en" ? "📤 Share" : "📤 Поделиться",
+        callback_data: `cl:share:apt:${a.id}`,
+      },
+      {
+        text: locale === "pl" ? "+1 dzień" : locale === "en" ? "+1 day" : "+1 день",
         callback_data: `cl:apt:+1:${a.id}`,
       },
       { text: "+7", callback_data: `cl:apt:+7:${a.id}` },

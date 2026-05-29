@@ -8,7 +8,7 @@ import { getClientBotLabels } from "./client-i18n";
 import { getClientServiceLabel } from "./client-services";
 import { setClientTelegramSession } from "./client-locale";
 import { getClientPortalByChat } from "./client-telegram-link";
-import { clientBackMenuRow } from "./client-keyboards";
+import { clientBackMenuRow, clientDateKeyboard } from "./client-keyboards";
 import { resolveActiveVehicleId } from "./client-vehicle-pick";
 import type { WorkOrder } from "@/lib/store";
 
@@ -71,9 +71,7 @@ export async function startPackageBooking(
     },
   });
   const L = getClientBotLabels(locale);
-  await sendTelegramMessage(chatId, `${label}\n\n${L.chooseDate}`, {
-    inline_keyboard: [[{ text: L.cancel, callback_data: "cl:menu" }]],
-  });
+  await sendTelegramMessage(chatId, `${label}\n\n${L.chooseDate}`, clientDateKeyboard(locale));
 }
 
 export async function startRepeatOrder(
@@ -93,9 +91,7 @@ export async function startRepeatOrder(
     },
   });
   const L = getClientBotLabels(locale);
-  await sendTelegramMessage(chatId, `🔁 ${services}\n\n${L.chooseDate}`, {
-    inline_keyboard: [[{ text: L.cancel, callback_data: "cl:menu" }]],
-  });
+  await sendTelegramMessage(chatId, `🔁 ${services}\n\n${L.chooseDate}`, clientDateKeyboard(locale));
 }
 
 export async function formatWarrantyList(locale: BotLocale, chatKey: string): Promise<string | null> {

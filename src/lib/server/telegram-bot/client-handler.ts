@@ -72,6 +72,7 @@ import {
   applyReferralFromStart,
   ensureReferralCode,
   formatRepairStatusLine,
+  formatServiceHistory,
   handleAptStartParam,
   rebookLastAppointment,
   saveTelegramRating,
@@ -92,6 +93,7 @@ import { resolveExtraWorkApproval } from "./extra-work-approval";
 import { rescheduleAppointment } from "./client-apt-reschedule";
 import {
   aptRescheduleKeyboard,
+  formatWarrantyList,
   startRepeatOrder,
 } from "./client-features-v3";
 import {
@@ -259,8 +261,7 @@ async function redirectLegacyCallback(
     data.startsWith("cl:sym:") ||
     data === "cl:pkg:menu" ||
     (data.startsWith("cl:pkg:") && data !== "cl:pkg:menu") ||
-    data === "cl:rebook7" ||
-    data === "cl:photo"
+    data === "cl:rebook7"
   ) {
     await clearTelegramSessionKeepLocale(chatKey);
     await setClientTelegramSession(chatKey, { data: { intent: "book" } });
@@ -289,9 +290,7 @@ async function redirectLegacyCallback(
   }
 
   if (
-    data === "cl:history" ||
     data === "cl:photos" ||
-    data === "cl:warranty" ||
     data === "cl:veh:pick" ||
     data.startsWith("cl:veh:")
   ) {
@@ -574,9 +573,51 @@ async function showConfirm(
     intent === "call"
       ? clientConfirmCallKeyboard(locale)
       : clientConfirmBookingKeyboard(locale);
-  await clearTelegramSessionKeepLocale(chatKey);
-  await replyOrEdit(chatId, messageId, locale, summary, keyboard);
   await setClientTelegramSession(chatKey, { data });
+  await replyOrEdit(chatId, messageId, locale, summary, keyboard);
+}
+
+function linkedProfileData(
+  slice: ClientPortalSlice | null | undefined,
+  data: Record<string, string>
+): Record<string, string> {
+  if (!slice?.user) return data;
+  const next = { ...data };
+  if (slice.user.name?.trim()) next.name = slice.user.name.trim();
+  if (slice.user.phone?.trim()) next.phone = slice.user.phone.trim();
+  return next;
+}
+
+async function continueBookAfterTime(
+  chatId: number,
+  messageId: number | undefined,
+  chatKey: string,
+  locale: BotLocale,
+  data: Record<string, string>,
+  slice: ClientPortalSlice | null | undefined
+): Promise<void> {
+  const filled = linkedProfileData(slice, { ...data, intent: "book" });
+  if (filled.name && filled.phone) {
+    await showConfirm(chatId, messageId, chatKey, locale, filled);
+    return;
+  }
+  await promptName(chatId, messageId, chatKey, locale, "book", filled);
+}
+
+async function continueCallAfterService(
+  chatId: number,
+  messageId: number | undefined,
+  chatKey: string,
+  locale: BotLocale,
+  data: Record<string, string>,
+  slice: ClientPortalSlice | null | undefined
+): Promise<void> {
+  const filled = linkedProfileData(slice, { ...data, intent: "call" });
+  if (filled.name && filled.phone) {
+    await promptComment(chatId, messageId, chatKey, locale, filled);
+    return;
+  }
+  await promptName(chatId, messageId, chatKey, locale, "call", filled);
 }
 
 export async function handleClientMessage(msg: TelegramMessage): Promise<void> {
@@ -778,17 +819,16 @@ export async function handleClientMessage(msg: TelegramMessage): Promise<void> {
         comment: parsed.comment ?? text.trim(),
       };
       const slice = await getClientPortalByChat(chatKey);
-      if (slice?.user.name) {
-        nextData.name = slice.user.name;
-        if (slice.user.phone) {
-          nextData.phone = slice.user.phone;
-          await showConfirm(chatId, undefined, chatKey, locale, nextData);
-          return;
-        }
-        await promptPhone(chatId, undefined, chatKey, locale, nextData);
+      const filled = linkedProfileData(slice, nextData);
+      if (filled.name && filled.phone) {
+        await showConfirm(chatId, undefined, chatKey, locale, filled);
         return;
       }
-      await setClientTelegramSession(chatKey, { step: "client_name", data: nextData });
+      if (filled.name) {
+        await promptPhone(chatId, undefined, chatKey, locale, filled);
+        return;
+      }
+      await setClientTelegramSession(chatKey, { step: "client_name", data: filled });
       await sendTelegramMessage(
         chatId,
         [
@@ -883,7 +923,87 @@ export async function handleClientCallback(cb: TelegramCallback): Promise<void> 
 
   if (data === "cl:status") {
     const line = await formatRepairStatusLine(locale, chatKey);
-    await replyOrEdit(chatId, messageId, locale, line ?? L.signIntro, clientUserMenu(locale, slice));
+    if (line) {
+      await replyOrEdit(chatId, messageId, locale, line, clientUserMenu(locale, slice));
+      return;
+    }
+    await replyOrEdit(chatId, messageId, locale, L.signIntro, {
+      inline_keyboard: [
+        [{ text: L.activate, callback_data: "cl:link" }],
+        clientBackMenuRow(locale),
+      ],
+    });
+    return;
+  }
+
+  if (data === "cl:history") {
+    const text = await formatServiceHistory(locale, chatKey);
+    await replyOrEdit(
+      chatId,
+      messageId,
+      locale,
+      text ?? L.signIntro,
+      clientUserMenu(locale, slice)
+    );
+    return;
+  }
+
+  if (data === "cl:photo") {
+    if (!slice) {
+      await startLinkFlow(chatId, messageId, chatKey, locale, profile);
+      return;
+    }
+    const active = [...slice.workOrders]
+      .filter((o) => o.status !== "delivered")
+      .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))[0];
+    await setClientTelegramSession(chatKey, {
+      step: "client_photo_upload",
+      data: { orderId: active?.id ?? "" },
+    });
+    await replyOrEdit(
+      chatId,
+      messageId,
+      locale,
+      locale === "pl"
+        ? "📷 Wyślij zdjęcie — zapiszemy do aktywnego zlecenia."
+        : locale === "en"
+          ? "📷 Send a photo — we will attach it to your work order."
+          : "📷 Отправьте фото — прикрепим к заказ-наряду.",
+      clientUserMenu(locale, slice)
+    );
+    return;
+  }
+
+  if (data === "cl:warranty") {
+    const text = await formatWarrantyList(locale, chatKey);
+    await replyOrEdit(
+      chatId,
+      messageId,
+      locale,
+      text ?? L.signIntro,
+      clientUserMenu(locale, slice)
+    );
+    return;
+  }
+
+  if (data.startsWith("cl:apt:view:")) {
+    if (!slice) {
+      await startLinkFlow(chatId, messageId, chatKey, locale, profile);
+      return;
+    }
+    const aptId = data.slice(12);
+    const apt = slice.appointments.find((a) => a.id === aptId);
+    if (!apt) {
+      await replyOrEdit(chatId, messageId, locale, L.noAppointments, clientUserMenu(locale, slice));
+      return;
+    }
+    const services = apt.serviceIds.map((id) => getClientServiceLabel(id, locale)).join(", ");
+    const text = [
+      `📅 <b>${apt.date} · ${apt.time}</b>`,
+      `🔧 ${services}`,
+      `📌 ${L.appointmentStatus[apt.appointmentStatus] ?? apt.appointmentStatus}`,
+    ].join("\n");
+    await replyOrEdit(chatId, messageId, locale, text, clientAppointmentsKeyboard(locale, slice));
     return;
   }
 
@@ -983,12 +1103,28 @@ export async function handleClientCallback(cb: TelegramCallback): Promise<void> 
     const days = data.includes("+7:") ? 7 : 1;
     const aptId = data.split(":").pop()!;
     const res = await rescheduleAppointment(aptId, days);
-    const msg = res.ok
-      ? locale === "pl"
+    if (!res.ok) {
+      await sendTelegramMessage(chatId, L.saveFailed);
+      return;
+    }
+    const msg =
+      locale === "pl"
         ? `✅ Przeniesiono o ${days} dni: ${res.apt?.date} ${res.apt?.time}`
-        : `✅ Перенесено на ${days} дн.: ${res.apt?.date} ${res.apt?.time}`
-      : L.saveFailed;
-    await sendTelegramMessage(chatId, msg);
+        : locale === "en"
+          ? `✅ Moved by ${days} days: ${res.apt?.date} ${res.apt?.time}`
+          : `✅ Перенесено на ${days} дн.: ${res.apt?.date} ${res.apt?.time}`;
+    const fresh = await getClientPortalByChat(chatKey);
+    if (fresh) {
+      await replyOrEdit(
+        chatId,
+        messageId,
+        locale,
+        `${msg}\n\n${formatAppointmentsSlice(locale, fresh)}`,
+        clientAppointmentsKeyboard(locale, fresh)
+      );
+    } else {
+      await sendTelegramMessage(chatId, msg);
+    }
     return;
   }
 
@@ -1293,7 +1429,10 @@ export async function handleClientCallback(cb: TelegramCallback): Promise<void> 
       return;
     }
     await replyOrEdit(chatId, messageId, locale, formatCarsSlice(locale, slice), {
-      inline_keyboard: [clientBackMenuRow(locale)],
+      inline_keyboard: [
+        [{ text: L.addVin, callback_data: "cl:vin" }],
+        clientBackMenuRow(locale),
+      ],
     });
     return;
   }
@@ -1321,7 +1460,7 @@ export async function handleClientCallback(cb: TelegramCallback): Promise<void> 
       serviceLabel: getClientServiceLabel(serviceId, locale),
     };
     if (intent === "call") {
-      await promptName(chatId, messageId, chatKey, locale, "call", nextData);
+      await continueCallAfterService(chatId, messageId, chatKey, locale, nextData, slice);
       return;
     }
     await setClientTelegramSession(chatKey, { data: nextData });
@@ -1345,11 +1484,14 @@ export async function handleClientCallback(cb: TelegramCallback): Promise<void> 
 
   if (data.startsWith("cl:tm:")) {
     const time = decodeTimeSlot(data.slice(6));
-    await promptName(chatId, messageId, chatKey, locale, "book", {
-      ...sessionData,
-      time,
-      intent: "book",
-    });
+    await continueBookAfterTime(
+      chatId,
+      messageId,
+      chatKey,
+      locale,
+      { ...sessionData, time },
+      slice
+    );
     return;
   }
 
@@ -1373,6 +1515,7 @@ export async function handleClientCallback(cb: TelegramCallback): Promise<void> 
       comment: d.comment,
     });
     await clearTelegramSessionKeepLocale(chatKey);
+    const freshSlice = await getClientPortalByChat(chatKey);
     if (result.ok) {
       const checklist = d.serviceId
         ? formatPreVisitChecklistText(d.serviceId, locale)
@@ -1382,7 +1525,7 @@ export async function handleClientCallback(cb: TelegramCallback): Promise<void> 
         messageId,
         locale,
         `${L.saved}\n\n📅 ${formatDateShort(d.date, locale)} · ${decodeTimeSlot(d.time)}\n🔧 ${esc(d.serviceLabel ?? "")}${checklist ? `\n\n${checklist}` : ""}`,
-        clientUserMenu(locale, slice)
+        clientUserMenu(locale, freshSlice ?? slice)
       );
     } else {
       await replyOrEdit(chatId, messageId, locale, L.saveFailed, clientMainKeyboard(locale));
