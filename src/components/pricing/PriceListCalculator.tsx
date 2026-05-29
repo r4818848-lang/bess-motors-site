@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { Calculator } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
+import { pickName } from "@/lib/i18n/locale-utils";
 import { getPriceItem, priceListItems } from "@/lib/price-list";
 import { buildCartLine, cartSubtotal, formatPln, unitPriceHint } from "@/lib/booking-cart";
 import { BookingLink } from "@/components/analytics/BookingLink";
@@ -11,7 +12,6 @@ import { buildBookingUrl } from "@/lib/booking-url";
 export function PriceListCalculator() {
   const { t, locale } = useI18n();
   const c = t.priceCalculator;
-  const loc = locale === "ru" || locale === "uk" ? "ru" : "pl";
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
   const toggle = (id: string) => {
@@ -42,10 +42,8 @@ export function PriceListCalculator() {
     return [...selected]
       .map((id) => getPriceItem(id))
       .filter(Boolean)
-      .map((item) =>
-        buildCartLine(item!, loc === "ru" ? item!.nameRu : item!.namePl, 1)
-      );
-  }, [selected, loc]);
+      .map((item) => buildCartLine(item!, pickName(item!, locale), 1));
+  }, [selected, locale]);
 
   const total = cartSubtotal(lines);
   const bookingHref = buildBookingUrl([...selected]);
@@ -72,12 +70,8 @@ export function PriceListCalculator() {
                   : "border-bm-border/60 hover:border-bm-red/40"
               }`}
             >
-              <p className="text-sm font-medium text-white">
-                {loc === "ru" ? item.nameRu : item.namePl}
-              </p>
-              <p className="text-xs text-bm-red font-mono mt-1">
-                {unitPriceHint(item, loc)}
-              </p>
+              <p className="text-sm font-medium text-white">{pickName(item, locale)}</p>
+              <p className="text-xs text-bm-red font-mono mt-1">{unitPriceHint(item, locale)}</p>
             </button>
           );
         })}
@@ -91,9 +85,7 @@ export function PriceListCalculator() {
       <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-bm-border/40">
         <div>
           <p className="text-xs uppercase text-bm-muted">{c.total}</p>
-          <p className="font-display text-2xl font-bold text-bm-red">
-            {formatPln(total)}
-          </p>
+          <p className="font-display text-2xl font-bold text-bm-red">{formatPln(total)}</p>
         </div>
         <BookingLink href={bookingHref} className="btn-primary text-sm">
           {c.book}

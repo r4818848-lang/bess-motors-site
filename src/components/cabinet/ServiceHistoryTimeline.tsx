@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import { FileText, Wrench, Package, Download, PenLine } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
+import { pdfLocale as getPdfLocale } from "@/lib/i18n/locale-utils";
 import type { Database, WorkOrder } from "@/lib/store";
 import { calcClientTotal, calcOrderBreakdown } from "@/lib/workorder-calc";
 import {
@@ -40,7 +41,7 @@ export function ServiceHistoryTimeline({ db, userId, orderIds, onOpenOrder }: Pr
   const { t, locale } = useI18n();
   const h = t.history;
   const vatRate = db.settings.vatRate ?? 23;
-  const pdfLocale = locale === "ru" || locale === "uk" ? "ru" : "pl";
+  const pdfLoc = getPdfLocale(locale);
 
   const orders = useMemo(() => {
     const idSet = orderIds ? new Set(orderIds) : null;
@@ -107,7 +108,7 @@ export function ServiceHistoryTimeline({ db, userId, orderIds, onOpenOrder }: Pr
             db={db}
             isLast={i === orders.length - 1}
             vatRate={vatRate}
-            pdfLocale={pdfLocale}
+            pdfLocale={pdfLoc}
             onOpen={() => onOpenOrder(order.id)}
             docClass={docStatusClass(order.documentStatus)}
             labels={{ ...h, signNow: t.signature.signNow }}

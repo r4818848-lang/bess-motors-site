@@ -7,6 +7,7 @@ import { Calendar, ChevronRight, MapPin, Phone } from "lucide-react";
 import type { SeoLandingPage } from "@/lib/seo-landing-pages";
 import type { ServiceId } from "@/lib/services-catalog";
 import { siteConfig } from "@/lib/site";
+import { useI18n } from "@/lib/i18n/context";
 import { ServiceIcon } from "@/components/icons/ServiceIcon";
 import { PhoneLink } from "@/components/analytics/PhoneLink";
 import { BookingLink } from "@/components/analytics/BookingLink";
@@ -23,6 +24,8 @@ type Props = {
 
 export function SeoLandingPageView({ page }: Props) {
   useMetaViewContent(`Landing: ${page.slug}`);
+  const { t } = useI18n();
+  const sl = t.seoLanding;
   const [bookingService, setBookingService] = useState<ServiceId | null>(
     page.serviceId ?? null
   );
@@ -64,14 +67,14 @@ export function SeoLandingPageView({ page }: Props) {
             <Card glow className="flex gap-3 items-start">
               <MapPin className="w-5 h-5 text-bm-red shrink-0 mt-0.5" />
               <div className="text-left text-sm">
-                <p className="text-bm-muted uppercase text-[10px] tracking-wide">Adres</p>
+                <p className="text-bm-muted uppercase text-[10px] tracking-wide">{t.contacts.address}</p>
                 <p className="font-medium mt-1">{siteConfig.address}</p>
               </div>
             </Card>
             <Card glow className="flex gap-3 items-start">
               <Phone className="w-5 h-5 text-bm-red shrink-0 mt-0.5" />
               <div className="text-left text-sm">
-                <p className="text-bm-muted uppercase text-[10px] tracking-wide">Telefon</p>
+                <p className="text-bm-muted uppercase text-[10px] tracking-wide">{t.contacts.phone}</p>
                 <PhoneLink
                   trackSource={`landing_${page.slug}`}
                   className="font-medium mt-1 block hover:text-bm-red"
@@ -92,7 +95,7 @@ export function SeoLandingPageView({ page }: Props) {
                 onClick={openBooking}
               >
                 <Calendar size={18} />
-                Umów wizytę
+                {t.cabinet.bookVisit}
                 <ChevronRight size={18} />
               </button>
             ) : (
@@ -101,7 +104,7 @@ export function SeoLandingPageView({ page }: Props) {
                 className="btn-primary inline-flex justify-center items-center gap-2"
               >
                 <Calendar size={18} />
-                Umów wizytę online
+                {sl.bookOnline}
                 <ChevronRight size={18} />
               </BookingLink>
             )}
@@ -110,7 +113,7 @@ export function SeoLandingPageView({ page }: Props) {
               className="btn-outline inline-flex justify-center items-center gap-2"
             >
               <Phone size={18} />
-              Zadzwoń
+              {t.stickyBar.call}
             </PhoneLink>
           </div>
 
@@ -121,15 +124,15 @@ export function SeoLandingPageView({ page }: Props) {
 
           <p className="mt-8 text-center text-sm text-bm-muted">
             <Link href="/services" className="hover:text-bm-red transition-colors">
-              Wszystkie usługi
+              {sl.allServices}
             </Link>
             {" · "}
             <Link href="/status" className="hover:text-bm-red transition-colors">
-              Status naprawy
+              {t.nav.repairStatus}
             </Link>
             {" · "}
             <Link href="/contacts" className="hover:text-bm-red transition-colors">
-              Kontakt
+              {t.nav.contacts}
             </Link>
           </p>
         </div>

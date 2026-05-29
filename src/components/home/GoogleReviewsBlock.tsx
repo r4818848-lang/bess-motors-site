@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Star } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
+import { contentLocale } from "@/lib/i18n/locale-utils";
 import { siteConfig } from "@/lib/site";
 
 const REVIEWS = [
@@ -13,7 +14,7 @@ const REVIEWS = [
 
 export function GoogleReviewsBlock() {
   const { locale, t } = useI18n();
-  const useRu = locale === "ru" || locale === "uk";
+  const useRu = contentLocale(locale) === "ru";
 
   return (
     <section className="py-16 border-t border-bm-border/30">

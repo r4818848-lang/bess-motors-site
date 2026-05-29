@@ -23,18 +23,12 @@ function resolveLocal(db: Database, orderId: string, approved: boolean): boolean
 }
 
 export function ExtraWorkApprovalCabinet({ orders }: { orders: WorkOrder[] }) {
-  const { locale } = useI18n();
+  const { t } = useI18n();
+  const e = t.extraWork;
   const [busy, setBusy] = useState<string | null>(null);
   const pending = orders.filter((o) => o.pendingExtraApproval?.status === "pending");
 
   if (!pending.length) return null;
-
-  const title =
-    locale === "ru"
-      ? "Нужно ваше согласие на доп. работы"
-      : locale === "en"
-        ? "Extra work needs your approval"
-        : "Dodatkowe prace — Twoja zgoda";
 
   const onResolve = async (orderId: string, approved: boolean) => {
     setBusy(orderId);
@@ -58,7 +52,7 @@ export function ExtraWorkApprovalCabinet({ orders }: { orders: WorkOrder[] }) {
         const p = o.pendingExtraApproval!;
         return (
           <Card key={o.id} className="p-5 border-amber-500/40">
-            <p className="font-display uppercase text-sm text-amber-400 mb-2">{title}</p>
+            <p className="font-display uppercase text-sm text-amber-400 mb-2">{e.title}</p>
             <p className="font-mono text-bm-red text-sm">{o.number}</p>
             {p.note && <p className="text-sm mt-2">{p.note}</p>}
             <ul className="text-sm mt-2 space-y-1">
@@ -75,7 +69,7 @@ export function ExtraWorkApprovalCabinet({ orders }: { orders: WorkOrder[] }) {
                 disabled={busy === o.id}
                 onClick={() => void onResolve(o.id, true)}
               >
-                {locale === "ru" ? "Согласен" : locale === "en" ? "Approve" : "Zgadzam się"}
+                {e.approve}
               </button>
               <button
                 type="button"
@@ -83,7 +77,7 @@ export function ExtraWorkApprovalCabinet({ orders }: { orders: WorkOrder[] }) {
                 disabled={busy === o.id}
                 onClick={() => void onResolve(o.id, false)}
               >
-                {locale === "ru" ? "Отказ" : locale === "en" ? "Decline" : "Odmawiam"}
+                {e.decline}
               </button>
             </div>
           </Card>

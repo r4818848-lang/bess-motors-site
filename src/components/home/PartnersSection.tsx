@@ -2,12 +2,13 @@
 
 import { motion } from "framer-motion";
 import { useI18n } from "@/lib/i18n/context";
+import { contentLocale } from "@/lib/i18n/locale-utils";
 import { sitePartners } from "@/lib/site";
 
 export function PartnersSection() {
   const { t, locale } = useI18n();
   const p = t.partners;
-  const ru = locale === "ru" || locale === "uk";
+  const ru = contentLocale(locale) === "ru";
 
   return (
     <section className="py-20 border-t border-bm-border/40">

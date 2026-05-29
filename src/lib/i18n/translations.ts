@@ -252,10 +252,78 @@ const pl = {
     noUrgent: "Na ten moment brak pilnych zaleceń.",
     bookVisit: "Umów wizytę",
   },
+  statusPage: {
+    title: "Status naprawy",
+    phone: "Telefon",
+    plate: "Tablica rejestracyjna",
+    check: "Sprawdź",
+    notFound: "Nie znaleziono. Sprawdź telefon i tablicę.",
+    sign: "Wymagany podpis dokumentu",
+    cabinet: "Pełne konto",
+    queue: "Kolejka: ok. {position} z {total}",
+    parts: "Części",
+  },
+  extraWork: {
+    title: "Dodatkowe prace — Twoja zgoda",
+    approve: "Zgadzam się",
+    decline: "Odmawiam",
+  },
+  servicePackages: {
+    title: "Pakiety usług",
+    servicesCount: "usług",
+    book: "Umów",
+    telegramHint: "Te same pakiety w ",
+  },
+  seoHowItWorks: {
+    title: "Jak przebiega usługa",
+    steps: [
+      "Rezerwacja online lub telefon",
+      "Przyjęcie auta i diagnostyka",
+      "Akceptacja kosztorysu (podpis)",
+      "Naprawa i odbiór",
+    ],
+  },
+  seoServiceFaq: {
+    title: "Najczęstsze pytania",
+  },
+  seoLanding: {
+    allServices: "Wszystkie usługi",
+    bookOnline: "Umów wizytę online",
+  },
+  historyExport: {
+    downloadLatest: "Pobierz PDF ostatniego zlecenia",
+    downloadYear: "PDF historii ({count})",
+  },
+  cabinetTimeline: {
+    title: "Oś czasu",
+    appointment: "Wizyta",
+    documentSigned: "Podpis dokumentu",
+    warrantyUntil: "Gwarancja do",
+  },
+  bookSticky: {
+    label: "Umów",
+  },
+  insuranceClaim: {
+    title: "Checklista szkody OC/AC",
+  },
+  priceCart: {
+    cylinderQty: "{qty} cyl.",
+    wheelQty: "{qty} koła",
+    gramsQty: "{qty} g",
+    free: "bezpłatnie",
+    fromPrefix: "od ",
+    perCylinder: "cylindr",
+    perWheel: "koło",
+    per100g: "100 g",
+  },
   thankYouExtras: {
     addCalendar: "Dodaj wizytę do kalendarza",
     qrTitle: "Konto klienta — QR",
     qrHint: "Zeskanuj telefonem, aby otworzyć panel klienta.",
+    cabinetHint:
+      "Konto klienta: zaloguj się tym samym telefonem i numerem rejestracyjnym co przy zapisie.",
+    cabinetLink: "Otwórz konto",
+    shareVisit: "Udostępnij wizytę",
   },
   galleryPage: {
     title: "Galeria prac",
@@ -397,6 +465,7 @@ const pl = {
     dsgRepair: "Naprawa DSG",
     dsgAdapt: "Adaptacja skrzyni",
     dsgClutch: "Sprzęgło DSG",
+    includedInOilChange: "w cenie wymiany oleju",
   },
   booking: {
     title: "Rezerwacja online",
@@ -1403,10 +1472,78 @@ const ru: TranslationKeys = {
     noUrgent: "Срочных рекомендаций нет.",
     bookVisit: "Записаться",
   },
+  statusPage: {
+    title: "Статус ремонта",
+    phone: "Телефон",
+    plate: "Госномер",
+    check: "Проверить",
+    notFound: "Не найдено. Проверьте телефон и госномер.",
+    sign: "Требуется подпись документа",
+    cabinet: "Полный кабинет",
+    queue: "В очереди: примерно {position} из {total}",
+    parts: "Запчасти",
+  },
+  extraWork: {
+    title: "Нужно ваше согласие на доп. работы",
+    approve: "Согласен",
+    decline: "Отказ",
+  },
+  servicePackages: {
+    title: "Пакеты услуг",
+    servicesCount: "услуг",
+    book: "Записаться",
+    telegramHint: "Те же пакеты в ",
+  },
+  seoHowItWorks: {
+    title: "Как проходит услуга",
+    steps: [
+      "Запись онлайн или по телефону",
+      "Приём авто и диагностика",
+      "Согласование сметы (подпись)",
+      "Ремонт и выдача",
+    ],
+  },
+  seoServiceFaq: {
+    title: "Частые вопросы",
+  },
+  seoLanding: {
+    allServices: "Все услуги",
+    bookOnline: "Записаться онлайн",
+  },
+  historyExport: {
+    downloadLatest: "Скачать PDF последнего заказа",
+    downloadYear: "PDF истории ({count})",
+  },
+  cabinetTimeline: {
+    title: "Лента событий",
+    appointment: "Запись",
+    documentSigned: "Подпись документа",
+    warrantyUntil: "Гарантия до",
+  },
+  bookSticky: {
+    label: "Запись",
+  },
+  insuranceClaim: {
+    title: "Чек-лист для страховой (OC/AC)",
+  },
+  priceCart: {
+    cylinderQty: "{qty} цил.",
+    wheelQty: "{qty} кол.",
+    gramsQty: "{qty} г",
+    free: "бесплатно",
+    fromPrefix: "от ",
+    perCylinder: "цилиндр",
+    perWheel: "колесо",
+    per100g: "100 g",
+  },
   thankYouExtras: {
     addCalendar: "Добавить визит в календарь",
     qrTitle: "Личный кабинет — QR",
     qrHint: "Отсканируйте, чтобы открыть кабинет клиента.",
+    cabinetHint:
+      "Личный кабинет: войдите с тем же телефоном и госномером, что указали при записи.",
+    cabinetLink: "Открыть кабинет",
+    shareVisit: "Поделиться",
   },
   galleryPage: {
     title: "Галерея работ",
@@ -1548,6 +1685,7 @@ const ru: TranslationKeys = {
     dsgRepair: "Ремонт DSG",
     dsgAdapt: "Адаптация коробки",
     dsgClutch: "Замена сцепления DSG",
+    includedInOilChange: "включено в замену масла",
   },
   booking: {
     title: "Онлайн запись",
@@ -2598,6 +2736,79 @@ const en: TranslationKeys = {
     mileagePlaceholder: "Mileage km",
     noUrgent: "No urgent items.",
     bookVisit: "Book visit",
+  },
+  statusPage: {
+    title: "Repair status",
+    phone: "Phone",
+    plate: "License plate",
+    check: "Check",
+    notFound: "Not found. Check phone and plate.",
+    sign: "Signature required",
+    cabinet: "Full account",
+    queue: "Queue: about {position} of {total}",
+    parts: "Parts",
+  },
+  extraWork: {
+    title: "Extra work needs your approval",
+    approve: "Approve",
+    decline: "Decline",
+  },
+  servicePackages: {
+    title: "Service packages",
+    servicesCount: "services",
+    book: "Book",
+    telegramHint: "Same packages in ",
+  },
+  seoHowItWorks: {
+    title: "How it works",
+    steps: [
+      "Online or phone booking",
+      "Vehicle intake and diagnostics",
+      "Estimate approval (signature)",
+      "Repair and pickup",
+    ],
+  },
+  seoServiceFaq: {
+    title: "FAQ",
+  },
+  seoLanding: {
+    allServices: "All services",
+    bookOnline: "Book online",
+  },
+  historyExport: {
+    downloadLatest: "Download latest order PDF",
+    downloadYear: "History PDF ({count})",
+  },
+  cabinetTimeline: {
+    title: "Activity",
+    appointment: "Appointment",
+    documentSigned: "Document signed",
+    warrantyUntil: "Warranty until",
+  },
+  bookSticky: {
+    label: "Book",
+  },
+  insuranceClaim: {
+    title: "Insurance claim checklist",
+  },
+  priceCart: {
+    cylinderQty: "{qty} cyl.",
+    wheelQty: "{qty} wheels",
+    gramsQty: "{qty} g",
+    free: "free",
+    fromPrefix: "from ",
+    perCylinder: "cylinder",
+    perWheel: "wheel",
+    per100g: "100 g",
+  },
+  thankYouExtras: {
+    ...pl.thankYouExtras,
+    addCalendar: "Add visit to calendar",
+    qrTitle: "Client account — QR",
+    qrHint: "Scan with your phone to open the client portal.",
+    cabinetHint: "Client area: sign in with the same phone and plate number you used when booking.",
+    cabinetLink: "Open account",
+    shareVisit: "Share visit",
   },
   partners: { ...pl.partners, title: "Partners", subtitle: "Trusted parts and oil brands" },
   faq: { ...pl.faq, title: "FAQ", subtitle: "Indicative prices — exact quote after diagnostics" },

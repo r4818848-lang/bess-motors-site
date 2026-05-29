@@ -11,6 +11,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
+import { contentLocale } from "@/lib/i18n/locale-utils";
 import { Button } from "@/components/ui/Button";
 import {
   requestPasswordResetCode,
@@ -32,7 +33,7 @@ interface Props {
 export function ForgotPasswordFlow({ onBack, onSuccess, initialPhone = "" }: Props) {
   const { t, locale } = useI18n();
   const r = t.passwordReset;
-  const lang = locale === "ru" || locale === "uk" ? "ru" : "pl";
+  const lang = contentLocale(locale);
 
   const [step, setStep] = useState<Step>("phone");
   const [phone, setPhone] = useState(initialPhone);

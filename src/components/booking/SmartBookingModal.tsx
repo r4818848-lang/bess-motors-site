@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, Phone, ArrowRight, ChevronLeft, Check, List } from "lucide-react";
 import { BookingStepBack } from "@/components/booking/BookingStepBack";
 import { useI18n } from "@/lib/i18n/context";
+import { contentLocale } from "@/lib/i18n/locale-utils";
 import { serviceFlows, type ServiceId, type FlowOption } from "@/lib/services-catalog";
 import { timeSlots } from "@/lib/data";
 import { createCallRequest, createBookingAppointment } from "@/lib/booking-actions";
@@ -83,7 +84,7 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
   const { t, locale } = useI18n();
   const bf = t.bookingFlow;
   const bq = t.bookingQuote;
-  const loc = locale === "ru" || locale === "uk" ? "ru" : "pl";
+  const contentLoc = contentLocale(locale);
   const serviceLabel =
     t.serviceItems[serviceId as keyof typeof t.serviceItems] ?? serviceId;
   const screens = useMemo(() => buildScreens(serviceId), [serviceId]);
@@ -127,7 +128,7 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
         if (!item) continue;
         const line = buildCartLine(
           item,
-          itemLabel(item, loc),
+          itemLabel(item, locale),
           defaultQuantity(item)
         );
         setCart((prev) => {
@@ -136,7 +137,7 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
         });
       }
     },
-    [loc]
+    [locale]
   );
 
   const initBaseService = useCallback(() => {
@@ -363,17 +364,17 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
       if (base) {
         return (
           <span className="block text-[10px] text-bm-muted font-mono mt-1">
-            {loc === "ru" ? "включено в замену масла" : "w cenie wymiany oleju"} (
-            {unitPriceHint(base, loc)})
+            {bf.includedInOilChange} (
+            {unitPriceHint(base, locale)})
           </span>
         );
       }
     }
-    const item = getItemForOption(serviceId, opt.id, loc);
+    const item = getItemForOption(serviceId, opt.id, contentLoc);
     if (!item) return null;
     return (
       <span className="block text-bm-red font-mono text-xs font-bold mt-1">
-        {unitPriceHint(item, loc)}
+        {unitPriceHint(item, locale)}
       </span>
     );
   };
@@ -387,7 +388,7 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
             <p className="text-center text-sm text-bm-silver">
               {lbl("oilExtra")}{" "}
               <span className="text-bm-red font-mono font-bold">
-                {unitPriceHint(base, loc)}
+                {unitPriceHint(base, locale)}
               </span>
             </p>
           )}

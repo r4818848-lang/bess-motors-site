@@ -15,6 +15,8 @@ import {
 } from "lucide-react";
 import { BookingStepBack } from "@/components/booking/BookingStepBack";
 import { useI18n } from "@/lib/i18n/context";
+import { contentLocale, pickName } from "@/lib/i18n/locale-utils";
+import type { Locale } from "@/lib/i18n/types";
 import {
   priceCategories,
   priceListItems,
@@ -57,10 +59,6 @@ import {
 
 type Phase = "services" | "datetime" | "confirm" | "done";
 
-function itemName(item: PriceListItem, locale: string): string {
-  return locale === "ru" ? item.nameRu : item.namePl;
-}
-
 function ServiceCard({
   item,
   locale,
@@ -69,7 +67,7 @@ function ServiceCard({
   onAdd,
 }: {
   item: PriceListItem;
-  locale: string;
+  locale: Locale;
   labels: Record<string, string>;
   inCart: boolean;
   onAdd: (qty: number) => void;
@@ -79,7 +77,6 @@ function ServiceCard({
     item.unit === "per_cylinder" ||
     item.unit === "per_wheel" ||
     item.unit === "per_100g";
-  const loc = locale === "ru" ? "ru" : "pl";
 
   return (
     <div
@@ -92,10 +89,10 @@ function ServiceCard({
       <div className="flex justify-between gap-3 items-start">
         <div className="min-w-0 flex-1">
           <p className="text-sm font-semibold text-white leading-snug">
-            {itemName(item, locale)}
+            {pickName(item, locale)}
           </p>
           <p className="text-bm-red font-mono text-sm mt-1 font-bold">
-            {unitPriceHint(item, loc)}
+            {unitPriceHint(item, locale)}
           </p>
         </div>
         <button
@@ -155,7 +152,7 @@ function CartPanel({
   sticky,
 }: {
   lines: CartLine[];
-  locale: string;
+  locale: Locale;
   labels: Record<string, string>;
   onRemove: (id: string) => void;
   onQtyChange: (id: string, qty: number) => void;
@@ -163,7 +160,6 @@ function CartPanel({
 }) {
   const total = cartSubtotal(lines);
   const hasFrom = cartHasFromPrices(lines);
-  const loc = locale === "ru" ? "ru" : "pl";
 
   const inner = (
     <>
@@ -180,7 +176,7 @@ function CartPanel({
         <ul className="space-y-2 max-h-[280px] overflow-y-auto pr-1">
           {lines.map((line) => {
             const item = priceListItems.find((i) => i.id === line.itemId);
-            const qLabel = item ? quantityLabel(item, line.quantity, loc) : "";
+            const qLabel = item ? quantityLabel(item, line.quantity, locale) : "";
             return (
               <li
                 key={line.id}
@@ -281,7 +277,7 @@ export function BookingQuoteFlow({ onDone }: Props) {
   const { t, locale } = useI18n();
   const { clientUser, sessionReady } = useAuth();
   const bq = t.bookingQuote;
-  const loc = locale === "ru" || locale === "uk" ? "ru" : "pl";
+  const contentLoc = contentLocale(locale);
 
   const [phase, setPhase] = useState<Phase>("services");
   const [category, setCategory] = useState<PriceCategoryId>("maintenance");
@@ -311,10 +307,10 @@ export function BookingQuoteFlow({ onDone }: Props) {
     for (const id of ids) {
       const item = priceListItems.find((i) => i.id === id);
       if (!item) continue;
-      lines.push(buildCartLine(item, itemName(item, loc), defaultQuantity(item)));
+      lines.push(buildCartLine(item, pickName(item, locale), defaultQuantity(item)));
     }
     if (lines.length) setCart(lines);
-  }, [searchParams, loc]);
+  }, [searchParams, locale]);
 
   useEffect(() => {
     prefillFromUrl();
@@ -338,7 +334,7 @@ export function BookingQuoteFlow({ onDone }: Props) {
   };
 
   const addItem = (item: PriceListItem, qty: number) => {
-    const line = buildCartLine(item, itemName(item, loc), qty);
+    const line = buildCartLine(item, pickName(item, locale), qty);
     setCart((prev) => {
       const without = prev.filter((l) => l.itemId !== item.id);
       return [...without, line];
@@ -507,7 +503,7 @@ export function BookingQuoteFlow({ onDone }: Props) {
                         : "border-bm-border text-bm-muted hover:text-white"
                     }`}
                   >
-                    {loc === "ru" ? cat.nameRu : cat.namePl}
+                    {contentLoc === "ru" ? cat.nameRu : cat.namePl}
                   </button>
                 ))}
               </div>
@@ -516,7 +512,7 @@ export function BookingQuoteFlow({ onDone }: Props) {
                   <ServiceCard
                     key={item.id}
                     item={item}
-                    locale={loc}
+                    locale={locale}
                     labels={labels}
                     inCart={cartIds.has(item.id)}
                     onAdd={(qty) => addItem(item, qty)}
@@ -527,7 +523,7 @@ export function BookingQuoteFlow({ onDone }: Props) {
             <div className="hidden lg:block">
               <CartPanel
                 lines={cart}
-                locale={loc}
+                locale={locale}
                 labels={labels}
                 onRemove={(id) => setCart((c) => c.filter((l) => l.id !== id))}
                 onQtyChange={(id, qty) =>
@@ -568,7 +564,7 @@ export function BookingQuoteFlow({ onDone }: Props) {
             <BookingStepBack label={bq.back} onClick={() => setPhase("services")} />
             <CartPanel
               lines={cart}
-              locale={loc}
+              locale={locale}
               labels={labels}
               onRemove={(id) => setCart((c) => c.filter((l) => l.id !== id))}
               onQtyChange={(id, qty) =>

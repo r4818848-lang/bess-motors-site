@@ -3,6 +3,9 @@ import {
   type PriceListItem,
   type PriceUnit,
 } from "./price-list";
+import { getTranslations } from "./i18n/translations";
+import type { Locale } from "./i18n/types";
+import { fillTemplate } from "./i18n/locale-utils";
 
 export interface CartLineParams {
   cylinders?: number;
@@ -82,33 +85,35 @@ export function formatPln(amount: number): string {
 export function quantityLabel(
   item: PriceListItem,
   qty: number,
-  locale: "pl" | "ru"
+  locale: Locale
 ): string {
+  const c = getTranslations(locale).priceCart;
   if (item.unit === "per_cylinder") {
-    return locale === "ru" ? `${qty} цил.` : `${qty} cyl.`;
+    return fillTemplate(c.cylinderQty, { qty });
   }
   if (item.unit === "per_wheel") {
-    return locale === "ru" ? `${qty} кол.` : `${qty} koła`;
+    return fillTemplate(c.wheelQty, { qty });
   }
   if (item.unit === "per_100g") {
-    return locale === "ru" ? `${qty * 100} г` : `${qty * 100} g`;
+    return fillTemplate(c.gramsQty, { qty: qty * 100 });
   }
   return qty > 1 ? `×${qty}` : "";
 }
 
-export function unitPriceHint(item: PriceListItem, locale: "pl" | "ru"): string {
+export function unitPriceHint(item: PriceListItem, locale: Locale): string {
+  const c = getTranslations(locale).priceCart;
   if (item.unit === "free") {
-    return locale === "ru" ? "бесплатно" : "bezpłatnie";
+    return c.free;
   }
-  const from = item.priceFrom ? (locale === "ru" ? "от " : "od ") : "";
+  const from = item.priceFrom ? c.fromPrefix : "";
   if (item.unit === "per_cylinder") {
-    return `${from}${item.basePrice} zł / ${locale === "ru" ? "цилиндр" : "cylindr"}`;
+    return `${from}${item.basePrice} zł / ${c.perCylinder}`;
   }
   if (item.unit === "per_wheel") {
-    return `${from}${item.basePrice} zł / ${locale === "ru" ? "колесо" : "koło"}`;
+    return `${from}${item.basePrice} zł / ${c.perWheel}`;
   }
   if (item.unit === "per_100g") {
-    return `${from}${item.basePrice} zł / 100 g`;
+    return `${from}${item.basePrice} zł / ${c.per100g}`;
   }
   return `${from}${item.basePrice} zł`;
 }

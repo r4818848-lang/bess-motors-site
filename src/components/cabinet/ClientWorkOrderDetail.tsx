@@ -13,6 +13,7 @@ import { PremiumWorkOrderDocument } from "@/components/work-order/PremiumWorkOrd
 import { getClientPaymentView } from "@/lib/payment";
 import { RepairStatusStepper } from "@/components/cabinet/RepairStatusStepper";
 import { downloadWorkOrderPdf } from "@/lib/work-order-pdf";
+import { pdfLocale as getPdfLocale } from "@/lib/i18n/locale-utils";
 
 interface Props {
   order: WorkOrder;
@@ -97,7 +98,7 @@ export function ClientWorkOrderDetail({ order, db, onBack }: Props) {
                 downloadWorkOrderPdf(
                   localOrder,
                   `${vehicle.make} ${vehicle.model} · ${vehicle.plate}`,
-                  locale === "ru" || locale === "uk" ? "ru" : "pl"
+                  getPdfLocale(locale)
                 )
               }
             >

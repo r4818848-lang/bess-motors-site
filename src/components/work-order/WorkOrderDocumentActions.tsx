@@ -11,6 +11,7 @@ import {
   Contrast,
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
+import { pdfLocale as getPdfLocale } from "@/lib/i18n/locale-utils";
 import type { WorkOrder, Vehicle, User } from "@/lib/store";
 import { loadDb } from "@/lib/store";
 import {
@@ -72,7 +73,7 @@ export function WorkOrderDocumentActions({
   const [pdfLoading, setPdfLoading] = useState<"color" | "bw" | null>(null);
   const db = loadDb();
   const vatRate = db.settings.vatRate ?? 23;
-  const lang = locale === "ru" || locale === "uk" ? "ru" : "pl";
+  const lang = getPdfLocale(locale);
   const shareText = buildShareMessage(order, client, lang);
 
   const handlePrint = (variant: WorkOrderDocVariant) => {

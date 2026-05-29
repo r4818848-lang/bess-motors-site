@@ -6,9 +6,8 @@ import { useI18n } from "@/lib/i18n/context";
 import { BookingLink } from "@/components/analytics/BookingLink";
 
 export function BookNowSticky() {
-  const { locale } = useI18n();
+  const { t } = useI18n();
   const pathname = usePathname();
-  const label = locale === "ru" ? "Запись" : locale === "en" ? "Book" : "Umów";
 
   if (pathname.startsWith("/cabinet") || pathname.startsWith("/crm")) return null;
 
@@ -20,7 +19,7 @@ export function BookNowSticky() {
         className="btn-primary shadow-neon flex items-center gap-2 rounded-full px-5 py-3"
       >
         <Calendar size={18} />
-        {label}
+        {t.bookSticky.label}
       </BookingLink>
     </div>
   );

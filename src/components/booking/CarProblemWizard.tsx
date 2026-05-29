@@ -4,6 +4,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Wrench } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
+import { pickName } from "@/lib/i18n/locale-utils";
 import {
   resolveWizardItemIds,
   wizardPrimaryCategory,
@@ -21,7 +22,6 @@ type Props = {
 export function CarProblemWizard({ onApply }: Props) {
   const { t, locale } = useI18n();
   const w = t.carWizard;
-  const loc = locale === "ru" || locale === "uk" ? "ru" : "pl";
   const [selected, setSelected] = useState<WizardSymptomId[]>([]);
 
   const toggle = (id: WizardSymptomId) => {
@@ -36,7 +36,7 @@ export function CarProblemWizard({ onApply }: Props) {
     for (const id of ids) {
       const item = getPriceItem(id);
       if (!item) continue;
-      const label = loc === "ru" ? item.nameRu : item.namePl;
+      const label = pickName(item, locale);
       lines.push(buildCartLine(item, label, 1));
     }
     if (lines.length) {

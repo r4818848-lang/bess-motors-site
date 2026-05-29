@@ -3,13 +3,14 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useI18n } from "@/lib/i18n/context";
+import { contentLocale } from "@/lib/i18n/locale-utils";
 import { symptomFaq } from "@/lib/symptom-faq";
 import { bookingUrlForService } from "@/lib/brand-service-links";
 import type { ServiceId } from "@/lib/services-catalog";
 
 export function SymptomFaq() {
   const { locale, t } = useI18n();
-  const useRu = locale === "ru" || locale === "uk";
+  const useRu = contentLocale(locale) === "ru";
   const [open, setOpen] = useState<string | null>(symptomFaq[0]?.id ?? null);
 
   return (

@@ -13,6 +13,7 @@ import {
   type PriceCategoryId,
   type PriceListItem,
 } from "@/lib/price-list";
+import { contentLocale, pickName } from "@/lib/i18n/locale-utils";
 import { unitPriceHint } from "@/lib/booking-cart";
 import { BookingLink } from "@/components/analytics/BookingLink";
 import { PhoneLink } from "@/components/analytics/PhoneLink";
@@ -21,13 +22,13 @@ import { PriceListCalculator } from "@/components/pricing/PriceListCalculator";
 import { downloadPriceListPdf } from "@/lib/price-list-pdf";
 import { Download } from "lucide-react";
 
-function itemLabel(item: PriceListItem, locale: "pl" | "ru") {
-  return locale === "ru" ? item.nameRu : item.namePl;
+function itemLabel(item: PriceListItem, locale: Parameters<typeof pickName>[1]) {
+  return pickName(item, locale);
 }
 
 export function FullPriceListView() {
   const { locale, t } = useI18n();
-  const loc = locale === "ru" || locale === "uk" ? "ru" : "pl";
+  const contentLoc = contentLocale(locale);
   const [category, setCategory] = useState<PriceCategoryId>("diagnostic");
 
   const items = useMemo(() => itemsByCategory(category), [category]);
@@ -54,7 +55,7 @@ export function FullPriceListView() {
         </div>
         <button
           type="button"
-          onClick={() => downloadPriceListPdf(loc)}
+          onClick={() => downloadPriceListPdf(contentLoc)}
           className="mt-4 inline-flex items-center gap-2 text-sm text-bm-red hover:underline"
         >
           <Download size={16} />
@@ -76,7 +77,7 @@ export function FullPriceListView() {
                 : "border-bm-border text-bm-muted hover:text-white hover:border-bm-red/40"
             }`}
           >
-            {loc === "ru" ? cat.nameRu : cat.namePl}
+            {contentLoc === "ru" ? cat.nameRu : cat.namePl}
           </button>
         ))}
       </div>
@@ -89,7 +90,7 @@ export function FullPriceListView() {
       >
         <div className="bg-bm-card/80 px-4 py-3 border-b border-bm-border/60">
           <h2 className="font-display text-lg uppercase text-bm-red">
-            {loc === "ru"
+            {contentLoc === "ru"
               ? priceCategories.find((c) => c.id === category)?.nameRu
               : priceCategories.find((c) => c.id === category)?.namePl}
           </h2>
@@ -100,9 +101,9 @@ export function FullPriceListView() {
               key={item.id}
               className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 px-4 py-3.5 hover:bg-bm-red/5 transition-colors"
             >
-              <span className="text-sm text-white/95 pr-4">{itemLabel(item, loc)}</span>
+              <span className="text-sm text-white/95 pr-4">{itemLabel(item, locale)}</span>
               <span className="text-sm font-mono font-bold text-bm-red shrink-0">
-                {unitPriceHint(item, loc)}
+                {unitPriceHint(item, locale)}
               </span>
             </li>
           ))}
@@ -117,7 +118,7 @@ export function FullPriceListView() {
           {priceListFooterNotes.map((note) => (
             <li key={note.pl} className="flex gap-2">
               <span className="text-bm-red shrink-0">•</span>
-              <span>{loc === "ru" ? note.ru : note.pl}</span>
+              <span>{contentLoc === "ru" ? note.ru : note.pl}</span>
             </li>
           ))}
         </ul>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useI18n } from "@/lib/i18n/context";
+import { contentLocale } from "@/lib/i18n/locale-utils";
 import type { ServiceId } from "@/lib/services-catalog";
 import { Card } from "@/components/ui/Card";
 
@@ -39,19 +40,17 @@ const FAQ: Partial<
 };
 
 export function SeoServiceFaq({ serviceId }: { serviceId?: ServiceId }) {
-  const { locale } = useI18n();
+  const { locale, t } = useI18n();
   if (!serviceId) return null;
   const block = FAQ[serviceId];
   if (!block) return null;
-  const useRu = locale === "ru" || locale === "uk";
+  const useRu = contentLocale(locale) === "ru";
   const items = useRu ? block.ru : block.pl;
   if (!items?.length) return null;
 
-  const title = useRu ? "Частые вопросы" : locale === "en" ? "FAQ" : "Najczęstsze pytania";
-
   return (
     <section className="mt-12">
-      <h2 className="font-display text-xl uppercase mb-4">{title}</h2>
+      <h2 className="font-display text-xl uppercase mb-4">{t.seoServiceFaq.title}</h2>
       <div className="space-y-3">
         {items.map((item) => (
           <Card key={item.q} className="p-4">

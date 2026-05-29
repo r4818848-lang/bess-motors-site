@@ -3,6 +3,7 @@
 import { useState, useCallback } from "react";
 import { Link2, Copy, Check, MessageSquare, Smartphone } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
+import { pdfLocale as getPdfLocale } from "@/lib/i18n/locale-utils";
 import type { WorkOrder, User } from "@/lib/store";
 import { Button } from "@/components/ui/Button";
 import {
@@ -42,7 +43,7 @@ async function copyText(text: string): Promise<boolean> {
 export function SignLinkShareBlock({ order, client, inline }: Props) {
   const { t, locale } = useI18n();
   const d = t.document;
-  const lang = locale === "ru" || locale === "uk" ? "ru" : "pl";
+  const lang = getPdfLocale(locale);
   const signUrl = getSignUrl(order.id);
   const smsText = buildShareMessage(order, client, lang);
 

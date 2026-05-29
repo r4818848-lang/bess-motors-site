@@ -2,6 +2,7 @@
 
 import { AlertCircle, CalendarClock } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
+import { contentLocale } from "@/lib/i18n/locale-utils";
 import type { Vehicle, WorkOrder } from "@/lib/store";
 import { buildMaintenanceReminders } from "@/lib/maintenance-reminders";
 import { BookingLink } from "@/components/analytics/BookingLink";
@@ -13,7 +14,7 @@ type Props = {
 
 export function MaintenanceRemindersPanel({ vehicle, workOrders }: Props) {
   const { locale, t } = useI18n();
-  const loc = locale === "ru" || locale === "uk" ? "ru" : "pl";
+  const loc = contentLocale(locale);
   const reminders = buildMaintenanceReminders(vehicle, workOrders, loc);
 
   return (

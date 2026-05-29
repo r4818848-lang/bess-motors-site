@@ -1,5 +1,7 @@
 import type { ServiceId } from "./services-catalog";
 import { getPriceItem, type PriceListItem } from "./price-list";
+import { pickName } from "./i18n/locale-utils";
+import type { Locale } from "./i18n/types";
 
 /** Базовая услуга при открытии записи по категории */
 export const serviceBasePriceId: Partial<Record<ServiceId, string>> = {
@@ -99,6 +101,6 @@ export function getItemForOption(
   return getPriceItem(ids[0]) ?? null;
 }
 
-export function itemLabel(item: PriceListItem, locale: "pl" | "ru"): string {
-  return locale === "ru" ? item.nameRu : item.namePl;
+export function itemLabel(item: PriceListItem, locale: Locale): string {
+  return pickName(item, locale);
 }

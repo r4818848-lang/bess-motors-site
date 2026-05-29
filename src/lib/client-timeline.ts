@@ -1,4 +1,6 @@
-import type { Appointment, ClientNotification, Database, WorkOrder } from "@/lib/store";
+import type { Database } from "@/lib/store";
+import { getTranslations } from "./i18n/translations";
+import type { Locale } from "./i18n/types";
 
 export type TimelineEvent = {
   id: string;
@@ -12,9 +14,9 @@ export type TimelineEvent = {
 export function buildClientTimeline(
   db: Database,
   userId: string,
-  locale: "pl" | "ru" | "uk" | "en"
+  locale: Locale
 ): TimelineEvent[] {
-  const useRu = locale === "ru" || locale === "uk";
+  const tl = getTranslations(locale).cabinetTimeline;
   const events: TimelineEvent[] = [];
 
   for (const a of db.appointments.filter((x) => x.userId === userId)) {
@@ -22,7 +24,7 @@ export function buildClientTimeline(
       id: `apt-${a.id}`,
       at: `${a.date}T${a.time}:00`,
       kind: "appointment",
-      title: useRu ? "Запись" : locale === "en" ? "Appointment" : "Wizyta",
+      title: tl.appointment,
       detail: `${a.date} · ${a.time}`,
     });
   }
@@ -41,7 +43,7 @@ export function buildClientTimeline(
         id: `sign-${o.id}`,
         at: o.signature.signedAt,
         kind: "signature",
-        title: useRu ? "Подпись документа" : locale === "en" ? "Document signed" : "Podpis dokumentu",
+        title: tl.documentSigned,
         detail: o.number,
       });
     }
@@ -50,7 +52,7 @@ export function buildClientTimeline(
         id: `war-${o.id}`,
         at: o.warrantyUntil,
         kind: "warranty",
-        title: useRu ? "Гарантия до" : locale === "en" ? "Warranty until" : "Gwarancja do",
+        title: tl.warrantyUntil,
         detail: o.warrantyUntil.slice(0, 10),
       });
     }

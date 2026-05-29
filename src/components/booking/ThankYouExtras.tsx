@@ -14,7 +14,7 @@ import { getSiteUrl } from "@/lib/seo";
 const BOT_USERNAME = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME ?? "BessMotors_bot";
 
 export function ThankYouExtras() {
-  const { t, locale } = useI18n();
+  const { t } = useI18n();
   const e = t.thankYouExtras;
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
   const booking = loadLastBooking();
@@ -48,38 +48,13 @@ export function ThankYouExtras() {
     }
   };
 
-  const tgLabel =
-    locale === "ru" || locale === "uk"
-      ? "Открыть в Telegram"
-      : locale === "en"
-        ? "Open in Telegram"
-        : "Otwórz w Telegramie";
-
   return (
     <div className="mt-10 space-y-6">
       <p className="text-sm text-center text-bm-muted glass rounded-xl p-4">
-        {locale === "ru" || locale === "uk" ? (
-          <>
-            Личный кабинет: войдите с <b>тем же телефоном</b> и <b>госномером</b>, что указали при записи.{" "}
-            <Link href="/cabinet" className="text-bm-red hover:underline">
-              Открыть кабинет
-            </Link>
-          </>
-        ) : locale === "en" ? (
-          <>
-            Client area: sign in with the <b>same phone</b> and <b>plate number</b> you used when booking.{" "}
-            <Link href="/cabinet" className="text-bm-red hover:underline">
-              Open account
-            </Link>
-          </>
-        ) : (
-          <>
-            Konto klienta: zaloguj się tym samym <b>telefonem</b> i <b>numerem rejestracyjnym</b> co przy zapisie.{" "}
-            <Link href="/cabinet" className="text-bm-red hover:underline">
-              Otwórz konto
-            </Link>
-          </>
-        )}
+        {e.cabinetHint}{" "}
+        <Link href="/cabinet" className="text-bm-red hover:underline">
+          {e.cabinetLink}
+        </Link>
       </p>
 
       {booking?.date && booking?.time && (
@@ -99,7 +74,7 @@ export function ThankYouExtras() {
               className="w-full btn-outline inline-flex items-center justify-center gap-2"
             >
               <Share2 size={18} />
-              {locale === "en" ? "Share visit" : locale === "ru" ? "Поделиться" : "Udostępnij wizytę"}
+              {e.shareVisit}
             </button>
           )}
         </>
@@ -112,7 +87,7 @@ export function ThankYouExtras() {
         className="w-full btn-primary inline-flex items-center justify-center gap-2"
       >
         <Send size={18} />
-        {tgLabel}
+        {t.telegramOpen.label}
       </Link>
 
       <div className="rounded-xl border border-bm-border/50 bg-bm-card/40 p-5">
