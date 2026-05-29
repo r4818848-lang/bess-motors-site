@@ -30,6 +30,8 @@ export async function setActiveVehicle(
   const db = structuredClone(snap.doc) as Database;
   const user = db.users.find((u) => u.telegramChatId === chatKey && u.role === "client");
   if (!user) return false;
+  const owned = db.vehicles.some((v) => v.id === vehicleId && v.userId === user.id);
+  if (!owned) return false;
   user.telegramActiveVehicleId = vehicleId;
   await cloudPutCrmStore(db);
   return true;

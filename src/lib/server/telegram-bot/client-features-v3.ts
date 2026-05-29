@@ -5,11 +5,11 @@ import { getPromoRules } from "@/lib/promo-codes";
 import { servicePackages } from "@/lib/service-packages";
 import type { BotLocale } from "./client-i18n";
 import { getClientBotLabels } from "./client-i18n";
-import { getClientServiceLabel } from "./client-services";
-import { setClientTelegramSession } from "./client-locale";
-import { getClientPortalByChat } from "./client-telegram-link";
-import { clientBackMenuRow, clientDateKeyboard } from "./client-keyboards";
+import { getClientServiceLabel, normalizeTelegramServiceId } from "./client-services";
 import { resolveActiveVehicleId } from "./client-vehicle-pick";
+import { getClientPortalByChat } from "./client-telegram-link";
+import { clientBackMenuRow } from "./client-keyboards";
+import { advanceBookingFlow } from "./client-booking-flow";
 import type { WorkOrder } from "@/lib/store";
 
 export function packagesKeyboard(locale: BotLocale): InlineKeyboardMarkup {
@@ -62,16 +62,16 @@ export async function startPackageBooking(
   const pkg = servicePackages.find((p) => p.id === packageId);
   if (!pkg) return;
   const label = locale === "ru" || locale === "uk" ? pkg.nameRu : pkg.namePl;
-  await setClientTelegramSession(chatKey, {
-    data: {
-      intent: "book",
-      serviceId: pkg.serviceIds[0] ?? "diagnostic",
-      serviceLabel: label,
-      comment: `${label} (${pkg.serviceIds.join(", ")})`,
-    },
-  });
-  const L = getClientBotLabels(locale);
-  await sendTelegramMessage(chatId, `${label}\n\n${L.chooseDate}`, clientDateKeyboard(locale));
+  const slice = await getClientPortalByChat(chatKey);
+  const draft: Record<string, string> = {
+    intent: "book",
+    serviceId: normalizeTelegramServiceId(pkg.serviceIds[0] ?? "diagnostic"),
+    serviceLabel: label,
+    comment: `${label} (${pkg.serviceIds.join(", ")})`,
+  };
+  if (slice?.user.name?.trim()) draft.name = slice.user.name.trim();
+  if (slice?.user.phone?.trim()) draft.phone = slice.user.phone.trim();
+  await advanceBookingFlow(chatId, undefined, chatKey, locale, draft, slice);
 }
 
 export async function startRepeatOrder(
@@ -82,16 +82,16 @@ export async function startRepeatOrder(
 ): Promise<void> {
   const services = order.services.map((s) => s.name).join("; ");
   const primary = order.services[0]?.name ?? "diagnostic";
-  await setClientTelegramSession(chatKey, {
-    data: {
-      intent: "book",
-      serviceId: "otherReason",
-      serviceLabel: primary,
-      comment: locale === "ru" ? `Повтор: ${services}` : `Repeat: ${services}`,
-    },
-  });
-  const L = getClientBotLabels(locale);
-  await sendTelegramMessage(chatId, `🔁 ${services}\n\n${L.chooseDate}`, clientDateKeyboard(locale));
+  const slice = await getClientPortalByChat(chatKey);
+  const draft: Record<string, string> = {
+    intent: "book",
+    serviceId: "otherReason",
+    serviceLabel: primary,
+    comment: locale === "ru" ? `Повтор: ${services}` : `Repeat: ${services}`,
+  };
+  if (slice?.user.name?.trim()) draft.name = slice.user.name.trim();
+  if (slice?.user.phone?.trim()) draft.phone = slice.user.phone.trim();
+  await advanceBookingFlow(chatId, undefined, chatKey, locale, draft, slice);
 }
 
 export async function formatWarrantyList(locale: BotLocale, chatKey: string): Promise<string | null> {

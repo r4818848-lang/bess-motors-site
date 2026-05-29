@@ -1,5 +1,5 @@
 import type { InlineKeyboardMarkup } from "@/lib/server/telegram-api";
-import { sendTelegramMessage } from "@/lib/server/telegram-api";
+import { editTelegramMessage, sendTelegramMessage } from "@/lib/server/telegram-api";
 import { cloudGetCrmStore, cloudPutCrmStore } from "@/lib/server/crm-cloud";
 import {
   botFaqText,
@@ -13,35 +13,98 @@ import {
 import type { BotLocale } from "./client-i18n";
 import { getClientBotLabels } from "./client-i18n";
 import { getClientPortalByChat } from "./client-telegram-link";
-import { setClientTelegramSession } from "./client-locale";
-import { getClientServiceLabel } from "./client-services";
-import { clientBackMenuRow, clientDateKeyboard, clientServiceKeyboard } from "./client-keyboards";
+import { advanceBookingFlow } from "./client-booking-flow";
+import { getClientServiceLabel, normalizeTelegramServiceId } from "./client-services";
+import { clientBackMenuRow, clientServiceKeyboard } from "./client-keyboards";
 import type { Database, User } from "@/lib/store";
 import { getPriceListSummaryForBot } from "@/lib/price-list-bot-summary";
 
-export async function sendExtrasMenu(chatId: number, locale: BotLocale): Promise<void> {
+export async function sendExtrasMenu(
+  chatId: number,
+  locale: BotLocale,
+  chatKey?: string,
+  messageId?: number
+): Promise<void> {
+  const L = getClientBotLabels(locale);
+  const slice = chatKey ? await getClientPortalByChat(chatKey) : null;
   const text = [workshopHoursText(locale), "", botFaqText(locale)].join("\n");
   const priceLabel =
     locale === "pl" ? "💰 Cennik" : locale === "en" ? "💰 Prices" : "💰 Цены";
-  await sendTelegramMessage(chatId, text, {
-    inline_keyboard: [
-      [{ text: priceLabel, callback_data: "cl:v4:price" }],
-      clientBackMenuRow(locale),
+  const promoLabel =
+    locale === "pl"
+      ? "🏷 Promocje"
+      : locale === "en"
+        ? "🏷 Promo codes"
+        : locale === "uk"
+          ? "🏷 Промокоди"
+          : "🏷 Промокоды";
+
+  const rows: InlineKeyboardMarkup["inline_keyboard"] = [
+    [{ text: priceLabel, callback_data: "cl:v4:price" }],
+    [
+      { text: L.packagesBtn, callback_data: "cl:pkg:menu" },
+      { text: promoLabel, callback_data: "cl:promo" },
     ],
-  });
+    [
+      { text: L.locationBtn, callback_data: "cl:location" },
+      { text: L.galleryPhotos, callback_data: "cl:photos" },
+    ],
+    [
+      {
+        text: locale === "pl" ? "🆘 Awaria" : locale === "en" ? "🆘 Emergency" : "🆘 Экстренно",
+        callback_data: "cl:v4:emergency",
+      },
+      {
+        text: locale === "pl" ? "📇 Kontakt" : locale === "en" ? "📇 Contact" : "📇 Контакт",
+        callback_data: "cl:v4:vcard",
+      },
+    ],
+  ];
+
+  if (slice) {
+    rows.push([
+      { text: L.rebook, callback_data: "cl:rebook" },
+      {
+        text: locale === "pl" ? "⭐ Ulubione" : locale === "en" ? "⭐ Favorites" : "⭐ Избранное",
+        callback_data: "cl:v4:fav",
+      },
+    ]);
+    rows.push([
+      {
+        text: locale === "pl" ? "⏱ Termin" : locale === "en" ? "⏱ ETA" : "⏱ Срок",
+        callback_data: "cl:v4:eta",
+      },
+      { text: L.rebookWeek, callback_data: "cl:rebook7" },
+    ]);
+    rows.push([
+      { text: L.concierge, callback_data: "cl:concierge" },
+      { text: L.quietHours, callback_data: "cl:quiet" },
+    ]);
+  }
+
+  rows.push(clientBackMenuRow(locale));
+
+  const keyboard = { inline_keyboard: rows };
+  if (messageId) {
+    const ok = await editTelegramMessage(chatId, messageId, text, keyboard);
+    if (!ok) await sendTelegramMessage(chatId, text, keyboard);
+  } else {
+    await sendTelegramMessage(chatId, text, keyboard);
+  }
 }
 
 export async function handleExtrasV4Callback(
   chatId: number,
   chatKey: string,
   locale: BotLocale,
-  data: string
+  data: string,
+  messageId?: number
 ): Promise<boolean> {
   if (!data.startsWith("cl:v4:")) return false;
   const action = data.slice(6);
 
   if (action === "menu") {
-    await sendExtrasMenu(chatId, locale);
+    await sendExtrasMenu(chatId, locale, chatKey, messageId);
     return true;
   }
 
@@ -84,20 +147,17 @@ export async function handleExtrasV4Callback(
     return true;
   }
   if (action.startsWith("favgo:")) {
-    const serviceId = action.slice(6);
+    const serviceId = normalizeTelegramServiceId(action.slice(6));
     await setFavoriteService(chatKey, serviceId);
-    await setClientTelegramSession(chatKey, {
-      data: {
-        intent: "book",
-        serviceId,
-        serviceLabel: getClientServiceLabel(serviceId, locale),
-      },
-    });
-    await sendTelegramMessage(
-      chatId,
-      getClientBotLabels(locale).chooseDate,
-      clientDateKeyboard(locale)
-    );
+    const slice = await getClientPortalByChat(chatKey);
+    const draft: Record<string, string> = {
+      intent: "book",
+      serviceId,
+      serviceLabel: getClientServiceLabel(serviceId, locale),
+    };
+    if (slice?.user.name?.trim()) draft.name = slice.user.name.trim();
+    if (slice?.user.phone?.trim()) draft.phone = slice.user.phone.trim();
+    await advanceBookingFlow(chatId, messageId, chatKey, locale, draft, slice);
     return true;
   }
   if (action.startsWith("fb:")) {
@@ -170,7 +230,7 @@ export async function handleClientTextCommands(
 ): Promise<boolean> {
   const cmd = text.trim().toLowerCase().split(/\s+/)[0];
   if (cmd === "/faq" || cmd === "/help") {
-    await sendExtrasMenu(chatId, locale);
+    await sendExtrasMenu(chatId, locale, chatKey);
     return true;
   }
   if (cmd === "/hours") {
@@ -182,7 +242,7 @@ export async function handleClientTextCommands(
     return true;
   }
   if (cmd === "/more" || cmd === "/extras") {
-    await sendExtrasMenu(chatId, locale);
+    await sendExtrasMenu(chatId, locale, chatKey);
     return true;
   }
   if (cmd === "/repeat") {
@@ -206,6 +266,8 @@ export async function handleClientTextCommands(
     return true;
   }
   if (cmd === "/book") {
+    const { clearTelegramSessionKeepLocale } = await import("./client-locale");
+    await clearTelegramSessionKeepLocale(chatKey);
     const L = getClientBotLabels(locale);
     await sendTelegramMessage(chatId, L.chooseService, clientServiceKeyboard(locale, "book"));
     return true;

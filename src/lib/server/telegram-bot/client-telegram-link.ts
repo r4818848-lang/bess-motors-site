@@ -44,6 +44,26 @@ function applyTelegramProfile(user: User, profile: TelegramProfile): void {
   user.telegramLinkedAt = new Date().toISOString();
 }
 
+/** Link Telegram chat to client after booking/call if chat is not tied to another account. */
+export function tryLinkTelegramOnBooking(
+  db: Database,
+  userId: string,
+  profile: TelegramProfile,
+  locale?: BotLocale
+): void {
+  const user = db.users.find((u) => u.id === userId && u.role === "client");
+  if (!user) return;
+
+  const chatOwner = findClientByTelegramChat(db, profile.chatId);
+  if (chatOwner && chatOwner.id !== userId) return;
+
+  if (user.telegramChatId && user.telegramChatId !== profile.chatId) return;
+
+  applyTelegramProfile(user, profile);
+  if (locale) user.telegramLocale = locale;
+  ensureReferralCode(user);
+}
+
 export async function getClientPortalByChat(
   chatId: string
 ): Promise<ClientPortalSlice | null> {

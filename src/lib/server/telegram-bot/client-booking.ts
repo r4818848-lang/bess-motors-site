@@ -6,6 +6,11 @@ import { notifyAdminTelegram } from "@/lib/server/telegram-api";
 import type { Appointment } from "@/lib/store";
 import { loadCrmFromCloud, mutateCrm } from "./crm-actions";
 import { getClientServiceLabel } from "./client-services";
+import type { BotLocale } from "./client-i18n";
+import {
+  tryLinkTelegramOnBooking,
+  type TelegramProfile,
+} from "./client-telegram-link";
 
 function escapeHtml(s: string): string {
   return s
@@ -52,6 +57,8 @@ export async function createTelegramBooking(params: {
   clientName: string;
   clientPhone: string;
   comment?: string;
+  telegramProfile?: TelegramProfile;
+  locale?: BotLocale;
 }): Promise<{ ok: boolean; error?: string }> {
   let created: Appointment | null = null;
 
@@ -61,6 +68,10 @@ export async function createTelegramBooking(params: {
       params.clientName,
       params.clientPhone
     );
+
+    if (params.telegramProfile) {
+      tryLinkTelegramOnBooking(db, userId, params.telegramProfile, params.locale);
+    }
 
     const apt: Appointment = {
       id: `apt-tg-${Date.now()}`,
@@ -101,6 +112,8 @@ export async function createTelegramCallRequest(params: {
   clientName: string;
   clientPhone: string;
   comment?: string;
+  telegramProfile?: TelegramProfile;
+  locale?: BotLocale;
 }): Promise<{ ok: boolean; error?: string }> {
   const label = getClientServiceLabel(params.serviceId);
   const comment = [
@@ -111,11 +124,21 @@ export async function createTelegramCallRequest(params: {
     .join(" · ");
 
   const result = await mutateCrm((db) => {
+    const { userId } = ensureClientForBooking(
+      db,
+      params.clientName,
+      params.clientPhone
+    );
+
+    if (params.telegramProfile) {
+      tryLinkTelegramOnBooking(db, userId, params.telegramProfile, params.locale);
+    }
+
     db.callRequests.push({
       id: `call-tg-${Date.now()}`,
       phone: params.clientPhone.trim(),
       clientName: params.clientName.trim(),
-      userId: "guest",
+      userId,
       serviceId: params.serviceId,
       serviceLabel: label,
       comment,

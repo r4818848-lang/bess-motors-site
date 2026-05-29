@@ -1,6 +1,6 @@
 import type { ServiceId } from "@/lib/services-catalog";
 import { bookingGridServiceIds } from "@/lib/services-catalog";
-import { nextBookableDates } from "./client-services";
+import { nextBookableDates, normalizeTelegramServiceId } from "./client-services";
 
 export type ParsedSmartBooking = {
   serviceId: string;
@@ -83,7 +83,7 @@ export function tryParseSmartBooking(text: string): ParsedSmartBooking | null {
   if (!hasBookKeyword && !time) return null;
 
   return {
-    serviceId,
+    serviceId: normalizeTelegramServiceId(serviceId),
     date: date ?? bookable[1] ?? bookable[0],
     time: time ?? "10:00",
     comment: trimmed.slice(0, 300),

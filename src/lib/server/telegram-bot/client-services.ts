@@ -50,6 +50,23 @@ export function clientBookableServices(locale: BotLocale) {
   }));
 }
 
+const TELEGRAM_SERVICE_ALIASES: Partial<Record<ServiceId, ServiceId>> = {
+  electric: "diagnostic",
+  filters: "otherReason",
+  tires: "otherReason",
+  brakesFull: "brakePads",
+  acRepair: "acRefill",
+  timingBelt: "otherReason",
+};
+
+/** Map wizard/smart-text service ids to a Telegram-bookable id */
+export function normalizeTelegramServiceId(serviceId: string): string {
+  if ((telegramBookableServiceIds as readonly string[]).includes(serviceId)) {
+    return serviceId;
+  }
+  return TELEGRAM_SERVICE_ALIASES[serviceId as ServiceId] ?? "otherReason";
+}
+
 export function encodeTimeSlot(time: string): string {
   return time.replace(":", "");
 }

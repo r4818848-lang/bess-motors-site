@@ -9,7 +9,7 @@ import {
 import { getPriceItem } from "@/lib/price-list";
 import type { BotLocale } from "./client-i18n";
 import { getClientBotLabels } from "./client-i18n";
-import { getClientServiceLabel } from "./client-services";
+import { getClientServiceLabel, normalizeTelegramServiceId } from "./client-services";
 import { setClientTelegramSession } from "./client-locale";
 import { clientBackMenuRow } from "./client-keyboards";
 import { symptomLabel } from "./wizard-symptom-labels";
@@ -160,12 +160,13 @@ export async function finishSymptomQuiz(
   }
 
   const est = formatSymptomEstimate(locale, selected);
+  const serviceId = normalizeTelegramServiceId(est.serviceId);
   await clearTelegramSessionKeepLocale(chatKey);
   await setClientTelegramSession(chatKey, {
     data: {
       intent: "book",
-      serviceId: est.serviceId,
-      serviceLabel: getClientServiceLabel(est.serviceId, locale),
+      serviceId,
+      serviceLabel: getClientServiceLabel(serviceId, locale),
       comment: est.text.slice(0, 400),
     },
   });

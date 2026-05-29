@@ -38,7 +38,6 @@ import {
 } from "./client-locale";
 import {
   clientConfirmBookingKeyboard,
-  clientConfirmCallKeyboard,
   clientContactsKeyboard,
   clientDateKeyboard,
   clientLanguageKeyboard,
@@ -50,7 +49,6 @@ import {
   clientSkipCommentKeyboard,
   clientStartReplyKeyboard,
   clientTimeKeyboard,
-  formatClientBookingSummary,
   vinAskPlateKeyboard,
   vinConfirmKeyboard,
   linkConfirmKeyboard,
@@ -63,11 +61,22 @@ import {
   clientAppointmentDetailKeyboard,
 } from "./client-keyboards";
 import {
+  advanceBookingFlow,
+  continueBookAfterTime,
+  continueCallAfterService,
+  linkedProfileData,
+  promptComment,
+  promptName,
+  promptPhone,
+  replyOrEdit,
+  showConfirm,
+} from "./client-booking-flow";
+import {
   getClientPortalByChat,
   linkTelegramClient,
   type TelegramProfile,
 } from "./client-telegram-link";
-import { decodeTimeSlot, formatDateShort, getClientServiceLabel } from "./client-services";
+import { decodeTimeSlot, formatDateShort, getClientServiceLabel, normalizeTelegramServiceId, nextBookableDates } from "./client-services";
 import { addVehicleByVinToLinkedClient, decodeVinForClient, formatVinPreview, normalizeVinInput } from "./client-vin";
 import { formatPreVisitChecklistText } from "@/lib/pre-visit-checklist";
 import {
@@ -87,7 +96,9 @@ import { saveClientTelegramPhoto } from "./client-photo";
 import { tryParseSmartBooking } from "./client-smart-booking";
 import {
   finishSymptomQuiz,
+  parseSelectedSymptoms,
   startSymptomQuiz,
+  symptomQuizKeyboard,
   toggleSymptom,
 } from "./client-symptom-quiz";
 import { formatConciergeMessage } from "./client-concierge";
@@ -236,26 +247,6 @@ async function handleStartDeepLinks(
   }
 }
 
-async function replyOrEdit(
-  chatId: number,
-  messageId: number | undefined,
-  locale: BotLocale,
-  text: string,
-  keyboard?: Parameters<typeof sendTelegramMessage>[2]
-): Promise<void> {
-  if (messageId && keyboard && "inline_keyboard" in keyboard) {
-    const ok = await editTelegramMessage(chatId, messageId, text, keyboard);
-    if (!ok) await sendTelegramMessage(chatId, text, keyboard);
-  } else if (messageId) {
-    const inlineKb =
-      keyboard && "inline_keyboard" in keyboard ? keyboard : clientMainKeyboard(locale);
-    const ok = await editTelegramMessage(chatId, messageId, text, inlineKb);
-    if (!ok) await sendTelegramMessage(chatId, text, keyboard ?? clientMainKeyboard(locale));
-  } else {
-    await sendTelegramMessage(chatId, text, keyboard ?? clientMainKeyboard(locale));
-  }
-}
-
 function clientUserMenu(
   locale: BotLocale,
   slice: ClientPortalSlice | null | undefined
@@ -272,51 +263,6 @@ async function markInboxRead(userId: string): Promise<void> {
   });
 }
 
-async function advanceBookingFlow(
-  chatId: number,
-  messageId: number | undefined,
-  chatKey: string,
-  locale: BotLocale,
-  draft: Record<string, string>,
-  slice: ClientPortalSlice | null | undefined
-): Promise<void> {
-  const L = getClientBotLabels(locale);
-  const data: Record<string, string> = { ...draft, intent: "book" };
-
-  if (!data.serviceId) {
-    await clearTelegramSessionKeepLocale(chatKey);
-    await replyOrEdit(chatId, messageId, locale, L.chooseService, clientServiceKeyboard(locale, "book"));
-    return;
-  }
-
-  const filled = linkedProfileData(slice, data);
-
-  if (filled.date && filled.time && filled.name && filled.phone) {
-    await showConfirm(chatId, messageId, chatKey, locale, filled);
-    return;
-  }
-
-  if (filled.date && filled.time) {
-    await continueBookAfterTime(chatId, messageId, chatKey, locale, filled, slice);
-    return;
-  }
-
-  if (filled.date) {
-    await setClientTelegramSession(chatKey, { data: filled });
-    await replyOrEdit(
-      chatId,
-      messageId,
-      locale,
-      `${L.chooseTime}\n📅 ${formatDateShort(filled.date, locale)}`,
-      clientTimeKeyboard(locale)
-    );
-    return;
-  }
-
-  await setClientTelegramSession(chatKey, { data: filled });
-  await replyOrEdit(chatId, messageId, locale, L.chooseDate, clientDateKeyboard(locale));
-}
-
 async function showClientMenu(
   chatId: number,
   messageId: number | undefined,
@@ -331,7 +277,7 @@ async function showClientMenu(
   if (slice) {
     const pending = countPendingSign(slice);
     const unread = countUnread(slice);
-    const text = formatLinkedWelcome(locale, slice.user.name);
+    const text = `${formatLinkedWelcome(locale, slice.user.name)}\n\n${L.smartBookHint}`;
     const kb = clientMenuForUser(locale, slice, pending, unread);
     await replyOrEdit(chatId, messageId, locale, text, kb);
 
@@ -351,9 +297,9 @@ async function showClientMenu(
     return;
   }
 
-  let text = L.welcome;
+  let text = `${L.welcome}\n\n${L.smartBookHint}`;
   if (startParam?.startsWith("sign_")) {
-    text = `${L.signIntro}\n\n${L.welcome}`;
+    text = `${L.signIntro}\n\n${L.welcome}\n\n${L.smartBookHint}`;
   }
   await replyOrEdit(chatId, messageId, locale, text, clientMainKeyboard(locale, false));
 }
@@ -532,110 +478,6 @@ async function completeLink(
   }
 }
 
-async function promptName(
-  chatId: number,
-  messageId: number | undefined,
-  chatKey: string,
-  locale: BotLocale,
-  intent: "book" | "call",
-  data: Record<string, string>
-): Promise<void> {
-  const L = getClientBotLabels(locale);
-  await setClientTelegramSession(chatKey, {
-    step: "client_name",
-    data: { ...data, intent },
-  });
-  await replyOrEdit(chatId, messageId, locale, L.enterName, {
-    inline_keyboard: [[{ text: L.cancel, callback_data: "cl:menu" }]],
-  });
-}
-
-async function promptPhone(
-  chatId: number,
-  messageId: number | undefined,
-  chatKey: string,
-  locale: BotLocale,
-  data: Record<string, string>
-): Promise<void> {
-  const L = getClientBotLabels(locale);
-  await setClientTelegramSession(chatKey, { step: "client_phone", data });
-  await replyOrEdit(chatId, messageId, locale, L.enterPhone, {
-    inline_keyboard: [[{ text: L.cancel, callback_data: "cl:menu" }]],
-  });
-}
-
-async function promptComment(
-  chatId: number,
-  messageId: number | undefined,
-  chatKey: string,
-  locale: BotLocale,
-  data: Record<string, string>
-): Promise<void> {
-  const L = getClientBotLabels(locale);
-  await setClientTelegramSession(chatKey, { step: "client_comment", data });
-  await replyOrEdit(chatId, messageId, locale, L.enterComment, clientSkipCommentKeyboard(locale));
-}
-
-async function showConfirm(
-  chatId: number,
-  messageId: number | undefined,
-  chatKey: string,
-  locale: BotLocale,
-  data: Record<string, string>
-): Promise<void> {
-  const intent = data.intent === "call" ? "call" : "book";
-  const summary = formatClientBookingSummary(locale, data);
-  const keyboard =
-    intent === "call"
-      ? clientConfirmCallKeyboard(locale)
-      : clientConfirmBookingKeyboard(locale);
-  await setClientTelegramSession(chatKey, { step: undefined, data });
-  await replyOrEdit(chatId, messageId, locale, summary, keyboard);
-}
-
-function linkedProfileData(
-  slice: ClientPortalSlice | null | undefined,
-  data: Record<string, string>
-): Record<string, string> {
-  if (!slice?.user) return data;
-  const next = { ...data };
-  if (slice.user.name?.trim()) next.name = slice.user.name.trim();
-  if (slice.user.phone?.trim()) next.phone = slice.user.phone.trim();
-  return next;
-}
-
-async function continueBookAfterTime(
-  chatId: number,
-  messageId: number | undefined,
-  chatKey: string,
-  locale: BotLocale,
-  data: Record<string, string>,
-  slice: ClientPortalSlice | null | undefined
-): Promise<void> {
-  const filled = linkedProfileData(slice, { ...data, intent: "book" });
-  if (filled.name && filled.phone) {
-    await showConfirm(chatId, messageId, chatKey, locale, filled);
-    return;
-  }
-  await promptName(chatId, messageId, chatKey, locale, "book", filled);
-}
-
-async function continueCallAfterService(
-  chatId: number,
-  messageId: number | undefined,
-  chatKey: string,
-  locale: BotLocale,
-  data: Record<string, string>,
-  slice: ClientPortalSlice | null | undefined
-): Promise<void> {
-  const filled = linkedProfileData(slice, { ...data, intent: "call" });
-  if (filled.name && filled.phone) {
-    await promptComment(chatId, messageId, chatKey, locale, filled);
-    return;
-  }
-  await promptName(chatId, messageId, chatKey, locale, "call", filled);
-}
-
 export async function handleClientMessage(msg: TelegramMessage): Promise<void> {
   const chatId = msg.chat.id;
   const chatKey = String(chatId);
@@ -710,6 +552,18 @@ export async function handleClientMessage(msg: TelegramMessage): Promise<void> {
   }
 
   const session = await getTelegramSession(chatKey);
+
+  if (session.step === "client_symptom") {
+    const selected = parseSelectedSymptoms(session.data ?? {});
+    const hint =
+      locale === "pl"
+        ? "👆 Wybierz objawy przyciskami powyżej."
+        : locale === "en"
+          ? "👆 Pick symptoms using the buttons above."
+          : "👆 Выберите симптомы кнопками выше.";
+    await sendTelegramMessage(chatId, hint, symptomQuizKeyboard(locale, selected));
+    return;
+  }
 
   if (session.step === "client_vin_input") {
     const vin = normalizeVinInput(text);
@@ -937,10 +791,10 @@ export async function handleClientCallback(cb: TelegramCallback): Promise<void> 
 
   if (data === "cl:more" || data.startsWith("cl:v4:")) {
     if (data === "cl:more") {
-      await sendExtrasMenu(chatId, locale);
+      await sendExtrasMenu(chatId, locale, chatKey, messageId);
       return;
     }
-    const handled = await handleExtrasV4Callback(chatId, chatKey, locale, data);
+    const handled = await handleExtrasV4Callback(chatId, chatKey, locale, data, messageId);
     if (handled) return;
   }
 
@@ -1034,19 +888,46 @@ export async function handleClientCallback(cb: TelegramCallback): Promise<void> 
     return;
   }
 
-  if (data === "cl:veh:pick" && slice) {
+  if (data === "cl:veh:pick") {
+    if (!slice) {
+      await startLinkFlow(chatId, messageId, chatKey, locale, profile);
+      return;
+    }
     const kb = vehiclePickKeyboard(locale, slice);
-    if (kb) await replyOrEdit(chatId, messageId, locale, L.vehiclePick, kb);
+    if (kb) {
+      await replyOrEdit(chatId, messageId, locale, L.vehiclePick, kb);
+    } else {
+      const msg =
+        locale === "pl"
+          ? "🚗 Masz jedno auto w profilu."
+          : locale === "en"
+            ? "🚗 You have one vehicle on file."
+            : "🚗 В профиле одно авто.";
+      await replyOrEdit(chatId, messageId, locale, msg, clientUserMenu(locale, slice));
+    }
     return;
   }
 
   if (data.startsWith("cl:veh:") && data !== "cl:veh:pick") {
-    await setActiveVehicle(chatKey, data.slice(7));
+    if (!slice) {
+      await startLinkFlow(chatId, messageId, chatKey, locale, profile);
+      return;
+    }
+    const vehicleId = data.slice(7);
+    if (!slice.vehicles.some((v) => v.id === vehicleId)) {
+      await replyOrEdit(chatId, messageId, locale, L.saveFailed, clientUserMenu(locale, slice));
+      return;
+    }
+    const ok = await setActiveVehicle(chatKey, vehicleId);
+    const vehicle = slice.vehicles.find((v) => v.id === vehicleId);
+    const msg = ok && vehicle
+      ? `✅ ${vehicle.plate} · ${vehicle.make} ${vehicle.model}`
+      : L.saveFailed;
     await replyOrEdit(
       chatId,
       messageId,
       locale,
-      "✅ OK",
+      msg,
       clientUserMenu(locale, slice)
     );
     return;
@@ -1092,9 +973,19 @@ export async function handleClientCallback(cb: TelegramCallback): Promise<void> 
     const active = [...slice.workOrders]
       .filter((o) => o.status !== "delivered")
       .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))[0];
+    if (!active) {
+      const msg =
+        locale === "pl"
+          ? "📷 Brak aktywnego zlecenia — nie można dodać zdjęcia."
+          : locale === "en"
+            ? "📷 No active work order to attach a photo."
+            : "📷 Нет активного заказ-наряда для фото.";
+      await replyOrEdit(chatId, messageId, locale, msg, clientUserMenu(locale, slice));
+      return;
+    }
     await setClientTelegramSession(chatKey, {
       step: "client_photo_upload",
-      data: { orderId: active?.id ?? "" },
+      data: { orderId: active.id },
     });
     await replyOrEdit(
       chatId,
@@ -1196,7 +1087,10 @@ export async function handleClientCallback(cb: TelegramCallback): Promise<void> 
   }
 
   if (data.startsWith("cl:np:")) {
-    if (!slice) return;
+    if (!slice) {
+      await startLinkFlow(chatId, messageId, chatKey, locale, profile);
+      return;
+    }
     const key = data.slice(6);
     if (key === "mute24") {
       const muted = await toggleMute24h(chatKey);
@@ -1238,8 +1132,16 @@ export async function handleClientCallback(cb: TelegramCallback): Promise<void> 
 
   if (data.startsWith("cl:share:apt:")) {
     const aptId = data.slice(13);
-    const apt = slice?.appointments.find((a) => a.id === aptId && a.userId === slice.user.id);
-    if (apt) await sendShareAppointment(chatId, locale, apt);
+    if (!slice) {
+      await startLinkFlow(chatId, messageId, chatKey, locale, profile);
+      return;
+    }
+    const apt = slice.appointments.find((a) => a.id === aptId && a.userId === slice.user.id);
+    if (!apt) {
+      await sendTelegramMessage(chatId, L.noAppointments);
+      return;
+    }
+    await sendShareAppointment(chatId, locale, apt);
     return;
   }
 
@@ -1278,6 +1180,10 @@ export async function handleClientCallback(cb: TelegramCallback): Promise<void> 
 
   if (data.startsWith("cl:apt:shift:")) {
     const aptId = data.slice(13);
+    if (!slice?.appointments.some((a) => a.id === aptId && a.userId === slice.user.id)) {
+      await sendTelegramMessage(chatId, L.saveFailed);
+      return;
+    }
     await sendTelegramMessage(chatId, L.chooseDate, aptRescheduleKeyboard(locale, aptId));
     return;
   }
@@ -1297,20 +1203,48 @@ export async function handleClientCallback(cb: TelegramCallback): Promise<void> 
 
   if (data.startsWith("cl:repeat:")) {
     const orderId = data.slice(10);
-    const order = slice?.workOrders.find((o) => o.id === orderId && o.userId === slice?.user.id);
-    if (order) await startRepeatOrder(chatId, chatKey, locale, order);
+    if (!slice) {
+      await startLinkFlow(chatId, messageId, chatKey, locale, profile);
+      return;
+    }
+    const order = slice.workOrders.find((o) => o.id === orderId && o.userId === slice.user.id);
+    if (order) {
+      await startRepeatOrder(chatId, chatKey, locale, order);
+    } else {
+      await replyOrEdit(chatId, messageId, locale, L.orderNotFound, clientUserMenu(locale, slice));
+    }
     return;
   }
 
   if (data.startsWith("cl:fu:issue:")) {
     const orderId = data.slice(12);
-    const order = slice?.workOrders.find((o) => o.id === orderId);
-    if (slice?.user.phone) {
+    if (!slice) {
+      await startLinkFlow(chatId, messageId, chatKey, locale, profile);
+      return;
+    }
+    const order = slice.workOrders.find((o) => o.id === orderId && o.userId === slice.user.id);
+    if (!order) {
+      await sendTelegramMessage(chatId, L.saveFailed);
+      return;
+    }
+    if (slice.user.phone) {
+      void mutateCrm((db) => {
+        const row = db.workOrders.find(
+          (o) => o.id === orderId && o.userId === slice.user.id
+        );
+        if (row) {
+          const stamp = new Date().toISOString().slice(0, 10);
+          const note = `[Telegram ${stamp}] Post-service: ISSUE`;
+          row.clientNotes = row.clientNotes ? `${row.clientNotes}\n${note}` : note;
+        }
+      });
       await createTelegramCallRequest({
         serviceId: "diagnostic",
         clientName: slice.user.name,
         clientPhone: slice.user.phone,
-        comment: `[URGENT post-service] ${order?.number ?? orderId}`,
+        comment: `[URGENT post-service] ${order.number}`,
+        telegramProfile: profile,
+        locale,
       });
       await sendTelegramMessage(
         chatId,
@@ -1327,6 +1261,26 @@ export async function handleClientCallback(cb: TelegramCallback): Promise<void> 
   }
 
   if (data.startsWith("cl:fu:ok:")) {
+    const orderId = data.split(":")[4];
+    if (
+      orderId &&
+      slice &&
+      !slice.workOrders.some((o) => o.id === orderId && o.userId === slice.user.id)
+    ) {
+      await sendTelegramMessage(chatId, L.saveFailed);
+      return;
+    }
+    if (orderId && slice) {
+      void mutateCrm((db) => {
+        const order = db.workOrders.find(
+          (o) => o.id === orderId && o.userId === slice.user.id
+        );
+        if (!order) return false;
+        const stamp = new Date().toISOString().slice(0, 10);
+        const note = `[Telegram ${stamp}] Post-service: OK`;
+        order.clientNotes = order.clientNotes ? `${order.clientNotes}\n${note}` : note;
+      });
+    }
     const thanks =
       locale === "pl"
         ? "✅ Dziękujemy! Jeśli coś się zmieni — napisz lub zamów telefon."
@@ -1619,7 +1573,7 @@ export async function handleClientCallback(cb: TelegramCallback): Promise<void> 
     const rest = data.slice(7);
     const colon = rest.indexOf(":");
     const intent = rest.slice(0, colon) as "book" | "call";
-    const serviceId = rest.slice(colon + 1);
+    const serviceId = normalizeTelegramServiceId(rest.slice(colon + 1));
     const nextData = {
       intent,
       serviceId,
@@ -1629,14 +1583,19 @@ export async function handleClientCallback(cb: TelegramCallback): Promise<void> 
       await continueCallAfterService(chatId, messageId, chatKey, locale, nextData, slice);
       return;
     }
-    await setClientTelegramSession(chatKey, { data: nextData });
-    await replyOrEdit(chatId, messageId, locale, L.chooseDate, clientDateKeyboard(locale));
+    await advanceBookingFlow(chatId, messageId, chatKey, locale, nextData, slice);
     return;
   }
 
   if (data.startsWith("cl:dt:")) {
     const date = data.slice(6);
-    const nextData = { ...sessionData, date };
+    const bookable = nextBookableDates(21);
+    if (!bookable.includes(date)) {
+      await sendTelegramMessage(chatId, L.saveFailed);
+      return;
+    }
+    const fresh = await getTelegramSession(chatKey);
+    const nextData = { ...(fresh.data ?? sessionData), date };
     await setClientTelegramSession(chatKey, { data: nextData });
     await replyOrEdit(
       chatId,
@@ -1650,19 +1609,21 @@ export async function handleClientCallback(cb: TelegramCallback): Promise<void> 
 
   if (data.startsWith("cl:tm:")) {
     const time = decodeTimeSlot(data.slice(6));
+    const fresh = await getTelegramSession(chatKey);
     await continueBookAfterTime(
       chatId,
       messageId,
       chatKey,
       locale,
-      { ...sessionData, time },
+      { ...(fresh.data ?? sessionData), time },
       slice
     );
     return;
   }
 
   if (data === "cl:skip") {
-    await showConfirm(chatId, messageId, chatKey, locale, sessionData);
+    const fresh = await getTelegramSession(chatKey);
+    await showConfirm(chatId, messageId, chatKey, locale, fresh.data ?? sessionData);
     return;
   }
 
@@ -1670,28 +1631,31 @@ export async function handleClientCallback(cb: TelegramCallback): Promise<void> 
     const freshSession = await getTelegramSession(chatKey);
     const d = freshSession.data ?? sessionData;
     if (!d.serviceId || !d.date || !d.time || !d.name || !d.phone) {
-      await showClientMenu(chatId, messageId, locale);
+      await advanceBookingFlow(chatId, messageId, chatKey, locale, d, slice);
       return;
     }
+    const serviceId = normalizeTelegramServiceId(d.serviceId);
     const result = await createTelegramBooking({
-      serviceId: d.serviceId,
+      serviceId,
       date: d.date,
       time: decodeTimeSlot(d.time),
       clientName: d.name,
       clientPhone: d.phone,
       comment: d.comment,
+      telegramProfile: profile,
+      locale,
     });
     await clearTelegramSessionKeepLocale(chatKey);
     const freshSlice = await getClientPortalByChat(chatKey);
     if (result.ok) {
-      const checklist = d.serviceId
-        ? formatPreVisitChecklistText(d.serviceId, locale)
+      const checklist = serviceId
+        ? formatPreVisitChecklistText(serviceId, locale)
         : "";
       await replyOrEdit(
         chatId,
         messageId,
         locale,
-        `${L.saved}\n\n📅 ${formatDateShort(d.date, locale)} · ${decodeTimeSlot(d.time)}\n🔧 ${esc(d.serviceLabel ?? "")}${checklist ? `\n\n${checklist}` : ""}`,
+        `${L.saved}\n\n📅 ${formatDateShort(d.date, locale)} · ${decodeTimeSlot(d.time)}\n🔧 ${esc(d.serviceLabel ?? getClientServiceLabel(serviceId, locale))}${checklist ? `\n\n${checklist}` : ""}`,
         clientUserMenu(locale, freshSlice ?? slice)
       );
     } else {
@@ -1712,6 +1676,8 @@ export async function handleClientCallback(cb: TelegramCallback): Promise<void> 
       clientName: d.name,
       clientPhone: d.phone,
       comment: d.comment,
+      telegramProfile: profile,
+      locale,
     });
     await clearTelegramSessionKeepLocale(chatKey);
     await replyOrEdit(
