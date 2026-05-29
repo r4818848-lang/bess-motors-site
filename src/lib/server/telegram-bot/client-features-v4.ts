@@ -21,8 +21,13 @@ import { getPriceListSummaryForBot } from "@/lib/price-list-bot-summary";
 
 export async function sendExtrasMenu(chatId: number, locale: BotLocale): Promise<void> {
   const text = [workshopHoursText(locale), "", botFaqText(locale)].join("\n");
+  const priceLabel =
+    locale === "pl" ? "💰 Cennik" : locale === "en" ? "💰 Prices" : "💰 Цены";
   await sendTelegramMessage(chatId, text, {
-    inline_keyboard: [clientBackMenuRow(locale)],
+    inline_keyboard: [
+      [{ text: priceLabel, callback_data: "cl:v4:price" }],
+      clientBackMenuRow(locale),
+    ],
   });
 }
 
@@ -61,7 +66,9 @@ export async function handleExtrasV4Callback(
     return true;
   }
   if (action === "price") {
-    await sendTelegramMessage(chatId, getPriceListSummaryForBot(locale));
+    await sendTelegramMessage(chatId, getPriceListSummaryForBot(locale), {
+      inline_keyboard: [clientBackMenuRow(locale)],
+    });
     return true;
   }
   if (action === "eta") {
@@ -163,7 +170,7 @@ export async function handleClientTextCommands(
 ): Promise<boolean> {
   const cmd = text.trim().toLowerCase().split(/\s+/)[0];
   if (cmd === "/faq" || cmd === "/help") {
-    await sendTelegramMessage(chatId, botFaqText(locale));
+    await sendExtrasMenu(chatId, locale);
     return true;
   }
   if (cmd === "/hours") {

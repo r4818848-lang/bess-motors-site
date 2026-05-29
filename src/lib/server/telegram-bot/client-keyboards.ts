@@ -109,6 +109,10 @@ export function clientLinkedMenuKeyboard(
         { text: L.cabinetSite, url: `${siteBase()}/cabinet` },
       ],
       [
+        { text: L.serviceHistory, callback_data: "cl:history" },
+        { text: L.warrantyBtn, callback_data: "cl:warranty" },
+      ],
+      [
         { text: L.notifySettings, callback_data: "cl:notify" },
         { text: L.sendPhoto, callback_data: "cl:photo" },
       ],
@@ -191,7 +195,6 @@ export function clientAppointmentsKeyboard(
       { text: "+7", callback_data: `cl:apt:+7:${a.id}` },
     ]);
   }
-  rows.push([{ text: L.back, callback_data: "cl:apts" }]);
   rows.push(clientBackMenuRow(locale));
   return { inline_keyboard: rows };
 }

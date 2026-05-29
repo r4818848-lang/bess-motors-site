@@ -2,13 +2,16 @@ import { cloudGetCrmStore, cloudPutCrmStore } from "@/lib/server/crm-cloud";
 import { sendTelegramMessage } from "@/lib/server/telegram-api";
 import { repairProgressPercent } from "@/lib/repair-progress";
 import type { BotLocale } from "./client-i18n";
-import type { WorkOrder } from "@/lib/store";
 import { getClientBotLabels } from "./client-i18n";
+import type { ClientRating, Database, User, WorkOrder } from "@/lib/store";
 import { getClientPortalByChat } from "./client-telegram-link";
-import { clientMainKeyboard, clientLinkedMenuKeyboard, clientConfirmBookingKeyboard, formatClientBookingSummary } from "./client-keyboards";
-import { countPendingSign, countUnread } from "./client-cabinet-format";
+import {
+  clientMainKeyboard,
+  clientConfirmBookingKeyboard,
+  formatClientBookingSummary,
+  clientAppointmentDetailKeyboard,
+} from "./client-keyboards";
 import { mutateCrm } from "./crm-actions";
-import type { ClientRating, Database, User } from "@/lib/store";
 import { formatDateShort, getClientServiceLabel } from "./client-services";
 import { setClientTelegramSession } from "./client-locale";
 import { cleanEnvValue } from "@/lib/server/supabase-config";
@@ -366,6 +369,6 @@ export async function handleAptStartParam(
       `🔧 ${services}`,
       `📌 ${L.appointmentStatus[apt.appointmentStatus] ?? apt.appointmentStatus}`,
     ].join("\n"),
-    clientLinkedMenuKeyboard(locale, slice, countPendingSign(slice), countUnread(slice))
+    clientAppointmentDetailKeyboard(locale, aptId)
   );
 }
