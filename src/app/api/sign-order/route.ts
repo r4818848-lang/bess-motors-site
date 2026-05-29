@@ -71,17 +71,17 @@ export async function POST(req: Request) {
     if (!body.orderId || !body.signature?.dataUrl || !body.clientSignature) {
       return NextResponse.json({ ok: false, error: "invalid" }, { status: 400 });
     }
-    const ok = await cloudSubmitWorkOrderSignature(
+    const result = await cloudSubmitWorkOrderSignature(
       body.orderId,
       body.phone,
       body.plate,
       body.signature,
       body.clientSignature
     );
-    if (!ok) {
-      return NextResponse.json({ ok: false, error: "forbidden" }, { status: 403 });
+    if (!result.ok) {
+      return NextResponse.json({ ok: false, error: result.error }, { status: 502 });
     }
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true, order: result.order });
   }
 
   return NextResponse.json({ ok: false, error: "invalid" }, { status: 400 });

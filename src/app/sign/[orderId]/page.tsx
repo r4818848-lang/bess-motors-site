@@ -209,7 +209,16 @@ function SignWorkOrderContent({
         onDone={() => {
           setSigned(true);
           setShowSign(false);
-          if (signMode === "local") setDb(loadDb());
+          setDb(loadDb());
+          const fresh = loadDb().workOrders.find((o) => o.id === orderId);
+          if (fresh) {
+            setResolvedOrder(fresh);
+            if (cloudSign) {
+              setCloudSign((prev) =>
+                prev ? { ...prev, order: fresh } : prev
+              );
+            }
+          }
         }}
         onCancel={() => setShowSign(false)}
       />

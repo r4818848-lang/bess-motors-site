@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Download, PenLine } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import type { WorkOrder, Database } from "@/lib/store";
@@ -10,6 +10,7 @@ import { WorkOrderSignatureFlow } from "@/components/cabinet/WorkOrderSignatureF
 import { WorkOrderDocumentActions } from "@/components/work-order/WorkOrderDocumentActions";
 import { SignLinkShareBlock } from "@/components/work-order/SignLinkShareBlock";
 import { PremiumWorkOrderDocument } from "@/components/work-order/PremiumWorkOrderDocument";
+import { WorkOrderPhotoGallery } from "@/components/work-order/WorkOrderPhotoGallery";
 import { getClientPaymentView } from "@/lib/payment";
 import { RepairStatusStepper } from "@/components/cabinet/RepairStatusStepper";
 import { downloadWorkOrderPdf } from "@/lib/work-order-pdf";
@@ -33,6 +34,10 @@ export function ClientWorkOrderDetail({ order, db, onBack, documentLocale }: Pro
   const cp = t.clientPayment;
   const [showSign, setShowSign] = useState(false);
   const [localOrder, setLocalOrder] = useState(order);
+
+  useEffect(() => {
+    setLocalOrder(order);
+  }, [order]);
   const client = db.users.find((u) => u.id === order.userId)!;
   const vehicle = db.vehicles.find((v) => v.id === order.vehicleId);
   const vatRate = db.settings.vatRate ?? 23;
@@ -81,6 +86,17 @@ export function ClientWorkOrderDetail({ order, db, onBack, documentLocale }: Pro
       </button>
 
       <RepairStatusStepper status={localOrder.status} />
+
+      {(localOrder.files.some(
+        (f) =>
+          f.type === "image" &&
+          (f.dataUrl || f.storageUrl) &&
+          (f.category === "before" || f.category === "after")
+      )) && (
+        <div className="rounded-xl border border-bm-border bg-white p-4">
+          <WorkOrderPhotoGallery files={localOrder.files} variant="form" />
+        </div>
+      )}
 
       <PremiumWorkOrderDocument
         order={localOrder}

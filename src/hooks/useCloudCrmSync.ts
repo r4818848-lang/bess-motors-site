@@ -50,12 +50,16 @@ export function useCloudCrmSync(enabled = true): {
     };
     window.addEventListener(DB_SAVED_EVENT, onSaved);
 
+    const onFocus = () => void resync();
+    window.addEventListener("focus", onFocus);
+
     return () => {
       window.removeEventListener(DB_SAVED_EVENT, onSaved);
+      window.removeEventListener("focus", onFocus);
     };
   }, [enabled, resync]);
 
-  useVisibleInterval(() => void resync(), 120_000, enabled);
+  useVisibleInterval(() => void resync(), 45_000, enabled);
 
   return { syncing, syncFailed, resync };
 }

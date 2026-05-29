@@ -50,34 +50,36 @@ export async function cloudSubmitWorkOrderSignature(
   plate: string,
   signature: OrderSignature,
   clientSignature: string
-): Promise<boolean> {
-  if (!isSupabaseConfigured()) return false;
+): Promise<{ ok: true; order: WorkOrder } | { ok: false; error: string }> {
+  if (!isSupabaseConfigured()) return { ok: false, error: "cloud_disabled" };
   const snap = await cloudGetCrmStore();
-  if (!snap) return false;
+  if (!snap) return { ok: false, error: "cloud_read_failed" };
 
   const db = snap.doc;
   const orderHint = db.workOrders.find((o) => o.id === orderId) ?? null;
-  if (!orderHint) return false;
+  if (!orderHint) return { ok: false, error: "order_not_found" };
 
   try {
     await ensureClientForSign(db, phone, plate, orderHint);
   } catch {
-    return false;
+    return { ok: false, error: "client_verify_failed" };
   }
 
   const order = pickWorkOrderForClient(db, orderHint.userId, orderId);
-  if (!order || order.id !== orderId) return false;
+  if (!order || order.id !== orderId) {
+    return { ok: false, error: "order_not_found" };
+  }
 
   const client = db.users.find((u) => u.id === order.userId);
   if (!client || normalizePhone(client.phone) !== normalizePhone(phone)) {
-    return false;
+    return { ok: false, error: "phone_mismatch" };
   }
 
   const plateKey = normalizePlateKey(plate);
-  if (plateKey.length < 2) return false;
+  if (plateKey.length < 2) return { ok: false, error: "invalid_plate" };
 
   const wo = db.workOrders.find((o) => o.id === orderId);
-  if (!wo) return false;
+  if (!wo) return { ok: false, error: "order_not_found" };
 
   wo.confirmationStatus = "confirmed";
   wo.signature = signature;
@@ -91,5 +93,8 @@ export async function cloudSubmitWorkOrderSignature(
         : "signed";
 
   const result = await cloudPutCrmStore(db);
-  return result.ok;
+  if (!result.ok) {
+    return { ok: false, error: result.error ?? "cloud_save_failed" };
+  }
+  return { ok: true, order: { ...wo } };
 }

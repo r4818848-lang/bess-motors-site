@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Plus, Trash2, Search, Save, X, Upload, FileText } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { handleWorkOrderClientNotifications, buildCarReadyWhatsAppUrl } from "@/lib/client-notifications";
@@ -53,6 +53,8 @@ import { WorkOrderAuditPanel } from "@/components/crm/WorkOrderAuditPanel";
 import { WorkOrderChecklistPanel } from "@/components/crm/WorkOrderChecklistPanel";
 import { downloadReceptionAct, downloadDeliveryAct } from "@/lib/vehicle-doc-pdf";
 import type { DocLocale } from "@/lib/work-order-locale";
+import { useDbSync } from "@/hooks/useDbSync";
+import { mergeRemoteWorkOrderPatch } from "@/lib/work-order-remote-sync";
 
 type CreateStep = "client" | "works" | "more";
 
@@ -114,7 +116,8 @@ export function WorkOrderForm({ orderId, onClose, onSaved }: WorkOrderFormProps)
   const pm = t.paymentMethods;
   const ps = t.paymentStatus;
 
-  const db = loadDb();
+  const dbTick = useDbSync();
+  const db = useMemo(() => loadDb(), [dbTick]);
   const existing = orderId ? db.workOrders.find((o) => o.id === orderId) : null;
   const isNew = !existing;
 
@@ -123,6 +126,13 @@ export function WorkOrderForm({ orderId, onClose, onSaved }: WorkOrderFormProps)
   const [showSearch, setShowSearch] = useState(!existing);
   const [createStep, setCreateStep] = useState<CreateStep>("client");
   const [saveError, setSaveError] = useState("");
+
+  useEffect(() => {
+    if (!orderId || isNew) return;
+    const fresh = loadDb().workOrders.find((o) => o.id === orderId);
+    if (!fresh) return;
+    setOrder((prev) => mergeRemoteWorkOrderPatch(prev, fresh));
+  }, [orderId, isNew, dbTick]);
 
   const searchResults = useMemo(
     () => (searchQ.length >= 2 ? searchClientsAndVehicles(db, searchQ) : []),
