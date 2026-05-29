@@ -248,8 +248,7 @@ function CabinetPageContent() {
         setVinMessage({
           type: "err",
           text:
-            (t as any)?.mechanic?.statusSyncFailed ??
-            "Сохранено локально, но синхронизация с сервером не удалась.",
+            t.mechanic.statusSyncFailed,
         });
       }
     });

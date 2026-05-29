@@ -140,6 +140,10 @@
     @apply border-bm-red shadow-neon-sm;
   }
 
+  .input {
+    @apply input-premium;
+  }
+
   .dashboard-table {
     @apply w-full text-sm;
   }

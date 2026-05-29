@@ -7,8 +7,12 @@ export function CrmBroadcastPanel() {
   const [status, setStatus] = useState("");
 
   const send = async () => {
-    setStatus("…");
     const token = localStorage.getItem("bess-jwt");
+    if (!token) {
+      setStatus("Zaloguj się jako admin (CRM).");
+      return;
+    }
+    setStatus("…");
     const res = await fetch("/api/crm/broadcast", {
       method: "POST",
       headers: {
@@ -27,7 +31,7 @@ export function CrmBroadcastPanel() {
       <p className="font-display uppercase text-sm text-bm-red">Broadcast Telegram</p>
       <p className="text-xs text-bm-muted">Wszyscy klienci z podłączonym Telegram (bez wyciszenia).</p>
       <textarea
-        className="input w-full min-h-[80px] text-sm"
+        className="input-premium w-full min-h-[80px] text-sm"
         value={text}
         onChange={(e) => setText(e.target.value)}
         placeholder="Tekst wiadomości…"

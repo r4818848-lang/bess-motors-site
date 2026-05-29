@@ -27,7 +27,6 @@ interface ResetSession {
 type Store = Map<string, ResetSession>;
 
 declare global {
-  // eslint-disable-next-line no-var
   var __bmResetStore: Store | undefined;
 }
 

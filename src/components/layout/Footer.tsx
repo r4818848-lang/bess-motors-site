@@ -101,7 +101,7 @@ export function Footer() {
           <span>
             © {year} BESS MOTORS — {t.common.allRights}
           </span>
-          <Link href="#" className="hover:text-bm-red transition-colors">
+          <Link href="/privacy" className="hover:text-bm-red transition-colors">
             {t.common.privacy}
           </Link>
         </div>
