@@ -15,44 +15,15 @@ import { getClientBotLabels } from "./client-i18n";
 import { getClientPortalByChat } from "./client-telegram-link";
 import { setClientTelegramSession } from "./client-locale";
 import { getClientServiceLabel } from "./client-services";
-import { clientDateKeyboard } from "./client-keyboards";
+import { clientBackMenuRow, clientDateKeyboard, clientServiceKeyboard } from "./client-keyboards";
 import type { Database, User } from "@/lib/store";
 import { getPriceListSummaryForBot } from "@/lib/price-list-bot-summary";
 
-export function extrasMenuKeyboard(locale: BotLocale): InlineKeyboardMarkup {
-  const L = getClientBotLabels(locale);
-  return {
-    inline_keyboard: [
-      [
-        { text: "💡 Tip", callback_data: "cl:v4:tip" },
-        { text: "🕐", callback_data: "cl:v4:hours" },
-      ],
-      [
-        { text: "❓ FAQ", callback_data: "cl:v4:faq" },
-        { text: "🆘", callback_data: "cl:v4:emergency" },
-      ],
-      [
-        { text: "⏱ ETA", callback_data: "cl:v4:eta" },
-        { text: "📇", callback_data: "cl:v4:vcard" },
-      ],
-      [
-        { text: "💰", callback_data: "cl:v4:price" },
-        { text: "⭐", callback_data: "cl:v4:fav" },
-      ],
-      [
-        { text: "👍", callback_data: "cl:v4:fb:5" },
-        { text: "👎", callback_data: "cl:v4:fb:1" },
-      ],
-      [{ text: L.menu, callback_data: "cl:menu" }],
-    ],
-  };
-}
-
 export async function sendExtrasMenu(chatId: number, locale: BotLocale): Promise<void> {
-  const L = getClientBotLabels(locale);
-  const title =
-    locale === "ru" ? "⚡ Дополнительно" : locale === "pl" ? "⚡ Więcej" : "⚡ More";
-  await sendTelegramMessage(chatId, title, extrasMenuKeyboard(locale));
+  const text = [workshopHoursText(locale), "", botFaqText(locale)].join("\n");
+  await sendTelegramMessage(chatId, text, {
+    inline_keyboard: [clientBackMenuRow(locale)],
+  });
 }
 
 export async function handleExtrasV4Callback(
@@ -203,30 +174,6 @@ export async function handleClientTextCommands(
     await sendTelegramMessage(chatId, getPriceListSummaryForBot(locale));
     return true;
   }
-  if (cmd === "/tip") {
-    await sendTelegramMessage(chatId, tipOfTheDay(locale));
-    return true;
-  }
-  if (cmd === "/mute") {
-    const { toggleMute24h } = await import("./client-notify-prefs");
-    const on = await toggleMute24h(chatKey);
-    const msg =
-      locale === "ru"
-        ? on
-          ? "🔕 Уведомления отключены на 24 часа."
-          : "🔔 Уведомления снова включены."
-        : on
-          ? "🔕 Muted for 24h."
-          : "🔔 Unmuted.";
-    await sendTelegramMessage(chatId, msg);
-    return true;
-  }
-  if (cmd === "/history") {
-    const { formatServiceHistory } = await import("./client-extras");
-    const body = await formatServiceHistory(locale, chatKey);
-    await sendTelegramMessage(chatId, body ?? "—");
-    return true;
-  }
   if (cmd === "/more" || cmd === "/extras") {
     await sendExtrasMenu(chatId, locale);
     return true;
@@ -245,34 +192,15 @@ export async function handleClientTextCommands(
     await startRepeatOrder(chatId, chatKey, locale, last);
     return true;
   }
-  if (cmd === "/status") {
-    const { getClientPortalByChat } = await import("./client-telegram-link");
-    const slice = await getClientPortalByChat(chatKey);
-    if (!slice) {
-      await sendTelegramMessage(chatId, getClientBotLabels(locale).signIntro);
-      return true;
-    }
-    const active = slice.workOrders.find((o) => o.status !== "delivered");
-    const o = active ?? slice.workOrders[0];
-    if (!o) {
-      await sendTelegramMessage(chatId, "—");
-      return true;
-    }
-    const { queuePositionText } = await import("./client-extras");
-    const q = queuePositionText(locale, slice.workOrders, o.id);
-    const st =
-      locale === "ru"
-        ? `Статус ${o.number}: ${o.status}${q ? `\n${q}` : ""}`
-        : locale === "en"
-          ? `Status ${o.number}: ${o.status}${q ? `\n${q}` : ""}`
-          : `Status ${o.number}: ${o.status}${q ? `\n${q}` : ""}`;
-    await sendTelegramMessage(chatId, st);
+  if (cmd === "/status" || cmd === "/cars" || cmd === "/queue") {
+    const { formatRepairStatusLine } = await import("./client-extras");
+    const line = await formatRepairStatusLine(locale, chatKey);
+    await sendTelegramMessage(chatId, line ?? getClientBotLabels(locale).signIntro);
     return true;
   }
   if (cmd === "/book") {
-    const { clientMainKeyboard } = await import("./client-keyboards");
     const L = getClientBotLabels(locale);
-    await sendTelegramMessage(chatId, L.book, clientMainKeyboard(locale, true));
+    await sendTelegramMessage(chatId, L.chooseService, clientServiceKeyboard(locale, "book"));
     return true;
   }
   if (cmd === "/sign") {
@@ -294,12 +222,6 @@ export async function handleClientTextCommands(
       return true;
     }
     await sendTelegramMessage(chatId, getClientBotLabels(locale).signIntro);
-    return true;
-  }
-  if (cmd === "/cars" || cmd === "/queue" || cmd === "/status") {
-    const { formatRepairStatusLine } = await import("./client-extras");
-    const line = await formatRepairStatusLine(locale, chatKey);
-    await sendTelegramMessage(chatId, line ?? "—");
     return true;
   }
   if (cmd === "/myrefs") {

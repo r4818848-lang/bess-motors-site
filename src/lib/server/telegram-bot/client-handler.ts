@@ -41,8 +41,8 @@ import {
   clientContactsKeyboard,
   clientDateKeyboard,
   clientLanguageKeyboard,
-  clientLinkedMenuKeyboard,
   clientMainKeyboard,
+  clientMenuForUser,
   clientOrderDetailKeyboard,
   clientOrdersKeyboard,
   clientServiceKeyboard,
@@ -72,23 +72,13 @@ import {
   applyReferralFromStart,
   ensureReferralCode,
   formatRepairStatusLine,
-  formatServiceHistory,
   handleAptStartParam,
   rebookLastAppointment,
   saveTelegramRating,
-  sendGalleryPhotosLink,
-  startRebookPlus7,
   telegramBotDeepLink,
-  toggleQuietHours,
 } from "./client-extras";
 import { saveClientTelegramPhoto } from "./client-photo";
 import { tryParseSmartBooking } from "./client-smart-booking";
-import {
-  finishSymptomQuiz,
-  startSymptomQuiz,
-  toggleSymptom,
-} from "./client-symptom-quiz";
-import { formatConciergeMessage } from "./client-concierge";
 import {
   formatNotifyPrefsIntro,
   notifyPrefsKeyboard,
@@ -97,20 +87,11 @@ import {
   toggleNotifyCategory,
 } from "./client-notify-prefs";
 import { sendShareAppointment } from "./client-share-apt";
-import type { WizardSymptomId } from "@/lib/car-problem-wizard";
+import type { ClientPortalSlice } from "@/lib/client-sign";
 import { resolveExtraWorkApproval } from "./extra-work-approval";
 import { rescheduleAppointment } from "./client-apt-reschedule";
 import {
-  vehiclePickKeyboard,
-  setActiveVehicle,
-} from "./client-vehicle-pick";
-import {
   aptRescheduleKeyboard,
-  formatWarrantyList,
-  packagesKeyboard,
-  sendLocation,
-  sendPromoList,
-  startPackageBooking,
   startRepeatOrder,
 } from "./client-features-v3";
 import {
@@ -242,16 +223,83 @@ async function replyOrEdit(
     const ok = await editTelegramMessage(chatId, messageId, text, keyboard);
     if (!ok) await sendTelegramMessage(chatId, text, keyboard);
   } else if (messageId) {
-    const ok = await editTelegramMessage(
-      chatId,
-      messageId,
-      text,
-      clientMainKeyboard(locale, true)
-    );
+    const inlineKb =
+      keyboard && "inline_keyboard" in keyboard ? keyboard : clientMainKeyboard(locale);
+    const ok = await editTelegramMessage(chatId, messageId, text, inlineKb);
     if (!ok) await sendTelegramMessage(chatId, text, keyboard ?? clientMainKeyboard(locale));
   } else {
     await sendTelegramMessage(chatId, text, keyboard ?? clientMainKeyboard(locale));
   }
+}
+
+function clientUserMenu(
+  locale: BotLocale,
+  slice: ClientPortalSlice | null | undefined
+): ReturnType<typeof clientMenuForUser> {
+  if (slice) {
+    return clientMenuForUser(locale, slice, countPendingSign(slice), countUnread(slice));
+  }
+  return clientMainKeyboard(locale);
+}
+
+async function redirectLegacyCallback(
+  chatId: number,
+  messageId: number | undefined,
+  chatKey: string,
+  locale: BotLocale,
+  data: string,
+  slice: ClientPortalSlice | null | undefined
+): Promise<boolean> {
+  const L = getClientBotLabels(locale);
+
+  if (
+    data === "cl:concierge" ||
+    data === "cl:sym:start" ||
+    data === "cl:sym:done" ||
+    data.startsWith("cl:sym:") ||
+    data === "cl:pkg:menu" ||
+    (data.startsWith("cl:pkg:") && data !== "cl:pkg:menu") ||
+    data === "cl:rebook7" ||
+    data === "cl:photo"
+  ) {
+    await clearTelegramSessionKeepLocale(chatKey);
+    await setClientTelegramSession(chatKey, { data: { intent: "book" } });
+    await replyOrEdit(chatId, messageId, locale, L.chooseService, clientServiceKeyboard(locale, "book"));
+    return true;
+  }
+
+  if (data === "cl:promo" || data === "cl:location") {
+    await replyOrEdit(chatId, messageId, locale, L.contactsText, clientContactsKeyboard(locale));
+    return true;
+  }
+
+  if (data === "cl:quiet") {
+    if (!slice) {
+      await showClientMenu(chatId, messageId, locale);
+      return true;
+    }
+    await replyOrEdit(
+      chatId,
+      messageId,
+      locale,
+      formatNotifyPrefsIntro(locale),
+      notifyPrefsKeyboard(locale, slice.user)
+    );
+    return true;
+  }
+
+  if (
+    data === "cl:history" ||
+    data === "cl:photos" ||
+    data === "cl:warranty" ||
+    data === "cl:veh:pick" ||
+    data.startsWith("cl:veh:")
+  ) {
+    await showClientMenu(chatId, messageId, locale);
+    return true;
+  }
+
+  return false;
 }
 
 async function showClientMenu(
@@ -269,7 +317,7 @@ async function showClientMenu(
     const pending = countPendingSign(slice);
     const unread = countUnread(slice);
     const text = formatLinkedWelcome(locale, slice.user.name);
-    const kb = clientLinkedMenuKeyboard(locale, slice, pending, unread);
+    const kb = clientMenuForUser(locale, slice, pending, unread);
     await replyOrEdit(chatId, messageId, locale, text, kb);
 
     if (startParam?.startsWith("sign_")) {
@@ -451,9 +499,7 @@ async function completeLink(
   }
 
   const slice = await getClientPortalByChat(String(chatId));
-  const kb = slice
-    ? clientLinkedMenuKeyboard(locale, slice, countPendingSign(slice), countUnread(slice))
-    : clientMainKeyboard(locale, true);
+  const kb = clientUserMenu(locale, slice);
 
   await sendTelegramMessage(chatId, L.linkSuccess, kb);
 
@@ -587,14 +633,7 @@ export async function handleClientMessage(msg: TelegramMessage): Promise<void> {
     });
     await clearTelegramSessionKeepLocale(chatKey);
     const sliceAfter = await getClientPortalByChat(chatKey);
-    const kb = sliceAfter
-      ? clientLinkedMenuKeyboard(
-          locale,
-          sliceAfter,
-          countPendingSign(sliceAfter),
-          countUnread(sliceAfter)
-        )
-      : clientMainKeyboard(locale, !!sliceAfter);
+    const kb = clientUserMenu(locale, sliceAfter);
     await sendTelegramMessage(
       chatId,
       res.ok && res.orderNumber ? L.photoSaved(res.orderNumber) : L.photoFailed,
@@ -838,17 +877,13 @@ export async function handleClientCallback(cb: TelegramCallback): Promise<void> 
     return;
   }
 
+  if (await redirectLegacyCallback(chatId, messageId, chatKey, locale, data, slice)) {
+    return;
+  }
+
   if (data === "cl:status") {
     const line = await formatRepairStatusLine(locale, chatKey);
-    await replyOrEdit(
-      chatId,
-      messageId,
-      locale,
-      line ?? L.signIntro,
-      slice
-        ? clientLinkedMenuKeyboard(locale, slice, countPendingSign(slice), countUnread(slice))
-        : clientMainKeyboard(locale, !!slice)
-    );
+    await replyOrEdit(chatId, messageId, locale, line ?? L.signIntro, clientUserMenu(locale, slice));
     return;
   }
 
@@ -867,56 +902,7 @@ export async function handleClientCallback(cb: TelegramCallback): Promise<void> 
     return;
   }
 
-  if (data === "cl:history") {
-    const text = await formatServiceHistory(locale, chatKey);
-    await replyOrEdit(
-      chatId,
-      messageId,
-      locale,
-      text ?? L.signIntro,
-      slice
-        ? clientLinkedMenuKeyboard(locale, slice, countPendingSign(slice), countUnread(slice))
-        : clientMainKeyboard(locale, !!slice)
-    );
-    return;
-  }
-
-  if (data === "cl:rebook7") {
-    await startRebookPlus7(chatId, chatKey, locale);
-    return;
-  }
-
-  if (data === "cl:photo") {
-    if (!slice) {
-      await startLinkFlow(chatId, messageId, chatKey, locale, profile);
-      return;
-    }
-    const active = [...slice.workOrders]
-      .filter((o) => o.status !== "delivered")
-      .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))[0];
-    await setClientTelegramSession(chatKey, {
-      step: "client_photo_upload",
-      data: { orderId: active?.id ?? "" },
-    });
-    await sendTelegramMessage(
-      chatId,
-      locale === "pl"
-        ? "📷 Wyślij zdjęcie (problem, błąd, uszkodzenie). Zapiszemy do zlecenia."
-        : locale === "en"
-          ? "📷 Send a photo — we will attach it to your work order."
-          : "📷 Отправьте фото — прикрепим к заказ-наряду.",
-      clientLinkedMenuKeyboard(locale, slice, countPendingSign(slice), countUnread(slice))
-    );
-    return;
-  }
-
-  if (data === "cl:photos") {
-    await sendGalleryPhotosLink(chatId, locale);
-    return;
-  }
-
   if (data === "cl:referral") {
-    const slice = await getClientPortalByChat(chatKey);
     if (!slice) {
       await startLinkFlow(chatId, messageId, chatKey, locale, profile);
       return;
@@ -933,12 +919,6 @@ export async function handleClientCallback(cb: TelegramCallback): Promise<void> 
     await replyOrEdit(chatId, messageId, locale, text, {
       inline_keyboard: [[{ text: "📤 Share", url: `https://t.me/share/url?url=${encodeURIComponent(link)}` }], clientBackMenuRow(locale)],
     });
-    return;
-  }
-
-  if (data === "cl:quiet") {
-    const on = await toggleQuietHours(chatKey);
-    await sendTelegramMessage(chatId, on ? L.quietHoursOn : L.quietHoursOff);
     return;
   }
 
@@ -992,38 +972,6 @@ export async function handleClientCallback(cb: TelegramCallback): Promise<void> 
     return;
   }
 
-  if (data === "cl:concierge") {
-    if (!slice) {
-      await startLinkFlow(chatId, messageId, chatKey, locale, profile);
-      return;
-    }
-    const text = await formatConciergeMessage(locale, chatKey);
-    await replyOrEdit(
-      chatId,
-      messageId,
-      locale,
-      text ?? L.signIntro,
-      clientLinkedMenuKeyboard(locale, slice, countPendingSign(slice), countUnread(slice))
-    );
-    return;
-  }
-
-  if (data === "cl:sym:start") {
-    await startSymptomQuiz(chatId, chatKey, locale);
-    return;
-  }
-
-  if (data === "cl:sym:done") {
-    await finishSymptomQuiz(chatId, chatKey, locale);
-    return;
-  }
-
-  if (data.startsWith("cl:sym:") && data !== "cl:sym:start" && data !== "cl:sym:done") {
-    const sid = data.slice(7) as WizardSymptomId;
-    await toggleSymptom(chatId, chatKey, locale, sid, messageId);
-    return;
-  }
-
   if (data.startsWith("cl:share:apt:")) {
     const aptId = data.slice(13);
     const apt = slice?.appointments.find((a) => a.id === aptId);
@@ -1055,52 +1003,6 @@ export async function handleClientCallback(cb: TelegramCallback): Promise<void> 
     const ok = data.startsWith("cl:extra:ok:");
     await resolveExtraWorkApproval(orderId, ok);
     await sendTelegramMessage(chatId, ok ? L.saved : L.cancel);
-    return;
-  }
-
-  if (data === "cl:promo") {
-    await sendPromoList(chatId, locale);
-    return;
-  }
-
-  if (data === "cl:pkg:menu") {
-    await replyOrEdit(chatId, messageId, locale, L.packagesBtn, packagesKeyboard(locale));
-    return;
-  }
-
-  if (data.startsWith("cl:pkg:") && data !== "cl:pkg:menu") {
-    await startPackageBooking(chatId, chatKey, locale, data.slice(7));
-    return;
-  }
-
-  if (data === "cl:location") {
-    await sendLocation(chatId, locale);
-    return;
-  }
-
-  if (data === "cl:warranty") {
-    const text = await formatWarrantyList(locale, chatKey);
-    await replyOrEdit(
-      chatId,
-      messageId,
-      locale,
-      text ?? L.signIntro,
-      slice
-        ? clientLinkedMenuKeyboard(locale, slice, countPendingSign(slice), countUnread(slice))
-        : clientMainKeyboard(locale, !!slice)
-    );
-    return;
-  }
-
-  if (data === "cl:veh:pick" && slice) {
-    const kb = vehiclePickKeyboard(locale, slice);
-    if (kb) await replyOrEdit(chatId, messageId, locale, L.vehiclePick, kb);
-    return;
-  }
-
-  if (data.startsWith("cl:veh:") && data !== "cl:veh:pick") {
-    await setActiveVehicle(chatKey, data.slice(7));
-    await sendTelegramMessage(chatId, "✅ OK");
     return;
   }
 
@@ -1145,9 +1047,7 @@ export async function handleClientCallback(cb: TelegramCallback): Promise<void> 
       messageId,
       locale,
       thanks,
-      slice
-        ? clientLinkedMenuKeyboard(locale, slice, countPendingSign(slice), countUnread(slice))
-        : clientMainKeyboard(locale, true)
+      clientUserMenu(locale, slice)
     );
     return;
   }
@@ -1169,9 +1069,7 @@ export async function handleClientCallback(cb: TelegramCallback): Promise<void> 
         messageId,
         locale,
         thanks,
-        slice
-          ? clientLinkedMenuKeyboard(locale, slice, countPendingSign(slice), countUnread(slice))
-          : clientMainKeyboard(locale, true)
+        clientUserMenu(locale, slice)
       );
     }
     return;
@@ -1256,16 +1154,12 @@ export async function handleClientCallback(cb: TelegramCallback): Promise<void> 
         messageId,
         locale,
         msg,
-        slice
-          ? clientLinkedMenuKeyboard(locale, slice, countPendingSign(slice), countUnread(slice))
-          : clientMainKeyboard(locale, false)
+        clientUserMenu(locale, slice)
       );
       return;
     }
     const fresh = await getClientPortalByChat(chatKey);
-    const kb = fresh
-      ? clientLinkedMenuKeyboard(locale, fresh, countPendingSign(fresh), countUnread(fresh))
-      : clientMainKeyboard(locale, true);
+    const kb = clientUserMenu(locale, fresh);
     await replyOrEdit(chatId, messageId, locale, L.vinAdded, kb);
     return;
   }
@@ -1358,7 +1252,7 @@ export async function handleClientCallback(cb: TelegramCallback): Promise<void> 
         messageId,
         locale,
         L.orderNotFound,
-        clientMainKeyboard(locale, true)
+        clientUserMenu(locale, slice)
       );
       return;
     }
@@ -1488,9 +1382,7 @@ export async function handleClientCallback(cb: TelegramCallback): Promise<void> 
         messageId,
         locale,
         `${L.saved}\n\n📅 ${formatDateShort(d.date, locale)} · ${decodeTimeSlot(d.time)}\n🔧 ${esc(d.serviceLabel ?? "")}${checklist ? `\n\n${checklist}` : ""}`,
-        slice
-          ? clientLinkedMenuKeyboard(locale, slice, countPendingSign(slice), countUnread(slice))
-          : clientMainKeyboard(locale, false)
+        clientUserMenu(locale, slice)
       );
     } else {
       await replyOrEdit(chatId, messageId, locale, L.saveFailed, clientMainKeyboard(locale));
@@ -1516,7 +1408,7 @@ export async function handleClientCallback(cb: TelegramCallback): Promise<void> 
       messageId,
       locale,
       result.ok ? `${L.callSaved}\n\n🔧 ${esc(d.serviceLabel ?? "")}` : L.saveFailed,
-      clientMainKeyboard(locale, !!slice)
+      clientUserMenu(locale, slice)
     );
     return;
   }

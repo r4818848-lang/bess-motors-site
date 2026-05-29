@@ -22,6 +22,10 @@ function siteBase(): string {
   return process.env.NEXT_PUBLIC_SITE_URL || "https://www.bess-motors.com";
 }
 
+function mapsUrl(): string {
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(siteConfig.address)}`;
+}
+
 export function clientLanguageKeyboard(): InlineKeyboardMarkup {
   const rows: InlineKeyboardMarkup["inline_keyboard"] = [];
   for (let i = 0; i < BOT_LOCALES.length; i += 2) {
@@ -43,100 +47,55 @@ export function clientStartReplyKeyboard(L: ClientBotLabels): ReplyKeyboardMarku
   };
 }
 
+/** Guest menu — 4 rows */
 export function clientMainKeyboard(locale: BotLocale, linked = false): InlineKeyboardMarkup {
+  void linked;
   const L = getClientBotLabels(locale);
-  const rows: InlineKeyboardMarkup["inline_keyboard"] = [];
-
-  if (linked) {
-    rows.push(
-      [{ text: L.myOrders, callback_data: "cl:orders:0" }],
+  return {
+    inline_keyboard: [
+      [{ text: L.activate, callback_data: "cl:link" }],
       [
-        { text: L.notifications, callback_data: "cl:notif" },
-        { text: L.myAppointments, callback_data: "cl:apts" },
+        { text: L.book, callback_data: "cl:book" },
+        { text: L.call, callback_data: "cl:call" },
       ],
-      [{ text: L.myCars, callback_data: "cl:cars" }]
-    );
-  } else {
-    rows.push([{ text: L.activate, callback_data: "cl:link" }]);
-  }
-
-  rows.push(
-    [{ text: L.book, callback_data: "cl:book" }],
-    [{ text: L.call, callback_data: "cl:call" }],
-    [
-      { text: L.symptomQuiz, callback_data: "cl:sym:start" },
-      { text: L.concierge, callback_data: "cl:concierge" },
+      [
+        { text: L.myStatus, callback_data: "cl:status" },
+        { text: L.contacts, callback_data: "cl:contacts" },
+      ],
+      [
+        { text: L.site, url: `${siteBase()}/cabinet` },
+        { text: L.changeLanguage, callback_data: "cl:lang:pick" },
+      ],
     ],
-    [
-      { text: L.packagesBtn, callback_data: "cl:pkg:menu" },
-      { text: L.locationBtn, callback_data: "cl:location" },
-    ],
-    [
-      { text: L.myStatus, callback_data: "cl:status" },
-      { text: L.rebook, callback_data: "cl:rebook" },
-    ],
-    [
-      { text: L.contacts, callback_data: "cl:contacts" },
-      { text: L.site, url: `${siteBase()}/cabinet` },
-    ],
-    [{ text: L.changeLanguage, callback_data: "cl:lang:pick" }]
-  );
-
-  return { inline_keyboard: rows };
+  };
 }
 
+/** Linked client — 6 compact rows */
 export function clientLinkedMenuKeyboard(
   locale: BotLocale,
-  slice: ClientPortalSlice,
+  _slice: ClientPortalSlice,
   pendingSign: number,
   unread: number
 ): InlineKeyboardMarkup {
   const L = getClientBotLabels(locale);
-  const notifLabel =
-    unread > 0 ? `${L.notifications} (${unread})` : L.notifications;
   const ordersLabel =
     pendingSign > 0 ? `${L.myOrders} (✍️${pendingSign})` : L.myOrders;
+  const notifLabel = unread > 0 ? `${L.notifications} (${unread})` : L.notifications;
 
   return {
     inline_keyboard: [
-      [{ text: ordersLabel, callback_data: "cl:orders:0" }],
       [
-        { text: notifLabel, callback_data: "cl:notif" },
-        { text: L.myAppointments, callback_data: "cl:apts" },
-      ],
-      [
-        { text: L.myCars, callback_data: "cl:cars" },
-        { text: L.addVin, callback_data: "cl:vin" },
+        { text: ordersLabel, callback_data: "cl:orders:0" },
+        { text: L.myStatus, callback_data: "cl:status" },
       ],
       [
         { text: L.book, callback_data: "cl:book" },
         { text: L.call, callback_data: "cl:call" },
       ],
       [
-        { text: L.symptomQuiz, callback_data: "cl:sym:start" },
-        { text: L.concierge, callback_data: "cl:concierge" },
+        { text: L.myAppointments, callback_data: "cl:apts" },
+        { text: notifLabel, callback_data: "cl:notif" },
       ],
-      [
-        { text: L.myStatus, callback_data: "cl:status" },
-        { text: L.rebook, callback_data: "cl:rebook" },
-      ],
-      [
-        { text: L.sendPhoto, callback_data: "cl:photo" },
-        { text: L.serviceHistory, callback_data: "cl:history" },
-      ],
-      [
-        { text: L.rebookWeek, callback_data: "cl:rebook7" },
-        { text: L.galleryPhotos, callback_data: "cl:photos" },
-      ],
-      [
-        { text: L.packagesBtn, callback_data: "cl:pkg:menu" },
-        { text: "🏷 Promo", callback_data: "cl:promo" },
-      ],
-      [
-        { text: L.locationBtn, callback_data: "cl:location" },
-        { text: L.warrantyBtn, callback_data: "cl:warranty" },
-      ],
-      [{ text: L.vehiclePick, callback_data: "cl:veh:pick" }],
       [{ text: L.referralShare, callback_data: "cl:referral" }],
       [
         { text: L.contacts, callback_data: "cl:contacts" },
@@ -144,12 +103,22 @@ export function clientLinkedMenuKeyboard(
       ],
       [
         { text: L.notifySettings, callback_data: "cl:notify" },
-        { text: L.quietHours, callback_data: "cl:quiet" },
+        { text: L.changeLanguage, callback_data: "cl:lang:pick" },
       ],
-      [{ text: locale === "ru" ? "⚡ Ещё" : "⚡ More", callback_data: "cl:more" }],
-      [{ text: L.changeLanguage, callback_data: "cl:lang:pick" }],
     ],
   };
+}
+
+export function clientMenuForUser(
+  locale: BotLocale,
+  slice: ClientPortalSlice | null | undefined,
+  pendingSign = 0,
+  unread = 0
+): InlineKeyboardMarkup {
+  if (slice) {
+    return clientLinkedMenuKeyboard(locale, slice, pendingSign, unread);
+  }
+  return clientMainKeyboard(locale);
 }
 
 export function vinConfirmKeyboard(locale: BotLocale): InlineKeyboardMarkup {
@@ -195,7 +164,7 @@ export function clientAppointmentsKeyboard(
   for (const a of apts) {
     rows.push([
       {
-        text: `${L.shareApt} · ${a.date}`,
+        text: `${a.date} ${a.time}`,
         callback_data: `cl:share:apt:${a.id}`,
       },
     ]);
@@ -204,10 +173,7 @@ export function clientAppointmentsKeyboard(
         text: locale === "pl" ? "📅 +1 dzień" : locale === "en" ? "📅 +1 day" : "📅 +1 день",
         callback_data: `cl:apt:+1:${a.id}`,
       },
-      {
-        text: "+7",
-        callback_data: `cl:apt:+7:${a.id}`,
-      },
+      { text: "+7", callback_data: `cl:apt:+7:${a.id}` },
     ]);
   }
   rows.push(clientBackMenuRow(locale));
@@ -292,7 +258,7 @@ export function clientServiceKeyboard(
 
 export function clientDateKeyboard(locale: BotLocale): InlineKeyboardMarkup {
   const L = getClientBotLabels(locale);
-  const dates = nextBookableDates(10);
+  const dates = nextBookableDates(8);
   const rows: InlineKeyboardMarkup["inline_keyboard"] = [];
   for (let i = 0; i < dates.length; i += 2) {
     const chunk = dates.slice(i, i + 2);
@@ -359,6 +325,8 @@ export function clientContactsKeyboard(locale: BotLocale): InlineKeyboardMarkup 
   const L = getClientBotLabels(locale);
   return {
     inline_keyboard: [
+      [{ text: "📞 " + siteConfig.phone, url: `tel:${siteConfig.phone.replace(/\s/g, "")}` }],
+      [{ text: "🗺 Google Maps", url: mapsUrl() }],
       [{ text: "💬 WhatsApp", url: siteConfig.whatsapp }],
       [{ text: L.bookOnSite, url: `${siteBase()}/booking` }],
       clientBackMenuRow(locale),
@@ -405,7 +373,7 @@ export function clientOrderDetailKeyboard(
   }
   rows.push([
     {
-      text: locale === "pl" ? "🔁 Powtórz zlecenie" : locale === "en" ? "🔁 Repeat order" : "🔁 Повторить заказ",
+      text: locale === "pl" ? "🔁 Powtórz" : locale === "en" ? "🔁 Repeat" : "🔁 Повторить",
       callback_data: `cl:repeat:${orderId}`,
     },
   ]);

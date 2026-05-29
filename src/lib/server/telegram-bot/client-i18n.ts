@@ -150,10 +150,10 @@ const LABELS: Record<BotLocale, ClientBotLabels> = {
     chooseLanguage: "🌐 <b>Wybierz język / Choose language</b>\n\nWybierz język obsługi w bocie:",
     languageSaved: (name) => `✅ Język: <b>${name}</b>`,
     welcome:
-      "🛠 <b>BESS MOTORS</b>\n\nSerwis samochodowy w Warszawie.\nPołącz konto klienta — statusy napraw, dokumenty do podpisu i wizyty w Telegramie.",
-    welcomeLinked: "Twoje konto jest aktywne.",
+      "🛠 <b>BESS MOTORS</b> — serwis Warszawa\n\n📅 Umów wizytę · 📞 oddzwonienie · 🔐 konto klienta",
+    welcomeLinked: "Konto aktywne.",
     linkedWelcome: (name) =>
-      `👋 <b>Witaj, ${name}!</b>\n\nKonto klienta jest podłączone.\nZlecenia, wizyty i powiadomienia — tutaj.`,
+      `👋 <b>Witaj, ${name}!</b>\n\n📋 Zlecenia · 📅 Wizyty · 🔔 Powiadomienia`,
     book: "📅 Umów wizytę",
     call: "📞 Zamów telefon",
     myAppointments: "📅 Moje wizyty",
@@ -307,10 +307,10 @@ const LABELS: Record<BotLocale, ClientBotLabels> = {
     chooseLanguage: "🌐 <b>Выберите язык</b>\n\nНа каком языке вести диалог?",
     languageSaved: (name) => `✅ Язык: <b>${name}</b>`,
     welcome:
-      "🛠 <b>BESS MOTORS</b>\n\nАвтосервис в Варшаве.\nПодключите личный кабинет — статусы заказов, документы на подпись и записи в Telegram.",
-    welcomeLinked: "Ваш кабинет активен.",
+      "🛠 <b>BESS MOTORS</b> — сервис Warszawa\n\n📅 Запись · 📞 Звонок · 🔐 Личный кабинет",
+    welcomeLinked: "Кабинет подключён.",
     linkedWelcome: (name) =>
-      `👋 <b>Здравствуйте, ${name}!</b>\n\nВаш личный кабинет подключён.\nЗдесь — заказ-наряды, записи и уведомления.`,
+      `👋 <b>Здравствуйте, ${name}!</b>\n\n📋 Заказ-наряды · 📅 Записи · 🔔 Уведомления`,
     book: "📅 Записаться",
     call: "📞 Заказать звонок",
     myAppointments: "📅 Мои записи",
@@ -465,10 +465,10 @@ const LABELS: Record<BotLocale, ClientBotLabels> = {
     chooseLanguage: "🌐 <b>Оберіть мову</b>\n\nМовою спілкування в боті:",
     languageSaved: (name) => `✅ Мова: <b>${name}</b>`,
     welcome:
-      "🛠 <b>BESS MOTORS</b>\n\nАвтосервіс у Варшаві.\nПідключіть кабінет — статуси ремонту, документи та записи в Telegram.",
-    welcomeLinked: "Ваш кабінет активний.",
+      "🛠 <b>BESS MOTORS</b> — сервіс Warszawa\n\n📅 Запис · 📞 Дзвінок · 🔐 Кабінет",
+    welcomeLinked: "Кабінет підключено.",
     linkedWelcome: (name) =>
-      `👋 <b>Вітаємо, ${name}!</b>\n\nОсобистий кабінет підключено.\nЗамовлення, записи та сповіщення — тут.`,
+      `👋 <b>Вітаємо, ${name}!</b>\n\n📋 Замовлення · 📅 Записи · 🔔 Сповіщення`,
     book: "📅 Записатися",
     call: "📞 Замовити дзвінок",
     myAppointments: "📅 Мої записи",
@@ -617,10 +617,10 @@ const LABELS: Record<BotLocale, ClientBotLabels> = {
     chooseLanguage: "🌐 <b>Choose your language</b>\n\nSelect bot language:",
     languageSaved: (name) => `✅ Language: <b>${name}</b>`,
     welcome:
-      "🛠 <b>BESS MOTORS</b>\n\nCar service in Warsaw.\nLink your account for repair status, documents to sign, and bookings in Telegram.",
-    welcomeLinked: "Your account is active.",
+      "🛠 <b>BESS MOTORS</b> — car service Warsaw\n\n📅 Book · 📞 Call back · 🔐 Client account",
+    welcomeLinked: "Account linked.",
     linkedWelcome: (name) =>
-      `👋 <b>Hello, ${name}!</b>\n\nYour account is linked.\nWork orders, appointments and notifications are here.`,
+      `👋 <b>Hello, ${name}!</b>\n\n📋 Work orders · 📅 Appointments · 🔔 Notifications`,
     book: "📅 Book visit",
     call: "📞 Request call",
     myAppointments: "📅 My appointments",

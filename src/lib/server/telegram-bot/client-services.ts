@@ -1,4 +1,3 @@
-import { bookingGridServiceIds } from "@/lib/services-catalog";
 import { getPriceItem } from "@/lib/price-list";
 import { serviceBasePriceId } from "@/lib/service-price-map";
 import type { ServiceId } from "@/lib/services-catalog";
@@ -34,8 +33,18 @@ export function getClientServiceLabel(
   return FALLBACK_RU[serviceId] ?? serviceId;
 }
 
+/** Top services for Telegram bot (short menu) */
+export const telegramBookableServiceIds = [
+  "oil",
+  "diagnostic",
+  "brakePads",
+  "suspension",
+  "acRefill",
+  "otherReason",
+] as const satisfies readonly ServiceId[];
+
 export function clientBookableServices(locale: BotLocale) {
-  return bookingGridServiceIds.map((id) => ({
+  return telegramBookableServiceIds.map((id) => ({
     id,
     label: getClientServiceLabel(id, locale),
   }));
