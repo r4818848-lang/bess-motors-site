@@ -7,7 +7,7 @@ import { useI18n } from "@/lib/i18n/context";
 import { PhoneLink } from "@/components/analytics/PhoneLink";
 import { BookingLink } from "@/components/analytics/BookingLink";
 
-const hiddenPaths = ["/crm", "/mechanic", "/admin", "/sign"];
+const hiddenPaths = ["/crm", "/mechanic", "/admin", "/sign", "/cabinet"];
 
 export function StickyContactBar() {
   const { t } = useI18n();

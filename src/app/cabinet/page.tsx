@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, useRef, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { BookingLink } from "@/components/analytics/BookingLink";
@@ -136,7 +136,7 @@ async function pushVehicleToCloud(vehicle: Vehicle): Promise<boolean> {
 function CabinetPageContent() {
   const { t } = useI18n();
   const searchParams = useSearchParams();
-  const { sessionReady, clientUser, signOut } = useAuth();
+  const { sessionReady, clientUser, signOut, refreshAuth } = useAuth();
   // One cloud pull is enough for cabinet (both hooks merged behavior via shared DB event)
   useCloudClientSync(!!clientUser);
   const [mounted, setMounted] = useState(false);
@@ -147,8 +147,16 @@ function CabinetPageContent() {
   const [vinForm, setVinForm] = useState(emptyVinForm);
   const [vinDecoding, setVinDecoding] = useState(false);
   const [vinMessage, setVinMessage] = useState<{ type: "ok" | "err"; text: string } | null>(null);
+  const tabPanelRef = useRef<HTMLDivElement>(null);
 
   const refreshDb = () => setDb(loadDb());
+
+  const selectTab = useCallback((id: string) => {
+    setTab(id);
+    requestAnimationFrame(() => {
+      tabPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }, []);
 
   useEffect(() => {
     refreshDb();
@@ -170,13 +178,13 @@ function CabinetPageContent() {
   useEffect(() => {
     const orderParam = searchParams.get("order");
     const tabParam = searchParams.get("tab");
-    if (tabParam === "history") setTab("history");
-    if (tabParam === "notifications") setTab("notifications");
+    if (tabParam === "history") selectTab("history");
+    if (tabParam === "notifications") selectTab("notifications");
     if (orderParam) {
-      setTab("orders");
+      selectTab("orders");
       setSelectedOrderId(orderParam);
     }
-  }, [searchParams]);
+  }, [searchParams, selectTab]);
 
   useEffect(() => {
     if (!mounted || !sessionReady || !clientUser || !db) return;
@@ -308,8 +316,13 @@ function CabinetPageContent() {
 
   if (!user) {
     return (
-      <div className="pt-28 pb-20 min-h-[70vh] flex items-center justify-center px-4">
-        <PhoneAuthForm onSuccess={() => refreshDb()} />
+        <div className="pt-28 pb-20 min-h-[70vh] flex items-center justify-center px-4">
+        <PhoneAuthForm
+          onSuccess={() => {
+            refreshDb();
+            refreshAuth();
+          }}
+        />
       </div>
     );
   }
@@ -381,7 +394,8 @@ function CabinetPageContent() {
           {tabs.map(({ id, icon: Icon, label, badge }) => (
             <button
               key={id}
-              onClick={() => setTab(id)}
+              type="button"
+              onClick={() => selectTab(id)}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm whitespace-nowrap transition-all ${
                 tab === id ? "bg-bm-red shadow-neon-sm" : "glass text-bm-muted hover:text-white"
               }`}
@@ -398,47 +412,12 @@ function CabinetPageContent() {
 
         <ActiveRepairCard user={user} db={activeDb} />
         <ExtraWorkApprovalCabinet orders={myOrders} />
-        <CabinetDashboard
-          user={user}
-          db={activeDb}
-          orders={myOrders}
-          appointments={myAppointments}
-          vehicles={myVehicles}
-          unreadNotifications={unreadCount}
-          onOpenTab={setTab}
-        />
-        <CabinetTimeline
-          db={activeDb}
-          userId={user.id}
-          onOpenOrder={(id) => {
-            setSelectedOrderId(id);
-            setTab("orders");
-          }}
-        />
-        <WarrantyCountdown orders={myOrders} user={user} vehicles={myVehicles} />
-        <GarageCompare vehicles={myVehicles} orders={myOrders} />
-        <RepeatLastVisitButton orders={myOrders} />
-        <LoyaltyPanel user={user} />
-        <ReferralPanel user={user} />
-        <InsuranceClaimChecklist />
-        <div className="flex flex-wrap gap-2 mb-6">
-          <HistoryExportButton user={user} db={activeDb} orders={myOrders} />
-          <HistoryYearExportButton
-            orders={myOrders}
-            vehicleLabel={
-              featuredVehicle
-                ? `${featuredVehicle.make} ${featuredVehicle.model}`
-                : user.name
-            }
-          />
-        </div>
-        <CabinetCompareFromUrl userId={user.id} />
 
         {unreadCount > 0 && tab !== "notifications" && (
           <Card
             glow
             className="mb-6 border-amber-500/40 cursor-pointer hover:border-bm-red/60"
-            onClick={() => setTab("notifications")}
+            onClick={() => selectTab("notifications")}
           >
             <p className="text-sm font-semibold text-amber-400">
               {t.cabinet.notifications}: {unreadCount}
@@ -446,8 +425,27 @@ function CabinetPageContent() {
           </Card>
         )}
 
+        <div
+          ref={tabPanelRef}
+          id="cabinet-tab-panel"
+          className="scroll-mt-28 min-h-[200px]"
+        >
+        <p className="text-xs uppercase tracking-widest text-bm-muted mb-4">
+          {tabs.find((x) => x.id === tab)?.label}
+        </p>
+
         {tab === "cars" && (
-          <div className="grid lg:grid-cols-2 gap-8">
+          <>
+            <CabinetDashboard
+              user={user}
+              db={activeDb}
+              orders={myOrders}
+              appointments={myAppointments}
+              vehicles={myVehicles}
+              unreadNotifications={unreadCount}
+              onOpenTab={selectTab}
+            />
+          <div className="grid lg:grid-cols-2 gap-8 mt-8">
             <div className="space-y-6 lg:col-span-2">
               {featuredVehicle && (
                 <>
@@ -577,6 +575,36 @@ function CabinetPageContent() {
               </Button>
             </Card>
           </div>
+
+            <div className="mt-10 space-y-6">
+              <CabinetTimeline
+                db={activeDb}
+                userId={user.id}
+                onOpenOrder={(id) => {
+                  setSelectedOrderId(id);
+                  selectTab("orders");
+                }}
+              />
+              <WarrantyCountdown orders={myOrders} user={user} vehicles={myVehicles} />
+              <GarageCompare vehicles={myVehicles} orders={myOrders} />
+              <RepeatLastVisitButton orders={myOrders} />
+              <LoyaltyPanel user={user} />
+              <ReferralPanel user={user} />
+              <InsuranceClaimChecklist />
+              <div className="flex flex-wrap gap-2">
+                <HistoryExportButton user={user} db={activeDb} orders={myOrders} />
+                <HistoryYearExportButton
+                  orders={myOrders}
+                  vehicleLabel={
+                    featuredVehicle
+                      ? `${featuredVehicle.make} ${featuredVehicle.model}`
+                      : user.name
+                  }
+                />
+              </div>
+              <CabinetCompareFromUrl userId={user.id} />
+            </div>
+          </>
         )}
 
         {tab === "appointments" && (
@@ -683,7 +711,7 @@ function CabinetPageContent() {
               orderIds={filteredMyOrders.map((o) => o.id)}
               onOpenOrder={(id) => {
                 setSelectedOrderId(id);
-                setTab("orders");
+                selectTab("orders");
               }}
             />
           </>
@@ -873,7 +901,7 @@ function CabinetPageContent() {
                           type="button"
                           className="text-xs text-bm-muted hover:text-white"
                           onClick={() => {
-                            setTab("orders");
+                            selectTab("orders");
                             setSelectedOrderId(copy.orderId!);
                           }}
                         >
@@ -884,7 +912,7 @@ function CabinetPageContent() {
                         <button
                           type="button"
                           className="text-xs text-bm-muted hover:text-white"
-                          onClick={() => setTab("appointments")}
+                          onClick={() => selectTab("appointments")}
                         >
                           {t.notifExt.viewAppointments}
                         </button>
@@ -950,6 +978,8 @@ function CabinetPageContent() {
             )}
           </div>
         )}
+
+        </div>
 
         <section className="mt-12">
           <h3 className="font-display text-sm uppercase text-bm-red mb-4">
