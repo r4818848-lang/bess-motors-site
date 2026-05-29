@@ -6,27 +6,15 @@ import { useI18n } from "@/lib/i18n/context";
 import type { WorkOrder } from "@/lib/store";
 
 export function RepeatLastVisitButton({ orders }: { orders: WorkOrder[] }) {
-  const { locale } = useI18n();
+  const { t } = useI18n();
+  const r = t.repeatVisit;
   const last = [...orders]
     .filter((o) => o.status === "delivered")
     .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))[0];
   if (!last?.services.length) return null;
 
   const services = last.services.map((s) => s.name).join(", ");
-  const comment = encodeURIComponent(
-    locale === "ru" || locale === "uk"
-      ? `Повтор: ${services}`
-      : locale === "pl"
-        ? `Powtórz: ${services}`
-        : `Repeat: ${services}`
-  );
-
-  const label =
-    locale === "ru"
-      ? "Повторить прошлый визит"
-      : locale === "pl"
-        ? "Powtórz ostatnią wizytę"
-        : "Repeat last visit";
+  const comment = encodeURIComponent(r.commentPrefix.replace("{services}", services));
 
   return (
     <Link
@@ -34,7 +22,7 @@ export function RepeatLastVisitButton({ orders }: { orders: WorkOrder[] }) {
       className="btn-outline text-sm inline-flex items-center gap-2 mb-6"
     >
       <RotateCcw size={16} />
-      {label}
+      {r.label}
     </Link>
   );
 }

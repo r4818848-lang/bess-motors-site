@@ -12,12 +12,10 @@ export function SymptomFaq() {
   const useRu = locale === "ru" || locale === "uk";
   const [open, setOpen] = useState<string | null>(symptomFaq[0]?.id ?? null);
 
-  const title = useRu ? "Частые симптомы" : locale === "en" ? "Common symptoms" : "Typowe objawy";
-
   return (
     <section className="py-16 border-t border-bm-border/40">
       <div className="mx-auto max-w-3xl px-4">
-        <h2 className="font-display text-2xl font-bold uppercase mb-8 text-center">{title}</h2>
+        <h2 className="font-display text-2xl font-bold uppercase mb-8 text-center">{t.symptomFaq.title}</h2>
         <div className="space-y-2">
           {symptomFaq.map((entry) => {
             const isOpen = open === entry.id;

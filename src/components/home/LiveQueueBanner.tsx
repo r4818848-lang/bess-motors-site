@@ -11,9 +11,9 @@ type QueueData = {
 };
 
 export function LiveQueueBanner() {
-  const { locale, t } = useI18n();
+  const { t } = useI18n();
+  const q = t.liveQueue;
   const [data, setData] = useState<QueueData | null>(null);
-  const useRu = locale === "ru" || locale === "uk";
 
   useEffect(() => {
     fetch("/api/queue")
@@ -24,30 +24,16 @@ export function LiveQueueBanner() {
 
   if (!data) return null;
 
-  const load = useRu
-    ? `Сейчас в работе: ${data.activeRepairs} авто · записей сегодня: ${data.appointmentsToday}`
-    : locale === "en"
-      ? `In shop now: ${data.activeRepairs} · appointments today: ${data.appointmentsToday}`
-      : `W serwisie: ${data.activeRepairs} aut · wizyt dziś: ${data.appointmentsToday}`;
+  const load = q.load
+    .replace("{repairs}", String(data.activeRepairs))
+    .replace("{appointments}", String(data.appointmentsToday));
 
   const hint =
     data.freeSlotsHint === "low"
-      ? useRu
-        ? "Свободных слотов мало — лучше записаться онлайн"
-        : locale === "en"
-          ? "Few slots left — book online"
-          : "Mało wolnych terminów — rezerwuj online"
+      ? q.hintLow
       : data.freeSlotsHint === "high"
-        ? useRu
-          ? "Есть свободные окна сегодня"
-          : locale === "en"
-            ? "Good availability today"
-            : "Są wolne terminy dziś"
-        : useRu
-          ? "Средняя загрузка — запись онлайн ускорит визит"
-          : locale === "en"
-            ? "Moderate load — online booking helps"
-            : "Średnie obłożenie — rezerwacja online przyspieszy wizytę";
+        ? q.hintHigh
+        : q.hintMedium;
 
   return (
     <div className="border-y border-bm-border/50 bg-bm-surface/30">
@@ -63,3 +49,4 @@ export function LiveQueueBanner() {
     </div>
   );
 }
+

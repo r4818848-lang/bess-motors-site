@@ -12,44 +12,20 @@ export function GarageCompare({
   vehicles: Vehicle[];
   orders: WorkOrder[];
 }) {
-  const { locale } = useI18n();
+  const { t } = useI18n();
+  const g = t.garageCompare;
   if (vehicles.length < 2) return null;
-
-  const title =
-    locale === "ru" || locale === "uk"
-      ? "Сравнение авто"
-      : locale === "en"
-        ? "Compare vehicles"
-        : "Porównanie aut";
 
   return (
     <Card className="p-6 mb-6 overflow-x-auto">
-      <h3 className="font-display uppercase text-sm mb-4">{title}</h3>
+      <h3 className="font-display uppercase text-sm mb-4">{g.title}</h3>
       <table className="w-full text-sm text-left">
         <thead>
           <tr className="text-bm-muted text-xs uppercase">
-            <th className="pb-2">Auto</th>
-            <th className="pb-2">
-              {locale === "ru" || locale === "uk"
-                ? "Пробег"
-                : locale === "en"
-                  ? "Mileage"
-                  : "Przebieg"}
-            </th>
-            <th className="pb-2">
-              {locale === "ru" || locale === "uk"
-                ? "Визитов"
-                : locale === "en"
-                  ? "Visits"
-                  : "Wizyty"}
-            </th>
-            <th className="pb-2">
-              {locale === "ru" || locale === "uk"
-                ? "Сумма"
-                : locale === "en"
-                  ? "Total"
-                  : "Suma"}
-            </th>
+            <th className="pb-2">{g.auto}</th>
+            <th className="pb-2">{g.mileage}</th>
+            <th className="pb-2">{g.visits}</th>
+            <th className="pb-2">{g.total}</th>
           </tr>
         </thead>
         <tbody>

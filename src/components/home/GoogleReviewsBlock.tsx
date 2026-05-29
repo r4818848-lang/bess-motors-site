@@ -12,20 +12,14 @@ const REVIEWS = [
 ];
 
 export function GoogleReviewsBlock() {
-  const { locale } = useI18n();
+  const { locale, t } = useI18n();
   const useRu = locale === "ru" || locale === "uk";
-
-  const title = useRu
-    ? "Отзывы клиентов"
-    : locale === "en"
-      ? "Customer reviews"
-      : "Opinie klientów";
 
   return (
     <section className="py-16 border-t border-bm-border/30">
       <div className="mx-auto max-w-5xl px-4">
         <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
-          <h2 className="font-display text-2xl uppercase text-glow">{title}</h2>
+          <h2 className="font-display text-2xl uppercase text-glow">{t.googleReviews.title}</h2>
           <Link
             href={siteConfig.googleMapsReviewsUrl}
             target="_blank"
@@ -43,9 +37,7 @@ export function GoogleReviewsBlock() {
                   <Star key={i} size={14} fill="currentColor" />
                 ))}
               </div>
-              <p className="text-sm text-bm-silver">
-                {useRu ? r.textRu : r.textPl}
-              </p>
+              <p className="text-sm text-bm-silver">{useRu ? r.textRu : r.textPl}</p>
               <p className="text-xs text-bm-muted mt-3">{r.name}</p>
             </article>
           ))}

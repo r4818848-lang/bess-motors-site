@@ -19,7 +19,7 @@ const BOT_USERNAME =
   process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME ?? "BessMotors_bot";
 
 export function TelegramLoginButton() {
-  const { locale } = useI18n();
+  const { t } = useI18n();
   const router = useRouter();
   const { refreshAuth } = useAuth();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -30,33 +30,7 @@ export function TelegramLoginButton() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const labels =
-    locale === "ru" || locale === "uk"
-      ? {
-          divider: "или через Telegram",
-          needPlate: "Укажите телефон и госномер — как при первом визите",
-          phone: "Телефон",
-          plate: "Госномер (пароль кабинета)",
-          continue: "Войти",
-          fail: "Не удалось войти через Telegram",
-        }
-      : locale === "en"
-        ? {
-            divider: "or via Telegram",
-            needPlate: "Enter phone and registration plate",
-            phone: "Phone",
-            plate: "Registration plate",
-            continue: "Sign in",
-            fail: "Telegram sign-in failed",
-          }
-        : {
-            divider: "lub przez Telegram",
-            needPlate: "Podaj telefon i numer rejestracyjny",
-            phone: "Telefon",
-            plate: "Numer rejestracyjny",
-            continue: "Zaloguj",
-            fail: "Logowanie Telegram nie powiodło się",
-          };
+  const labels = t.telegramLogin;
 
   const finishLogin = async (payload: Record<string, unknown>) => {
     setLoading(true);

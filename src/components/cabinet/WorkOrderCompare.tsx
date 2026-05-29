@@ -17,16 +17,10 @@ export function WorkOrderCompare({
   orders: WorkOrder[];
   db: Database;
 }) {
-  const { t, locale } = useI18n();
+  const { t } = useI18n();
+  const c = t.workOrderCompare;
   const [aId, setAId] = useState(orders[0]?.id ?? "");
   const [bId, setBId] = useState(orders[1]?.id ?? "");
-
-  const title =
-    locale === "ru" || locale === "uk"
-      ? "Сравнение смет"
-      : locale === "en"
-        ? "Compare estimates"
-        : "Porównanie kosztorysów";
 
   const pair = useMemo(() => {
     const a = orders.find((o) => o.id === aId);
@@ -65,16 +59,9 @@ export function WorkOrderCompare({
 
   if (orders.length < 2) return null;
 
-  const deltaLabel =
-    locale === "ru" || locale === "uk"
-      ? "Разница"
-      : locale === "en"
-        ? "Difference"
-        : "Różnica";
-
   return (
     <Card className="p-5 mb-6">
-      <h3 className="font-display uppercase text-sm mb-4">{title}</h3>
+      <h3 className="font-display uppercase text-sm mb-4">{c.title}</h3>
       <div className="grid sm:grid-cols-2 gap-3 mb-4">
         <select className="input text-sm" value={aId} onChange={(e) => setAId(e.target.value)}>
           {orders.map((o) => (
@@ -94,7 +81,7 @@ export function WorkOrderCompare({
 
       {diff ? (
         <p className="text-sm mb-4">
-          {deltaLabel}:{" "}
+          {c.difference}:{" "}
           <b className={diff.delta >= 0 ? "text-amber-400" : "text-green-400"}>
             {diff.delta >= 0 ? "+" : ""}
             {diff.delta.toFixed(2)} zł ({diff.pct >= 0 ? "+" : ""}
@@ -116,14 +103,12 @@ export function WorkOrderCompare({
               </p>
               {diff && i === 0 ? (
                 <p className="text-xs text-bm-muted mt-2">
-                  {locale === "pl" ? "Robocizna" : locale === "en" ? "Labor" : "Работы"}: {diff.laborA.toFixed(0)} ·{" "}
-                  {locale === "pl" ? "Części" : locale === "en" ? "Parts" : "Запчасти"}: {diff.partsA.toFixed(0)}
+                  {c.labor}: {diff.laborA.toFixed(0)} · {c.parts}: {diff.partsA.toFixed(0)}
                 </p>
               ) : null}
               {diff && i === 1 ? (
                 <p className="text-xs text-bm-muted mt-2">
-                  {locale === "pl" ? "Robocizna" : locale === "en" ? "Labor" : "Работы"}: {diff.laborB.toFixed(0)} ·{" "}
-                  {locale === "pl" ? "Części" : locale === "en" ? "Parts" : "Запчасти"}: {diff.partsB.toFixed(0)}
+                  {c.labor}: {diff.laborB.toFixed(0)} · {c.parts}: {diff.partsB.toFixed(0)}
                 </p>
               ) : null}
               <ul className="mt-2 space-y-1 text-xs text-bm-muted">

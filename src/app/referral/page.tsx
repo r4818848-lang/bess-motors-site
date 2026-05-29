@@ -13,7 +13,8 @@ import {
 import { getSiteUrl } from "@/lib/seo";
 
 export default function ReferralPage() {
-  const { locale } = useI18n();
+  const { t } = useI18n();
+  const r = t.referralProgram;
   const { clientUser: user } = useAuth();
   const [code, setCode] = useState("");
   const [link, setLink] = useState("");
@@ -29,40 +30,24 @@ export default function ReferralPage() {
     setLink(`${base}/cabinet?ref=${encodeURIComponent(c)}`);
   }, [user]);
 
-  const title =
-    locale === "ru" || locale === "uk"
-      ? "Приведи друга"
-      : locale === "en"
-        ? "Refer a friend"
-        : "Poleć znajomego";
-
   return (
     <div className="pt-28 pb-20 min-h-screen">
       <div className="mx-auto max-w-lg px-4 text-center">
-        <h1 className="font-display text-3xl font-bold uppercase text-glow">{title}</h1>
+        <h1 className="font-display text-3xl font-bold uppercase text-glow">{r.title}</h1>
         <p className="text-bm-muted mt-4">
-          {REFERRAL_QUALIFIED_REQUIRED}{" "}
-          {locale === "ru" || locale === "uk"
-            ? "друзей с оплаченным визитом →"
-            : locale === "pl"
-              ? "znajomych z opłaconą wizytą →"
-              : "friends with a paid visit →"}{" "}
+          {REFERRAL_QUALIFIED_REQUIRED} {r.pageHint}{" "}
           <b className="text-bm-red">{REFERRAL_REWARD_DISCOUNT_PERCENT}%</b>
         </p>
         {user && code ? (
           <div className="glass rounded-xl p-6 mt-8 text-left">
-            <p className="text-xs text-bm-muted uppercase">
-              {locale === "ru" || locale === "uk" ? "Код" : locale === "en" ? "Code" : "Kod"}
-            </p>
+            <p className="text-xs text-bm-muted uppercase">{r.codeLabel}</p>
             <p className="font-mono text-xl text-bm-red font-bold">{code}</p>
-            <p className="text-xs text-bm-muted uppercase mt-4">
-              {locale === "ru" || locale === "uk" ? "Ссылка" : locale === "en" ? "Link" : "Link"}
-            </p>
+            <p className="text-xs text-bm-muted uppercase mt-4">{r.linkLabel}</p>
             <p className="text-sm break-all">{link}</p>
           </div>
         ) : (
           <Link href="/cabinet" className="btn-primary mt-8 inline-block">
-            {locale === "ru" ? "Войти в кабинет" : locale === "en" ? "Sign in" : "Zaloguj się"}
+            {r.signInCta}
           </Link>
         )}
         <Link href="/" className="block mt-8 text-sm text-bm-muted hover:text-bm-red">
