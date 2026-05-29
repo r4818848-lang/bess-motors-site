@@ -8,7 +8,7 @@ import {
 } from "@/lib/car-problem-wizard";
 import { getPriceItem } from "@/lib/price-list";
 import type { BotLocale } from "./client-i18n";
-import { getClientBotLabels } from "./client-i18n";
+import { getClientBotLabels, botContentLocale } from "./client-i18n";
 import { getClientServiceLabel, normalizeTelegramServiceId } from "./client-services";
 import { setClientTelegramSession } from "./client-locale";
 import { clientBackMenuRow } from "./client-keyboards";
@@ -58,13 +58,15 @@ export function formatSymptomEstimate(
   let minTotal = 0;
   let maxTotal = 0;
   const lines: string[] = [];
-  const useRu = locale === "ru" || locale === "uk";
+  const L = getClientBotLabels(locale);
+  const loc = botContentLocale(locale);
+  const useRu = loc === "ru";
 
   for (const id of itemIds.slice(0, 8)) {
     const item = getPriceItem(id);
     if (!item) continue;
     const name = useRu ? item.nameRu : item.namePl;
-    const from = item.priceFrom ? (useRu ? "от " : "od ") : "";
+    const from = item.priceFrom ? L.priceFromPrefix : "";
     const price = item.basePrice;
     minTotal += price;
     maxTotal += price * (item.unit === "per_cylinder" ? 4 : item.unit === "per_wheel" ? 4 : 1);
@@ -74,19 +76,9 @@ export function formatSymptomEstimate(
   const cat = wizardPrimaryCategory(selected);
   const serviceId = CATEGORY_TO_SERVICE[cat] ?? "diagnostic";
 
-  const title =
-    locale === "pl"
-      ? "💡 <b>Szacunek (orientacyjny)</b>"
-      : locale === "en"
-        ? "💡 <b>Estimate (indicative)</b>"
-        : "💡 <b>Ориентировочная смета</b>";
+  const title = L.estimateTitle;
 
-  const range =
-    locale === "pl"
-      ? `Razem: ok. <b>${minTotal}–${maxTotal}</b> zł`
-      : locale === "en"
-        ? `Total: approx. <b>${minTotal}–${maxTotal}</b> PLN`
-        : `Итого: ориентир <b>${minTotal}–${maxTotal}</b> zł`;
+  const range = L.estimateRange(minTotal, maxTotal);
 
   const text = [
     title,

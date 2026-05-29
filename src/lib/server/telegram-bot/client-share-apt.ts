@@ -3,6 +3,7 @@ import { siteConfig } from "@/lib/site";
 import { sendTelegramMessage } from "@/lib/server/telegram-api";
 import type { Appointment } from "@/lib/store";
 import type { BotLocale } from "./client-i18n";
+import { getClientBotLabels } from "./client-i18n";
 import { getClientServiceLabel } from "./client-services";
 import { formatDateShort } from "./client-services";
 import { telegramBotDeepLink } from "./client-extras";
@@ -12,16 +13,11 @@ export function formatShareAppointmentText(
   apt: Appointment,
   services: string
 ): string {
+  const L = getClientBotLabels(locale);
   const date = formatDateShort(apt.date, locale);
   const addr = siteConfig.address;
-  const title =
-    locale === "pl"
-      ? "📤 <b>Wizyta BESS MOTORS</b>"
-      : locale === "en"
-        ? "📤 <b>BESS MOTORS appointment</b>"
-        : "📤 <b>Запись BESS MOTORS</b>";
   return [
-    title,
+    L.shareAptTitle,
     "",
     `📅 <b>${date}</b> · ${apt.time}`,
     `🔧 ${services}`,
@@ -35,6 +31,7 @@ export async function sendShareAppointment(
   locale: BotLocale,
   apt: Appointment
 ): Promise<void> {
+  const L = getClientBotLabels(locale);
   const services = apt.serviceIds.map((id) => getClientServiceLabel(id, locale)).join(", ");
   const text = formatShareAppointmentText(locale, apt, services);
   const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(
@@ -51,7 +48,7 @@ export async function sendShareAppointment(
 
   await sendTelegramMessage(chatId, text, {
     inline_keyboard: [
-      [{ text: locale === "pl" ? "📤 Udostępnij" : locale === "en" ? "📤 Share" : "📤 Поделиться", url: shareUrl }],
+      [{ text: L.shareBtn, url: shareUrl }],
     ],
   });
 }

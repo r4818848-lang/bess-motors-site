@@ -1,22 +1,19 @@
 import type { BotLocale } from "./client-i18n";
+import { getClientBotLabels } from "./client-i18n";
 import { buildReferrerSummary } from "@/lib/referral-system";
 import type { Database, User } from "@/lib/store";
 
 export function formatMyRefsCommand(db: Database, user: User, locale: BotLocale): string {
+  const L = getClientBotLabels(locale);
   const summary = buildReferrerSummary(db, user.id);
   if (!summary) {
-    return locale === "ru" ? "Нет данных." : "No data.";
+    return L.referralNoData;
   }
 
-  const head =
-    locale === "pl"
-      ? `🎁 <b>Polecenia:</b> ${summary.qualifiedCount}/${summary.required}`
-      : locale === "en"
-        ? `🎁 <b>Referrals:</b> ${summary.qualifiedCount}/${summary.required}`
-        : `🎁 <b>Рефералы:</b> ${summary.qualifiedCount}/${summary.required}`;
+  const head = L.referralHeadCount(summary.qualifiedCount, summary.required);
 
   if (!summary.referred.length) {
-    return `${head}\n\n${locale === "ru" ? "Пока никого." : "No referrals yet."}`;
+    return `${head}\n\n${L.referralEmpty}`;
   }
 
   const lines = summary.referred.slice(0, 10).map((r) => {
@@ -24,12 +21,7 @@ export function formatMyRefsCommand(db: Database, user: User, locale: BotLocale)
     return `${mark} ${r.name}`;
   });
 
-  const footer =
-    summary.discountAvailable
-      ? locale === "ru"
-        ? `\n\n🎉 Скидка 15% активна!`
-        : `\n\n🎉 15% discount active!`
-      : "";
+  const footer = summary.discountAvailable ? L.referralDiscountActive : "";
 
   return [head, "", ...lines, footer].join("\n");
 }

@@ -18,10 +18,13 @@ export function getCabinetOrderUrl(orderId: string): string {
   return `${window.location.origin}/cabinet?order=${orderId}`;
 }
 
-export function buildShareMessage(order: WorkOrder, client: User, lang: "pl" | "ru" = "ru"): string {
+export function buildShareMessage(order: WorkOrder, client: User, lang: "pl" | "ru" | "en" = "ru"): string {
   const link = getSignUrl(order.id);
   if (lang === "pl") {
     return `BESS MOTORS — zlecenie ${order.number}\n${client.name}, prosimy o zapoznanie i podpis:\n${link}`;
+  }
+  if (lang === "en") {
+    return `BESS MOTORS — work order ${order.number}\n${client.name}, please review and sign:\n${link}`;
   }
   return `BESS MOTORS — заказ-наряд ${order.number}\n${client.name}, ознакомьтесь и подпишите:\n${link}`;
 }
@@ -71,13 +74,31 @@ export const VEHICLE_PICKUP_TERMS_PL =
 export const VEHICLE_PICKUP_TERMS_RU =
   "Клиент обязуется забрать автомобиль в течение 7 дней с момента уведомления о завершении ремонта. По истечении этого срока Сервис начисляет плату за хранение автомобиля в размере 15 PLN брутто за каждый день простоя. В случае неполучения автомобиля в течение 30 дней Сервис вправе передать автомобиль на охраняемую стоянку за счёт Клиента.";
 
-export type WorkOrderLegalLocale = "pl" | "ru";
+export const SIGNATURE_CONFIRMATION_TEXT_EN =
+  "The client has reviewed and agrees to the scope of work and repair cost.";
+
+/** Vehicle pickup terms — EN */
+export const VEHICLE_PICKUP_TERMS_EN =
+  "The client agrees to collect the vehicle within 7 days of being notified that the repair is complete. After this period the Service charges a storage fee of 15 PLN gross per day. If the vehicle is not collected within 30 days, the Service may move it to a guarded parking lot at the client's expense.";
+
+export type WorkOrderLegalLocale = "pl" | "ru" | "en";
 
 export function getWorkOrderLegalTexts(locale: WorkOrderLegalLocale) {
-  const ru = locale === "ru";
+  if (locale === "ru") {
+    return {
+      confirmation: SIGNATURE_CONFIRMATION_TEXT_RU,
+      vehiclePickup: VEHICLE_PICKUP_TERMS_RU,
+    };
+  }
+  if (locale === "en") {
+    return {
+      confirmation: SIGNATURE_CONFIRMATION_TEXT_EN,
+      vehiclePickup: VEHICLE_PICKUP_TERMS_EN,
+    };
+  }
   return {
-    confirmation: ru ? SIGNATURE_CONFIRMATION_TEXT_RU : SIGNATURE_CONFIRMATION_TEXT,
-    vehiclePickup: ru ? VEHICLE_PICKUP_TERMS_RU : VEHICLE_PICKUP_TERMS_PL,
+    confirmation: SIGNATURE_CONFIRMATION_TEXT,
+    vehiclePickup: VEHICLE_PICKUP_TERMS_PL,
   };
 }
 
@@ -89,5 +110,7 @@ export function getFullSignatureConfirmationText(locale: WorkOrderLegalLocale): 
 export function workOrderLegalLocaleFromUi(
   locale: string
 ): WorkOrderLegalLocale {
-  return locale === "ru" || locale === "uk" ? "ru" : "pl";
+  if (locale === "ru" || locale === "uk") return "ru";
+  if (locale === "en") return "en";
+  return "pl";
 }

@@ -185,14 +185,14 @@ export function clientAppointmentsKeyboard(
     ]);
     rows.push([
       {
-        text: locale === "pl" ? "📤 Udostępnij" : locale === "en" ? "📤 Share" : "📤 Поделиться",
+        text: L.shareBtn,
         callback_data: `cl:share:apt:${a.id}`,
       },
       {
-        text: locale === "pl" ? "+1 dzień" : locale === "en" ? "+1 day" : "+1 день",
+        text: L.plusOneDay,
         callback_data: `cl:apt:+1:${a.id}`,
       },
-      { text: "+7", callback_data: `cl:apt:+7:${a.id}` },
+      { text: L.plusSevenDays, callback_data: `cl:apt:+7:${a.id}` },
     ]);
   }
   rows.push(clientBackMenuRow(locale));
@@ -208,14 +208,14 @@ export function clientAppointmentDetailKeyboard(
     inline_keyboard: [
       [
         {
-          text: locale === "pl" ? "📤 Udostępnij" : locale === "en" ? "📤 Share" : "📤 Поделиться",
+          text: L.shareBtn,
           callback_data: `cl:share:apt:${aptId}`,
         },
         {
-          text: locale === "pl" ? "+1 dzień" : locale === "en" ? "+1 day" : "+1 день",
+          text: L.plusOneDay,
           callback_data: `cl:apt:+1:${aptId}`,
         },
-        { text: "+7", callback_data: `cl:apt:+7:${aptId}` },
+        { text: L.plusSevenDays, callback_data: `cl:apt:+7:${aptId}` },
       ],
       [{ text: L.back, callback_data: "cl:apts" }],
       clientBackMenuRow(locale),
@@ -416,7 +416,7 @@ export function clientOrderDetailKeyboard(
   }
   rows.push([
     {
-      text: locale === "pl" ? "🔁 Powtórz" : locale === "en" ? "🔁 Repeat" : "🔁 Повторить",
+      text: L.repeatBtn,
       callback_data: `cl:repeat:${orderId}`,
     },
   ]);

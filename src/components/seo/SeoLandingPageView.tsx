@@ -14,6 +14,7 @@ import { BookingLink } from "@/components/analytics/BookingLink";
 import { LazySmartBookingModal } from "@/components/booking/LazySmartBookingModal";
 import { Card } from "@/components/ui/Card";
 import { useMetaViewContent } from "@/hooks/useMetaViewContent";
+import { localizeSeoLandingPage } from "@/lib/seo-landing-i18n";
 import { BrandServiceBlock } from "@/components/seo/BrandServiceBlock";
 import { SeoServiceFaq } from "@/components/seo/SeoServiceFaq";
 import { SeoHowItWorks } from "@/components/seo/SeoHowItWorks";
@@ -24,8 +25,9 @@ type Props = {
 
 export function SeoLandingPageView({ page }: Props) {
   useMetaViewContent(`Landing: ${page.slug}`);
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const sl = t.seoLanding;
+  const pageLoc = localizeSeoLandingPage(page, locale);
   const [bookingService, setBookingService] = useState<ServiceId | null>(
     page.serviceId ?? null
   );
@@ -49,12 +51,12 @@ export function SeoLandingPageView({ page }: Props) {
               <ServiceIcon name={page.icon} size={32} />
             </div>
             <h1 className="font-display text-3xl md:text-5xl font-bold uppercase text-glow">
-              {page.title}
+              {pageLoc.title}
             </h1>
             <p className="mt-4 text-xl md:text-2xl text-bm-red font-display uppercase tracking-wide">
-              {page.line1}
+              {pageLoc.line1}
             </p>
-            <p className="mt-2 text-lg text-bm-muted">{page.line2}</p>
+            <p className="mt-2 text-lg text-bm-muted">{pageLoc.line2}</p>
             <div className="mt-6 h-1 w-24 bg-bm-red shadow-neon-sm mx-auto" />
           </motion.div>
 

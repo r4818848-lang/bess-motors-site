@@ -438,11 +438,7 @@ function MechanicPageContent() {
                         onClick={() => void quickAdvance(order.id)}
                       >
                         <Check className="w-4 h-4" />
-                        {locale === "ru"
-                          ? "Следующий этап"
-                          : locale === "en"
-                            ? "Next stage"
-                            : "Następny etap"}{" "}
+                        {m.nextStage}{" "}
                         → {t.repairStatus[QUICK_NEXT[order.status]!]}
                       </Button>
                     )}

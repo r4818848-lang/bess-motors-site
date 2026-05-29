@@ -1,5 +1,5 @@
 import type { BotLocale } from "@/lib/server/telegram-bot/client-i18n";
-import type { WorkOrder } from "@/lib/store";
+import { getClientBotLabels } from "@/lib/server/telegram-bot/client-i18n";import type { WorkOrder } from "@/lib/store";
 import { siteConfig } from "@/lib/site";
 
 const TIPS: Record<BotLocale, string[]> = {
@@ -83,8 +83,9 @@ export function contactCardText(locale: BotLocale): string {
 }
 
 export function formatOrderEta(locale: BotLocale, order: WorkOrder | undefined): string {
+  const L = getClientBotLabels(locale);
   if (!order) {
-    return locale === "ru" ? "Нет активного заказ-наряда." : "No active work order.";
+    return L.conciergeEmpty;
   }
   const eta: Record<string, Record<BotLocale, string>> = {
     received: { pl: "1–2 dni diagnostyka", ru: "1–2 дня диагностика", uk: "1–2 дні", en: "1–2 days diagnostic" },

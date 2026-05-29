@@ -51,14 +51,9 @@ export async function applyReferralFromStart(
     const referrer = db.users.find((u) => u.id === res.referrerId);
     if (referrer?.telegramChatId) {
       const { sendTelegramMessage } = await import("@/lib/server/telegram-api");
-      const loc = referrer.telegramLocale ?? "ru";
-      const msg =
-        loc === "pl"
-          ? `🎁 <b>Nowy polecony klient</b>\n${client.name} dołączył przez Twój link.`
-          : loc === "en"
-            ? `🎁 <b>New referral</b>\n${client.name} joined via your link.`
-            : `🎁 <b>Новый реферал</b>\n${client.name} перешёл по вашей ссылке.`;
-      await sendTelegramMessage(referrer.telegramChatId, msg);
+      const loc = (referrer.telegramLocale ?? "ru") as BotLocale;
+      const L = getClientBotLabels(loc);
+      await sendTelegramMessage(referrer.telegramChatId, L.referralNewJoin(client.name));
     }
   }
 }
@@ -119,13 +114,8 @@ export function queuePositionText(
     .sort((a, b) => a.updatedAt.localeCompare(b.updatedAt));
   const idx = active.findIndex((o) => o.id === orderId);
   if (idx < 0 || active.length < 2) return "";
-  const line =
-    locale === "pl"
-      ? `📊 Kolejka: ok. <b>${idx + 1}</b> z <b>${active.length}</b>`
-      : locale === "en"
-        ? `📊 Queue: about <b>${idx + 1}</b> of <b>${active.length}</b>`
-        : `📊 Очередь: примерно <b>${idx + 1}</b> из <b>${active.length}</b>`;
-  return line;
+  const L = getClientBotLabels(locale);
+  return L.queueLine(idx + 1, active.length);
 }
 
 export async function formatRepairStatusLine(
@@ -139,11 +129,7 @@ export async function formatRepairStatusLine(
   const active = activeOrderForUser(slice.workOrders);
 
   if (!active) {
-    return locale === "pl"
-      ? "📋 Brak aktywnych zleceń."
-      : locale === "en"
-        ? "📋 No active work orders."
-        : "📋 Нет активных заказ-нарядов.";
+    return L.noActiveWorkOrders;
   }
 
   const pct = repairProgressPercent(active.status);
@@ -172,17 +158,10 @@ export async function formatServiceHistory(
     .slice(0, 8);
 
   if (!orders.length) {
-    return locale === "pl" ? "📜 Brak historii." : "📜 No history yet.";
+    return L.noHistory;
   }
 
-  const title =
-    locale === "pl"
-      ? "📜 <b>Historia serwisu</b>"
-      : locale === "en"
-        ? "📜 <b>Service history</b>"
-        : "📜 <b>История обслуживания</b>";
-
-  const lines = [title, ""];
+  const lines = [L.serviceHistoryTitle, ""];
   for (const o of orders) {
     const st = L.repairStatus[o.status] ?? o.status;
     const d = o.createdAt.slice(0, 10);
@@ -231,15 +210,7 @@ export async function startRebookPlus7(
     await setClientTelegramSession(chatKey, { data });
     await sendTelegramMessage(
       chatId,
-      [
-        locale === "pl"
-          ? "📅 <b>Ta sama wizyta za 7 dni</b>"
-          : locale === "en"
-            ? "📅 <b>Same visit in 7 days</b>"
-            : "📅 <b>Та же запись через 7 дней</b>",
-        "",
-        formatClientBookingSummary(locale, data),
-      ].join("\n"),
+      [L.rebookWeekTitle, "", formatClientBookingSummary(locale, data)].join("\n"),
       clientConfirmBookingKeyboard(locale)
     );
     return;
@@ -253,11 +224,7 @@ export async function startRebookPlus7(
   await sendTelegramMessage(
     chatId,
     [
-      locale === "pl"
-        ? "📅 <b>Ta sama wizyta za 7 dni</b>"
-        : locale === "en"
-          ? "📅 <b>Same visit in 7 days</b>"
-          : "📅 <b>Та же запись через 7 дней</b>",
+      L.rebookWeekTitle,
       "",
       `📅 ${formatDateShort(date, locale)} · ${time}`,
       `🔧 ${serviceLabel}`,
@@ -272,13 +239,9 @@ export async function sendGalleryPhotosLink(
   chatId: number,
   locale: BotLocale
 ): Promise<void> {
+  const L = getClientBotLabels(locale);
   const site = cleanEnvValue(process.env.NEXT_PUBLIC_SITE_URL) || "https://www.bess-motors.com";
-  const text =
-    locale === "pl"
-      ? `🖼 <b>Zdjęcia napraw</b>\n\n${site}/gallery`
-      : locale === "en"
-        ? `🖼 <b>Repair photos</b>\n\n${site}/gallery`
-        : `🖼 <b>Фото работ</b>\n\n${site}/gallery`;
+  const text = `${L.galleryTitle}\n\n${site}/gallery`;
   await sendTelegramMessage(chatId, text, {
     inline_keyboard: [[{ text: "🌐 Gallery", url: `${site}/gallery` }]],
   });
@@ -312,17 +275,11 @@ export async function rebookLastAppointment(
   await sendTelegramMessage(
     chatId,
     [
-      locale === "pl"
-        ? "🔁 <b>Ponowna rezerwacja</b>"
-        : locale === "en"
-          ? "🔁 <b>Book again</b>"
-          : "🔁 <b>Повторная запись</b>",
+      L.rebookAgainTitle,
       "",
       `🔧 ${label}`,
       "",
-      locale === "pl"
-        ? "Wybierz datę w menu «Umów wizytę» lub napisz — pomożemy."
-        : "Use «Book visit» in menu to pick a date.",
+      L.rebookDateHint,
     ].join("\n"),
     {
       inline_keyboard: [

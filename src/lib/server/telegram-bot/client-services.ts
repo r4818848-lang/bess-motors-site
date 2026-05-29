@@ -2,6 +2,7 @@ import { getPriceItem } from "@/lib/price-list";
 import { serviceBasePriceId } from "@/lib/service-price-map";
 import type { ServiceId } from "@/lib/services-catalog";
 import type { BotLocale } from "./client-i18n";
+import { botContentLocale } from "./client-i18n";
 
 const FALLBACK_RU: Record<string, string> = {
   oil: "Замена масла",
@@ -26,8 +27,8 @@ export function getClientServiceLabel(
   if (baseId) {
     const item = getPriceItem(baseId);
     if (item) {
-      if (locale === "pl") return item.namePl;
-      return item.nameRu;
+      const loc = botContentLocale(locale);
+      return loc === "ru" ? item.nameRu : item.namePl;
     }
   }
   return FALLBACK_RU[serviceId] ?? serviceId;

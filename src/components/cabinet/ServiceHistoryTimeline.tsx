@@ -135,7 +135,7 @@ function TimelineEntry({
   db: Database;
   isLast: boolean;
   vatRate: number;
-  pdfLocale: "pl" | "ru";
+  pdfLocale: "pl" | "ru" | "en";
   onOpen: () => void;
   docClass: string;
   labels: {

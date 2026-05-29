@@ -7,7 +7,7 @@ import {
 } from "./workorder-calc";
 import { getWorkOrderLegalTexts } from "./work-order-share";
 
-export type DocLocale = "pl" | "ru";
+export type DocLocale = "pl" | "ru" | "en";
 export type WorkOrderDocVariant = "color" | "bw";
 
 export function getDocLabels(locale: DocLocale) {
@@ -39,6 +39,37 @@ export function getDocLabels(locale: DocLocale) {
       confirmation: getWorkOrderLegalTexts("ru").confirmation,
       vehiclePickup: getWorkOrderLegalTexts("ru").vehiclePickup,
       currency: "zł",
+      empty: "—",
+    };
+  }
+  if (locale === "en") {
+    return {
+      title: "WORK ORDER",
+      subtitle: "Service document · BESS MOTORS",
+      date: "Date",
+      client: "Client",
+      phone: "Phone",
+      vehicle: "Vehicle",
+      vin: "VIN",
+      plate: "Registration",
+      mileage: "Mileage",
+      year: "Year",
+      engine: "Engine",
+      works: "Labour",
+      parts: "Parts",
+      qty: "Qty",
+      price: "Price",
+      discount: "Discount",
+      total: "Total",
+      subtotal: "Subtotal",
+      orderDiscount: "Order discount",
+      vat: "VAT",
+      gross: "AMOUNT DUE",
+      notes: "Notes",
+      signature: "Client signature",
+      confirmation: getWorkOrderLegalTexts("en").confirmation,
+      vehiclePickup: getWorkOrderLegalTexts("en").vehiclePickup,
+      currency: "PLN",
       empty: "—",
     };
   }

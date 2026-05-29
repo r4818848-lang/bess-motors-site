@@ -4,7 +4,7 @@ import { siteConfig } from "@/lib/site";
 import { getPromoRules } from "@/lib/promo-codes";
 import { servicePackages } from "@/lib/service-packages";
 import type { BotLocale } from "./client-i18n";
-import { getClientBotLabels } from "./client-i18n";
+import { getClientBotLabels, botContentLocale } from "./client-i18n";
 import { getClientServiceLabel, normalizeTelegramServiceId } from "./client-services";
 import { resolveActiveVehicleId } from "./client-vehicle-pick";
 import { getClientPortalByChat } from "./client-telegram-link";
@@ -13,12 +13,12 @@ import { advanceBookingFlow } from "./client-booking-flow";
 import type { WorkOrder } from "@/lib/store";
 
 export function packagesKeyboard(locale: BotLocale): InlineKeyboardMarkup {
-  const useRu = locale === "ru" || locale === "uk";
+  const loc = botContentLocale(locale);
   return {
     inline_keyboard: [
       ...servicePackages.map((p) => [
         {
-          text: useRu ? p.nameRu : p.namePl,
+          text: loc === "ru" ? p.nameRu : p.namePl,
           callback_data: `cl:pkg:${p.id}`,
         },
       ]),
@@ -61,7 +61,8 @@ export async function startPackageBooking(
 ): Promise<void> {
   const pkg = servicePackages.find((p) => p.id === packageId);
   if (!pkg) return;
-  const label = locale === "ru" || locale === "uk" ? pkg.nameRu : pkg.namePl;
+  const loc = botContentLocale(locale);
+  const label = loc === "ru" ? pkg.nameRu : pkg.namePl;
   const slice = await getClientPortalByChat(chatKey);
   const draft: Record<string, string> = {
     intent: "book",
@@ -80,6 +81,7 @@ export async function startRepeatOrder(
   locale: BotLocale,
   order: WorkOrder
 ): Promise<void> {
+  const L = getClientBotLabels(locale);
   const services = order.services.map((s) => s.name).join("; ");
   const primary = order.services[0]?.name ?? "diagnostic";
   const slice = await getClientPortalByChat(chatKey);
@@ -87,7 +89,7 @@ export async function startRepeatOrder(
     intent: "book",
     serviceId: "otherReason",
     serviceLabel: primary,
-    comment: locale === "ru" ? `Повтор: ${services}` : `Repeat: ${services}`,
+    comment: L.repeatComment(services),
   };
   if (slice?.user.name?.trim()) draft.name = slice.user.name.trim();
   if (slice?.user.phone?.trim()) draft.phone = slice.user.phone.trim();
@@ -97,14 +99,14 @@ export async function startRepeatOrder(
 export async function formatWarrantyList(locale: BotLocale, chatKey: string): Promise<string | null> {
   const slice = await getClientPortalByChat(chatKey);
   if (!slice) return null;
+  const L = getClientBotLabels(locale);
   const now = new Date().toISOString().slice(0, 10);
   const rows = slice.workOrders.filter((o) => o.warrantyUntil && o.warrantyUntil >= now);
   if (!rows.length) {
-    return locale === "pl" ? "🛡 Brak aktywnej gwarancji." : "🛡 Нет активной гарантии.";
+    return L.noWarranty;
   }
-  const title = locale === "pl" ? "🛡 <b>Gwarancja</b>" : "🛡 <b>Гарантия</b>";
   return [
-    title,
+    L.warrantyTitle,
     "",
     ...rows.map((o) => `• <b>${o.number}</b> — do ${o.warrantyUntil?.slice(0, 10)}`),
   ].join("\n");
@@ -115,8 +117,8 @@ export function aptRescheduleKeyboard(locale: BotLocale, aptId: string): InlineK
   return {
     inline_keyboard: [
       [
-        { text: "+1 " + (locale === "pl" ? "dzień" : locale === "en" ? "day" : "день"), callback_data: `cl:apt:+1:${aptId}` },
-        { text: "+7 " + (locale === "pl" ? "dni" : locale === "en" ? "days" : "дн."), callback_data: `cl:apt:+7:${aptId}` },
+        { text: L.plusOneDay, callback_data: `cl:apt:+1:${aptId}` },
+        { text: L.plusSevenDays, callback_data: `cl:apt:+7:${aptId}` },
       ],
       clientBackMenuRow(locale),
     ],

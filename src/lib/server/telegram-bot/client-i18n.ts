@@ -140,6 +140,58 @@ export type ClientBotLabels = {
   locationBtn: string;
   warrantyBtn: string;
   vehiclePick: string;
+  priceListBtn: string;
+  promoBtn: string;
+  emergencyBtn: string;
+  contactCardBtn: string;
+  favoritesBtn: string;
+  etaBtn: string;
+  shareBtn: string;
+  repeatBtn: string;
+  plusOneDay: string;
+  plusSevenDays: string;
+  photoUploadHint: string;
+  bookingDraftTitle: string;
+  confirmAboveHint: string;
+  feedbackThanks: string;
+  favoritesPick: string;
+  noActiveWorkOrders: string;
+  noHistory: string;
+  serviceHistoryTitle: string;
+  noWarranty: string;
+  warrantyTitle: string;
+  singleVehicleHint: string;
+  estimateTitle: string;
+  estimateRange: (min: number, max: number) => string;
+  priceFromPrefix: string;
+  yourCar: string;
+  workSection: string;
+  conciergeEmpty: string;
+  priceListTitle: string;
+  priceListFooter: string;
+  referralNoData: string;
+  referralHead: string;
+  referralEmpty: string;
+  referralNewJoin: (name: string) => string;
+  repeatComment: (services: string) => string;
+  queueLine: (pos: number, total: number) => string;
+  rebookWeekTitle: string;
+  rebookAgainTitle: string;
+  galleryTitle: string;
+  rebookDateHint: string;
+  symptomPickHint: string;
+  noActiveOrderForPhoto: string;
+  photoAttachHint: string;
+  aptMoved: (days: number, date: string, time: string) => string;
+  conciergeIntro: string;
+  waitingPartsHint: string;
+  readyHint: string;
+  filesOnOrder: (count: number) => string;
+  shareAptTitle: string;
+  referralHeadCount: (qualified: number, required: number) => string;
+  referralDiscountActive: string;
+  postFollowupThanks: string;
+  callRequestSent: string;
   repairStatus: Record<string, string>;
 };
 
@@ -292,6 +344,58 @@ const LABELS: Record<BotLocale, ClientBotLabels> = {
     locationBtn: "📍 Dojazd",
     warrantyBtn: "🛡 Gwarancja",
     vehiclePick: "🚗 Wybierz auto",
+    priceListBtn: "💰 Cennik",
+    promoBtn: "🏷 Promocje",
+    emergencyBtn: "🆘 Awaria",
+    contactCardBtn: "📇 Kontakt",
+    favoritesBtn: "⭐ Ulubione",
+    etaBtn: "⏱ Termin",
+    shareBtn: "📤 Udostępnij",
+    repeatBtn: "🔁 Powtórz",
+    plusOneDay: "+1 dzień",
+    plusSevenDays: "+7 dni",
+    photoUploadHint: "📷 Aby wysłać zdjęcie do zlecenia — użyj «Wyślij zdjęcie» w menu.",
+    bookingDraftTitle: "📝 <b>Rozpoznano zapisy:</b>",
+    confirmAboveHint: "👆 Potwierdź wizytę przyciskiem powyżej lub wpisz /menu, aby anulować.",
+    feedbackThanks: "Dziękujemy za opinię!",
+    favoritesPick: "⭐ Wybierz ulubioną usługę:",
+    noActiveWorkOrders: "📋 Brak aktywnych zleceń.",
+    noHistory: "📜 Brak historii.",
+    serviceHistoryTitle: "📜 <b>Historia serwisu</b>",
+    noWarranty: "🛡 Brak aktywnej gwarancji.",
+    warrantyTitle: "🛡 <b>Gwarancja</b>",
+    singleVehicleHint: "🚗 Masz jedno auto w profilu.",
+    estimateTitle: "💡 <b>Szacunek (orientacyjny)</b>",
+    estimateRange: (min, max) => `Razem: ok. <b>${min}–${max}</b> zł`,
+    priceFromPrefix: "od ",
+    yourCar: "Twój samochód",
+    workSection: "Wykonane / plan:",
+    conciergeEmpty: "Brak aktywnego zlecenia.",
+    priceListTitle: "💰 <b>Cennik</b> (od):",
+    priceListFooter: "\n\nPełny cennik: bessmotors.pl/cennik",
+    referralNoData: "Brak danych.",
+    referralHead: "🎁 <b>Program poleceń</b>",
+    referralEmpty: "Brak poleconych.",
+    referralNewJoin: (name) => `🎁 <b>Nowy polecony klient</b>\n${name} dołączył przez Twój link.`,
+    repeatComment: (services) => `Powtórz: ${services}`,
+    queueLine: (pos, total) => `📊 Kolejka: ok. <b>${pos}</b> z <b>${total}</b>`,
+    rebookWeekTitle: "📅 <b>Ta sama wizyta za 7 dni</b>",
+    rebookAgainTitle: "🔁 <b>Ponowna rezerwacja</b>",
+    galleryTitle: "🖼 <b>Zdjęcia napraw</b>",
+    rebookDateHint: "Wybierz datę w menu «Umów wizytę» lub napisz — pomożemy.",
+    symptomPickHint: "👆 Wybierz objawy przyciskami powyżej.",
+    noActiveOrderForPhoto: "📷 Brak aktywnego zlecenia — nie można dodać zdjęcia.",
+    photoAttachHint: "📷 Wyślij zdjęcie — zapiszemy do aktywnego zlecenia.",
+    aptMoved: (days, date, time) => `✅ Przeniesiono o ${days} dni: ${date} ${time}`,
+    conciergeIntro: "🤖 <b>Asystent</b>\n\nBrak aktywnego zlecenia. Umów wizytę lub sprawdź historię.",
+    waitingPartsHint: "⏳ <b>Czekamy na części</b> — damy znać, gdy dotrą.",
+    readyHint: "✅ Auto gotowe do odbioru!",
+    filesOnOrder: (count) => `📎 Pliki w zleceniu: <b>${count}</b>`,
+    shareAptTitle: "📤 <b>Wizyta BESS MOTORS</b>",
+    referralHeadCount: (q, r) => `🎁 <b>Polecenia:</b> ${q}/${r}`,
+    referralDiscountActive: "\n\n🎉 Zniżka 15% aktywna!",
+    postFollowupThanks: "✅ Dziękujemy! Jeśli coś się zmieni — napisz lub zamów telefon.",
+    callRequestSent: "📞 Prośba o kontakt wysłana — oddzwonimy.",
     repairStatus: {
       received: "Przyjęty",
       diagnostic: "Diagnostyka",
@@ -450,6 +554,58 @@ const LABELS: Record<BotLocale, ClientBotLabels> = {
     locationBtn: "📍 Как доехать",
     warrantyBtn: "🛡 Гарантия",
     vehiclePick: "🚗 Выбрать авто",
+    priceListBtn: "💰 Цены",
+    promoBtn: "🏷 Промокоды",
+    emergencyBtn: "🆘 Экстренно",
+    contactCardBtn: "📇 Контакт",
+    favoritesBtn: "⭐ Избранное",
+    etaBtn: "⏱ Срок",
+    shareBtn: "📤 Поделиться",
+    repeatBtn: "🔁 Повторить",
+    plusOneDay: "+1 день",
+    plusSevenDays: "+7 дн.",
+    photoUploadHint: "📷 Чтобы прикрепить фото к заказу — нажмите «Отправить фото» в меню.",
+    bookingDraftTitle: "📝 <b>Распознана запись:</b>",
+    confirmAboveHint: "👆 Подтвердите кнопкой выше или /menu для отмены.",
+    feedbackThanks: "Спасибо за оценку! 🙏",
+    favoritesPick: "⭐ Выберите избранную услугу для быстрой записи:",
+    noActiveWorkOrders: "📋 Нет активных заказ-нарядов.",
+    noHistory: "📜 Нет истории.",
+    serviceHistoryTitle: "📜 <b>История обслуживания</b>",
+    noWarranty: "🛡 Нет активной гарантии.",
+    warrantyTitle: "🛡 <b>Гарантия</b>",
+    singleVehicleHint: "🚗 В профиле одно авто.",
+    estimateTitle: "💡 <b>Ориентировочная смета</b>",
+    estimateRange: (min, max) => `Итого: ориентир <b>${min}–${max}</b> zł`,
+    priceFromPrefix: "от ",
+    yourCar: "Ваш автомобиль",
+    workSection: "Работы:",
+    conciergeEmpty: "Нет активного заказ-наряда.",
+    priceListTitle: "💰 <b>Ориентиры цен</b> (от):",
+    priceListFooter: "\n\nПолный прайс: bessmotors.pl/cennik",
+    referralNoData: "Нет данных.",
+    referralHead: "🎁 <b>Реферальная программа</b>",
+    referralEmpty: "Пока никого.",
+    referralNewJoin: (name) => `🎁 <b>Новый реферал</b>\n${name} перешёл по вашей ссылке.`,
+    repeatComment: (services) => `Повтор: ${services}`,
+    queueLine: (pos, total) => `📊 Очередь: примерно <b>${pos}</b> из <b>${total}</b>`,
+    rebookWeekTitle: "📅 <b>Та же запись через 7 дней</b>",
+    rebookAgainTitle: "🔁 <b>Повторная запись</b>",
+    galleryTitle: "🖼 <b>Фото работ</b>",
+    rebookDateHint: "Выберите дату в меню «Записаться» или напишите нам.",
+    symptomPickHint: "👆 Выберите симптомы кнопками выше.",
+    noActiveOrderForPhoto: "📷 Нет активного заказ-наряда для фото.",
+    photoAttachHint: "📷 Отправьте фото — прикрепим к заказ-наряду.",
+    aptMoved: (days, date, time) => `✅ Перенесено на ${days} дн.: ${date} ${time}`,
+    conciergeIntro: "🤖 <b>Консьерж</b>\n\nНет активного заказа. Запишитесь или откройте историю.",
+    waitingPartsHint: "⏳ <b>Ждём запчасти</b> — сообщим, когда приедут.",
+    readyHint: "✅ Авто готово к выдаче!",
+    filesOnOrder: (count) => `📎 Файлов в заказе: <b>${count}</b>`,
+    shareAptTitle: "📤 <b>Запись BESS MOTORS</b>",
+    referralHeadCount: (q, r) => `🎁 <b>Рефералы:</b> ${q}/${r}`,
+    referralDiscountActive: "\n\n🎉 Скидка 15% активна!",
+    postFollowupThanks: "✅ Спасибо! Если что-то изменится — напишите или закажите звонок.",
+    callRequestSent: "📞 Заявка на звонок отправлена — перезвоним.",
     repairStatus: {
       received: "Принят",
       diagnostic: "Диагностика",
@@ -602,6 +758,58 @@ const LABELS: Record<BotLocale, ClientBotLabels> = {
     locationBtn: "📍 Маршрут",
     warrantyBtn: "🛡 Гарантія",
     vehiclePick: "🚗 Обрати авто",
+    priceListBtn: "💰 Ціни",
+    promoBtn: "🏷 Промокоди",
+    emergencyBtn: "🆘 Екстренно",
+    contactCardBtn: "📇 Контакт",
+    favoritesBtn: "⭐ Обране",
+    etaBtn: "⏱ Термін",
+    shareBtn: "📤 Поділитися",
+    repeatBtn: "🔁 Повторити",
+    plusOneDay: "+1 день",
+    plusSevenDays: "+7 дн.",
+    photoUploadHint: "📷 Щоб прикріпити фото — натисніть «Надіслати фото» в меню.",
+    bookingDraftTitle: "📝 <b>Розпізнано запис:</b>",
+    confirmAboveHint: "👆 Підтвердіть кнопкою вище або /menu для скасування.",
+    feedbackThanks: "Дякуємо за відгук! 🙏",
+    favoritesPick: "⭐ Оберіть улюблену послугу:",
+    noActiveWorkOrders: "📋 Немає активних замовлень.",
+    noHistory: "📜 Немає історії.",
+    serviceHistoryTitle: "📜 <b>Історія сервісу</b>",
+    noWarranty: "🛡 Немає активної гарантії.",
+    warrantyTitle: "🛡 <b>Гарантія</b>",
+    singleVehicleHint: "🚗 У профілі одне авто.",
+    estimateTitle: "💡 <b>Орієнтовний кошторис</b>",
+    estimateRange: (min, max) => `Разом: орієнтир <b>${min}–${max}</b> zł`,
+    priceFromPrefix: "від ",
+    yourCar: "Ваш автомобіль",
+    workSection: "Роботи:",
+    conciergeEmpty: "Немає активного замовлення.",
+    priceListTitle: "💰 <b>Орієнтири цін</b> (від):",
+    priceListFooter: "\n\nПовний прайс: bessmotors.pl/cennik",
+    referralNoData: "Немає даних.",
+    referralHead: "🎁 <b>Реферальна програма</b>",
+    referralEmpty: "Поки нікого.",
+    referralNewJoin: (name) => `🎁 <b>Новий реферал</b>\n${name} приєднався за вашим посиланням.`,
+    repeatComment: (services) => `Повтор: ${services}`,
+    queueLine: (pos, total) => `📊 Черга: близько <b>${pos}</b> з <b>${total}</b>`,
+    rebookWeekTitle: "📅 <b>Той самий запис через 7 днів</b>",
+    rebookAgainTitle: "🔁 <b>Повторний запис</b>",
+    galleryTitle: "🖼 <b>Фото робіт</b>",
+    rebookDateHint: "Оберіть дату в меню «Записатися» або напишіть нам.",
+    symptomPickHint: "👆 Оберіть симптоми кнопками вище.",
+    noActiveOrderForPhoto: "📷 Немає активного замовлення для фото.",
+    photoAttachHint: "📷 Надішліть фото — прикріпимо до замовлення.",
+    aptMoved: (days, date, time) => `✅ Перенесено на ${days} дн.: ${date} ${time}`,
+    conciergeIntro: "🤖 <b>Асистент</b>\n\nНемає активного замовлення. Запишіться або відкрийте історію.",
+    waitingPartsHint: "⏳ <b>Чекаємо на запчастини</b> — повідомимо.",
+    readyHint: "✅ Авто готове до видачі!",
+    filesOnOrder: (count) => `📎 Файлів у замовленні: <b>${count}</b>`,
+    shareAptTitle: "📤 <b>Запис BESS MOTORS</b>",
+    referralHeadCount: (q, r) => `🎁 <b>Запрошення:</b> ${q}/${r}`,
+    referralDiscountActive: "\n\n🎉 Знижка 15% активна!",
+    postFollowupThanks: "✅ Дякуємо! Якщо щось зміниться — напишіть або замовте дзвінок.",
+    callRequestSent: "📞 Заявку на дзвінок надіслано — передзвонимо.",
     repairStatus: {
       received: "Прийнято",
       diagnostic: "Діагностика",
@@ -755,6 +963,58 @@ const LABELS: Record<BotLocale, ClientBotLabels> = {
     locationBtn: "📍 Directions",
     warrantyBtn: "🛡 Warranty",
     vehiclePick: "🚗 Pick vehicle",
+    priceListBtn: "💰 Prices",
+    promoBtn: "🏷 Promo codes",
+    emergencyBtn: "🆘 Emergency",
+    contactCardBtn: "📇 Contact",
+    favoritesBtn: "⭐ Favorites",
+    etaBtn: "⏱ ETA",
+    shareBtn: "📤 Share",
+    repeatBtn: "🔁 Repeat",
+    plusOneDay: "+1 day",
+    plusSevenDays: "+7 days",
+    photoUploadHint: "📷 To attach a photo to your order — use «Send photo» in the menu.",
+    bookingDraftTitle: "📝 <b>Booking draft:</b>",
+    confirmAboveHint: "👆 Confirm with the button above or type /menu to cancel.",
+    feedbackThanks: "Thanks for your feedback!",
+    favoritesPick: "⭐ Pick a favorite service:",
+    noActiveWorkOrders: "📋 No active work orders.",
+    noHistory: "📜 No history yet.",
+    serviceHistoryTitle: "📜 <b>Service history</b>",
+    noWarranty: "🛡 No active warranty.",
+    warrantyTitle: "🛡 <b>Warranty</b>",
+    singleVehicleHint: "🚗 You have one vehicle on file.",
+    estimateTitle: "💡 <b>Estimate (indicative)</b>",
+    estimateRange: (min, max) => `Total: approx. <b>${min}–${max}</b> PLN`,
+    priceFromPrefix: "from ",
+    yourCar: "Your car",
+    workSection: "Work:",
+    conciergeEmpty: "No active work order.",
+    priceListTitle: "💰 <b>Prices</b> (from):",
+    priceListFooter: "\n\nFull list: bessmotors.pl/cennik",
+    referralNoData: "No data.",
+    referralHead: "🎁 <b>Referral program</b>",
+    referralEmpty: "No referrals yet.",
+    referralNewJoin: (name) => `🎁 <b>New referral</b>\n${name} joined via your link.`,
+    repeatComment: (services) => `Repeat: ${services}`,
+    queueLine: (pos, total) => `📊 Queue: about <b>${pos}</b> of <b>${total}</b>`,
+    rebookWeekTitle: "📅 <b>Same visit in 7 days</b>",
+    rebookAgainTitle: "🔁 <b>Book again</b>",
+    galleryTitle: "🖼 <b>Repair photos</b>",
+    rebookDateHint: "Use «Book visit» in the menu to pick a date.",
+    symptomPickHint: "👆 Pick symptoms using the buttons above.",
+    noActiveOrderForPhoto: "📷 No active work order to attach a photo.",
+    photoAttachHint: "📷 Send a photo — we will attach it to your work order.",
+    aptMoved: (days, date, time) => `✅ Moved by ${days} days: ${date} ${time}`,
+    conciergeIntro: "🤖 <b>Concierge</b>\n\nNo active work order. Book a visit or check history.",
+    waitingPartsHint: "⏳ <b>Waiting for parts</b> — we will notify you.",
+    readyHint: "✅ Car ready for pickup!",
+    filesOnOrder: (count) => `📎 Files on order: <b>${count}</b>`,
+    shareAptTitle: "📤 <b>BESS MOTORS appointment</b>",
+    referralHeadCount: (q, r) => `🎁 <b>Referrals:</b> ${q}/${r}`,
+    referralDiscountActive: "\n\n🎉 15% discount active!",
+    postFollowupThanks: "✅ Thanks! If anything changes — message us or request a call.",
+    callRequestSent: "📞 Call request sent — we will call you back.",
     repairStatus: {
       received: "Received",
       diagnostic: "Diagnostics",
@@ -768,6 +1028,13 @@ const LABELS: Record<BotLocale, ClientBotLabels> = {
 
 export function getClientBotLabels(locale: BotLocale): ClientBotLabels {
   return LABELS[locale];
+}
+
+/** PL / RU / EN content pick for bilingual price-list data etc. */
+export function botContentLocale(locale: BotLocale): "pl" | "ru" | "en" {
+  if (locale === "ru" || locale === "uk") return "ru";
+  if (locale === "en") return "en";
+  return "pl";
 }
 
 export const LANGUAGE_NAMES: Record<BotLocale, string> = {

@@ -11,7 +11,7 @@ import {
   workshopHoursText,
 } from "@/lib/bot-extras-content";
 import type { BotLocale } from "./client-i18n";
-import { getClientBotLabels } from "./client-i18n";
+import { getClientBotLabels, botContentLocale } from "./client-i18n";
 import { getClientPortalByChat } from "./client-telegram-link";
 import { advanceBookingFlow } from "./client-booking-flow";
 import { getClientServiceLabel, normalizeTelegramServiceId } from "./client-services";
@@ -28,52 +28,30 @@ export async function sendExtrasMenu(
   const L = getClientBotLabels(locale);
   const slice = chatKey ? await getClientPortalByChat(chatKey) : null;
   const text = [workshopHoursText(locale), "", botFaqText(locale)].join("\n");
-  const priceLabel =
-    locale === "pl" ? "💰 Cennik" : locale === "en" ? "💰 Prices" : "💰 Цены";
-  const promoLabel =
-    locale === "pl"
-      ? "🏷 Promocje"
-      : locale === "en"
-        ? "🏷 Promo codes"
-        : locale === "uk"
-          ? "🏷 Промокоди"
-          : "🏷 Промокоды";
 
   const rows: InlineKeyboardMarkup["inline_keyboard"] = [
-    [{ text: priceLabel, callback_data: "cl:v4:price" }],
+    [{ text: L.priceListBtn, callback_data: "cl:v4:price" }],
     [
       { text: L.packagesBtn, callback_data: "cl:pkg:menu" },
-      { text: promoLabel, callback_data: "cl:promo" },
+      { text: L.promoBtn, callback_data: "cl:promo" },
     ],
     [
       { text: L.locationBtn, callback_data: "cl:location" },
       { text: L.galleryPhotos, callback_data: "cl:photos" },
     ],
     [
-      {
-        text: locale === "pl" ? "🆘 Awaria" : locale === "en" ? "🆘 Emergency" : "🆘 Экстренно",
-        callback_data: "cl:v4:emergency",
-      },
-      {
-        text: locale === "pl" ? "📇 Kontakt" : locale === "en" ? "📇 Contact" : "📇 Контакт",
-        callback_data: "cl:v4:vcard",
-      },
+      { text: L.emergencyBtn, callback_data: "cl:v4:emergency" },
+      { text: L.contactCardBtn, callback_data: "cl:v4:vcard" },
     ],
   ];
 
   if (slice) {
     rows.push([
       { text: L.rebook, callback_data: "cl:rebook" },
-      {
-        text: locale === "pl" ? "⭐ Ulubione" : locale === "en" ? "⭐ Favorites" : "⭐ Избранное",
-        callback_data: "cl:v4:fav",
-      },
+      { text: L.favoritesBtn, callback_data: "cl:v4:fav" },
     ]);
     rows.push([
-      {
-        text: locale === "pl" ? "⏱ Termin" : locale === "en" ? "⏱ ETA" : "⏱ Срок",
-        callback_data: "cl:v4:eta",
-      },
+      { text: L.etaBtn, callback_data: "cl:v4:eta" },
       { text: L.rebookWeek, callback_data: "cl:rebook7" },
     ]);
     rows.push([
@@ -163,13 +141,8 @@ export async function handleExtrasV4Callback(
   if (action.startsWith("fb:")) {
     const score = Number(action.slice(3));
     await saveQuickFeedback(chatKey, score);
-    const thanks =
-      locale === "ru"
-        ? "Спасибо за оценку! 🙏"
-        : locale === "pl"
-          ? "Dziękujemy za opinię!"
-          : "Thanks for your feedback!";
-    await sendTelegramMessage(chatId, thanks);
+    const L = getClientBotLabels(locale);
+    await sendTelegramMessage(chatId, L.feedbackThanks);
     return true;
   }
 
@@ -177,13 +150,11 @@ export async function handleExtrasV4Callback(
 }
 
 function formatFavoritesPick(locale: BotLocale): string {
-  if (locale === "ru") return "⭐ Выберите избранную услугу для быстрой записи:";
-  if (locale === "pl") return "⭐ Wybierz ulubioną usługę:";
-  return "⭐ Pick a favorite service:";
+  return getClientBotLabels(locale).favoritesPick;
 }
 
 function favoritesKeyboard(locale: BotLocale): InlineKeyboardMarkup {
-  const loc = locale === "uk" ? "ru" : locale === "en" ? "en" : locale === "pl" ? "pl" : "ru";
+  const loc = botContentLocale(locale);
   return {
     inline_keyboard: SERVICE_FAVORITES.map((s) => [
       {

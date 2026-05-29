@@ -6,16 +6,21 @@ import { calcClientTotal } from "@/lib/workorder-calc";
 export function downloadWorkOrderPdf(
   order: WorkOrder,
   vehicleLabel: string,
-  locale: "pl" | "ru" = "pl"
+  locale: "pl" | "ru" | "en" = "pl"
 ): void {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
-  const isRu = locale === "ru";
+  const L =
+    locale === "ru"
+      ? { status: "Статус", service: "Услуга", qty: "Кол.", price: "Цена", total: "Итого" }
+      : locale === "en"
+        ? { status: "Status", service: "Service", qty: "Qty", price: "Price", total: "Total" }
+        : { status: "Status", service: "Usługa", qty: "Ilość", price: "Cena", total: "Razem" };
 
   doc.setFontSize(16);
   doc.text(`BESS MOTORS — ${order.number}`, 14, 16);
   doc.setFontSize(10);
   doc.text(vehicleLabel, 14, 24);
-  doc.text(`${isRu ? "Статус" : "Status"}: ${order.status}`, 14, 30);
+  doc.text(`${L.status}: ${order.status}`, 14, 30);
 
   const services = order.services.map((s) => [
     s.name,
@@ -26,7 +31,7 @@ export function downloadWorkOrderPdf(
   if (services.length) {
     autoTable(doc, {
       startY: 36,
-      head: [[isRu ? "Услуга" : "Usługa", isRu ? "Кол." : "Ilość", isRu ? "Цена" : "Cena"]],
+      head: [[L.service, L.qty, L.price]],
       body: services,
     });
   }
@@ -35,7 +40,7 @@ export function downloadWorkOrderPdf(
     ?.finalY;
   doc.setFontSize(12);
   doc.text(
-    `${isRu ? "Итого" : "Razem"}: ${calcClientTotal(order).toFixed(2)} zł`,
+    `${L.total}: ${calcClientTotal(order).toFixed(2)} zł`,
     14,
     (finalY ?? 50) + 10
   );
@@ -46,12 +51,13 @@ export function downloadWorkOrderPdf(
 export function downloadOrdersHistoryPdf(
   orders: WorkOrder[],
   vehicleLabel: string,
-  locale: "pl" | "ru" = "pl"
+  locale: "pl" | "ru" | "en" = "pl"
 ): void {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
-  const isRu = locale === "ru";
+  const historyTitle =
+    locale === "ru" ? "История" : locale === "en" ? "History" : "Historia";
   doc.setFontSize(14);
-  doc.text(`BESS MOTORS — ${isRu ? "История" : "Historia"}`, 14, 16);
+  doc.text(`BESS MOTORS — ${historyTitle}`, 14, 16);
   doc.setFontSize(10);
   doc.text(vehicleLabel, 14, 24);
 
@@ -63,9 +69,16 @@ export function downloadOrdersHistoryPdf(
     `${calcClientTotal(o).toFixed(0)} zł`,
   ]);
 
+  const headRow =
+    locale === "ru"
+      ? ["№", "Дата", "Статус", "Сумма"]
+      : locale === "en"
+        ? ["No.", "Date", "Status", "Total"]
+        : ["Nr", "Data", "Status", "Suma"];
+
   autoTable(doc, {
     startY: 30,
-    head: [[isRu ? "№" : "Nr", isRu ? "Дата" : "Data", isRu ? "Статус" : "Status", isRu ? "Сумма" : "Suma"]],
+    head: [headRow],
     body,
   });
 

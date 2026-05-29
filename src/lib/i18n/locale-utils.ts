@@ -12,9 +12,9 @@ export function documentLocale(locale: Locale): "pl" | "ru" | "en" {
   return "pl";
 }
 
-/** Locale for PDFs and work-order documents (pl/ru only; EN falls back to PL). */
-export function pdfLocale(locale: Locale): "pl" | "ru" {
-  return documentLocale(locale) === "ru" ? "ru" : "pl";
+/** Locale for PDFs and work-order documents (pl/ru/en). */
+export function pdfLocale(locale: Locale): "pl" | "ru" | "en" {
+  return documentLocale(locale);
 }
 
 export function pickName<T extends { namePl: string; nameRu: string }>(

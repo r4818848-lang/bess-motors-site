@@ -525,12 +525,7 @@ export async function handleClientMessage(msg: TelegramMessage): Promise<void> {
   if (msg.photo?.length) {
     const session = await getTelegramSession(chatKey);
     if (session.step !== "client_photo_upload") {
-      const hint =
-        locale === "pl"
-          ? "📷 Aby wysłać zdjęcie do zlecenia — użyj «Wyślij zdjęcie» w menu."
-          : locale === "en"
-            ? "📷 To attach a photo to your order — use «Send photo» in the menu."
-            : "📷 Чтобы прикрепить фото к заказу — нажмите «Отправить фото» в меню.";
+      const hint = L.photoUploadHint;
       await sendTelegramMessage(chatId, hint, clientUserMenu(locale, await getClientPortalByChat(chatKey)));
       return;
     }
@@ -555,12 +550,7 @@ export async function handleClientMessage(msg: TelegramMessage): Promise<void> {
 
   if (session.step === "client_symptom") {
     const selected = parseSelectedSymptoms(session.data ?? {});
-    const hint =
-      locale === "pl"
-        ? "👆 Wybierz objawy przyciskami powyżej."
-        : locale === "en"
-          ? "👆 Pick symptoms using the buttons above."
-          : "👆 Выберите симптомы кнопками выше.";
+    const hint = L.symptomPickHint;
     await sendTelegramMessage(chatId, hint, symptomQuizKeyboard(locale, selected));
     return;
   }
@@ -717,11 +707,7 @@ export async function handleClientMessage(msg: TelegramMessage): Promise<void> {
       await sendTelegramMessage(
         chatId,
         [
-          locale === "pl"
-            ? "📝 <b>Rozpoznano zapisy:</b>"
-            : locale === "en"
-              ? "📝 <b>Booking draft:</b>"
-              : "📝 <b>Распознана запись:</b>",
+          L.bookingDraftTitle,
           "",
           `📅 ${formatDateShort(parsed.date, locale)} · ${parsed.time}`,
           `🔧 ${nextData.serviceLabel}`,
@@ -736,12 +722,7 @@ export async function handleClientMessage(msg: TelegramMessage): Promise<void> {
 
   const pendingSession = await getTelegramSession(chatKey);
   if (!pendingSession.step && pendingSession.data?.serviceId && pendingSession.data?.intent) {
-    const hint =
-      locale === "pl"
-        ? "👆 Potwierdź wizytę przyciskiem powyżej lub wpisz /menu, aby anulować."
-        : locale === "en"
-          ? "👆 Confirm with the button above or type /menu to cancel."
-          : "👆 Подтвердите кнопкой выше или /menu для отмены.";
+    const hint = L.confirmAboveHint;
     await sendTelegramMessage(chatId, hint);
     return;
   }
@@ -897,12 +878,7 @@ export async function handleClientCallback(cb: TelegramCallback): Promise<void> 
     if (kb) {
       await replyOrEdit(chatId, messageId, locale, L.vehiclePick, kb);
     } else {
-      const msg =
-        locale === "pl"
-          ? "🚗 Masz jedno auto w profilu."
-          : locale === "en"
-            ? "🚗 You have one vehicle on file."
-            : "🚗 В профиле одно авто.";
+      const msg = L.singleVehicleHint;
       await replyOrEdit(chatId, messageId, locale, msg, clientUserMenu(locale, slice));
     }
     return;
@@ -974,13 +950,7 @@ export async function handleClientCallback(cb: TelegramCallback): Promise<void> 
       .filter((o) => o.status !== "delivered")
       .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))[0];
     if (!active) {
-      const msg =
-        locale === "pl"
-          ? "📷 Brak aktywnego zlecenia — nie można dodać zdjęcia."
-          : locale === "en"
-            ? "📷 No active work order to attach a photo."
-            : "📷 Нет активного заказ-наряда для фото.";
-      await replyOrEdit(chatId, messageId, locale, msg, clientUserMenu(locale, slice));
+      await replyOrEdit(chatId, messageId, locale, L.noActiveOrderForPhoto, clientUserMenu(locale, slice));
       return;
     }
     await setClientTelegramSession(chatKey, {
@@ -991,11 +961,7 @@ export async function handleClientCallback(cb: TelegramCallback): Promise<void> 
       chatId,
       messageId,
       locale,
-      locale === "pl"
-        ? "📷 Wyślij zdjęcie — zapiszemy do aktywnego zlecenia."
-        : locale === "en"
-          ? "📷 Send a photo — we will attach it to your work order."
-          : "📷 Отправьте фото — прикрепим к заказ-наряду.",
+      L.photoAttachHint,
       clientUserMenu(locale, slice)
     );
     return;
@@ -1157,12 +1123,7 @@ export async function handleClientCallback(cb: TelegramCallback): Promise<void> 
       await sendTelegramMessage(chatId, L.saveFailed);
       return;
     }
-    const msg =
-      locale === "pl"
-        ? `✅ Przeniesiono o ${days} dni: ${res.apt?.date} ${res.apt?.time}`
-        : locale === "en"
-          ? `✅ Moved by ${days} days: ${res.apt?.date} ${res.apt?.time}`
-          : `✅ Перенесено на ${days} дн.: ${res.apt?.date} ${res.apt?.time}`;
+    const msg = L.aptMoved(days, res.apt?.date ?? "", res.apt?.time ?? "");
     const fresh = await getClientPortalByChat(chatKey);
     if (fresh) {
       await replyOrEdit(
@@ -1246,14 +1207,7 @@ export async function handleClientCallback(cb: TelegramCallback): Promise<void> 
         telegramProfile: profile,
         locale,
       });
-      await sendTelegramMessage(
-        chatId,
-        locale === "pl"
-          ? "📞 Prośba o kontakt wysłana — oddzwonimy."
-          : locale === "en"
-            ? "📞 Call request sent — we will call you back."
-            : "📞 Заявка на звонок отправлена — перезвоним."
-      );
+      await sendTelegramMessage(chatId, L.callRequestSent);
     } else {
       await startLinkFlow(chatId, messageId, chatKey, locale, profile);
     }
@@ -1281,17 +1235,11 @@ export async function handleClientCallback(cb: TelegramCallback): Promise<void> 
         order.clientNotes = order.clientNotes ? `${order.clientNotes}\n${note}` : note;
       });
     }
-    const thanks =
-      locale === "pl"
-        ? "✅ Dziękujemy! Jeśli coś się zmieni — napisz lub zamów telefon."
-        : locale === "en"
-          ? "✅ Thanks! If anything changes — message us or request a call."
-          : "✅ Спасибо! Если что-то изменится — напишите или закажите звонок.";
     await replyOrEdit(
       chatId,
       messageId,
       locale,
-      thanks,
+      L.postFollowupThanks,
       clientUserMenu(locale, slice)
     );
     return;
@@ -1303,17 +1251,11 @@ export async function handleClientCallback(cb: TelegramCallback): Promise<void> 
     const stars = Number(parts[3]);
     if (orderId && stars >= 1 && stars <= 5 && slice?.workOrders.some((o) => o.id === orderId && o.userId === slice.user.id)) {
       await saveTelegramRating({ chatKey, orderId, stars });
-      const thanks =
-        locale === "pl"
-          ? "✅ Dziękujemy za opinię!"
-          : locale === "en"
-            ? "✅ Thank you for your feedback!"
-            : "✅ Спасибо за оценку!";
       await replyOrEdit(
         chatId,
         messageId,
         locale,
-        thanks,
+        L.feedbackThanks,
         clientUserMenu(locale, slice)
       );
     }
