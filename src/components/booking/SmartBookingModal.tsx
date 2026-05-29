@@ -13,6 +13,7 @@ import { BookingLink } from "@/components/analytics/BookingLink";
 import { useAuth } from "@/lib/auth/session-context";
 import { BookingCalendar } from "@/components/booking/BookingCalendar";
 import { Button } from "@/components/ui/Button";
+import { siteConfig } from "@/lib/site";
 import { BookingTotalSummary } from "@/components/booking/BookingTotalSummary";
 import { trackLead } from "@/lib/gtag";
 import {
@@ -102,6 +103,8 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
   const [clientPhone, setClientPhone] = useState("");
   const [clientPlate, setClientPlate] = useState("");
   const [doneKind, setDoneKind] = useState<"call" | "booking">("booking");
+  const [submitError, setSubmitError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     if (!sessionReady || !clientUser) return;
@@ -291,7 +294,7 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
   };
 
   const submitBooking = async () => {
-    if (!contactValid) return;
+    if (!contactValid || submitting) return;
     const breakdown = cart
       .map((l) => `${l.label}: ${l.isFree ? bq.free : formatPln(l.lineTotal)}`)
       .join("; ");
@@ -305,31 +308,43 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
       .filter(Boolean)
       .join(" | ");
 
-    await createBookingAppointment({
-      serviceId,
-      serviceIds: cart.length
-        ? cart.map((l) => l.itemId)
-        : [serviceId],
-      date: date?.toISOString().slice(0, 10) ?? "",
-      time,
-      comment,
-      clientName: clientName.trim(),
-      clientPhone: clientPhone.trim(),
-      clientPlate: clientPlate.trim(),
-      estimatedTotal: total,
-      cartLines: cart.map((l) => ({
-        itemId: l.itemId,
-        label: l.label,
-        lineTotal: l.lineTotal,
-        priceFrom: l.priceFrom,
-      })),
-    });
-    // GA4 conversion for booking submit inside modal (doesn't navigate to thank-you).
-    // We still keep /booking/thank-you as a separate conversion entrypoint.
-    trackLead("booking", { source: "smart_booking_modal", serviceId });
-    setDoneKind("booking");
-    setPhase("done");
-    onSuccess?.("booking");
+    setSubmitting(true);
+    setSubmitError("");
+    try {
+      const result = await createBookingAppointment({
+        serviceId,
+        serviceIds: cart.length
+          ? cart.map((l) => l.itemId)
+          : [serviceId],
+        date: date?.toISOString().slice(0, 10) ?? "",
+        time,
+        comment,
+        clientName: clientName.trim(),
+        clientPhone: clientPhone.trim(),
+        clientPlate: clientPlate.trim(),
+        estimatedTotal: total,
+        cartLines: cart.map((l) => ({
+          itemId: l.itemId,
+          label: l.label,
+          lineTotal: l.lineTotal,
+          priceFrom: l.priceFrom,
+        })),
+      });
+      if (!result.ok) {
+        setSubmitError(bq.submitFailed);
+        return;
+      }
+      if (!result.cloudOk) {
+        setSubmitError(bq.cloudSyncFailed.replace("{phone}", siteConfig.phone));
+        return;
+      }
+      trackLead("booking", { source: "smart_booking_modal", serviceId });
+      setDoneKind("booking");
+      setPhase("done");
+      onSuccess?.("booking");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const renderOptionPrice = (opt: FlowOption) => {
@@ -682,6 +697,9 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
                 fromWarning={bq.fromWarning}
               />
               {contactFields}
+              {submitError && (
+                <p className="text-sm text-red-400 text-center">{submitError}</p>
+              )}
               <div className="flex gap-2">
                 <Button variant="outline" className="flex-1" onClick={goBack}>
                   <ChevronLeft className="w-4 h-4" />
@@ -690,10 +708,18 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
                 <Button
                   className="flex-1"
                   data-fbq-track={submitMode === "call" ? "Contact" : "Lead"}
-                  disabled={!contactValid || (submitMode === "booking" && cart.length === 0)}
+                  disabled={
+                    !contactValid ||
+                    submitting ||
+                    (submitMode === "booking" && cart.length === 0)
+                  }
                   onClick={submitMode === "call" ? submitCall : submitBooking}
                 >
-                  {submitMode === "call" ? bf.orderCall : bq.submit}
+                  {submitting
+                    ? bq.submitting
+                    : submitMode === "call"
+                      ? bf.orderCall
+                      : bq.submit}
                 </Button>
               </div>
             </motion.div>

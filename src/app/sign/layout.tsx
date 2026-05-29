@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Подпись заказ-наряда",
+  title: "Podpis zlecenia naprawy",
   robots: { index: false, follow: false },
 };
 

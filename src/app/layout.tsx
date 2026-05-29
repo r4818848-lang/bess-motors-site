@@ -40,12 +40,12 @@ export const metadata: Metadata = {
     template: "%s | BESS MOTORS",
   },
   description:
-    "BESS MOTORS — serwis samochodowy Warszawa, Aleja Krakowska. Szynomontaż, klimatyzacja, wymiana oleju, chip tuning, mechanika. Online booking i konto klienta.",
+    "BESS MOTORS — serwis samochodowy Warszawa, Aleja Krakowska. Wymiana opon, serwis klimatyzacji, wymiana oleju, chip tuning, mechanika. Rezerwacja online i konto klienta.",
   keywords: [
     "BESS MOTORS",
     "serwis samochodowy Warszawa",
     "warsztat samochodowy",
-    "szynomontaż Warszawa",
+    "wymiana opon Warszawa",
     "chip tuning",
     "wymiana oleju",
   ],

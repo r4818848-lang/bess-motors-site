@@ -294,6 +294,8 @@ export function BookingQuoteFlow({ onDone }: Props) {
   const [clientPlate, setClientPlate] = useState("");
   const [promoInput, setPromoInput] = useState("");
   const [promoApplied, setPromoApplied] = useState<ReturnType<typeof matchPromoCode>>(null);
+  const [submitError, setSubmitError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   const prefillFromUrl = useCallback(() => {
     const { items: ids, plate } = parseBookingParamsFromSearch(searchParams.toString());
@@ -370,8 +372,8 @@ export function BookingQuoteFlow({ onDone }: Props) {
     return () => clearTimeout(t);
   }, [phase, clientPhone, clientName, cart, date, time]);
 
-  const submit = () => {
-    if (!contactValid || cart.length === 0 || !date || !time) return;
+  const submit = async () => {
+    if (!contactValid || cart.length === 0 || !date || !time || submitting) return;
     const breakdown = cart
       .map(
         (l) =>
@@ -399,25 +401,39 @@ export function BookingQuoteFlow({ onDone }: Props) {
       serviceIds: cart.map((l) => l.itemId),
     });
 
-    void createBookingAppointment({
-      serviceId: "booking-quote",
-      serviceIds: cart.map((l) => l.itemId),
-      date: date.toISOString().slice(0, 10),
-      time,
-      comment,
-      clientName: clientName.trim(),
-      clientPhone: clientPhone.trim(),
-      clientPlate: clientPlate.trim(),
-      estimatedTotal: total,
-      cartLines: cart.map((l) => ({
-        itemId: l.itemId,
-        label: l.label,
-        lineTotal: l.lineTotal,
-        priceFrom: l.priceFrom,
-      })),
-    });
-    onDone?.();
-    router.replace("/booking/thank-you");
+    setSubmitting(true);
+    setSubmitError("");
+    try {
+      const result = await createBookingAppointment({
+        serviceId: "booking-quote",
+        serviceIds: cart.map((l) => l.itemId),
+        date: date.toISOString().slice(0, 10),
+        time,
+        comment,
+        clientName: clientName.trim(),
+        clientPhone: clientPhone.trim(),
+        clientPlate: clientPlate.trim(),
+        estimatedTotal: total,
+        cartLines: cart.map((l) => ({
+          itemId: l.itemId,
+          label: l.label,
+          lineTotal: l.lineTotal,
+          priceFrom: l.priceFrom,
+        })),
+      });
+      if (!result.ok) {
+        setSubmitError(bq.submitFailed);
+        return;
+      }
+      if (!result.cloudOk) {
+        setSubmitError(bq.cloudSyncFailed.replace("{phone}", siteConfig.phone));
+        return;
+      }
+      onDone?.();
+      router.replace("/booking/thank-you");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -706,6 +722,10 @@ export function BookingQuoteFlow({ onDone }: Props) {
               />
             </div>
 
+            {submitError && (
+              <p className="text-sm text-red-400 text-center">{submitError}</p>
+            )}
+
             <div className="flex gap-3">
               <Button variant="outline" className="flex-1" onClick={() => setPhase("datetime")}>
                 <ChevronLeft className="w-4 h-4" />
@@ -714,10 +734,10 @@ export function BookingQuoteFlow({ onDone }: Props) {
               <Button
                 className="flex-1"
                 data-fbq-track="Lead"
-                disabled={!contactValid}
+                disabled={!contactValid || submitting}
                 onClick={submit}
               >
-                {bq.submit}
+                {submitting ? bq.submitting : bq.submit}
               </Button>
             </div>
           </motion.div>

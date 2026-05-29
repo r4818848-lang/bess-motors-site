@@ -46,42 +46,47 @@ export async function createBookingAppointment(params: {
   clientPlate: string;
   estimatedTotal?: number;
   cartLines?: { itemId: string; label: string; lineTotal: number; priceFrom: boolean }[];
-}): Promise<void> {
-  const db = loadDb();
-  const plate = params.clientPlate.trim();
-  const { userId, vehicleId } = await ensureClientCredentialsForBooking(
-    db,
-    params.clientName,
-    params.clientPhone,
-    plate,
-    db.currentUserId ?? undefined
-  );
-  const marketing = getStoredAttribution() ?? undefined;
-  const apt = {
-    id: `apt-${Date.now()}`,
-    userId,
-    vehicleId,
-    serviceIds: params.serviceIds.length ? params.serviceIds : [params.serviceId],
-    date: params.date,
-    time: params.time,
-    mechanicId: db.mechanics[0]?.id ?? "mech-1",
-    repairStatus: "received" as const,
-    appointmentStatus: "scheduled" as const,
-    comment: params.comment,
-    clientName: params.clientName,
-    clientPhone: params.clientPhone,
-    clientPlate: plate,
-    source: "website" as const,
-    marketing: marketing ?? undefined,
-    createdAt: new Date().toISOString(),
-  };
-  db.appointments.push(apt);
-  handleAppointmentNotification(db, apt, "scheduled");
-  saveDb(db);
+}): Promise<{ ok: boolean; cloudOk: boolean }> {
+  try {
+    const db = loadDb();
+    const plate = params.clientPlate.trim();
+    const { userId, vehicleId } = await ensureClientCredentialsForBooking(
+      db,
+      params.clientName,
+      params.clientPhone,
+      plate,
+      db.currentUserId ?? undefined
+    );
+    const marketing = getStoredAttribution() ?? undefined;
+    const apt = {
+      id: `apt-${Date.now()}`,
+      userId,
+      vehicleId,
+      serviceIds: params.serviceIds.length ? params.serviceIds : [params.serviceId],
+      date: params.date,
+      time: params.time,
+      mechanicId: db.mechanics[0]?.id ?? "mech-1",
+      repairStatus: "received" as const,
+      appointmentStatus: "scheduled" as const,
+      comment: params.comment,
+      clientName: params.clientName,
+      clientPhone: params.clientPhone,
+      clientPlate: plate,
+      source: "website" as const,
+      marketing: marketing ?? undefined,
+      createdAt: new Date().toISOString(),
+    };
+    db.appointments.push(apt);
+    handleAppointmentNotification(db, apt, "scheduled");
+    saveDb(db);
 
-  if (normalizePlateKey(plate).length >= 2) {
-    saveClientCredentials(params.clientPhone, plate);
+    if (normalizePlateKey(plate).length >= 2) {
+      saveClientCredentials(params.clientPhone, plate);
+    }
+
+    const cloudOk = await pushAppointmentToCloud(apt);
+    return { ok: true, cloudOk };
+  } catch {
+    return { ok: false, cloudOk: false };
   }
-
-  await pushAppointmentToCloud(apt);
 }

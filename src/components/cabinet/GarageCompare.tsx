@@ -29,9 +29,27 @@ export function GarageCompare({
         <thead>
           <tr className="text-bm-muted text-xs uppercase">
             <th className="pb-2">Auto</th>
-            <th className="pb-2">{locale === "ru" ? "Пробег" : "Mileage"}</th>
-            <th className="pb-2">{locale === "ru" ? "Визитов" : "Visits"}</th>
-            <th className="pb-2">{locale === "ru" ? "Сумма" : "Total"}</th>
+            <th className="pb-2">
+              {locale === "ru" || locale === "uk"
+                ? "Пробег"
+                : locale === "en"
+                  ? "Mileage"
+                  : "Przebieg"}
+            </th>
+            <th className="pb-2">
+              {locale === "ru" || locale === "uk"
+                ? "Визитов"
+                : locale === "en"
+                  ? "Visits"
+                  : "Wizyty"}
+            </th>
+            <th className="pb-2">
+              {locale === "ru" || locale === "uk"
+                ? "Сумма"
+                : locale === "en"
+                  ? "Total"
+                  : "Suma"}
+            </th>
           </tr>
         </thead>
         <tbody>

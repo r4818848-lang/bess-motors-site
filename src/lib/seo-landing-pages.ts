@@ -27,11 +27,11 @@ export const seoLandingPages: SeoLandingPage[] = [
   {
     slug: "zawieszenie",
     title: "Naprawa Zawieszenia",
-    line1: "Stuki i luzy w zawieszeniu?",
+    line1: "Stuki i luz w zawieszeniu?",
     line2: "Profesjonalny serwis Warszawa",
     metaTitle: "Naprawa zawieszenia Warszawa",
     metaDescription:
-      "Naprawa zawieszenia w BESS MOTORS — amortyzatory, wahacze, stuki, luzy. Profesjonalny serwis samochodowy Warszawa.",
+      "Naprawa zawieszenia w BESS MOTORS — amortyzatory, wahacze, stuki, luz w zawieszeniu. Profesjonalny serwis samochodowy Warszawa.",
     serviceId: "suspension",
     icon: "Settings",
   },

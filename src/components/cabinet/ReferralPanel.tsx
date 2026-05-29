@@ -63,30 +63,38 @@ export function ReferralPanel({ user }: { user: User }) {
 
   const expiryText =
     summary?.discountExpiresAt && summary.discountAvailable
-      ? locale === "ru"
+      ? locale === "ru" || locale === "uk"
         ? `Действует до: ${summary.discountExpiresAt.slice(0, 10)}`
-        : `Valid until: ${summary.discountExpiresAt.slice(0, 10)}`
+        : locale === "pl"
+          ? `Ważne do: ${summary.discountExpiresAt.slice(0, 10)}`
+          : `Valid until: ${summary.discountExpiresAt.slice(0, 10)}`
       : null;
 
   const rewardText = summary?.discountAvailable
-    ? locale === "ru"
+    ? locale === "ru" || locale === "uk"
       ? `🎉 Скидка ${REFERRAL_REWARD_DISCOUNT_PERCENT}% на следующий визит!`
       : locale === "pl"
         ? `🎉 Masz ${REFERRAL_REWARD_DISCOUNT_PERCENT}% rabatu!`
         : `🎉 ${REFERRAL_REWARD_DISCOUNT_PERCENT}% off!`
     : summary?.discountUsed
-      ? locale === "ru"
+      ? locale === "ru" || locale === "uk"
         ? "Скидка 15% уже использована."
-        : "15% used."
-      : locale === "ru"
+        : locale === "pl"
+          ? "Rabat 15% został już wykorzystany."
+          : "15% discount already used."
+      : locale === "ru" || locale === "uk"
         ? `До скидки ${REFERRAL_REWARD_DISCOUNT_PERCENT}%: ещё ${Math.max(0, REFERRAL_QUALIFIED_REQUIRED - (summary?.qualifiedCount ?? 0))} друзей`
-        : `Need ${Math.max(0, REFERRAL_QUALIFIED_REQUIRED - (summary?.qualifiedCount ?? 0))} more`;
+        : locale === "pl"
+          ? `Do rabatu ${REFERRAL_REWARD_DISCOUNT_PERCENT}%: jeszcze ${Math.max(0, REFERRAL_QUALIFIED_REQUIRED - (summary?.qualifiedCount ?? 0))} znajomych`
+          : `Need ${Math.max(0, REFERRAL_QUALIFIED_REQUIRED - (summary?.qualifiedCount ?? 0))} more friends`;
 
   const inviteeReward =
     user.referredByUserId && canUseInvitee(user)
-      ? locale === "ru"
+      ? locale === "ru" || locale === "uk"
         ? `🎁 Вам доступна скидка ${REFERRAL_INVITEE_DISCOUNT_PERCENT}% (вы пришли по ссылке друга)`
-        : `🎁 ${REFERRAL_INVITEE_DISCOUNT_PERCENT}% discount for you`
+        : locale === "pl"
+          ? `🎁 Masz ${REFERRAL_INVITEE_DISCOUNT_PERCENT}% rabatu (link od znajomego)`
+          : `🎁 ${REFERRAL_INVITEE_DISCOUNT_PERCENT}% discount for you`
       : null;
 
   const statusRu = {
@@ -148,14 +156,22 @@ export function ReferralPanel({ user }: { user: User }) {
               className="btn-outline text-sm"
               onClick={() => navigator.clipboard?.writeText(tgLink)}
             >
-              {locale === "ru" ? "Копировать TG" : "Copy TG"}
+              {locale === "ru" || locale === "uk"
+                ? "Копировать TG"
+                : locale === "pl"
+                  ? "Kopiuj TG"
+                  : "Copy TG"}
             </button>
             <button
               type="button"
               className="btn-outline text-sm"
               onClick={() => navigator.clipboard?.writeText(siteLink)}
             >
-              {locale === "ru" ? "Копировать сайт" : "Copy web"}
+              {locale === "ru" || locale === "uk"
+                ? "Копировать сайт"
+                : locale === "pl"
+                  ? "Kopiuj link"
+                  : "Copy web"}
             </button>
           </div>
         </div>
@@ -164,7 +180,11 @@ export function ReferralPanel({ user }: { user: User }) {
       {summary && summary.referred.length > 0 && (
         <div className="mt-6 border-t border-bm-border/40 pt-4">
           <p className="text-xs uppercase text-bm-muted mb-2">
-            {locale === "ru" ? "Кого привели" : "Poleceni"}
+            {locale === "ru" || locale === "uk"
+              ? "Кого привели"
+              : locale === "en"
+                ? "Referred friends"
+                : "Poleceni"}
           </p>
           <ul className="space-y-2 text-sm">
             {summary.referred.map((r) => (

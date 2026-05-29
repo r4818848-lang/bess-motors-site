@@ -147,7 +147,7 @@ function tableRows(
 function premiumSlogan(locale: DocLocale): string {
   return locale === "ru"
     ? "ВАШ АВТОМОБИЛЬ В НАДЁЖНЫХ РУКАХ!"
-    : "TWOJ SAMOCHÓD W DOBRYCH RĘKACH!";
+    : "TWÓJ SAMOCHÓD W DOBRYCH RĘKACH!";
 }
 
 /** Premium HTML for print / PDF capture (color = forged carbon, bw = print-friendly) */

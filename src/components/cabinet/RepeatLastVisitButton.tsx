@@ -14,7 +14,11 @@ export function RepeatLastVisitButton({ orders }: { orders: WorkOrder[] }) {
 
   const services = last.services.map((s) => s.name).join(", ");
   const comment = encodeURIComponent(
-    locale === "ru" ? `Повтор: ${services}` : `Repeat: ${services}`
+    locale === "ru" || locale === "uk"
+      ? `Повтор: ${services}`
+      : locale === "pl"
+        ? `Powtórz: ${services}`
+        : `Repeat: ${services}`
   );
 
   const label =
