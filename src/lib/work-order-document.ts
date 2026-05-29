@@ -117,10 +117,17 @@ function esc(s: string): string {
     .replace(/"/g, "&quot;");
 }
 
-function formField(label: string, value: string, accent: string): string {
-  return `<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:8px;font-size:11px;">
+function formField(label: string, value: string): string {
+  return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:11px;">
     <span style="color:#666;min-width:110px;">${esc(label)}</span>
-    <span style="flex:1;border-bottom:1px solid #999;color:#111;font-weight:500;">${esc(value) || "&nbsp;"}</span>
+    <span style="flex:1;border-bottom:1px solid #999;color:#111;font-weight:500;padding-bottom:2px;">${esc(value) || "&nbsp;"}</span>
+  </div>`;
+}
+
+function barTitle(text: string, accent: string): string {
+  return `<div style="position:relative;background:#1a1a1a;color:#fff;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;padding:7px 28px 7px 24px;margin:0 0 12px;overflow:hidden;">
+    ${esc(text)}
+    <span style="position:absolute;right:0;top:0;width:22px;height:100%;background:${accent};clip-path:polygon(35% 0,100% 0,100% 100%,0 100%);"></span>
   </div>`;
 }
 
@@ -138,7 +145,7 @@ export function buildWorkOrderDocumentHtml(
   const footer = getFormFooterContent(locale);
   const b = calcOrderBreakdown(order, vatRate);
   const logo = logoUrl ?? "/images/logo.png";
-  const accent = variant === "bw" ? "#000" : "#c00000";
+  const accent = variant === "bw" ? "#000" : "#e31e24";
   const completionDate =
     order.estimatedReadyAt?.slice(0, 10) ??
     (order.status === "ready" || order.status === "delivered" ? order.updatedAt : "");
@@ -200,7 +207,8 @@ export function buildWorkOrderDocumentHtml(
       <tr>
         <td style="width:28%;vertical-align:top;"><img src="${esc(logo)}" alt="BESS MOTORS" style="height:52px;width:auto;" /></td>
         <td style="text-align:center;vertical-align:middle;">
-          <h1 style="margin:0;font-size:20px;font-weight:800;text-transform:uppercase;">${esc(L.titleNo)} <span style="color:${accent};font-family:Consolas,monospace;">${esc(order.number)}</span></h1>
+          <h1 style="margin:0;font-size:20px;font-weight:800;text-transform:uppercase;line-height:1.2;">${esc(L.title)}</h1>
+          <p style="margin:4px 0 0;font-size:14px;font-weight:700;text-transform:uppercase;">№ <span style="color:${accent};font-family:Consolas,monospace;">${esc(order.number)}</span></p>
         </td>
         <td style="width:30%;vertical-align:top;text-align:right;font-size:10px;color:#444;line-height:1.5;">
           <div>${esc(siteConfig.phone)}</div>
@@ -219,63 +227,71 @@ export function buildWorkOrderDocumentHtml(
 
   <table style="width:100%;border-collapse:collapse;border-bottom:1px solid #ccc;">
     <tr>
-      <td style="width:50%;vertical-align:top;padding:16px 20px;border-right:1px solid #eee;">
-        <p style="margin:0 0 10px;font-size:11px;font-weight:800;color:${accent};text-transform:uppercase;border-bottom:1px solid ${accent}33;padding-bottom:4px;">${esc(L.vehicleData)}</p>
-        ${formField(L.makeModel, `${vehicle.make} ${vehicle.model}`.trim(), accent)}
-        ${formField(L.year, vehicle.year ? String(vehicle.year) : "—", accent)}
-        ${formField(L.plate, vehicle.plate, accent)}
-        ${formField(L.vin, vehicle.vin || "—", accent)}
-        ${formField(L.mileage, vehicle.mileage ? `${vehicle.mileage.toLocaleString()} km` : "—", accent)}
+      <td style="width:50%;vertical-align:top;border-right:1px solid #eee;">
+        ${barTitle(L.vehicleData, accent)}
+        <div style="padding:0 20px 16px;">
+        ${formField(L.makeModel, `${vehicle.make} ${vehicle.model}`.trim())}
+        ${formField(L.year, vehicle.year ? String(vehicle.year) : "—")}
+        ${formField(L.plate, vehicle.plate)}
+        ${formField(L.vin, vehicle.vin || "—")}
+        ${formField(L.mileage, vehicle.mileage ? `${vehicle.mileage.toLocaleString()} km` : "—")}
+        </div>
       </td>
-      <td style="width:50%;vertical-align:top;padding:16px 20px;">
-        <p style="margin:0 0 10px;font-size:11px;font-weight:800;color:${accent};text-transform:uppercase;border-bottom:1px solid ${accent}33;padding-bottom:4px;">${esc(L.clientData)}</p>
-        ${formField(L.fullName, client.name, accent)}
-        ${formField(L.phone, client.phone, accent)}
-        ${formField(L.email, client.email || siteConfig.email, accent)}
+      <td style="width:50%;vertical-align:top;">
+        ${barTitle(L.clientData, accent)}
+        <div style="padding:0 20px 16px;">
+        ${formField(L.fullName, client.name)}
+        ${formField(L.phone, client.phone)}
+        ${formField(L.email, client.email || siteConfig.email)}
+        </div>
       </td>
     </tr>
   </table>
 
   <table style="width:100%;border-collapse:collapse;border-bottom:1px solid #ccc;">
     <tr>
-      <td style="width:50%;vertical-align:top;padding:12px 16px;border-right:1px solid #eee;">
-        <p style="margin:0 0 8px;font-size:11px;font-weight:800;color:${accent};text-transform:uppercase;">${esc(L.workList)}</p>
+      <td style="width:50%;vertical-align:top;border-right:1px solid #eee;">
+        ${barTitle(L.workList, accent)}
+        <div style="padding:0 16px 16px;">
         <table style="width:100%;border-collapse:collapse;font-size:10px;">
-          <thead><tr style="background:#f3f3f3;">
-            <th style="border:1px solid #bbb;padding:5px;">${esc(L.numberCol)}</th>
-            <th style="border:1px solid #bbb;padding:5px;text-align:left;">${esc(L.workName)}</th>
-            <th style="border:1px solid #bbb;padding:5px;text-align:right;">${esc(L.cost)}</th>
+          <thead><tr style="background:#1a1a1a;color:#fff;">
+            <th style="border:1px solid #333;padding:5px;color:#fff;">${esc(L.numberCol)}</th>
+            <th style="border:1px solid #333;padding:5px;text-align:left;color:#fff;">${esc(L.workName)}</th>
+            <th style="border:1px solid #333;padding:5px;text-align:right;color:#fff;">${esc(L.cost)}</th>
           </tr></thead>
           <tbody>${serviceRows}${emptyServiceRows}</tbody>
         </table>
+        </div>
       </td>
-      <td style="width:50%;vertical-align:top;padding:12px 16px;">
-        <p style="margin:0 0 8px;font-size:11px;font-weight:800;color:${accent};text-transform:uppercase;">${esc(L.partsMaterials)}</p>
+      <td style="width:50%;vertical-align:top;">
+        ${barTitle(L.partsMaterials, accent)}
+        <div style="padding:0 16px 16px;">
         <table style="width:100%;border-collapse:collapse;font-size:10px;">
-          <thead><tr style="background:#f3f3f3;">
-            <th style="border:1px solid #bbb;padding:5px;text-align:left;">${esc(L.partName)}</th>
-            <th style="border:1px solid #bbb;padding:5px;">${esc(L.qty)}</th>
-            <th style="border:1px solid #bbb;padding:5px;text-align:right;">${esc(L.cost)}</th>
+          <thead><tr style="background:#1a1a1a;color:#fff;">
+            <th style="border:1px solid #333;padding:5px;text-align:left;color:#fff;">${esc(L.partName)}</th>
+            <th style="border:1px solid #333;padding:5px;color:#fff;">${esc(L.qty)}</th>
+            <th style="border:1px solid #333;padding:5px;text-align:right;color:#fff;">${esc(L.cost)}</th>
           </tr></thead>
           <tbody>${partRows}${emptyPartRows}</tbody>
         </table>
+        </div>
       </td>
     </tr>
   </table>
 
   <table style="width:100%;border-collapse:collapse;border-bottom:1px solid #ccc;">
     <tr>
-      <td style="width:55%;vertical-align:top;padding:16px 20px;border-right:1px solid #eee;">
-        <p style="margin:0 0 8px;font-size:11px;font-weight:800;color:${accent};text-transform:uppercase;">${esc(L.additionalInfo)}</p>
-        <div style="min-height:90px;border:1px solid #bbb;background:#fafafa;padding:10px;font-size:11px;line-height:1.5;">${esc(order.clientNotes || "")}</div>
+      <td style="width:55%;vertical-align:top;border-right:1px solid #eee;">
+        ${barTitle(L.additionalInfo, accent)}
+        <div style="margin:0 20px 16px;min-height:90px;border:1px solid #bbb;background:#fafafa;padding:10px;font-size:11px;line-height:1.5;">${esc(order.clientNotes || "")}</div>
       </td>
-      <td style="width:45%;vertical-align:top;padding:16px 20px;">
-        <table style="width:100%;border-collapse:collapse;font-size:11px;">
+      <td style="width:45%;vertical-align:top;padding:0 20px 16px;">
+        <table style="width:100%;border-collapse:collapse;font-size:11px;margin-top:44px;">
           <tr><td style="border:1px solid #bbb;padding:8px;">${esc(L.worksCost)}</td><td style="border:1px solid #bbb;padding:8px;text-align:right;font-family:monospace;">${b.servicesSub.toFixed(2)}</td></tr>
           <tr><td style="border:1px solid #bbb;padding:8px;">${esc(L.partsCost)}</td><td style="border:1px solid #bbb;padding:8px;text-align:right;font-family:monospace;">${b.partsSub.toFixed(2)}</td></tr>
           ${b.discount > 0 ? `<tr><td style="border:1px solid #bbb;padding:8px;">${esc(L.orderDiscount)}</td><td style="border:1px solid #bbb;padding:8px;text-align:right;color:${accent};">-${b.discount.toFixed(2)}</td></tr>` : ""}
           ${order.vatEnabled && b.vatAmount > 0 ? `<tr><td style="border:1px solid #bbb;padding:8px;">${esc(L.vat)} (${b.vatRate}%)</td><td style="border:1px solid #bbb;padding:8px;text-align:right;">${b.vatAmount.toFixed(2)}</td></tr>` : ""}
-          <tr style="background:#f3f3f3;"><td style="border:1px solid #bbb;padding:10px;font-weight:800;color:${accent};text-transform:uppercase;">${esc(L.totalToPay)}</td><td style="border:1px solid #bbb;padding:10px;text-align:right;font-family:monospace;font-weight:800;color:${accent};font-size:14px;">${b.grossTotal.toFixed(2)} ${esc(L.currency)}</td></tr>
+          <tr style="background:#f3f3f3;"><td style="border:1px solid #bbb;padding:10px;font-weight:800;color:#111;text-transform:uppercase;">${esc(L.totalToPay)}</td><td style="border:1px solid #bbb;padding:10px;text-align:right;font-family:monospace;font-weight:800;color:${accent};font-size:16px;">${b.grossTotal.toFixed(2)} ${esc(L.currency)}</td></tr>
         </table>
       </td>
     </tr>
@@ -297,11 +313,11 @@ export function buildWorkOrderDocumentHtml(
     </tr>
   </table>
 
-  <div style="padding:16px 20px 20px;">
+  <div style="padding:16px 20px 0;">
     <table style="width:100%;border-collapse:collapse;margin-bottom:12px;"><tr>${benefitsHtml}</tr></table>
-    <p style="margin:0;text-align:center;font-size:12px;padding-top:10px;border-top:1px solid #eee;">
-      <strong style="color:${accent};">BESS MOTORS</strong> — ${esc(footer.slogan.replace(/^BESS MOTORS — /, ""))}
-    </p>
+  </div>
+  <div style="background:#1a1a1a;color:#fff;text-align:center;font-size:12px;font-weight:700;text-transform:uppercase;padding:12px 16px;">
+    <span style="color:${accent};">BESS MOTORS</span> — ${esc(footer.slogan.replace(/^BESS MOTORS — /, ""))}
   </div>
 </div>`;
 }

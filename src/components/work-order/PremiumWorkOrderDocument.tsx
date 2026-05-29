@@ -2,7 +2,23 @@
 
 import { type ReactNode } from "react";
 import Image from "next/image";
-import { Phone, Globe, MapPin, ShieldCheck, Cog, UserCheck, Clock } from "lucide-react";
+import {
+  Phone,
+  Globe,
+  MapPin,
+  ShieldCheck,
+  Cog,
+  UserCheck,
+  Clock,
+  Car,
+  Calendar,
+  Hash,
+  Barcode,
+  Gauge,
+  User as UserIcon,
+  Mail,
+  type LucideIcon,
+} from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import type { WorkOrder, Vehicle, User } from "@/lib/store";
 import { siteConfig } from "@/lib/site";
@@ -41,9 +57,26 @@ interface Props {
   footerActions?: ReactNode;
 }
 
-function FieldRow({ label, value }: { label: string; value: ReactNode }) {
+function BarTitle({ children }: { children: ReactNode }) {
+  return (
+    <h2 className="wo-form-bar-title">
+      <span>{children}</span>
+    </h2>
+  );
+}
+
+function FieldRow({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: LucideIcon;
+  label: string;
+  value: ReactNode;
+}) {
   return (
     <div className="wo-form-field">
+      <Icon className="wo-form-field-icon" aria-hidden />
       <span className="wo-form-field-label">{label}</span>
       <span className="wo-form-field-value">{value || "\u00A0"}</span>
     </div>
@@ -89,7 +122,7 @@ export function PremiumWorkOrderDocument({
       name: s.name,
       total: calcServiceLine(s),
     })),
-    8
+    10
   );
 
   const partLines = padFormRows(
@@ -99,7 +132,7 @@ export function PremiumWorkOrderDocument({
       qty: p.qty,
       total: calcPartLine(p),
     })),
-    8
+    10
   );
 
   const notesText = order.clientNotes || "";
@@ -144,21 +177,22 @@ export function PremiumWorkOrderDocument({
             />
           </div>
           <div className="wo-form-title-block">
-            <h1 className="wo-form-title">
-              {L.titleNo} <span className="wo-form-title-num">{order.number}</span>
-            </h1>
+            <h1 className="wo-form-title">{L.title}</h1>
+            <p className="wo-form-title-num-line">
+              № <span>{order.number}</span>
+            </p>
           </div>
           <div className="wo-form-contact">
             <p>
-              <Phone className="inline w-3.5 h-3.5 mr-1 text-[#c00000]" />
+              <Phone className="inline w-3.5 h-3.5 mr-1" style={{ color: "var(--wo-accent)" }} />
               {siteConfig.phone}
             </p>
             <p>
-              <Globe className="inline w-3.5 h-3.5 mr-1 text-[#c00000]" />
+              <Globe className="inline w-3.5 h-3.5 mr-1" style={{ color: "var(--wo-accent)" }} />
               {L.website}
             </p>
             <p>
-              <MapPin className="inline w-3.5 h-3.5 mr-1 text-[#c00000]" />
+              <MapPin className="inline w-3.5 h-3.5 mr-1" style={{ color: "var(--wo-accent)" }} />
               {siteConfig.address}
             </p>
           </div>
@@ -179,31 +213,44 @@ export function PremiumWorkOrderDocument({
       {/* Vehicle + Client */}
       <div className="wo-form-info-grid">
         <section>
-          <h2 className="wo-form-section-title">{L.vehicleData}</h2>
-          <FieldRow
-            label={L.makeModel}
-            value={`${vehicle.make} ${vehicle.model}`.trim()}
-          />
-          <FieldRow label={L.year} value={vehicle.year ? String(vehicle.year) : "—"} />
-          <FieldRow label={L.plate} value={vehicle.plate} />
-          <FieldRow label={L.vin} value={vehicle.vin || "—"} />
-          <FieldRow
-            label={L.mileage}
-            value={vehicle.mileage ? `${vehicle.mileage.toLocaleString()} km` : "—"}
-          />
+          <BarTitle>{L.vehicleData}</BarTitle>
+          <div className="wo-form-info-body">
+            <FieldRow
+              icon={Car}
+              label={L.makeModel}
+              value={`${vehicle.make} ${vehicle.model}`.trim()}
+            />
+            <FieldRow
+              icon={Calendar}
+              label={L.year}
+              value={vehicle.year ? String(vehicle.year) : "—"}
+            />
+            <FieldRow icon={Hash} label={L.plate} value={vehicle.plate} />
+            <FieldRow icon={Barcode} label={L.vin} value={vehicle.vin || "—"} />
+            <FieldRow
+              icon={Gauge}
+              label={L.mileage}
+              value={vehicle.mileage ? `${vehicle.mileage.toLocaleString()} km` : "—"}
+            />
+          </div>
         </section>
         <section>
-          <h2 className="wo-form-section-title">{L.clientData}</h2>
-          <FieldRow label={L.fullName} value={client.name} />
-          <FieldRow label={L.phone} value={client.phone} />
-          <FieldRow label={L.email} value={client.email || siteConfig.email} />
+          <BarTitle>{L.clientData}</BarTitle>
+          <div className="wo-form-info-body">
+            <FieldRow icon={UserIcon} label={L.fullName} value={client.name} />
+            <FieldRow icon={Phone} label={L.phone} value={client.phone} />
+            <FieldRow
+              icon={Mail}
+              label={L.email}
+              value={client.email || siteConfig.email}
+            />
+          </div>
         </section>
       </div>
 
-      {/* Works + Parts tables side by side */}
       <div className="wo-form-tables-grid">
         <section>
-          <h2 className="wo-form-section-title">{L.workList}</h2>
+          <BarTitle>{L.workList}</BarTitle>
           <table className="wo-form-table">
             <thead>
               <tr>
@@ -227,7 +274,7 @@ export function PremiumWorkOrderDocument({
         </section>
 
         <section>
-          <h2 className="wo-form-section-title">{L.partsMaterials}</h2>
+          <BarTitle>{L.partsMaterials}</BarTitle>
           <table className="wo-form-table">
             <thead>
               <tr>
@@ -254,7 +301,7 @@ export function PremiumWorkOrderDocument({
       {/* Comments + Totals */}
       <div className="wo-form-bottom-grid">
         <section>
-          <h2 className="wo-form-section-title">{L.additionalInfo}</h2>
+          <BarTitle>{L.additionalInfo}</BarTitle>
           <div className="wo-form-notes">
             {notesText && <p>{notesText}</p>}
             {mode === "screen" && !notesText && (
@@ -264,6 +311,7 @@ export function PremiumWorkOrderDocument({
         </section>
 
         <section>
+          <div className="wo-form-totals-wrap">
           <table className="wo-form-totals">
             <tbody>
               <tr>
@@ -277,7 +325,7 @@ export function PremiumWorkOrderDocument({
               {b.discount > 0 && (
                 <tr>
                   <td>{L.orderDiscount}</td>
-                  <td className="font-mono text-right text-[#c00000]">
+                  <td className="font-mono text-right" style={{ color: "var(--wo-accent)" }}>
                     -{b.discount.toFixed(2)}
                   </td>
                 </tr>
@@ -292,12 +340,13 @@ export function PremiumWorkOrderDocument({
               )}
               <tr className="wo-form-total-row">
                 <td>{L.totalToPay}</td>
-                <td className="font-mono text-right font-bold">
+                <td className="wo-form-total-amount">
                   {b.grossTotal.toFixed(2)} {L.currency}
                 </td>
               </tr>
             </tbody>
           </table>
+          </div>
         </section>
       </div>
 
@@ -356,10 +405,13 @@ export function PremiumWorkOrderDocument({
             );
           })}
         </div>
-        <p className="wo-form-slogan">
-          <span className="text-[#c00000] font-bold">BESS MOTORS</span>
-          <span className="text-gray-800"> — {footer.slogan.replace(/^BESS MOTORS — /, "")}</span>
-        </p>
+        <div className="wo-form-slogan-bar">
+          <span className="wo-form-slogan-brand">BESS MOTORS</span>
+          <span className="wo-form-slogan-text">
+            {" — "}
+            {footer.slogan.replace(/^BESS MOTORS — /, "")}
+          </span>
+        </div>
       </footer>
 
       {footerActions && <div className="wo-form-actions print:hidden">{footerActions}</div>}

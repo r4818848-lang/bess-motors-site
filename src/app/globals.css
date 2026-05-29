@@ -550,6 +550,8 @@
 
   /* Classic white work order form (A4 blank style) */
   .wo-form-root {
+    --wo-accent: #e31e24;
+    --wo-bar: #1a1a1a;
     @apply bg-white text-gray-900 rounded-lg overflow-hidden;
     font-family: "Segoe UI", system-ui, sans-serif;
     box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
@@ -590,15 +592,29 @@
   }
 
   .wo-form-title {
-    @apply text-lg sm:text-xl font-bold uppercase tracking-wide text-gray-900 m-0;
+    @apply text-lg sm:text-xl font-bold uppercase tracking-wide text-gray-900 m-0 leading-tight;
+  }
+
+  .wo-form-title-num-line {
+    @apply mt-1 text-sm font-bold uppercase tracking-wide text-gray-900 m-0;
+  }
+
+  .wo-form-title-num-line span {
+    color: var(--wo-accent);
+    font-family: ui-monospace, Consolas, monospace;
   }
 
   .wo-form-title-num {
-    @apply text-[#c00000] font-mono;
+    color: var(--wo-accent);
+    @apply font-mono;
   }
 
   .wo-form-contact {
     @apply text-[10px] sm:text-xs text-gray-700 space-y-1 sm:text-right;
+  }
+
+  .wo-form-contact svg {
+    color: var(--wo-accent);
   }
 
   .wo-form-dates {
@@ -613,28 +629,85 @@
     @apply border-b border-gray-400 min-h-[1.25rem] font-medium text-gray-900;
   }
 
+  .wo-form-info-grid section,
+  .wo-form-tables-grid section,
+  .wo-form-bottom-grid section {
+    @apply border-b md:border-b-0 md:border-r border-gray-200 last:border-r-0;
+  }
+
+  .wo-form-info-grid section {
+    @apply pb-4;
+  }
+
+  .wo-form-tables-grid section,
+  .wo-form-bottom-grid section {
+    @apply pb-4;
+  }
+
+  .wo-form-bar-title {
+    @apply relative m-0 mb-3 overflow-hidden;
+    background: var(--wo-bar);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 7px 28px 7px 24px;
+  }
+
+  .wo-form-bar-title::after {
+    content: "";
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 22px;
+    height: 100%;
+    background: var(--wo-accent);
+    clip-path: polygon(35% 0, 100% 0, 100% 100%, 0 100%);
+  }
+
+  .wo-form-info-body {
+    @apply px-6;
+  }
+
+  .wo-form-tables-grid section .wo-form-table,
+  .wo-form-bottom-grid section .wo-form-notes,
+  .wo-form-bottom-grid section .wo-form-totals-wrap {
+    @apply mx-4 sm:mx-6;
+  }
+
+  .wo-form-totals-wrap {
+    padding-top: 42px;
+  }
+
+  .wo-form-section-title {
+    @apply text-[11px] font-bold uppercase tracking-wider mb-3 pb-1;
+    color: var(--wo-accent);
+    border-bottom: 1px solid color-mix(in srgb, var(--wo-accent) 30%, transparent);
+  }
+
+  .wo-form-field {
+    @apply flex items-center gap-2 text-xs mb-2.5;
+  }
+
+  .wo-form-field-icon {
+    @apply shrink-0 w-3.5 h-3.5 text-gray-400;
+  }
+
+  .wo-form-field-label {
+    @apply text-gray-600 shrink-0 min-w-[6.5rem];
+  }
+
+  .wo-form-field-value {
+    @apply flex-1 border-b border-gray-400 min-h-[1.1rem] text-gray-900 font-medium pb-0.5;
+  }
+
   .wo-form-info-grid {
     @apply grid md:grid-cols-2 gap-0 border-b border-gray-300;
   }
 
   .wo-form-info-grid section {
-    @apply px-6 py-4 border-b md:border-b-0 md:border-r border-gray-200 last:border-r-0;
-  }
-
-  .wo-form-section-title {
-    @apply text-[11px] font-bold uppercase tracking-wider text-[#c00000] mb-3 pb-1 border-b border-[#c00000]/30;
-  }
-
-  .wo-form-field {
-    @apply flex items-baseline gap-2 text-xs mb-2.5;
-  }
-
-  .wo-form-field-label {
-    @apply text-gray-600 shrink-0 min-w-[7rem];
-  }
-
-  .wo-form-field-value {
-    @apply flex-1 border-b border-gray-400 min-h-[1.1rem] text-gray-900 font-medium;
+    @apply border-b md:border-b-0 md:border-r border-gray-200 last:border-r-0;
   }
 
   .wo-form-tables-grid {
@@ -642,7 +715,7 @@
   }
 
   .wo-form-tables-grid section {
-    @apply px-4 sm:px-6 py-4 border-b lg:border-b-0 lg:border-r border-gray-200 last:border-r-0;
+    @apply border-b lg:border-b-0 lg:border-r border-gray-200 last:border-r-0;
   }
 
   .wo-form-table {
@@ -650,11 +723,13 @@
   }
 
   .wo-form-table thead tr {
-    @apply bg-gray-100 border-y border-gray-400;
+    background: var(--wo-bar);
+    color: #fff;
   }
 
   .wo-form-table th {
-    @apply px-2 py-2 text-left font-bold uppercase text-[9px] text-gray-800 border border-gray-300;
+    @apply px-2 py-2 text-left font-bold uppercase text-[9px] border border-gray-700;
+    color: #fff;
   }
 
   .wo-form-table td {
@@ -667,7 +742,7 @@
   }
 
   .wo-form-bottom-grid section {
-    @apply px-6 py-4 border-b lg:border-b-0 lg:border-r border-gray-200 last:border-r-0;
+    @apply border-b lg:border-b-0 lg:border-r border-gray-200 last:border-r-0;
   }
 
   .wo-form-notes {
@@ -683,7 +758,13 @@
   }
 
   .wo-form-total-row td {
-    @apply bg-gray-100 font-bold text-[#c00000] text-sm uppercase;
+    @apply bg-gray-100 font-bold text-sm uppercase;
+    color: var(--wo-accent);
+  }
+
+  .wo-form-total-amount {
+    @apply text-right font-mono font-extrabold text-base;
+    color: var(--wo-accent) !important;
   }
 
   .wo-form-signatures {
@@ -703,11 +784,11 @@
   }
 
   .wo-form-footer {
-    @apply px-6 py-5 bg-white;
+    @apply bg-white pb-0;
   }
 
   .wo-form-benefits {
-    @apply grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4;
+    @apply grid grid-cols-2 lg:grid-cols-4 gap-4 px-6 py-5;
   }
 
   .wo-form-benefit {
@@ -715,7 +796,27 @@
   }
 
   .wo-form-benefit-icon {
-    @apply shrink-0 w-9 h-9 rounded-full border-2 border-[#c00000] text-[#c00000] flex items-center justify-center;
+    @apply shrink-0 w-9 h-9 rounded-full border-2 flex items-center justify-center;
+    border-color: var(--wo-accent);
+    color: var(--wo-accent);
+  }
+
+  .wo-form-benefit strong {
+    color: var(--wo-accent);
+  }
+
+  .wo-form-slogan-bar {
+    @apply text-center text-xs sm:text-sm font-bold uppercase tracking-wide py-3 px-4;
+    background: var(--wo-bar);
+    color: #fff;
+  }
+
+  .wo-form-slogan-brand {
+    color: var(--wo-accent);
+  }
+
+  .wo-form-slogan-text {
+    @apply text-white font-semibold normal-case tracking-normal;
   }
 
   .wo-form-slogan {
