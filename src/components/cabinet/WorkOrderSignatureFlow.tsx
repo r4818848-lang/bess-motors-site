@@ -8,6 +8,8 @@ import { loadDb, saveDb } from "@/lib/store";
 import { SignaturePad } from "@/components/signature/SignaturePad";
 import { Button } from "@/components/ui/Button";
 import { PremiumWorkOrderDocument } from "@/components/work-order/PremiumWorkOrderDocument";
+import { WorkOrderPhotoGallery } from "@/components/work-order/WorkOrderPhotoGallery";
+import { mergeClientPortalIntoDb } from "@/lib/client-portal";
 import {
   fetchClientIp,
   getDeviceInfo,
@@ -17,6 +19,7 @@ import {
   resolveOrderDocumentLocale,
   type DocLocale,
 } from "@/lib/work-order-locale";
+import { mergeRemoteWorkOrderPatch } from "@/lib/work-order-remote-sync";
 
 type CloudSignContext = {
   phone: string;
@@ -29,9 +32,38 @@ interface Props {
   onDone: () => void;
   onCancel: () => void;
   cloudSign?: CloudSignContext;
-  /** Document language for client (from order or URL) */
   documentLocale?: DocLocale;
   urlLang?: string | null;
+}
+
+async function submitSignatureToCloud(
+  orderId: string,
+  phone: string,
+  plate: string,
+  meta: OrderSignature,
+  clientSignature: string
+): Promise<{ ok: true; order: WorkOrder } | { ok: false; error: string }> {
+  const res = await fetch("/api/sign-order", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      action: "submit",
+      orderId,
+      phone,
+      plate,
+      signature: meta,
+      clientSignature,
+    }),
+  });
+  const data = (await res.json()) as {
+    ok?: boolean;
+    order?: WorkOrder;
+    error?: string;
+  };
+  if (!res.ok || !data.ok || !data.order) {
+    return { ok: false, error: data.error ?? `http_${res.status}` };
+  }
+  return { ok: true, order: data.order };
 }
 
 export function WorkOrderSignatureFlow({
@@ -51,6 +83,7 @@ export function WorkOrderSignatureFlow({
   const [repairOk, setRepairOk] = useState(false);
   const [worksOk, setWorksOk] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   const vatRate = db.settings.vatRate ?? 23;
   const client = db.users.find((u) => u.id === order.userId);
@@ -59,12 +92,16 @@ export function WorkOrderSignatureFlow({
 
   const submit = async () => {
     if (!signatureData || !priceOk || !repairOk || !worksOk || submitting) return;
+    if (!client || !vehicle) return;
+
     setSubmitting(true);
+    setSubmitError("");
+
     const ip = await fetchClientIp();
     const meta: OrderSignature = {
       dataUrl: signatureData,
       signedAt: new Date().toISOString(),
-      signedBy: client?.name ?? "Client",
+      signedBy: client.name ?? "Client",
       ip,
       userAgent: typeof navigator !== "undefined" ? navigator.userAgent : "",
       deviceInfo: getDeviceInfo(),
@@ -73,39 +110,67 @@ export function WorkOrderSignatureFlow({
       confirmationText: confirmText,
     };
 
-    if (cloudSign) {
-      const res = await fetch("/api/sign-order", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "submit",
-          orderId: order.id,
-          phone: cloudSign.phone,
-          plate: cloudSign.plate,
-          signature: meta,
-          clientSignature: signatureData,
-        }),
-      });
-      if (!res.ok) {
-        setSubmitting(false);
-        return;
-      }
-    } else {
+    const phone = cloudSign?.phone ?? client.phone;
+    const plate = cloudSign?.plate ?? vehicle.plate;
+
+    const cloudResult = await submitSignatureToCloud(
+      order.id,
+      phone,
+      plate,
+      meta,
+      signatureData
+    );
+
+    if (cloudResult.ok) {
       const fresh = loadDb();
-      const wo = fresh.workOrders.find((o) => o.id === order.id);
-      if (wo) {
-        wo.confirmationStatus = "confirmed";
-        wo.signature = meta;
-        wo.clientSignature = signatureData;
-        wo.updatedAt = new Date().toISOString().slice(0, 10);
-        wo.documentStatus =
-          wo.status === "delivered"
-            ? "delivered"
-            : wo.status === "ready"
-              ? "completed"
-              : "signed";
-        saveDb(fresh);
-      }
+      const idx = fresh.workOrders.findIndex((o) => o.id === order.id);
+      const merged = mergeRemoteWorkOrderPatch(
+        idx >= 0 ? fresh.workOrders[idx] : order,
+        cloudResult.order
+      );
+      if (idx >= 0) fresh.workOrders[idx] = merged;
+      else fresh.workOrders.push(merged);
+      saveDb(fresh, { skipCloudPush: true });
+      mergeClientPortalIntoDb({
+        user: client,
+        vehicles: fresh.vehicles.filter((v) => v.userId === client.id),
+        workOrders: fresh.workOrders.filter((o) => o.userId === client.id),
+        appointments: fresh.appointments.filter((a) => a.userId === client.id),
+        notifications: (fresh.notifications ?? []).filter(
+          (n) => n.userId === client.id
+        ),
+      });
+      setSubmitting(false);
+      onDone();
+      return;
+    }
+
+    if (cloudResult.error !== "cloud_disabled" && cloudResult.error !== "cloud_read_failed") {
+      setSubmitError(
+        locale === "ru"
+          ? "Не удалось сохранить подпись. Попробуйте ещё раз или обратитесь в сервис."
+          : locale === "pl"
+            ? "Nie udało się zapisać podpisu. Spróbuj ponownie lub zadzwoń."
+            : "Could not save signature. Please try again or contact the service."
+      );
+      setSubmitting(false);
+      return;
+    }
+
+    const fresh = loadDb();
+    const wo = fresh.workOrders.find((o) => o.id === order.id);
+    if (wo) {
+      wo.confirmationStatus = "confirmed";
+      wo.signature = meta;
+      wo.clientSignature = signatureData;
+      wo.updatedAt = new Date().toISOString().slice(0, 10);
+      wo.documentStatus =
+        wo.status === "delivered"
+          ? "delivered"
+          : wo.status === "ready"
+            ? "completed"
+            : "signed";
+      saveDb(fresh);
     }
     setSubmitting(false);
     onDone();
@@ -119,9 +184,22 @@ export function WorkOrderSignatureFlow({
     );
   }
 
+  const clientPhotos = order.files.filter(
+    (f) =>
+      f.type === "image" &&
+      (f.dataUrl || f.storageUrl) &&
+      (f.category === "before" || f.category === "after")
+  );
+
   return (
     <div className="fixed inset-0 z-[100] bg-black/95 overflow-y-auto">
       <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
+        {clientPhotos.length > 0 && (
+          <div className="rounded-xl border border-gray-300 bg-white p-4 shadow-lg">
+            <WorkOrderPhotoGallery files={order.files} variant="form" />
+          </div>
+        )}
+
         <PremiumWorkOrderDocument
           order={order}
           vehicle={vehicle}
@@ -166,6 +244,12 @@ export function WorkOrderSignatureFlow({
             </div>
           }
         />
+
+        {submitError && (
+          <p className="text-sm text-red-400 text-center bg-red-500/10 border border-red-500/30 rounded-lg px-4 py-3">
+            {submitError}
+          </p>
+        )}
 
         <p className="text-[10px] text-bm-muted text-center leading-relaxed max-w-2xl mx-auto">
           {s.legalNotice}
