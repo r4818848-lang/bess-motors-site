@@ -4,7 +4,7 @@ import { useI18n } from "@/lib/i18n/context";
 import { BookingLink } from "@/components/analytics/BookingLink";
 
 export function PriceMatchBanner() {
-  const { locale } = useI18n();
+  const { locale, t } = useI18n();
   const text =
     locale === "ru"
       ? "Нашли дешевле? Покажите смету — постараемся сопоставить цену на аналогичные работы."
@@ -17,7 +17,7 @@ export function PriceMatchBanner() {
       <div className="glass-red rounded-xl px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4 neon-border">
         <p className="text-sm text-bm-silver">{text}</p>
         <BookingLink href="/booking" className="btn-primary text-xs shrink-0" trackSource="price_match">
-          {locale === "ru" ? "Записаться" : "Umów wizytę"}
+          {t.nav.booking}
         </BookingLink>
       </div>
     </div>

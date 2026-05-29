@@ -72,26 +72,30 @@ export function HotOrdersPanel({ onUpdate }: { onUpdate?: () => void }) {
 
   const refresh = () => onUpdate?.();
 
-  const setCallStatus = (id: string, status: CallRequest["status"]) => {
+  const setCallStatus = async (id: string, status: CallRequest["status"]) => {
     const next = loadDb();
     const r = next.callRequests.find((x) => x.id === id);
     if (r) r.status = status;
     saveDb(next);
+    const ok = await pushCrmToCloud(next);
+    if (!ok) alert(c.syncFailed);
     refresh();
   };
 
-  const confirmBooking = (id: string) => {
+  const confirmBooking = async (id: string) => {
     const next = loadDb();
     const apt = next.appointments.find((x) => x.id === id);
     if (!apt) return;
     createWorkOrderFromAppointment(next, apt, serviceLabel);
     saveDb(next);
+    const ok = await pushCrmToCloud(next);
+    if (!ok) alert(c.syncFailed);
     refresh();
   };
 
-  const setBookingStatus = (id: string, status: Appointment["appointmentStatus"]) => {
+  const setBookingStatus = async (id: string, status: Appointment["appointmentStatus"]) => {
     if (status === "confirmed") {
-      confirmBooking(id);
+      await confirmBooking(id);
       return;
     }
     const next = loadDb();
@@ -99,6 +103,8 @@ export function HotOrdersPanel({ onUpdate }: { onUpdate?: () => void }) {
     if (!a) return;
     a.appointmentStatus = status;
     saveDb(next);
+    const ok = await pushCrmToCloud(next);
+    if (!ok) alert(c.syncFailed);
     refresh();
   };
 
@@ -125,7 +131,8 @@ export function HotOrdersPanel({ onUpdate }: { onUpdate?: () => void }) {
       next.callRequests = next.callRequests.filter((x) => x.id !== row.id);
     }
     saveDb(next);
-    await pushCrmToCloud(next);
+    const ok = await pushCrmToCloud(next);
+    if (!ok) alert(c.syncFailed);
     refresh();
   };
 

@@ -15,7 +15,7 @@ const COLS: RepairStatus[] = [
   "delivered",
 ];
 
-export function WorkOrderKanban() {
+export function WorkOrderKanban({ orders }: { orders?: import("@/lib/store").WorkOrder[] }) {
   const { t } = useI18n();
   const tick = useDbSync();
   const [dragId, setDragId] = useState<string | null>(null);
@@ -25,13 +25,13 @@ export function WorkOrderKanban() {
     const db = loadDb();
     const map = new Map<RepairStatus, WorkOrder[]>();
     for (const s of COLS) map.set(s, []);
-    for (const o of db.workOrders) {
+    for (const o of orders ?? db.workOrders) {
       const list = map.get(o.status) ?? [];
       list.push(o);
       map.set(o.status, list);
     }
     return { db, map };
-  }, [tick]);
+  }, [tick, orders]);
 
   const move = (orderId: string, status: RepairStatus) => {
     const db = loadDb();

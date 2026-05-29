@@ -4,9 +4,12 @@ import Link from "next/link";
 import { useMemo } from "react";
 import { useDbSync } from "@/hooks/useDbSync";
 import { loadDb } from "@/lib/store";
+import { useI18n } from "@/lib/i18n/context";
 import { Card } from "@/components/ui/Card";
 
 export function CrmTodayPanel() {
+  const { t } = useI18n();
+  const c = t.crm;
   const tick = useDbSync();
   const data = useMemo(() => {
     void tick;
@@ -31,36 +34,38 @@ export function CrmTodayPanel() {
 
   return (
     <div className="space-y-4 mb-8">
-      <h2 className="font-display uppercase text-lg">Dziś · {data.today}</h2>
+      <h2 className="font-display uppercase text-lg">
+        {c.todayTitle} · {data.today}
+      </h2>
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
         <Card className="p-4 text-center">
-          <p className="text-[10px] uppercase text-bm-muted">Wizyty</p>
+          <p className="text-[10px] uppercase text-bm-muted">{c.appointmentsToday}</p>
           <p className="text-2xl font-bold text-bm-red">{data.apts.length}</p>
         </Card>
         <Card className="p-4 text-center">
-          <p className="text-[10px] uppercase text-bm-muted">Aktywne WZ</p>
+          <p className="text-[10px] uppercase text-bm-muted">{c.activeOrders}</p>
           <p className="text-2xl font-bold">{data.active}</p>
         </Card>
         <Card className="p-4 text-center">
-          <p className="text-[10px] uppercase text-bm-muted">Gotowe</p>
+          <p className="text-[10px] uppercase text-bm-muted">{c.readyCount}</p>
           <p className="text-2xl font-bold text-green-400">{data.ready.length}</p>
         </Card>
         <Card className="p-4 text-center">
-          <p className="text-[10px] uppercase text-bm-muted">Podpisy</p>
+          <p className="text-[10px] uppercase text-bm-muted">{c.signaturesCount}</p>
           <p className="text-2xl font-bold text-amber-400">{data.unsigned.length}</p>
         </Card>
         <Card className="p-4 text-center">
-          <p className="text-[10px] uppercase text-bm-muted">Nieopłacone</p>
+          <p className="text-[10px] uppercase text-bm-muted">{c.unpaidCount}</p>
           <p className="text-2xl font-bold">{data.unpaid.length}</p>
         </Card>
         <Card className="p-4 text-center">
-          <p className="text-[10px] uppercase text-bm-muted">SLA ⚠</p>
+          <p className="text-[10px] uppercase text-bm-muted">SLA</p>
           <p className="text-2xl font-bold text-red-400">{data.critical.length}</p>
         </Card>
       </div>
       {data.apts.length > 0 && (
         <Card className="p-4">
-          <p className="text-xs uppercase text-bm-muted mb-2">Harmonogram</p>
+          <p className="text-xs uppercase text-bm-muted mb-2">{c.todaySchedule}</p>
           <ul className="text-sm space-y-1">
             {data.apts.slice(0, 8).map((a) => (
               <li key={a.id}>
@@ -69,7 +74,7 @@ export function CrmTodayPanel() {
             ))}
           </ul>
           <Link href="/crm/appointments" className="text-xs text-bm-red mt-2 inline-block">
-            Wszystkie wizyty →
+            {c.allAppointmentsLink}
           </Link>
         </Card>
       )}

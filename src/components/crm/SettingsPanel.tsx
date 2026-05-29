@@ -116,7 +116,7 @@ export function SettingsPanel({ onUpdate }: { onUpdate: () => void }) {
       </h2>
 
       <div className="glass-red rounded-xl p-6 neon-border space-y-4">
-        <h3 className="font-display text-sm uppercase text-bm-red">Automatyzacja</h3>
+        <h3 className="font-display text-sm uppercase text-bm-red">{w.automationTitle}</h3>
         <label className="flex items-center gap-2 text-sm cursor-pointer">
           <input
             type="checkbox"
@@ -125,7 +125,7 @@ export function SettingsPanel({ onUpdate }: { onUpdate: () => void }) {
               setSettings({ ...settings, autoCreateWorkOrderFromBooking: e.target.checked })
             }
           />
-          Auto WZ z wizyt (dziś/jutro)
+          {w.autoWorkOrderFromBooking}
         </label>
         <label className="flex items-center gap-2 text-sm cursor-pointer">
           <input
@@ -135,7 +135,7 @@ export function SettingsPanel({ onUpdate }: { onUpdate: () => void }) {
               setSettings({ ...settings, autoConfirmWebBookings: e.target.checked })
             }
           />
-          Auto potwierdzenie zapisów ze strony
+          {w.autoConfirmWebBookings}
         </label>
         <label className="flex items-center gap-2 text-sm cursor-pointer">
           <input
@@ -145,10 +145,10 @@ export function SettingsPanel({ onUpdate }: { onUpdate: () => void }) {
               setSettings({ ...settings, automationDisabled: !e.target.checked })
             }
           />
-          Silnik automatyzacji CRM włączony
+          {w.crmAutomationEnabled}
         </label>
         <div>
-          <label className="text-xs text-bm-muted uppercase">Zablokowane sloty (data|godzina, linia)</label>
+          <label className="text-xs text-bm-muted uppercase">{w.blockedSlotsLabel}</label>
           <textarea
             className="input-premium mt-1 w-full min-h-[72px] font-mono text-xs"
             value={(settings.blockedBookingSlots ?? []).join("\n")}
@@ -161,12 +161,12 @@ export function SettingsPanel({ onUpdate }: { onUpdate: () => void }) {
                   .filter(Boolean),
               })
             }
-            placeholder="2026-06-01|10:00"
+            placeholder={w.blockedSlotsPlaceholder}
           />
         </div>
         <div className="grid md:grid-cols-2 gap-4">
           <div>
-            <label className="text-xs text-bm-muted uppercase">Przerwa obiadowa od</label>
+            <label className="text-xs text-bm-muted uppercase">{w.lunchBreakFrom}</label>
             <input
               type="time"
               className="input-premium mt-1"
@@ -175,7 +175,7 @@ export function SettingsPanel({ onUpdate }: { onUpdate: () => void }) {
             />
           </div>
           <div>
-            <label className="text-xs text-bm-muted uppercase">do</label>
+            <label className="text-xs text-bm-muted uppercase">{w.lunchBreakTo}</label>
             <input
               type="time"
               className="input-premium mt-1"

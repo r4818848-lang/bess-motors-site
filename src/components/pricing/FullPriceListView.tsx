@@ -27,7 +27,7 @@ function itemLabel(item: PriceListItem, locale: "pl" | "ru") {
 
 export function FullPriceListView() {
   const { locale, t } = useI18n();
-  const loc = locale === "ru" ? "ru" : "pl";
+  const loc = locale === "ru" || locale === "uk" ? "ru" : "pl";
   const [category, setCategory] = useState<PriceCategoryId>("diagnostic");
 
   const items = useMemo(() => itemsByCategory(category), [category]);

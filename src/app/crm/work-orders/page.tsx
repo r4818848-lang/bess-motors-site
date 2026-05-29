@@ -49,7 +49,7 @@ function WorkOrdersPageContent() {
     const byStatus = filterWorkOrders([...db.workOrders], filters);
     const bySearch = filterWorkOrdersByQuery(db, byStatus, searchQuery);
     return bySearch.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-  }, [db, filters, searchQuery]);
+  }, [db, filters, searchQuery, dbTick]);
 
   if (creating || editingId) {
     return (
@@ -115,8 +115,8 @@ function WorkOrdersPageContent() {
         <WorkOrderFilters filters={filters} onChange={setFilters} />
 
         <section>
-          <h2 className="font-display uppercase text-sm text-bm-muted mb-3">Kanban</h2>
-          <WorkOrderKanban />
+          <h2 className="font-display uppercase text-sm text-bm-muted mb-3">{c.kanbanTitle}</h2>
+          <WorkOrderKanban orders={filteredOrders} />
         </section>
 
         <div className="glass-red rounded-xl overflow-hidden neon-border">
@@ -128,7 +128,7 @@ function WorkOrdersPageContent() {
                 <th>{t.wo.paymentMethodLabel}</th>
                 <th>{c.date}</th>
                 <th>{c.client}</th>
-                <th>Auto</th>
+                <th>{c.vehicleColumn}</th>
                 <th>{c.total}</th>
                 <th>{t.document.documentStatus}</th>
                 <th>{sig.adminSigned}</th>

@@ -7,9 +7,12 @@ type SlotRow = { date: string; time: string; available: boolean };
 export function useBookingAvailability(days = 14) {
   const [availability, setAvailability] = useState<Map<string, boolean>>(new Map());
   const [loading, setLoading] = useState(true);
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
+    setLoading(true);
+    setLoaded(false);
     fetch(`/api/appointments/availability?days=${days}`)
       .then((r) => r.json())
       .then((data: { slots?: SlotRow[] }) => {
@@ -19,9 +22,13 @@ export function useBookingAvailability(days = 14) {
           map.set(`${s.date}|${s.time}`, s.available);
         }
         setAvailability(map);
+        setLoaded(true);
       })
       .catch(() => {
-        if (!cancelled) setAvailability(new Map());
+        if (!cancelled) {
+          setAvailability(new Map());
+          setLoaded(false);
+        }
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -33,15 +40,16 @@ export function useBookingAvailability(days = 14) {
 
   const isSlotAvailable = useCallback(
     (dateStr: string, time: string) => {
-      if (availability.size === 0) return true;
+      if (loading) return false;
+      if (!loaded || availability.size === 0) return false;
       return availability.get(`${dateStr}|${time}`) === true;
     },
-    [availability]
+    [availability, loading, loaded]
   );
 
-  const freeSlotCount = availability.size
+  const freeSlotCount = loaded && availability.size
     ? [...availability.values()].filter(Boolean).length
     : null;
 
-  return { isSlotAvailable, loading, freeSlotCount };
+  return { isSlotAvailable, loading, loaded, freeSlotCount };
 }

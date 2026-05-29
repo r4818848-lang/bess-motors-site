@@ -41,7 +41,7 @@ function DashboardLayoutInner({
   const tab = searchParams.get("tab");
   const c = t.crm;
   useCloudAppointmentsSync(role === "admin");
-  useCloudCrmSync(role === "admin" || role === "mechanic");
+  const { syncing, syncFailed, resync } = useCloudCrmSync(role === "admin" || role === "mechanic");
   const hotBadge = useHotOrdersBadgeCount();
 
   const adminNav: NavItem[] = [
@@ -110,8 +110,25 @@ function DashboardLayoutInner({
             );
           })}
         </nav>
-        <div className="p-3 border-t border-bm-border">
-          <Link href="/" className="text-xs text-bm-muted hover:text-bm-red transition-colors">
+        <div className="p-3 border-t border-bm-border space-y-2">
+          {(role === "admin" || role === "mechanic") && (
+            <div className="text-[10px] uppercase tracking-wide">
+              {syncing ? (
+                <span className="text-bm-muted">{c.syncing}</span>
+              ) : syncFailed ? (
+                <button
+                  type="button"
+                  className="text-amber-400 hover:text-bm-red"
+                  onClick={() => void resync()}
+                >
+                  {c.syncFailed} · {c.syncNow}
+                </button>
+              ) : (
+                <span className="text-green-500/80">{c.cloudSynced}</span>
+              )}
+            </div>
+          )}
+          <Link href="/" className="text-xs text-bm-muted hover:text-bm-red transition-colors block">
             ← {t.nav.home}
           </Link>
         </div>

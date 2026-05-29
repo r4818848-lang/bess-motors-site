@@ -158,7 +158,7 @@ function autoAppointments(db: Database, settings: AppSettings): number {
     if (apt.workOrderId) continue;
     if (apt.appointmentStatus === "cancelled" || apt.appointmentStatus === "completed") continue;
     if (apt.date !== today && apt.date !== tomorrow) continue;
-    createWorkOrderFromAppointment(db, apt, (id) => getPriceItem(id)?.nameRu ?? id);
+    createWorkOrderFromAppointment(db, apt, (id) => getPriceItem(id)?.namePl ?? id);
     created++;
   }
   return created;

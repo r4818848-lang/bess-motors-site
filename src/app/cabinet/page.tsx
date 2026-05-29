@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { BookingLink } from "@/components/analytics/BookingLink";
 import { SocialContactLink } from "@/components/analytics/SocialContactLink";
@@ -85,6 +85,19 @@ import { TelegramOpenButton } from "@/components/shared/TelegramOpenButton";
 import { VehicleThumbnail } from "@/components/vehicle/VehicleThumbnail";
 import { VehiclePhoto } from "@/components/vehicle/VehiclePhoto";
 
+const CABINET_TABS = [
+  "cars",
+  "appointments",
+  "history",
+  "orders",
+  "notifications",
+  "status",
+  "warranty",
+  "expenses",
+  "photos",
+  "settings",
+] as const;
+
 const statusOrder: RepairStatus[] = [
   "received",
   "diagnostic",
@@ -156,6 +169,7 @@ async function pushVehicleToCloud(vehicle: Vehicle): Promise<boolean> {
 function CabinetPageContent() {
   const { t } = useI18n();
   const searchParams = useSearchParams();
+  const router = useRouter();
   const { sessionReady, clientUser, signOut, refreshAuth } = useAuth();
   // One cloud pull is enough for cabinet (both hooks merged behavior via shared DB event)
   useCloudClientSync(!!clientUser);
@@ -171,12 +185,16 @@ function CabinetPageContent() {
 
   const refreshDb = () => setDb(loadDb());
 
-  const selectTab = useCallback((id: string) => {
-    setTab(id);
-    requestAnimationFrame(() => {
-      tabPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    });
-  }, []);
+  const selectTab = useCallback(
+    (id: string) => {
+      setTab(id);
+      router.replace(`/cabinet?tab=${encodeURIComponent(id)}`, { scroll: false });
+      requestAnimationFrame(() => {
+        tabPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    },
+    [router]
+  );
 
   useEffect(() => {
     refreshDb();
@@ -198,14 +216,14 @@ function CabinetPageContent() {
   useEffect(() => {
     const orderParam = searchParams.get("order");
     const tabParam = searchParams.get("tab");
-    if (tabParam === "history") selectTab("history");
-    if (tabParam === "notifications") selectTab("notifications");
-    if (tabParam === "appointments") selectTab("appointments");
+    if (tabParam && (CABINET_TABS as readonly string[]).includes(tabParam)) {
+      setTab(tabParam);
+    }
     if (orderParam) {
-      selectTab("orders");
+      setTab("orders");
       setSelectedOrderId(orderParam);
     }
-  }, [searchParams, selectTab]);
+  }, [searchParams]);
 
   useEffect(() => {
     if (!mounted || !sessionReady || !clientUser || !db) return;
@@ -358,10 +376,9 @@ function CabinetPageContent() {
   );
   const cp = t.clientPayment;
   const wo = t.wo;
-  const activeOrder =
-    [...myOrders]
-      .filter((o) => o.status !== "delivered")
-      .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))[0] ?? myOrders[0];
+  const activeOrder = [...myOrders]
+    .filter((o) => o.status !== "delivered")
+    .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))[0];
   const activeStatusIdx = activeOrder
     ? statusOrder.indexOf(activeOrder.status)
     : 0;
@@ -432,8 +449,12 @@ function CabinetPageContent() {
           ))}
         </div>
 
-        <ActiveRepairCard user={user} db={activeDb} />
-        <ExtraWorkApprovalCabinet orders={myOrders} />
+        {(tab === "cars" || tab === "status") && (
+          <>
+            <ActiveRepairCard user={user} db={activeDb} />
+            <ExtraWorkApprovalCabinet orders={myOrders} />
+          </>
+        )}
 
         {unreadCount > 0 && tab !== "notifications" && (
           <Card
@@ -696,7 +717,9 @@ function CabinetPageContent() {
             })()}
           <Card glow className="max-w-3xl">
             <h3 className="font-display uppercase mb-6">{t.cabinet.liveStatus}</h3>
-            <p className="text-sm text-bm-muted mb-2">Order {activeOrder.number}</p>
+            <p className="text-sm text-bm-muted mb-2">
+              {t.cabinet.orderLabel} {activeOrder.number}
+            </p>
             <p className="text-sm text-bm-red font-semibold mb-6">
               {t.cabinet.repairProgress}:{" "}
               {Math.round((activeStatusIdx / Math.max(1, statusOrder.length - 1)) * 100)}%
@@ -915,7 +938,7 @@ function CabinetPageContent() {
                             refreshDb();
                           }}
                         >
-                          OK
+                          {t.common.ok}
                         </Button>
                       )}
                     </div>
@@ -972,7 +995,7 @@ function CabinetPageContent() {
               <Card key={o.id} glow>
                 <p className="font-mono text-bm-red">{o.number}</p>
                 <p className="text-sm mt-2">
-                  {t.cabinet.warranties} do {o.warrantyUntil}
+                  {t.cabinet.warrantyUntil.replace("{date}", o.warrantyUntil ?? "")}
                 </p>
               </Card>
             ))}

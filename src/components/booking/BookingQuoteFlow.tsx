@@ -298,7 +298,7 @@ export function BookingQuoteFlow({ onDone }: Props) {
   const [submitError, setSubmitError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [promoError, setPromoError] = useState("");
-  const { isSlotAvailable } = useBookingAvailability(14);
+  const { isSlotAvailable, loading: slotsLoading } = useBookingAvailability(14);
 
   const prefillFromUrl = useCallback(() => {
     const { items: ids, plate } = parseBookingParamsFromSearch(searchParams.toString());
@@ -377,6 +377,15 @@ export function BookingQuoteFlow({ onDone }: Props) {
 
   const submit = async () => {
     if (!contactValid || cart.length === 0 || !date || !time || submitting) return;
+    const dateStr = date.toISOString().slice(0, 10);
+    if (slotsLoading) {
+      setSubmitError(bq.slotsLoading);
+      return;
+    }
+    if (!isSlotAvailable(dateStr, time)) {
+      setSubmitError(bq.slotTaken);
+      return;
+    }
     const breakdown = cart
       .map(
         (l) =>

@@ -40,14 +40,23 @@ export function TelegramLoginButton() {
           continue: "Войти",
           fail: "Не удалось войти через Telegram",
         }
-      : {
-          divider: "lub przez Telegram",
-          needPlate: "Podaj telefon i numer rejestracyjny",
-          phone: "Telefon",
-          plate: "Numer rejestracyjny",
-          continue: "Zaloguj",
-          fail: "Logowanie Telegram nie powiodło się",
-        };
+      : locale === "en"
+        ? {
+            divider: "or via Telegram",
+            needPlate: "Enter phone and registration plate",
+            phone: "Phone",
+            plate: "Registration plate",
+            continue: "Sign in",
+            fail: "Telegram sign-in failed",
+          }
+        : {
+            divider: "lub przez Telegram",
+            needPlate: "Podaj telefon i numer rejestracyjny",
+            phone: "Telefon",
+            plate: "Numer rejestracyjny",
+            continue: "Zaloguj",
+            fail: "Logowanie Telegram nie powiodło się",
+          };
 
   const finishLogin = async (payload: Record<string, unknown>) => {
     setLoading(true);

@@ -26,7 +26,7 @@ export function CabinetDashboard({
   unreadNotifications: number;
   onOpenTab: (tab: string) => void;
 }) {
-  const { locale, t } = useI18n();
+  const { t } = useI18n();
   const active = [...orders]
     .filter((o) => o.status !== "delivered")
     .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))[0];
@@ -39,17 +39,10 @@ export function CabinetDashboard({
     0
   );
 
-  const title =
-    locale === "ru" || locale === "uk"
-      ? "Обзор"
-      : locale === "en"
-        ? "Overview"
-        : "Przegląd";
-
   return (
     <Card className="p-6 mb-8 border-bm-red/30">
       <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
-        <h2 className="font-display text-lg uppercase">{title}</h2>
+        <h2 className="font-display text-lg uppercase">{t.cabinet.dashboardTitle}</h2>
         <TelegramOpenButton startParam={`ref_${user.referralCode ?? ""}`} />
       </div>
 
@@ -81,7 +74,7 @@ export function CabinetDashboard({
             <b>{calcClientTotal(active).toFixed(2)} zł</b>
           </p>
           <button type="button" className="text-bm-red text-sm mt-2 underline" onClick={() => onOpenTab("status")}>
-            {locale === "pl" ? "Szczegóły" : locale === "en" ? "Details" : "Подробнее"}
+            {t.cabinet.detailsLink}
           </button>
         </div>
       ) : null}
@@ -101,7 +94,7 @@ export function CabinetDashboard({
       <div className="flex flex-wrap gap-3">
         <BookingLink className="btn-primary text-sm px-4 py-2 rounded-lg">{t.nav.booking}</BookingLink>
         <Link href="/status" className="text-sm text-bm-muted hover:text-bm-red">
-          {locale === "pl" ? "Status bez logowania" : locale === "en" ? "Status without login" : "Статус без входа"}
+          {t.cabinet.statusWithoutLogin}
         </Link>
       </div>
     </Card>

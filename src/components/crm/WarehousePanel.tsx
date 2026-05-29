@@ -4,9 +4,12 @@ import { useState } from "react";
 import { loadDb, saveDb, type WarehouseItem } from "@/lib/store";
 import { migrateWarehouseItem } from "@/lib/warehouse-stock";
 import { useDbSync } from "@/hooks/useDbSync";
+import { useI18n } from "@/lib/i18n/context";
 import { Button } from "@/components/ui/Button";
 
 export function WarehousePanel() {
+  const { t } = useI18n();
+  const c = t.crm;
   const tick = useDbSync();
   const db = loadDb();
   void tick;
@@ -28,7 +31,7 @@ export function WarehousePanel() {
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h2 className="font-display text-lg uppercase">Magazyn / Склад</h2>
+        <h2 className="font-display text-lg uppercase">{c.warehouse}</h2>
         <Button
           onClick={() =>
             setEdit({

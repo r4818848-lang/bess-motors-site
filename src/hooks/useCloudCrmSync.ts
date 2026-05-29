@@ -14,12 +14,14 @@ import { useVisibleInterval } from "@/hooks/useVisibleInterval";
 /** Sync full CRM database with Supabase for admin (all devices) */
 export function useCloudCrmSync(enabled = true): {
   syncing: boolean;
-  resync: () => Promise<void>;
+  syncFailed: boolean;
+  resync: () => Promise<boolean>;
 } {
   const [syncing, setSyncing] = useState(false);
+  const [syncFailed, setSyncFailed] = useState(false);
 
-  const resync = useCallback(async () => {
-    if (!enabled) return;
+  const resync = useCallback(async (): Promise<boolean> => {
+    if (!enabled) return false;
     setSyncing(true);
     try {
       await pushCrmIfCloudEmpty();
@@ -27,6 +29,11 @@ export function useCloudCrmSync(enabled = true): {
       if (pulled) {
         window.dispatchEvent(new CustomEvent(DB_CHANGED_EVENT));
       }
+      setSyncFailed(!pulled);
+      return pulled;
+    } catch {
+      setSyncFailed(true);
+      return false;
     } finally {
       setSyncing(false);
     }
@@ -50,5 +57,5 @@ export function useCloudCrmSync(enabled = true): {
 
   useVisibleInterval(() => void resync(), 120_000, enabled);
 
-  return { syncing, resync };
+  return { syncing, syncFailed, resync };
 }

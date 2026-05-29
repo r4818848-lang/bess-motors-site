@@ -24,12 +24,12 @@ async function notifyAdminNewBooking(apt: Appointment, kind: "booking" | "call")
   if (kind === "booking") {
     await notifyAdminTelegram(
       [
-        "<b>📱 Новая запись через Telegram</b>",
-        `Дата: <b>${apt.date}</b> ${apt.time}`,
-        apt.clientName ? `Имя: <b>${escapeHtml(apt.clientName)}</b>` : null,
-        apt.clientPhone ? `Телефон: <b>${escapeHtml(apt.clientPhone)}</b>` : null,
-        label ? `Услуга: ${escapeHtml(label)}` : null,
-        apt.comment ? `Комментарий: ${escapeHtml(apt.comment).slice(0, 400)}` : null,
+        "<b>📱 Nowa rezerwacja (Telegram)</b>",
+        `Data: <b>${apt.date}</b> ${apt.time}`,
+        apt.clientName ? `Imię: <b>${escapeHtml(apt.clientName)}</b>` : null,
+        apt.clientPhone ? `Telefon: <b>${escapeHtml(apt.clientPhone)}</b>` : null,
+        label ? `Usługa: ${escapeHtml(label)}` : null,
+        apt.comment ? `Komentarz: ${escapeHtml(apt.comment).slice(0, 400)}` : null,
       ]
         .filter(Boolean)
         .join("\n")
@@ -39,11 +39,11 @@ async function notifyAdminNewBooking(apt: Appointment, kind: "booking" | "call")
 
   await notifyAdminTelegram(
     [
-      "<b>📞 Заявка на звонок (Telegram)</b>",
-      apt.clientName ? `Имя: <b>${escapeHtml(apt.clientName)}</b>` : null,
-      apt.clientPhone ? `Телефон: <b>${escapeHtml(apt.clientPhone)}</b>` : null,
-      label ? `Услуга: ${escapeHtml(label)}` : null,
-      apt.comment ? `Комментарий: ${escapeHtml(apt.comment).slice(0, 400)}` : null,
+      "<b>📞 Prośba o telefon (Telegram)</b>",
+      apt.clientName ? `Imię: <b>${escapeHtml(apt.clientName)}</b>` : null,
+      apt.clientPhone ? `Telefon: <b>${escapeHtml(apt.clientPhone)}</b>` : null,
+      label ? `Usługa: ${escapeHtml(label)}` : null,
+      apt.comment ? `Komentarz: ${escapeHtml(apt.comment).slice(0, 400)}` : null,
     ]
       .filter(Boolean)
       .join("\n")
