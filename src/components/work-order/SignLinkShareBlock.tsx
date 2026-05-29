@@ -14,6 +14,7 @@ import {
   resolveOrderDocumentLocale,
   type DocLocale,
 } from "@/lib/work-order-locale";
+import { isElectronicSignature } from "@/lib/work-order-signature";
 import { DocumentLocalePicker } from "./DocumentLocalePicker";
 
 interface Props {
@@ -53,6 +54,7 @@ export function SignLinkShareBlock({
   const { t, locale } = useI18n();
   const d = t.document;
   const docLang = resolveOrderDocumentLocale(order, locale);
+  const electronic = isElectronicSignature(order);
   const signUrl = useMemo(() => getSignUrl(order.id, docLang), [order.id, docLang]);
   const smsText = useMemo(
     () => buildShareMessage(order, client, docLang),
@@ -84,6 +86,7 @@ export function SignLinkShareBlock({
   );
 
   if (inline) {
+    if (!electronic) return null;
     return (
       <div className="flex flex-wrap items-center gap-1">
         {localePicker}
@@ -106,6 +109,14 @@ export function SignLinkShareBlock({
         >
           <Smartphone size={16} />
         </a>
+      </div>
+    );
+  }
+
+  if (!electronic) {
+    return (
+      <div className="rounded-xl border border-bm-border bg-bm-black/30 p-4 text-sm text-bm-muted">
+        <p>{d.physicalSignInfo}</p>
       </div>
     );
   }

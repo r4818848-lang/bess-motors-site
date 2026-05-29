@@ -13,8 +13,11 @@ import { PremiumWorkOrderDocument } from "@/components/work-order/PremiumWorkOrd
 import { getClientPaymentView } from "@/lib/payment";
 import { RepairStatusStepper } from "@/components/cabinet/RepairStatusStepper";
 import { downloadWorkOrderPdf } from "@/lib/work-order-pdf";
-import type { DocLocale } from "@/lib/work-order-locale";
-import { resolveOrderDocumentLocale } from "@/lib/work-order-locale";
+import {
+  resolveOrderDocumentLocale,
+  type DocLocale,
+} from "@/lib/work-order-locale";
+import { isElectronicSignature } from "@/lib/work-order-signature";
 
 interface Props {
   order: WorkOrder;
@@ -90,7 +93,8 @@ export function ClientWorkOrderDetail({ order, db, onBack, documentLocale }: Pro
         clientPaymentLabel={clientPayLabel}
         toolbar={
           <div className="flex flex-wrap items-center gap-2 justify-end ml-auto">
-            {localOrder.confirmationStatus !== "confirmed" && (
+            {localOrder.confirmationStatus !== "confirmed" &&
+              isElectronicSignature(localOrder) && (
               <Button className="text-xs shrink-0" onClick={() => setShowSign(true)}>
                 <PenLine className="w-4 h-4" /> {sig.signNow}
               </Button>

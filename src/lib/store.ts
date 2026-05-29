@@ -251,7 +251,11 @@ export interface WorkOrder {
   deliveryChecklist?: Record<string, boolean>;
   /** Language for printed/signed work order (pl | ru | en) */
   documentLocale?: "pl" | "ru" | "en";
+  /** electronic = client signs via link; physical = signs in person on paper */
+  signatureMode?: SignatureMode;
 }
+
+export type SignatureMode = "electronic" | "physical";
 
 export interface ClientRating {
   id: string;
@@ -707,6 +711,7 @@ function migrateWorkOrder(o: Partial<WorkOrder> & { id: string; mechanicCommissi
     documentStatus,
     vatEnabled: o.vatEnabled ?? true,
     signature,
+    signatureMode: o.signatureMode ?? "electronic",
     services: o.services ?? [],
     parts: (o.parts ?? []).map((p) => ({
       ...p,

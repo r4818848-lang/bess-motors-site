@@ -11,6 +11,7 @@ import {
   getFormFooterContent,
   formatDocDate,
 } from "./work-order-form-labels";
+import { resolveSignatureMode } from "./work-order-signature";
 
 export type DocLocale = "pl" | "ru" | "en";
 export type WorkOrderDocVariant = "color" | "bw";
@@ -118,9 +119,9 @@ function esc(s: string): string {
 }
 
 function formField(label: string, value: string): string {
-  return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:11px;">
+  return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:11px;">
     <span style="color:#666;min-width:110px;">${esc(label)}</span>
-    <span style="flex:1;border-bottom:1px solid #999;color:#111;font-weight:500;padding-bottom:2px;">${esc(value) || "&nbsp;"}</span>
+    <span style="flex:1;border-bottom:1px solid #999;color:#111;font-weight:500;padding:0 0 6px 0;line-height:1.35;">${esc(value) || "&nbsp;"}</span>
   </div>`;
 }
 
@@ -197,9 +198,23 @@ export function buildWorkOrderDocumentHtml(
     )
     .join("");
 
-  const sigImg = order.signature?.dataUrl
-    ? `<img src="${order.signature.dataUrl}" alt="" style="height:40px;max-width:180px;display:block;margin:4px 0;${variant === "bw" ? "filter:grayscale(1);" : ""}" />`
-    : "";
+  const signatureMode = resolveSignatureMode(order);
+  const sigImg =
+    signatureMode === "electronic" && order.signature?.dataUrl
+      ? `<div style="margin:4px 0;">
+        <div style="font-size:9px;color:#666;margin-bottom:4px;">${esc(L.electronicSignNote)}</div>
+        <img src="${order.signature.dataUrl}" alt="" style="height:48px;max-width:200px;display:block;${variant === "bw" ? "filter:grayscale(1);" : ""}" />
+      </div>`
+      : "";
+  const physicalHint =
+    signatureMode === "physical"
+      ? `<p style="font-size:9px;color:#666;margin:6px 0 0;font-style:italic;">${esc(L.physicalSignNote)}</p>`
+      : "";
+  const signLineHeight = sigImg ? "8" : "32";
+  const signedDate =
+    signatureMode === "electronic" && order.signature
+      ? formatDocDate(order.signature.signedAt)
+      : "";
 
   return `<div id="bm-work-order-doc" data-variant="${variant}" style="width:794px;font-family:'Segoe UI',system-ui,sans-serif;color:#111;background:#fff;box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact;${variant === "bw" ? "filter:grayscale(1);" : ""}">
   <div style="padding:24px 28px 16px;border-bottom:1px solid #ccc;">
@@ -219,8 +234,8 @@ export function buildWorkOrderDocumentHtml(
     </table>
     <table style="width:100%;margin-top:16px;border-top:1px solid #eee;padding-top:12px;">
       <tr>
-        <td style="width:50%;font-size:11px;color:#555;">${esc(L.receptionDate)}<div style="border-bottom:1px solid #999;margin-top:4px;font-weight:600;color:#111;">${esc(formatDocDate(order.createdAt))}</div></td>
-        <td style="width:50%;font-size:11px;color:#555;padding-left:24px;">${esc(L.completionDate)}<div style="border-bottom:1px solid #999;margin-top:4px;font-weight:600;color:#111;">${esc(formatDocDate(completionDate))}</div></td>
+        <td style="width:50%;font-size:11px;color:#555;">${esc(L.receptionDate)}<div style="border-bottom:1px solid #999;margin-top:6px;font-weight:600;color:#111;padding:0 0 6px 0;">${esc(formatDocDate(order.createdAt))}</div></td>
+        <td style="width:50%;font-size:11px;color:#555;padding-left:24px;">${esc(L.completionDate)}<div style="border-bottom:1px solid #999;margin-top:6px;font-weight:600;color:#111;padding:0 0 6px 0;">${esc(formatDocDate(completionDate))}</div></td>
       </tr>
     </table>
   </div>
@@ -307,8 +322,9 @@ export function buildWorkOrderDocumentHtml(
       <td style="width:50%;padding:16px 20px;vertical-align:top;">
         <p style="margin:0 0 12px;font-size:11px;font-weight:600;">${esc(L.clientSign)}</p>
         ${sigImg}
-        <div style="border-bottom:1px solid #666;height:${sigImg ? "8" : "32"}px;margin-bottom:8px;"></div>
-        <div style="display:flex;justify-content:space-between;font-size:10px;color:#666;text-transform:uppercase;"><span>${esc(L.signLabel)}</span><span>${esc(L.dateLabel)}</span></div>
+        <div style="border-bottom:1px solid #666;height:${signLineHeight}px;margin-bottom:8px;"></div>
+        ${physicalHint}
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:#666;text-transform:uppercase;"><span>${esc(L.signLabel)}</span><span>${esc(L.dateLabel)}${signedDate ? `: ${esc(signedDate)}` : ""}</span></div>
       </td>
     </tr>
   </table>

@@ -36,6 +36,7 @@ import {
   padFormRows,
   formatDocDate,
 } from "@/lib/work-order-form-labels";
+import { resolveSignatureMode } from "@/lib/work-order-signature";
 
 export type PremiumWorkOrderMode = "screen" | "print";
 
@@ -108,6 +109,7 @@ export function PremiumWorkOrderDocument({
   const footer = getFormFooterContent(docLocale);
   const legal = getWorkOrderLegalTexts(docLocale);
   const b = calcOrderBreakdown(order, vatRate);
+  const signatureMode = resolveSignatureMode(order);
   const isBw = variant === "bw";
   const rootClass = isBw ? "wo-form-root wo-form-bw" : "wo-form-root wo-form-color";
 
@@ -362,24 +364,32 @@ export function PremiumWorkOrderDocument({
         </div>
         <div className="wo-form-sign-block">
           <p className="wo-form-sign-role">{L.clientSign}</p>
-          {order.signature?.dataUrl && !signatureSlot ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={order.signature.dataUrl}
-              alt=""
-              className="h-12 object-contain my-1"
-            />
+          {signatureMode === "electronic" && order.signature?.dataUrl && !signatureSlot ? (
+            <div className="wo-form-sign-electronic">
+              <p className="wo-form-sign-electronic-label">{L.electronicSignNote}</p>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={order.signature.dataUrl}
+                alt=""
+                className="h-14 object-contain my-1"
+              />
+            </div>
           ) : signatureSlot ? (
             signatureSlot
           ) : (
-            <div className="wo-form-sign-line" />
+            <>
+              <div className="wo-form-sign-line" />
+              {signatureMode === "physical" && (
+                <p className="wo-form-sign-physical-hint">{L.physicalSignNote}</p>
+              )}
+            </>
           )}
           <div className="wo-form-sign-labels">
             <span>{L.signLabel}</span>
             <span>
               {L.dateLabel}
-              {order.signature
-                ? `: ${new Date(order.signature.signedAt).toLocaleDateString()}`
+              {signatureMode === "electronic" && order.signature
+                ? `: ${formatDocDate(order.signature.signedAt)}`
                 : ""}
             </span>
           </div>

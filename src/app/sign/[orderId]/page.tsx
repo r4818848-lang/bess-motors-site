@@ -18,6 +18,7 @@ import {
   resolveOrderDocumentLocale,
   type DocLocale,
 } from "@/lib/work-order-locale";
+import { isElectronicSignature } from "@/lib/work-order-signature";
 
 type SignMode = "local" | "cloud" | null;
 
@@ -137,7 +138,10 @@ function SignWorkOrderContent({
         portal: cloud.portal,
       });
     }
-    if (verifiedOrder.confirmationStatus !== "confirmed") {
+    if (
+      verifiedOrder.confirmationStatus !== "confirmed" &&
+      isElectronicSignature(verifiedOrder)
+    ) {
       setShowSign(true);
     }
   };
@@ -190,7 +194,7 @@ function SignWorkOrderContent({
     );
   }
 
-  if (showSign) {
+  if (showSign && order && isElectronicSignature(order)) {
     return (
       <WorkOrderSignatureFlow
         order={order}
@@ -212,6 +216,8 @@ function SignWorkOrderContent({
     );
   }
 
+  const electronicSign = isElectronicSignature(order);
+
   return (
     <div className="pt-28 pb-20 px-4 max-w-3xl mx-auto">
       <div className="flex flex-col sm:flex-row gap-3 mb-4 items-stretch sm:items-center">
@@ -220,13 +226,19 @@ function SignWorkOrderContent({
           onChange={setViewLang}
           className="sm:mr-auto"
         />
-        <button
-          type="button"
-          className="btn-primary flex-1"
-          onClick={() => setShowSign(true)}
-        >
-          {t.signature.signNow}
-        </button>
+        {electronicSign ? (
+          <button
+            type="button"
+            className="btn-primary flex-1"
+            onClick={() => setShowSign(true)}
+          >
+            {t.signature.signNow}
+          </button>
+        ) : (
+          <p className="flex-1 text-sm text-amber-200/90 bg-amber-500/10 border border-amber-500/30 rounded-lg px-4 py-3">
+            {t.document.physicalSignInfo}
+          </p>
+        )}
         <TelegramOpenButton startParam={`sign_${orderId}`} />
       </div>
       {!isOwner && (

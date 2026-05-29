@@ -1026,6 +1026,13 @@ const pl = {
     langPl: "Polski",
     langRu: "Русский",
     langEn: "English",
+    signatureMode: "Sposób podpisu klienta",
+    signatureModeHint:
+      "Elektroniczny — link do podpisu online. Fizyczny — klient podpisuje na miejscu przy odbiorze.",
+    signatureElectronic: "Elektroniczny",
+    signaturePhysical: "Fizyczny (na miejscu)",
+    physicalSignInfo:
+      "Klient podpisuje zlecenie osobiście przy odbiorze — link do podpisu online jest wyłączony.",
   },
   documentStatus: {
     awaiting_signature: "Oczekuje podpisu",
@@ -2232,6 +2239,13 @@ const ru: TranslationKeys = {
     langPl: "Polski",
     langRu: "Русский",
     langEn: "English",
+    signatureMode: "Способ подписи клиента",
+    signatureModeHint:
+      "Электронная — ссылка на подпись онлайн. Физическая — клиент подписывает на месте при выдаче.",
+    signatureElectronic: "Электронная",
+    signaturePhysical: "Физическая (на месте)",
+    physicalSignInfo:
+      "Клиент подписывает заказ-наряд лично при выдаче — ссылка на электронную подпись отключена.",
   },
   documentStatus: {
     awaiting_signature: "Ожидает подписи",
@@ -3121,6 +3135,13 @@ const en: TranslationKeys = {
     langEn: "English",
     signDoneTitle: "Thank you!",
     signDoneHint: "Work order signed.",
+    signatureMode: "Client signature method",
+    signatureModeHint:
+      "Electronic — online sign link. In person — client signs on paper at handover.",
+    signatureElectronic: "Electronic",
+    signaturePhysical: "In person (on site)",
+    physicalSignInfo:
+      "Client signs the work order in person at handover — online sign link is disabled.",
   },
   premiumWo: {
     slogan: "YOUR CAR IN TRUSTED HANDS!",

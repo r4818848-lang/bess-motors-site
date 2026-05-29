@@ -36,6 +36,8 @@ export function getFormDocLabels(locale: DocLocale) {
         clientSign: "Клиент",
         signLabel: "Подпись",
         dateLabel: "Дата",
+        physicalSignNote: "Подпись при приёме / выдаче автомобиля",
+        electronicSignNote: "Электронная подпись клиента",
         currency: "zł",
         website: "bess-motors.pl",
       }
@@ -72,6 +74,8 @@ export function getFormDocLabels(locale: DocLocale) {
           clientSign: "Client",
           signLabel: "Signature",
           dateLabel: "Date",
+          physicalSignNote: "Signature on vehicle handover",
+          electronicSignNote: "Client electronic signature",
           currency: "PLN",
           website: "bess-motors.pl",
         }
@@ -107,6 +111,8 @@ export function getFormDocLabels(locale: DocLocale) {
           clientSign: "Klient",
           signLabel: "Podpis",
           dateLabel: "Data",
+          physicalSignNote: "Podpis przy odbiorze / wydaniu pojazdu",
+          electronicSignNote: "Podpis elektroniczny klienta",
           currency: "zł",
           website: "bess-motors.pl",
         };

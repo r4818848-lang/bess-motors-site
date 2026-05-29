@@ -627,6 +627,8 @@
 
   .wo-form-date-line {
     @apply border-b border-gray-400 min-h-[1.25rem] font-medium text-gray-900;
+    padding-bottom: 6px;
+    margin-top: 4px;
   }
 
   .wo-form-info-grid section,
@@ -699,7 +701,9 @@
   }
 
   .wo-form-field-value {
-    @apply flex-1 border-b border-gray-400 min-h-[1.1rem] text-gray-900 font-medium pb-0.5;
+    @apply flex-1 border-b border-gray-400 min-h-[1.1rem] text-gray-900 font-medium;
+    padding-bottom: 6px;
+    line-height: 1.35;
   }
 
   .wo-form-info-grid {
@@ -781,6 +785,18 @@
 
   .wo-form-sign-labels {
     @apply flex justify-between text-[10px] text-gray-600 uppercase;
+  }
+
+  .wo-form-sign-physical-hint {
+    @apply text-[9px] text-gray-500 italic mt-1 mb-0;
+  }
+
+  .wo-form-sign-electronic-label {
+    @apply text-[9px] text-gray-500 uppercase tracking-wide mb-1;
+  }
+
+  .wo-form-sign-electronic {
+    @apply my-1;
   }
 
   .wo-form-footer {

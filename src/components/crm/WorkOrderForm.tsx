@@ -16,6 +16,7 @@ import {
   type PaymentMethod,
   type PaymentStatus,
   type Database,
+  type SignatureMode,
   deriveDocumentStatus,
 } from "@/lib/store";
 import { PAYMENT_METHODS } from "@/lib/payment";
@@ -86,6 +87,7 @@ function emptyOrder(db: Database): WorkOrder {
     documentStatus: "awaiting_signature",
     vatEnabled: db.settings.vatEnabledByDefault ?? true,
     paymentStatus: "unpaid",
+    signatureMode: "electronic",
   };
 }
 
@@ -445,13 +447,43 @@ export function WorkOrderForm({ orderId, onClose, onSaved }: WorkOrderFormProps)
           <h3 className="font-display text-sm uppercase text-bm-red mb-4 flex items-center gap-2">
             <FileText size={16} /> {w.sendDocuments}
           </h3>
+          <div className="mb-4">
+            <label className="text-xs uppercase text-bm-muted block mb-2">
+              {doc.signatureMode}
+            </label>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                className={`px-4 py-2 rounded-lg text-xs font-bold uppercase border transition-all ${
+                  (order.signatureMode ?? "electronic") === "electronic"
+                    ? "bg-bm-red/25 border-bm-red text-bm-red"
+                    : "border-bm-border text-bm-muted hover:text-white"
+                }`}
+                onClick={() => setOrder({ ...order, signatureMode: "electronic" })}
+              >
+                {doc.signatureElectronic}
+              </button>
+              <button
+                type="button"
+                className={`px-4 py-2 rounded-lg text-xs font-bold uppercase border transition-all ${
+                  order.signatureMode === "physical"
+                    ? "bg-bm-red/25 border-bm-red text-bm-red"
+                    : "border-bm-border text-bm-muted hover:text-white"
+                }`}
+                onClick={() => setOrder({ ...order, signatureMode: "physical" as SignatureMode })}
+              >
+                {doc.signaturePhysical}
+              </button>
+            </div>
+            <p className="text-[10px] text-bm-muted mt-2">{doc.signatureModeHint}</p>
+          </div>
           <WorkOrderDocumentActions
             order={order}
             client={client}
             vehicle={vehicle}
             onDocumentLocaleChange={setDocumentLocale}
           />
-          {order.signature && (
+          {order.signature && (order.signatureMode ?? "electronic") === "electronic" && (
             <div className="mt-4 pt-4 border-t border-bm-border text-xs text-bm-muted">
               <p className="text-green-400">{t.signature.confirmed}</p>
               <p>{new Date(order.signature.signedAt).toLocaleString()}</p>
