@@ -91,7 +91,7 @@ export function quantityLabel(
     return locale === "ru" ? `${qty} кол.` : `${qty} koła`;
   }
   if (item.unit === "per_100g") {
-    return `${qty * 100} g`;
+    return locale === "ru" ? `${qty * 100} г` : `${qty * 100} g`;
   }
   return qty > 1 ? `×${qty}` : "";
 }
@@ -102,7 +102,7 @@ export function unitPriceHint(item: PriceListItem, locale: "pl" | "ru"): string 
   }
   const from = item.priceFrom ? (locale === "ru" ? "от " : "od ") : "";
   if (item.unit === "per_cylinder") {
-    return `${from}${item.basePrice} zł / ${locale === "ru" ? "цилиндр" : "cylinder"}`;
+    return `${from}${item.basePrice} zł / ${locale === "ru" ? "цилиндр" : "cylindr"}`;
   }
   if (item.unit === "per_wheel") {
     return `${from}${item.basePrice} zł / ${locale === "ru" ? "колесо" : "koło"}`;

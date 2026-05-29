@@ -1,65 +1,65 @@
-"use client";
-
-import { useState } from "react";
-import { useI18n } from "@/lib/i18n/context";
-import { loadDb, saveDb } from "@/lib/store";
-import { normalizePhone } from "@/lib/auth";
-
-export function MiniQuoteWidget() {
-  const { locale } = useI18n();
-  const [phone, setPhone] = useState("");
-  const [comment, setComment] = useState("");
-  const [done, setDone] = useState(false);
-
-  const submit = () => {
-    const p = normalizePhone(phone);
-    if (!p || comment.length < 3) return;
-    const db = loadDb();
-    db.callRequests.push({
-      id: `call-${Date.now()}`,
-      phone: p,
-      userId: "",
-      serviceId: "diagnostic",
-      serviceLabel: "Mini quote",
-      clientName: "Mini quote",
-      comment,
-      status: "needs_call",
-      source: "website",
-      createdAt: new Date().toISOString(),
-      marketing: { utmSource: "mini_quote", landingPage: "/" },
-    });
-    saveDb(db);
-    setDone(true);
-  };
-
-  if (done) {
-    return (
-      <p className="text-sm text-bm-red text-center py-4">
-        {locale === "ru" ? "Заявка отправлена — перезвоним." : "Zgłoszenie wysłane — oddzwonimy."}
-      </p>
-    );
-  }
-
-  return (
-    <div className="glass rounded-xl p-5 max-w-md mx-auto mt-8">
-      <h3 className="font-display text-sm uppercase mb-3">
-        {locale === "ru" ? "Быстрая оценка" : "Szybka wycena"}
-      </h3>
-      <input
-        className="input-field w-full mb-2"
-        placeholder={locale === "ru" ? "Телефон" : "Telefon"}
-        value={phone}
-        onChange={(e) => setPhone(e.target.value)}
-      />
-      <textarea
-        className="input-field w-full mb-3 min-h-[80px]"
-        placeholder={locale === "ru" ? "Что беспокоит?" : "Co do naprawy?"}
-        value={comment}
-        onChange={(e) => setComment(e.target.value)}
-      />
-      <button type="button" className="btn-primary w-full text-sm" onClick={submit}>
-        {locale === "ru" ? "Отправить" : "Wyślij"}
-      </button>
-    </div>
-  );
-}
+"use client";
+
+import { useState } from "react";
+import { useI18n } from "@/lib/i18n/context";
+import { createCallRequest } from "@/lib/booking-actions";
+import { normalizePhone } from "@/lib/auth";
+
+export function MiniQuoteWidget() {
+  const { t } = useI18n();
+  const mq = t.homeMiniQuote;
+  const [phone, setPhone] = useState("");
+  const [comment, setComment] = useState("");
+  const [done, setDone] = useState(false);
+  const [error, setError] = useState("");
+  const [sending, setSending] = useState(false);
+
+  const submit = async () => {
+    const p = normalizePhone(phone);
+    if (!p || comment.length < 3 || sending) return;
+    setSending(true);
+    setError("");
+    const result = await createCallRequest({
+      phone: p,
+      clientName: "Szybka wycena",
+      serviceId: "diagnostic",
+      serviceLabel: "Szybka wycena ze strony",
+      comment,
+      source: "mini_quote",
+    });
+    setSending(false);
+    if (result.ok) setDone(true);
+    else setError(mq.error);
+  };
+
+  if (done) {
+    return <p className="text-sm text-bm-red text-center py-4">{mq.done}</p>;
+  }
+
+  return (
+    <div className="glass rounded-xl p-5 max-w-md mx-auto mt-8">
+      <h3 className="font-display text-sm uppercase mb-3">{mq.title}</h3>
+      <input
+        className="input-field w-full mb-2"
+        placeholder={mq.phone}
+        value={phone}
+        onChange={(e) => setPhone(e.target.value)}
+      />
+      <textarea
+        className="input-field w-full mb-3 min-h-[80px]"
+        placeholder={mq.comment}
+        value={comment}
+        onChange={(e) => setComment(e.target.value)}
+      />
+      {error && <p className="text-xs text-red-400 mb-2">{error}</p>}
+      <button
+        type="button"
+        className="btn-primary w-full text-sm"
+        disabled={sending}
+        onClick={submit}
+      >
+        {sending ? "…" : mq.submit}
+      </button>
+    </div>
+  );
+}

@@ -1,12 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { isAdminAuthenticated, restoreSessionFromToken } from "@/lib/auth";
+import { useRouter, usePathname } from "next/navigation";
+import {
+  isAdminAuthenticated,
+  isMechanicAuthenticated,
+  restoreSessionFromToken,
+} from "@/lib/auth";
 
-/** Protects /crm/* — only hidden admin session; others go to client cabinet */
+/** Protects /crm/* — admin full access; mechanics only /crm/work-orders */
 export function CrmGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  const pathname = usePathname();
   const [allowed, setAllowed] = useState(false);
 
   useEffect(() => {
@@ -15,11 +20,22 @@ export function CrmGuard({ children }: { children: React.ReactNode }) {
       .finally(() => {
         if (isAdminAuthenticated()) {
           setAllowed(true);
-        } else {
-          router.replace("/cabinet");
+          return;
         }
+        if (
+          isMechanicAuthenticated() &&
+          pathname.startsWith("/crm/work-orders")
+        ) {
+          setAllowed(true);
+          return;
+        }
+        if (isMechanicAuthenticated()) {
+          router.replace("/mechanic");
+          return;
+        }
+        router.replace("/cabinet");
       });
-  }, [router]);
+  }, [router, pathname]);
 
   if (!allowed) {
     return (

@@ -7,13 +7,14 @@ import { pushAppointmentToCloud } from "./cloud-appointments";
 import { normalizePlateKey } from "./auth";
 import { saveClientCredentials } from "./client-credentials";
 
-export function createCallRequest(params: {
+export async function createCallRequest(params: {
   phone: string;
   clientName: string;
   serviceId: string;
   serviceLabel: string;
   comment?: string;
-}): void {
+  source?: string;
+}): Promise<{ ok: boolean; cloudOk: boolean }> {
   const db = loadDb();
   const user = db.currentUserId
     ? db.users.find((u) => u.id === db.currentUserId)
@@ -33,6 +34,25 @@ export function createCallRequest(params: {
     createdAt: new Date().toISOString(),
   });
   saveDb(db);
+
+  try {
+    const res = await fetch("/api/call-request", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        phone: params.phone,
+        clientName: params.clientName,
+        serviceId: params.serviceId,
+        serviceLabel: params.serviceLabel,
+        comment: params.comment,
+        source: params.source,
+      }),
+    });
+    const data = (await res.json()) as { ok?: boolean; cloud?: boolean };
+    return { ok: true, cloudOk: res.ok && data.ok === true };
+  } catch {
+    return { ok: true, cloudOk: false };
+  }
 }
 
 export async function createBookingAppointment(params: {

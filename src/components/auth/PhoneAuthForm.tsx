@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Phone, Car, LogIn, ChevronRight } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useI18n } from "@/lib/i18n/context";
 import { useAuth } from "@/lib/auth/session-context";
@@ -102,8 +103,7 @@ export function PhoneAuthForm({ onSuccess }: PhoneAuthFormProps) {
             {t.cabinet.title}
           </h1>
           <p className="text-center text-sm text-bm-muted mt-2 mb-2">{t.auth.subtitle}</p>
-          <p className="text-center text-[10px] text-bm-muted/80 mb-6">{t.auth.plateHint}</p>
-          <p className="text-center text-[10px] text-amber-400/90 mb-4">{t.auth.signCreatesAccount}</p>
+          <p className="text-center text-[10px] text-bm-muted/80 mb-6">{t.auth.loginHint}</p>
 
           <div className="space-y-4">
             <div className="relative group">
@@ -177,6 +177,12 @@ export function PhoneAuthForm({ onSuccess }: PhoneAuthFormProps) {
           </Button>
 
           <TelegramLoginButton />
+          <Link
+            href="/cabinet/forgot-password"
+            className="block text-center text-xs text-bm-muted hover:text-bm-red mt-4"
+          >
+            {t.passwordReset.forgotLink}
+          </Link>
         </form>
       </div>
     </div>

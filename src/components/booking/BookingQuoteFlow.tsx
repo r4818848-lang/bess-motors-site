@@ -48,6 +48,7 @@ import {
   saveLastBooking,
 } from "@/lib/booking-url";
 import { WaitTimeEstimator } from "@/components/booking/WaitTimeEstimator";
+import { useBookingAvailability } from "@/hooks/useBookingAvailability";
 import {
   applyPromoDiscount,
   getPromoRules,
@@ -296,6 +297,8 @@ export function BookingQuoteFlow({ onDone }: Props) {
   const [promoApplied, setPromoApplied] = useState<ReturnType<typeof matchPromoCode>>(null);
   const [submitError, setSubmitError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [promoError, setPromoError] = useState("");
+  const { isSlotAvailable } = useBookingAvailability(14);
 
   const prefillFromUrl = useCallback(() => {
     const { items: ids, plate } = parseBookingParamsFromSearch(searchParams.toString());
@@ -425,11 +428,11 @@ export function BookingQuoteFlow({ onDone }: Props) {
         setSubmitError(bq.submitFailed);
         return;
       }
+      onDone?.();
       if (!result.cloudOk) {
-        setSubmitError(bq.cloudSyncFailed.replace("{phone}", siteConfig.phone));
+        router.replace("/booking/thank-you?sync=pending");
         return;
       }
-      onDone?.();
       router.replace("/booking/thank-you");
     } finally {
       setSubmitting(false);
@@ -587,21 +590,31 @@ export function BookingQuoteFlow({ onDone }: Props) {
                   {t.booking.selectTime}
                 </h2>
                 <div className="flex flex-wrap gap-2 justify-center">
-                  {timeSlots.map((slot) => (
-                    <button
-                      key={slot}
-                      type="button"
-                      onClick={() => {
-                        setTime(slot);
-                        trackMetaCustomizeProduct("booking_time");
-                      }}
-                      className={`px-3 py-2 rounded-lg text-sm font-mono ${
-                        time === slot ? "bg-bm-red shadow-neon-sm" : "glass"
-                      }`}
-                    >
-                      {slot}
-                    </button>
-                  ))}
+                  {timeSlots.map((slot) => {
+                    const dateStr = date.toISOString().slice(0, 10);
+                    const available = isSlotAvailable(dateStr, slot);
+                    return (
+                      <button
+                        key={slot}
+                        type="button"
+                        disabled={!available}
+                        onClick={() => {
+                          if (!available) return;
+                          setTime(slot);
+                          trackMetaCustomizeProduct("booking_time");
+                        }}
+                        className={`px-3 py-2 rounded-lg text-sm font-mono ${
+                          !available
+                            ? "opacity-30 cursor-not-allowed line-through"
+                            : time === slot
+                              ? "bg-bm-red shadow-neon-sm"
+                              : "glass"
+                        }`}
+                      >
+                        {slot}
+                      </button>
+                    );
+                  })}
                 </div>
               </>
             )}
@@ -680,10 +693,20 @@ export function BookingQuoteFlow({ onDone }: Props) {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => setPromoApplied(matchPromoCode(promoInput))}
+                  onClick={() => {
+                    const matched = matchPromoCode(promoInput);
+                    if (!matched) {
+                      setPromoError(t.bookingPromo.invalid);
+                      setPromoApplied(null);
+                      return;
+                    }
+                    setPromoError("");
+                    setPromoApplied(matched);
+                  }}
                 >
                   {t.bookingPromo.apply}
                 </Button>
+                {promoError && <p className="text-xs text-red-400">{promoError}</p>}
               </div>
             )}
 

@@ -113,6 +113,26 @@ const emptyVinForm = {
   colorHex: "",
 };
 
+async function deleteVehicleFromCloud(vehicleId: string): Promise<boolean> {
+  if (typeof window === "undefined") return false;
+  const token = localStorage.getItem("bess-jwt");
+  if (!token) return false;
+  try {
+    const res = await fetch("/api/client-portal", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ action: "delete-vehicle", vehicleId }),
+    });
+    const json = (await res.json()) as { ok?: boolean };
+    return res.ok && json.ok === true;
+  } catch {
+    return false;
+  }
+}
+
 async function pushVehicleToCloud(vehicle: Vehicle): Promise<boolean> {
   if (typeof window === "undefined") return false;
   const token = localStorage.getItem("bess-jwt");
@@ -180,6 +200,7 @@ function CabinetPageContent() {
     const tabParam = searchParams.get("tab");
     if (tabParam === "history") selectTab("history");
     if (tabParam === "notifications") selectTab("notifications");
+    if (tabParam === "appointments") selectTab("appointments");
     if (orderParam) {
       selectTab("orders");
       setSelectedOrderId(orderParam);
@@ -301,6 +322,7 @@ function CabinetPageContent() {
     fresh.vehicles = fresh.vehicles.filter((v) => v.id !== vehicleId);
     saveDb(fresh);
     setDb({ ...fresh });
+    void deleteVehicleFromCloud(vehicleId);
   };
 
   if (!mounted || !sessionReady) {
@@ -628,7 +650,14 @@ function CabinetPageContent() {
                           {apt.date} · {apt.time}
                         </p>
                         <p className="font-semibold mt-1">
-                          {ctx.vehicle?.make} {ctx.vehicle?.model} · {ctx.vehicle?.plate}
+                          {ctx.vehicle?.make && ctx.vehicle?.model
+                            ? `${ctx.vehicle.make} ${ctx.vehicle.model}`
+                            : apt.clientPlate?.trim() || user.name}
+                          {ctx.vehicle?.plate && ctx.vehicle.plate !== "—"
+                            ? ` · ${ctx.vehicle.plate}`
+                            : apt.clientPlate
+                              ? ` · ${apt.clientPlate}`
+                              : ""}
                         </p>
                         <p className="text-xs text-bm-muted mt-1">
                           {apt.serviceIds
@@ -645,6 +674,16 @@ function CabinetPageContent() {
               })
             )}
           </div>
+        )}
+
+        {tab === "status" && !activeOrder && (
+          <Card glow className="p-8 text-center max-w-lg mx-auto">
+            <p className="font-display uppercase text-sm mb-2">{t.cabinet.noActiveRepair}</p>
+            <p className="text-sm text-bm-muted mb-4">{t.cabinet.noActiveRepairHint}</p>
+            <BookingLink trackSource="cabinet" className="btn-primary inline-block text-sm">
+              {t.cabinet.bookVisit}
+            </BookingLink>
+          </Card>
         )}
 
         {tab === "status" && activeOrder && (

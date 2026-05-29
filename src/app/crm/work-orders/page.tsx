@@ -18,6 +18,7 @@ import { CrmSearchInput } from "@/components/crm/CrmSearchInput";
 import { Button } from "@/components/ui/Button";
 import { VehicleThumbnail } from "@/components/vehicle/VehicleThumbnail";
 import { WorkOrderKanban } from "@/components/crm/WorkOrderKanban";
+import { useDbSync } from "@/hooks/useDbSync";
 import { CrmWorkOrderPresets } from "@/components/crm/CrmWorkOrderPresets";
 
 function WorkOrdersPageContent() {
@@ -28,11 +29,11 @@ function WorkOrdersPageContent() {
   const searchParams = useSearchParams();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
-  const [tick, setTick] = useState(0);
+  const dbTick = useDbSync();
   const [filters, setFilters] = useState(defaultWorkOrderFilters);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const refresh = useCallback(() => setTick((n) => n + 1), []);
+  const refresh = useCallback(() => {}, []);
 
   useEffect(() => {
     const edit = searchParams.get("edit");
@@ -40,7 +41,7 @@ function WorkOrdersPageContent() {
   }, [searchParams]);
 
   const db = loadDb();
-  void tick;
+  void dbTick;
   const pm = t.paymentMethods;
   const ps = t.paymentStatus;
 

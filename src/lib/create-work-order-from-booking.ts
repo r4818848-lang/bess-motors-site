@@ -1,7 +1,7 @@
 import { normalizePhone, normalizePlateKey } from "./auth";
 import { hashPassword } from "./crypto";
 import { generateOrderNumber } from "./workorder-calc";
-import type { Appointment, Database, WorkOrder, WorkOrderLine } from "./store";
+import type { Appointment, Database, Vehicle, WorkOrder, WorkOrderLine } from "./store";
 import {
   handleAppointmentNotification,
   handleWorkOrderClientNotifications,
@@ -30,7 +30,7 @@ export function ensureClientForBooking(
     user = {
       id: `client-${Date.now()}`,
       phone: normalized || phone.trim(),
-      name: name.trim() || "Клиент",
+      name: name.trim() || "Klient",
       role: "client",
       createdAt: today,
     };
@@ -74,18 +74,61 @@ export async function ensureClientCredentialsForBooking(
   plate: string | undefined,
   existingUserId?: string
 ): Promise<{ userId: string; vehicleId: string }> {
-  const { userId, vehicleId } = ensureClientForBooking(db, name, phone, existingUserId);
+  const { userId, vehicleId: defaultVehicleId } = ensureClientForBooking(
+    db,
+    name,
+    phone,
+    existingUserId
+  );
   const plateKey = normalizePlateKey(plate ?? "");
-  if (plateKey.length < 2) return { userId, vehicleId };
-
   const user = db.users.find((u) => u.id === userId);
-  const vehicle = db.vehicles.find((v) => v.id === vehicleId);
-  if (!user || !vehicle) return { userId, vehicleId };
+  if (!user) return { userId, vehicleId: defaultVehicleId };
 
-  user.passwordHash = await hashPassword(plateKey);
-  delete user.password;
-  if (!vehicle.plate?.trim() || vehicle.plate === "—") {
-    vehicle.plate = plate!.trim();
+  let vehicleId = defaultVehicleId;
+
+  if (plateKey.length >= 2) {
+    const byPlate = db.vehicles.find(
+      (v) => v.userId === userId && normalizePlateKey(v.plate) === plateKey
+    );
+    if (byPlate) {
+      vehicleId = byPlate.id;
+    } else {
+      const defaultVehicle = db.vehicles.find((v) => v.id === defaultVehicleId);
+      if (
+        defaultVehicle &&
+        (!defaultVehicle.plate?.trim() || defaultVehicle.plate === "—")
+      ) {
+        defaultVehicle.plate = plate!.trim();
+        vehicleId = defaultVehicle.id;
+      } else {
+        const newVehicle: Vehicle = {
+          id: `v-${Date.now()}`,
+          vin: "",
+          plate: plate!.trim(),
+          mileage: 0,
+          make: "—",
+          model: "—",
+          engine: "",
+          engineVolume: "",
+          trim: "",
+          power: "",
+          transmission: "",
+          drivetrain: "",
+          year: "",
+          color: "",
+          fuelType: "",
+          notes: "",
+          userId,
+        };
+        db.vehicles.push(newVehicle);
+        vehicleId = newVehicle.id;
+      }
+    }
+
+    if (!user.passwordHash) {
+      user.passwordHash = await hashPassword(plateKey);
+      delete user.password;
+    }
   }
 
   return { userId, vehicleId };
@@ -122,13 +165,13 @@ export function createWorkOrderFromAppointment(
     discount: 0,
   }));
 
-  const visitLine = `Визит: ${apt.date} · ${apt.time}`;
+  const visitLine = `Wizyta: ${apt.date} · ${apt.time}`;
   const internalNotes = [
-    "Онлайн-запись с сайта",
-    `Клиент: ${clientName}`,
-    `Телефон: ${clientPhone}`,
+    "Rezerwacja online ze strony",
+    `Klient: ${clientName}`,
+    `Telefon: ${clientPhone}`,
     visitLine,
-    apt.comment ? `Комментарий: ${apt.comment}` : "",
+    apt.comment ? `Komentarz: ${apt.comment}` : "",
   ]
     .filter(Boolean)
     .join("\n");
@@ -147,7 +190,7 @@ export function createWorkOrderFromAppointment(
         : [
             {
               id: `s-${Date.now()}`,
-              name: "Услуга — онлайн-запись",
+              name: "Usługa — rezerwacja online",
               qty: 1,
               price: 0,
               discount: 0,

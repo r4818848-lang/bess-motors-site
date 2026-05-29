@@ -33,10 +33,10 @@ export function Footer() {
               {t.nav.cabinet}
             </Link>
             <Link href="/status" className="text-bm-muted hover:text-bm-red transition-colors">
-              Status naprawy
+              {t.nav.repairStatus}
             </Link>
             <Link href="/referral" className="text-bm-muted hover:text-bm-red transition-colors">
-              Program poleceń
+              {t.nav.referral}
             </Link>
             <Link href="/contacts" className="text-bm-muted hover:text-bm-red transition-colors">
               {t.nav.contacts}

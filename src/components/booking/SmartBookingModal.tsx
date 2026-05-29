@@ -13,9 +13,9 @@ import { BookingLink } from "@/components/analytics/BookingLink";
 import { useAuth } from "@/lib/auth/session-context";
 import { BookingCalendar } from "@/components/booking/BookingCalendar";
 import { Button } from "@/components/ui/Button";
-import { siteConfig } from "@/lib/site";
 import { BookingTotalSummary } from "@/components/booking/BookingTotalSummary";
 import { trackLead } from "@/lib/gtag";
+import { useBookingAvailability } from "@/hooks/useBookingAvailability";
 import {
   buildCartLine,
   cartSubtotal,
@@ -105,6 +105,8 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
   const [doneKind, setDoneKind] = useState<"call" | "booking">("booking");
   const [submitError, setSubmitError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [syncPending, setSyncPending] = useState(false);
+  const { isSlotAvailable } = useBookingAvailability(14);
 
   useEffect(() => {
     if (!sessionReady || !clientUser) return;
@@ -277,16 +279,17 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
 
   const problemValid = !isOtherReason || problem.trim().length >= 3;
 
-  const submitCall = () => {
-    if (!contactValid) return;
-    createCallRequest({
+  const submitCall = async () => {
+    if (!contactValid || submitting) return;
+    setSubmitting(true);
+    await createCallRequest({
       phone: clientPhone.trim(),
       clientName: clientName.trim(),
       serviceId,
       serviceLabel,
       comment: problem,
     });
-    // GA4 conversion (lead B: "call me back")
+    setSubmitting(false);
     trackLead("call_request", { source: "smart_booking_modal", serviceId });
     setDoneKind("call");
     setPhase("done");
@@ -334,11 +337,8 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
         setSubmitError(bq.submitFailed);
         return;
       }
-      if (!result.cloudOk) {
-        setSubmitError(bq.cloudSyncFailed.replace("{phone}", siteConfig.phone));
-        return;
-      }
       trackLead("booking", { source: "smart_booking_modal", serviceId });
+      setSyncPending(!result.cloudOk);
       setDoneKind("booking");
       setPhase("done");
       onSuccess?.("booking");
@@ -632,18 +632,27 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
               <h2 className="font-display text-lg uppercase text-center">{t.booking.selectTime}</h2>
               {runningTotalBar}
               <div className="flex flex-wrap gap-2 justify-center">
-                {timeSlots.map((slot) => (
-                  <button
-                    key={slot}
-                    type="button"
-                    onClick={() => setTime(slot)}
-                    className={`px-3 py-2 rounded-lg text-sm font-mono ${
-                      time === slot ? "bg-bm-red shadow-neon-sm" : "glass"
-                    }`}
-                  >
-                    {slot}
-                  </button>
-                ))}
+                {timeSlots.map((slot) => {
+                  const dateStr = date?.toISOString().slice(0, 10) ?? "";
+                  const available = dateStr ? isSlotAvailable(dateStr, slot) : true;
+                  return (
+                    <button
+                      key={slot}
+                      type="button"
+                      disabled={!available}
+                      onClick={() => available && setTime(slot)}
+                      className={`px-3 py-2 rounded-lg text-sm font-mono ${
+                        !available
+                          ? "opacity-30 cursor-not-allowed line-through"
+                          : time === slot
+                            ? "bg-bm-red shadow-neon-sm"
+                            : "glass"
+                      }`}
+                    >
+                      {slot}
+                    </button>
+                  );
+                })}
               </div>
               <div className="flex gap-2">
                 <Button variant="outline" className="flex-1" onClick={goBack}>
@@ -711,7 +720,7 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
                   disabled={
                     !contactValid ||
                     submitting ||
-                    (submitMode === "booking" && cart.length === 0)
+                    (submitMode === "booking" && !problemValid)
                   }
                   onClick={submitMode === "call" ? submitCall : submitBooking}
                 >
@@ -731,6 +740,9 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
               <p className="font-display text-xl uppercase text-glow">
                 {doneKind === "call" ? bf.callSuccess : t.booking.success}
               </p>
+              {syncPending && doneKind === "booking" && (
+                <p className="text-sm text-amber-400">{t.thankYou.syncPending}</p>
+              )}
               {cart.length > 0 && (
                 <p className="text-sm text-bm-muted">
                   {bq.grandTotal}: <span className="text-bm-red font-mono">{formatPln(total)}</span>

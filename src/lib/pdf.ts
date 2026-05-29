@@ -79,7 +79,7 @@ export async function generateWorkOrderPdf(
   order: WorkOrder,
   vehicle: Vehicle,
   client: User,
-  locale: PdfLocale = "ru",
+  locale: PdfLocale = "pl",
   vatRate = 23,
   variant: WorkOrderDocVariant = "color"
 ): Promise<void> {
@@ -106,7 +106,7 @@ export async function generateWorkOrderPdfColor(
   order: WorkOrder,
   vehicle: Vehicle,
   client: User,
-  locale: PdfLocale = "ru",
+  locale: PdfLocale = "pl",
   vatRate = 23
 ): Promise<void> {
   return generateWorkOrderPdf(order, vehicle, client, locale, vatRate, "color");
@@ -116,7 +116,7 @@ export async function generateWorkOrderPdfBw(
   order: WorkOrder,
   vehicle: Vehicle,
   client: User,
-  locale: PdfLocale = "ru",
+  locale: PdfLocale = "pl",
   vatRate = 23
 ): Promise<void> {
   return generateWorkOrderPdf(order, vehicle, client, locale, vatRate, "bw");
@@ -126,7 +126,7 @@ export async function getWorkOrderPdfBlob(
   order: WorkOrder,
   vehicle: Vehicle,
   client: User,
-  locale: PdfLocale = "ru",
+  locale: PdfLocale = "pl",
   vatRate = 23,
   variant: WorkOrderDocVariant = "color"
 ): Promise<Blob> {

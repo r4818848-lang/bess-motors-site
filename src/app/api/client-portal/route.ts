@@ -159,5 +159,30 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true, vehicleId: incoming.id });
   }
 
+  if (action === "delete-vehicle") {
+    const b = body as { action: "delete-vehicle"; vehicleId?: string };
+    const vehicleId = String(b.vehicleId ?? "").trim();
+    if (!vehicleId) {
+      return NextResponse.json({ ok: false, error: "invalid" }, { status: 400 });
+    }
+
+    const snap = await cloudGetCrmStore();
+    if (!snap?.doc) {
+      return NextResponse.json({ ok: false, error: "cloud_empty" }, { status: 503 });
+    }
+
+    const db = snap.doc as Database;
+    const idx = db.vehicles.findIndex((v) => v.id === vehicleId && v.userId === session.sub);
+    if (idx < 0) {
+      return NextResponse.json({ ok: false, error: "not_found" }, { status: 404 });
+    }
+    db.vehicles.splice(idx, 1);
+    const put = await cloudPutCrmStore(db);
+    if (!put.ok) {
+      return NextResponse.json({ ok: false, error: put.error ?? "cloud_error" }, { status: 502 });
+    }
+    return NextResponse.json({ ok: true });
+  }
+
   return NextResponse.json({ ok: false, error: "invalid" }, { status: 400 });
 }

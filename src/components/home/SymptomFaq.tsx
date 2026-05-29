@@ -8,7 +8,7 @@ import { bookingUrlForService } from "@/lib/brand-service-links";
 import type { ServiceId } from "@/lib/services-catalog";
 
 export function SymptomFaq() {
-  const { locale } = useI18n();
+  const { locale, t } = useI18n();
   const useRu = locale === "ru" || locale === "uk";
   const [open, setOpen] = useState<string | null>(symptomFaq[0]?.id ?? null);
 
@@ -40,7 +40,7 @@ export function SymptomFaq() {
                           href={bookingUrlForService(sid as ServiceId)}
                           className="text-xs text-bm-red font-bold uppercase hover:underline"
                         >
-                          → {sid}
+                          → {t.serviceItems[sid as keyof typeof t.serviceItems] ?? sid}
                         </Link>
                       ))}
                     </div>

@@ -15,6 +15,8 @@ const pl = {
     about: "O nas",
     contacts: "Kontakt",
     faq: "FAQ",
+    repairStatus: "Status naprawy",
+    referral: "Program poleceń",
     crm: "CRM Admin",
     mechanic: "Panel mechanika",
   },
@@ -115,6 +117,15 @@ const pl = {
     placeholder: "Kod promocyjny",
     apply: "Zastosuj",
     applied: "Rabat",
+    invalid: "Nieprawidłowy kod promocyjny",
+  },
+  homeMiniQuote: {
+    title: "Szybka wycena",
+    phone: "Telefon",
+    comment: "Co do naprawy?",
+    submit: "Wyślij",
+    done: "Zgłoszenie wysłane — oddzwonimy.",
+    error: "Nie udało się wysłać. Zadzwoń do nas.",
   },
   thankYouExtras: {
     addCalendar: "Dodaj wizytę do kalendarza",
@@ -353,6 +364,9 @@ const pl = {
     errorRetry: "Spróbuj ponownie",
     errorLoginLink: "Strona logowania",
     errorHomeLink: "Strona główna",
+    noActiveRepair: "Brak aktywnej naprawy",
+    noActiveRepairHint: "Gdy auto będzie w serwisie, status pojawi się tutaj.",
+    bookVisit: "Umów wizytę",
   },
   reportsExt: {
     revenueByMonth: "Przychód wg miesięcy (12 m-cy)",
@@ -417,6 +431,8 @@ const pl = {
     title: "Rezerwacja przyjęta!",
     message:
       "Dziękujemy! Skontaktujemy się w celu potwierdzenia terminu. Zachowaj numer telefonu pod ręką.",
+    syncPending:
+      "Rezerwacja zapisana — potwierdzimy termin telefonicznie lub SMS-em w ciągu kilkunastu minut.",
     hours: "Pn–Sb 8:00–20:00 · Aleja Krakowska 48/52, Warszawa",
     call: "Zadzwoń",
     cabinet: "Konto klienta",
@@ -424,7 +440,7 @@ const pl = {
   },
   stickyBar: {
     call: "Zadzwoń",
-    book: "Zapis",
+    book: "Umów",
   },
   reviewsExt: {
     googleCta: "Opinie w Google",
@@ -456,6 +472,7 @@ const pl = {
     plateHint: "Jako hasło użyj numeru rejestracyjnego auta (bez spacji lub ze spacją).",
     signCreatesAccount:
       "Konto tworzy się automatycznie przy podpisie zlecenia — rejestracja nie jest potrzebna.",
+    loginHint: "Zaloguj się numerem telefonu i tablicą rejestracyjną auta.",
     invalidCredentials: "Nieprawidłowy telefon lub numer rejestracyjny.",
     phoneExists: "Ten numer lub auto jest już zarejestrowane.",
     phoneRequired: "Podaj numer telefonu.",
@@ -995,6 +1012,8 @@ const ru: TranslationKeys = {
     about: "О компании",
     contacts: "Контакты",
     faq: "FAQ",
+    repairStatus: "Статус ремонта",
+    referral: "Приведи друга",
     crm: "CRM Admin",
     mechanic: "Панель механика",
   },
@@ -1094,6 +1113,7 @@ const ru: TranslationKeys = {
     placeholder: "Промокод",
     apply: "Применить",
     applied: "Скидка",
+    invalid: "Неверный промокод",
   },
   thankYouExtras: {
     addCalendar: "Добавить визит в календарь",
@@ -1332,6 +1352,9 @@ const ru: TranslationKeys = {
     errorRetry: "Повторить",
     errorLoginLink: "Страница входа",
     errorHomeLink: "На главную",
+    noActiveRepair: "Нет активного ремонта",
+    noActiveRepairHint: "Когда авто будет в сервисе, статус появится здесь.",
+    bookVisit: "Записаться",
   },
   reportsExt: {
     revenueByMonth: "Доход по месяцам (12 мес.)",
@@ -1395,6 +1418,8 @@ const ru: TranslationKeys = {
   thankYou: {
     title: "Запись принята!",
     message: "Спасибо! Мы свяжемся для подтверждения времени. Держите телефон под рукой.",
+    syncPending:
+      "Запись сохранена — подтвердим время по телефону или SMS в ближайшие минуты.",
     hours: "Пн–Сб 8:00–20:00 · Aleja Krakowska 48/52, Варшава",
     call: "Позвонить",
     cabinet: "Личный кабинет",
@@ -1434,6 +1459,7 @@ const ru: TranslationKeys = {
     plateHint: "Для входа используйте регистрационный номер вашего автомобиля.",
     signCreatesAccount:
       "Аккаунт создаётся автоматически при подписании заказ-наряда — отдельная регистрация не нужна.",
+    loginHint: "Войдите по телефону и госномеру автомобиля.",
     invalidCredentials: "Неверный телефон или госномер.",
     phoneExists: "Этот номер или авто уже зарегистрированы.",
     phoneRequired: "Укажите номер телефона.",
@@ -1973,6 +1999,8 @@ const en: TranslationKeys = {
     about: "About",
     contacts: "Contact",
     faq: "FAQ",
+    repairStatus: "Repair status",
+    referral: "Refer a friend",
     crm: "CRM Admin",
     mechanic: "Mechanic Panel",
   },
@@ -2110,8 +2138,10 @@ const en: TranslationKeys = {
     errorRetry: "Try again",
     errorLoginLink: "Sign in page",
     errorHomeLink: "Home",
+    noActiveRepair: "No active repair",
+    noActiveRepairHint: "When your car is in the shop, status will appear here.",
+    bookVisit: "Book a visit",
   },
-  reportsExt: { ...pl.reportsExt },
   partners: { ...pl.partners, title: "Partners", subtitle: "Trusted parts and oil brands" },
   faq: { ...pl.faq, title: "FAQ", subtitle: "Indicative prices — exact quote after diagnostics" },
   thankYou: { ...pl.thankYou, title: "Booking received!", message: "Thank you! We will contact you to confirm." },
@@ -2144,6 +2174,7 @@ const en: TranslationKeys = {
     plateHint: "Use your vehicle registration number to sign in.",
     signCreatesAccount:
       "Your account is created automatically when you sign a work order — no separate registration.",
+    loginHint: "Sign in with your phone number and vehicle registration plate.",
     invalidCredentials: "Invalid phone or registration number.",
     phoneExists: "This phone or plate is already registered.",
     phoneRequired: "Enter your phone number.",
@@ -2301,6 +2332,8 @@ const uk: TranslationKeys = {
     about: "Про компанію",
     contacts: "Контакти",
     faq: "FAQ",
+    repairStatus: "Статус ремонту",
+    referral: "Запроси друга",
     crm: "CRM Admin",
     mechanic: "Панель механіка",
   },
