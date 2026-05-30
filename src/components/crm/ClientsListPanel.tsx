@@ -2,16 +2,20 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { Plus, FileText } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { loadDb } from "@/lib/store";
 import { useDbSync } from "@/hooks/useDbSync";
 import { filterClients } from "@/lib/crm-search";
 import { CrmSearchInput } from "./CrmSearchInput";
+import { NewClientForm } from "./NewClientForm";
+import { Button } from "@/components/ui/Button";
 
 export function ClientsListPanel() {
   const { t } = useI18n();
   const c = t.crm;
   const [query, setQuery] = useState("");
+  const [showNewClient, setShowNewClient] = useState(false);
   const dbTick = useDbSync();
   void dbTick;
 
@@ -22,7 +26,32 @@ export function ClientsListPanel() {
 
   return (
     <div className="space-y-6">
-      <h2 className="font-display text-xl uppercase text-glow">{c.clientsList}</h2>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <h2 className="font-display text-xl uppercase text-glow">{c.clientsList}</h2>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            type="button"
+            variant={showNewClient ? "outline" : "primary"}
+            className="text-xs"
+            onClick={() => setShowNewClient((v) => !v)}
+          >
+            <Plus size={16} /> {showNewClient ? t.common.cancel : c.addNewClient}
+          </Button>
+          <Link href="/crm/work-orders?create=1" className="btn-outline text-xs py-2 inline-flex items-center gap-2">
+            <FileText size={16} /> {c.createOrder}
+          </Link>
+        </div>
+      </div>
+
+      {showNewClient && (
+        <NewClientForm
+          onCreated={() => {
+            setShowNewClient(false);
+          }}
+          onCancel={() => setShowNewClient(false)}
+        />
+      )}
+
       <CrmSearchInput value={query} onChange={setQuery} placeholder={c.search} />
       <div className="glass-red rounded-xl overflow-hidden neon-border">
         <table className="dashboard-table">
@@ -71,10 +100,16 @@ export function ClientsListPanel() {
                   <td className="font-mono text-xs text-bm-muted">
                     {vehicles.map((v) => v.vin || "—").join(", ") || "—"}
                   </td>
-                  <td>
+                  <td className="space-y-1">
+                    <Link
+                      href={`/crm/work-orders?create=1&client=${user.id}`}
+                      className="block text-xs text-bm-red hover:underline whitespace-nowrap"
+                    >
+                      {c.createOrderForClient}
+                    </Link>
                     <Link
                       href="/crm/work-orders"
-                      className="text-xs text-bm-red hover:underline whitespace-nowrap"
+                      className="block text-xs text-bm-muted hover:text-bm-red whitespace-nowrap"
                     >
                       {c.workOrders}
                     </Link>

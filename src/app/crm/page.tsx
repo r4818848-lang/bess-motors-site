@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, Suspense, useMemo } from "react";
 import { useDbSync } from "@/hooks/useDbSync";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { LogOut, FileText, Wallet, BarChart3, Receipt, Settings, Flame, Users, History, Package, TrendingUp } from "lucide-react";
+import { LogOut, FileText, Wallet, BarChart3, Receipt, Settings, Flame, Users, History, Package, TrendingUp, Plus, UserPlus } from "lucide-react";
 import { WarehousePanel } from "@/components/crm/WarehousePanel";
 import {
   ClientsCsvExport,
@@ -112,7 +112,17 @@ function CRMPageContent() {
         <div className="flex flex-wrap items-center justify-between gap-4">
           <h1 className="font-display text-2xl font-bold uppercase text-glow">{c.title}</h1>
           <div className="flex flex-wrap gap-2">
-            <Link href="/crm/work-orders" className="btn-primary text-xs py-2">
+            <Link href="/crm/work-orders?create=1" className="btn-primary text-xs py-2 inline-flex items-center gap-2">
+              <Plus size={16} /> {c.createOrder}
+            </Link>
+            <button
+              type="button"
+              onClick={() => selectTab("clients")}
+              className="btn-outline text-xs py-2 inline-flex items-center gap-2"
+            >
+              <UserPlus size={16} /> {c.addNewClient}
+            </button>
+            <Link href="/crm/work-orders" className="btn-outline text-xs py-2 inline-flex items-center gap-2">
               <Receipt size={16} /> {t.wo.ordersTitle}
             </Link>
             <Button variant="outline" onClick={() => { logoutAdmin(); refresh(); }}>

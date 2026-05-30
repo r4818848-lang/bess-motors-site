@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
-import { Plus, Trash2, Search, Save, X, Upload, FileText } from "lucide-react";
+import { Plus, Trash2, Search, Save, X, Upload, FileText, UserPlus } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { handleWorkOrderClientNotifications, buildCarReadyWhatsAppUrl } from "@/lib/client-notifications";
 import {
@@ -55,6 +55,7 @@ import { downloadReceptionAct, downloadDeliveryAct } from "@/lib/vehicle-doc-pdf
 import type { DocLocale } from "@/lib/work-order-locale";
 import { useDbSync } from "@/hooks/useDbSync";
 import { mergeRemoteWorkOrderPatch } from "@/lib/work-order-remote-sync";
+import { NewClientForm } from "@/components/crm/NewClientForm";
 
 type CreateStep = "client" | "works" | "more";
 
@@ -103,11 +104,18 @@ const documentStatuses: DocumentStatus[] = [
 
 interface WorkOrderFormProps {
   orderId?: string | null;
+  /** Pre-select client when opening create flow from clients list */
+  initialUserId?: string | null;
   onClose: () => void;
   onSaved: () => void;
 }
 
-export function WorkOrderForm({ orderId, onClose, onSaved }: WorkOrderFormProps) {
+export function WorkOrderForm({
+  orderId,
+  initialUserId,
+  onClose,
+  onSaved,
+}: WorkOrderFormProps) {
   const { t, locale } = useI18n();
   const w = t.wo;
   const c = t.crm;
@@ -125,6 +133,7 @@ export function WorkOrderForm({ orderId, onClose, onSaved }: WorkOrderFormProps)
   const [searchQ, setSearchQ] = useState("");
   const [showSearch, setShowSearch] = useState(!existing);
   const [createStep, setCreateStep] = useState<CreateStep>("client");
+  const [showNewClient, setShowNewClient] = useState(false);
   const [saveError, setSaveError] = useState("");
 
   useEffect(() => {
@@ -133,6 +142,24 @@ export function WorkOrderForm({ orderId, onClose, onSaved }: WorkOrderFormProps)
     if (!fresh) return;
     setOrder((prev) => mergeRemoteWorkOrderPatch(prev, fresh));
   }, [orderId, isNew, dbTick]);
+
+  useEffect(() => {
+    if (!isNew || !initialUserId) return;
+    const fresh = loadDb();
+    const user = fresh.users.find((u) => u.id === initialUserId && u.role === "client");
+    if (!user) return;
+    const vehicle =
+      fresh.vehicles.find((v) => v.userId === user.id) ?? null;
+    if (!vehicle) return;
+    setOrder((o) => ({
+      ...o,
+      userId: user.id,
+      vehicleId: vehicle.id,
+    }));
+    setShowSearch(false);
+    setShowNewClient(false);
+    setCreateStep("works");
+  }, [initialUserId, isNew, dbTick]);
 
   const searchResults = useMemo(
     () => (searchQ.length >= 2 ? searchClientsAndVehicles(db, searchQ) : []),
@@ -161,12 +188,44 @@ export function WorkOrderForm({ orderId, onClose, onSaved }: WorkOrderFormProps)
   }, [order, mechProfile, db.settings]);
 
   const selectClientVehicle = (userId: string, vehicleId: string | null) => {
+    const fresh = loadDb();
+    let vid = vehicleId?.trim() || "";
+    if (!vid) {
+      const existing = fresh.vehicles.find((v) => v.userId === userId);
+      if (existing) {
+        vid = existing.id;
+      } else {
+        const newVehicle = {
+          id: `v-${Date.now()}`,
+          vin: "",
+          plate: "—",
+          mileage: 0,
+          make: "—",
+          model: "—",
+          engine: "",
+          engineVolume: "",
+          trim: "",
+          power: "",
+          transmission: "",
+          drivetrain: "",
+          year: "",
+          color: "",
+          fuelType: "",
+          notes: "",
+          userId,
+        };
+        fresh.vehicles.push(newVehicle);
+        saveDb(fresh);
+        vid = newVehicle.id;
+      }
+    }
     setOrder((o) => ({
       ...o,
       userId,
-      vehicleId: vehicleId ?? o.vehicleId,
+      vehicleId: vid,
     }));
     setShowSearch(false);
+    setShowNewClient(false);
     setSearchQ("");
     setSaveError("");
     if (isNew) setCreateStep("works");
@@ -383,8 +442,23 @@ export function WorkOrderForm({ orderId, onClose, onSaved }: WorkOrderFormProps)
       )}
 
       {showClient && (
-      <div className="glass-red rounded-xl p-6 neon-border">
-        <h3 className="font-display text-sm uppercase text-bm-red mb-4">{w.searchClient}</h3>
+      <div className="glass-red rounded-xl p-6 neon-border space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h3 className="font-display text-sm uppercase text-bm-red">{w.searchClient}</h3>
+          {!client && (
+            <Button
+              type="button"
+              variant="outline"
+              className="text-xs"
+              onClick={() => {
+                setShowNewClient((v) => !v);
+                setShowSearch(true);
+              }}
+            >
+              <UserPlus size={14} /> {showNewClient ? c.orSearchExisting : c.addNewClient}
+            </Button>
+          )}
+        </div>
         {client && !showSearch ? (
           <div className="space-y-4">
             <Button variant="outline" className="text-xs" onClick={() => setShowSearch(true)}>
@@ -396,8 +470,18 @@ export function WorkOrderForm({ orderId, onClose, onSaved }: WorkOrderFormProps)
               onVehicleId={(id) => setOrder((o) => ({ ...o, vehicleId: id }))}
             />
           </div>
+        ) : showNewClient ? (
+          <NewClientForm
+            compact
+            onCreated={(userId, vehicleId) => {
+              selectClientVehicle(userId, vehicleId);
+              setShowNewClient(false);
+            }}
+            onCancel={() => setShowNewClient(false)}
+          />
         ) : (
           <>
+            <p className="text-xs text-bm-muted">{c.orAddNewClient}</p>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-bm-muted" />
               <input
@@ -407,23 +491,31 @@ export function WorkOrderForm({ orderId, onClose, onSaved }: WorkOrderFormProps)
                 onChange={(e) => setSearchQ(e.target.value)}
               />
             </div>
+            {searchQ.length >= 2 && searchResults.length === 0 && (
+              <p className="text-sm text-bm-muted">{c.noSearchResults}</p>
+            )}
             {searchResults.length > 0 && (
               <ul className="mt-3 space-y-2 max-h-48 overflow-y-auto">
                 {searchResults.map((r) => (
-                  <li key={`${r.user.id}-${r.vehicle?.id}`}>
+                  <li key={`${r.user.id}-${r.vehicle?.id ?? "none"}`}>
                     <button
                       type="button"
                       onClick={() =>
-                        selectClientVehicle(r.user.id, r.vehicle?.id ?? "")
+                        selectClientVehicle(
+                          r.user.id,
+                          r.vehicle?.id ?? ""
+                        )
                       }
                       className="w-full text-left glass rounded-lg p-3 hover:border-bm-red/50 text-sm"
                     >
                       <span className="font-semibold">{r.user.name}</span>
                       <span className="text-bm-muted ml-2">{r.user.phone}</span>
-                      {r.vehicle && (
+                      {r.vehicle ? (
                         <p className="text-bm-red text-xs mt-1">
                           {r.vehicle.make} {r.vehicle.model} · {r.vehicle.plate}
                         </p>
+                      ) : (
+                        <p className="text-amber-400/80 text-xs mt-1">{c.noVehicleYet}</p>
                       )}
                     </button>
                   </li>

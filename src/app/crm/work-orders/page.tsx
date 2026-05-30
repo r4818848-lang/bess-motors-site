@@ -38,6 +38,7 @@ function WorkOrdersPageContent() {
   useEffect(() => {
     const edit = searchParams.get("edit");
     if (edit) setEditingId(edit);
+    if (searchParams.get("create") === "1") setCreating(true);
   }, [searchParams]);
 
   const db = loadDb();
@@ -57,6 +58,7 @@ function WorkOrdersPageContent() {
         <div className="p-6 lg:p-10">
           <WorkOrderForm
             orderId={editingId}
+            initialUserId={creating ? searchParams.get("client") : null}
             onClose={() => {
               setCreating(false);
               setEditingId(null);
