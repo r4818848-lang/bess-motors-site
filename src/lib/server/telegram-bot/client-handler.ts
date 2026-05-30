@@ -138,6 +138,7 @@ import {
   handleExtrasV4Callback,
   sendExtrasMenu,
 } from "./client-features-v4";
+import { formatTelegramSaveError } from "./client-telegram-errors";
 
 type TelegramUser = {
   id: number;
@@ -279,6 +280,7 @@ async function handleStartDeepLinks(
     return;
   }
   if (startParam.startsWith("sign_")) {
+    const orderId = startParam.slice(5);
     const slice = await getClientPortalByChat(chatKey);
     if (!slice) {
       await startLinkFlow(
@@ -287,7 +289,19 @@ async function handleStartDeepLinks(
         chatKey,
         locale,
         minimalTelegramProfile(chatId),
-        startParam.slice(5)
+        orderId
+      );
+      return;
+    }
+    const detail = formatWorkOrderDetail(locale, slice, orderId);
+    if (detail) {
+      const order = slice.workOrders.find((o) => o.id === orderId);
+      const needsSign = order?.confirmationStatus !== "confirmed";
+      const L = getClientBotLabels(locale);
+      await sendTelegramMessage(
+        chatId,
+        needsSign ? `${L.signIntro}\n\n${detail}` : detail,
+        clientOrderDetailKeyboard(locale, orderId, needsSign)
       );
     }
   }
@@ -501,7 +515,11 @@ async function completeLink(
   await clearTelegramSessionKeepLocale(chatKey);
 
   if (!result.ok) {
-    await sendTelegramMessage(chatId, L.saveFailed, clientMainKeyboard(locale));
+    await sendTelegramMessage(
+      chatId,
+      formatTelegramSaveError(locale, result.error),
+      clientMainKeyboard(locale)
+    );
     return;
   }
 
@@ -530,6 +548,17 @@ async function completeLink(
 }
 
 export async function handleClientMessage(msg: TelegramMessage): Promise<void> {
+  try {
+    await handleClientMessageInner(msg);
+  } catch (e) {
+    console.error("[telegram client message]", e);
+    const chatId = msg.chat.id;
+    const locale = (await getClientLocale(String(chatId))) ?? "ru";
+    await sendTelegramMessage(chatId, getClientBotLabels(locale).saveFailed);
+  }
+}
+
+async function handleClientMessageInner(msg: TelegramMessage): Promise<void> {
   const chatId = msg.chat.id;
   const chatKey = String(chatId);
   const text = msg.text?.trim() ?? "";
@@ -591,11 +620,11 @@ export async function handleClientMessage(msg: TelegramMessage): Promise<void> {
     await clearTelegramSessionKeepLocale(chatKey);
     const sliceAfter = await getClientPortalByChat(chatKey);
     const kb = clientUserMenu(locale, sliceAfter);
-    await sendTelegramMessage(
-      chatId,
-      res.ok && res.orderNumber ? L.photoSaved(res.orderNumber) : L.photoFailed,
-      kb
-    );
+    const photoMsg =
+      res.ok && res.orderNumber
+        ? L.photoSaved(res.orderNumber)
+        : formatTelegramSaveError(locale, res.error);
+    await sendTelegramMessage(chatId, photoMsg, kb);
     return;
   }
 
@@ -786,6 +815,25 @@ export async function handleClientMessage(msg: TelegramMessage): Promise<void> {
 }
 
 export async function handleClientCallback(cb: TelegramCallback): Promise<void> {
+  try {
+    await handleClientCallbackInner(cb);
+  } catch (e) {
+    console.error("[telegram client callback]", e);
+    const chatId = cb.message?.chat.id;
+    if (chatId) {
+      const chatKey = String(chatId);
+      const locale = (await getClientLocale(chatKey)) ?? "ru";
+      await answerCallbackQuery(cb.id, getClientBotLabels(locale).saveFailed.slice(0, 180)).catch(
+        () => null
+      );
+      await sendTelegramMessage(chatId, getClientBotLabels(locale).saveFailed);
+    } else {
+      await answerCallbackQuery(cb.id).catch(() => null);
+    }
+  }
+}
+
+async function handleClientCallbackInner(cb: TelegramCallback): Promise<void> {
   const chatId = cb.message?.chat.id;
   const messageId = cb.message?.message_id;
   const data = cb.data ?? "";
@@ -1082,14 +1130,19 @@ export async function handleClientCallback(cb: TelegramCallback): Promise<void> 
       await startLinkFlow(chatId, messageId, chatKey, locale, profile);
       return;
     }
-    const code = ensureReferralCode(slice.user);
+    await mutateCrm((db) => {
+      const u = db.users.find((x) => x.id === slice.user.id && x.role === "client");
+      if (u) ensureReferralCode(u);
+    });
+    const freshSlice = (await getClientPortalByChat(chatKey)) ?? slice;
+    const code = ensureReferralCode(freshSlice.user);
     const link = telegramBotDeepLink(`ref_${code}`);
     let text = L.referralText(link);
     const { loadCrmFromCloud } = await import("./crm-actions");
     const cloudDb = await loadCrmFromCloud();
     if (cloudDb) {
       const { formatReferralTelegramMessage } = await import("@/lib/server/referral-telegram-notify");
-      text = formatReferralTelegramMessage(cloudDb, slice.user, locale, link);
+      text = formatReferralTelegramMessage(cloudDb, freshSlice.user, locale, link);
     }
     await replyOrEdit(chatId, messageId, locale, text, {
       inline_keyboard: [[{ text: "📤 Share", url: `https://t.me/share/url?url=${encodeURIComponent(link)}` }], clientBackMenuRow(locale)],
@@ -1655,7 +1708,13 @@ export async function handleClientCallback(cb: TelegramCallback): Promise<void> 
         clientUserMenu(locale, freshSlice ?? slice)
       );
     } else {
-      await replyOrEdit(chatId, messageId, locale, L.saveFailed, clientMainKeyboard(locale));
+      await replyOrEdit(
+        chatId,
+        messageId,
+        locale,
+        formatTelegramSaveError(locale, result.error),
+        clientMainKeyboard(locale)
+      );
     }
     return;
   }
@@ -1680,7 +1739,9 @@ export async function handleClientCallback(cb: TelegramCallback): Promise<void> 
       chatId,
       messageId,
       locale,
-      result.ok ? `${L.callSaved}\n\n🔧 ${esc(d.serviceLabel ?? "")}` : L.saveFailed,
+      result.ok
+        ? `${L.callSaved}\n\n🔧 ${esc(d.serviceLabel ?? "")}`
+        : formatTelegramSaveError(locale, result.error),
       clientUserMenu(locale, slice)
     );
     return;
@@ -1693,11 +1754,21 @@ export async function handleClientTelegramUpdate(update: {
   message?: TelegramMessage;
   callback_query?: TelegramCallback;
 }): Promise<void> {
-  if (update.callback_query) {
-    await handleClientCallback(update.callback_query);
-    return;
-  }
-  if (update.message) {
-    await handleClientMessage(update.message);
+  try {
+    if (update.callback_query) {
+      await handleClientCallback(update.callback_query);
+      return;
+    }
+    if (update.message) {
+      await handleClientMessage(update.message);
+    }
+  } catch (e) {
+    console.error("[telegram client update]", e);
+    const chatId =
+      update.message?.chat.id ?? update.callback_query?.message?.chat.id;
+    if (chatId) {
+      const locale = (await getClientLocale(String(chatId))) ?? "ru";
+      await sendTelegramMessage(chatId, getClientBotLabels(locale).saveFailed);
+    }
   }
 }

@@ -58,6 +58,8 @@ export type ClientBotLabels = {
   saved: string;
   callSaved: string;
   saveFailed: string;
+  cloudUnavailable: string;
+  linkInvalidCredentials: string;
   invalidName: string;
   invalidPhone: string;
   invalidPlate: string;
@@ -254,6 +256,10 @@ const LABELS: Record<BotLocale, ClientBotLabels> = {
     callSaved:
       "✅ <b>Prośba o telefon przyjęta!</b>\n\nOddzwonimy w godzinach pracy.\n\n☎️ +48 791 257 229",
     saveFailed: "❌ Nie udało się zapisać. Spróbuj później lub zadzwoń.",
+    cloudUnavailable:
+      "☁️ Baza CRM chwilowo niedostępna. Spróbuj za chwilę lub zadzwoń: +48 791 257 229",
+    linkInvalidCredentials:
+      "❌ Nie znaleziono konta. Sprawdź telefon i tablicę (jak w kabinecie na stronie).",
     invalidName: "❌ Podaj imię (min. 2 znaki).",
     invalidPhone: "❌ Podaj poprawny numer (min. 9 cyfr).",
     invalidPlate: "❌ Podaj numer rejestracyjny (min. 2 znaki).",
@@ -464,6 +470,10 @@ const LABELS: Record<BotLocale, ClientBotLabels> = {
     callSaved:
       "✅ <b>Заявка на звонок принята!</b>\n\nПерезвоним в рабочее время.\n\n☎️ +48 791 257 229",
     saveFailed: "❌ Не удалось сохранить. Попробуйте позже или позвоните.",
+    cloudUnavailable:
+      "☁️ База CRM временно недоступна. Попробуйте через минуту или звоните: +48 791 257 229",
+    linkInvalidCredentials:
+      "❌ Аккаунт не найден. Проверьте телефон и госномер (как в личном кабинете на сайте).",
     invalidName: "❌ Введите имя (минимум 2 символа).",
     invalidPhone: "❌ Нужен корректный номер (минимум 9 цифр).",
     invalidPlate: "❌ Введите госномер (минимум 2 символа).",
@@ -669,6 +679,10 @@ const LABELS: Record<BotLocale, ClientBotLabels> = {
     saved: "✅ <b>Прийнято!</b>\n\nМи зв'яжемося для підтвердження.\n\n☎️ +48 791 257 229",
     callSaved: "✅ <b>Заявку на дзвінок прийнято!</b>\n\n☎️ +48 791 257 229",
     saveFailed: "❌ Не вдалося зберегти. Спробуйте пізніше.",
+    cloudUnavailable:
+      "☁️ База CRM тимчасово недоступна. Спробуйте пізніше або зателефонуйте: +48 791 257 229",
+    linkInvalidCredentials:
+      "❌ Обліковий запис не знайдено. Перевірте телефон і номер (як у кабінеті на сайті).",
     invalidName: "❌ Введіть ім'я (мін. 2 символи).",
     invalidPhone: "❌ Коректний номер (мін. 9 цифр).",
     invalidPlate: "❌ Введіть держномер.",
@@ -873,6 +887,10 @@ const LABELS: Record<BotLocale, ClientBotLabels> = {
     saved: "✅ <b>Request received!</b>\n\nWe will confirm shortly.\n\n☎️ +48 791 257 229",
     callSaved: "✅ <b>Call request received!</b>\n\n☎️ +48 791 257 229",
     saveFailed: "❌ Could not save. Try again or call us.",
+    cloudUnavailable:
+      "☁️ CRM database is temporarily unavailable. Try again shortly or call +48 791 257 229",
+    linkInvalidCredentials:
+      "❌ Account not found. Check phone and plate (same as on the website client portal).",
     invalidName: "❌ Enter name (min. 2 characters).",
     invalidPhone: "❌ Valid phone required (min. 9 digits).",
     invalidPlate: "❌ Enter license plate.",

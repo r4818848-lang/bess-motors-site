@@ -8,12 +8,13 @@ import { getClientPortalByChat } from "./client-telegram-link";
 import {
   clientMainKeyboard,
   clientConfirmBookingKeyboard,
+  clientServiceKeyboard,
   formatClientBookingSummary,
   clientAppointmentDetailKeyboard,
 } from "./client-keyboards";
 import { mutateCrm } from "./crm-actions";
+import { clearTelegramSessionKeepLocale, setClientTelegramSession } from "./client-locale";
 import { formatDateShort, getClientServiceLabel } from "./client-services";
-import { setClientTelegramSession } from "./client-locale";
 import { cleanEnvValue } from "@/lib/server/supabase-config";
 
 export function telegramBotDeepLink(startParam?: string): string {
@@ -257,7 +258,8 @@ export async function rebookLastAppointment(
   const L = getClientBotLabels(locale);
 
   if (!slice) {
-    await sendTelegramMessage(chatId, L.signIntro, clientMainKeyboard(locale, false));
+    await clearTelegramSessionKeepLocale(chatKey);
+    await sendTelegramMessage(chatId, L.chooseService, clientServiceKeyboard(locale, "book"));
     return;
   }
 
@@ -310,7 +312,12 @@ export async function handleAptStartParam(
   const slice = await getClientPortalByChat(String(chatId));
   const L = getClientBotLabels(locale);
   if (!slice) {
-    await sendTelegramMessage(chatId, L.signIntro, clientMainKeyboard(locale, false));
+    await sendTelegramMessage(chatId, L.signIntro, {
+      inline_keyboard: [
+        [{ text: L.activate, callback_data: "cl:link" }],
+        [{ text: L.book, callback_data: "cl:book" }],
+      ],
+    });
     return;
   }
   const apt = slice.appointments.find((a) => a.id === aptId);
