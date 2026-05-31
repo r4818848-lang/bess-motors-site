@@ -1,5 +1,5 @@
 import type { ClientPortalSlice } from "@/lib/client-sign";
-import { editTelegramMessage, sendTelegramMessage } from "@/lib/server/telegram-api";
+import { sendTelegramMessage, updateTelegramInlineScreen } from "@/lib/server/telegram-api";
 import { type BotLocale, getClientBotLabels } from "./client-i18n";
 import {
   clientConfirmBookingKeyboard,
@@ -23,17 +23,13 @@ export async function replyOrEdit(
   text: string,
   keyboard?: ReplyKeyboard
 ): Promise<void> {
-  if (messageId && keyboard && "inline_keyboard" in keyboard) {
-    const ok = await editTelegramMessage(chatId, messageId, text, keyboard);
-    if (!ok) await sendTelegramMessage(chatId, text, keyboard);
-  } else if (messageId) {
-    const inlineKb =
-      keyboard && "inline_keyboard" in keyboard ? keyboard : clientMainKeyboard(locale);
-    const ok = await editTelegramMessage(chatId, messageId, text, inlineKb);
-    if (!ok) await sendTelegramMessage(chatId, text, keyboard ?? clientMainKeyboard(locale));
-  } else {
-    await sendTelegramMessage(chatId, text, keyboard ?? clientMainKeyboard(locale));
+  const inlineKb =
+    keyboard && "inline_keyboard" in keyboard ? keyboard : clientMainKeyboard(locale);
+  if (messageId || (keyboard && "inline_keyboard" in keyboard)) {
+    await updateTelegramInlineScreen(chatId, messageId, text, inlineKb);
+    return;
   }
+  await sendTelegramMessage(chatId, text, keyboard ?? clientMainKeyboard(locale));
 }
 
 export function linkedProfileData(

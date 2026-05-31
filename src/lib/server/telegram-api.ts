@@ -156,12 +156,28 @@ export async function sendTelegramMessage(
   return messageId ?? null;
 }
 
+export type EditTelegramMessageResult = {
+  ok: boolean;
+  notModified?: boolean;
+  description?: string;
+};
+
 export async function editTelegramMessage(
   chatId: number | string,
   messageId: number,
   text: string,
   replyMarkup?: InlineKeyboardMarkup
 ): Promise<boolean> {
+  const result = await editTelegramMessageDetailed(chatId, messageId, text, replyMarkup);
+  return result.ok;
+}
+
+export async function editTelegramMessageDetailed(
+  chatId: number | string,
+  messageId: number,
+  text: string,
+  replyMarkup?: InlineKeyboardMarkup
+): Promise<EditTelegramMessageResult> {
   const payload: Record<string, unknown> = {
     chat_id: chatId,
     message_id: messageId,
@@ -172,7 +188,44 @@ export async function editTelegramMessage(
   if (replyMarkup) payload.reply_markup = replyMarkup;
 
   const res = await telegramRequest("editMessageText", payload);
+  const description = res?.description ?? "";
+  const notModified =
+    res?.ok !== true && description.toLowerCase().includes("message is not modified");
+  return {
+    ok: res?.ok === true || notModified,
+    notModified,
+    description,
+  };
+}
+
+export async function deleteTelegramMessage(
+  chatId: number | string,
+  messageId: number
+): Promise<boolean> {
+  const res = await telegramRequest("deleteMessage", {
+    chat_id: chatId,
+    message_id: messageId,
+  });
   return res?.ok === true;
+}
+
+/**
+ * Updates one inline-keyboard screen: text on top, buttons below.
+ * Edits the callback message in place; on failure deletes it and sends a fresh one
+ * so content is not left above a stale menu.
+ */
+export async function updateTelegramInlineScreen(
+  chatId: number | string,
+  messageId: number | undefined,
+  text: string,
+  replyMarkup?: InlineKeyboardMarkup
+): Promise<number | null> {
+  if (messageId) {
+    const edit = await editTelegramMessageDetailed(chatId, messageId, text, replyMarkup);
+    if (edit.ok) return messageId;
+    await deleteTelegramMessage(chatId, messageId).catch(() => false);
+  }
+  return sendTelegramMessage(chatId, text, replyMarkup);
 }
 
 export async function answerCallbackQuery(

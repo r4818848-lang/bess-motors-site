@@ -11,7 +11,7 @@ function zl(n: number): string {
   return `${n.toFixed(2)} zł`;
 }
 
-function esc(text: string): string {
+export function esc(text: string): string {
   return text
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")

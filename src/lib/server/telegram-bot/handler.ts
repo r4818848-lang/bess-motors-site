@@ -5,9 +5,9 @@ import { getPriceItem } from "@/lib/price-list";
 import type { ExpenseCategory, RepairStatus } from "@/lib/store";
 import {
   answerCallbackQuery,
-  editTelegramMessage,
   isAuthorizedChat,
   sendTelegramMessage,
+  updateTelegramInlineScreen,
 } from "@/lib/server/telegram-api";
 import {
   clearTelegramSession,
@@ -130,12 +130,7 @@ async function replyOrEdit(
   text: string,
   keyboard = mainMenuKeyboard()
 ): Promise<void> {
-  if (messageId) {
-    const ok = await editTelegramMessage(chatId, messageId, text, keyboard);
-    if (!ok) await sendTelegramMessage(chatId, text, keyboard);
-  } else {
-    await sendTelegramMessage(chatId, text, keyboard);
-  }
+  await updateTelegramInlineScreen(chatId, messageId, text, keyboard);
 }
 
 async function showMainMenu(chatId: number, messageId?: number): Promise<void> {
@@ -417,6 +412,32 @@ async function handleCallback(cb: TelegramCallback): Promise<void> {
     return;
   }
 
+  if (data === "calls:0") {
+    await replyOrEdit(chatId, messageId, formatOpenCallsList(db), openCallsKeyboard(db));
+    return;
+  }
+
+  if (data.startsWith("calls:done:")) {
+    const callId = data.slice(11);
+    await markCallDone(callId);
+    const freshDb = (await loadCrmFromCloud()) ?? db;
+    await replyOrEdit(
+      chatId,
+      messageId,
+      formatOpenCallsList(freshDb),
+      openCallsKeyboard(freshDb)
+    );
+    return;
+  }
+
+  if (data === "qapt:menu") {
+    await setTelegramSession(chatKey, { step: "admin_quick_apt", data: {} });
+    await replyOrEdit(chatId, messageId, BOT.quickAptPrompt, {
+      inline_keyboard: [[{ text: BOT.cancel, callback_data: "menu" }]],
+    });
+    return;
+  }
+
   if (data === "unsigned:0") {
     await replyOrEdit(chatId, messageId, formatUnsignedList(db), unsignedKeyboard(db));
     return;
@@ -425,7 +446,13 @@ async function handleCallback(cb: TelegramCallback): Promise<void> {
   if (data.startsWith("unsigned:remind:")) {
     const orderId = data.slice(16);
     const res = await remindClientToSign(db, orderId);
-    await sendTelegramMessage(chatId, res.message, unsignedKeyboard(db));
+    const freshDb = (await loadCrmFromCloud()) ?? db;
+    await replyOrEdit(
+      chatId,
+      messageId,
+      `${res.message}\n\n${formatUnsignedList(freshDb)}`,
+      unsignedKeyboard(freshDb)
+    );
     return;
   }
 
@@ -523,19 +550,19 @@ async function handleCallback(cb: TelegramCallback): Promise<void> {
     const number = rest.slice(0, lastColon);
     const template = rest.slice(lastColon + 1) as MasterTemplate;
     const res = await sendMasterTemplateToClient(db, number, template);
-    await sendTelegramMessage(chatId, res.message, masterTemplateKeyboard(number));
+    await replyOrEdit(chatId, messageId, res.message, masterTemplateKeyboard(number));
     return;
   }
 
   if (data.startsWith("wo:extra:")) {
     const number = data.slice(9);
-    const chatKey = String(chatId);
     await setTelegramSession(chatKey, {
       step: "admin_extra_work",
       data: { orderNumber: number },
     });
-    await sendTelegramMessage(
+    await replyOrEdit(
       chatId,
+      messageId,
       BOT.extraWorkPrompt.replace("{number}", number),
       { inline_keyboard: [[{ text: BOT.cancel, callback_data: "menu" }]] }
     );
@@ -544,13 +571,13 @@ async function handleCallback(cb: TelegramCallback): Promise<void> {
 
   if (data.startsWith("wo:custom:")) {
     const number = data.slice(10);
-    const chatKey = String(chatId);
     await setTelegramSession(chatKey, {
       step: "admin_custom_msg",
       data: { orderNumber: number },
     });
-    await sendTelegramMessage(
+    await replyOrEdit(
       chatId,
+      messageId,
       BOT.customMsgPrompt.replace("{number}", number),
       { inline_keyboard: [[{ text: BOT.cancel, callback_data: "menu" }]] }
     );
@@ -700,12 +727,13 @@ async function handleCallback(cb: TelegramCallback): Promise<void> {
     return;
   }
 
+  if (data === "mech:menu") {
+    await replyOrEdit(chatId, messageId, BOT.choosePeriod, mechanicPeriodKeyboard());
+    return;
+  }
+
   if (data.startsWith("mech:")) {
     const period = data.slice(5) as ReportPeriod;
-    if (data === "mech:menu") {
-      await replyOrEdit(chatId, messageId, BOT.choosePeriod, mechanicPeriodKeyboard());
-      return;
-    }
     const report = formatMechanicsReport(db, period);
     await replyOrEdit(chatId, messageId, report, mechanicPeriodKeyboard());
     return;

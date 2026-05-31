@@ -1,6 +1,7 @@
 import type { InlineKeyboardMarkup } from "@/lib/server/telegram-api";
 import type { Database } from "@/lib/store";
 import { markCallAsCalled } from "./crm-actions";
+import { esc } from "./format";
 
 export function formatOpenCallsList(db: Database): string {
   const open = db.callRequests
@@ -20,10 +21,10 @@ export function formatOpenCallsList(db: Database): string {
   const lines = [`📞 <b>Нужно перезвонить (${open.length})</b>`, ""];
   for (const c of open) {
     lines.push(
-      `<b>${c.priority === "urgent" ? "🚨 " : ""}${c.clientName || "—"}</b>`,
-      `📱 ${c.phone}`,
-      `🔧 ${c.serviceLabel}`,
-      c.comment ? `💬 ${c.comment.slice(0, 80)}` : "",
+      `<b>${c.priority === "urgent" ? "🚨 " : ""}${esc(c.clientName || "—")}</b>`,
+      `📱 ${esc(c.phone)}`,
+      `🔧 ${esc(c.serviceLabel)}`,
+      c.comment ? `💬 ${esc(c.comment.slice(0, 80))}` : "",
       ""
     );
   }
