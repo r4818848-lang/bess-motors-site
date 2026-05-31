@@ -46,6 +46,7 @@ import {
   generateOrderNumber,
 } from "@/lib/workorder-calc";
 import { Button } from "@/components/ui/Button";
+import { PriceNumberInput } from "@/components/ui/PriceNumberInput";
 import { VehicleClientEditor } from "@/components/crm/VehicleClientEditor";
 import { WorkOrderDocumentActions } from "@/components/work-order/WorkOrderDocumentActions";
 import { CrmMessageTemplates } from "@/components/crm/CrmMessageTemplates";
@@ -732,13 +733,12 @@ export function WorkOrderForm({
         </div>
         <div>
           <label className="text-xs uppercase text-bm-muted">{w.orderDiscount}</label>
-          <input
-            type="number"
+          <PriceNumberInput
             className="input-premium mt-1"
             min={0}
             max={100}
             value={order.orderDiscount}
-            onChange={(e) => setOrder({ ...order, orderDiscount: Number(e.target.value) })}
+            onChange={(orderDiscount) => setOrder({ ...order, orderDiscount })}
           />
         </div>
         <div className="flex items-end">
@@ -839,32 +839,30 @@ export function WorkOrderForm({
             <>
               <div>
                 <label className="text-xs uppercase text-bm-muted">{w.paidCashPart}</label>
-                <input
-                  type="number"
+                <PriceNumberInput
                   min={0}
                   step={0.01}
                   className="input-premium mt-1"
-                  value={order.paidCashAmount ?? ""}
-                  onChange={(e) =>
+                  value={order.paidCashAmount ?? 0}
+                  onChange={(paidCashAmount) =>
                     setOrder({
                       ...order,
-                      paidCashAmount: e.target.value === "" ? undefined : Number(e.target.value),
+                      paidCashAmount: paidCashAmount === 0 ? undefined : paidCashAmount,
                     })
                   }
                 />
               </div>
               <div>
                 <label className="text-xs uppercase text-bm-muted">{w.paidCardPart}</label>
-                <input
-                  type="number"
+                <PriceNumberInput
                   min={0}
                   step={0.01}
                   className="input-premium mt-1"
-                  value={order.paidCardAmount ?? ""}
-                  onChange={(e) =>
+                  value={order.paidCardAmount ?? 0}
+                  onChange={(paidCardAmount) =>
                     setOrder({
                       ...order,
-                      paidCardAmount: e.target.value === "" ? undefined : Number(e.target.value),
+                      paidCardAmount: paidCardAmount === 0 ? undefined : paidCardAmount,
                     })
                   }
                 />
@@ -927,19 +925,21 @@ export function WorkOrderForm({
                     />
                   </td>
                   <td>
-                    <input
-                      type="number"
+                    <PriceNumberInput
                       className="input-premium text-sm py-1 w-20"
+                      min={0}
+                      step={0.01}
                       value={line.price}
-                      onChange={(e) => updateService(i, { price: Number(e.target.value) })}
+                      onChange={(price) => updateService(i, { price })}
                     />
                   </td>
                   <td>
-                    <input
-                      type="number"
+                    <PriceNumberInput
                       className="input-premium text-sm py-1 w-14"
+                      min={0}
+                      max={100}
                       value={line.discount}
-                      onChange={(e) => updateService(i, { discount: Number(e.target.value) })}
+                      onChange={(discount) => updateService(i, { discount })}
                     />
                   </td>
                   <td className="font-mono text-bm-red whitespace-nowrap">
@@ -1045,27 +1045,30 @@ export function WorkOrderForm({
                     />
                   </td>
                   <td>
-                    <input
-                      type="number"
+                    <PriceNumberInput
                       className="input-premium text-sm py-1 w-18"
+                      min={0}
+                      step={0.01}
                       value={line.purchasePrice}
-                      onChange={(e) => updatePart(i, { purchasePrice: Number(e.target.value) })}
+                      onChange={(purchasePrice) => updatePart(i, { purchasePrice })}
                     />
                   </td>
                   <td>
-                    <input
-                      type="number"
+                    <PriceNumberInput
                       className="input-premium text-sm py-1 w-18"
+                      min={0}
+                      step={0.01}
                       value={line.sellPrice}
-                      onChange={(e) => updatePart(i, { sellPrice: Number(e.target.value) })}
+                      onChange={(sellPrice) => updatePart(i, { sellPrice })}
                     />
                   </td>
                   <td>
-                    <input
-                      type="number"
+                    <PriceNumberInput
                       className="input-premium text-sm py-1 w-12"
+                      min={0}
+                      max={100}
                       value={line.discount}
-                      onChange={(e) => updatePart(i, { discount: Number(e.target.value) })}
+                      onChange={(discount) => updatePart(i, { discount })}
                     />
                   </td>
                   <td className="text-green-400 text-xs font-mono whitespace-nowrap">

@@ -7,6 +7,7 @@ import { normalizePhone } from "@/lib/auth";
 import { hashPassword } from "@/lib/crypto";
 import { loadDb, saveDb, type MechanicProfile } from "@/lib/store";
 import { Button } from "@/components/ui/Button";
+import { PriceNumberInput } from "@/components/ui/PriceNumberInput";
 import { DataBackupPanel } from "@/components/crm/DataBackupPanel";
 
 type MechRow = MechanicProfile & { phone: string; newPassword: string };
@@ -306,13 +307,14 @@ export function SettingsPanel({ onUpdate }: { onUpdate: () => void }) {
                     />
                   </td>
                   <td>
-                    <input
-                      type="number"
+                    <PriceNumberInput
                       className="input-premium w-16 py-1 text-sm"
+                      min={0}
+                      step={0.01}
                       value={m.bonusPerOrder}
-                      onChange={(e) => {
+                      onChange={(bonusPerOrder) => {
                         const next = [...mechanics];
-                        next[i] = { ...m, bonusPerOrder: Number(e.target.value) };
+                        next[i] = { ...m, bonusPerOrder };
                         setMechanics(next);
                       }}
                     />

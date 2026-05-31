@@ -6,6 +6,7 @@ import { useI18n } from "@/lib/i18n/context";
 import { loadDb, saveDb, type ServiceExpense, type ExpenseCategory } from "@/lib/store";
 import { useDbSync } from "@/hooks/useDbSync";
 import { Button } from "@/components/ui/Button";
+import { PriceNumberInput } from "@/components/ui/PriceNumberInput";
 
 const categories: ExpenseCategory[] = [
   "rent",
@@ -81,11 +82,12 @@ export function ExpensesPanel({ onUpdate }: { onUpdate: () => void }) {
         </div>
         <div>
           <label className="text-xs text-bm-muted uppercase">{w.amount}</label>
-          <input
-            type="number"
+          <PriceNumberInput
             className="input-premium mt-1"
-            value={form.amount || ""}
-            onChange={(e) => setForm({ ...form, amount: Number(e.target.value) })}
+            min={0}
+            step={0.01}
+            value={form.amount}
+            onChange={(amount) => setForm({ ...form, amount })}
           />
         </div>
         <div>

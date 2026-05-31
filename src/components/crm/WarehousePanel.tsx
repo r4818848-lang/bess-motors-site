@@ -7,6 +7,7 @@ import { useDbSync } from "@/hooks/useDbSync";
 import { useI18n } from "@/lib/i18n/context";
 import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { PriceNumberInput } from "@/components/ui/PriceNumberInput";
 
 export function WarehousePanel() {
   const { t } = useI18n();
@@ -125,12 +126,13 @@ export function WarehousePanel() {
               value={edit.minQty ?? 3}
               onChange={(e) => setEdit({ ...edit, minQty: Number(e.target.value) })}
             />
-            <input
-              type="number"
+            <PriceNumberInput
               className="input-field"
               placeholder="Sell"
+              min={0}
+              step={0.01}
               value={edit.sellPrice}
-              onChange={(e) => setEdit({ ...edit, sellPrice: Number(e.target.value) })}
+              onChange={(sellPrice) => setEdit({ ...edit, sellPrice })}
             />
           </div>
           <div className="flex gap-2">
