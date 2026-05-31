@@ -151,7 +151,10 @@ export function buildWorkOrderDocumentHtml(
     order.estimatedReadyAt?.slice(0, 10) ??
     (order.status === "ready" || order.status === "delivered" ? order.updatedAt : "");
 
-  const serviceRows = order.services
+  const docServices = order.services.filter((s) => s.name.trim().length > 0);
+  const docParts = order.parts.filter((p) => p.name.trim().length > 0);
+
+  const serviceRows = docServices
     .map(
       (s, i) => `<tr>
       <td style="border:1px solid #bbb;padding:4px 6px;text-align:center;width:28px;">${i + 1}</td>
@@ -161,16 +164,7 @@ export function buildWorkOrderDocumentHtml(
     )
     .join("");
 
-  const emptyServiceRows = Array.from(
-    { length: Math.max(0, 10 - order.services.length) },
-    (_, i) => `<tr>
-      <td style="border:1px solid #bbb;padding:4px 6px;text-align:center;">${order.services.length + i + 1}</td>
-      <td style="border:1px solid #bbb;padding:4px 6px;">&nbsp;</td>
-      <td style="border:1px solid #bbb;padding:4px 6px;">&nbsp;</td>
-    </tr>`
-  ).join("");
-
-  const partRows = order.parts
+  const partRows = docParts
     .map(
       (p) => `<tr>
       <td style="border:1px solid #bbb;padding:4px 6px;">${esc(p.name)}</td>
@@ -179,15 +173,6 @@ export function buildWorkOrderDocumentHtml(
     </tr>`
     )
     .join("");
-
-  const emptyPartRows = Array.from(
-    { length: Math.max(0, 10 - order.parts.length) },
-    () => `<tr>
-      <td style="border:1px solid #bbb;padding:4px 6px;">&nbsp;</td>
-      <td style="border:1px solid #bbb;padding:4px 6px;">&nbsp;</td>
-      <td style="border:1px solid #bbb;padding:4px 6px;">&nbsp;</td>
-    </tr>`
-  ).join("");
 
   const benefitsHtml = footer.benefits
     .map(
@@ -280,7 +265,7 @@ export function buildWorkOrderDocumentHtml(
             <th style="border:1px solid #333;padding:5px;text-align:left;color:#fff;">${esc(L.workName)}</th>
             <th style="border:1px solid #333;padding:5px;text-align:right;color:#fff;">${esc(L.cost)}</th>
           </tr></thead>
-          <tbody>${serviceRows}${emptyServiceRows}</tbody>
+          <tbody>${serviceRows}</tbody>
         </table>
         </div>
       </td>
@@ -293,7 +278,7 @@ export function buildWorkOrderDocumentHtml(
             <th style="border:1px solid #333;padding:5px;color:#fff;">${esc(L.qty)}</th>
             <th style="border:1px solid #333;padding:5px;text-align:right;color:#fff;">${esc(L.cost)}</th>
           </tr></thead>
-          <tbody>${partRows}${emptyPartRows}</tbody>
+          <tbody>${partRows}</tbody>
         </table>
         </div>
       </td>

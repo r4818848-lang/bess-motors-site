@@ -33,7 +33,6 @@ import { resolveOrderDocumentLocale } from "@/lib/work-order-locale";
 import {
   getFormDocLabels,
   getFormFooterContent,
-  padFormRows,
   formatDocDate,
 } from "@/lib/work-order-form-labels";
 import { resolveSignatureMode } from "@/lib/work-order-signature";
@@ -117,25 +116,23 @@ export function PremiumWorkOrderDocument({
     order.estimatedReadyAt?.slice(0, 10) ??
     (order.status === "ready" || order.status === "delivered" ? order.updatedAt : "");
 
-  const serviceLines = padFormRows(
-    order.services.map((s, i) => ({
+  const serviceLines = order.services
+    .filter((s) => s.name.trim().length > 0)
+    .map((s, i) => ({
       key: s.id,
       num: i + 1,
       name: s.name,
       total: calcServiceLine(s),
-    })),
-    10
-  );
+    }));
 
-  const partLines = padFormRows(
-    order.parts.map((p) => ({
+  const partLines = order.parts
+    .filter((p) => p.name.trim().length > 0)
+    .map((p) => ({
       key: p.id,
       name: p.name,
       qty: p.qty,
       total: calcPartLine(p),
-    })),
-    10
-  );
+    }));
 
   const notesText = order.clientNotes || "";
 

@@ -154,11 +154,9 @@ export function getFormFooterContent(locale: DocLocale) {
   };
 }
 
-/** Pad rows for classic blank appearance (min rows on print form) */
-export function padFormRows<T>(rows: T[], min = 10): T[] {
-  const out = [...rows];
-  while (out.length < min) out.push({} as T);
-  return out;
+/** @deprecated Use only filled lines — padding removed from work order blank */
+export function padFormRows<T>(rows: T[]): T[] {
+  return rows;
 }
 
 /** Format date for printed work order (DD.MM.YYYY) */
