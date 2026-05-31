@@ -42,6 +42,7 @@ import {
   calcClientTotal,
   calcPartsProfit,
   calcMechanicEarnings,
+  calcServiceOrderProfit,
   calcOrderBreakdown,
   generateOrderNumber,
 } from "@/lib/workorder-calc";
@@ -177,6 +178,7 @@ export function WorkOrderForm({
     const clientTotal = calcClientTotal(order);
     const partsProfit = calcPartsProfit(order);
     const earnings = calcMechanicEarnings(order, db.settings, mechProfile);
+    const serviceProfit = calcServiceOrderProfit(order, db.settings, mechProfile);
     return {
       servicesSub,
       partsSub,
@@ -185,6 +187,7 @@ export function WorkOrderForm({
       clientTotal,
       partsProfit,
       earnings,
+      serviceProfit,
     };
   }, [order, mechProfile, db.settings]);
 
@@ -1186,7 +1189,9 @@ export function WorkOrderForm({
         </div>
         <div className="glass-red rounded-xl p-4 neon-border">
           <p className="text-xs text-bm-muted uppercase">{w.discountAmount}</p>
-          <p className="font-display text-xl text-bm-red">-{totals.discountAmt.toFixed(2)} zł</p>
+          <p className="font-display text-xl text-bm-red">
+            {totals.discountAmt > 0 ? `-${totals.discountAmt.toFixed(2)}` : "—"} zł
+          </p>
         </div>
         <div className="glass-red rounded-xl p-4 neon-border border-bm-red">
           <p className="text-xs text-bm-muted uppercase">{w.clientTotal}</p>
@@ -1199,11 +1204,30 @@ export function WorkOrderForm({
             </p>
           )}
         </div>
+        <div className="glass-red rounded-xl p-4 neon-border border-green-500/40 sm:col-span-2">
+          <p className="text-xs text-bm-muted uppercase">{w.serviceProfit}</p>
+          <p
+            className={`font-display text-2xl font-bold ${
+              totals.serviceProfit.total >= 0 ? "text-green-400" : "text-red-400"
+            }`}
+          >
+            {totals.serviceProfit.total >= 0 ? "+" : ""}
+            {totals.serviceProfit.total.toFixed(2)} zł
+          </p>
+          <p className="text-xs text-bm-muted mt-2">
+            {w.serviceProfitLabor}: +{totals.serviceProfit.laborMargin.toFixed(2)} zł ·{" "}
+            {w.serviceProfitParts}: +{totals.serviceProfit.partsMargin.toFixed(2)} zł
+            {totals.serviceProfit.partsCost > 0 &&
+              ` · ${w.serviceProfitPartsCost}: ${totals.serviceProfit.partsCost.toFixed(2)} zł`}
+            {totals.serviceProfit.mechanicPay > 0 &&
+              ` · ${w.mechanicSalary}: −${totals.serviceProfit.mechanicPay.toFixed(2)} zł`}
+          </p>
+        </div>
         <div className="glass-red rounded-xl p-4 neon-border">
           <p className="text-xs text-bm-muted uppercase">{c.profit} ({w.partsProfit})</p>
           <p className="font-display text-xl text-green-400">+{totals.partsProfit.toFixed(2)} zł</p>
         </div>
-        <div className="glass-red rounded-xl p-4 neon-border sm:col-span-2">
+        <div className="glass-red rounded-xl p-4 neon-border sm:col-span-2 lg:col-span-1">
           <p className="text-xs text-bm-muted uppercase">{w.mechanicSalary}</p>
           <p className="font-display text-2xl text-amber-400">
             {totals.earnings.total.toFixed(2)} zł

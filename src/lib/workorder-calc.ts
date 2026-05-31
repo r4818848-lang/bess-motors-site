@@ -84,6 +84,45 @@ export function calcPartsProfit(order: WorkOrder): number {
   return order.parts.reduce((s, l) => s + calcPartLineProfit(l), 0);
 }
 
+export function calcPartsPurchaseCost(order: WorkOrder): number {
+  return order.parts.reduce((s, l) => s + l.qty * l.purchasePrice, 0);
+}
+
+/** What the workshop keeps on this order (after discount, parts cost, mechanic pay). */
+export interface ServiceOrderProfit {
+  laborMargin: number;
+  partsMargin: number;
+  mechanicPay: number;
+  partsCost: number;
+  netRevenue: number;
+  total: number;
+}
+
+export function calcServiceOrderProfit(
+  order: WorkOrder,
+  settings: AppSettings,
+  mechanic?: MechanicProfile
+): ServiceOrderProfit {
+  const earnings = calcMechanicEarnings(order, settings, mechanic);
+  const servicesSub = calcServicesSubtotal(order);
+  const partsProfitGross = calcPartsProfit(order);
+  const partsCost = calcPartsPurchaseCost(order);
+  const netRevenue = calcClientTotal(order);
+  const laborMargin = servicesSub - earnings.fromLabor;
+  const partsMargin = partsProfitGross - earnings.fromParts;
+  const mechanicPay = earnings.total;
+  const total = netRevenue - partsCost - mechanicPay;
+
+  return {
+    laborMargin,
+    partsMargin,
+    mechanicPay,
+    partsCost,
+    netRevenue,
+    total,
+  };
+}
+
 export interface MechanicEarnings {
   laborBase: number;
   laborPercent: number;
