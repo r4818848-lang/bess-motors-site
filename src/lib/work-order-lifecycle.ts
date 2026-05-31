@@ -1,13 +1,18 @@
 import type { WorkOrder } from "@/lib/store";
 
-/** Open work orders — everything except issued to client (Выдан). */
-export function isOpenWorkOrder(order: WorkOrder): boolean {
-  return order.status !== "delivered";
+/** Order is closed (history) when repair status or document status is «issued to client». */
+export function isWorkOrderClosed(order: WorkOrder): boolean {
+  return order.status === "delivered" || order.documentStatus === "delivered";
 }
 
-/** Closed work orders — moved to order history when status is delivered. */
+/** Open work orders — not yet issued to client. */
+export function isOpenWorkOrder(order: WorkOrder): boolean {
+  return !isWorkOrderClosed(order);
+}
+
+/** Closed work orders — shown in order history. */
 export function isClosedWorkOrder(order: WorkOrder): boolean {
-  return order.status === "delivered";
+  return isWorkOrderClosed(order);
 }
 
 export function filterOpenWorkOrders(orders: WorkOrder[]): WorkOrder[] {
@@ -16,4 +21,19 @@ export function filterOpenWorkOrders(orders: WorkOrder[]): WorkOrder[] {
 
 export function filterClosedWorkOrders(orders: WorkOrder[]): WorkOrder[] {
   return orders.filter(isClosedWorkOrder);
+}
+
+/** When document is «delivered» or repair status is «delivered», close the work order. */
+export function applyWorkOrderClosure(order: WorkOrder): WorkOrder {
+  if (!isWorkOrderClosed(order) && order.documentStatus !== "delivered" && order.status !== "delivered") {
+    return order;
+  }
+  const today = new Date().toISOString().slice(0, 10);
+  return {
+    ...order,
+    status: "delivered",
+    documentStatus: "delivered",
+    completedAt: order.completedAt ?? today,
+    updatedAt: today,
+  };
 }

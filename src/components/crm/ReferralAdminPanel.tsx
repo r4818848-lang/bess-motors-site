@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useDbSync } from "@/hooks/useDbSync";
+import { useI18n } from "@/lib/i18n/context";
 import { loadDb, saveDb } from "@/lib/store";
 import { ReferralLeaderboard } from "@/components/crm/ReferralLeaderboard";
 import {
@@ -16,23 +17,31 @@ import {
   type ReferrerSummary,
 } from "@/lib/referral-system";
 
-const STATUS_LABEL: Record<ReferralInviteStatus, string> = {
-  registered: "Zarejestrowany",
-  pending_visit: "Był w serwisie — brak opłaconego WZ",
-  qualified: "✅ Opłacony + wydany WZ",
-};
-
-function StatusBadge({ status }: { status: ReferralInviteStatus }) {
+function StatusBadge({
+  status,
+  labels,
+}: {
+  status: ReferralInviteStatus;
+  labels: Record<ReferralInviteStatus, string>;
+}) {
   const cls =
     status === "qualified"
       ? "text-green-400"
       : status === "pending_visit"
         ? "text-amber-400"
         : "text-bm-muted";
-  return <span className={`text-xs ${cls}`}>{STATUS_LABEL[status]}</span>;
+  return <span className={`text-xs ${cls}`}>{labels[status]}</span>;
 }
 
-function ReferrerRow({ summary }: { summary: ReferrerSummary }) {
+function ReferrerRow({
+  summary,
+  c,
+  statusLabels,
+}: {
+  summary: ReferrerSummary;
+  c: ReturnType<typeof useI18n>["t"]["crm"];
+  statusLabels: Record<ReferralInviteStatus, string>;
+}) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -44,20 +53,24 @@ function ReferrerRow({ summary }: { summary: ReferrerSummary }) {
       >
         <div>
           <p className="font-semibold">{summary.name}</p>
-          <p className="text-xs text-bm-muted font-mono">{summary.phone} · kod: {summary.code}</p>
+          <p className="text-xs text-bm-muted font-mono">
+            {summary.phone} · {c.referralCode}: {summary.code}
+          </p>
         </div>
         <div className="flex flex-wrap gap-3 text-sm">
           <span>
-            Potwierdzeni: <b className="text-bm-red">{summary.qualifiedCount}</b> / {summary.required}
+            {c.referralConfirmed}: <b className="text-bm-red">{summary.qualifiedCount}</b> /{" "}
+            {summary.required}
           </span>
           {summary.discountAvailable && (
             <span className="text-green-400 font-bold">
-              {REFERRAL_REWARD_DISCOUNT_PERCENT}% do {summary.discountExpiresAt?.slice(0, 10) ?? "—"}
+              {REFERRAL_REWARD_DISCOUNT_PERCENT}% → {summary.discountExpiresAt?.slice(0, 10) ?? "—"}
             </span>
           )}
           {summary.discountUsed && (
             <span className="text-bm-muted">
-              Rabat użyty {summary.discountUsedOnOrderNumber ? `(${summary.discountUsedOnOrderNumber})` : ""}
+              {c.referralUsed}{" "}
+              {summary.discountUsedOnOrderNumber ? `(${summary.discountUsedOnOrderNumber})` : ""}
             </span>
           )}
         </div>
@@ -66,17 +79,17 @@ function ReferrerRow({ summary }: { summary: ReferrerSummary }) {
       {open && (
         <div className="px-4 pb-4 border-t border-bm-border/30">
           {summary.referred.length === 0 ? (
-            <p className="text-sm text-bm-muted pt-3">Brak poleconych klientów.</p>
+            <p className="text-sm text-bm-muted pt-3">{c.referralNoReferrals}</p>
           ) : (
             <table className="dashboard-table w-full text-sm mt-3">
               <thead>
                 <tr>
-                  <th>Klient</th>
-                  <th>Telefon</th>
-                  <th>Data</th>
-                  <th>Status</th>
-                  <th>WZ</th>
-                  <th>5% gościa</th>
+                  <th>{c.client}</th>
+                  <th>{c.phone}</th>
+                  <th>{c.date}</th>
+                  <th>{c.status}</th>
+                  <th>#</th>
+                  <th>5%</th>
                 </tr>
               </thead>
               <tbody>
@@ -86,16 +99,14 @@ function ReferrerRow({ summary }: { summary: ReferrerSummary }) {
                     <td className="font-mono text-xs">{r.phone}</td>
                     <td>{r.referredAt?.slice(0, 10) ?? "—"}</td>
                     <td>
-                      <StatusBadge status={r.status} />
+                      <StatusBadge status={r.status} labels={statusLabels} />
                     </td>
-                    <td className="font-mono text-xs">
-                      {r.qualifyingOrderNumber ?? "—"}
-                    </td>
+                    <td className="font-mono text-xs">{r.qualifyingOrderNumber ?? "—"}</td>
                     <td className="text-xs">
                       {r.inviteeDiscountUsed
-                        ? "użyto"
+                        ? c.referralGuestDiscountUsed
                         : r.inviteeDiscountAvailable
-                          ? "dostępne"
+                          ? c.referralGuestDiscountAvailable
                           : "—"}
                     </td>
                   </tr>
@@ -110,16 +121,26 @@ function ReferrerRow({ summary }: { summary: ReferrerSummary }) {
 }
 
 export function ReferralAdminPanel() {
+  const c = useI18n().t.crm;
   const tick = useDbSync();
   const [msg, setMsg] = useState("");
   const referrers = useMemo(() => listAllReferrers(loadDb()), [tick]);
+
+  const statusLabels: Record<ReferralInviteStatus, string> = {
+    registered: c.referralStatusRegistered,
+    pending_visit: c.referralStatusPending,
+    qualified: c.referralStatusQualified,
+  };
 
   const recompute = () => {
     const db = loadDb();
     const result = recomputeAllReferrals(db);
     saveDb(db);
     setMsg(
-      `Zaktualizowano ${result.referrersUpdated} polecających. Nowe 15%: ${result.newlyUnlocked.length}. Nagrody 5%: ${result.inviteesRewarded}.`
+      c.referralRecomputeDone
+        .replace("{referrers}", String(result.referrersUpdated))
+        .replace("{unlocked}", String(result.newlyUnlocked.length))
+        .replace("{rewarded}", String(result.inviteesRewarded))
     );
   };
 
@@ -139,35 +160,37 @@ export function ReferralAdminPanel() {
       <ReferralLeaderboard />
       <div className="flex flex-wrap gap-2">
         <button type="button" className="btn-primary text-sm" onClick={recompute}>
-          Przelicz wszystkich
+          {c.referralRecompute}
         </button>
         <button type="button" className="btn-outline text-sm" onClick={downloadCsv}>
-          Export CSV
+          {c.referralExportCsv}
         </button>
       </div>
       {msg && <p className="text-sm text-green-400">{msg}</p>}
 
       <div className="glass rounded-xl p-4 text-sm text-bm-silver">
-        <p className="font-display uppercase text-bm-red mb-2">Zasady programu</p>
+        <p className="font-display uppercase text-bm-red mb-2">{c.referralRulesTitle}</p>
         <ul className="list-disc pl-5 space-y-1">
+          <li>{c.referralRule1}</li>
           <li>
-            Potwierdzony = <b>paid</b> + <b>delivered</b>.
+            {c.referralRule2
+              .replace("{count}", String(REFERRAL_QUALIFIED_REQUIRED))
+              .replace("{percent}", String(REFERRAL_REWARD_DISCOUNT_PERCENT))
+              .replace("{days}", String(REFERRAL_DISCOUNT_VALID_DAYS))}
           </li>
           <li>
-            <b>{REFERRAL_QUALIFIED_REQUIRED}</b> potwierdzonych → <b>{REFERRAL_REWARD_DISCOUNT_PERCENT}%</b> dla
-            polecającego (ważne {REFERRAL_DISCOUNT_VALID_DAYS} dni).
-          </li>
-          <li>
-            Polecony klient → <b>{REFERRAL_INVITEE_DISCOUNT_PERCENT}%</b> po pierwszym potwierdzonym WZ.
+            {c.referralRule3.replace("{inviteePercent}", String(REFERRAL_INVITEE_DISCOUNT_PERCENT))}
           </li>
         </ul>
       </div>
 
       <div className="space-y-3">
         {referrers.length === 0 ? (
-          <p className="text-bm-muted text-sm">Brak danych referralowych.</p>
+          <p className="text-bm-muted text-sm">{c.referralNoData}</p>
         ) : (
-          referrers.map((s) => <ReferrerRow key={s.referrerId} summary={s} />)
+          referrers.map((s) => (
+            <ReferrerRow key={s.referrerId} summary={s} c={c} statusLabels={statusLabels} />
+          ))
         )}
       </div>
     </div>

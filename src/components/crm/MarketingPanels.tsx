@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import { loadDb } from "@/lib/store";
 import { useDbSync } from "@/hooks/useDbSync";
+import { useI18n } from "@/lib/i18n/context";
 import {
   buildAttributionReport,
   buildFunnelStats,
@@ -16,20 +17,21 @@ export function ReferralDashboard() {
 }
 
 export function MarketingAttributionPanel() {
+  const c = useI18n().t.crm;
   const tick = useDbSync();
   const rows = useMemo(() => buildAttributionReport(loadDb()), [tick]);
 
   return (
     <div className="glass rounded-xl p-4 overflow-x-auto">
-      <h3 className="font-display text-sm uppercase mb-4">UTM / Źródła</h3>
+      <h3 className="font-display text-sm uppercase mb-4">{c.utmSourcesTitle}</h3>
       <table className="dashboard-table w-full text-sm">
         <thead>
           <tr>
-            <th>Źródło</th>
-            <th>Zgłoszenia</th>
-            <th>Wizyty</th>
-            <th>Zlecenia</th>
-            <th>Przychód</th>
+            <th>{c.utmSourceCol}</th>
+            <th>{c.utmCallsCol}</th>
+            <th>{c.utmVisitsCol}</th>
+            <th>{c.utmOrdersCol}</th>
+            <th>{c.utmRevenueCol}</th>
           </tr>
         </thead>
         <tbody>
@@ -49,16 +51,17 @@ export function MarketingAttributionPanel() {
 }
 
 export function FunnelPanel() {
+  const c = useI18n().t.crm;
   const tick = useDbSync();
   const f = useMemo(() => buildFunnelStats(loadDb()), [tick]);
 
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
       {[
-        { label: "Połączenia", value: f.calls },
-        { label: "Wizyty", value: f.appointments },
-        { label: "Zlecenia", value: f.workOrders },
-        { label: "Call→Wizyta %", value: `${f.conversionCallToApt}%` },
+        { label: c.funnelCalls, value: f.calls },
+        { label: c.funnelAppointments, value: f.appointments },
+        { label: c.funnelOrders, value: f.workOrders },
+        { label: c.funnelConversion, value: `${f.conversionCallToApt}%` },
       ].map((k) => (
         <div key={k.label} className="glass rounded-xl p-4 text-center">
           <p className="text-xs text-bm-muted uppercase">{k.label}</p>
@@ -70,6 +73,7 @@ export function FunnelPanel() {
 }
 
 export function ClientsCsvExport() {
+  const c = useI18n().t.crm;
   const download = () => {
     const csv = exportClientsCsv(loadDb());
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
@@ -83,25 +87,27 @@ export function ClientsCsvExport() {
 
   return (
     <button type="button" className="btn-outline text-sm" onClick={download}>
-      Export klientów CSV
+      {c.exportClientsCsv}
     </button>
   );
 }
 
 export function InactiveClientsExport() {
+  const c = useI18n().t.crm;
   const download = () => {
-    const csv = exportInactiveClientsCsv(loadDb(), 6);
+    const csv = exportInactiveClientsCsv(loadDb());
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `nieaktywni-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.download = `bess-inactive-${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   };
+
   return (
     <button type="button" className="btn-outline text-sm" onClick={download}>
-      Nieaktywni 6+ mies. CSV
+      {c.exportInactiveCsv}
     </button>
   );
 }

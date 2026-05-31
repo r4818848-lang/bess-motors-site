@@ -11,7 +11,10 @@ import { CrmListToolbar } from "@/components/crm/CrmListToolbar";
 import { logoutAdmin } from "@/lib/auth";
 import { loadDb, saveDb } from "@/lib/store";
 import { filterWorkOrders, defaultWorkOrderFilters } from "@/lib/workorder-filters";
-import { filterOpenWorkOrders } from "@/lib/work-order-lifecycle";
+import { applyWorkOrderClosure, filterOpenWorkOrders } from "@/lib/work-order-lifecycle";
+import { applyWorkOrderCompletedAt } from "@/lib/work-order-dates";
+import { syncWarehouseFromWorkOrder } from "@/lib/warehouse-stock";
+import { handleWorkOrderClientNotifications } from "@/lib/client-notifications";
 import { filterWorkOrdersByQuery } from "@/lib/crm-search";
 import { WorkOrderFilters } from "@/components/crm/WorkOrderFilters";
 import { CrmSearchInput } from "@/components/crm/CrmSearchInput";
@@ -77,6 +80,31 @@ function WorkOrdersPageContent() {
     fresh.workOrders = fresh.workOrders.filter((o) => !selectedIds.has(o.id));
     saveDb(fresh);
     setSelectedIds(new Set());
+    refresh();
+  };
+
+  const markDelivered = (orderId: string) => {
+    if (!confirm(c.markDeliveredConfirm)) return;
+    const fresh = loadDb();
+    const idx = fresh.workOrders.findIndex((o) => o.id === orderId);
+    if (idx < 0) return;
+    const previous = { ...fresh.workOrders[idx] };
+    const updated = applyWorkOrderCompletedAt(
+      applyWorkOrderClosure({
+        ...fresh.workOrders[idx],
+        documentStatus: "delivered",
+        status: "delivered",
+      })
+    );
+    fresh.workOrders[idx] = updated;
+    handleWorkOrderClientNotifications(fresh, updated, previous);
+    saveDb(syncWarehouseFromWorkOrder(fresh, updated));
+    if (editingId === orderId) setEditingId(null);
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      next.delete(orderId);
+      return next;
+    });
     refresh();
   };
 
@@ -174,6 +202,7 @@ function WorkOrdersPageContent() {
           db={db}
           orders={filteredOrders}
           onEdit={(id) => setEditingId(id)}
+          onMarkDelivered={markDelivered}
           showExtended
           selectable
           selectedIds={selectedIds}

@@ -59,6 +59,7 @@ import { mergeRemoteWorkOrderPatch } from "@/lib/work-order-remote-sync";
 import { ClientVehiclePicker } from "@/components/crm/ClientVehiclePicker";
 import { CrmPageHeader } from "@/components/crm/CrmPageHeader";
 import { applyWorkOrderCompletedAt } from "@/lib/work-order-dates";
+import { applyWorkOrderClosure, isWorkOrderClosed } from "@/lib/work-order-lifecycle";
 
 type CreateStep = "client" | "works" | "more";
 type EditTab = "client" | "works" | "payment" | "more";
@@ -272,34 +273,36 @@ export function WorkOrderForm({
     e.target.value = "";
   };
 
-  const save = () => {
-    if (!order.userId || !order.vehicleId) {
+  const persistOrder = (draft: WorkOrder) => {
+    if (!draft.userId || !draft.vehicleId) {
       setSaveError(w.selectClientVehicle);
       if (isNew) setCreateStep("client");
-      return;
+      return false;
     }
     setSaveError("");
     const fresh = loadDb();
-    const idx = fresh.workOrders.findIndex((o) => o.id === order.id);
+    const idx = fresh.workOrders.findIndex((o) => o.id === draft.id);
     const previousOrder = idx >= 0 ? { ...fresh.workOrders[idx] } : null;
     const documentStatus =
-      order.documentStatus ??
-      deriveDocumentStatus(order.status, order.confirmationStatus);
-    const isPaid = order.paymentStatus === "paid";
-    const updated = applyWorkOrderCompletedAt({
-      ...order,
-      documentStatus,
-      updatedAt: new Date().toISOString().slice(0, 10),
-      paymentStatus: order.paymentStatus ?? "unpaid",
-      ...(isPaid
-        ? { paidAt: order.paidAt ?? new Date().toISOString().slice(0, 10) }
-        : {
-            paidAt: undefined,
-            paymentMethod: undefined,
-            paidCashAmount: undefined,
-            paidCardAmount: undefined,
-          }),
-    });
+      draft.documentStatus ??
+      deriveDocumentStatus(draft.status, draft.confirmationStatus);
+    const isPaid = draft.paymentStatus === "paid";
+    const updated = applyWorkOrderCompletedAt(
+      applyWorkOrderClosure({
+        ...draft,
+        documentStatus,
+        updatedAt: new Date().toISOString().slice(0, 10),
+        paymentStatus: draft.paymentStatus ?? "unpaid",
+        ...(isPaid
+          ? { paidAt: draft.paidAt ?? new Date().toISOString().slice(0, 10) }
+          : {
+              paidAt: undefined,
+              paymentMethod: undefined,
+              paidCashAmount: undefined,
+              paidCardAmount: undefined,
+            }),
+      })
+    );
     if (idx >= 0) fresh.workOrders[idx] = updated;
     else fresh.workOrders.push(updated);
     handleWorkOrderClientNotifications(fresh, updated, previousOrder);
@@ -311,6 +314,11 @@ export function WorkOrderForm({
     }
     saveDb(syncWarehouseFromWorkOrder(fresh, updated));
     onSaved();
+    return true;
+  };
+
+  const save = () => {
+    persistOrder(order);
   };
 
   const remove = () => {
@@ -564,7 +572,7 @@ export function WorkOrderForm({
                 className="text-xs"
                 onClick={() => void downloadDeliveryAct(order, vehicle, client)}
               >
-                PDF wydanie
+                {c.pdfDeliveryAct}
               </Button>
             </div>
           )}
@@ -586,9 +594,16 @@ export function WorkOrderForm({
           <select
             className="input-premium mt-1"
             value={order.documentStatus ?? "awaiting_signature"}
-            onChange={(e) =>
-              setOrder({ ...order, documentStatus: e.target.value as DocumentStatus })
-            }
+            onChange={(e) => {
+              const documentStatus = e.target.value as DocumentStatus;
+              setOrder(
+                applyWorkOrderClosure({
+                  ...order,
+                  documentStatus,
+                  ...(documentStatus === "delivered" ? { status: "delivered" as const } : {}),
+                })
+              );
+            }}
           >
             {documentStatuses.map((s) => (
               <option key={s} value={s}>
@@ -596,6 +611,24 @@ export function WorkOrderForm({
               </option>
             ))}
           </select>
+          {!isWorkOrderClosed(order) && (
+            <button
+              type="button"
+              className="btn-primary text-xs mt-2 w-full"
+              onClick={() => {
+                if (!confirm(c.markDeliveredConfirm)) return;
+                const closed = applyWorkOrderClosure({
+                  ...order,
+                  documentStatus: "delivered",
+                  status: "delivered",
+                });
+                setOrder(closed);
+                persistOrder(closed);
+              }}
+            >
+              {c.markDelivered}
+            </button>
+          )}
         </div>
         <div>
           <label className="text-xs uppercase text-bm-muted">{c.status}</label>
@@ -604,14 +637,17 @@ export function WorkOrderForm({
             value={order.status}
             onChange={(e) => {
               const status = e.target.value as RepairStatus;
-              setOrder({
+              const next = {
                 ...order,
                 status,
                 documentStatus:
-                  order.documentStatus && order.confirmationStatus === "confirmed"
-                    ? order.documentStatus
-                    : deriveDocumentStatus(status, order.confirmationStatus),
-              });
+                  status === "delivered"
+                    ? ("delivered" as DocumentStatus)
+                    : order.documentStatus && order.confirmationStatus === "confirmed"
+                      ? order.documentStatus
+                      : deriveDocumentStatus(status, order.confirmationStatus),
+              };
+              setOrder(status === "delivered" ? applyWorkOrderClosure(next) : next);
             }}
           >
             {statuses.map((s) => (
@@ -622,7 +658,7 @@ export function WorkOrderForm({
           </select>
         </div>
         <div>
-          <label className="text-xs uppercase text-bm-muted">Części (widok klienta)</label>
+          <label className="text-xs uppercase text-bm-muted">{c.clientPartsView}</label>
           <select
             className="input-premium mt-1"
             value={order.clientPartsStatus ?? ""}
@@ -636,9 +672,9 @@ export function WorkOrderForm({
             }
           >
             <option value="">—</option>
-            <option value="ordered">Zamówione</option>
-            <option value="in_transit">W drodze</option>
-            <option value="arrived">Dotarły</option>
+            <option value="ordered">{c.partsStatusOrdered}</option>
+            <option value="in_transit">{c.partsStatusTransit}</option>
+            <option value="arrived">{c.partsStatusArrived}</option>
           </select>
           {client?.phone && vehicle && (
             <CrmMessageTemplates

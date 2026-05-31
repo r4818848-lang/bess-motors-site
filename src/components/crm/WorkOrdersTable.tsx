@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { Pencil } from "lucide-react";
+import { Pencil, PackageCheck } from "lucide-react";
+import { isWorkOrderClosed } from "@/lib/work-order-lifecycle";
 import { useI18n } from "@/lib/i18n/context";
 import { useCrmDisplay } from "@/contexts/CrmDisplayContext";
 import type { Database, WorkOrder } from "@/lib/store";
@@ -18,6 +19,7 @@ type Props = {
   selectedIds?: Set<string>;
   onToggleSelect?: (orderId: string) => void;
   onToggleSelectAll?: (checked: boolean) => void;
+  onMarkDelivered?: (orderId: string) => void;
 };
 
 export function WorkOrdersTable({
@@ -29,6 +31,7 @@ export function WorkOrdersTable({
   selectedIds,
   onToggleSelect,
   onToggleSelectAll,
+  onMarkDelivered,
 }: Props) {
   const { t } = useI18n();
   const c = t.crm;
@@ -153,6 +156,16 @@ export function WorkOrdersTable({
                       </>
                     )}
                     <td className="whitespace-nowrap">
+                      {onMarkDelivered && !isWorkOrderClosed(order) && (
+                        <button
+                          type="button"
+                          onClick={() => onMarkDelivered(order.id)}
+                          className="text-green-400 hover:bg-green-500/10 p-2 inline-flex rounded"
+                          title={c.markDelivered}
+                        >
+                          <PackageCheck size={16} />
+                        </button>
+                      )}
                       <button
                         type="button"
                         onClick={() => onEdit(order.id)}

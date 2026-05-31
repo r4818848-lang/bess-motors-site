@@ -2,6 +2,7 @@
 
 import { adminQuickTemplates } from "@/lib/admin-message-templates";
 import { buildCarReadyWhatsAppUrl } from "@/lib/client-notifications";
+import { useI18n } from "@/lib/i18n/context";
 
 export function CrmMessageTemplates({
   clientPhone,
@@ -14,11 +15,21 @@ export function CrmMessageTemplates({
   vehicleLabel?: string;
   locale: "pl" | "ru" | "uk" | "en";
 }) {
+  const c = useI18n().t.crm;
+
   if (!clientPhone) return null;
+  const tplLabels: Record<string, string> = {
+    ready: c.messageTplReady,
+    parts: c.messageTplParts,
+    delay: c.messageTplDelay,
+    sign: c.messageTplSign,
+  };
 
   const copy = (text: string) => {
     void navigator.clipboard.writeText(text);
   };
+
+  const msgLocale = locale === "pl" ? "pl" : "ru";
 
   return (
     <div className="flex flex-wrap gap-2 mt-2">
@@ -27,9 +38,9 @@ export function CrmMessageTemplates({
           key={tpl.id}
           type="button"
           className="btn-outline text-[10px] py-1"
-          onClick={() => copy(locale === "pl" ? tpl.pl : tpl.ru)}
+          onClick={() => copy(msgLocale === "pl" ? tpl.pl : tpl.ru)}
         >
-          {tpl.label}
+          {tplLabels[tpl.id] ?? tpl.label}
         </button>
       ))}
       {orderNumber && vehicleLabel && (

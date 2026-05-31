@@ -1,13 +1,25 @@
 "use client";
 
+import { useI18n } from "@/lib/i18n/context";
 import type { WorkOrderListFilters } from "@/lib/workorder-filters";
 
-const presets: { id: string; label: string; patch: Partial<WorkOrderListFilters> }[] = [
-  { id: "all", label: "Wszystkie", patch: { preset: "all", repairStatus: "all", paymentStatus: "all" } },
-  { id: "unsigned", label: "Podpis", patch: { preset: "unsigned" } },
-  { id: "unpaid", label: "Nieopłacone (gotowe)", patch: { preset: "unpaid_ready" } },
-  { id: "sla", label: "SLA ⚠", patch: { preset: "sla_critical" } },
-  { id: "parts", label: "Części", patch: { repairStatus: "waitingParts", preset: "all" } },
+type PresetLabelKey =
+  | "woPresetAll"
+  | "woPresetSign"
+  | "woPresetUnpaidReady"
+  | "woPresetSla"
+  | "woPresetParts";
+
+const presetDefs: {
+  id: string;
+  labelKey: PresetLabelKey;
+  patch: Partial<WorkOrderListFilters>;
+}[] = [
+  { id: "all", labelKey: "woPresetAll", patch: { preset: "all", repairStatus: "all", paymentStatus: "all" } },
+  { id: "unsigned", labelKey: "woPresetSign", patch: { preset: "unsigned" } },
+  { id: "unpaid", labelKey: "woPresetUnpaidReady", patch: { preset: "unpaid_ready" } },
+  { id: "sla", labelKey: "woPresetSla", patch: { preset: "sla_critical" } },
+  { id: "parts", labelKey: "woPresetParts", patch: { repairStatus: "waitingParts", preset: "all" } },
 ];
 
 export function CrmWorkOrderPresets({
@@ -17,9 +29,11 @@ export function CrmWorkOrderPresets({
   active?: string;
   onApply: (patch: Partial<WorkOrderListFilters>) => void;
 }) {
+  const c = useI18n().t.crm;
+
   return (
     <div className="flex flex-wrap gap-2 mb-4">
-      {presets.map((p) => (
+      {presetDefs.map((p) => (
         <button
           key={p.id}
           type="button"
@@ -28,7 +42,7 @@ export function CrmWorkOrderPresets({
           }`}
           onClick={() => onApply(p.patch)}
         >
-          {p.label}
+          {c[p.labelKey]}
         </button>
       ))}
     </div>
