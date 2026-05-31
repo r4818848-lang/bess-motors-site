@@ -62,7 +62,7 @@ import { applyWorkOrderCompletedAt } from "@/lib/work-order-dates";
 import { applyWorkOrderClosure, isWorkOrderClosed } from "@/lib/work-order-lifecycle";
 
 type CreateStep = "client" | "works" | "more";
-type EditTab = "client" | "works" | "payment" | "more";
+type EditTab = "client" | "works" | "status" | "payment" | "more";
 
 const statuses: RepairStatus[] = [
   "received",
@@ -344,12 +344,16 @@ export function WorkOrderForm({
 
   const showClient = isNew ? createStep === "client" : editTab === "client";
   const showWorks = isNew ? createStep === "works" : editTab === "works";
+  const showStatus = !isNew && editTab === "status";
   const showPayment = !isNew && editTab === "payment";
   const showMore = isNew ? createStep === "more" : editTab === "more";
+  const showStatusFields = showStatus || (isNew && createStep === "more");
+  const showPaymentFields = showPayment || (isNew && createStep === "more");
 
   const editTabs: { id: EditTab; label: string }[] = [
     { id: "client", label: c.tabClientVehicle },
     { id: "works", label: c.tabWorksParts },
+    { id: "status", label: c.tabOrderStatus },
     { id: "payment", label: c.tabPayment },
     { id: "more", label: c.tabMore },
   ];
@@ -586,9 +590,10 @@ export function WorkOrderForm({
         </>
       )}
 
-      {(showMore || showPayment) && (
-      <>
-      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+      {showStatusFields && (
+      <div className="glass-red rounded-xl p-6 neon-border space-y-4">
+        <h3 className="font-display text-sm uppercase text-bm-red font-bold">{c.tabOrderStatus}</h3>
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
         <div>
           <label className="text-xs uppercase text-bm-muted">{doc.documentStatus}</label>
           <select
@@ -721,6 +726,13 @@ export function WorkOrderForm({
             ))}
           </select>
         </div>
+        </div>
+      </div>
+      )}
+
+      {showPaymentFields && (
+      <>
+      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
         <div>
           <label className="text-xs uppercase text-bm-muted">{w.orderDiscount}</label>
           <PriceNumberInput
@@ -1165,7 +1177,7 @@ export function WorkOrderForm({
       </>
       )}
 
-      {(showPayment || (isNew && (createStep === "works" || createStep === "more"))) && (
+      {(showPaymentFields || (isNew && (createStep === "works" || createStep === "more"))) && (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <div className="glass-red rounded-xl p-4 neon-border">
           <p className="text-xs text-bm-muted uppercase">{w.worksTotal}</p>
