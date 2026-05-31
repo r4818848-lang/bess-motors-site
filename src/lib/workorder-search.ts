@@ -14,7 +14,9 @@ export function searchClientsOnly(db: Database, query: string): User[] {
       (u) =>
         u.name.toLowerCase().includes(q) ||
         u.phone.replace(/\s/g, "").includes(q.replace(/\s/g, "")) ||
-        (u.email?.toLowerCase().includes(q) ?? false)
+        (u.email?.toLowerCase().includes(q) ?? false) ||
+        (u.companyName?.toLowerCase().includes(q) ?? false) ||
+        (u.nip?.includes(q.replace(/\D/g, "")) ?? false)
     )
     .slice(0, 12);
 }

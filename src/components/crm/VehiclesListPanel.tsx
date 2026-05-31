@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Plus, Car, FileText, Trash2 } from "lucide-react";
+import { AddVehicleModal } from "./AddVehicleModal";
 import { useI18n } from "@/lib/i18n/context";
 import { deleteVehicleFromDb, loadDb, saveDb } from "@/lib/store";
 import { useDbSync } from "@/hooks/useDbSync";
@@ -16,6 +17,7 @@ export function VehiclesListPanel() {
   const c = t.crm;
   const [query, setQuery] = useState("");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [vehicleModalOpen, setVehicleModalOpen] = useState(false);
   const dbTick = useDbSync();
   void dbTick;
 
@@ -69,6 +71,13 @@ export function VehiclesListPanel() {
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-end gap-2">
+        <button
+          type="button"
+          className="btn-primary text-xs py-2 inline-flex items-center gap-2"
+          onClick={() => setVehicleModalOpen(true)}
+        >
+          <Plus size={16} /> {c.addNewVehicle}
+        </button>
         <Link
           href="/crm?tab=clients"
           className="btn-outline text-xs py-2 inline-flex items-center gap-2"
@@ -76,6 +85,12 @@ export function VehiclesListPanel() {
           <Plus size={16} /> {c.addNewClient}
         </Link>
       </div>
+
+      <AddVehicleModal
+        open={vehicleModalOpen}
+        onClose={() => setVehicleModalOpen(false)}
+        onCreated={() => setVehicleModalOpen(false)}
+      />
 
       <CrmListToolbar
         showPriceToggle={false}

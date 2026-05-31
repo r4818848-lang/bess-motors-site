@@ -56,7 +56,6 @@ import { downloadReceptionAct, downloadDeliveryAct } from "@/lib/vehicle-doc-pdf
 import type { DocLocale } from "@/lib/work-order-locale";
 import { useDbSync } from "@/hooks/useDbSync";
 import { mergeRemoteWorkOrderPatch } from "@/lib/work-order-remote-sync";
-import { NewClientForm } from "@/components/crm/NewClientForm";
 import { ClientVehiclePicker } from "@/components/crm/ClientVehiclePicker";
 import { CrmPageHeader } from "@/components/crm/CrmPageHeader";
 import { applyWorkOrderCompletedAt } from "@/lib/work-order-dates";
@@ -137,7 +136,6 @@ export function WorkOrderForm({
   const [order, setOrder] = useState<WorkOrder>(existing ?? emptyOrder(db));
   const [createStep, setCreateStep] = useState<CreateStep>("client");
   const [editTab, setEditTab] = useState<EditTab>("client");
-  const [showNewClient, setShowNewClient] = useState(false);
   const [saveError, setSaveError] = useState("");
 
   useEffect(() => {
@@ -160,7 +158,6 @@ export function WorkOrderForm({
       userId: user.id,
       vehicleId: vehicle.id,
     }));
-    setShowNewClient(false);
     setCreateStep("works");
   }, [initialUserId, isNew, dbTick]);
 
@@ -224,7 +221,6 @@ export function WorkOrderForm({
       userId,
       vehicleId: vid,
     }));
-    setShowNewClient(false);
     setSaveError("");
     if (isNew) setCreateStep("works");
   };
@@ -475,18 +471,7 @@ export function WorkOrderForm({
           onSelect={(uid, vid) => {
             selectClientVehicle(uid, vid);
           }}
-          onAddNewClient={() => setShowNewClient(true)}
         />
-        {showNewClient && !order.userId && (
-          <NewClientForm
-            compact
-            onCreated={(userId, vehicleId) => {
-              selectClientVehicle(userId, vehicleId);
-              setShowNewClient(false);
-            }}
-            onCancel={() => setShowNewClient(false)}
-          />
-        )}
         {order.userId && order.vehicleId && (
           <VehicleClientEditor
             userId={order.userId}

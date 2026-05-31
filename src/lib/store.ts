@@ -41,7 +41,16 @@ export interface Vehicle {
   fuelType?: string;
   notes?: string;
   userId: string;
+  firstRegistrationDate?: string;
+  technicalInspectionExpiry?: string;
+  insuranceExpiry?: string;
+  engineNumber?: string;
+  carType?: string;
 }
+
+export type ClientType = "person" | "company";
+
+export type ClientPaymentTerms = "0" | "7" | "14" | "30" | "60";
 
 export interface VehicleHistoryEntry {
   id: string;
@@ -117,6 +126,23 @@ export interface User {
   lastMileageRemindAt?: string;
   /** Auto: VIP when lifetime spend exceeds threshold */
   clientTags?: string[];
+  /** CRM: private person vs legal entity */
+  clientType?: ClientType;
+  companyName?: string;
+  nip?: string;
+  regon?: string;
+  contactFirstName?: string;
+  contactLastName?: string;
+  postalCode?: string;
+  city?: string;
+  street?: string;
+  country?: string;
+  clientPaymentMethod?: PaymentMethod;
+  clientPaymentDays?: ClientPaymentTerms;
+  discountServicesPercent?: number;
+  discountPartsPercent?: number;
+  clientDescription?: string;
+  marketingConsent?: boolean;
 }
 
 export type ConfirmationStatus = "awaiting_confirmation" | "confirmed";

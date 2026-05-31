@@ -11,7 +11,7 @@ import { displayOrderTotal } from "@/lib/crm-display-price";
 import { useCrmDisplay } from "@/contexts/CrmDisplayContext";
 import { CrmSearchInput } from "./CrmSearchInput";
 import { CrmListToolbar } from "./CrmListToolbar";
-import { NewClientForm } from "./NewClientForm";
+import { AddClientModal } from "./AddClientModal";
 import { Button } from "@/components/ui/Button";
 
 export function ClientsListPanel() {
@@ -19,7 +19,8 @@ export function ClientsListPanel() {
   const c = t.crm;
   const { priceMode } = useCrmDisplay();
   const [query, setQuery] = useState("");
-  const [showNewClient, setShowNewClient] = useState(false);
+  const [clientModalOpen, setClientModalOpen] = useState(false);
+  const [companyModalOpen, setCompanyModalOpen] = useState(false);
   const dbTick = useDbSync();
   void dbTick;
 
@@ -53,25 +54,29 @@ export function ClientsListPanel() {
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-end gap-2">
+        <Button type="button" className="text-xs" onClick={() => setClientModalOpen(true)}>
+          <Plus size={16} /> {c.addNewClient}
+        </Button>
         <Button
           type="button"
-          variant={showNewClient ? "outline" : "primary"}
+          variant="outline"
           className="text-xs"
-          onClick={() => setShowNewClient((v) => !v)}
+          onClick={() => setCompanyModalOpen(true)}
         >
-          <Plus size={16} /> {showNewClient ? t.common.cancel : c.addNewClient}
+          <Plus size={16} /> {c.addNewCompany}
         </Button>
         <Link href="/crm/work-orders?create=1" className="btn-outline text-xs py-2 inline-flex items-center gap-2">
           <FileText size={16} /> {c.createOrder}
         </Link>
       </div>
 
-      {showNewClient && (
-        <NewClientForm
-          onCreated={() => setShowNewClient(false)}
-          onCancel={() => setShowNewClient(false)}
-        />
-      )}
+      <AddClientModal open={clientModalOpen} onClose={() => setClientModalOpen(false)} onCreated={() => setClientModalOpen(false)} />
+      <AddClientModal
+        open={companyModalOpen}
+        initialClientType="company"
+        onClose={() => setCompanyModalOpen(false)}
+        onCreated={() => setCompanyModalOpen(false)}
+      />
 
       <CrmListToolbar>
         <CrmSearchInput value={query} onChange={setQuery} placeholder={c.searchClients} className="max-w-full" />
@@ -106,9 +111,14 @@ export function ClientsListPanel() {
                     <td className="text-xs whitespace-nowrap text-bm-muted">
                       {user.createdAt?.slice(0, 10) ?? "—"}
                     </td>
-                    <td className="font-semibold">
-                      {user.name || "—"}
-                      {user.clientTags?.includes("VIP") && (
+                  <td className="font-semibold">
+                    {user.clientType === "company" ? user.companyName || user.name : user.name || "—"}
+                    {user.clientType === "company" && user.nip && (
+                      <span className="block text-[10px] font-mono text-bm-muted mt-0.5">
+                        NIP {user.nip}
+                      </span>
+                    )}
+                    {user.clientTags?.includes("VIP") && (
                         <span className="ml-2 text-[10px] uppercase bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded">
                           VIP
                         </span>

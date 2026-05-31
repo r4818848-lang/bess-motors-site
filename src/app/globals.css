@@ -251,6 +251,10 @@
     backdrop-filter: blur(8px);
   }
 
+  .crm-shell .crm-client-type-toggle {
+    border-color: var(--crm-border);
+  }
+
   .crm-shell .crm-modal-panel {
     @apply rounded-t-2xl sm:rounded-2xl;
     background: var(--crm-surface);

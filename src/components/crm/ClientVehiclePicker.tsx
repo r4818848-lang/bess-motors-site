@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useRef, useEffect } from "react";
-import { Search, UserPlus, Car, User } from "lucide-react";
+import { Search, UserPlus, Car, User, Building2, History, Plus } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { loadDb } from "@/lib/store";
 import { useDbSync } from "@/hooks/useDbSync";
@@ -10,16 +10,17 @@ import {
   searchClientsOnly,
   searchVehiclesOnly,
 } from "@/lib/workorder-search";
-import { NewClientForm } from "./NewClientForm";
+import { getRecentClientVehiclePairs } from "@/lib/crm-recent-history";
+import { AddClientModal } from "./AddClientModal";
+import { AddVehicleModal } from "./AddVehicleModal";
 
 type Props = {
   userId: string;
   vehicleId: string;
   onSelect: (userId: string, vehicleId: string) => void;
-  onAddNewClient?: () => void;
 };
 
-export function ClientVehiclePicker({ userId, vehicleId, onSelect, onAddNewClient }: Props) {
+export function ClientVehiclePicker({ userId, vehicleId, onSelect }: Props) {
   const { t } = useI18n();
   const c = t.crm;
   const w = t.wo;
@@ -30,15 +31,16 @@ export function ClientVehiclePicker({ userId, vehicleId, onSelect, onAddNewClien
   const [clientQ, setClientQ] = useState("");
   const [showVehicleList, setShowVehicleList] = useState(false);
   const [showClientList, setShowClientList] = useState(false);
-  const [showNewClient, setShowNewClient] = useState(false);
+  const [clientModalOpen, setClientModalOpen] = useState(false);
+  const [vehicleModalOpen, setVehicleModalOpen] = useState(false);
+  const [companyModalOpen, setCompanyModalOpen] = useState(false);
   const vehicleRef = useRef<HTMLDivElement>(null);
   const clientRef = useRef<HTMLDivElement>(null);
 
   const selectedUser = db.users.find((u) => u.id === userId);
   const selectedVehicle = db.vehicles.find((v) => v.id === vehicleId);
-  const clientVehicles = userId
-    ? db.vehicles.filter((v) => v.userId === userId)
-    : [];
+  const clientVehicles = userId ? db.vehicles.filter((v) => v.userId === userId) : [];
+  const recent = useMemo(() => getRecentClientVehiclePairs(db, 6), [db]);
 
   const vehicleResults = useMemo(
     () => (vehicleQ.length >= 1 ? searchVehiclesOnly(db, vehicleQ) : []),
@@ -82,6 +84,18 @@ export function ClientVehiclePicker({ userId, vehicleId, onSelect, onAddNewClien
     setClientQ("");
   };
 
+  const clientLabel = (u: (typeof db.users)[0]) => {
+    if (u.clientType === "company") {
+      return (
+        <span className="inline-flex items-center gap-1">
+          <Building2 size={12} className="text-bm-red shrink-0" />
+          {u.companyName || u.name}
+        </span>
+      );
+    }
+    return u.name || "—";
+  };
+
   return (
     <div className="space-y-4">
       <div className="grid md:grid-cols-2 gap-4">
@@ -110,7 +124,7 @@ export function ClientVehiclePicker({ userId, vehicleId, onSelect, onAddNewClien
             />
           </div>
           {showVehicleList && (vehicleResults.length > 0 || combinedResults.length > 0) && (
-            <ul className="absolute z-30 left-0 right-0 mt-1 max-h-56 overflow-y-auto glass-red rounded-lg border border-bm-border shadow-lg">
+            <ul className="absolute z-30 left-0 right-0 mt-1 max-h-56 overflow-y-auto crm-mw-card border border-bm-border shadow-lg">
               {(vehicleQ.length >= 2 ? combinedResults : vehicleResults).map(({ user, vehicle }) =>
                 vehicle ? (
                   <li key={`${user.id}-${vehicle.id}`}>
@@ -119,20 +133,28 @@ export function ClientVehiclePicker({ userId, vehicleId, onSelect, onAddNewClien
                       className="w-full text-left px-3 py-2.5 hover:bg-bm-red/10 text-sm border-b border-bm-border/50 last:border-0"
                       onClick={() => pickVehicle(user.id, vehicle.id)}
                     >
-                      <span className="font-semibold">
+                      <span className="font-semibold text-white">
                         {vehicle.make} {vehicle.model}
-                        {vehicle.year ? ` ${vehicle.year}` : ""}
                       </span>
                       <span className="block font-mono text-xs text-bm-red mt-0.5">
                         {vehicle.plate} · {vehicle.vin || "—"}
                       </span>
-                      <span className="block text-[10px] text-bm-muted mt-0.5">{user.name}</span>
+                      <span className="block text-[10px] text-bm-muted mt-0.5">
+                        {clientLabel(user)}
+                      </span>
                     </button>
                   </li>
                 ) : null
               )}
             </ul>
           )}
+          <button
+            type="button"
+            className="mt-2 text-xs text-bm-red hover:underline inline-flex items-center gap-1"
+            onClick={() => setVehicleModalOpen(true)}
+          >
+            <Plus size={12} /> {c.addNewVehicle}
+          </button>
           {userId && clientVehicles.length > 1 && (
             <select
               className="input-premium mt-2 text-sm"
@@ -162,7 +184,7 @@ export function ClientVehiclePicker({ userId, vehicleId, onSelect, onAddNewClien
                 showClientList
                   ? clientQ
                   : selectedUser
-                    ? `${selectedUser.name} · ${selectedUser.phone}`
+                    ? `${selectedUser.clientType === "company" ? selectedUser.companyName || selectedUser.name : selectedUser.name} · ${selectedUser.phone}`
                     : clientQ
               }
               onChange={(e) => {
@@ -173,19 +195,31 @@ export function ClientVehiclePicker({ userId, vehicleId, onSelect, onAddNewClien
             />
           </div>
           {showClientList && (
-            <ul className="absolute z-30 left-0 right-0 mt-1 max-h-56 overflow-y-auto glass-red rounded-lg border border-bm-border shadow-lg">
+            <ul className="absolute z-30 left-0 right-0 mt-1 max-h-56 overflow-y-auto crm-mw-card border border-bm-border shadow-lg">
               <li>
                 <button
                   type="button"
-                  className="w-full text-left px-3 py-2 text-sm text-bm-red font-semibold hover:bg-bm-red/10"
+                  className="w-full text-left px-3 py-2 text-sm text-bm-red font-semibold hover:bg-bm-red/10 border-b border-bm-border/50"
                   onClick={() => {
-                    setShowNewClient(true);
+                    setClientModalOpen(true);
                     setShowClientList(false);
-                    onAddNewClient?.();
                   }}
                 >
                   <UserPlus size={14} className="inline mr-2" />
                   {c.addNewClient}
+                </button>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  className="w-full text-left px-3 py-2 text-sm text-bm-red font-semibold hover:bg-bm-red/10 border-b border-bm-border/50"
+                  onClick={() => {
+                    setCompanyModalOpen(true);
+                    setShowClientList(false);
+                  }}
+                >
+                  <Building2 size={14} className="inline mr-2" />
+                  {c.addNewCompany}
                 </button>
               </li>
               {clientResults.map((user) => (
@@ -195,10 +229,10 @@ export function ClientVehiclePicker({ userId, vehicleId, onSelect, onAddNewClien
                     className="w-full text-left px-3 py-2.5 hover:bg-bm-red/10 text-sm border-b border-bm-border/50"
                     onClick={() => pickClient(user.id)}
                   >
-                    <span className="font-semibold">{user.name || "—"}</span>
+                    <span className="font-semibold text-white">{clientLabel(user)}</span>
                     <span className="block font-mono text-xs text-bm-red">{user.phone}</span>
-                    {user.email && (
-                      <span className="block text-[10px] text-bm-muted">{user.email}</span>
+                    {user.nip && (
+                      <span className="block text-[10px] text-bm-muted">NIP {user.nip}</span>
                     )}
                   </button>
                 </li>
@@ -208,20 +242,67 @@ export function ClientVehiclePicker({ userId, vehicleId, onSelect, onAddNewClien
         </div>
       </div>
 
-      {showNewClient && (
-        <NewClientForm
-          compact
-          onCreated={(uid, vid) => {
-            onSelect(uid, vid);
-            setShowNewClient(false);
-          }}
-          onCancel={() => setShowNewClient(false)}
-        />
+      {recent.length > 0 && (
+        <div className="rounded-lg border border-bm-border bg-bm-graphite/40 p-3">
+          <p className="text-[10px] uppercase tracking-widest text-bm-muted flex items-center gap-2 mb-2">
+            <History size={12} className="text-bm-red" />
+            {c.recentFromHistory}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {recent.map(({ user, vehicle, orderNumber, lastUsedAt }) => (
+              <button
+                key={`${user.id}-${vehicle.id}`}
+                type="button"
+                onClick={() => onSelect(user.id, vehicle.id)}
+                className={`text-left text-xs rounded-lg border px-3 py-2 transition-colors max-w-full ${
+                  userId === user.id && vehicleId === vehicle.id
+                    ? "border-bm-red bg-bm-red/15 text-white"
+                    : "border-bm-border hover:border-bm-red/50 text-bm-muted hover:text-white"
+                }`}
+              >
+                <span className="font-semibold text-white block truncate">
+                  {vehicle.make} {vehicle.model} · {vehicle.plate}
+                </span>
+                <span className="block truncate">{clientLabel(user)}</span>
+                <span className="block text-[10px] text-bm-red mt-0.5">
+                  {orderNumber} · {lastUsedAt.slice(0, 10)}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
       )}
 
-      {!userId && !showNewClient && (
+      {!userId && (
         <p className="text-xs text-bm-muted">{w.selectClientVehicle}</p>
       )}
+
+      <AddClientModal
+        open={clientModalOpen}
+        onClose={() => setClientModalOpen(false)}
+        onCreated={(uid, vid) => {
+          onSelect(uid, vid);
+          setClientModalOpen(false);
+        }}
+      />
+      <AddClientModal
+        open={companyModalOpen}
+        initialClientType="company"
+        onClose={() => setCompanyModalOpen(false)}
+        onCreated={(uid, vid) => {
+          onSelect(uid, vid);
+          setCompanyModalOpen(false);
+        }}
+      />
+      <AddVehicleModal
+        open={vehicleModalOpen}
+        onClose={() => setVehicleModalOpen(false)}
+        initialUserId={userId || undefined}
+        onCreated={(vid, uid) => {
+          onSelect(uid, vid);
+          setVehicleModalOpen(false);
+        }}
+      />
     </div>
   );
 }
