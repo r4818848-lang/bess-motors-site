@@ -14,6 +14,7 @@ import {
   Calendar,
   CalendarDays,
   Flame,
+  Archive,
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { useHotOrdersBadgeCount } from "@/components/crm/HotOrdersPanel";
@@ -48,6 +49,7 @@ function DashboardLayoutInner({
     { href: "/crm", path: "/crm", icon: LayoutDashboard, label: c.dashboard, tab: null },
     { href: "/crm?tab=hot", path: "/crm", icon: Flame, label: c.hotOrders, tab: "hot" },
     { href: "/crm/work-orders", path: "/crm/work-orders", icon: FileText, label: c.workOrders },
+    { href: "/crm/order-history", path: "/crm/order-history", icon: Archive, label: c.orderHistoryList },
     { href: "/crm/calendar", path: "/crm/calendar", icon: Calendar, label: t.calendar.title },
     { href: "/crm/appointments", path: "/crm/appointments", icon: CalendarDays, label: t.calendar.appointmentsTitle },
     { href: "/crm?tab=expenses", path: "/crm", icon: Wallet, label: t.wo.internalExpenses, tab: "expenses" },
@@ -66,6 +68,7 @@ function DashboardLayoutInner({
 
   const isActive = (item: NavItem) => {
     if (item.path === "/crm/work-orders") return pathname.startsWith("/crm/work-orders");
+    if (item.path === "/crm/order-history") return pathname.startsWith("/crm/order-history");
     if (item.path === "/crm/calendar") return pathname.startsWith("/crm/calendar");
     if (item.path === "/crm/appointments") return pathname.startsWith("/crm/appointments");
     if (item.path === "/mechanic") return pathname.startsWith("/mechanic");

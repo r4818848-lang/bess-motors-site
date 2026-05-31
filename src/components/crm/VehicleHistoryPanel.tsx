@@ -3,7 +3,8 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useI18n } from "@/lib/i18n/context";
-import { loadDb } from "@/lib/store";
+import { loadDb, saveDb } from "@/lib/store";
+import { Trash2 } from "lucide-react";
 import { useDbSync } from "@/hooks/useDbSync";
 import { filterVehicleHistory } from "@/lib/crm-search";
 import { CrmSearchInput } from "./CrmSearchInput";
@@ -20,6 +21,13 @@ export function VehicleHistoryPanel() {
     return filterVehicleHistory(db, query);
   }, [query, dbTick]);
 
+  const removeEntry = (entryId: string) => {
+    if (!confirm(c.confirmDeleteVehicleHistory)) return;
+    const fresh = loadDb();
+    fresh.vehicleHistory = fresh.vehicleHistory.filter((e) => e.id !== entryId);
+    saveDb(fresh);
+  };
+
   return (
     <div className="space-y-6">
       <h2 className="font-display text-xl uppercase text-glow">{c.vehicleHistoryList}</h2>
@@ -35,12 +43,13 @@ export function VehicleHistoryPanel() {
               <th>{c.was}</th>
               <th>{c.became}</th>
               <th>{c.changedBy}</th>
+              <th />
             </tr>
           </thead>
           <tbody>
             {rows.length === 0 ? (
               <tr>
-                <td colSpan={7} className="text-center text-bm-muted py-8">
+                <td colSpan={8} className="text-center text-bm-muted py-8">
                   {c.noSearchResults}
                 </td>
               </tr>
@@ -70,6 +79,16 @@ export function VehicleHistoryPanel() {
                   <td className="text-xs text-bm-muted max-w-[120px] truncate">{entry.oldValue || "—"}</td>
                   <td className="text-xs max-w-[120px] truncate">{entry.newValue || "—"}</td>
                   <td className="text-xs">{entry.changedBy}</td>
+                  <td>
+                    <button
+                      type="button"
+                      onClick={() => removeEntry(entry.id)}
+                      className="text-red-400 hover:text-red-300 p-1 inline-flex"
+                      title={t.common.delete}
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </td>
                 </tr>
               ))
             )}

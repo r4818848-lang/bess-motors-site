@@ -22,9 +22,11 @@ interface Props {
   onChange: (f: WorkOrderListFilters) => void;
   /** Client cabinet: only repair status */
   clientMode?: boolean;
+  /** CRM open orders list: hide «delivered» in status filter */
+  openOrdersOnly?: boolean;
 }
 
-export function WorkOrderFilters({ filters, onChange, clientMode }: Props) {
+export function WorkOrderFilters({ filters, onChange, clientMode, openOrdersOnly }: Props) {
   const { t } = useI18n();
   const w = t.wo;
   const pm = t.paymentMethods;
@@ -47,7 +49,9 @@ export function WorkOrderFilters({ filters, onChange, clientMode }: Props) {
             }
           >
             <option value="all">{w.filterAll}</option>
-            {repairStatuses.map((s) => (
+            {repairStatuses
+              .filter((s) => !openOrdersOnly || s !== "delivered")
+              .map((s) => (
               <option key={s} value={s}>
                 {t.repairStatus[s]}
               </option>

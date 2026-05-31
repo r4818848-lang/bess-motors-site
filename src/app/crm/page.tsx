@@ -4,7 +4,9 @@ import { useState, useEffect, useCallback, Suspense, useMemo } from "react";
 import { useDbSync } from "@/hooks/useDbSync";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { LogOut, FileText, Wallet, BarChart3, Receipt, Settings, Flame, Users, History, Package, TrendingUp, Plus, UserPlus } from "lucide-react";
+import { LogOut, FileText, Wallet, BarChart3, Receipt, Settings, Flame, Users, History, Package, TrendingUp, Plus, UserPlus, Archive } from "lucide-react";
+import { WorkOrderHistoryPanel } from "@/components/crm/WorkOrderHistoryPanel";
+import { filterOpenWorkOrders } from "@/lib/work-order-lifecycle";
 import { WarehousePanel } from "@/components/crm/WarehousePanel";
 import {
   ClientsCsvExport,
@@ -36,6 +38,7 @@ type CrmTab =
   | "hot"
   | "clients"
   | "vehicles"
+  | "orderHistory"
   | "warehouse"
   | "marketing"
   | "expenses"
@@ -60,6 +63,7 @@ function CRMPageContent() {
       q === "hot" ||
       q === "clients" ||
       q === "vehicles" ||
+      q === "orderHistory" ||
       q === "warehouse" ||
       q === "marketing" ||
       q === "expenses" ||
@@ -81,7 +85,7 @@ function CRMPageContent() {
 
   const filteredOrders = useMemo(() => {
     const fresh = loadDb();
-    const orders = filterWorkOrdersByQuery(fresh, fresh.workOrders, search);
+    const orders = filterWorkOrdersByQuery(fresh, filterOpenWorkOrders(fresh.workOrders), search);
     return orders.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   }, [search, dbTick]);
 
@@ -99,6 +103,7 @@ function CRMPageContent() {
     { id: "hot" as const, icon: Flame, label: c.hotOrders },
     { id: "clients" as const, icon: Users, label: c.clientsList },
     { id: "vehicles" as const, icon: History, label: c.vehicleHistoryList },
+    { id: "orderHistory" as const, icon: Archive, label: c.orderHistoryList },
     { id: "warehouse" as const, icon: Package, label: c.warehouse },
     { id: "marketing" as const, icon: TrendingUp, label: c.marketing },
     { id: "expenses" as const, icon: Wallet, label: t.wo.internalExpenses },
@@ -211,6 +216,8 @@ function CRMPageContent() {
         {tab === "clients" && <ClientsListPanel />}
 
         {tab === "vehicles" && <VehicleHistoryPanel />}
+
+        {tab === "orderHistory" && <WorkOrderHistoryPanel />}
 
         {tab === "warehouse" && <WarehousePanel />}
 

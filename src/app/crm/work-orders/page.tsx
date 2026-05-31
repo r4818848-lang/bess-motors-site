@@ -12,6 +12,7 @@ import { logoutAdmin } from "@/lib/auth";
 import { loadDb } from "@/lib/store";
 import { calcClientTotal } from "@/lib/workorder-calc";
 import { filterWorkOrders, defaultWorkOrderFilters } from "@/lib/workorder-filters";
+import { filterOpenWorkOrders } from "@/lib/work-order-lifecycle";
 import { filterWorkOrdersByQuery } from "@/lib/crm-search";
 import { WorkOrderFilters } from "@/components/crm/WorkOrderFilters";
 import { CrmSearchInput } from "@/components/crm/CrmSearchInput";
@@ -47,7 +48,8 @@ function WorkOrdersPageContent() {
   const ps = t.paymentStatus;
 
   const filteredOrders = useMemo(() => {
-    const byStatus = filterWorkOrders([...db.workOrders], filters);
+    const openOnly = filterOpenWorkOrders(db.workOrders);
+    const byStatus = filterWorkOrders([...openOnly], filters);
     const bySearch = filterWorkOrdersByQuery(db, byStatus, searchQuery);
     return bySearch.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   }, [db, filters, searchQuery, dbTick]);
@@ -86,8 +88,12 @@ function WorkOrdersPageContent() {
               {w.ordersTitle}
             </h1>
             <p className="text-sm text-bm-muted mt-1">{w.adminOnly}</p>
+            <p className="text-xs text-bm-muted mt-1">{c.openOrdersOnly}</p>
           </div>
           <div className="flex gap-2">
+            <Link href="/crm/order-history" className="btn-outline text-xs py-2 inline-flex items-center gap-2 self-center">
+              {c.orderHistoryList}
+            </Link>
             <Button onClick={() => setCreating(true)}>
               <Plus size={16} /> {c.createOrder}
             </Button>
@@ -114,7 +120,7 @@ function WorkOrdersPageContent() {
           active={filters.preset ?? (filters.repairStatus !== "all" ? "parts" : "all")}
           onApply={(patch) => setFilters({ ...filters, ...patch })}
         />
-        <WorkOrderFilters filters={filters} onChange={setFilters} />
+        <WorkOrderFilters filters={filters} onChange={setFilters} openOrdersOnly />
 
         <section>
           <h2 className="font-display uppercase text-sm text-bm-muted mb-3">{c.kanbanTitle}</h2>

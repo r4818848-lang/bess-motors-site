@@ -5,6 +5,7 @@ import { loadDb, saveDb, type WarehouseItem } from "@/lib/store";
 import { migrateWarehouseItem } from "@/lib/warehouse-stock";
 import { useDbSync } from "@/hooks/useDbSync";
 import { useI18n } from "@/lib/i18n/context";
+import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 
 export function WarehousePanel() {
@@ -16,6 +17,14 @@ export function WarehousePanel() {
   const [edit, setEdit] = useState<WarehouseItem | null>(null);
 
   const items = db.warehouse.map(migrateWarehouseItem);
+
+  const removeItem = (id: string) => {
+    if (!confirm(c.confirmDeleteWarehouse)) return;
+    const fresh = loadDb();
+    fresh.warehouse = fresh.warehouse.filter((w) => w.id !== id);
+    saveDb(fresh);
+    if (edit?.id === id) setEdit(null);
+  };
 
   const saveItem = () => {
     if (!edit) return;
@@ -70,9 +79,16 @@ export function WarehousePanel() {
               <td>{i.qty}</td>
               <td>{i.minQty ?? 3}</td>
               <td>{i.sellPrice} zł</td>
-              <td>
+              <td className="whitespace-nowrap space-x-2">
                 <button type="button" className="text-bm-red text-xs" onClick={() => setEdit(i)}>
-                  Edytuj
+                  {t.common.edit}
+                </button>
+                <button
+                  type="button"
+                  className="text-red-400 text-xs inline-flex items-center gap-1"
+                  onClick={() => removeItem(i.id)}
+                >
+                  <Trash2 size={12} /> {t.common.delete}
                 </button>
               </td>
             </tr>
