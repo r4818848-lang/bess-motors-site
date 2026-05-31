@@ -1,9 +1,14 @@
 import type { InlineKeyboardMarkup } from "@/lib/server/telegram-api";
 import type { ReportPeriod } from "@/lib/crm-analytics";
+import { cleanEnvValue } from "@/lib/server/supabase-config";
 import type { ExpenseCategory, RepairStatus } from "@/lib/store";
 import type { HotOrderRow } from "@/lib/hot-orders";
 import { REPAIR_STATUS_RU } from "./labels";
 import { BOT } from "./labels";
+
+function siteBase(): string {
+  return cleanEnvValue(process.env.NEXT_PUBLIC_SITE_URL) || "https://www.bess-motors.com";
+}
 
 const STATUSES: RepairStatus[] = [
   "received",
@@ -36,7 +41,7 @@ export function mainMenuKeyboard(): InlineKeyboardMarkup {
       ],
       [{ text: BOT.search, callback_data: "search:menu" }],
       [
-        { text: BOT.mechLoad, callback_data: "mech:dash:day" },
+        { text: BOT.mechLoad, callback_data: "mech:dash:menu" },
         { text: BOT.mechanics, callback_data: "mech:menu" },
       ],
       [
@@ -44,6 +49,10 @@ export function mainMenuKeyboard(): InlineKeyboardMarkup {
         { text: BOT.analytics, callback_data: "an:menu" },
       ],
       [{ text: BOT.warehouse, callback_data: "wh:0" }],
+      [
+        { text: "🌐 CRM на сайте", url: `${siteBase()}/crm` },
+        { text: "📱 Сайт", url: siteBase() },
+      ],
       [{ text: BOT.help, callback_data: "help" }],
     ],
   };

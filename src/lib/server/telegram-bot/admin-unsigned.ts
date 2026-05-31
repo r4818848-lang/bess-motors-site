@@ -2,6 +2,7 @@ import { sendTelegramMessage } from "@/lib/server/telegram-api";
 import type { InlineKeyboardMarkup } from "@/lib/server/telegram-api";
 import type { Database, WorkOrder } from "@/lib/store";
 import { notifyTelegramSignByPhone } from "./client-telegram-notify";
+import { esc } from "./format";
 
 export function listUnsignedOrders(db: Database): WorkOrder[] {
   return db.workOrders
@@ -27,8 +28,8 @@ export function formatUnsignedList(db: Database): string {
     const vehicle = db.vehicles.find((v) => v.id === o.vehicleId);
     lines.push(
       `<b>${o.number}</b>`,
-      client ? `👤 ${client.name} · ${client.phone}` : "",
-      vehicle ? `🚗 ${vehicle.plate}` : "",
+      client ? `👤 ${esc(client.name)} · ${esc(client.phone)}` : "",
+      vehicle ? `🚗 ${esc(vehicle.plate)}` : "",
       client?.telegramChatId ? "📱 Telegram ✓" : "📱 Telegram ✗",
       ""
     );

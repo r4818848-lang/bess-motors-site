@@ -68,6 +68,8 @@ import {
 } from "./keyboards";
 import { BOT, REPAIR_STATUS_RU } from "./labels";
 import { handleClientTelegramUpdate } from "./client-handler";
+import { handleMechanicTelegramUpdate, mechanicDashKeyboard } from "./mechanic-handler";
+import { isAdminTelegramChat, resolveMechanicActor } from "./telegram-actor";
 import {
   formatUnsignedList,
   remindClientToSign,
@@ -160,7 +162,14 @@ export async function handleTelegramUpdate(update: {
   const chatId =
     update.message?.chat.id ?? update.callback_query?.message?.chat.id;
 
-  if (chatId !== undefined && !isAuthorizedChat(chatId)) {
+  if (chatId === undefined) return;
+
+  if (!isAdminTelegramChat(chatId)) {
+    const mechanic = await resolveMechanicActor(chatId);
+    if (mechanic) {
+      await handleMechanicTelegramUpdate(update, mechanic);
+      return;
+    }
     await handleClientTelegramUpdate(update);
     return;
   }
@@ -584,10 +593,15 @@ async function handleCallback(cb: TelegramCallback): Promise<void> {
     return;
   }
 
+  if (data === "mech:dash:menu") {
+    await replyOrEdit(chatId, messageId, "🔧 <b>Загрузка цеха</b>\n\nВыберите период:", mechanicDashKeyboard());
+    return;
+  }
+
   if (data.startsWith("mech:dash:")) {
     const period = data.slice(10) as ReportPeriod;
     const report = formatMechanicDashboard(db, period);
-    await replyOrEdit(chatId, messageId, report, mainMenuKeyboard());
+    await replyOrEdit(chatId, messageId, report, mechanicDashKeyboard());
     return;
   }
 
@@ -773,5 +787,11 @@ async function handleCallback(cb: TelegramCallback): Promise<void> {
     return;
   }
 
-  await showMainMenu(chatId, messageId);
+  console.warn("[telegram admin] unhandled callback:", data);
+  await replyOrEdit(
+    chatId,
+    messageId,
+    `⚠️ Кнопка <code>${data.slice(0, 40)}</code> не обработана.\n\nОткройте меню заново.`,
+    mainMenuKeyboard()
+  );
 }

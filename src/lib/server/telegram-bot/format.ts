@@ -1,4 +1,5 @@
 import type { Database, RepairStatus, WorkOrder } from "@/lib/store";
+import { filterOpenWorkOrders } from "@/lib/work-order-lifecycle";
 import type { CrmAnalytics, ReportPeriod } from "@/lib/crm-analytics";
 import { computeCrmAnalytics, filterByPeriod } from "@/lib/crm-analytics";
 import { calcClientTotal } from "@/lib/workorder-calc";
@@ -86,13 +87,14 @@ export function formatTodaySummary(db: Database): string {
 }
 
 export function formatWorkOrderList(db: Database, page: number, pageSize = 5): { text: string; totalPages: number } {
-  const orders = [...db.workOrders]
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  const orders = filterOpenWorkOrders([...db.workOrders]).sort((a, b) =>
+    b.createdAt.localeCompare(a.createdAt)
+  );
   const totalPages = Math.max(1, Math.ceil(orders.length / pageSize));
   const slice = orders.slice(page * pageSize, page * pageSize + pageSize);
 
   if (slice.length === 0) {
-    return { text: "📋 <b>Заказ-наряды</b>\n\nНет заказ-нарядов.", totalPages: 1 };
+    return { text: "📋 <b>Открытые заказ-наряды</b>\n\nНет активных заказов.", totalPages: 1 };
   }
 
   const lines = [`📋 <b>Заказ-наряды</b> (стр. ${page + 1}/${totalPages})`, ""];
@@ -275,8 +277,9 @@ export function formatWarehouse(db: Database): string {
 }
 
 export function workOrderListKeyboard(db: Database, page: number, pageSize = 5): InlineKeyboardMarkup {
-  // Import type inline to avoid circular - use same shape as telegram-api
-  const orders = [...db.workOrders].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  const orders = filterOpenWorkOrders([...db.workOrders]).sort((a, b) =>
+    b.createdAt.localeCompare(a.createdAt)
+  );
   const slice = orders.slice(page * pageSize, page * pageSize + pageSize);
   const totalPages = Math.max(1, Math.ceil(orders.length / pageSize));
 

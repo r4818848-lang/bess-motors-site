@@ -83,7 +83,7 @@ export const BOT = {
   markCalled: "📞 Позвонил",
   statusChanged: "Статус обновлён.",
   helpText:
-    "<b>Команды:</b>\n/start — меню\n/find WA12345 — поиск\n\n<b>Расход:</b> Расходы → Добавить → категория → <code>450 Описание</code>",
+    "<b>Команды:</b>\n/start — меню\n/find WA12345 — поиск\n\n<b>Расход:</b> Расходы → Добавить → категория → <code>450 Описание</code>\n\n<b>Механик:</b> <code>/linkmech +48… пароль</code> — привязка Telegram к CRM",
   quickAptPrompt:
     "➕ <b>Быстрая запись</b>\n\nОтправьте одной строкой:\n<code>+48123456789 2026-06-01 10:00 комментарий</code>",
   extraWorkPrompt:
