@@ -69,7 +69,14 @@ export async function PUT(req: Request) {
   }
 
   const before = await cloudGetCrmStore();
-  const payload = docForCloud(db);
+  const { applyWorkOrderClosure } = await import("@/lib/work-order-lifecycle");
+  const { applyWorkOrderCompletedAt } = await import("@/lib/work-order-dates");
+  const payload = docForCloud({
+    ...db,
+    workOrders: db.workOrders.map((o) =>
+      applyWorkOrderCompletedAt(applyWorkOrderClosure(o))
+    ),
+  });
   const { runCrmAutomation } = await import("@/lib/crm-automation");
   runCrmAutomation(payload, before?.doc ?? null);
   const result = await cloudPutCrmStore(payload);
@@ -84,7 +91,15 @@ export async function PUT(req: Request) {
     const { dispatchTelegramFromCrmSave } = await import(
       "@/lib/server/telegram-bot/client-telegram-notify"
     );
-    void dispatchTelegramFromCrmSave(before.doc, payload);
+    void dispatchTelegramFromCrmSave(before.doc, payload).then(async () => {
+      const { runReferralTelegramEffects } = await import(
+        "@/lib/server/referral-telegram-notify"
+      );
+      for (const order of payload.workOrders) {
+        const old = before.doc!.workOrders.find((o) => o.id === order.id);
+        if (old) await runReferralTelegramEffects(payload, order, old);
+      }
+    });
     const { dispatchWebPushFromCrmSave } = await import("@/lib/web-push-order-events");
     void dispatchWebPushFromCrmSave(before.doc, payload);
   }

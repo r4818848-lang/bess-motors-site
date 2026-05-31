@@ -252,8 +252,12 @@ export async function setClientBotCommands(): Promise<void> {
 export async function notifyAdminTelegram(text: string): Promise<boolean> {
   const cfg = getTelegramConfig();
   if (!cfg) return false;
-  const id = await sendTelegramMessage(cfg.chatId, text);
-  return id !== null;
+  let any = false;
+  for (const chatId of cfg.adminChatIds) {
+    const id = await sendTelegramMessage(chatId, text);
+    if (id !== null) any = true;
+  }
+  return any;
 }
 
 /** Download Telegram file as data URL (for CRM attachments) */

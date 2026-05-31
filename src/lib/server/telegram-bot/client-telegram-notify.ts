@@ -5,9 +5,10 @@ import { calcClientTotal } from "@/lib/workorder-calc";
 import { getClientBotLabels, type BotLocale } from "./client-i18n";
 import { ratingKeyboard } from "./client-extras";
 import { mutateCrm } from "./crm-actions";
-import { REPAIR_STATUS_RU } from "./labels";
 import { canSendBotNotify } from "./bot-notify-guard";
 import { isQuietHours } from "@/lib/quiet-hours";
+import { isWorkOrderClosed } from "@/lib/work-order-lifecycle";
+import { repairStatusLabel, signKeyboardLocalized, woNotifyCopy } from "./client-wo-notify-text";
 
 function siteUrl(): string {
   return cleanEnvValue(process.env.NEXT_PUBLIC_SITE_URL) || "https://www.bess-motors.com";
@@ -34,13 +35,8 @@ function cabinetUrl(): string {
   return `${siteUrl()}/cabinet`;
 }
 
-function signKeyboard(orderId: string) {
-  return {
-    inline_keyboard: [
-      [{ text: "✍️ Подписать заказ-наряд", url: signUrl(orderId) }],
-      [{ text: "📋 Личный кабинет", url: cabinetUrl() }],
-    ],
-  };
+function signKeyboard(orderId: string, locale: BotLocale) {
+  return signKeyboardLocalized(orderId, siteUrl(), locale);
 }
 
 function orderNeedsSignature(order: WorkOrder): boolean {
@@ -71,6 +67,8 @@ export async function notifyTelegramWorkOrderChange(
   const user = db.users.find((u) => u.id === order.userId && u.role === "client");
   if (!user?.telegramChatId) return;
 
+  const loc: BotLocale = user.telegramLocale ?? "ru";
+  const copy = woNotifyCopy(loc);
   const car = esc(vehicleLabel(db, order));
   const total = calcClientTotal(order);
 
@@ -82,31 +80,35 @@ export async function notifyTelegramWorkOrderChange(
     await sendToClient(
       user,
       [
-        "✍️ <b>Требуется подпись</b>",
+        copy.signRequiredTitle,
         "",
-        `Заказ-наряд <b>${esc(order.number)}</b>`,
-        `🚗 ${car}`,
-        `💰 ${total.toFixed(2)} zł`,
+        copy.signRequiredBody
+          .replace("{number}", esc(order.number))
+          .replace("{car}", car)
+          .replace("{total}", total.toFixed(2)),
         "",
-        "Нажмите кнопку ниже, чтобы подписать документ.",
-        "Регистрация не нужна — мы узнаем вас по номеру телефона.",
+        copy.signRequiredHint,
       ].join("\n"),
-      signKeyboard(order.id)
+      signKeyboard(order.id, loc),
+      { critical: true }
     );
     return;
   }
 
-  if (previous?.status !== order.status) {
-    if (order.status === "ready") {
+  const statusChanged = previous?.status !== order.status;
+  const closedNow =
+    isWorkOrderClosed(order) && (!previous || !isWorkOrderClosed(previous));
+
+  if (statusChanged || closedNow) {
+    if (order.status === "ready" && !closedNow) {
       await sendToClient(
         user,
         [
-          "✅ <b>Автомобиль готов!</b>",
+          copy.carReadyTitle,
           "",
-          `🚗 ${car}`,
-          `📋 ${esc(order.number)}`,
+          copy.carReadyBody.replace("{car}", car).replace("{number}", esc(order.number)),
           "",
-          "Можете забрать авто в рабочие часы.",
+          copy.carReadyHint,
           `🌐 ${cabinetUrl()}`,
         ].join("\n"),
         undefined,
@@ -115,40 +117,38 @@ export async function notifyTelegramWorkOrderChange(
       return;
     }
 
-    if (order.status === "delivered" && !order.clientRating && !order.ratingRequestSentAt) {
-      const loc: BotLocale = user.telegramLocale ?? "ru";
-      await mutateCrm((db) => {
-        const o = db.workOrders.find((x) => x.id === order.id);
+    if (
+      (order.status === "delivered" || closedNow) &&
+      !order.clientRating &&
+      !order.ratingRequestSentAt
+    ) {
+      await mutateCrm((dbMut) => {
+        const o = dbMut.workOrders.find((x) => x.id === order.id);
         if (o && !o.ratingRequestSentAt) {
           o.ratingRequestSentAt = new Date().toISOString();
         }
       });
       await sendToClient(
         user,
-        [
-          loc === "pl"
-            ? "⭐ <b>Oceń naszą obsługę</b>"
-            : loc === "en"
-              ? "⭐ <b>Rate our service</b>"
-              : "⭐ <b>Оцените наш сервис</b>",
-          "",
-          `📋 ${esc(order.number)}`,
-        ].join("\n"),
+        [copy.rateTitle, "", `📋 ${esc(order.number)}`].join("\n"),
         ratingKeyboard(loc, order.id)
       );
       return;
     }
 
-    await sendToClient(
-      user,
-      [
-        "🔧 <b>Статус заказ-наряда обновлён</b>",
-        "",
-        `📋 ${esc(order.number)}`,
-        `🚗 ${car}`,
-        `📌 ${REPAIR_STATUS_RU[order.status]}`,
-      ].join("\n")
-    );
+    if (statusChanged) {
+      const statusLabel = repairStatusLabel(loc, order.status);
+      await sendToClient(
+        user,
+        [
+          copy.statusUpdatedTitle,
+          "",
+          `📋 ${esc(order.number)}`,
+          `🚗 ${car}`,
+          `📌 ${esc(statusLabel)}`,
+        ].join("\n")
+      );
+    }
   }
 }
 
@@ -221,17 +221,19 @@ export async function notifyTelegramSignByPhone(
   if (!user?.telegramChatId) return;
   if (!orderNeedsSignature(order)) return;
 
+  const loc: BotLocale = user.telegramLocale ?? "ru";
+  const copy = woNotifyCopy(loc);
   const car = esc(vehicleLabel(db, order));
   await sendToClient(
     user,
     [
-      "✍️ <b>Документ на подпись</b>",
+      copy.signDocTitle,
       "",
-      `📋 ${esc(order.number)} · ${car}`,
+      copy.signDocBody.replace("{number}", esc(order.number)).replace("{car}", car),
       "",
-      "Подпишите заказ-наряд в один клик:",
+      copy.signDocHint,
     ].join("\n"),
-    signKeyboard(order.id),
+    signKeyboard(order.id, loc),
     { critical: true }
   );
 }
