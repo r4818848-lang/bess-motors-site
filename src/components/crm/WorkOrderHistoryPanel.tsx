@@ -45,9 +45,9 @@ export function WorkOrderHistoryPanel() {
         <p className="text-sm text-bm-muted mt-1">{c.orderHistoryHint}</p>
       </div>
       <CrmSearchInput value={query} onChange={setQuery} placeholder={c.search} />
-      <div className="glass-red rounded-xl overflow-hidden neon-border">
+      <div className="crm-mw-card">
         <div className="table-scroll">
-        <table className="dashboard-table min-w-[640px]">
+        <table className="crm-mw-table min-w-[640px]">
           <thead>
             <tr>
               <th>#</th>

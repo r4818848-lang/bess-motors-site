@@ -157,14 +157,14 @@ function WorkOrdersPageContent() {
         <section className="crm-mw-card">
           <button
             type="button"
-            className="w-full flex items-center justify-between px-4 py-3 text-sm font-bold uppercase tracking-wide text-gray-700 hover:bg-gray-50"
+            className="w-full flex items-center justify-between px-4 py-3 text-sm font-bold uppercase tracking-wide text-white hover:bg-white/5"
             onClick={() => setKanbanOpen((v) => !v)}
           >
             <span>{c.kanbanTitle}</span>
             {kanbanOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
           </button>
           {kanbanOpen && (
-            <div className="p-3 border-t border-gray-200">
+            <div className="p-3 border-t border-bm-border">
               <WorkOrderKanban orders={filteredOrders} />
             </div>
           )}

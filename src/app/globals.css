@@ -33,13 +33,14 @@
     @apply px-4 py-5 sm:px-6 sm:py-6 lg:px-10 lg:py-10;
   }
 
-  /* Motowarsztat-style ERP shell (light workspace inside CRM) */
+  /* Motowarsztat-style ERP — dark shell (black bg, white text) */
   .crm-shell {
-    --crm-bg: #eef0f3;
-    --crm-surface: #ffffff;
-    --crm-border: #dde1e6;
-    --crm-text: #1c1c1c;
-    --crm-muted: #6b7280;
+    --crm-bg: #0a0a0a;
+    --crm-surface: #141414;
+    --crm-surface-2: #1c1c1c;
+    --crm-border: #2a2a2a;
+    --crm-text: #ffffff;
+    --crm-muted: #9ca3af;
     --crm-red: #e10600;
     min-height: 100vh;
     background: var(--crm-bg);
@@ -60,17 +61,19 @@
   .crm-shell .crm-sidebar .crm-nav-link {
     @apply flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors;
     color: var(--crm-text);
+    border-right: 3px solid transparent;
   }
 
   .crm-shell .crm-sidebar .crm-nav-link:hover {
-    background: #f3f4f6;
+    background: rgba(255, 255, 255, 0.06);
     color: var(--crm-red);
   }
 
   .crm-shell .crm-sidebar .crm-nav-link.active {
-    background: rgba(225, 6, 0, 0.12);
+    background: rgba(225, 6, 0, 0.15);
     color: var(--crm-red);
     font-weight: 600;
+    border-right-color: var(--crm-red);
   }
 
   .crm-shell .crm-sidebar .crm-nav-section {
@@ -83,12 +86,23 @@
     color: var(--crm-muted);
   }
 
+  .crm-shell .crm-page-header .crm-breadcrumbs a {
+    color: var(--crm-muted);
+  }
+
+  .crm-shell .crm-page-header .crm-breadcrumbs a:hover {
+    color: var(--crm-red);
+  }
+
   .crm-shell .crm-page-title {
-    @apply text-xl sm:text-2xl font-bold text-gray-900;
+    @apply text-xl sm:text-2xl font-bold uppercase tracking-tight;
+    color: var(--crm-text);
+    text-shadow: 0 0 24px rgba(225, 6, 0, 0.35);
   }
 
   .crm-shell .crm-page-subtitle {
-    @apply text-sm text-gray-600;
+    @apply text-sm;
+    color: var(--crm-muted);
   }
 
   .crm-shell .crm-list-toolbar {
@@ -103,7 +117,9 @@
   }
 
   .crm-shell .crm-price-toggle button {
-    @apply px-3 py-1.5 transition-colors bg-white text-gray-600;
+    @apply px-3 py-1.5 transition-colors;
+    background: var(--crm-surface-2);
+    color: var(--crm-muted);
   }
 
   .crm-shell .crm-price-toggle button.active {
@@ -113,55 +129,93 @@
   .crm-shell .crm-mw-card {
     background: var(--crm-surface);
     border: 1px solid var(--crm-border);
-    @apply rounded-lg shadow-sm overflow-hidden;
+    @apply rounded-lg overflow-hidden;
+    box-shadow: inset 0 0 0 1px rgba(225, 6, 0, 0.08);
   }
 
   .crm-shell .crm-mw-table {
-    @apply w-full text-sm;
+    @apply w-full text-sm text-white;
   }
 
   .crm-shell .crm-mw-table thead th {
-    @apply text-left text-[11px] font-bold uppercase tracking-wide px-3 py-2.5 border-b whitespace-nowrap;
-    background: #f8f9fb;
-    color: #4b5563;
+    @apply text-left text-[10px] sm:text-[11px] font-display font-bold uppercase tracking-wider px-3 py-3 border-b whitespace-nowrap;
+    background: #000000;
+    color: #ffffff;
     border-color: var(--crm-border);
   }
 
   .crm-shell .crm-mw-table tbody td {
-    @apply px-3 py-2.5 border-b align-top;
-    border-color: #eef0f3;
-    color: var(--crm-text);
-  }
-
-  .crm-shell .crm-mw-table tbody tr:nth-child(even) {
-    background: #fafbfc;
-  }
-
-  .crm-shell .crm-mw-table tbody tr:hover {
-    background: #fff5f5;
-  }
-
-  .crm-shell .crm-mw-table tfoot td {
-    @apply font-semibold bg-red-50 text-gray-900 border-t-2;
+    @apply px-3 py-2.5 border-b align-top text-white;
     border-color: var(--crm-border);
   }
 
+  .crm-shell .crm-mw-table tbody tr:nth-child(even) {
+    background: var(--crm-surface-2);
+  }
+
+  .crm-shell .crm-mw-table tbody tr:nth-child(odd) {
+    background: var(--crm-surface);
+  }
+
+  .crm-shell .crm-mw-table tbody tr:hover {
+    background: rgba(225, 6, 0, 0.1);
+  }
+
+  .crm-shell .crm-mw-table tfoot td {
+    @apply font-semibold border-t-2;
+    background: rgba(225, 6, 0, 0.12);
+    color: var(--crm-text);
+    border-color: var(--crm-border);
+  }
+
+  .crm-shell .dashboard-table {
+    @apply w-full text-sm text-white;
+  }
+
+  .crm-shell .dashboard-table thead th {
+    @apply text-left text-[10px] sm:text-[11px] font-display font-bold uppercase tracking-wider px-3 py-3 border-b whitespace-nowrap;
+    background: #000000;
+    color: #ffffff;
+    border-color: var(--crm-border);
+  }
+
+  .crm-shell .dashboard-table tbody td {
+    @apply px-3 py-2.5 border-b align-top;
+    border-color: var(--crm-border);
+    color: var(--crm-text);
+  }
+
+  .crm-shell .dashboard-table tbody tr:nth-child(even) {
+    background: var(--crm-surface-2);
+  }
+
+  .crm-shell .dashboard-table tbody tr:hover {
+    background: rgba(225, 6, 0, 0.1);
+  }
+
   .crm-shell .input-premium {
-    @apply bg-white text-gray-900 border-gray-300 placeholder-gray-400;
+    @apply bg-bm-graphite/90 text-white border-bm-border placeholder-bm-muted;
   }
 
   .crm-shell .input-premium:focus {
-    @apply border-bm-red ring-1 ring-bm-red/30;
+    @apply border-bm-red shadow-neon-sm;
   }
 
   .crm-shell .glass-red {
     background: var(--crm-surface);
+    border: 1px solid rgba(225, 6, 0, 0.25);
+    backdrop-filter: blur(16px);
+    box-shadow: 0 0 12px rgba(225, 6, 0, 0.15);
+  }
+
+  .crm-shell .glass {
+    background: var(--crm-surface);
     border: 1px solid var(--crm-border);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    backdrop-filter: blur(16px);
   }
 
   .crm-shell .neon-border {
-    box-shadow: none;
+    box-shadow: inset 0 0 0 1px rgba(225, 6, 0, 0.25), 0 0 16px rgba(225, 6, 0, 0.08);
   }
 
   .crm-shell .text-bm-muted {
@@ -169,7 +223,7 @@
   }
 
   .crm-shell .text-glow {
-    text-shadow: none;
+    text-shadow: 0 0 20px rgba(225, 6, 0, 0.5);
     color: var(--crm-text);
   }
 
@@ -182,31 +236,42 @@
 
   .crm-shell .crm-module-tile:hover {
     border-color: var(--crm-red);
-    box-shadow: 0 4px 12px rgba(225, 6, 0, 0.15);
+    box-shadow: 0 0 20px rgba(225, 6, 0, 0.2);
   }
 
   .crm-shell .crm-module-tile.accent {
-    border-color: rgba(225, 6, 0, 0.45);
-    background: #fff5f5;
+    border-color: rgba(225, 6, 0, 0.5);
+    background: rgba(225, 6, 0, 0.12);
   }
 
   .crm-shell .crm-sticky-actions {
     @apply sticky bottom-0 z-20 flex flex-wrap gap-2 justify-end p-4 border-t mt-6 -mx-4 sm:-mx-6 lg:-mx-10;
-    background: rgba(255, 255, 255, 0.95);
+    background: rgba(10, 10, 10, 0.95);
     border-color: var(--crm-border);
     backdrop-filter: blur(8px);
   }
 
-  .crm-shell .btn-primary {
-    box-shadow: 0 2px 8px rgba(225, 6, 0, 0.35);
+  .crm-shell .crm-modal-panel {
+    @apply rounded-t-2xl sm:rounded-2xl;
+    background: var(--crm-surface);
+    border: 1px solid rgba(225, 6, 0, 0.25);
+    color: var(--crm-text);
+    box-shadow: inset 0 0 0 1px rgba(225, 6, 0, 0.25), 0 0 24px rgba(225, 6, 0, 0.12);
   }
 
-  .crm-shell .btn-primary:hover {
-    transform: translateY(-1px);
+  .crm-shell .btn-primary {
+    box-shadow: 0 0 20px rgba(225, 6, 0, 0.4);
   }
 
   .crm-shell .btn-outline {
-    @apply text-gray-800 border-gray-300 bg-white;
+    @apply text-white border-bm-red/50;
+  }
+
+  .crm-shell .card-premium,
+  .crm-shell [class*="Card"] {
+    background: var(--crm-surface);
+    border-color: var(--crm-border);
+    color: var(--crm-text);
   }
 
   .table-scroll {

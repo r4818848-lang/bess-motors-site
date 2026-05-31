@@ -104,7 +104,7 @@ export function QuickCreateOrderModal({
       role="dialog"
       aria-modal
     >
-      <div className="w-full sm:max-w-2xl max-h-[92dvh] overflow-y-auto glass-red rounded-t-2xl sm:rounded-2xl neon-border safe-area-pb">
+      <div className="crm-modal-panel w-full sm:max-w-2xl max-h-[92dvh] overflow-y-auto safe-area-pb">
         <div className="sticky top-0 z-10 flex items-center justify-between gap-3 px-4 py-3 border-b border-bm-border bg-bm-graphite/95 backdrop-blur-md">
           <div className="flex items-center gap-2 min-w-0">
             <Wrench className="text-bm-red shrink-0" size={22} />

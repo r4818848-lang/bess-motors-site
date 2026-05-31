@@ -32,8 +32,8 @@ export function VehicleHistoryPanel() {
     <div className="space-y-6">
       <h2 className="font-display text-xl uppercase text-glow">{c.vehicleHistoryList}</h2>
       <CrmSearchInput value={query} onChange={setQuery} placeholder={c.search} />
-      <div className="glass-red rounded-xl overflow-hidden neon-border">
-        <table className="dashboard-table">
+      <div className="crm-mw-card table-scroll">
+        <table className="crm-mw-table min-w-[720px]">
           <thead>
             <tr>
               <th>{c.date}</th>

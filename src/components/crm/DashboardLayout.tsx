@@ -235,13 +235,13 @@ function DashboardLayoutInner({
       ) : syncFailed ? (
         <button
           type="button"
-          className="text-amber-600 hover:text-bm-red"
+          className="text-amber-400 hover:text-bm-red"
           onClick={() => void resync()}
         >
           {c.syncFailed} · {c.syncNow}
         </button>
       ) : (
-        <span className="text-green-600">{c.cloudSynced}</span>
+        <span className="text-green-500">{c.cloudSynced}</span>
       )}
     </div>
   );
@@ -249,11 +249,11 @@ function DashboardLayoutInner({
   return (
     <div className="min-h-screen flex flex-col lg:flex-row">
       {/* Mobile top bar */}
-      <header className="lg:hidden fixed top-0 left-0 right-0 z-50 border-b border-bm-border bg-white/95 backdrop-blur safe-area-pt crm-shell">
+      <header className="lg:hidden fixed top-0 left-0 right-0 z-50 border-b border-bm-border bg-bm-graphite/95 backdrop-blur safe-area-pt">
         <div className="flex items-center gap-2 px-3 py-2.5 min-h-[3.25rem]">
           <button
             type="button"
-            className="p-2 -ml-1 rounded-lg hover:bg-gray-100"
+            className="p-2 -ml-1 rounded-lg hover:bg-white/10 text-white"
             onClick={() => setDrawerOpen(true)}
             aria-label={c.mobileMenu}
           >
@@ -263,7 +263,7 @@ function DashboardLayoutInner({
             <p className="font-display text-[10px] uppercase tracking-widest text-bm-red leading-none">
               {role === "admin" ? "ERP" : "MECHANIC"}
             </p>
-            <p className="font-display font-bold text-sm truncate text-gray-900">{panelTitle}</p>
+            <p className="font-display font-bold text-sm truncate text-white">{panelTitle}</p>
           </div>
           <Link href="/" className="text-xs text-bm-muted hover:text-bm-red px-2 py-1 shrink-0">
             {t.nav.home}
@@ -290,7 +290,7 @@ function DashboardLayoutInner({
               </div>
               <button
                 type="button"
-                className="p-2 rounded-lg hover:bg-gray-100 shrink-0"
+                className="p-2 rounded-lg hover:bg-white/10 shrink-0 text-white"
                 onClick={closeDrawer}
                 aria-label="Close"
               >
@@ -344,7 +344,7 @@ function DashboardLayoutInner({
 
       {/* Mobile bottom navigation */}
       <nav
-        className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-bm-border bg-white/95 backdrop-blur safe-area-pb"
+        className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-bm-border bg-bm-graphite/95 backdrop-blur safe-area-pb"
         aria-label="CRM"
       >
         <div className="flex items-stretch justify-around min-h-[3.5rem]">

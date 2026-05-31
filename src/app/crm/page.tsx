@@ -223,7 +223,7 @@ function CRMPageContent() {
 
             <section>
               <div className="flex justify-between items-center gap-2 mb-3">
-                <h2 className="text-sm font-bold uppercase tracking-wide text-gray-600">
+                <h2 className="text-sm font-bold uppercase tracking-wide text-bm-muted">
                   {c.currentOrders}
                 </h2>
                 <Link href="/crm/work-orders" className="text-bm-red text-xs hover:underline font-semibold">

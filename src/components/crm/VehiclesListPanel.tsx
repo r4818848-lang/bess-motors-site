@@ -2,17 +2,20 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { Plus, Car, FileText } from "lucide-react";
+import { Plus, Car, FileText, Trash2 } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
-import { loadDb } from "@/lib/store";
+import { deleteVehicleFromDb, loadDb, saveDb } from "@/lib/store";
 import { useDbSync } from "@/hooks/useDbSync";
 import { filterVehiclesList } from "@/lib/crm-search";
 import { CrmSearchInput } from "./CrmSearchInput";
+import { CrmListToolbar } from "./CrmListToolbar";
+import { Button } from "@/components/ui/Button";
 
 export function VehiclesListPanel() {
   const { t } = useI18n();
   const c = t.crm;
   const [query, setQuery] = useState("");
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const dbTick = useDbSync();
   void dbTick;
 
@@ -21,13 +24,51 @@ export function VehiclesListPanel() {
     return filterVehiclesList(db, query);
   }, [query, dbTick]);
 
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = (checked: boolean) => {
+    if (!checked) setSelectedIds(new Set());
+    else setSelectedIds(new Set(rows.map((r) => r.vehicle.id)));
+  };
+
+  const removeVehicle = (vehicleId: string, label: string, orderCount: number) => {
+    const msg =
+      orderCount > 0
+        ? `${c.confirmDeleteVehicleWithOrders}\n\n${label} · ${orderCount}`
+        : `${c.confirmDeleteVehicle}\n\n${label}`;
+    if (!confirm(msg)) return;
+    const fresh = loadDb();
+    saveDb(deleteVehicleFromDb(fresh, vehicleId));
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      next.delete(vehicleId);
+      return next;
+    });
+  };
+
+  const deleteSelected = () => {
+    if (selectedIds.size === 0) return;
+    if (!confirm(`${c.confirmDeleteSelectedVehicles}\n\n${selectedIds.size}`)) return;
+    let fresh = loadDb();
+    for (const id of selectedIds) {
+      fresh = deleteVehicleFromDb(fresh, id);
+    }
+    saveDb(fresh);
+    setSelectedIds(new Set());
+  };
+
+  const allSelected = rows.length > 0 && rows.every((r) => selectedIds.has(r.vehicle.id));
+
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h2 className="font-display text-xl uppercase text-glow">{c.vehiclesList}</h2>
-          <p className="text-sm text-bm-muted mt-1">{c.vehiclesListHint}</p>
-        </div>
+    <div className="space-y-5">
+      <div className="flex flex-wrap items-center justify-end gap-2">
         <Link
           href="/crm?tab=clients"
           className="btn-outline text-xs py-2 inline-flex items-center gap-2"
@@ -36,13 +77,41 @@ export function VehiclesListPanel() {
         </Link>
       </div>
 
-      <CrmSearchInput value={query} onChange={setQuery} placeholder={c.searchClients} />
+      <CrmListToolbar
+        showPriceToggle={false}
+        actions={
+          selectedIds.size > 0 ? (
+            <Button
+              variant="outline"
+              className="text-red-400 border-red-400/50 text-xs"
+              onClick={deleteSelected}
+            >
+              <Trash2 size={16} /> {c.deleteSelected} ({selectedIds.size})
+            </Button>
+          ) : null
+        }
+      >
+        <CrmSearchInput
+          value={query}
+          onChange={setQuery}
+          placeholder={c.searchClients}
+          className="max-w-full"
+        />
+      </CrmListToolbar>
 
-      <div className="glass-red rounded-xl overflow-hidden neon-border">
+      <div className="crm-mw-card">
         <div className="table-scroll">
-          <table className="dashboard-table min-w-[720px]">
+          <table className="crm-mw-table min-w-[760px]">
             <thead>
               <tr>
+                <th className="w-10">
+                  <input
+                    type="checkbox"
+                    checked={allSelected}
+                    onChange={(e) => toggleSelectAll(e.target.checked)}
+                    aria-label={c.selectAll}
+                  />
+                </th>
                 <th>{c.makeModel}</th>
                 <th>{c.plateNumber}</th>
                 <th>VIN</th>
@@ -57,59 +126,79 @@ export function VehiclesListPanel() {
             <tbody>
               {rows.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="text-center text-bm-muted py-8">
+                  <td colSpan={10} className="text-center text-bm-muted py-8">
                     {c.noSearchResults}
                   </td>
                 </tr>
               ) : (
-                rows.map(({ vehicle, client, orderCount, lastOrderId }) => (
-                  <tr key={vehicle.id} className="hover:bg-white/5 align-top">
-                    <td className="font-semibold">
-                      <span className="inline-flex items-center gap-2">
-                        <Car size={16} className="text-bm-red shrink-0" />
-                        {vehicle.make} {vehicle.model}
-                      </span>
-                      {vehicle.color && (
-                        <span className="block text-xs text-bm-muted mt-0.5">{vehicle.color}</span>
-                      )}
-                    </td>
-                    <td className="font-mono text-sm text-bm-red">{vehicle.plate || "—"}</td>
-                    <td className="font-mono text-xs text-bm-muted max-w-[140px] truncate">
-                      {vehicle.vin || "—"}
-                    </td>
-                    <td>
-                      <p className="text-sm font-semibold">{client?.name ?? "—"}</p>
-                      <p className="font-mono text-[10px] text-bm-muted">{client?.phone ?? ""}</p>
-                    </td>
-                    <td className="text-sm">{vehicle.year || "—"}</td>
-                    <td className="text-xs text-bm-muted">
-                      {vehicle.engineVolume ? `${vehicle.engineVolume} cm³` : vehicle.engine || "—"}
-                    </td>
-                    <td className="text-sm font-mono">
-                      {vehicle.mileage > 0 ? `${vehicle.mileage.toLocaleString()} km` : "—"}
-                    </td>
-                    <td className="font-mono text-sm">{orderCount}</td>
-                    <td className="whitespace-nowrap space-y-1">
-                      {client && (
-                        <Link
-                          href={`/crm/work-orders?create=1&client=${client.id}`}
-                          className="block text-xs text-bm-red hover:underline"
+                rows.map(({ vehicle, client, orderCount, lastOrderId }) => {
+                  const label = `${vehicle.make} ${vehicle.model}${vehicle.plate ? ` · ${vehicle.plate}` : ""}`;
+                  return (
+                    <tr key={vehicle.id}>
+                      <td>
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.has(vehicle.id)}
+                          onChange={() => toggleSelect(vehicle.id)}
+                          aria-label={label}
+                        />
+                      </td>
+                      <td className="font-semibold">
+                        <span className="inline-flex items-center gap-2">
+                          <Car size={16} className="text-bm-red shrink-0" />
+                          {vehicle.make} {vehicle.model}
+                        </span>
+                        {vehicle.color && (
+                          <span className="block text-xs text-bm-muted mt-0.5">{vehicle.color}</span>
+                        )}
+                      </td>
+                      <td className="font-mono text-sm text-bm-red">{vehicle.plate || "—"}</td>
+                      <td className="font-mono text-xs text-bm-muted max-w-[140px] truncate">
+                        {vehicle.vin || "—"}
+                      </td>
+                      <td>
+                        <p className="text-sm font-semibold">{client?.name ?? "—"}</p>
+                        <p className="font-mono text-[10px] text-bm-muted">{client?.phone ?? ""}</p>
+                      </td>
+                      <td className="text-sm">{vehicle.year || "—"}</td>
+                      <td className="text-xs text-bm-muted">
+                        {vehicle.engineVolume
+                          ? `${vehicle.engineVolume} cm³`
+                          : vehicle.engine || "—"}
+                      </td>
+                      <td className="text-sm font-mono">
+                        {vehicle.mileage > 0 ? `${vehicle.mileage.toLocaleString()} km` : "—"}
+                      </td>
+                      <td className="font-mono text-sm">{orderCount}</td>
+                      <td className="whitespace-nowrap space-y-1">
+                        {client && (
+                          <Link
+                            href={`/crm/work-orders?create=1&client=${client.id}`}
+                            className="block text-xs text-bm-red hover:underline font-semibold"
+                          >
+                            {c.createOrderForClient}
+                          </Link>
+                        )}
+                        {lastOrderId && (
+                          <Link
+                            href={`/crm/work-orders?edit=${encodeURIComponent(lastOrderId)}`}
+                            className="block text-xs text-bm-muted hover:text-bm-red"
+                          >
+                            <FileText size={12} className="inline mr-1" />
+                            {c.workOrders}
+                          </Link>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => removeVehicle(vehicle.id, label, orderCount)}
+                          className="flex items-center gap-1 text-xs text-red-400 hover:text-red-300 mt-1"
                         >
-                          {c.createOrderForClient}
-                        </Link>
-                      )}
-                      {lastOrderId && (
-                        <Link
-                          href={`/crm/work-orders?edit=${encodeURIComponent(lastOrderId)}`}
-                          className="block text-xs text-bm-muted hover:text-bm-red"
-                        >
-                          <FileText size={12} className="inline mr-1" />
-                          {c.workOrders}
-                        </Link>
-                      )}
-                    </td>
-                  </tr>
-                ))
+                          <Trash2 size={14} /> {c.deleteVehicle}
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>

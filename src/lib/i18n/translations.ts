@@ -940,6 +940,11 @@ const pl = {
     email: "E-mail",
     lastOrderDate: "Ostatnie zlecenie",
     clientLifetimeTotal: "Suma zleceń",
+    deleteVehicle: "Usuń pojazd",
+    confirmDeleteVehicle: "Usunąć pojazd z bazy?",
+    confirmDeleteVehicleWithOrders:
+      "Usunąć pojazd wraz ze wszystkimi zleceniami? Tej operacji nie można cofnąć.",
+    confirmDeleteSelectedVehicles: "Usunąć zaznaczone pojazdy?",
   },
   mechanic: {
     title: "Panel mechanika",
@@ -2238,6 +2243,11 @@ const ru: TranslationKeys = {
     email: "E-mail",
     lastOrderDate: "Последний заказ-наряд",
     clientLifetimeTotal: "Сумма заказов",
+    deleteVehicle: "Удалить авто",
+    confirmDeleteVehicle: "Удалить автомобиль из базы?",
+    confirmDeleteVehicleWithOrders:
+      "Удалить авто вместе со всеми заказ-нарядами? Это нельзя отменить.",
+    confirmDeleteSelectedVehicles: "Удалить выбранные автомобили?",
   },
   mechanic: {
     title: "Панель механика",
@@ -3256,6 +3266,11 @@ const en: TranslationKeys = {
     email: "Email",
     lastOrderDate: "Last order",
     clientLifetimeTotal: "Lifetime total",
+    deleteVehicle: "Delete vehicle",
+    confirmDeleteVehicle: "Remove this vehicle from the database?",
+    confirmDeleteVehicleWithOrders:
+      "Remove vehicle and all related work orders? This cannot be undone.",
+    confirmDeleteSelectedVehicles: "Delete selected vehicles?",
   },
   aboutFeatures: [
     { title: "Performance", desc: "M-level diagnostics and tuning" },

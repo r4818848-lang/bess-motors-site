@@ -590,6 +590,38 @@ export function deleteClientFromDb(db: Database, clientId: string): Database {
   return purgeClientsByIdsFromDb(db, new Set([clientId]));
 }
 
+/** Remove one vehicle and its work orders, appointments, and audit entries */
+export function deleteVehicleFromDb(db: Database, vehicleId: string): Database {
+  const vehicle = db.vehicles.find((v) => v.id === vehicleId);
+  if (!vehicle) return db;
+
+  const removedWorkOrderIds = new Set(
+    db.workOrders.filter((o) => o.vehicleId === vehicleId).map((o) => o.id)
+  );
+  const removedAppointmentIds = new Set(
+    db.appointments
+      .filter(
+        (a) =>
+          a.vehicleId === vehicleId ||
+          (a.workOrderId && removedWorkOrderIds.has(a.workOrderId))
+      )
+      .map((a) => a.id)
+  );
+
+  return {
+    ...db,
+    vehicles: db.vehicles.filter((v) => v.id !== vehicleId),
+    workOrders: db.workOrders.filter((o) => !removedWorkOrderIds.has(o.id)),
+    appointments: db.appointments.filter((a) => !removedAppointmentIds.has(a.id)),
+    vehicleHistory: db.vehicleHistory.filter((h) => h.vehicleId !== vehicleId),
+    notifications: (db.notifications ?? []).filter(
+      (n) =>
+        (!n.workOrderId || !removedWorkOrderIds.has(n.workOrderId)) &&
+        (!n.appointmentId || !removedAppointmentIds.has(n.appointmentId))
+    ),
+  };
+}
+
 function purgeClientsByIdsFromDb(
   db: Database,
   clientIds: Set<string>
