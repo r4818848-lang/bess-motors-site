@@ -35,11 +35,11 @@ export function WorkOrderFilters({ filters, onChange, clientMode, openOrdersOnly
   return (
     <div className="glass-red rounded-xl p-4 neon-border space-y-3">
       <p className="text-xs uppercase text-bm-muted tracking-widest">{w.filterOrders}</p>
-      <div className="flex flex-wrap gap-3">
-        <label className="text-xs text-bm-muted">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        <label className="text-xs text-bm-muted block">
           {w.filterRepair}
           <select
-            className="input-premium mt-1 text-sm py-1.5 min-w-[140px]"
+            className="input-premium mt-1 text-sm py-1.5 w-full"
             value={filters.repairStatus}
             onChange={(e) =>
               onChange({
@@ -60,10 +60,10 @@ export function WorkOrderFilters({ filters, onChange, clientMode, openOrdersOnly
         </label>
         {!clientMode && (
           <>
-            <label className="text-xs text-bm-muted">
+            <label className="text-xs text-bm-muted block">
               {w.filterPayment}
               <select
-                className="input-premium mt-1 text-sm py-1.5 min-w-[160px]"
+                className="input-premium mt-1 text-sm py-1.5 w-full"
                 value={filters.paymentStatus}
                 onChange={(e) =>
                   onChange({
@@ -77,10 +77,10 @@ export function WorkOrderFilters({ filters, onChange, clientMode, openOrdersOnly
                 <option value="paid">{ps.paid}</option>
               </select>
             </label>
-            <label className="text-xs text-bm-muted">
+            <label className="text-xs text-bm-muted block sm:col-span-2 lg:col-span-1">
               {w.paymentMethodLabel}
               <select
-                className="input-premium mt-1 text-sm py-1.5 min-w-[180px]"
+                className="input-premium mt-1 text-sm py-1.5 w-full"
                 value={filters.paymentMethod}
                 onChange={(e) =>
                   onChange({

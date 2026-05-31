@@ -1,4 +1,5 @@
 import type { Database, User, Vehicle, WorkOrder, VehicleHistoryEntry } from "./store";
+import { clientListSortDate, sortWorkOrdersByDateDesc } from "./crm-dates";
 
 export function normalizeCrmQuery(raw: string): string {
   return raw.trim().toLowerCase().replace(/\s/g, "");
@@ -35,6 +36,18 @@ export function matchesVehicle(vehicle: Vehicle | null | undefined, query: strin
   );
 }
 
+export function clientHasMatchingWorkOrder(
+  db: Database,
+  userId: string,
+  query: string
+): boolean {
+  if (isEmptyCrmQuery(query)) return true;
+  const q = query.trim().toLowerCase();
+  return db.workOrders.some(
+    (o) => o.userId === userId && o.number.toLowerCase().includes(q)
+  );
+}
+
 export function matchesClientOrVehicle(
   db: Database,
   userId: string,
@@ -43,6 +56,7 @@ export function matchesClientOrVehicle(
   if (isEmptyCrmQuery(query)) return true;
   const user = db.users.find((u) => u.id === userId);
   if (user && matchesClientUser(user, query)) return true;
+  if (clientHasMatchingWorkOrder(db, userId, query)) return true;
   const vehicles = db.vehicles.filter((v) => v.userId === userId);
   return vehicles.some((v) => matchesVehicle(v, query));
 }
@@ -67,12 +81,15 @@ export function filterWorkOrdersByQuery(
   orders: WorkOrder[],
   query: string
 ): WorkOrder[] {
-  return orders.filter((o) => workOrderMatchesQuery(db, o, query));
+  return sortWorkOrdersByDateDesc(
+    orders.filter((o) => workOrderMatchesQuery(db, o, query))
+  );
 }
 
 export interface ClientListRow {
   user: User;
   vehicles: Vehicle[];
+  orderCount: number;
 }
 
 export function filterClients(db: Database, query: string): ClientListRow[] {
@@ -81,13 +98,75 @@ export function filterClients(db: Database, query: string): ClientListRow[] {
     .map((user) => ({
       user,
       vehicles: db.vehicles.filter((v) => v.userId === user.id),
+      orderCount: db.workOrders.filter((o) => o.userId === user.id).length,
     }))
     .filter(
       (row) =>
         matchesClientUser(row.user, query) ||
+        clientHasMatchingWorkOrder(db, row.user.id, query) ||
         row.vehicles.some((v) => matchesVehicle(v, query))
     )
-    .sort((a, b) => a.user.name.localeCompare(b.user.name));
+    .sort((a, b) =>
+      clientListSortDate(db, b.user).localeCompare(clientListSortDate(db, a.user))
+    );
+}
+
+export interface ClientHistoryRow {
+  order: WorkOrder;
+  client: User | null;
+  vehicle: Vehicle | null;
+}
+
+export interface VehicleListRow {
+  vehicle: Vehicle;
+  client: User | null;
+  orderCount: number;
+  lastOrderId: string | null;
+}
+
+export function filterVehiclesList(db: Database, query: string): VehicleListRow[] {
+  return db.vehicles
+    .map((vehicle) => {
+      const vehicleOrders = db.workOrders
+        .filter((o) => o.vehicleId === vehicle.id)
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+      return {
+        vehicle,
+        client: db.users.find((u) => u.id === vehicle.userId) ?? null,
+        orderCount: vehicleOrders.length,
+        lastOrderId: vehicleOrders[0]?.id ?? null,
+      };
+    })
+    .filter((row) => {
+      if (isEmptyCrmQuery(query)) return true;
+      if (matchesVehicle(row.vehicle, query)) return true;
+      if (row.client && matchesClientUser(row.client, query)) return true;
+      return db.workOrders.some(
+        (o) =>
+          o.vehicleId === row.vehicle.id && o.number.toLowerCase().includes(query.trim().toLowerCase())
+      );
+    })
+    .sort((a, b) => {
+      const plate = b.vehicle.plate.localeCompare(a.vehicle.plate);
+      if (plate !== 0) return plate;
+      return `${b.vehicle.make} ${b.vehicle.model}`.localeCompare(
+        `${a.vehicle.make} ${a.vehicle.model}`
+      );
+    });
+}
+
+export function filterClientHistory(
+  db: Database,
+  query: string
+): ClientHistoryRow[] {
+  const orders = sortWorkOrdersByDateDesc(db.workOrders);
+  return orders
+    .filter((o) => workOrderMatchesQuery(db, o, query))
+    .map((order) => ({
+      order,
+      client: db.users.find((u) => u.id === order.userId) ?? null,
+      vehicle: db.vehicles.find((v) => v.id === order.vehicleId) ?? null,
+    }));
 }
 
 export interface VehicleHistoryRow {

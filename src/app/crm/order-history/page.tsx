@@ -14,7 +14,7 @@ export default function OrderHistoryPage() {
 
   return (
     <DashboardLayout role="admin">
-      <div className="p-6 lg:p-10 space-y-8">
+      <div className="crm-page-padding space-y-6 sm:space-y-8">
         <div className="flex flex-wrap justify-between gap-4">
           <div>
             <Link href="/crm" className="text-sm text-bm-muted hover:text-bm-red">

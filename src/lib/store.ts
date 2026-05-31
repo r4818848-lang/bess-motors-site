@@ -203,6 +203,8 @@ export interface WorkOrder {
   warrantyUntil?: string;
   createdAt: string;
   updatedAt: string;
+  /** Set when repair status becomes delivered */
+  completedAt?: string;
   confirmationStatus: ConfirmationStatus;
   documentStatus?: DocumentStatus;
   /** VAT on client total (net + VAT) */
@@ -578,15 +580,59 @@ export function purgeAllClientsFromDb(db: Database): Database {
   const clientIds = new Set(
     db.users.filter((u) => u.role === "client").map((u) => u.id)
   );
+  return purgeClientsByIdsFromDb(db, clientIds);
+}
+
+/** Remove one client and all related vehicles, orders, appointments, etc. */
+export function deleteClientFromDb(db: Database, clientId: string): Database {
+  const user = db.users.find((u) => u.id === clientId);
+  if (!user || user.role !== "client") return db;
+  return purgeClientsByIdsFromDb(db, new Set([clientId]));
+}
+
+function purgeClientsByIdsFromDb(
+  db: Database,
+  clientIds: Set<string>
+): Database {
+  if (clientIds.size === 0) return db;
+
+  const removedWorkOrderIds = new Set(
+    db.workOrders.filter((w) => clientIds.has(w.userId)).map((w) => w.id)
+  );
+  const removedVehicleIds = new Set(
+    db.vehicles.filter((v) => clientIds.has(v.userId)).map((v) => v.id)
+  );
+  const removedAppointmentIds = new Set(
+    db.appointments
+      .filter(
+        (a) =>
+          clientIds.has(a.userId) ||
+          (a.workOrderId && removedWorkOrderIds.has(a.workOrderId))
+      )
+      .map((a) => a.id)
+  );
+
+  const deletedPhones = new Set(
+    db.users
+      .filter((u) => clientIds.has(u.id))
+      .map((u) => u.phone.replace(/\s/g, ""))
+  );
+  const phoneMatchesDeleted = (phone: string) =>
+    deletedPhones.has(phone.replace(/\s/g, ""));
+
   return {
     ...db,
-    users: db.users.filter((u) => u.role !== "client"),
-    vehicles: db.vehicles.filter((v) => !clientIds.has(v.userId)),
-    workOrders: db.workOrders.filter((w) => !clientIds.has(w.userId)),
-    appointments: db.appointments.filter((a) => !clientIds.has(a.userId)),
+    users: db.users.filter((u) => !clientIds.has(u.id)),
+    vehicles: db.vehicles.filter((v) => !removedVehicleIds.has(v.id)),
+    workOrders: db.workOrders.filter((w) => !removedWorkOrderIds.has(w.id)),
+    appointments: db.appointments.filter((a) => !removedAppointmentIds.has(a.id)),
     callRequests: db.callRequests.filter((c) => !clientIds.has(c.userId)),
-    vehicleHistory: db.vehicleHistory.filter((h) => !clientIds.has(h.userId)),
-    passwordResets: [],
+    vehicleHistory: db.vehicleHistory.filter(
+      (h) => !clientIds.has(h.userId) && !removedVehicleIds.has(h.vehicleId)
+    ),
+    passwordResets: (db.passwordResets ?? []).filter(
+      (r) => !phoneMatchesDeleted(r.phone)
+    ),
     currentUserId:
       db.currentUserId && clientIds.has(db.currentUserId) ? null : db.currentUserId,
     notifications: (db.notifications ?? []).filter((n) => !clientIds.has(n.userId)),
@@ -595,7 +641,9 @@ export function purgeAllClientsFromDb(db: Database): Database {
     ),
     settings: {
       ...db.settings,
-      abandonedBookingDrafts: [],
+      abandonedBookingDrafts: (db.settings.abandonedBookingDrafts ?? []).filter(
+        (d) => !phoneMatchesDeleted(d.phone)
+      ),
     },
   };
 }

@@ -20,7 +20,7 @@ export function Hero() {
   ];
 
   return (
-    <section className="relative min-h-screen flex items-center overflow-hidden pt-20">
+    <section className="relative min-h-[100dvh] sm:min-h-screen flex items-center overflow-hidden pt-20">
       {/* Фон: полный баннер на всю секцию */}
       <div className="absolute inset-0 z-0" aria-hidden>
         <Image
@@ -65,11 +65,11 @@ export function Hero() {
               {t.tagline}
             </p>
 
-            <h1 className="font-display font-black uppercase leading-[0.95] tracking-tight">
-              <span className="block text-4xl md:text-5xl lg:text-6xl text-white italic -skew-x-6 drop-shadow-[0_2px_20px_rgba(0,0,0,0.9)]">
+            <h1 className="font-display font-black uppercase leading-[0.95] tracking-tight overflow-hidden">
+              <span className="block text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-white italic sm:-skew-x-6 drop-shadow-[0_2px_20px_rgba(0,0,0,0.9)]">
                 {t.hero.slogan1}
               </span>
-              <span className="block text-4xl md:text-5xl lg:text-6xl text-bm-red text-glow italic -skew-x-6 mt-1">
+              <span className="block text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-bm-red text-glow italic sm:-skew-x-6 mt-1">
                 {t.hero.slogan2}
               </span>
             </h1>
@@ -107,7 +107,7 @@ export function Hero() {
 
             <PhoneLink
               trackSource="hero_phone"
-              className="mt-8 inline-block font-display text-3xl md:text-4xl font-black text-white hover:text-bm-red transition-colors tracking-wide drop-shadow-lg"
+              className="mt-8 inline-block font-display text-2xl sm:text-3xl md:text-4xl font-black text-white hover:text-bm-red transition-colors tracking-wide drop-shadow-lg break-all sm:break-normal"
             >
               {siteConfig.phone}
             </PhoneLink>

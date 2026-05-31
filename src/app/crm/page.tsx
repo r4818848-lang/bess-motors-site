@@ -4,8 +4,9 @@ import { useState, useEffect, useCallback, Suspense, useMemo } from "react";
 import { useDbSync } from "@/hooks/useDbSync";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { LogOut, FileText, Wallet, BarChart3, Receipt, Settings, Flame, Users, History, Package, TrendingUp, Plus, UserPlus, Archive } from "lucide-react";
+import { LogOut, Plus, UserPlus, Receipt } from "lucide-react";
 import { WorkOrderHistoryPanel } from "@/components/crm/WorkOrderHistoryPanel";
+import { ClientHistoryPanel } from "@/components/crm/ClientHistoryPanel";
 import { filterOpenWorkOrders } from "@/lib/work-order-lifecycle";
 import { WarehousePanel } from "@/components/crm/WarehousePanel";
 import {
@@ -17,6 +18,8 @@ import {
 } from "@/components/crm/MarketingPanels";
 import { useI18n } from "@/lib/i18n/context";
 import { DashboardLayout } from "@/components/crm/DashboardLayout";
+import { CrmPageHeader } from "@/components/crm/CrmPageHeader";
+import { CrmListToolbar } from "@/components/crm/CrmListToolbar";
 import { ExpensesPanel } from "@/components/crm/ExpensesPanel";
 import { FinanceReports } from "@/components/crm/FinanceReports";
 import { SettingsPanel } from "@/components/crm/SettingsPanel";
@@ -24,9 +27,12 @@ import { CrmBroadcastPanel } from "@/components/crm/CrmBroadcastPanel";
 import { HotOrdersPanel } from "@/components/crm/HotOrdersPanel";
 import { ClientsListPanel } from "@/components/crm/ClientsListPanel";
 import { VehicleHistoryPanel } from "@/components/crm/VehicleHistoryPanel";
+import { VehiclesListPanel } from "@/components/crm/VehiclesListPanel";
+import { CrmModuleTiles } from "@/components/crm/CrmModuleTiles";
+import { WorkOrdersTable } from "@/components/crm/WorkOrdersTable";
 import { CrmSearchInput } from "@/components/crm/CrmSearchInput";
 import { loadDb } from "@/lib/store";
-import { calcClientTotal } from "@/lib/workorder-calc";
+import { displayOrderTotal } from "@/lib/crm-display-price";
 import { filterWorkOrdersByQuery } from "@/lib/crm-search";
 import { logoutAdmin } from "@/lib/auth";
 import { Button } from "@/components/ui/Button";
@@ -38,12 +44,58 @@ type CrmTab =
   | "hot"
   | "clients"
   | "vehicles"
+  | "vehicleChanges"
+  | "clientHistory"
   | "orderHistory"
   | "warehouse"
   | "marketing"
   | "expenses"
   | "reports"
   | "settings";
+
+function tabTitle(tab: CrmTab, c: ReturnType<typeof useI18n>["t"]["crm"], wo: ReturnType<typeof useI18n>["t"]["wo"]): string {
+  switch (tab) {
+    case "hot":
+      return c.hotOrders;
+    case "clients":
+      return c.clientsList;
+    case "vehicles":
+      return c.vehiclesList;
+    case "vehicleChanges":
+      return c.vehicleChangesHistory;
+    case "clientHistory":
+      return c.clientHistoryList;
+    case "orderHistory":
+      return c.orderHistoryList;
+    case "warehouse":
+      return c.warehouse;
+    case "marketing":
+      return c.marketing;
+    case "expenses":
+      return wo.internalExpenses;
+    case "reports":
+      return wo.reports;
+    case "settings":
+      return wo.settingsTitle;
+    default:
+      return c.dashboard;
+  }
+}
+
+function tabSubtitle(tab: CrmTab, c: ReturnType<typeof useI18n>["t"]["crm"]): string | undefined {
+  switch (tab) {
+    case "clientHistory":
+      return c.clientHistoryHint;
+    case "vehicles":
+      return c.vehiclesListHint;
+    case "orderHistory":
+      return c.orderHistoryHint;
+    case "hot":
+      return c.hotOrdersHint;
+    default:
+      return undefined;
+  }
+}
 
 function CRMPageContent() {
   const { t } = useI18n();
@@ -63,6 +115,8 @@ function CRMPageContent() {
       q === "hot" ||
       q === "clients" ||
       q === "vehicles" ||
+      q === "vehicleChanges" ||
+      q === "clientHistory" ||
       q === "orderHistory" ||
       q === "warehouse" ||
       q === "marketing" ||
@@ -76,20 +130,23 @@ function CRMPageContent() {
     }
   }, [searchParams]);
 
-  const selectTab = (id: CrmTab) => {
-    setTab(id);
-    router.replace(id === "overview" ? "/crm" : `/crm?tab=${id}`);
-  };
-
   const db = loadDb();
+  const vatRate = db.settings.vatRate ?? 23;
 
   const filteredOrders = useMemo(() => {
     const fresh = loadDb();
     const orders = filterWorkOrdersByQuery(fresh, filterOpenWorkOrders(fresh.workOrders), search);
-    return orders.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    return orders.sort((a, b) => {
+      const byCreated = b.createdAt.localeCompare(a.createdAt);
+      if (byCreated !== 0) return byCreated;
+      return b.updatedAt.localeCompare(a.updatedAt);
+    });
   }, [search, dbTick]);
 
-  const totalRevenue = db.workOrders.reduce((s, o) => s + calcClientTotal(o), 0);
+  const totalRevenue = db.workOrders.reduce(
+    (s, o) => s + displayOrderTotal(o, "gross", vatRate),
+    0
+  );
   const todayStr = new Date().toISOString().slice(0, 10);
   const appointmentsToday = db.appointments.filter(
     (a) => a.date === todayStr && a.appointmentStatus !== "cancelled"
@@ -98,65 +155,57 @@ function CRMPageContent() {
     (o) => o.status !== "ready" && o.status !== "delivered"
   ).length;
 
-  const navTabs = [
-    { id: "overview" as const, icon: FileText, label: c.dashboard },
-    { id: "hot" as const, icon: Flame, label: c.hotOrders },
-    { id: "clients" as const, icon: Users, label: c.clientsList },
-    { id: "vehicles" as const, icon: History, label: c.vehicleHistoryList },
-    { id: "orderHistory" as const, icon: Archive, label: c.orderHistoryList },
-    { id: "warehouse" as const, icon: Package, label: c.warehouse },
-    { id: "marketing" as const, icon: TrendingUp, label: c.marketing },
-    { id: "expenses" as const, icon: Wallet, label: t.wo.internalExpenses },
-    { id: "reports" as const, icon: BarChart3, label: t.wo.reports },
-    { id: "settings" as const, icon: Settings, label: t.wo.settingsTitle },
-  ];
+  const pageTitle = tabTitle(tab, c, t.wo);
+  const pageSubtitle = tab === "overview" ? c.title : tabSubtitle(tab, c);
 
   return (
     <DashboardLayout role="admin">
-      <div className="p-6 lg:p-10 space-y-8">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <h1 className="font-display text-2xl font-bold uppercase text-glow">{c.title}</h1>
-          <div className="flex flex-wrap gap-2">
-            <Link href="/crm/work-orders?create=1" className="btn-primary text-xs py-2 inline-flex items-center gap-2">
-              <Plus size={16} /> {c.createOrder}
-            </Link>
-            <button
-              type="button"
-              onClick={() => selectTab("clients")}
-              className="btn-outline text-xs py-2 inline-flex items-center gap-2"
-            >
-              <UserPlus size={16} /> {c.addNewClient}
-            </button>
-            <Link href="/crm/work-orders" className="btn-outline text-xs py-2 inline-flex items-center gap-2">
-              <Receipt size={16} /> {t.wo.ordersTitle}
-            </Link>
-            <Button variant="outline" onClick={() => { logoutAdmin(); refresh(); }}>
-              <LogOut size={16} /> {c.logout}
-            </Button>
-          </div>
-        </div>
-
-        <div className="flex flex-wrap gap-2">
-          {navTabs.map(({ id, icon: Icon, label }) => (
-            <button
-              key={id}
-              type="button"
-              onClick={() => selectTab(id)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm transition-all ${
-                tab === id ? "bg-bm-red shadow-neon-sm" : "glass text-bm-muted"
-              }`}
-            >
-              <Icon size={16} /> {label}
-            </button>
-          ))}
-        </div>
+      <div className="crm-page-padding space-y-5 sm:space-y-6">
+        <CrmPageHeader
+          breadcrumbs={[
+            { label: c.dashboard, href: tab === "overview" ? undefined : "/crm" },
+            ...(tab !== "overview" ? [{ label: pageTitle }] : []),
+          ]}
+          title={pageTitle}
+          subtitle={pageSubtitle}
+          actions={
+            <>
+              <Link href="/crm/work-orders?create=1" className="btn-primary text-xs py-2 inline-flex items-center gap-2">
+                <Plus size={16} /> {c.createOrder}
+              </Link>
+              {tab === "overview" && (
+                <button
+                  type="button"
+                  onClick={() => router.replace("/crm?tab=clients")}
+                  className="btn-outline text-xs py-2 inline-flex items-center gap-2"
+                >
+                  <UserPlus size={16} /> {c.addNewClient}
+                </button>
+              )}
+              <Link href="/crm/work-orders" className="btn-outline text-xs py-2 inline-flex items-center gap-2">
+                <Receipt size={16} /> {t.wo.ordersTitle}
+              </Link>
+              <Button variant="outline" onClick={() => { logoutAdmin(); refresh(); }}>
+                <LogOut size={16} /> {c.logout}
+              </Button>
+            </>
+          }
+        />
 
         {tab === "overview" && (
           <>
+            <CrmModuleTiles />
             <CrmTodayPanel />
-            <CrmSearchInput value={search} onChange={setSearch} placeholder={c.search} />
+            <CrmListToolbar showPriceToggle>
+              <CrmSearchInput
+                value={search}
+                onChange={setSearch}
+                placeholder={c.searchClients}
+                className="max-w-full"
+              />
+            </CrmListToolbar>
 
-            <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-4">
               {[
                 { label: c.clients, value: db.users.filter((u) => u.role === "client").length },
                 { label: c.workOrders, value: db.workOrders.length },
@@ -165,62 +214,39 @@ function CRMPageContent() {
                 { label: c.inProgress, value: inProgressOrders },
                 { label: c.revenue, value: `${totalRevenue.toLocaleString()} zł` },
               ].map((kpi, i) => (
-                <Card key={i} glow className="text-center py-6">
+                <Card key={i} glow className="text-center py-5 sm:py-6">
                   <p className="text-xs uppercase text-bm-muted">{kpi.label}</p>
-                  <p className="font-display text-2xl font-bold text-bm-red mt-2">{kpi.value}</p>
+                  <p className="font-display text-xl sm:text-2xl font-bold text-bm-red mt-2">{kpi.value}</p>
                 </Card>
               ))}
             </div>
 
-            <section className="glass-red rounded-xl overflow-hidden neon-border">
-              <div className="px-4 py-3 border-b border-bm-border bg-bm-red/10 font-display text-sm uppercase font-bold flex justify-between">
-                <span>{c.currentOrders}</span>
-                <Link href="/crm/work-orders" className="text-bm-red text-xs hover:underline">
-                  + {c.createOrder}
+            <section>
+              <div className="flex justify-between items-center gap-2 mb-3">
+                <h2 className="text-sm font-bold uppercase tracking-wide text-gray-600">
+                  {c.currentOrders}
+                </h2>
+                <Link href="/crm/work-orders" className="text-bm-red text-xs hover:underline font-semibold">
+                  {c.allOrders} →
                 </Link>
               </div>
-              <table className="dashboard-table">
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>{c.status}</th>
-                    <th>{c.client}</th>
-                    <th>{c.total}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredOrders.slice(0, 10).map((order) => {
-                    const client = db.users.find((u) => u.id === order.userId);
-                    return (
-                      <tr key={order.id}>
-                        <td className="font-mono text-bm-red">{order.number}</td>
-                        <td>
-                          <span className="status-pill bg-bm-red/20 text-bm-red text-[10px]">
-                            {t.repairStatus[order.status]}
-                          </span>
-                        </td>
-                        <td>{client?.name}</td>
-                        <td className="font-mono">{calcClientTotal(order).toFixed(2)} zł</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+              <WorkOrdersTable
+                db={db}
+                orders={filteredOrders.slice(0, 15)}
+                onEdit={(id) => router.push(`/crm/work-orders?edit=${encodeURIComponent(id)}`)}
+                showExtended={false}
+              />
             </section>
-
           </>
         )}
 
         {tab === "hot" && <HotOrdersPanel onUpdate={refresh} />}
-
         {tab === "clients" && <ClientsListPanel />}
-
-        {tab === "vehicles" && <VehicleHistoryPanel />}
-
+        {tab === "clientHistory" && <ClientHistoryPanel />}
+        {tab === "vehicles" && <VehiclesListPanel />}
+        {tab === "vehicleChanges" && <VehicleHistoryPanel />}
         {tab === "orderHistory" && <WorkOrderHistoryPanel />}
-
         {tab === "warehouse" && <WarehousePanel />}
-
         {tab === "marketing" && (
           <div className="space-y-8">
             <CrmBroadcastPanel />
@@ -233,7 +259,6 @@ function CRMPageContent() {
             <MarketingAttributionPanel />
           </div>
         )}
-
         {tab === "expenses" && <ExpensesPanel onUpdate={refresh} />}
         {tab === "reports" && <FinanceReports />}
         {tab === "settings" && <SettingsPanel onUpdate={refresh} />}

@@ -12,7 +12,7 @@ export function BookNowSticky() {
   if (pathname.startsWith("/cabinet") || pathname.startsWith("/crm")) return null;
 
   return (
-    <div className="fixed bottom-20 right-4 z-40 md:hidden">
+    <div className="fixed bottom-[4.75rem] right-3 z-40 md:hidden safe-area-pb">
       <BookingLink
         href="/booking"
         trackSource="sticky_mobile"

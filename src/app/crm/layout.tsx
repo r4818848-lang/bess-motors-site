@@ -1,18 +1,18 @@
 import type { Metadata } from "next";
 import { CrmGuard } from "@/components/auth/CrmGuard";
+import { CrmDisplayProvider } from "@/contexts/CrmDisplayContext";
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-/** CRM routes — hidden ERP; no public links, not indexed */
+/** CRM routes — Motowarsztat-style light ERP workspace */
 export default function CrmLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div
-      className="relative z-10 w-full"
-      style={{ minHeight: "100vh", backgroundColor: "#0a0a0a" }}
-    >
-      <CrmGuard>{children}</CrmGuard>
+    <div className="crm-shell relative z-10 w-full min-h-screen">
+      <CrmDisplayProvider>
+        <CrmGuard>{children}</CrmGuard>
+      </CrmDisplayProvider>
     </div>
   );
 }

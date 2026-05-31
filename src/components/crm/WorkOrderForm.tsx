@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
-import { Plus, Trash2, Search, Save, X, Upload, FileText, UserPlus } from "lucide-react";
+import { Plus, Trash2, Save, X, Upload, FileText } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { handleWorkOrderClientNotifications, buildCarReadyWhatsAppUrl } from "@/lib/client-notifications";
 import {
@@ -29,7 +29,6 @@ import {
   markInviteeDiscountUsed,
   markReferralDiscountUsed,
 } from "@/lib/referral-system";
-import { searchClientsAndVehicles } from "@/lib/workorder-search";
 import {
   calcServiceLine,
   calcPartLine,
@@ -58,8 +57,12 @@ import type { DocLocale } from "@/lib/work-order-locale";
 import { useDbSync } from "@/hooks/useDbSync";
 import { mergeRemoteWorkOrderPatch } from "@/lib/work-order-remote-sync";
 import { NewClientForm } from "@/components/crm/NewClientForm";
+import { ClientVehiclePicker } from "@/components/crm/ClientVehiclePicker";
+import { CrmPageHeader } from "@/components/crm/CrmPageHeader";
+import { applyWorkOrderCompletedAt } from "@/lib/work-order-dates";
 
 type CreateStep = "client" | "works" | "more";
+type EditTab = "client" | "works" | "payment" | "more";
 
 const statuses: RepairStatus[] = [
   "received",
@@ -132,9 +135,8 @@ export function WorkOrderForm({
   const isNew = !existing;
 
   const [order, setOrder] = useState<WorkOrder>(existing ?? emptyOrder(db));
-  const [searchQ, setSearchQ] = useState("");
-  const [showSearch, setShowSearch] = useState(!existing);
   const [createStep, setCreateStep] = useState<CreateStep>("client");
+  const [editTab, setEditTab] = useState<EditTab>("client");
   const [showNewClient, setShowNewClient] = useState(false);
   const [saveError, setSaveError] = useState("");
 
@@ -158,15 +160,9 @@ export function WorkOrderForm({
       userId: user.id,
       vehicleId: vehicle.id,
     }));
-    setShowSearch(false);
     setShowNewClient(false);
     setCreateStep("works");
   }, [initialUserId, isNew, dbTick]);
-
-  const searchResults = useMemo(
-    () => (searchQ.length >= 2 ? searchClientsAndVehicles(db, searchQ) : []),
-    [searchQ, db]
-  );
 
   const mechProfile = db.mechanics.find((m) => m.id === order.mechanicId);
 
@@ -228,9 +224,7 @@ export function WorkOrderForm({
       userId,
       vehicleId: vid,
     }));
-    setShowSearch(false);
     setShowNewClient(false);
-    setSearchQ("");
     setSaveError("");
     if (isNew) setCreateStep("works");
   };
@@ -296,7 +290,7 @@ export function WorkOrderForm({
       order.documentStatus ??
       deriveDocumentStatus(order.status, order.confirmationStatus);
     const isPaid = order.paymentStatus === "paid";
-    const updated = {
+    const updated = applyWorkOrderCompletedAt({
       ...order,
       documentStatus,
       updatedAt: new Date().toISOString().slice(0, 10),
@@ -309,7 +303,7 @@ export function WorkOrderForm({
             paidCashAmount: undefined,
             paidCardAmount: undefined,
           }),
-    };
+    });
     if (idx >= 0) fresh.workOrders[idx] = updated;
     else fresh.workOrders.push(updated);
     handleWorkOrderClientNotifications(fresh, updated, previousOrder);
@@ -344,41 +338,69 @@ export function WorkOrderForm({
     { id: "more", label: w.stepMore },
   ];
 
-  const showClient = !isNew || createStep === "client";
-  const showWorks = !isNew || createStep === "works" || createStep === "more";
-  const showMore = !isNew || createStep === "more";
+  const showClient = isNew ? createStep === "client" : editTab === "client";
+  const showWorks = isNew ? createStep === "works" : editTab === "works";
+  const showPayment = !isNew && editTab === "payment";
+  const showMore = isNew ? createStep === "more" : editTab === "more";
+
+  const editTabs: { id: EditTab; label: string }[] = [
+    { id: "client", label: c.tabClientVehicle },
+    { id: "works", label: c.tabWorksParts },
+    { id: "payment", label: c.tabPayment },
+    { id: "more", label: c.tabMore },
+  ];
+
+  const vehicleLabel = vehicle
+    ? `${vehicle.make} ${vehicle.model}${vehicle.plate ? ` · ${vehicle.plate}` : ""}`
+    : undefined;
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h2 className="font-display text-xl font-bold uppercase text-glow">
-            {existing ? w.editOrder : w.newOrder}
-          </h2>
-          <p className="font-mono text-bm-red mt-1">{order.number}</p>
-          {isNew && (
-            <p className="text-xs text-bm-muted mt-2 max-w-md">{w.quickCreateHint}</p>
-          )}
-        </div>
-        <div className="flex gap-2">
-          {existing && (
-            <Button variant="outline" onClick={remove} className="text-red-400 border-red-400/50">
-              <Trash2 size={16} /> {t.common.delete}
-            </Button>
-          )}
-          <Button variant="outline" onClick={onClose}>
-            <X size={16} /> {t.common.cancel}
-          </Button>
-          <Button onClick={save}>
-            <Save size={16} /> {t.common.save}
-          </Button>
-        </div>
-      </div>
+    <div className="space-y-6 pb-24">
+      <CrmPageHeader
+        breadcrumbs={
+          existing
+            ? [
+                { label: c.workOrders, href: "/crm/work-orders" },
+                { label: order.number },
+                ...(client?.name ? [{ label: client.name }] : []),
+                ...(vehicleLabel ? [{ label: vehicleLabel }] : []),
+              ]
+            : [
+                { label: c.workOrders, href: "/crm/work-orders" },
+                { label: w.newOrder },
+              ]
+        }
+        title={existing ? `${w.editOrder} ${order.number}` : w.newOrder}
+        subtitle={
+          isNew
+            ? w.quickCreateHint
+            : [client?.name, client?.phone, vehicleLabel].filter(Boolean).join(" · ")
+        }
+      />
 
       {saveError && (
         <p className="text-sm text-red-400 bg-red-500/10 border border-red-500/30 rounded-lg px-4 py-2">
           {saveError}
         </p>
+      )}
+
+      {!isNew && (
+        <div className="flex flex-wrap gap-1 border-b border-bm-border pb-1">
+          {editTabs.map(({ id, label }) => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => setEditTab(id)}
+              className={`px-4 py-2 rounded-t-lg text-xs font-bold uppercase tracking-wide transition-all ${
+                editTab === id
+                  ? "bg-bm-red/25 text-bm-red border border-bm-red/40 border-b-0"
+                  : "text-bm-muted hover:text-white"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
       )}
 
       {isNew && (
@@ -447,34 +469,15 @@ export function WorkOrderForm({
 
       {showClient && (
       <div className="glass-red rounded-xl p-6 neon-border space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <h3 className="font-display text-sm uppercase text-bm-red">{w.searchClient}</h3>
-          {!client && (
-            <Button
-              type="button"
-              variant="outline"
-              className="text-xs"
-              onClick={() => {
-                setShowNewClient((v) => !v);
-                setShowSearch(true);
-              }}
-            >
-              <UserPlus size={14} /> {showNewClient ? c.orSearchExisting : c.addNewClient}
-            </Button>
-          )}
-        </div>
-        {client && !showSearch ? (
-          <div className="space-y-4">
-            <Button variant="outline" className="text-xs" onClick={() => setShowSearch(true)}>
-              {w.changeClient}
-            </Button>
-            <VehicleClientEditor
-              userId={order.userId}
-              vehicleId={order.vehicleId}
-              onVehicleId={(id) => setOrder((o) => ({ ...o, vehicleId: id }))}
-            />
-          </div>
-        ) : showNewClient ? (
+        <ClientVehiclePicker
+          userId={order.userId}
+          vehicleId={order.vehicleId}
+          onSelect={(uid, vid) => {
+            selectClientVehicle(uid, vid);
+          }}
+          onAddNewClient={() => setShowNewClient(true)}
+        />
+        {showNewClient && !order.userId && (
           <NewClientForm
             compact
             onCreated={(userId, vehicleId) => {
@@ -483,50 +486,13 @@ export function WorkOrderForm({
             }}
             onCancel={() => setShowNewClient(false)}
           />
-        ) : (
-          <>
-            <p className="text-xs text-bm-muted">{c.orAddNewClient}</p>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-bm-muted" />
-              <input
-                className="input-premium pl-10"
-                placeholder={c.search}
-                value={searchQ}
-                onChange={(e) => setSearchQ(e.target.value)}
-              />
-            </div>
-            {searchQ.length >= 2 && searchResults.length === 0 && (
-              <p className="text-sm text-bm-muted">{c.noSearchResults}</p>
-            )}
-            {searchResults.length > 0 && (
-              <ul className="mt-3 space-y-2 max-h-48 overflow-y-auto">
-                {searchResults.map((r) => (
-                  <li key={`${r.user.id}-${r.vehicle?.id ?? "none"}`}>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        selectClientVehicle(
-                          r.user.id,
-                          r.vehicle?.id ?? ""
-                        )
-                      }
-                      className="w-full text-left glass rounded-lg p-3 hover:border-bm-red/50 text-sm"
-                    >
-                      <span className="font-semibold">{r.user.name}</span>
-                      <span className="text-bm-muted ml-2">{r.user.phone}</span>
-                      {r.vehicle ? (
-                        <p className="text-bm-red text-xs mt-1">
-                          {r.vehicle.make} {r.vehicle.model} · {r.vehicle.plate}
-                        </p>
-                      ) : (
-                        <p className="text-amber-400/80 text-xs mt-1">{c.noVehicleYet}</p>
-                      )}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </>
+        )}
+        {order.userId && order.vehicleId && (
+          <VehicleClientEditor
+            userId={order.userId}
+            vehicleId={order.vehicleId}
+            onVehicleId={(id) => setOrder((o) => ({ ...o, vehicleId: id }))}
+          />
         )}
       </div>
       )}
@@ -627,7 +593,7 @@ export function WorkOrderForm({
         </>
       )}
 
-      {showMore && (
+      {(showMore || showPayment) && (
       <>
       <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
         <div>
@@ -878,6 +844,7 @@ export function WorkOrderForm({
       )}
 
       {showWorks && (
+      <>
       <div className="glass-red rounded-xl overflow-hidden neon-border">
         <div className="px-4 py-3 border-b border-bm-border bg-bm-red/10 flex justify-between items-center">
           <h3 className="font-display text-sm uppercase font-bold text-bm-red">{w.worksTable}</h3>
@@ -965,12 +932,8 @@ export function WorkOrderForm({
           </table>
         </div>
       </div>
-      )}
 
-      {showMore && (
-      <>
-      {/* Parts table */}
-      <div className="glass-red rounded-xl overflow-hidden neon-border">
+      <div className="glass-red rounded-xl overflow-hidden neon-border mt-4">
         <div className="px-4 py-3 border-b border-bm-border bg-bm-red/10 flex justify-between items-center">
           <h3 className="font-display text-sm uppercase font-bold text-bm-red">{w.partsTable}</h3>
           <button
@@ -1097,7 +1060,11 @@ export function WorkOrderForm({
           </table>
         </div>
       </div>
+      </>
+      )}
 
+      {showMore && (
+      <>
       {/* Notes */}
       <div className="grid md:grid-cols-2 gap-4">
         <div>
@@ -1177,8 +1144,8 @@ export function WorkOrderForm({
       </>
       )}
 
-      {showWorks && (
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {(showPayment || (isNew && (createStep === "works" || createStep === "more"))) && (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <div className="glass-red rounded-xl p-4 neon-border">
           <p className="text-xs text-bm-muted uppercase">{w.worksTotal}</p>
           <p className="font-display text-xl font-bold">{totals.servicesSub.toFixed(2)} zł</p>
@@ -1214,7 +1181,7 @@ export function WorkOrderForm({
             {totals.serviceProfit.total >= 0 ? "+" : ""}
             {totals.serviceProfit.total.toFixed(2)} zł
           </p>
-          <p className="text-xs text-bm-muted mt-2">
+          <p className="text-[11px] sm:text-xs text-bm-muted mt-2 leading-relaxed">
             {w.serviceProfitLabor}: +{totals.serviceProfit.laborMargin.toFixed(2)} zł ·{" "}
             {w.serviceProfitParts}: +{totals.serviceProfit.partsMargin.toFixed(2)} zł
             {totals.serviceProfit.partsCost > 0 &&
@@ -1264,6 +1231,20 @@ export function WorkOrderForm({
           </Button>
         </div>
       )}
+
+      <div className="crm-sticky-actions">
+        {existing && (
+          <Button variant="outline" onClick={remove} className="text-red-600 border-red-300 mr-auto">
+            <Trash2 size={16} /> {t.common.delete}
+          </Button>
+        )}
+        <Button variant="outline" onClick={onClose}>
+          <X size={16} /> {t.common.cancel}
+        </Button>
+        <Button onClick={save}>
+          <Save size={16} /> {t.common.save}
+        </Button>
+      </div>
     </div>
   );
 }

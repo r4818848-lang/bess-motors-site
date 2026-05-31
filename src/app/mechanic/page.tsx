@@ -192,7 +192,7 @@ function MechanicPageContent() {
 
   return (
     <DashboardLayout role="mechanic">
-      <div className="p-6 lg:p-10">
+      <div className="crm-page-padding">
         <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
           <div>
             <Link href="/" className="text-sm text-bm-muted hover:text-bm-red">

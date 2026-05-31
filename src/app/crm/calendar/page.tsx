@@ -16,7 +16,7 @@ function CalendarPageContent() {
 
   return (
     <DashboardLayout role="admin">
-      <div className="p-6 lg:p-10 space-y-6">
+      <div className="crm-page-padding space-y-6">
         <div className="flex flex-wrap justify-between gap-4">
           <Link href="/crm" className="text-sm text-bm-muted hover:text-bm-red">
             ← CRM

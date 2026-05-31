@@ -414,12 +414,12 @@ function CabinetPageContent() {
   ];
 
   return (
-    <div className="pt-28 pb-20">
+    <div className="pt-24 sm:pt-28 pb-24 md:pb-20">
       <LocaleSync userId={user.id} />
       <div className="mx-auto max-w-7xl px-4 lg:px-8">
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-10">
-          <div>
-            <h1 className="font-display text-3xl font-bold uppercase">{t.cabinet.title}</h1>
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-8 sm:mb-10">
+          <div className="min-w-0">
+            <h1 className="font-display text-2xl sm:text-3xl font-bold uppercase">{t.cabinet.title}</h1>
             <p className="text-bm-muted mt-1">
               {user.name} · {user.phone}
             </p>

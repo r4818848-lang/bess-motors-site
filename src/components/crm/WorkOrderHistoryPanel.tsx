@@ -24,9 +24,7 @@ export function WorkOrderHistoryPanel() {
     const db = loadDb();
     const closed = filterClosedWorkOrders(db.workOrders);
     const bySearch = filterWorkOrdersByQuery(db, closed, query);
-    return bySearch
-      .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
-      .map((order) => ({
+    return bySearch.map((order) => ({
         order,
         client: db.users.find((u) => u.id === order.userId),
         vehicle: db.vehicles.find((v) => v.id === order.vehicleId),
@@ -48,7 +46,8 @@ export function WorkOrderHistoryPanel() {
       </div>
       <CrmSearchInput value={query} onChange={setQuery} placeholder={c.search} />
       <div className="glass-red rounded-xl overflow-hidden neon-border">
-        <table className="dashboard-table">
+        <div className="table-scroll">
+        <table className="dashboard-table min-w-[640px]">
           <thead>
             <tr>
               <th>#</th>
@@ -76,7 +75,14 @@ export function WorkOrderHistoryPanel() {
                         {t.repairStatus[order.status]}
                       </span>
                     </td>
-                    <td className="text-xs whitespace-nowrap">{order.updatedAt.slice(0, 10)}</td>
+                    <td className="text-xs whitespace-nowrap">
+                      <span className="block">{order.createdAt.slice(0, 10)}</span>
+                      {order.updatedAt !== order.createdAt && (
+                        <span className="text-[10px] text-bm-muted">
+                          {c.updated}: {order.updatedAt.slice(0, 10)}
+                        </span>
+                      )}
+                    </td>
                     <td>{client?.name ?? "—"}</td>
                     <td>
                       <VehicleThumbnail vehicle={vehicle} />
@@ -104,6 +110,7 @@ export function WorkOrderHistoryPanel() {
             )}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );

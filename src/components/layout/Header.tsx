@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
 import { clsx } from "clsx";
 import { useI18n } from "@/lib/i18n/context";
@@ -30,9 +30,22 @@ export function Header() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
+  useEffect(() => {
+    if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [open]);
+
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
+
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 glass border-b border-bm-border/50">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 lg:px-8">
+    <header className="fixed top-0 left-0 right-0 z-50 glass border-b border-bm-border/50 safe-area-pt">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-3 py-2.5 sm:px-4 sm:py-3 lg:px-8">
         <Logo size="sm" showTagline={false} />
 
         <nav className="hidden items-center gap-1 xl:flex">
@@ -76,17 +89,24 @@ export function Header() {
           </PhoneLink>
         </div>
 
-        <button
-          className="xl:hidden p-2 text-white"
-          onClick={() => setOpen(!open)}
-          aria-label="Menu"
-        >
-          {open ? <X size={24} /> : <Menu size={24} />}
-        </button>
+        <div className="flex items-center gap-1 sm:gap-2 xl:hidden">
+          <div className="md:hidden">
+            <LanguageSwitcher compact />
+          </div>
+          <button
+            type="button"
+            className="p-2 text-white rounded-lg hover:bg-white/5"
+            onClick={() => setOpen(!open)}
+            aria-label="Menu"
+            aria-expanded={open}
+          >
+            {open ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </div>
       </div>
 
       {open && (
-        <div className="xl:hidden border-t border-bm-border glass px-4 py-4">
+        <div className="xl:hidden border-t border-bm-border glass px-4 py-4 max-h-[min(70vh,calc(100dvh-4rem))] overflow-y-auto overscroll-contain">
           <nav className="flex flex-col gap-2">
             {navPaths.map(({ href, key }) => {
               const mobileClass = clsx(

@@ -23,6 +23,7 @@ export function VehicleClientEditor({ userId, vehicleId, onVehicleId }: Props) {
 
   const db = loadDb();
   const user = db.users.find((u) => u.id === userId);
+  const userVehicles = db.vehicles.filter((v) => v.userId === userId);
   let vehicle = db.vehicles.find((v) => v.id === vehicleId);
 
   const persist = useCallback(
@@ -159,6 +160,23 @@ export function VehicleClientEditor({ userId, vehicleId, onVehicleId }: Props) {
             </Button>
           )}
         </div>
+
+        {userVehicles.length > 1 && onVehicleId && (
+          <div className="mb-4">
+            <label className="text-[10px] uppercase text-bm-muted">{w.selectVehicle}</label>
+            <select
+              className="input-premium mt-1 text-sm"
+              value={vehicleId}
+              onChange={(e) => onVehicleId(e.target.value)}
+            >
+              {userVehicles.map((v) => (
+                <option key={v.id} value={v.id}>
+                  {v.make} {v.model} · {v.plate || v.vin || v.id}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
 
         {vehicle && (
           <>

@@ -23,12 +23,12 @@ export function SiteShell({ children }: { children: ReactNode }) {
   }
 
   return (
-    <>
+    <div className="min-h-screen overflow-x-clip">
       <Header />
-      <main className="min-h-screen pb-16 md:pb-0">{children}</main>
+      <main className="min-h-screen pb-[4.5rem] md:pb-0">{children}</main>
       <Footer />
       <StickyContactBar />
       <BookNowSticky />
-    </>
+    </div>
   );
 }

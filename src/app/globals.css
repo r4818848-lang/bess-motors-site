@@ -12,11 +12,206 @@
 
   html {
     scroll-behavior: smooth;
+    overflow-x: clip;
   }
 
   body {
     @apply bg-bm-black text-white font-body antialiased;
     background-image: radial-gradient(ellipse at 50% 0%, rgba(225, 6, 0, 0.08) 0%, transparent 50%);
+    overflow-x: clip;
+  }
+
+  .safe-area-pt {
+    padding-top: max(0px, env(safe-area-inset-top));
+  }
+
+  .safe-area-pb {
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+  }
+
+  .crm-page-padding {
+    @apply px-4 py-5 sm:px-6 sm:py-6 lg:px-10 lg:py-10;
+  }
+
+  /* Motowarsztat-style ERP shell (light workspace inside CRM) */
+  .crm-shell {
+    --crm-bg: #eef0f3;
+    --crm-surface: #ffffff;
+    --crm-border: #dde1e6;
+    --crm-text: #1c1c1c;
+    --crm-muted: #6b7280;
+    --crm-red: #e10600;
+    min-height: 100vh;
+    background: var(--crm-bg);
+    color: var(--crm-text);
+  }
+
+  .crm-shell .crm-main {
+    background: var(--crm-bg);
+    color: var(--crm-text);
+  }
+
+  .crm-shell .crm-sidebar {
+    background: var(--crm-surface);
+    border-color: var(--crm-border);
+    color: var(--crm-text);
+  }
+
+  .crm-shell .crm-sidebar .crm-nav-link {
+    @apply flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors;
+    color: var(--crm-text);
+  }
+
+  .crm-shell .crm-sidebar .crm-nav-link:hover {
+    background: #f3f4f6;
+    color: var(--crm-red);
+  }
+
+  .crm-shell .crm-sidebar .crm-nav-link.active {
+    background: rgba(225, 6, 0, 0.12);
+    color: var(--crm-red);
+    font-weight: 600;
+  }
+
+  .crm-shell .crm-sidebar .crm-nav-section {
+    @apply text-[10px] font-bold uppercase tracking-widest px-3 pt-4 pb-1;
+    color: var(--crm-muted);
+  }
+
+  .crm-shell .crm-page-header .crm-breadcrumbs {
+    @apply flex flex-wrap items-center gap-1 text-xs;
+    color: var(--crm-muted);
+  }
+
+  .crm-shell .crm-page-title {
+    @apply text-xl sm:text-2xl font-bold text-gray-900;
+  }
+
+  .crm-shell .crm-page-subtitle {
+    @apply text-sm text-gray-600;
+  }
+
+  .crm-shell .crm-list-toolbar {
+    @apply flex flex-wrap items-center gap-3 justify-between mb-4 p-3 rounded-lg border;
+    background: var(--crm-surface);
+    border-color: var(--crm-border);
+  }
+
+  .crm-shell .crm-price-toggle {
+    @apply inline-flex rounded-md border overflow-hidden text-xs font-bold uppercase;
+    border-color: var(--crm-border);
+  }
+
+  .crm-shell .crm-price-toggle button {
+    @apply px-3 py-1.5 transition-colors bg-white text-gray-600;
+  }
+
+  .crm-shell .crm-price-toggle button.active {
+    @apply bg-bm-red text-white;
+  }
+
+  .crm-shell .crm-mw-card {
+    background: var(--crm-surface);
+    border: 1px solid var(--crm-border);
+    @apply rounded-lg shadow-sm overflow-hidden;
+  }
+
+  .crm-shell .crm-mw-table {
+    @apply w-full text-sm;
+  }
+
+  .crm-shell .crm-mw-table thead th {
+    @apply text-left text-[11px] font-bold uppercase tracking-wide px-3 py-2.5 border-b whitespace-nowrap;
+    background: #f8f9fb;
+    color: #4b5563;
+    border-color: var(--crm-border);
+  }
+
+  .crm-shell .crm-mw-table tbody td {
+    @apply px-3 py-2.5 border-b align-top;
+    border-color: #eef0f3;
+    color: var(--crm-text);
+  }
+
+  .crm-shell .crm-mw-table tbody tr:nth-child(even) {
+    background: #fafbfc;
+  }
+
+  .crm-shell .crm-mw-table tbody tr:hover {
+    background: #fff5f5;
+  }
+
+  .crm-shell .crm-mw-table tfoot td {
+    @apply font-semibold bg-red-50 text-gray-900 border-t-2;
+    border-color: var(--crm-border);
+  }
+
+  .crm-shell .input-premium {
+    @apply bg-white text-gray-900 border-gray-300 placeholder-gray-400;
+  }
+
+  .crm-shell .input-premium:focus {
+    @apply border-bm-red ring-1 ring-bm-red/30;
+  }
+
+  .crm-shell .glass-red {
+    background: var(--crm-surface);
+    border: 1px solid var(--crm-border);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  }
+
+  .crm-shell .neon-border {
+    box-shadow: none;
+  }
+
+  .crm-shell .text-bm-muted {
+    color: var(--crm-muted) !important;
+  }
+
+  .crm-shell .text-glow {
+    text-shadow: none;
+    color: var(--crm-text);
+  }
+
+  .crm-shell .crm-module-tile {
+    @apply flex flex-col items-center justify-center gap-3 rounded-lg border p-5 min-h-[7rem] transition-all;
+    background: var(--crm-surface);
+    border-color: var(--crm-border);
+    color: var(--crm-text);
+  }
+
+  .crm-shell .crm-module-tile:hover {
+    border-color: var(--crm-red);
+    box-shadow: 0 4px 12px rgba(225, 6, 0, 0.15);
+  }
+
+  .crm-shell .crm-module-tile.accent {
+    border-color: rgba(225, 6, 0, 0.45);
+    background: #fff5f5;
+  }
+
+  .crm-shell .crm-sticky-actions {
+    @apply sticky bottom-0 z-20 flex flex-wrap gap-2 justify-end p-4 border-t mt-6 -mx-4 sm:-mx-6 lg:-mx-10;
+    background: rgba(255, 255, 255, 0.95);
+    border-color: var(--crm-border);
+    backdrop-filter: blur(8px);
+  }
+
+  .crm-shell .btn-primary {
+    box-shadow: 0 2px 8px rgba(225, 6, 0, 0.35);
+  }
+
+  .crm-shell .btn-primary:hover {
+    transform: translateY(-1px);
+  }
+
+  .crm-shell .btn-outline {
+    @apply text-gray-800 border-gray-300 bg-white;
+  }
+
+  .table-scroll {
+    @apply overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0;
+    -webkit-overflow-scrolling: touch;
   }
 
   ::selection {
@@ -149,11 +344,11 @@
   }
 
   .dashboard-table th {
-    @apply border-b border-bm-border bg-bm-graphite px-4 py-3 text-left text-xs font-display uppercase tracking-wider text-bm-red;
+    @apply border-b border-bm-border bg-bm-graphite px-2 py-2 sm:px-4 sm:py-3 text-left text-[10px] sm:text-xs font-display uppercase tracking-wider text-bm-red whitespace-nowrap;
   }
 
   .dashboard-table td {
-    @apply border-b border-bm-border/50 px-4 py-3;
+    @apply border-b border-bm-border/50 px-2 py-2 sm:px-4 sm:py-3;
   }
 
   .status-pill {
