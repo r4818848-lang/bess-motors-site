@@ -1,5 +1,39 @@
 export type ChecklistItem = { id: string; pl: string; ru: string; en: string };
 
+/** Motowarsztat-style toggles on quick create order modal */
+export const quickCreateToggleItems: ChecklistItem[] = [
+  {
+    id: "returnParts",
+    pl: "Zwrot części klientowi",
+    ru: "Возврат деталей клиенту",
+    en: "Return parts to client",
+  },
+  {
+    id: "registrationDoc",
+    pl: "Dowód rejestracyjny",
+    ru: "Свидетельство о регистрации",
+    en: "Registration certificate",
+  },
+  {
+    id: "testDrive",
+    pl: "Zgoda na jazdę próbną",
+    ru: "Согласие на тест-драйв",
+    en: "Test drive consent",
+  },
+  {
+    id: "fluids",
+    pl: "Wykonać płyny eksploatacyjne",
+    ru: "Проверить/долить жидкости",
+    en: "Check / top up fluids",
+  },
+  {
+    id: "lighting",
+    pl: "Uzupełnić oświetlenie",
+    ru: "Проверить освещение",
+    en: "Check lighting",
+  },
+];
+
 export const receptionChecklistItems: ChecklistItem[] = [
   { id: "mileage", pl: "Przebieg zapisany", ru: "Пробег записан", en: "Mileage recorded" },
   { id: "damage", pl: "Uszkodzenia sfotografowane", ru: "Повреждения сфотографированы", en: "Damage photographed" },
