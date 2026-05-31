@@ -70,11 +70,28 @@ export function AddClientModal({
     }
     setNipLoading(true);
     setError("");
+    setInfo("");
     try {
-      const res = await fetch(`/api/nip/lookup?nip=${digits}`);
-      const data = await res.json();
+      const res = await fetch(`/api/nip/lookup?nip=${digits}`, { cache: "no-store" });
+      const data = (await res.json()) as {
+        found?: boolean;
+        name?: string;
+        regon?: string;
+        street?: string;
+        city?: string;
+        postalCode?: string;
+        country?: string;
+        source?: "vat" | "regon";
+        error?: string;
+      };
       if (!data.found) {
-        setError(c.nipNotFound);
+        setError(
+          data.error === "invalid_checksum"
+            ? c.nipInvalid
+            : data.error === "network_error"
+              ? c.nipLookupFailed
+              : c.nipNotFound
+        );
         return;
       }
       if (data.name) setCompanyName(data.name);
@@ -83,7 +100,7 @@ export function AddClientModal({
       if (data.city) setCity(data.city);
       if (data.postalCode) setPostalCode(data.postalCode);
       if (data.country) setCountry(data.country);
-      setInfo(c.nipDecoded);
+      setInfo(data.source === "regon" ? c.nipDecodedRegon : c.nipDecoded);
     } catch {
       setError(c.nipLookupFailed);
     } finally {
@@ -210,6 +227,12 @@ export function AddClientModal({
                     className="input-premium flex-1 font-mono"
                     value={nip}
                     onChange={(e) => setNip(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        void lookupNip();
+                      }
+                    }}
                     placeholder="0000000000"
                   />
                   <button
