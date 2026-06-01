@@ -33,6 +33,12 @@ export async function mutateCrm(
 
   const result = await cloudPutCrmStore(db);
   if (!result.ok) return { ok: false, error: result.error };
+
+  const { dispatchTelegramFromCrmSave } = await import("./client-telegram-notify");
+  void dispatchTelegramFromCrmSave(prevDb, db);
+  const { dispatchWebPushFromCrmSave } = await import("@/lib/web-push-order-events");
+  void dispatchWebPushFromCrmSave(prevDb, db);
+
   return { ok: true, result: typeof extra === "string" ? extra : undefined };
 }
 
@@ -63,19 +69,12 @@ export async function applyWorkOrderStatus(
     return orderNumber;
   });
 
-  if (result.ok) {
-    const { notifyTelegramAfterOrderMutation } = await import("./client-telegram-notify");
-    void notifyTelegramAfterOrderMutation(orderNumber, previous ?? null);
+  if (result.ok && previous) {
     const snap2 = await cloudGetCrmStore();
     const order = snap2?.doc ? findOrder(snap2.doc as Database, orderNumber) : undefined;
-    if (order && previous) {
+    if (order) {
       const { runReferralTelegramEffects } = await import("@/lib/server/referral-telegram-notify");
       await runReferralTelegramEffects(snap2!.doc as Database, order, previous);
-    }
-    if (order) {
-      const user = (snap2!.doc as Database).users.find((u) => u.id === order.userId);
-      const { pushForOrderChange } = await import("@/lib/web-push-order-events");
-      await pushForOrderChange(user, order, previous ?? null);
     }
   }
 
@@ -109,9 +108,6 @@ export async function markWorkOrderPaid(
     if (order) {
       const { runReferralTelegramEffects } = await import("@/lib/server/referral-telegram-notify");
       await runReferralTelegramEffects(snap2!.doc as Database, order, previous);
-      const user = (snap2!.doc as Database).users.find((u) => u.id === order.userId);
-      const { pushForOrderChange } = await import("@/lib/web-push-order-events");
-      await pushForOrderChange(user, order, previous);
     }
   }
 

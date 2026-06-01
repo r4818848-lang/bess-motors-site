@@ -85,7 +85,17 @@ export async function resolveExtraWorkApproval(
   order.updatedAt = new Date().toISOString();
   order.lastNotifiedClientTotal = calcClientTotal(order);
 
-  await cloudPutCrmStore(db);
+  const put = await cloudPutCrmStore(db);
+  if (!put.ok) return { ok: false };
+
+  const snapAfter = await cloudGetCrmStore();
+  if (snapAfter?.doc) {
+    const { dispatchTelegramFromCrmSave } = await import("./client-telegram-notify");
+    void dispatchTelegramFromCrmSave(snap.doc as Database, snapAfter.doc as Database);
+    const { dispatchWebPushFromCrmSave } = await import("@/lib/web-push-order-events");
+    void dispatchWebPushFromCrmSave(snap.doc as Database, snapAfter.doc as Database);
+  }
+
   return { ok: true };
 }
 
