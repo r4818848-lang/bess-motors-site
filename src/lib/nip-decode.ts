@@ -1,14 +1,20 @@
 /** Polish NIP lookup: MF VAT whitelist + GUS REGON (BIR) */
 
 import Bir from "bir1";
+import {
+  lookupFromCeidg,
+  lookupFromKrsOdpis,
+  lookupFromVies,
+} from "@/lib/nip-lookup-sources";
 
-export type NipLookupSource = "vat" | "regon";
+export type NipLookupSource = "vat" | "regon" | "vies" | "ceidg" | "krs";
 
 export type NipCompanyData = {
   found: boolean;
   nip: string;
   name?: string;
   regon?: string;
+  krs?: string;
   statusVat?: string;
   street?: string;
   city?: string;
@@ -35,7 +41,7 @@ export function normalizeCompanyName(name: string): string {
   return name.replace(/^["']+|["']+$/g, "").replace(/\s+/g, " ").trim();
 }
 
-function parsePolishAddress(raw: string): {
+export function parsePolishAddress(raw: string): {
   street?: string;
   city?: string;
   postalCode?: string;
@@ -77,6 +83,7 @@ async function lookupFromVatWhitelist(nip: string): Promise<NipCompanyData | nul
         name?: string;
         nip?: string;
         regon?: string;
+        krs?: string;
         statusVat?: string;
         residenceAddress?: string;
         workingAddress?: string;
@@ -95,6 +102,7 @@ async function lookupFromVatWhitelist(nip: string): Promise<NipCompanyData | nul
     nip: subject.nip ?? nip,
     name: normalizeCompanyName(subject.name),
     regon: subject.regon,
+    krs: subject.krs,
     statusVat: subject.statusVat,
     rawAddress: addrRaw,
     street: parsed.street,
@@ -159,13 +167,46 @@ export async function lookupNipCompany(nipRaw: string): Promise<NipCompanyData> 
 
   try {
     const fromVat = await lookupFromVatWhitelist(nip);
-    if (fromVat) return fromVat;
+    if (fromVat?.name) return fromVat;
 
     const fromGus = await lookupFromGusRegon(nip);
     if (fromGus) return fromGus;
+
+    const fromVies = await lookupFromVies(nip);
+    if (fromVies) return fromVies;
+
+    const fromCeidg = await lookupFromCeidg(nip);
+    if (fromCeidg) return fromCeidg;
+
+    const mfKrs = fromVat?.krs ?? (await fetchVatSubjectKrs(nip));
+    if (mfKrs) {
+      const fromKrs = await lookupFromKrsOdpis(mfKrs, nip);
+      if (fromKrs) {
+        return {
+          ...fromKrs,
+          statusVat: fromVat?.statusVat,
+          regon: fromKrs.regon ?? fromVat?.regon,
+        };
+      }
+    }
+
+    if (fromVat) return fromVat;
 
     return { found: false, nip, error: "not_found" };
   } catch {
     return { found: false, nip, error: "network_error" };
   }
+}
+
+/** Read KRS number from MF VAT search when company name missing in whitelist row */
+async function fetchVatSubjectKrs(nip: string): Promise<string | undefined> {
+  const date = new Date().toISOString().slice(0, 10);
+  const res = await fetch(`https://wl-api.mf.gov.pl/api/search/nip/${nip}?date=${date}`, {
+    headers: { Accept: "application/json" },
+    cache: "no-store",
+  });
+  if (!res.ok) return undefined;
+  const data = (await res.json()) as { result?: { subject?: { krs?: string } } };
+  const krs = data.result?.subject?.krs?.trim();
+  return krs || undefined;
 }

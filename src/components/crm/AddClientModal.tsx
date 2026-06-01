@@ -81,7 +81,7 @@ export function AddClientModal({
         city?: string;
         postalCode?: string;
         country?: string;
-        source?: "vat" | "regon";
+        source?: "vat" | "regon" | "vies" | "ceidg" | "krs";
         error?: string;
       };
       if (!data.found) {
@@ -100,7 +100,17 @@ export function AddClientModal({
       if (data.city) setCity(data.city);
       if (data.postalCode) setPostalCode(data.postalCode);
       if (data.country) setCountry(data.country);
-      setInfo(data.source === "regon" ? c.nipDecodedRegon : c.nipDecoded);
+      const sourceMsg =
+        data.source === "regon"
+          ? c.nipDecodedRegon
+          : data.source === "vies"
+            ? c.nipDecodedVies
+            : data.source === "ceidg"
+              ? c.nipDecodedCeidg
+              : data.source === "krs"
+                ? c.nipDecodedKrs
+                : c.nipDecoded;
+      setInfo(`${sourceMsg} · ${c.nipLookupHint}`);
     } catch {
       setError(c.nipLookupFailed);
     } finally {

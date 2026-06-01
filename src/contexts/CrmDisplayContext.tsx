@@ -10,24 +10,32 @@ import {
 } from "react";
 
 export type CrmPriceMode = "net" | "gross";
+export type CrmTheme = "dark" | "light";
 
-const STORAGE_KEY = "bess-crm-price-mode";
+const PRICE_STORAGE_KEY = "bess-crm-price-mode";
+const THEME_STORAGE_KEY = "bess-crm-theme";
 
 type CrmDisplayContextValue = {
   priceMode: CrmPriceMode;
   setPriceMode: (mode: CrmPriceMode) => void;
   togglePriceMode: () => void;
+  theme: CrmTheme;
+  setTheme: (theme: CrmTheme) => void;
+  toggleTheme: () => void;
 };
 
 const CrmDisplayContext = createContext<CrmDisplayContextValue | null>(null);
 
 export function CrmDisplayProvider({ children }: { children: React.ReactNode }) {
   const [priceMode, setPriceModeState] = useState<CrmPriceMode>("gross");
+  const [theme, setThemeState] = useState<CrmTheme>("dark");
 
   useEffect(() => {
     try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored === "net" || stored === "gross") setPriceModeState(stored);
+      const storedPrice = localStorage.getItem(PRICE_STORAGE_KEY);
+      if (storedPrice === "net" || storedPrice === "gross") setPriceModeState(storedPrice);
+      const storedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+      if (storedTheme === "dark" || storedTheme === "light") setThemeState(storedTheme);
     } catch {
       /* ignore */
     }
@@ -36,7 +44,7 @@ export function CrmDisplayProvider({ children }: { children: React.ReactNode }) 
   const setPriceMode = useCallback((mode: CrmPriceMode) => {
     setPriceModeState(mode);
     try {
-      localStorage.setItem(STORAGE_KEY, mode);
+      localStorage.setItem(PRICE_STORAGE_KEY, mode);
     } catch {
       /* ignore */
     }
@@ -46,7 +54,28 @@ export function CrmDisplayProvider({ children }: { children: React.ReactNode }) 
     setPriceModeState((prev) => {
       const next = prev === "gross" ? "net" : "gross";
       try {
-        localStorage.setItem(STORAGE_KEY, next);
+        localStorage.setItem(PRICE_STORAGE_KEY, next);
+      } catch {
+        /* ignore */
+      }
+      return next;
+    });
+  }, []);
+
+  const setTheme = useCallback((next: CrmTheme) => {
+    setThemeState(next);
+    try {
+      localStorage.setItem(THEME_STORAGE_KEY, next);
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  const toggleTheme = useCallback(() => {
+    setThemeState((prev) => {
+      const next: CrmTheme = prev === "dark" ? "light" : "dark";
+      try {
+        localStorage.setItem(THEME_STORAGE_KEY, next);
       } catch {
         /* ignore */
       }
@@ -55,8 +84,15 @@ export function CrmDisplayProvider({ children }: { children: React.ReactNode }) 
   }, []);
 
   const value = useMemo(
-    () => ({ priceMode, setPriceMode, togglePriceMode }),
-    [priceMode, setPriceMode, togglePriceMode]
+    () => ({
+      priceMode,
+      setPriceMode,
+      togglePriceMode,
+      theme,
+      setTheme,
+      toggleTheme,
+    }),
+    [priceMode, setPriceMode, togglePriceMode, theme, setTheme, toggleTheme]
   );
 
   return (
@@ -71,6 +107,9 @@ export function useCrmDisplay() {
       priceMode: "gross" as CrmPriceMode,
       setPriceMode: () => {},
       togglePriceMode: () => {},
+      theme: "dark" as CrmTheme,
+      setTheme: () => {},
+      toggleTheme: () => {},
     };
   }
   return ctx;

@@ -23,8 +23,11 @@ import {
   MoreHorizontal,
   Package,
   TrendingUp,
+  Moon,
+  Sun,
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
+import { useCrmDisplay } from "@/contexts/CrmDisplayContext";
 import { useHotOrdersBadgeCount } from "@/components/crm/HotOrdersPanel";
 import { useCloudAppointmentsSync } from "@/hooks/useCloudAppointmentsSync";
 import { useCloudCrmSync } from "@/hooks/useCloudCrmSync";
@@ -104,6 +107,7 @@ function DashboardLayoutInner({
   const searchParams = useSearchParams();
   const tab = searchParams.get("tab");
   const c = t.crm;
+  const { theme, toggleTheme } = useCrmDisplay();
   const [drawerOpen, setDrawerOpen] = useState(false);
   useCloudAppointmentsSync(role === "admin");
   const { syncing, syncFailed, resync } = useCloudCrmSync(role === "admin" || role === "mechanic");
@@ -302,6 +306,17 @@ function DashboardLayoutInner({
             </div>
             <div className="p-3 border-t border-bm-border space-y-2">
               {syncFooter}
+              <button
+                type="button"
+                onClick={() => {
+                  toggleTheme();
+                  closeDrawer();
+                }}
+                className="crm-nav-link w-full justify-center text-xs"
+              >
+                {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+                <span>{theme === "dark" ? c.themeLight : c.themeDark}</span>
+              </button>
               <Link
                 href="/"
                 onClick={closeDrawer}
@@ -327,6 +342,15 @@ function DashboardLayoutInner({
         </div>
         <div className="p-3 border-t border-bm-border space-y-2">
           {syncFooter}
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className="crm-nav-link w-full justify-center text-xs"
+            title={theme === "dark" ? c.themeLight : c.themeDark}
+          >
+            {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+            <span>{theme === "dark" ? c.themeLight : c.themeDark}</span>
+          </button>
           <Link href="/" className="text-xs text-bm-muted hover:text-bm-red transition-colors block">
             ← {t.nav.home}
           </Link>
