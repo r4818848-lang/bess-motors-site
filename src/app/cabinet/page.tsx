@@ -876,6 +876,9 @@ function CabinetPageContent() {
                       const fresh = loadDb();
                       markAllNotificationsRead(fresh, user.id);
                       saveDb(fresh);
+                      void import("@/lib/client-portal").then(({ pushClientPortalPatchToCloud }) =>
+                        pushClientPortalPatchToCloud({ markAllRead: true })
+                      );
                       refreshDb();
                     }}
                   >
@@ -935,6 +938,9 @@ function CabinetPageContent() {
                             const fresh = loadDb();
                             markNotificationRead(fresh, n.id);
                             saveDb(fresh);
+                            void import("@/lib/client-portal").then(({ pushClientPortalPatchToCloud }) =>
+                              pushClientPortalPatchToCloud({ notificationIdsRead: [n.id] })
+                            );
                             refreshDb();
                           }}
                         >

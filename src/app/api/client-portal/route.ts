@@ -184,5 +184,46 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true });
   }
 
+  if (action === "sync-client-state") {
+    const b = body as {
+      action: "sync-client-state";
+      referralCode?: string;
+      notificationIdsRead?: string[];
+      markAllRead?: boolean;
+    };
+
+    const snap = await cloudGetCrmStore();
+    if (!snap?.doc) {
+      return NextResponse.json({ ok: false, error: "cloud_empty" }, { status: 503 });
+    }
+
+    const db = snap.doc as Database;
+    const user = db.users.find((u) => u.id === session.sub && u.role === "client");
+    if (!user) {
+      return NextResponse.json({ ok: false, error: "not_found" }, { status: 404 });
+    }
+
+    if (b.referralCode?.trim() && !user.referralCode) {
+      user.referralCode = b.referralCode.trim();
+    }
+
+    if (b.markAllRead) {
+      for (const n of db.notifications ?? []) {
+        if (n.userId === session.sub) n.read = true;
+      }
+    } else if (b.notificationIdsRead?.length) {
+      const ids = new Set(b.notificationIdsRead);
+      for (const n of db.notifications ?? []) {
+        if (n.userId === session.sub && ids.has(n.id)) n.read = true;
+      }
+    }
+
+    const put = await cloudPutCrmStore(db);
+    if (!put.ok) {
+      return NextResponse.json({ ok: false, error: put.error ?? "cloud_error" }, { status: 502 });
+    }
+    return NextResponse.json({ ok: true });
+  }
+
   return NextResponse.json({ ok: false, error: "invalid" }, { status: 400 });
 }

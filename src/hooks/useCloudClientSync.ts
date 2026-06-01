@@ -30,7 +30,14 @@ export function useCloudClientSync(enabled = true): {
     void resync();
   }, [enabled, resync]);
 
-  useVisibleInterval(() => void resync(), 120_000, enabled);
+  useEffect(() => {
+    if (!enabled) return;
+    const onFocus = () => void resync();
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
+  }, [enabled, resync]);
+
+  useVisibleInterval(() => void resync(), 45_000, enabled);
 
   return { syncing, resync };
 }

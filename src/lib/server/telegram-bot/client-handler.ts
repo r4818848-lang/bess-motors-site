@@ -78,6 +78,7 @@ import {
 import {
   getClientPortalByChat,
   linkTelegramClient,
+  tryRestoreTelegramChatLink,
   type TelegramProfile,
 } from "./client-telegram-link";
 import { decodeTimeSlot, formatDateShort, getClientServiceLabel, normalizeTelegramServiceId, nextBookableDates } from "./client-services";
@@ -332,6 +333,7 @@ async function showClientMenu(
   const chatKey = String(chatId);
   await clearTelegramSessionKeepLocale(chatKey);
   const L = getClientBotLabels(locale);
+  await tryRestoreTelegramChatLink(minimalTelegramProfile(chatId));
   const slice = await getClientPortalByChat(chatKey);
 
   if (slice) {

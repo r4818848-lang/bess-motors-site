@@ -170,7 +170,12 @@ export async function dispatchTelegramFromCrmSave(
 ): Promise<void> {
   for (const order of next.workOrders) {
     const old = previous.workOrders.find((o) => o.id === order.id);
-    if (!old) continue;
+    if (!old) {
+      if (orderNeedsSignature(order) || order.status !== "received") {
+        await notifyTelegramWorkOrderChange(next, order, null);
+      }
+      continue;
+    }
     const oldTotal = calcClientTotal(old);
     const newTotal = calcClientTotal(order);
     const servicesChanged =

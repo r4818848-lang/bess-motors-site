@@ -33,9 +33,13 @@ export function ExtraWorkApprovalCabinet({ orders }: { orders: WorkOrder[] }) {
   const onResolve = async (orderId: string, approved: boolean) => {
     setBusy(orderId);
     try {
+      const token = localStorage.getItem("bess-jwt");
       const res = await fetch("/api/extra-work", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({ orderId, approved }),
       });
       if (res.ok) return;

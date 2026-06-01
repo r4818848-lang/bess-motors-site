@@ -33,6 +33,13 @@ export function ReferralPanel({ user }: { user: User }) {
   const [qrUrl, setQrUrl] = useState<string | null>(null);
 
   const code = ensureReferralCode(user, db);
+
+  useEffect(() => {
+    void import("@/lib/client-portal").then(({ pushClientPortalPatchToCloud }) =>
+      pushClientPortalPatchToCloud({ referralCode: code })
+    );
+  }, [code]);
+
   const bot = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || "BessMotors_bot";
   const tgLink = `https://t.me/${bot}?start=ref_${code}`;
   const siteLink =

@@ -36,9 +36,15 @@ export default function StatusPage() {
     try {
       const q = new URLSearchParams({ phone, plate, locale });
       const res = await fetch(`/api/status?${q}`);
-      const data = await res.json();
+      const data = (await res.json()) as { ok?: boolean; error?: string };
       if (!res.ok || !data.ok) {
-        setError(s.notFound);
+        if (data.error === "unavailable" || res.status === 503) {
+          setError(s.unavailable);
+        } else if (data.error === "rate_limit" || res.status === 429) {
+          setError(s.rateLimit);
+        } else {
+          setError(s.notFound);
+        }
         return;
       }
       setResult(data as StatusResult);

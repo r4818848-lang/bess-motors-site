@@ -64,6 +64,29 @@ export function tryLinkTelegramOnBooking(
   ensureReferralCode(user);
 }
 
+/** Link bot chat to account that logged in via Telegram widget (telegramUserId only). */
+export async function tryRestoreTelegramChatLink(
+  profile: TelegramProfile
+): Promise<boolean> {
+  const snap = await cloudGetCrmStore();
+  if (!snap?.doc) return false;
+
+  const db = structuredClone(snap.doc) as Database;
+  const byChat = findClientByTelegramChat(db, profile.chatId);
+  if (byChat) return true;
+
+  const user = findClientByTelegramUserId(db, profile.telegramUserId);
+  if (!user) return false;
+
+  const chatOwner = findClientByTelegramChat(db, profile.chatId);
+  if (chatOwner && chatOwner.id !== user.id) return false;
+
+  applyTelegramProfile(user, profile);
+  ensureReferralCode(user);
+  const put = await cloudPutCrmStore(db);
+  return put.ok;
+}
+
 export async function getClientPortalByChat(
   chatId: string
 ): Promise<ClientPortalSlice | null> {

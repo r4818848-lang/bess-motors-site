@@ -8,44 +8,33 @@ import {
   sliceForClient,
   type ClientPortalSlice,
 } from "@/lib/client-sign";
+import { mergeClientPortalIntoLocal } from "@/lib/client-portal-merge";
 import { loadDb, saveDb, type WorkOrder } from "@/lib/store";
 
 export type { ClientPortalSlice };
 
 export function mergeClientPortalIntoDb(slice: ClientPortalSlice): void {
   const db = loadDb();
-
-  const ui = db.users.findIndex((u) => u.id === slice.user.id);
-  if (ui >= 0) db.users[ui] = slice.user;
-  else db.users.push(slice.user);
-
-  for (const v of slice.vehicles) {
-    const i = db.vehicles.findIndex((x) => x.id === v.id);
-    if (i >= 0) db.vehicles[i] = v;
-    else db.vehicles.push(v);
-  }
-
-  for (const o of slice.workOrders) {
-    const i = db.workOrders.findIndex((x) => x.id === o.id);
-    if (i >= 0) db.workOrders[i] = o;
-    else db.workOrders.push(o);
-  }
-
-  for (const a of slice.appointments) {
-    const i = db.appointments.findIndex((x) => x.id === a.id);
-    if (i >= 0) db.appointments[i] = a;
-    else db.appointments.push(a);
-  }
-
-  if (!db.notifications) db.notifications = [];
-  for (const n of slice.notifications) {
-    const i = db.notifications.findIndex((x) => x.id === n.id);
-    if (i >= 0) db.notifications[i] = n;
-    else db.notifications.push(n);
-  }
-
-  db.currentUserId = slice.user.id;
+  mergeClientPortalIntoLocal(db, slice);
   saveDb(db, { skipCloudPush: true });
+}
+
+export async function pushClientPortalPatchToCloud(
+  patch: Partial<{ referralCode: string; notificationIdsRead: string[]; markAllRead: boolean }>
+): Promise<boolean> {
+  const token =
+    typeof window !== "undefined" ? localStorage.getItem("bess-jwt") : null;
+  if (!token) return false;
+
+  const res = await fetch("/api/client-portal", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ action: "sync-client-state", ...patch }),
+  });
+  return res.ok;
 }
 
 export async function localClientPortalAccess(
