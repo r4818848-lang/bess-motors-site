@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { DB_STORAGE_QUOTA_EVENT } from "@/lib/db-events";
 import { RefreshCw, ChevronDown, ChevronUp, Cloud, CloudOff } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { Button } from "@/components/ui/Button";
@@ -43,7 +44,15 @@ export function ClientSyncStatusBar({
 }: Props) {
   const { t, locale } = useI18n();
   const c = t.cabinet;
+  const crm = t.crm;
   const [helpOpen, setHelpOpen] = useState(false);
+  const [storageQuotaExceeded, setStorageQuotaExceeded] = useState(false);
+
+  useEffect(() => {
+    const onQuota = () => setStorageQuotaExceeded(true);
+    window.addEventListener(DB_STORAGE_QUOTA_EVENT, onQuota);
+    return () => window.removeEventListener(DB_STORAGE_QUOTA_EVENT, onQuota);
+  }, []);
 
   const ageLabel = useMemo(() => {
     if (!lastSyncedAt) return "";
@@ -52,6 +61,14 @@ export function ClientSyncStatusBar({
 
   return (
     <div className="mb-4 space-y-2">
+      {storageQuotaExceeded && (
+        <div
+          className="rounded-xl border border-amber-500/40 bg-amber-500/10 px-3 py-2.5 text-xs sm:text-sm text-amber-200"
+          role="alert"
+        >
+          {crm.storageQuotaExceeded}
+        </div>
+      )}
       <div
         className={`flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2 sm:gap-3 rounded-xl border px-3 py-2.5 text-xs sm:text-sm ${
           syncFailed

@@ -180,7 +180,7 @@ export async function pushCrmIfCloudEmpty(): Promise<void> {
     if (!res || !res.ok) return;
     const data = (await res.json()) as { db?: Database | null };
     if (data.db) return;
-    await pushCrmToCloud(loadDb());
+    await pushCrmSave(loadDb());
   } catch {
     /* ignore */
   }

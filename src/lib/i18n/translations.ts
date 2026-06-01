@@ -893,6 +893,8 @@ const pl = {
     cloudSynced: "Zsynchronizowano",
     cloudNotConfigured: "Chmura wyłączona — ustaw SUPABASE_* w Vercel",
     pushSyncFailed: "Nie zapisano w chmurze — kliknij Synchronizuj",
+    storageQuotaExceeded:
+      "Pamięć przeglądarki pełna — usuń stare zdjęcia w zleceniach lub wyczyść dane strony",
     envHealthTitle: "Integracje serwera (Vercel)",
     envHealthHint: "Wszystkie zmienne w Vercel → Settings → Environment Variables. Po zmianie — Redeploy.",
     envHealthLoading: "Sprawdzanie…",
@@ -2368,6 +2370,8 @@ const ru: TranslationKeys = {
     cloudSynced: "Синхронизировано",
     cloudNotConfigured: "Облако выключено — задайте SUPABASE_* в Vercel",
     pushSyncFailed: "Не сохранилось в облако — нажмите «Синхронизировать»",
+    storageQuotaExceeded:
+      "Память браузера переполнена — удалите старые фото в заказах или очистите данные сайта",
     envHealthTitle: "Интеграции сервера (Vercel)",
     envHealthHint: "Все переменные: Vercel → Settings → Environment Variables. После изменений — Redeploy.",
     envHealthLoading: "Проверка…",

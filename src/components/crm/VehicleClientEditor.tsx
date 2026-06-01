@@ -4,7 +4,7 @@ import { useState, useCallback } from "react";
 import { ScanLine, History } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { loadDb, saveDb, type Vehicle, type User } from "@/lib/store";
-import { pushCrmSave } from "@/lib/cloud-crm-db";
+import { pushCrmSave, scheduleCrmCloudPush } from "@/lib/cloud-crm-db";
 import { decodeVin } from "@/lib/vin";
 import { updateVehicleWithHistory, getVehicleHistory } from "@/lib/vehicle-history";
 import { Button } from "@/components/ui/Button";
@@ -38,7 +38,7 @@ export function VehicleClientEditor({ userId, vehicleId, onVehicleId }: Props) {
         updateVehicleWithHistory(next, vehicleId, patchVehicle, "Admin CRM");
       }
       saveDb(next);
-      void pushCrmSave(next);
+      scheduleCrmCloudPush(next);
       setTick((n) => n + 1);
     },
     [userId, vehicleId]

@@ -31,6 +31,7 @@ import { useCrmDisplay } from "@/contexts/CrmDisplayContext";
 import { useHotOrdersBadgeCount } from "@/components/crm/HotOrdersPanel";
 import { useCloudAppointmentsSync } from "@/hooks/useCloudAppointmentsSync";
 import { useCloudCrmSync } from "@/hooks/useCloudCrmSync";
+import { DB_STORAGE_QUOTA_EVENT } from "@/lib/db-events";
 
 type NavItem = {
   href: string;
@@ -109,7 +110,14 @@ function DashboardLayoutInner({
   const c = t.crm;
   const { theme, toggleTheme } = useCrmDisplay();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [storageQuotaExceeded, setStorageQuotaExceeded] = useState(false);
   useCloudAppointmentsSync(role === "admin");
+
+  useEffect(() => {
+    const onQuota = () => setStorageQuotaExceeded(true);
+    window.addEventListener(DB_STORAGE_QUOTA_EVENT, onQuota);
+    return () => window.removeEventListener(DB_STORAGE_QUOTA_EVENT, onQuota);
+  }, []);
   const { syncing, syncFailed, cloudConfigured, pushFailed, resync } = useCloudCrmSync(
     role === "admin" || role === "mechanic"
   );
@@ -362,6 +370,11 @@ function DashboardLayoutInner({
       </aside>
 
       <div className="crm-main flex-1 lg:ml-64 min-w-0 w-full pt-[3.25rem] lg:pt-0 pb-[4.25rem] lg:pb-0">
+        {storageQuotaExceeded && (
+          <div className="crm-sync-banner border-amber-500/50" role="alert">
+            <span>{c.storageQuotaExceeded}</span>
+          </div>
+        )}
         {(syncFailed || pushFailed) && !syncing && cloudConfigured && (
           <div className="crm-sync-banner" role="status">
             <span>{pushFailed ? c.pushSyncFailed : c.syncFailed}</span>

@@ -34,15 +34,11 @@ export const siteConfig = {
 
   forgedCarbonImage: "/images/forged-carbon.png",
 
-  /** Hidden admin — exact phone + password only (never shown in UI) */
-
-  adminPhone: "+48888838688",
-
-  adminPassword: "11788245@illia",
-
-  /** JWT signing secret — replace in production */
-
-  jwtSecret: "bess-motors-jwt-secret-change-in-production-2025",
+  /** Local dev only — production: ADMIN_PHONE + ADMIN_PASSWORD on Vercel */
+  adminPhone: "",
+  adminPassword: "",
+  /** Dev fallback; production JWT must be JWT_SECRET on Vercel only */
+  jwtSecret: "dev-local-jwt-only-not-for-production",
 
   workingHours: "Pn–Sb 8:00–20:00",
 
@@ -60,7 +56,8 @@ export const sitePartners = [
   { id: "hella", name: "Hella", tagPl: "Elektryka / klimatyzacja", tagRu: "Электрика / кондиционер" },
 ] as const;
 
-/** Service boxes on home page banner section — opens smart booking for serviceId */export const bannerServices = [
+/** Service boxes on home page banner section — opens smart booking for serviceId */
+export const bannerServices = [
   { id: "tires" as const, serviceId: "tires" as ServiceId, fast: true },
   { id: "ac" as const, serviceId: "acRefill" as ServiceId },
   { id: "oil" as const, serviceId: "oil" as ServiceId, fast: true },

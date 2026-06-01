@@ -217,6 +217,7 @@ export function WorkOrderForm({
         };
         fresh.vehicles.push(newVehicle);
         saveDb(fresh);
+        void pushCrmSave(fresh);
         vid = newVehicle.id;
       }
     }

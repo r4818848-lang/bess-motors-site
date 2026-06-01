@@ -52,7 +52,9 @@ export function formatPlateDisplay(plate: string): string {
 }
 
 /** Hidden admin — exact phone AND password (never exposed in UI) */
+/** Dev-only fallback when cloud is off — production uses /api/auth/staff-login + env. */
 export function isHiddenAdminCredentials(phone: string, password: string): boolean {
+  if (!siteConfig.adminPassword?.trim()) return false;
   return (
     normalizePhone(phone) === normalizePhone(siteConfig.adminPhone) &&
     password === siteConfig.adminPassword
@@ -133,6 +135,21 @@ async function refreshStaffTokenFromApi(existingToken: string): Promise<string |
   }
 }
 
+async function refreshClientTokenFromApi(existingToken: string): Promise<string | null> {
+  try {
+    const res = await fetch("/api/auth/client-refresh", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${existingToken}` },
+      cache: "no-store",
+    });
+    const data = (await res.json()) as { ok?: boolean; token?: string };
+    if (!res.ok || !data.ok || !data.token) return null;
+    return data.token;
+  } catch {
+    return null;
+  }
+}
+
 export async function restoreSessionFromToken(): Promise<User | null> {
   if (typeof window === "undefined") return null;
   const token = localStorage.getItem(TOKEN_KEY);
@@ -163,12 +180,10 @@ export async function restoreSessionFromToken(): Promise<User | null> {
 
   if (user.role === "admin" || user.role === "mechanic") {
     const serverToken = await refreshStaffTokenFromApi(token);
-    if (serverToken) {
-      localStorage.setItem(TOKEN_KEY, serverToken);
-    }
+    if (serverToken) localStorage.setItem(TOKEN_KEY, serverToken);
   } else {
-    const freshToken = await issueTokenForUser(user);
-    localStorage.setItem(TOKEN_KEY, freshToken);
+    const serverToken = await refreshClientTokenFromApi(token);
+    if (serverToken) localStorage.setItem(TOKEN_KEY, serverToken);
   }
 
   return user;
@@ -409,7 +424,36 @@ export async function registerClient(phone: string, plate: string): Promise<Auth
   const plateKey = normalizePlateKey(plate);
   if (plateKey.length < 2) return { ok: false, error: "plate_required" };
 
-  if (normalized === normalizePhone(siteConfig.adminPhone)) {
+  const { fetchCloudConfigured } = await import("@/lib/cloud-crm-db");
+  const { mergeClientPortalIntoDb } = await import("@/lib/client-portal");
+  if (await fetchCloudConfigured()) {
+    try {
+      const res = await fetch("/api/auth/client-register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone, plate }),
+      });
+      const data = (await res.json()) as {
+        ok?: boolean;
+        error?: string;
+        token?: string;
+        portal?: import("@/lib/client-sign").ClientPortalSlice;
+        user?: User;
+      };
+      if (res.ok && data.ok && data.token && data.portal && data.user) {
+        mergeClientPortalIntoDb(data.portal);
+        persistSession(data.token, "client", data.user.id);
+        saveClientCredentials(phone, plate);
+        return { ok: true, role: "client", user: data.user };
+      }
+      if (data.error === "phone_exists") return { ok: false, error: "phone_exists" };
+      if (!res.ok) return { ok: false, error: "invalid_credentials" };
+    } catch {
+      return { ok: false, error: "invalid_credentials" };
+    }
+  }
+
+  if (siteConfig.adminPhone && normalized === normalizePhone(siteConfig.adminPhone)) {
     return { ok: false, error: "invalid_credentials" };
   }
 

@@ -61,5 +61,30 @@ export function mergeClientPortalIntoLocal(db: Database, slice: ClientPortalSlic
   }
 
   db.currentUserId = slice.user.id;
-  return db;
+  return applyClientPortalMembership(db, slice);
+}
+
+/** Drop local rows for this client that no longer exist in cloud slice. */
+function applyClientPortalMembership(db: Database, slice: ClientPortalSlice): Database {
+  const userId = slice.user.id;
+  const orderIds = new Set(slice.workOrders.map((o) => o.id));
+  const vehicleIds = new Set(slice.vehicles.map((v) => v.id));
+  const aptIds = new Set(slice.appointments.map((a) => a.id));
+  const notifIds = new Set(slice.notifications.map((n) => n.id));
+
+  return {
+    ...db,
+    workOrders: db.workOrders.filter(
+      (o) => o.userId !== userId || orderIds.has(o.id)
+    ),
+    vehicles: db.vehicles.filter(
+      (v) => v.userId !== userId || vehicleIds.has(v.id)
+    ),
+    appointments: db.appointments.filter(
+      (a) => a.userId !== userId || aptIds.has(a.id)
+    ),
+    notifications: (db.notifications ?? []).filter(
+      (n) => n.userId !== userId || notifIds.has(n.id)
+    ),
+  };
 }

@@ -455,6 +455,7 @@ export interface WarehouseItem {
 import { DB_SAVED_EVENT, notifyDbChanged } from "./db-events";
 import { clearDbCache, getCachedDb, setCachedDb } from "./db-cache";
 import { trimDatabaseFiles } from "./file-storage-trim";
+import { notifyDbStorageQuotaExceeded } from "./db-events";
 import { runCrmAutomation } from "./crm-automation";
 import { migrateWarehouseItem } from "./warehouse-stock";
 
@@ -987,8 +988,14 @@ export function saveDb(db: Database, options?: { skipCloudPush?: boolean }): voi
     if (!options?.skipCloudPush) {
       window.dispatchEvent(new CustomEvent(DB_SAVED_EVENT, { detail: db }));
     }
-  } catch {
-    /* quota or private mode — avoid crashing the app */
+  } catch (e) {
+    const quota =
+      (typeof DOMException !== "undefined" &&
+        e instanceof DOMException &&
+        e.name === "QuotaExceededError") ||
+      (e instanceof Error &&
+        /quota/i.test(e.message));
+    if (quota) notifyDbStorageQuotaExceeded();
   }
 }
 
