@@ -131,11 +131,9 @@ export async function restoreSessionFromToken(): Promise<User | null> {
   saveDb(db);
   localStorage.setItem(SESSION_ROLE_KEY, session.role);
 
-  // Refresh long-lived tokens on visit
-  if (user.role === "client" || user.role === "mechanic") {
-    const freshToken = await issueToken(user.id, user.role, user.phone);
-    localStorage.setItem(TOKEN_KEY, freshToken);
-  }
+  // Refresh JWT on visit (avoids expired / stale staff tokens breaking cloud sync)
+  const freshToken = await issueTokenForUser(user);
+  localStorage.setItem(TOKEN_KEY, freshToken);
 
   return user;
 }
@@ -425,6 +423,18 @@ export function getSessionRole(): AuthRole | null {
   const role = localStorage.getItem(SESSION_ROLE_KEY);
   if (role === "admin" || role === "client" || role === "mechanic") return role;
   return null;
+}
+
+/** Re-issue JWT for current admin/mechanic (e.g. after 401 on /api/crm-db). */
+export async function refreshStaffSessionToken(): Promise<string | null> {
+  if (typeof window === "undefined") return null;
+  const role = getSessionRole();
+  if (role !== "admin" && role !== "mechanic") return null;
+  const user = getCurrentUser();
+  if (!user || user.role !== role) return null;
+  const token = await issueTokenForUser(user);
+  persistSession(token, role, user.id);
+  return token;
 }
 
 export function isAdminAuthenticated(): boolean {

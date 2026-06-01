@@ -115,7 +115,11 @@ export function AddVehicleModal({ open, onClose, onCreated, initialUserId }: Pro
       }
       saveDb(db);
       const ok = await pushCrmSave(db);
-      if (!ok) alert(c.syncFailed);
+      if (!ok) {
+        setError(c.syncFailed);
+        onCreated(result.vehicleId, userId);
+        return;
+      }
       onCreated(result.vehicleId, userId);
       onClose();
     } finally {
@@ -196,7 +200,13 @@ export function AddVehicleModal({ open, onClose, onCreated, initialUserId }: Pro
           <input className="input-premium" value={year} onChange={(e) => setYear(e.target.value)} />
         </CrmFormField>
         <CrmFormField label={c.color}>
-          <input className="input-premium" value={color} onChange={(e) => setColor(e.target.value)} />
+          <input
+            className="input-premium"
+            name="bm-vehicle-color"
+            autoComplete="off"
+            value={color}
+            onChange={(e) => setColor(e.target.value)}
+          />
         </CrmFormField>
         <CrmFormField label={c.engine}>
           <div className="flex gap-2">

@@ -169,9 +169,12 @@ export function AddClientModal({
       }
       saveDb(db);
       const ok = await pushCrmSave(db);
-      if (!ok) alert(c.syncFailed);
-      if (!result.createdUser) setInfo(c.existingClientLinked);
       onCreated(result.userId, result.vehicleId);
+      if (!ok) {
+        setError(c.syncFailed);
+        return;
+      }
+      if (!result.createdUser) setInfo(c.existingClientLinked);
       onClose();
     } finally {
       setSaving(false);
@@ -223,7 +226,14 @@ export function AddClientModal({
         </button>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-3">
+      <form
+        className="grid gap-4 lg:grid-cols-3"
+        autoComplete="off"
+        onSubmit={(e) => {
+          e.preventDefault();
+          void submit();
+        }}
+      >
         <div className="space-y-4">
           {clientType === "company" && (
             <>
@@ -264,6 +274,8 @@ export function AddClientModal({
           <CrmFormField label={w.clientName.split(" ")[0] || c.firstName}>
             <input
               className="input-premium"
+              name="bm-client-first-name"
+              autoComplete="off"
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
             />
@@ -271,6 +283,8 @@ export function AddClientModal({
           <CrmFormField label={c.lastName}>
             <input
               className="input-premium"
+              name="bm-client-last-name"
+              autoComplete="off"
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
             />
@@ -431,7 +445,7 @@ export function AddClientModal({
             <span className="text-bm-muted">{c.marketingConsent}</span>
           </label>
         </div>
-      </div>
+      </form>
 
       {error && (
         <p className="mt-4 text-sm text-red-400 bg-red-500/10 border border-red-500/30 rounded-lg px-3 py-2">

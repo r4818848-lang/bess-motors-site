@@ -6,6 +6,7 @@ import { loadDb, mergeStoredDb, saveDb, type Database } from "@/lib/store";
 const TOKEN_KEY = "bess-jwt";
 const SESSION_ROLE_KEY = "bess-session-role";
 const CLOUD_SYNCED_AT_KEY = "bess-crm-cloud-synced-at";
+const CLOUD_PUSH_TIMEOUT_MS = 28_000;
 
 let pushTimer: ReturnType<typeof setTimeout> | null = null;
 let pushChain: Promise<boolean> = Promise.resolve(true);
@@ -48,10 +49,10 @@ export async function pushCrmDelete(db: Database): Promise<boolean> {
 /** After add/edit — immediate serialized push (optional pull). */
 export async function pushCrmSave(
   db?: Database,
-  options?: Pick<PushCrmOptions, "skipPull">
+  options?: PushCrmOptions
 ): Promise<boolean> {
   cancelScheduledCrmCloudPush();
-  return pushCrmToCloud(db ?? loadDb(), options);
+  return pushCrmToCloud(db ?? loadDb(), { skipPull: true, ...options });
 }
 
 export async function pullCrmFromCloud(options?: { force?: boolean }): Promise<PullCrmResult> {
@@ -114,21 +115,40 @@ export async function pushCrmToCloud(
 ): Promise<boolean> {
   if (typeof window === "undefined" || !isCrmCloudWriter()) return false;
 
-  const token = localStorage.getItem(TOKEN_KEY);
+  let token = localStorage.getItem(TOKEN_KEY);
   if (!token) return false;
 
   const payload = dbForCloud(db ?? loadDb());
 
   const run = async (): Promise<boolean> => {
+    const putOnce = async (authToken: string): Promise<Response> => {
+      const ac = new AbortController();
+      const timer = setTimeout(() => ac.abort(), CLOUD_PUSH_TIMEOUT_MS);
+      try {
+        return await fetch("/api/crm-db", {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+          signal: ac.signal,
+        });
+      } finally {
+        clearTimeout(timer);
+      }
+    };
+
     try {
-      const res = await fetch("/api/crm-db", {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
+      let res = await putOnce(token!);
+      if (res.status === 401 && isStaffCloudWriter()) {
+        const { refreshStaffSessionToken } = await import("@/lib/auth");
+        const fresh = await refreshStaffSessionToken();
+        if (fresh) {
+          token = fresh;
+          res = await putOnce(fresh);
+        }
+      }
       if (!res.ok) {
         console.warn("[cloud] CRM push failed", res.status, await res.text());
         notifyCrmCloudPush(false);
