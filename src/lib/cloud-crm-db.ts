@@ -87,15 +87,12 @@ export async function pushCrmToCloud(db?: Database): Promise<boolean> {
   const token = localStorage.getItem(TOKEN_KEY);
   if (!token) return false;
 
-  const payload = dbForCloud(db ?? loadDb());
-
   if (pushInFlight) {
-    pushQueued = payload;
+    pushQueued = dbForCloud(db ?? loadDb());
     return false;
   }
 
-  // Always merge cloud state before push so this device does not overwrite orders from other devices.
-  await pullCrmFromCloud({ force: true });
+  const payload = dbForCloud(db ?? loadDb());
 
   pushInFlight = true;
   try {
@@ -118,6 +115,9 @@ export async function pushCrmToCloud(db?: Database): Promise<boolean> {
       localStorage.setItem(CLOUD_SYNCED_AT_KEY, data.updatedAt);
     }
     notifyCrmCloudPush(ok, data.error);
+    if (ok) {
+      await pullCrmFromCloud({ force: true });
+    }
     return ok;
   } catch {
     notifyCrmCloudPush(false);

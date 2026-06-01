@@ -69,7 +69,7 @@ export async function PUT(req: Request) {
   }
 
   const before = await cloudGetCrmStore();
-  const { mergeCloudDocuments } = await import("@/lib/crm-db-merge");
+  const { mergeCloudDocuments, collectRemovedIds } = await import("@/lib/crm-db-merge");
   const { applyWorkOrderClosure } = await import("@/lib/work-order-lifecycle");
   const { applyWorkOrderCompletedAt } = await import("@/lib/work-order-dates");
   const incoming = docForCloud({
@@ -83,12 +83,30 @@ export async function PUT(req: Request) {
     : incoming;
   const { runCrmAutomation } = await import("@/lib/crm-automation");
   runCrmAutomation(payload, before?.doc ?? null);
-  const result = await cloudPutCrmStore(payload);
+  const result = await cloudPutCrmStore(payload, { skipNotify: true });
   if (!result.ok) {
     return NextResponse.json(
       { ok: false, error: result.error },
       { status: result.error === "cloud_disabled" ? 503 : 502 }
     );
+  }
+
+  if (before?.doc) {
+    const { cloudDeleteAppointment, isCloudAppointmentsEnabled } = await import(
+      "@/lib/server/appointments-cloud"
+    );
+    if (isCloudAppointmentsEnabled()) {
+      const removedAptIds = collectRemovedIds(
+        before.doc.appointments,
+        payload.appointments
+      );
+      await Promise.all(removedAptIds.map((id) => cloudDeleteAppointment(id)));
+    }
+  }
+
+  if (before?.doc) {
+    const { notifyAfterCrmCloudSave } = await import("@/lib/server/crm-cloud-notify");
+    void notifyAfterCrmCloudSave(before.doc, payload);
   }
 
   return NextResponse.json({ ok: true, updatedAt: result.updatedAt });

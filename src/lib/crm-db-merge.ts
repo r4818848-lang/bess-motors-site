@@ -51,7 +51,46 @@ export function mergeCloudIntoLocal(local: Database, remote: Database): Database
   };
 }
 
-/** Merge incoming PUT with existing cloud document */
+export function collectRemovedIds<T extends { id: string }>(
+  before: T[],
+  after: T[]
+): string[] {
+  const afterIds = new Set(after.map((x) => x.id));
+  return before.filter((x) => !afterIds.has(x.id)).map((x) => x.id);
+}
+
+function ids<T extends { id: string }>(items: T[]): Set<string> {
+  return new Set(items.map((x) => x.id));
+}
+
+/** Staff browser sends a full CRM snapshot — lists in `incoming` define who still exists */
+function applySnapshotMembership(base: Database, incoming: Database): Database {
+  const userIds = ids(incoming.users);
+  const vehicleIds = ids(incoming.vehicles);
+  const orderIds = ids(incoming.workOrders);
+  const aptIds = ids(incoming.appointments);
+
+  return {
+    ...base,
+    users: base.users.filter((u) => userIds.has(u.id)),
+    vehicles: base.vehicles.filter((v) => vehicleIds.has(v.id)),
+    workOrders: base.workOrders.filter((o) => orderIds.has(o.id)),
+    appointments: base.appointments.filter((a) => aptIds.has(a.id)),
+    callRequests: (base.callRequests ?? []).filter(
+      (c) => !c.userId || userIds.has(c.userId)
+    ),
+    vehicleHistory: (base.vehicleHistory ?? []).filter(
+      (h) => userIds.has(h.userId) && vehicleIds.has(h.vehicleId)
+    ),
+    notifications: (base.notifications ?? []).filter((n) => userIds.has(n.userId)),
+    clientRatings: (base.clientRatings ?? []).filter(
+      (r) => !r.userId || userIds.has(r.userId)
+    ),
+  };
+}
+
+/** Merge incoming PUT with cloud: newer fields per id, but deletions in incoming are kept */
 export function mergeCloudDocuments(existing: Database, incoming: Database): Database {
-  return mergeCloudIntoLocal(existing, incoming);
+  const merged = mergeCloudIntoLocal(incoming, existing);
+  return applySnapshotMembership(merged, incoming);
 }
