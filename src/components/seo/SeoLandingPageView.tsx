@@ -24,6 +24,7 @@ import { ServiceLandingPhotos } from "@/components/seo/landing/ServiceLandingPho
 import { ServiceLandingReviews } from "@/components/seo/landing/ServiceLandingReviews";
 import { ServiceLandingMap } from "@/components/seo/landing/ServiceLandingMap";
 import { ServiceLandingBottomCta } from "@/components/seo/landing/ServiceLandingBottomCta";
+import { SeoLandingRelatedLinks } from "@/components/seo/landing/SeoLandingRelatedLinks";
 import {
   resolveLandingBookServiceId,
   resolveLandingContentServiceId,
@@ -150,6 +151,7 @@ export function SeoLandingPageView({ page }: Props) {
               <ServiceLandingReviews serviceId={contentServiceId} />
               <SeoServiceFaq serviceId={contentServiceId} slug={page.slug} />
               <ServiceLandingMap slug={page.slug} />
+              <SeoLandingRelatedLinks slug={page.slug} />
               <ServiceLandingBottomCta
                 slug={page.slug}
                 serviceId={bookServiceId ?? contentServiceId}

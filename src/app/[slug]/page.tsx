@@ -20,15 +20,22 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const page = getSeoLandingPage(slug);
   if (!page) return {};
 
+  const cityKw = "Warszawa";
   return buildPageMetadata({
     title: page.metaTitle,
     description: page.metaDescription,
     path: `/${page.slug}`,
     keywords: [
       page.metaTitle,
+      page.title,
+      `${page.title} ${cityKw}`,
+      page.line1,
+      `${page.line2} ${cityKw}`,
       "BESS MOTORS",
       "serwis samochodowy Warszawa",
-      "Aleja Krakowska",
+      "warsztat samochodowy Włochy",
+      "Aleja Krakowska 48/52",
+      page.slug.replace(/-/g, " "),
     ],
   });
 }

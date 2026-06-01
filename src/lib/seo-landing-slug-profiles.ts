@@ -42,6 +42,24 @@ const chipPriceTable: ServiceLandingPrice = {
 /** Per-slug overrides — all 27 SEO landing URLs */
 export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
   diagnostyka: {
+    education: [
+      {
+        title: L("Diagnostyka OBD w BESS MOTORS", "Диагностика OBD"),
+        body: L(
+          "Odczyt kodów, parametry na żywo, testy podzespołów — nie tylko kasowanie błędu Check Engine.",
+          "Считывание кодов, live-параметры — не только сброс Check Engine."
+        ),
+      },
+    ],
+    faqExtra: [
+      {
+        q: L("Czy diagnostyka jest płatna?", "Диагностика платная?"),
+        a: L(
+          "Krótki odczyt kodów często bezpłatny — pełna diagnoza według cennika na stronie.",
+          "Краткий odczyt часто бесплатен — полная диагностика по прайсу."
+        ),
+      },
+    ],
     faqDuration: L("Diagnostyka komputerowa: zwykle 30–60 min.", "Компьютерная диагностика: обычно 30–60 мин."),
   },
   zawieszenie: {
@@ -121,6 +139,20 @@ export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
           "Диагностика, масло MB 229.5, тормоза, климат, электрика. A/B/C/GLA/GLC и E-класс."
         ),
       },
+      {
+        title: L("Oleje MB i AdBlue", "Масла MB и AdBlue"),
+        body: L(
+          "Dobór specyfikacji 229.5 / 229.51, kontrola poziomu AdBlue i układu SCR.",
+          "Подбор 229.5 / 229.51, контроль AdBlue и SCR."
+        ),
+      },
+      {
+        title: L("Hamulce i zawieszenie Mercedes", "Тормоза и подвеска"),
+        body: L(
+          "Klocki, tarcze, amortyzatory — części OEM lub jakości premium, z gwarancją na robociznę.",
+          "Колодки, диски, амортизаторы — OEM или premium."
+        ),
+      },
     ],
     faqExtra: [
       {
@@ -139,6 +171,20 @@ export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
         body: L(
           "Specjalizacja VAG: DSG, rozrząd, olej 504.00, diagnostyka VCDS. Warszawa Aleja Krakowska.",
           "VAG: DSG, ГРМ, масло 504.00, VCDS. Варшава."
+        ),
+      },
+      {
+        title: L("Skrzynie DSG i rozrząd", "DSG и ГРМ"),
+        body: L(
+          "Wymiana oleju DSG, kontrola łańcucha/rozrzedu — według przebiegu i historii serwisu.",
+          "Масло DSG, цепь ГРМ — по пробегу и истории."
+        ),
+      },
+      {
+        title: L("Elektryka i klima VAG", "Электрика и климат VAG"),
+        body: L(
+          "Błędy komfortu, oświetlenie, nagrzewnica — diagnostyka modułowa.",
+          "Комфорт, свет, печка — модульная диагностика."
         ),
       },
     ],
@@ -243,6 +289,19 @@ export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
           "Из Ursynów и Mokotów — 15–20 мин. Запись без очереди."
         ),
       },
+      {
+        title: L("Usługi na miejscu", "Услуги на месте"),
+        body: L(
+          "Olej, opony, hamulce, geometria, diagnostyka — kompleksowo w jednym warsztacie.",
+          "Масло, шины, тормоза, развал, диагностика — всё в одном сервисе."
+        ),
+      },
+    ],
+    faqExtra: [
+      {
+        q: L("Jak dojechać z Ursynowa?", "Как доехать с Ursynów?"),
+        a: L("S2 do Włoch lub Aleja Krakowska 48/52 — ok. 15–20 min.", "S2 до Włoch или Aleja Krakowska — 15–20 мин."),
+      },
     ],
     faqDuration: L("Czas zależy od usługi — podajemy przy rezerwacji.", "Время — при записи."),
   },
@@ -294,7 +353,21 @@ export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
           "Astra, Insignia — диагностика, подвеска, Dexos2."
         ),
       },
+      {
+        title: L("Typowe usterki Opla", "Типичные болячки Opel"),
+        body: L(
+          "EGR, kolektor, elektryka — diagnozujemy przed wymianą części.",
+          "EGR, коллектор, электрика — диагностика до замены."
+        ),
+      },
     ],
+    faqExtra: [
+      {
+        q: L("Czy macie olej Dexos2?", "Dexos2?"),
+        a: L("Tak — dobieramy specyfikację pod silnik.", "Да — по мотору."),
+      },
+    ],
+    faqDuration: L("Serwis Opel: od 1 godziny.", "Opel: от 1 часа."),
   },
   "serwis-ford": {
     bookServiceId: "diagnostic",
@@ -306,7 +379,15 @@ export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
           "Ecoboost и дизель — ГРМ, масло, тормоза."
         ),
       },
+      {
+        title: L("PowerShift / automat", "PowerShift / АКПП"),
+        body: L(
+          "Diagnostyka skrzyni, wymiana oleju ATF według zaleceń producenta.",
+          "Диагностика КПП, замена ATF."
+        ),
+      },
     ],
+    faqDuration: L("Ford: zwykle 1–3 godziny.", "Ford: 1–3 часа."),
   },
   "serwis-renault": {
     bookServiceId: "diagnostic",
@@ -318,7 +399,15 @@ export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
           "Megane, Clio, Duster — диагностика, тормоза, кондиционер."
         ),
       },
+      {
+        title: L("Klima i elektryka Renault", "Климат Renault"),
+        body: L(
+          "Nabicie klimy, odgrzybianie, błędy BSI — obsługa po diagnozie.",
+          "Заправка, антибактериальная, BSI."
+        ),
+      },
     ],
+    faqDuration: L("Renault / Dacia: od 1 godziny.", "Renault: от 1 часа."),
   },
   "serwis-peugeot": {
     bookServiceId: "diagnostic",
@@ -330,7 +419,21 @@ export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
           "PureTech и HDi — диагностика, ГРМ, масло."
         ),
       },
+      {
+        title: L("PureTech — rozrząd na czas", "PureTech — ГРМ вовремя"),
+        body: L(
+          "Kontrola łańcucha rozrządu i oleju — zapobiega kosztownym naprawom.",
+          "Контроль цепи ГРМ и масла — профилактика."
+        ),
+      },
     ],
+    faqExtra: [
+      {
+        q: L("Czy serwisujecie Citroën?", "Citroën?"),
+        a: L("Tak — grupa PSA, te same procedury.", "Да — группа PSA."),
+      },
+    ],
+    faqDuration: L("Peugeot / Citroën: od 1 godziny.", "Peugeot: от 1 часа."),
   },
   "check-engine": {
     bookServiceId: "diagnostic",

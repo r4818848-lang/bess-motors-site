@@ -325,6 +325,7 @@ const pl = {
     directionsButton: "Jak dojechać?",
     bottomCtaTitle: "Umów wizytę lub zadzwoń",
     bottomCtaSubtitle: "Rezerwacja online 24/7 · WhatsApp · Telegram",
+    relatedServicesTitle: "Powiązane usługi w Warszawie",
   },
   historyExport: {
     downloadLatest: "Pobierz PDF ostatniego zlecenia",
@@ -1846,6 +1847,7 @@ const ru: TranslationKeys = {
     directionsButton: "Маршрут",
     bottomCtaTitle: "Запишитесь или позвоните",
     bottomCtaSubtitle: "Онлайн-запись 24/7 · WhatsApp · Telegram",
+    relatedServicesTitle: "Связанные услуги в Варшаве",
   },
   historyExport: {
     downloadLatest: "Скачать PDF последнего заказа",
@@ -3526,6 +3528,7 @@ const en: TranslationKeys = {
     directionsButton: "Get directions",
     bottomCtaTitle: "Book or call us",
     bottomCtaSubtitle: "Online booking 24/7 · WhatsApp · Telegram",
+    relatedServicesTitle: "Related services in Warsaw",
   },
   historyExport: {
     downloadLatest: "Download latest order PDF",
