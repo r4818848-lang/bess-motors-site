@@ -1,4 +1,8 @@
-import { cleanEnvValue, isSupabaseConfigured } from "@/lib/server/supabase-config";
+import {
+  cleanEnvValue,
+  getSupabaseEnvDiagnostic,
+  isSupabaseConfigured,
+} from "@/lib/server/supabase-config";
 import { getVapidPublicKey } from "@/lib/server/web-push-send";
 import { isWhatsAppConfigured } from "@/lib/server/whatsapp-api";
 
@@ -20,17 +24,29 @@ export type EnvCheck = {
   id: EnvCheckId;
   ok: boolean;
   hint: string;
+  debug?: Record<string, unknown>;
 };
 
 export function getEnvHealth(): { ok: boolean; checks: EnvCheck[] } {
   const vapidPublic = getVapidPublicKey();
   const vapidPrivate = cleanEnvValue(process.env.VAPID_PRIVATE_KEY);
+  const supabaseDiag = getSupabaseEnvDiagnostic();
 
   const checks: EnvCheck[] = [
     {
       id: "supabase",
       ok: isSupabaseConfigured(),
       hint: "SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY (Secret key)",
+      debug: {
+        urlPresent: supabaseDiag.present.url,
+        urlValid: supabaseDiag.url.valid,
+        url: supabaseDiag.url.value ? `${supabaseDiag.url.value.slice(0, 20)}...` : "",
+        keyPresent: supabaseDiag.present.key,
+        keyPrefix: supabaseDiag.key.prefix,
+        keyLength: supabaseDiag.key.length,
+        keyValid: supabaseDiag.key.valid,
+        keyReason: supabaseDiag.key.reason,
+      },
     },
     {
       id: "telegram_bot",
