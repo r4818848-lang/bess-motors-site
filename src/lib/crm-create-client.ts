@@ -122,7 +122,7 @@ export async function createCrmClientWithVehicle(
       : input.name.trim();
   if (!name) return { ok: false, error: "name_required" };
 
-  const today = new Date().toISOString().slice(0, 10);
+  const nowIso = new Date().toISOString();
   const plateRaw = input.plate?.trim() ?? "";
   const plateKey = normalizePlateKey(plateRaw);
   const displayPlate = plateRaw || "—";
@@ -140,7 +140,7 @@ export async function createCrmClientWithVehicle(
       phone,
       name,
       role: "client",
-      createdAt: today,
+      createdAt: nowIso,
     };
     applyClientFields(user, { ...input, name });
     if (plateKey.length >= 2) {

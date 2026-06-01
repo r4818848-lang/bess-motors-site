@@ -31,20 +31,15 @@ function mergeById<T extends { id: string }>(
   return [...map.values()];
 }
 
-/** Merge cloud snapshot into local CRM — newer record wins per id; remote membership drops deletions */
-export function mergeCloudIntoLocal(
-  local: Database,
-  remote: Database,
-  options?: { lastCloudSyncedAt?: string }
-): Database {
-  const merged: Database = {
+function mergeCloudRecords(local: Database, remote: Database): Database {
+  return {
     ...local,
     ...remote,
     currentUserId: local.currentUserId,
     workOrders: mergeById(local.workOrders, remote.workOrders, orderStamp).sort((a, b) =>
       orderStamp(b).localeCompare(orderStamp(a))
     ),
-    users: mergeById(local.users, remote.users),
+    users: mergeById(local.users, remote.users, userStamp),
     vehicles: mergeById(local.vehicles, remote.vehicles),
     appointments: mergeById(local.appointments, remote.appointments),
     mechanics: mergeById(local.mechanics, remote.mechanics),
@@ -57,6 +52,22 @@ export function mergeCloudIntoLocal(
     passwordResets: remote.passwordResets ?? local.passwordResets,
     settings: { ...local.settings, ...remote.settings },
   };
+}
+
+/**
+ * Pull from cloud into browser — never drop local-only rows (new client/order not uploaded yet).
+ */
+export function mergeCloudPullIntoLocal(local: Database, remote: Database): Database {
+  return mergeCloudRecords(local, remote);
+}
+
+/** Merge cloud snapshot into local CRM — newer record wins per id; remote membership drops deletions */
+export function mergeCloudIntoLocal(
+  local: Database,
+  remote: Database,
+  options?: { lastCloudSyncedAt?: string }
+): Database {
+  const merged = mergeCloudRecords(local, remote);
   return applySnapshotMembership(merged, remote, options);
 }
 
@@ -89,7 +100,7 @@ function applySnapshotMembership(
   const users = base.users.filter((u) => {
     if (userIds.has(u.id)) return true;
     if (!syncCutoff) return false;
-    return userStamp(u) > syncCutoff;
+    return mergeTimestampMs(userStamp(u)) > mergeTimestampMs(syncCutoff);
   });
   const keptUserIds = ids(users);
 
@@ -104,7 +115,7 @@ function applySnapshotMembership(
     workOrders: base.workOrders.filter((o) => {
       if (orderIds.has(o.id)) return true;
       if (!syncCutoff) return false;
-      return orderStamp(o) > syncCutoff;
+      return mergeTimestampMs(orderStamp(o)) > mergeTimestampMs(syncCutoff);
     }),
     appointments: base.appointments.filter((a) => aptIds.has(a.id)),
     callRequests: (base.callRequests ?? []).filter(

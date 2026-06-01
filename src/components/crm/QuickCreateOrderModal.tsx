@@ -89,6 +89,8 @@ export function QuickCreateOrderModal({
 
   const [userId, setUserId] = useState(initialUserId ?? "");
   const [vehicleId, setVehicleId] = useState("");
+  const [clientQ, setClientQ] = useState("");
+  const [vehicleQ, setVehicleQ] = useState("");
   const [clientNotes, setClientNotes] = useState("");
   const [receptionDate, setReceptionDate] = useState(new Date().toISOString().slice(0, 10));
   const [showReceptionDate, setShowReceptionDate] = useState(false);
@@ -100,6 +102,7 @@ export function QuickCreateOrderModal({
   const [error, setError] = useState("");
 
   const wasOpenRef = useRef(false);
+  const skipDraftSaveRef = useRef(true);
 
   const hasDraft =
     Boolean(userId || vehicleId || clientNotes.trim() || services.length > 0);
@@ -133,9 +136,12 @@ export function QuickCreateOrderModal({
       acquireCrmDraftLock();
       const fresh = loadDb();
       const saved = loadQuickCreateOrderDraft();
+      skipDraftSaveRef.current = true;
       if (saved) {
         setUserId(saved.userId);
         setVehicleId(saved.vehicleId);
+        setClientQ(saved.clientQ ?? "");
+        setVehicleQ(saved.vehicleQ ?? "");
         setClientNotes(saved.clientNotes);
         setServices(saved.services);
         setMechanicId(saved.mechanicId || (fresh.mechanics[0]?.id ?? ""));
@@ -156,6 +162,8 @@ export function QuickCreateOrderModal({
         } else {
           setUserId("");
           setVehicleId("");
+          setClientQ("");
+          setVehicleQ("");
         }
       }
       setShowReceptionDate(false);
@@ -165,9 +173,15 @@ export function QuickCreateOrderModal({
 
   useEffect(() => {
     if (!open) return;
+    if (skipDraftSaveRef.current) {
+      skipDraftSaveRef.current = false;
+      return;
+    }
     saveQuickCreateOrderDraft({
       userId,
       vehicleId,
+      clientQ,
+      vehicleQ,
       clientNotes,
       services,
       mechanicId,
@@ -179,6 +193,8 @@ export function QuickCreateOrderModal({
     open,
     userId,
     vehicleId,
+    clientQ,
+    vehicleQ,
     clientNotes,
     services,
     mechanicId,
@@ -341,6 +357,10 @@ export function QuickCreateOrderModal({
             <ClientVehiclePicker
               userId={userId}
               vehicleId={vehicleId}
+              clientQ={clientQ}
+              vehicleQ={vehicleQ}
+              onClientQChange={setClientQ}
+              onVehicleQChange={setVehicleQ}
               onSelect={(uid, vid) => {
                 setUserId(uid);
                 setVehicleId(vid);

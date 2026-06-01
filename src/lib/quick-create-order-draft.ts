@@ -5,6 +5,8 @@ const KEY = "bess-quick-create-order-draft";
 export type QuickCreateOrderDraft = {
   userId: string;
   vehicleId: string;
+  clientQ?: string;
+  vehicleQ?: string;
   clientNotes: string;
   services: WorkOrderLine[];
   mechanicId: string;

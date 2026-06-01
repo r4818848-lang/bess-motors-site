@@ -18,17 +18,36 @@ type Props = {
   userId: string;
   vehicleId: string;
   onSelect: (userId: string, vehicleId: string) => void;
+  /** Controlled search fields (quick-create draft persistence) */
+  clientQ?: string;
+  vehicleQ?: string;
+  onClientQChange?: (q: string) => void;
+  onVehicleQChange?: (q: string) => void;
 };
 
-export function ClientVehiclePicker({ userId, vehicleId, onSelect }: Props) {
+export function ClientVehiclePicker({
+  userId,
+  vehicleId,
+  onSelect,
+  clientQ: clientQProp,
+  vehicleQ: vehicleQProp,
+  onClientQChange,
+  onVehicleQChange,
+}: Props) {
   const { t } = useI18n();
   const c = t.crm;
   const w = t.wo;
   const dbTick = useDbSync();
   const db = useMemo(() => loadDb(), [dbTick]);
 
-  const [vehicleQ, setVehicleQ] = useState("");
-  const [clientQ, setClientQ] = useState("");
+  const [vehicleQInternal, setVehicleQInternal] = useState("");
+  const [clientQInternal, setClientQInternal] = useState("");
+  const clientQControlled = clientQProp !== undefined && onClientQChange !== undefined;
+  const vehicleQControlled = vehicleQProp !== undefined && onVehicleQChange !== undefined;
+  const clientQ = clientQControlled ? clientQProp : clientQInternal;
+  const setClientQ = clientQControlled ? onClientQChange : setClientQInternal;
+  const vehicleQ = vehicleQControlled ? vehicleQProp : vehicleQInternal;
+  const setVehicleQ = vehicleQControlled ? onVehicleQChange : setVehicleQInternal;
   const [showVehicleList, setShowVehicleList] = useState(false);
   const [showClientList, setShowClientList] = useState(false);
   const [clientModalOpen, setClientModalOpen] = useState(false);

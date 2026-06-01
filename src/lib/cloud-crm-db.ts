@@ -1,7 +1,7 @@
 import { isCrmDraftLockActive } from "@/lib/crm-draft-lock";
 import { DB_CHANGED_EVENT, notifyCrmCloudPush } from "@/lib/db-events";
 import { syncAppointmentsFromCloud } from "@/lib/cloud-appointments";
-import { mergeCloudIntoLocal } from "@/lib/crm-db-merge";
+import { mergeCloudPullIntoLocal } from "@/lib/crm-db-merge";
 import { staffCrmFetch } from "@/lib/crm-staff-fetch";
 import { loadDb, mergeStoredDb, saveDb, type Database } from "@/lib/store";
 
@@ -122,9 +122,7 @@ export async function pullCrmFromCloud(options?: { force?: boolean }): Promise<P
       return "unchanged";
     }
 
-    const merged = mergeCloudIntoLocal(local, remote, {
-      lastCloudSyncedAt: lastSynced || undefined,
-    });
+    const merged = mergeCloudPullIntoLocal(local, remote);
     saveDb(merged, { skipCloudPush: true });
     localStorage.setItem(CLOUD_SYNCED_AT_KEY, data.updatedAt);
     await syncAppointmentsFromCloud();
@@ -182,7 +180,7 @@ export async function pushCrmToCloud(
 }
 
 export function scheduleCrmCloudPush(_db?: Database): void {
-  if (!isCrmCloudWriter()) return;
+  if (!isCrmCloudWriter() || isCrmDraftLockActive()) return;
   if (pushTimer) clearTimeout(pushTimer);
   pushTimer = setTimeout(() => {
     pushTimer = null;

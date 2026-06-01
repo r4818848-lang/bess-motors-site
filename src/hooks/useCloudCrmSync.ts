@@ -63,6 +63,7 @@ export function useCloudCrmSync(enabled = true): {
     void resync();
 
     const onSaved = (e: Event) => {
+      if (isCrmDraftLockActive()) return;
       const detail = (e as CustomEvent<Database>).detail;
       if (detail) scheduleCrmCloudPush(detail);
     };
