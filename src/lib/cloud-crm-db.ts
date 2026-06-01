@@ -1,3 +1,4 @@
+import { isCrmDraftLockActive } from "@/lib/crm-draft-lock";
 import { DB_CHANGED_EVENT, notifyCrmCloudPush } from "@/lib/db-events";
 import { syncAppointmentsFromCloud } from "@/lib/cloud-appointments";
 import { mergeCloudIntoLocal } from "@/lib/crm-db-merge";
@@ -83,6 +84,7 @@ async function revertCrmFromCloudAfterFailedPush(): Promise<void> {
 
 export async function pullCrmFromCloud(options?: { force?: boolean }): Promise<PullCrmResult> {
   if (typeof window === "undefined" || !isCrmCloudWriter()) return "skipped";
+  if (isCrmDraftLockActive()) return "skipped";
 
   try {
     const res = await staffCrmFetch("/api/crm-db", { cache: "no-store" });
@@ -119,7 +121,9 @@ export async function pullCrmFromCloud(options?: { force?: boolean }): Promise<P
       return "unchanged";
     }
 
-    const merged = mergeCloudIntoLocal(local, remote);
+    const merged = mergeCloudIntoLocal(local, remote, {
+      lastCloudSyncedAt: lastSynced || undefined,
+    });
     saveDb(merged, { skipCloudPush: true });
     localStorage.setItem(CLOUD_SYNCED_AT_KEY, data.updatedAt);
     await syncAppointmentsFromCloud();

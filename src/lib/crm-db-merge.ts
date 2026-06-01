@@ -28,7 +28,11 @@ function mergeById<T extends { id: string }>(
 }
 
 /** Merge cloud snapshot into local CRM — newer record wins per id; remote membership drops deletions */
-export function mergeCloudIntoLocal(local: Database, remote: Database): Database {
+export function mergeCloudIntoLocal(
+  local: Database,
+  remote: Database,
+  options?: { lastCloudSyncedAt?: string }
+): Database {
   const merged: Database = {
     ...local,
     ...remote,
@@ -49,7 +53,7 @@ export function mergeCloudIntoLocal(local: Database, remote: Database): Database
     passwordResets: remote.passwordResets ?? local.passwordResets,
     settings: { ...local.settings, ...remote.settings },
   };
-  return applySnapshotMembership(merged, remote);
+  return applySnapshotMembership(merged, remote, options);
 }
 
 export function collectRemovedIds<T extends { id: string }>(
@@ -65,17 +69,28 @@ function ids<T extends { id: string }>(items: T[]): Set<string> {
 }
 
 /** Staff browser sends a full CRM snapshot — lists in `incoming` define who still exists */
-function applySnapshotMembership(base: Database, incoming: Database): Database {
+function applySnapshotMembership(
+  base: Database,
+  incoming: Database,
+  options?: { lastCloudSyncedAt?: string }
+): Database {
   const userIds = ids(incoming.users);
   const vehicleIds = ids(incoming.vehicles);
   const orderIds = ids(incoming.workOrders);
   const aptIds = ids(incoming.appointments);
+  const syncCutoff = options?.lastCloudSyncedAt
+    ? normalizeIsoTimestamp(options.lastCloudSyncedAt)
+    : "";
 
   return {
     ...base,
     users: base.users.filter((u) => userIds.has(u.id)),
     vehicles: base.vehicles.filter((v) => vehicleIds.has(v.id)),
-    workOrders: base.workOrders.filter((o) => orderIds.has(o.id)),
+    workOrders: base.workOrders.filter((o) => {
+      if (orderIds.has(o.id)) return true;
+      if (!syncCutoff) return false;
+      return orderStamp(o) > syncCutoff;
+    }),
     appointments: base.appointments.filter((a) => aptIds.has(a.id)),
     callRequests: (base.callRequests ?? []).filter(
       (c) => !c.userId || userIds.has(c.userId)

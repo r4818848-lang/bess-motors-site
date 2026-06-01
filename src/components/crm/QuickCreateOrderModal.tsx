@@ -31,6 +31,7 @@ import { crmWorkLineTemplates, workTemplateLabel } from "@/lib/crm-work-template
 import { ClientVehiclePicker } from "./ClientVehiclePicker";
 import { PriceNumberInput } from "@/components/ui/PriceNumberInput";
 import { Button } from "@/components/ui/Button";
+import { setCrmDraftLock } from "@/lib/crm-draft-lock";
 
 function emptyOrder(db: Database): WorkOrder {
   return {
@@ -93,8 +94,31 @@ export function QuickCreateOrderModal({
   const [showTemplates, setShowTemplates] = useState(false);
   const [error, setError] = useState("");
 
+  const hasDraft =
+    Boolean(userId || vehicleId || clientNotes.trim() || services.length > 0);
+
+  const requestClose = () => {
+    if (
+      hasDraft &&
+      !window.confirm(
+        locale === "ru"
+          ? "Закрыть без сохранения? Введённые данные пропадут."
+          : locale === "pl"
+            ? "Zamknąć bez zapisu? Wprowadzone dane zostaną utracone."
+            : "Close without saving? Your entries will be lost."
+      )
+    ) {
+      return;
+    }
+    onClose();
+  };
+
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      setCrmDraftLock(false);
+      return;
+    }
+    setCrmDraftLock(true);
     const fresh = loadDb();
     setMechanicId(fresh.mechanics[0]?.id ?? "");
     setVatEnabled(fresh.settings.vatEnabledByDefault ?? true);
@@ -112,6 +136,7 @@ export function QuickCreateOrderModal({
       setVehicleId("");
     }
     setReceptionDate(new Date().toISOString().slice(0, 10));
+    return () => setCrmDraftLock(false);
   }, [open, initialUserId]);
 
   const draftOrder = useMemo((): WorkOrder => {
@@ -176,9 +201,9 @@ export function QuickCreateOrderModal({
     const ok = await saveDbAndPushCrm(synced);
     if (!ok) {
       setError(c.pushSyncFailed);
-      onCreated(order.id);
       return;
     }
+    setCrmDraftLock(false);
     onCreated(order.id);
     onClose();
   };
@@ -188,7 +213,7 @@ export function QuickCreateOrderModal({
       className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/40"
       role="dialog"
       aria-modal
-      onClick={(e) => e.target === e.currentTarget && onClose()}
+      onClick={(e) => e.target === e.currentTarget && requestClose()}
     >
       <div
         className="crm-modal-panel crm-create-order-modal w-full sm:max-w-5xl max-h-[96dvh] flex flex-col overflow-hidden safe-area-pb"
@@ -229,7 +254,7 @@ export function QuickCreateOrderModal({
           </div>
           <button
             type="button"
-            onClick={onClose}
+            onClick={requestClose}
             className="crm-mw-modal-close shrink-0"
             aria-label={t.common.cancel}
           >
@@ -489,7 +514,7 @@ export function QuickCreateOrderModal({
         </form>
 
         <div className="crm-mw-modal-footer shrink-0 flex flex-col-reverse sm:flex-row gap-2 justify-end">
-          <Button type="button" variant="outline" onClick={onClose}>
+          <Button type="button" variant="outline" onClick={requestClose}>
             {t.common.cancel}
           </Button>
           <Button type="button" onClick={() => void handleCreate()}>
