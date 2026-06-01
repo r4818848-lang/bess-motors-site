@@ -273,7 +273,7 @@ export function WorkOrderForm({
     e.target.value = "";
   };
 
-  const persistOrder = (draft: WorkOrder) => {
+  const persistOrder = (draft: WorkOrder, opts?: { close?: boolean }) => {
     if (!draft.userId || !draft.vehicleId) {
       setSaveError(w.selectClientVehicle);
       if (isNew) setCreateStep("client");
@@ -313,7 +313,7 @@ export function WorkOrderForm({
       markInviteeDiscountUsed(fresh, updated.userId, updated);
     }
     saveDb(syncWarehouseFromWorkOrder(fresh, updated));
-    onSaved();
+    if (opts?.close !== false) onSaved();
     return true;
   };
 
@@ -525,13 +525,13 @@ export function WorkOrderForm({
             value={order.documentStatus ?? "awaiting_signature"}
             onChange={(e) => {
               const documentStatus = e.target.value as DocumentStatus;
-              setOrder(
-                applyWorkOrderClosure({
-                  ...order,
-                  documentStatus,
-                  ...(documentStatus === "delivered" ? { status: "delivered" as const } : {}),
-                })
-              );
+              const next = applyWorkOrderClosure({
+                ...order,
+                documentStatus,
+                ...(documentStatus === "delivered" ? { status: "delivered" as const } : {}),
+              });
+              setOrder(next);
+              if (!isNew) persistOrder(next, { close: false });
             }}
           >
             {documentStatuses.map((s) => (
@@ -576,7 +576,9 @@ export function WorkOrderForm({
                       ? order.documentStatus
                       : deriveDocumentStatus(status, order.confirmationStatus),
               };
-              setOrder(status === "delivered" ? applyWorkOrderClosure(next) : next);
+              const draft = status === "delivered" ? applyWorkOrderClosure(next) : next;
+              setOrder(draft);
+              if (!isNew) persistOrder(draft, { close: false });
             }}
           >
             {statuses.map((s) => (

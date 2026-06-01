@@ -45,6 +45,8 @@ export default function StatusPage() {
           setError(s.unavailable);
         } else if (data.error === "rate_limit" || res.status === 429) {
           setError(s.rateLimit);
+        } else if (data.error === "no_active") {
+          setError(s.noActive);
         } else {
           setError(s.notFound);
         }

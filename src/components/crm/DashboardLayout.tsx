@@ -151,7 +151,7 @@ function DashboardLayoutInner({
       title: c.navSystem,
       items: [
         { href: "/crm?tab=settings", path: "/crm", icon: Settings, label: t.wo.settingsTitle, tab: "settings" },
-        { href: "/mechanic", path: "/mechanic", icon: Wrench, label: c.mechanics },
+        { href: "/crm?tab=settings", path: "/crm", icon: Wrench, label: c.mechanics, tab: "settings" },
       ],
     },
   ];

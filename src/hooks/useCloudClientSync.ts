@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { DB_CHANGED_EVENT } from "@/lib/db-events";
 import { pullClientPortalFromCloud } from "@/lib/client-portal";
+import { syncAppointmentsFromCloud } from "@/lib/cloud-appointments";
 import { useVisibleInterval } from "@/hooks/useVisibleInterval";
 
 /** Pull client work orders and profile from Supabase */
@@ -19,6 +20,7 @@ export function useCloudClientSync(enabled = true): {
     setSyncing(true);
     try {
       const pulled = await pullClientPortalFromCloud();
+      await syncAppointmentsFromCloud();
       setSyncFailed(!pulled);
       if (pulled) {
         window.dispatchEvent(new CustomEvent(DB_CHANGED_EVENT));

@@ -2,9 +2,9 @@
 
 import { useMemo, useState } from "react";
 import { useDbSync } from "@/hooks/useDbSync";
-import { loadDb, saveDb, type RepairStatus, type WorkOrder } from "@/lib/store";
+import { loadDb, type RepairStatus, type WorkOrder } from "@/lib/store";
 import { useI18n } from "@/lib/i18n/context";
-import { handleWorkOrderClientNotifications } from "@/lib/client-notifications";
+import { saveWorkOrderStatus } from "@/lib/work-order-status-update";
 
 const COLS: RepairStatus[] = [
   "received",
@@ -37,11 +37,7 @@ export function WorkOrderKanban({ orders }: { orders?: import("@/lib/store").Wor
     const db = loadDb();
     const order = db.workOrders.find((o) => o.id === orderId);
     if (!order || order.status === status) return;
-    const prev = { ...order };
-    order.status = status;
-    order.updatedAt = new Date().toISOString().slice(0, 10);
-    handleWorkOrderClientNotifications(db, order, prev);
-    saveDb(db);
+    saveWorkOrderStatus(orderId, status);
     setDragId(null);
   };
 

@@ -45,5 +45,8 @@ export async function POST(req: NextRequest) {
   }
 
   const result = await resolveExtraWorkApproval(body.orderId, body.approved);
-  return NextResponse.json({ ok: result.ok });
+  if (!result.ok) {
+    return NextResponse.json({ ok: false, error: "save_failed" }, { status: 502 });
+  }
+  return NextResponse.json({ ok: true });
 }

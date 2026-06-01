@@ -34,7 +34,10 @@ export async function requestExtraWorkApproval(
   const { runCrmAutomation } = await import("@/lib/crm-automation");
   runCrmAutomation(db, snap.doc as Database);
 
-  await cloudPutCrmStore(db);
+  const put = await cloudPutCrmStore(db);
+  if (!put.ok) {
+    return { ok: false, message: "Не удалось сохранить в облако" };
+  }
 
   const user = db.users.find((u) => u.id === order.userId);
   if (user?.telegramChatId && canSendBotNotify(user, "status")) {

@@ -4,53 +4,44 @@ import { useState } from "react";
 import { useI18n } from "@/lib/i18n/context";
 import { DB_CHANGED_EVENT } from "@/lib/db-events";
 import { pullClientPortalFromCloud } from "@/lib/client-portal";
-import { loadDb, saveDb, type Database, type WorkOrder } from "@/lib/store";
-import { calcClientTotal } from "@/lib/workorder-calc";
+import type { WorkOrder } from "@/lib/store";
 import { Card } from "@/components/ui/Card";
-
-function resolveLocal(db: Database, orderId: string, approved: boolean): boolean {
-  const order = db.workOrders.find((o) => o.id === orderId);
-  const pending = order?.pendingExtraApproval;
-  if (!order || !pending || pending.status !== "pending") return false;
-  if (approved) {
-    order.services = [...order.services, ...pending.lines];
-    pending.status = "approved";
-  } else {
-    pending.status = "rejected";
-  }
-  order.updatedAt = new Date().toISOString().slice(0, 10);
-  order.lastNotifiedClientTotal = calcClientTotal(order);
-  saveDb(db);
-  return true;
-}
 
 export function ExtraWorkApprovalCabinet({ orders }: { orders: WorkOrder[] }) {
   const { t } = useI18n();
   const e = t.extraWork;
   const [busy, setBusy] = useState<string | null>(null);
+  const [error, setError] = useState("");
   const pending = orders.filter((o) => o.pendingExtraApproval?.status === "pending");
 
   if (!pending.length) return null;
 
   const onResolve = async (orderId: string, approved: boolean) => {
     setBusy(orderId);
+    setError("");
     try {
       const token = localStorage.getItem("bess-jwt");
+      if (!token) {
+        setError(e.title);
+        return;
+      }
       const res = await fetch("/api/extra-work", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ orderId, approved }),
       });
-      if (res.ok) {
+      const data = (await res.json()) as { ok?: boolean };
+      if (res.ok && data.ok) {
         await pullClientPortalFromCloud();
         window.dispatchEvent(new CustomEvent(DB_CHANGED_EVENT));
         return;
       }
-      const db = loadDb();
-      resolveLocal(db, orderId, approved);
+      setError(e.title);
+    } catch {
+      setError(e.title);
     } finally {
       setBusy(null);
     }
@@ -58,6 +49,7 @@ export function ExtraWorkApprovalCabinet({ orders }: { orders: WorkOrder[] }) {
 
   return (
     <div className="space-y-4 mb-6">
+      {error && <p className="text-sm text-bm-red">{error}</p>}
       {pending.map((o) => {
         const p = o.pendingExtraApproval!;
         return (

@@ -17,6 +17,11 @@ const STATUS_LABELS: Record<RepairStatus, { pl: string; ru: string; en: string }
   delivered: { pl: "Wydany", ru: "Выдан", en: "Delivered" },
 };
 
+function orderMatchesPlate(db: Database, order: WorkOrder, plateKey: string): boolean {
+  const vehicle = db.vehicles.find((v) => v.id === order.vehicleId);
+  return !!vehicle && normalizePlateKey(vehicle.plate) === plateKey;
+}
+
 function findClient(db: Database, phone: string, plate: string) {
   const phoneKey = normalizePhone(phone);
   const plateKey = normalizePlateKey(plate);
@@ -27,18 +32,34 @@ function findClient(db: Database, phone: string, plate: string) {
   );
   if (!user) return null;
 
-  const vehicle = db.vehicles.find(
-    (v) => v.userId === user.id && normalizePlateKey(v.plate) === plateKey
-  );
-  if (!vehicle) return null;
-
-  const orders = db.workOrders
-    .filter((o) => o.userId === user.id && o.vehicleId === vehicle.id)
+  const userOrders = db.workOrders
+    .filter((o) => o.userId === user.id)
     .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
 
-  const active = orders.find((o) => o.status !== "delivered") ?? null;
+  let matched = userOrders.filter((o) => orderMatchesPlate(db, o, plateKey));
+  const aptMatch = db.appointments.some(
+    (a) =>
+      a.userId === user.id &&
+      normalizePlateKey(a.clientPlate ?? "") === plateKey
+  );
+  if (matched.length === 0 && aptMatch) {
+    matched = userOrders;
+  }
+  if (matched.length === 0) return null;
 
-  return { user, vehicle, active, ordersCount: orders.length };
+  const active = matched.find((o) => o.status !== "delivered") ?? null;
+  const vehicle =
+    db.vehicles.find((v) => v.userId === user.id && normalizePlateKey(v.plate) === plateKey) ??
+    db.vehicles.find((v) => v.id === (active ?? matched[0])!.vehicleId) ??
+    null;
+
+  return {
+    user,
+    vehicle,
+    active,
+    ordersCount: matched.length,
+    noActive: !active,
+  };
 }
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
@@ -58,8 +79,11 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
   const db = snap.doc as Database;
   const hit = findClient(db, phone, plate);
-  if (!hit?.active) {
+  if (!hit) {
     return NextResponse.json({ ok: false, error: "not_found" }, { status: 404 });
+  }
+  if (hit.noActive || !hit.active) {
+    return NextResponse.json({ ok: false, error: "no_active" }, { status: 404 });
   }
 
   const o: WorkOrder = hit.active;
@@ -75,6 +99,8 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     ? partsLabels[o.clientPartsStatus][lang]
     : null;
 
+  const v = hit.vehicle;
+
   return NextResponse.json({
     ok: true,
     orderId: o.id,
@@ -89,9 +115,9 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     queuePosition: queue?.position ?? null,
     queueTotal: queue?.total ?? null,
     vehicle: {
-      make: hit.vehicle.make,
-      model: hit.vehicle.model,
-      plate: hit.vehicle.plate,
+      make: v?.make ?? "",
+      model: v?.model ?? "",
+      plate: v?.plate ?? plate,
     },
     ordersCount: hit.ordersCount,
   });

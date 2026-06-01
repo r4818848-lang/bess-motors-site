@@ -41,6 +41,7 @@ export function pickWorkOrderForClient(
   if (orderId) {
     const linked = pending.find((o) => o.id === orderId);
     if (linked) return linked;
+    return null;
   }
   return pending[0] ?? null;
 }

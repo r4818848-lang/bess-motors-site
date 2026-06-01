@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, Suspense, useMemo } from "react";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
   Plus,
@@ -21,19 +21,12 @@ import { useCrmDisplay } from "@/contexts/CrmDisplayContext";
 import { DashboardLayout } from "@/components/crm/DashboardLayout";
 import { WorkOrderForm } from "@/components/crm/WorkOrderForm";
 import { CrmPageHeader } from "@/components/crm/CrmPageHeader";
-import { logoutAdmin } from "@/lib/auth";
-import {
-  loadDb,
-  saveDb,
-  deriveDocumentStatus,
-  type RepairStatus,
-  type WorkOrder,
-} from "@/lib/store";
+import { isAdminAuthenticated, logoutAdmin } from "@/lib/auth";
+import { loadDb, saveDb, type RepairStatus } from "@/lib/store";
 import { filterWorkOrders, defaultWorkOrderFilters } from "@/lib/workorder-filters";
 import { applyWorkOrderClosure, filterOpenWorkOrders } from "@/lib/work-order-lifecycle";
-import { applyWorkOrderCompletedAt } from "@/lib/work-order-dates";
-import { syncWarehouseFromWorkOrder } from "@/lib/warehouse-stock";
-import { handleWorkOrderClientNotifications } from "@/lib/client-notifications";
+import { saveWorkOrderStatus } from "@/lib/work-order-status-update";
+import { pullCrmFromCloud } from "@/lib/cloud-crm-db";
 import { filterWorkOrdersByQuery } from "@/lib/crm-search";
 import { WorkOrderFilters } from "@/components/crm/WorkOrderFilters";
 import { WorkOrderKanban } from "@/components/crm/WorkOrderKanban";
@@ -48,7 +41,10 @@ function WorkOrdersPageContent() {
   const w = t.wo;
   const c = t.crm;
   const { priceMode, setPriceMode } = useCrmDisplay();
+  const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
+  const crmRole = isAdminAuthenticated() ? "admin" : "mechanic";
   const [editingId, setEditingId] = useState<string | null>(null);
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [kanbanOpen, setKanbanOpen] = useState(false);
@@ -61,7 +57,18 @@ function WorkOrdersPageContent() {
   const [filters, setFilters] = useState(defaultWorkOrderFilters);
   const { isPinned, toggle: togglePin } = usePinnedWorkOrders();
 
-  const refresh = useCallback(() => {}, []);
+  const refresh = useCallback(() => {
+    void pullCrmFromCloud({ force: true });
+  }, []);
+
+  const closeEditor = useCallback(() => {
+    setEditingId(null);
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("edit");
+    params.delete("create");
+    const q = params.toString();
+    router.replace(q ? `${pathname}?${q}` : pathname);
+  }, [pathname, router, searchParams]);
 
   useEffect(() => {
     const edit = searchParams.get("edit");
@@ -122,21 +129,8 @@ function WorkOrdersPageContent() {
 
   const markDelivered = (orderId: string) => {
     if (!confirm(c.markDeliveredConfirm)) return;
-    const fresh = loadDb();
-    const idx = fresh.workOrders.findIndex((o) => o.id === orderId);
-    if (idx < 0) return;
-    const previous = { ...fresh.workOrders[idx] };
-    const updated = applyWorkOrderCompletedAt(
-      applyWorkOrderClosure({
-        ...fresh.workOrders[idx],
-        documentStatus: "delivered",
-        status: "delivered",
-      })
-    );
-    fresh.workOrders[idx] = updated;
-    handleWorkOrderClientNotifications(fresh, updated, previous);
-    saveDb(syncWarehouseFromWorkOrder(fresh, updated));
-    if (editingId === orderId) setEditingId(null);
+    saveWorkOrderStatus(orderId, "delivered");
+    if (editingId === orderId) closeEditor();
     setSelectedIds((prev) => {
       const next = new Set(prev);
       next.delete(orderId);
@@ -146,41 +140,20 @@ function WorkOrdersPageContent() {
   };
 
   const updateStatus = (orderId: string, status: RepairStatus) => {
-    const fresh = loadDb();
-    const idx = fresh.workOrders.findIndex((o) => o.id === orderId);
-    if (idx < 0) return;
-    const previous = { ...fresh.workOrders[idx] };
-    const order = fresh.workOrders[idx];
-    let next: WorkOrder = {
-      ...order,
-      status,
-      documentStatus:
-        status === "delivered"
-          ? "delivered"
-          : order.documentStatus && order.confirmationStatus === "confirmed"
-            ? order.documentStatus
-            : deriveDocumentStatus(status, order.confirmationStatus),
-    };
-    if (status === "delivered") {
-      next = applyWorkOrderClosure(next);
-    }
-    const updated = applyWorkOrderCompletedAt(next);
-    fresh.workOrders[idx] = updated;
-    handleWorkOrderClientNotifications(fresh, updated, previous);
-    saveDb(syncWarehouseFromWorkOrder(fresh, updated));
-    if (status === "delivered" && editingId === orderId) setEditingId(null);
+    saveWorkOrderStatus(orderId, status);
+    if (status === "delivered" && editingId === orderId) closeEditor();
     refresh();
   };
 
   if (editingId) {
     return (
-      <DashboardLayout role="admin">
+      <DashboardLayout role={crmRole}>
         <div className="crm-page-padding">
           <WorkOrderForm
             orderId={editingId}
-            onClose={() => setEditingId(null)}
+            onClose={closeEditor}
             onSaved={() => {
-              setEditingId(null);
+              closeEditor();
               refresh();
             }}
           />
@@ -190,7 +163,7 @@ function WorkOrdersPageContent() {
   }
 
   return (
-    <DashboardLayout role="admin">
+    <DashboardLayout role={crmRole}>
       <div className="crm-page-padding space-y-4">
         <div className="crm-mw-page-top">
           <CrmPageHeader
@@ -288,7 +261,13 @@ function WorkOrdersPageContent() {
           {filtersOpen && (
             <div className="mt-3 space-y-3 border-t border-gray-200 pt-3">
               <CrmWorkOrderPresets
-                active={filters.preset ?? (filters.repairStatus !== "all" ? "parts" : "all")}
+                active={
+                  filters.preset !== "all"
+                    ? filters.preset
+                    : filters.repairStatus === "waitingParts"
+                      ? "parts"
+                      : "all"
+                }
                 onApply={(patch) => setFilters({ ...filters, ...patch })}
               />
               <WorkOrderFilters filters={filters} onChange={setFilters} openOrdersOnly />

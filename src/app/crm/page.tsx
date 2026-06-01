@@ -105,7 +105,9 @@ function CRMPageContent() {
   const [tab, setTab] = useState<CrmTab>("overview");
   const [search, setSearch] = useState("");
   const dbTick = useDbSync();
-  const refresh = useCallback(() => {}, []);
+  const refresh = useCallback(() => {
+    void import("@/lib/cloud-crm-db").then((m) => m.pullCrmFromCloud({ force: true }));
+  }, []);
 
   void dbTick;
 
@@ -129,7 +131,7 @@ function CRMPageContent() {
     ) {
       setTab(q);
     } else if (!q) {
-      router.replace("/crm/work-orders");
+      setTab("overview");
     }
   }, [searchParams, router]);
 

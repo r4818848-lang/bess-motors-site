@@ -16,10 +16,26 @@ const presetDefs: {
   patch: Partial<WorkOrderListFilters>;
 }[] = [
   { id: "all", labelKey: "woPresetAll", patch: { preset: "all", repairStatus: "all", paymentStatus: "all" } },
-  { id: "unsigned", labelKey: "woPresetSign", patch: { preset: "unsigned" } },
-  { id: "unpaid", labelKey: "woPresetUnpaidReady", patch: { preset: "unpaid_ready" } },
-  { id: "sla", labelKey: "woPresetSla", patch: { preset: "sla_critical" } },
-  { id: "parts", labelKey: "woPresetParts", patch: { repairStatus: "waitingParts", preset: "all" } },
+  {
+    id: "unsigned",
+    labelKey: "woPresetSign",
+    patch: { preset: "unsigned", repairStatus: "all", paymentStatus: "all" },
+  },
+  {
+    id: "unpaid",
+    labelKey: "woPresetUnpaidReady",
+    patch: { preset: "unpaid_ready", repairStatus: "all", paymentStatus: "all" },
+  },
+  {
+    id: "sla",
+    labelKey: "woPresetSla",
+    patch: { preset: "sla_critical", repairStatus: "all", paymentStatus: "all" },
+  },
+  {
+    id: "parts",
+    labelKey: "woPresetParts",
+    patch: { repairStatus: "waitingParts", paymentStatus: "all", preset: "all" },
+  },
 ];
 
 export function CrmWorkOrderPresets({
