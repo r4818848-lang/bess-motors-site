@@ -59,6 +59,7 @@ import { mergeRemoteWorkOrderPatch } from "@/lib/work-order-remote-sync";
 import { ClientVehiclePicker } from "@/components/crm/ClientVehiclePicker";
 import { CrmPageHeader } from "@/components/crm/CrmPageHeader";
 import { applyWorkOrderCompletedAt } from "@/lib/work-order-dates";
+import { nowIsoTimestamp } from "@/lib/work-order-timestamp";
 import { applyWorkOrderClosure, isWorkOrderClosed } from "@/lib/work-order-lifecycle";
 
 type CreateStep = "client" | "works" | "more";
@@ -90,7 +91,7 @@ function emptyOrder(db: Database): WorkOrder {
     clientNotes: "",
     files: [],
     createdAt: new Date().toISOString().slice(0, 10),
-    updatedAt: new Date().toISOString().slice(0, 10),
+    updatedAt: nowIsoTimestamp(),
     confirmationStatus: "awaiting_confirmation",
     documentStatus: "awaiting_signature",
     vatEnabled: db.settings.vatEnabledByDefault ?? true,
@@ -291,7 +292,7 @@ export function WorkOrderForm({
       applyWorkOrderClosure({
         ...draft,
         documentStatus,
-        updatedAt: new Date().toISOString().slice(0, 10),
+        updatedAt: nowIsoTimestamp(),
         paymentStatus: draft.paymentStatus ?? "unpaid",
         ...(isPaid
           ? { paidAt: draft.paidAt ?? new Date().toISOString().slice(0, 10) }

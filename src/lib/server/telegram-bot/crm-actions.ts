@@ -59,7 +59,7 @@ export async function applyWorkOrderStatus(
     if (!order) return false;
     const prev = { ...order };
     order.status = status;
-    order.updatedAt = new Date().toISOString().slice(0, 10);
+    order.updatedAt = new Date().toISOString();
     handleWorkOrderClientNotifications(db, order, prev);
     return orderNumber;
   });
@@ -90,7 +90,7 @@ export async function markWorkOrderPaid(
     if (!order) return false;
     const prev = { ...order };
     order.paymentStatus = paid ? "paid" : "unpaid";
-    order.updatedAt = new Date().toISOString().slice(0, 10);
+    order.updatedAt = new Date().toISOString();
     handleWorkOrderClientNotifications(db, order, prev);
     return orderNumber;
   });

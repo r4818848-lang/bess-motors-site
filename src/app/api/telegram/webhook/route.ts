@@ -8,8 +8,9 @@ export const runtime = "nodejs";
 export async function POST(req: Request) {
   const secret = cleanEnvValue(process.env.TELEGRAM_WEBHOOK_SECRET);
   if (process.env.NODE_ENV === "production" && !secret) {
-    console.error(
-      "[telegram webhook] TELEGRAM_WEBHOOK_SECRET is not set — webhook is open. Set secret in Vercel and re-run /api/telegram/setup"
+    return NextResponse.json(
+      { ok: false, error: "webhook_secret_required" },
+      { status: 503 }
     );
   }
   if (secret) {

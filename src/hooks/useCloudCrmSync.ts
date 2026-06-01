@@ -1,8 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { DB_SAVED_EVENT } from "@/lib/db-events";
+import { CRM_CLOUD_PUSH_EVENT, DB_SAVED_EVENT } from "@/lib/db-events";
 import {
+  fetchCloudConfigured,
   pullCrmFromCloud,
   pushCrmIfCloudEmpty,
   scheduleCrmCloudPush,
@@ -14,19 +15,30 @@ import { useVisibleInterval } from "@/hooks/useVisibleInterval";
 export function useCloudCrmSync(enabled = true): {
   syncing: boolean;
   syncFailed: boolean;
+  cloudConfigured: boolean;
+  pushFailed: boolean;
   resync: () => Promise<boolean>;
 } {
   const [syncing, setSyncing] = useState(false);
   const [syncFailed, setSyncFailed] = useState(false);
+  const [cloudConfigured, setCloudConfigured] = useState(true);
+  const [pushFailed, setPushFailed] = useState(false);
 
   const resync = useCallback(async (): Promise<boolean> => {
     if (!enabled) return false;
     setSyncing(true);
     try {
+      const configured = await fetchCloudConfigured();
+      setCloudConfigured(configured);
+      if (!configured) {
+        setSyncFailed(true);
+        return false;
+      }
       await pushCrmIfCloudEmpty();
       const result = await pullCrmFromCloud({ force: true });
       const ok = result !== "error" && result !== "skipped";
-      setSyncFailed(result === "error");
+      setSyncFailed(!ok);
+      if (ok) setPushFailed(false);
       return ok;
     } catch {
       setSyncFailed(true);
@@ -39,24 +51,38 @@ export function useCloudCrmSync(enabled = true): {
   useEffect(() => {
     if (!enabled) return;
 
+    void fetchCloudConfigured().then(setCloudConfigured);
     void resync();
 
     const onSaved = (e: Event) => {
       const detail = (e as CustomEvent<Database>).detail;
       if (detail) scheduleCrmCloudPush(detail);
     };
-    window.addEventListener(DB_SAVED_EVENT, onSaved);
+    const onPush = (e: Event) => {
+      const detail = (e as CustomEvent<{ ok?: boolean }>).detail;
+      if (detail?.ok === false) setPushFailed(true);
+      else if (detail?.ok === true) setPushFailed(false);
+    };
 
+    window.addEventListener(DB_SAVED_EVENT, onSaved);
+    window.addEventListener(CRM_CLOUD_PUSH_EVENT, onPush);
     const onFocus = () => void resync();
     window.addEventListener("focus", onFocus);
 
     return () => {
       window.removeEventListener(DB_SAVED_EVENT, onSaved);
+      window.removeEventListener(CRM_CLOUD_PUSH_EVENT, onPush);
       window.removeEventListener("focus", onFocus);
     };
   }, [enabled, resync]);
 
   useVisibleInterval(() => void resync(), 20_000, enabled);
 
-  return { syncing, syncFailed, resync };
+  return {
+    syncing,
+    syncFailed: syncFailed || !cloudConfigured || pushFailed,
+    cloudConfigured,
+    pushFailed,
+    resync,
+  };
 }

@@ -811,7 +811,7 @@ function migrateWorkOrder(o: Partial<WorkOrder> & { id: string; mechanicCommissi
     orderDiscount: 0,
     internalNotes: "",
     clientNotes: "",
-    updatedAt: o.createdAt ?? new Date().toISOString().slice(0, 10),
+    updatedAt: o.createdAt ?? new Date().toISOString(),
     ...o,
     mechanicLaborPercent: labor,
     mechanicPartsPercent: parts,

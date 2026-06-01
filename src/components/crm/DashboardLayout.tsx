@@ -110,7 +110,9 @@ function DashboardLayoutInner({
   const { theme, toggleTheme } = useCrmDisplay();
   const [drawerOpen, setDrawerOpen] = useState(false);
   useCloudAppointmentsSync(role === "admin");
-  const { syncing, syncFailed, resync } = useCloudCrmSync(role === "admin" || role === "mechanic");
+  const { syncing, syncFailed, cloudConfigured, pushFailed, resync } = useCloudCrmSync(
+    role === "admin" || role === "mechanic"
+  );
   const hotBadge = useHotOrdersBadgeCount();
 
   const adminSections: NavSection[] = [
@@ -231,13 +233,15 @@ function DashboardLayoutInner({
     <div className="text-[10px] uppercase tracking-wide">
       {syncing ? (
         <span className="text-bm-muted">{c.syncing}</span>
-      ) : syncFailed ? (
+      ) : !cloudConfigured ? (
+        <span className="text-amber-400">{c.cloudNotConfigured}</span>
+      ) : syncFailed || pushFailed ? (
         <button
           type="button"
           className="text-amber-400 hover:text-bm-red"
           onClick={() => void resync()}
         >
-          {c.syncFailed} · {c.syncNow}
+          {pushFailed ? c.pushSyncFailed : c.syncFailed} · {c.syncNow}
         </button>
       ) : (
         <span className="text-green-500">{c.cloudSynced}</span>

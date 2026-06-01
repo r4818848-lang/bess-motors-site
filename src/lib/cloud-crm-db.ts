@@ -1,4 +1,4 @@
-import { DB_CHANGED_EVENT } from "@/lib/db-events";
+import { DB_CHANGED_EVENT, notifyCrmCloudPush } from "@/lib/db-events";
 import { syncAppointmentsFromCloud } from "@/lib/cloud-appointments";
 import { mergeCloudIntoLocal } from "@/lib/crm-db-merge";
 import { loadDb, mergeStoredDb, saveDb, type Database } from "@/lib/store";
@@ -9,6 +9,7 @@ const CLOUD_SYNCED_AT_KEY = "bess-crm-cloud-synced-at";
 
 let pushTimer: ReturnType<typeof setTimeout> | null = null;
 let pushInFlight = false;
+let pushQueued: Database | null = null;
 
 function isStaffCloudWriter(): boolean {
   if (typeof window === "undefined") return false;
@@ -42,8 +43,9 @@ export async function pullCrmFromCloud(options?: { force?: boolean }): Promise<P
       cloud?: boolean;
       db?: Database | null;
       updatedAt?: string | null;
+      error?: string;
     };
-    if (!data.cloud) return "error";
+    if (data.cloud === false || data.error === "cloud_disabled") return "error";
 
     const local = loadDb();
     const lastSynced = localStorage.getItem(CLOUD_SYNCED_AT_KEY) ?? "";
@@ -81,15 +83,20 @@ export async function pullCrmFromCloud(options?: { force?: boolean }): Promise<P
 
 export async function pushCrmToCloud(db?: Database): Promise<boolean> {
   if (typeof window === "undefined" || !isCrmCloudWriter()) return false;
-  if (pushInFlight) return false;
 
   const token = localStorage.getItem(TOKEN_KEY);
   if (!token) return false;
 
+  const payload = dbForCloud(db ?? loadDb());
+
+  if (pushInFlight) {
+    pushQueued = payload;
+    return false;
+  }
+
   // Always merge cloud state before push so this device does not overwrite orders from other devices.
   await pullCrmFromCloud({ force: true });
 
-  const payload = dbForCloud(db ?? loadDb());
   pushInFlight = true;
   try {
     const res = await fetch("/api/crm-db", {
@@ -102,17 +109,26 @@ export async function pushCrmToCloud(db?: Database): Promise<boolean> {
     });
     if (!res.ok) {
       console.warn("[cloud] CRM push failed", res.status, await res.text());
+      notifyCrmCloudPush(false);
       return false;
     }
-    const data = (await res.json()) as { ok?: boolean; updatedAt?: string };
+    const data = (await res.json()) as { ok?: boolean; updatedAt?: string; error?: string };
+    const ok = data.ok === true;
     if (data.updatedAt) {
       localStorage.setItem(CLOUD_SYNCED_AT_KEY, data.updatedAt);
     }
-    return data.ok === true;
+    notifyCrmCloudPush(ok, data.error);
+    return ok;
   } catch {
+    notifyCrmCloudPush(false);
     return false;
   } finally {
     pushInFlight = false;
+    if (pushQueued) {
+      const next = pushQueued;
+      pushQueued = null;
+      void pushCrmToCloud(next);
+    }
   }
 }
 
@@ -121,7 +137,19 @@ export function scheduleCrmCloudPush(db: Database): void {
   if (pushTimer) clearTimeout(pushTimer);
   pushTimer = setTimeout(() => {
     void pushCrmToCloud(db);
-  }, 1200);
+  }, 800);
+}
+
+export async function fetchCloudConfigured(): Promise<boolean> {
+  if (typeof window === "undefined") return false;
+  try {
+    const res = await fetch("/api/health", { cache: "no-store" });
+    if (!res.ok) return false;
+    const data = (await res.json()) as { cloud?: boolean };
+    return data.cloud === true;
+  } catch {
+    return false;
+  }
 }
 
 /** Upload local CRM if cloud is empty (first admin device) */

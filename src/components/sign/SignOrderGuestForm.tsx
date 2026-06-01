@@ -105,10 +105,12 @@ export function SignOrderGuestForm({ orderId, orderNumber, onVerified }: Props) 
         }
       }
 
-      const local = await localClientPortalAccess(phone, plate, orderId || undefined);
-      if (local) {
-        await finishAccess(local.order, local.slice, "local");
-        return;
+      if (process.env.NODE_ENV === "development" && res.status === 503) {
+        const local = await localClientPortalAccess(phone, plate, orderId || undefined);
+        if (local) {
+          await finishAccess(local.order, local.slice, "local");
+          return;
+        }
       }
 
       setError(s.signVerifyFailed);

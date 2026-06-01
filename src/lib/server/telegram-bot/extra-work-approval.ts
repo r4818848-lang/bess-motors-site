@@ -29,7 +29,7 @@ export async function requestExtraWorkApproval(
     status: "pending",
     createdAt: new Date().toISOString(),
   };
-  order.updatedAt = new Date().toISOString().slice(0, 10);
+  order.updatedAt = new Date().toISOString();
 
   const { runCrmAutomation } = await import("@/lib/crm-automation");
   runCrmAutomation(db, snap.doc as Database);

@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/Button";
 import { PremiumWorkOrderDocument } from "@/components/work-order/PremiumWorkOrderDocument";
 import { WorkOrderPhotoGallery } from "@/components/work-order/WorkOrderPhotoGallery";
 import { mergeClientPortalIntoDb } from "@/lib/client-portal";
+import { nowIsoTimestamp } from "@/lib/work-order-timestamp";
 import {
   fetchClientIp,
   getDeviceInfo,
@@ -145,7 +146,11 @@ export function WorkOrderSignatureFlow({
       return;
     }
 
-    if (cloudResult.error !== "cloud_disabled" && cloudResult.error !== "cloud_read_failed") {
+    const allowDevOffline =
+      process.env.NODE_ENV === "development" &&
+      (cloudResult.error === "cloud_disabled" || cloudResult.error === "cloud_read_failed");
+
+    if (!allowDevOffline) {
       setSubmitError(
         locale === "ru"
           ? "Не удалось сохранить подпись. Попробуйте ещё раз или обратитесь в сервис."
@@ -163,7 +168,7 @@ export function WorkOrderSignatureFlow({
       wo.confirmationStatus = "confirmed";
       wo.signature = meta;
       wo.clientSignature = signatureData;
-      wo.updatedAt = new Date().toISOString().slice(0, 10);
+      wo.updatedAt = nowIsoTimestamp();
       wo.documentStatus =
         wo.status === "delivered"
           ? "delivered"

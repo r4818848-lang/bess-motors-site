@@ -47,7 +47,7 @@ function emptyOrder(db: Database): WorkOrder {
     clientNotes: "",
     files: [],
     createdAt: new Date().toISOString().slice(0, 10),
-    updatedAt: new Date().toISOString().slice(0, 10),
+    updatedAt: new Date().toISOString(),
     confirmationStatus: "awaiting_confirmation",
     documentStatus: "awaiting_signature",
     vatEnabled: db.settings.vatEnabledByDefault ?? true,

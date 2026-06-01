@@ -205,7 +205,7 @@ export function createWorkOrderFromAppointment(
     clientNotes,
     files: [],
     createdAt: apt.date || new Date().toISOString().slice(0, 10),
-    updatedAt: new Date().toISOString().slice(0, 10),
+    updatedAt: new Date().toISOString(),
     confirmationStatus: "awaiting_confirmation",
   };
 

@@ -84,7 +84,7 @@ export async function cloudSubmitWorkOrderSignature(
   wo.confirmationStatus = "confirmed";
   wo.signature = signature;
   wo.clientSignature = clientSignature;
-  wo.updatedAt = new Date().toISOString().slice(0, 10);
+  wo.updatedAt = new Date().toISOString();
   wo.documentStatus =
     wo.status === "delivered"
       ? "delivered"

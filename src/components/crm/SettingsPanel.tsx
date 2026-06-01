@@ -9,6 +9,7 @@ import { loadDb, saveDb, type MechanicProfile } from "@/lib/store";
 import { Button } from "@/components/ui/Button";
 import { PriceNumberInput } from "@/components/ui/PriceNumberInput";
 import { DataBackupPanel } from "@/components/crm/DataBackupPanel";
+import { CrmEnvHealthPanel } from "@/components/crm/CrmEnvHealthPanel";
 
 type MechRow = MechanicProfile & { phone: string; newPassword: string };
 
@@ -115,6 +116,8 @@ export function SettingsPanel({ onUpdate }: { onUpdate: () => void }) {
       <h2 className="font-display text-xl uppercase text-glow flex items-center gap-2">
         <Settings className="text-bm-red" /> {w.settingsTitle}
       </h2>
+
+      <CrmEnvHealthPanel />
 
       <div className="glass-red rounded-xl p-6 neon-border space-y-4">
         <h3 className="font-display text-sm uppercase text-bm-red">{w.automationTitle}</h3>

@@ -1,19 +1,26 @@
 import type { Database, WorkOrder } from "@/lib/store";
+import { mergeTimestampMs, normalizeIsoTimestamp } from "@/lib/work-order-timestamp";
 
 function orderStamp(o: WorkOrder): string {
-  return o.updatedAt || o.createdAt || "";
+  return normalizeIsoTimestamp(o.updatedAt || o.createdAt);
 }
 
 function mergeById<T extends { id: string }>(
   local: T[],
   remote: T[],
-  stamp: (item: T) => string = (x) => (x as { updatedAt?: string; createdAt?: string }).updatedAt ?? (x as { createdAt?: string }).createdAt ?? ""
+  stamp: (item: T) => string = (x) =>
+    normalizeIsoTimestamp(
+      (x as { updatedAt?: string; createdAt?: string }).updatedAt ??
+        (x as { createdAt?: string }).createdAt
+    )
 ): T[] {
   const map = new Map<string, T>();
   for (const item of local) map.set(item.id, item);
   for (const item of remote) {
     const prev = map.get(item.id);
-    if (!prev || stamp(item) >= stamp(prev)) {
+    const itemMs = mergeTimestampMs(stamp(item));
+    const prevMs = prev ? mergeTimestampMs(stamp(prev)) : 0;
+    if (!prev || itemMs >= prevMs) {
       map.set(item.id, item);
     }
   }
