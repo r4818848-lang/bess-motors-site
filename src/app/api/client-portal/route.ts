@@ -33,9 +33,21 @@ export async function GET(req: Request) {
     return NextResponse.json({ ok: false, error: "cloud_disabled" }, { status: 503 });
   }
 
-  const portal = await cloudGetClientPortal(session.sub);
+  let portal = await cloudGetClientPortal(session.sub);
   if (!portal) {
     return NextResponse.json({ ok: false, error: "not_found" }, { status: 404 });
+  }
+
+  const { cloudListAppointmentsByPhone, isCloudAppointmentsEnabled } = await import(
+    "@/lib/server/appointments-cloud"
+  );
+  if (isCloudAppointmentsEnabled() && session.phone) {
+    const cloudApts = await cloudListAppointmentsByPhone(session.phone);
+    const byId = new Map(portal.appointments.map((a) => [a.id, a]));
+    for (const apt of cloudApts) {
+      byId.set(apt.id, apt);
+    }
+    portal = { ...portal, appointments: [...byId.values()] };
   }
 
   return NextResponse.json({ ok: true, portal });

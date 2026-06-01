@@ -1,5 +1,6 @@
 import type { ClientPortalSlice } from "@/lib/client-sign";
 import type { Database } from "@/lib/store";
+import { mergeTimestampMs } from "@/lib/work-order-timestamp";
 
 function stamp(s: { updatedAt?: string; createdAt?: string }): string {
   return s.updatedAt || s.createdAt || "";
@@ -34,7 +35,9 @@ export function mergeClientPortalIntoLocal(db: Database, slice: ClientPortalSlic
     const i = db.workOrders.findIndex((x) => x.id === o.id);
     if (i >= 0) {
       const local = db.workOrders[i]!;
-      if (stamp(o) >= stamp(local)) db.workOrders[i] = o;
+      if (mergeTimestampMs(stamp(o)) >= mergeTimestampMs(stamp(local))) {
+        db.workOrders[i] = o;
+      }
     } else {
       db.workOrders.push(o);
     }

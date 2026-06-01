@@ -41,6 +41,7 @@ import { enrichVehicleMedia } from "@/lib/vehicle-image";
 import { siteConfig } from "@/lib/site";
 import { normalizePhone } from "@/lib/auth";
 import { linkGuestBookingsToClient } from "@/lib/link-client-bookings";
+import { getActiveWorkOrder } from "@/lib/crm-automation";
 import { useAuth } from "@/lib/auth/session-context";
 import { useCloudClientSync } from "@/hooks/useCloudClientSync";
 import { ChangePasswordPanel } from "@/components/cabinet/ChangePasswordPanel";
@@ -208,6 +209,10 @@ function CabinetPageContent() {
   }, [sessionReady, clientUser]);
 
   useEffect(() => {
+    if (tab === "status" && clientUser) void resync();
+  }, [tab, clientUser, resync]);
+
+  useEffect(() => {
     const orderParam = searchParams.get("order");
     const tabParam = searchParams.get("tab");
     if (tabParam && (CABINET_TABS as readonly string[]).includes(tabParam)) {
@@ -370,9 +375,7 @@ function CabinetPageContent() {
   );
   const cp = t.clientPayment;
   const wo = t.wo;
-  const activeOrder = [...myOrders]
-    .filter((o) => o.status !== "delivered")
-    .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))[0];
+  const activeOrder = getActiveWorkOrder(activeDb, user.id);
   const userPhone = normalizePhone(user.phone);
   const myAppointments = activeDb.appointments
     .filter(

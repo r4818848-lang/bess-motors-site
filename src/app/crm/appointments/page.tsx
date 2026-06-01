@@ -7,12 +7,15 @@ import { useI18n } from "@/lib/i18n/context";
 import { DashboardLayout } from "@/components/crm/DashboardLayout";
 import { AppointmentsList } from "@/components/crm/AppointmentsList";
 import { logoutAdmin } from "@/lib/auth";
+import { pullCrmFromCloud } from "@/lib/cloud-crm-db";
 import { Button } from "@/components/ui/Button";
 
 function AppointmentsPageContent() {
   const { t } = useI18n();
   const c = t.crm;
-  const refresh = useCallback(() => {}, []);
+  const refresh = useCallback(() => {
+    void pullCrmFromCloud({ force: true });
+  }, []);
 
   return (
     <DashboardLayout role="admin">

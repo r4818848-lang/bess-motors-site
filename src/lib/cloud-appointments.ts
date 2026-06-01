@@ -38,7 +38,8 @@ export async function syncAppointmentsFromCloud(): Promise<boolean> {
       appointments?: Appointment[];
       cloud?: boolean;
     };
-    if (!data.cloud || !data.appointments?.length) return false;
+    if (!data.cloud) return false;
+    if (!data.appointments?.length) return true;
     return mergeAppointmentsIntoDb(data.appointments);
   } catch {
     return false;

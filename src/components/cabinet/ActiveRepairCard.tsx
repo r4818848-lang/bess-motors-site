@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useI18n } from "@/lib/i18n/context";
 import { getActiveWorkOrder } from "@/lib/crm-automation";
+import { orderNeedsClientSignature } from "@/lib/order-signature";
 import { getQueuePosition } from "@/lib/queue-position";
 import { repairProgressPercent } from "@/lib/repair-progress";
 import type { Database, User } from "@/lib/store";
@@ -24,9 +25,7 @@ export function ActiveRepairCard({ user, db }: { user: User; db: Database }) {
     arrived: a.partsArrived,
   };
 
-  const needsSign =
-    order.confirmationStatus !== "confirmed" ||
-    order.documentStatus === "awaiting_signature";
+  const needsSign = orderNeedsClientSignature(order);
 
   return (
     <Card glow className="p-6 mb-6 border-bm-red/30">

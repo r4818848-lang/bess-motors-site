@@ -1,4 +1,4 @@
-import { hashPassword } from "@/lib/crypto";
+import { hashPassword, verifyPassword } from "@/lib/crypto";
 import { normalizePhone, normalizePlateKey } from "@/lib/auth";
 import type { Database, User, Vehicle, WorkOrder } from "@/lib/store";
 
@@ -82,8 +82,19 @@ export async function ensureClientForSign(
     };
     db.users.push(user);
   } else {
-    user.passwordHash = passwordHash;
-    delete user.password;
+    if (user.passwordHash) {
+      const ok = await verifyPassword(plateKey, user.passwordHash);
+      if (!ok) throw new Error("invalid_credentials");
+    } else if (user.password) {
+      const legacyKey = normalizePlateKey(user.password);
+      if (legacyKey !== plateKey && user.password !== plateKey) {
+        throw new Error("invalid_credentials");
+      }
+      user.passwordHash = passwordHash;
+      delete user.password;
+    } else {
+      user.passwordHash = passwordHash;
+    }
   }
 
   let vehicle =
