@@ -26,10 +26,14 @@ export function ServiceLandingPrice({
         {sl.priceTitle}
       </h2>
       <Card glow className="p-6">
-        <p className="font-display text-3xl text-bm-red">
-          {price.priceFrom ? sl.from : ""}{" "}
-          <span className="text-white">{price.fromZl}</span> zł
-        </p>
+        {price.fromZl <= 0 && !price.priceFrom ? (
+          <p className="font-display text-2xl text-bm-red">{sl.priceOnRequest}</p>
+        ) : (
+          <p className="font-display text-3xl text-bm-red">
+            {price.priceFrom ? sl.from : ""}{" "}
+            <span className="text-white">{price.fromZl}</span> zł
+          </p>
+        )}
         {price.note && (
           <p className="text-sm text-bm-muted mt-2">{pickLocalized(price.note, locale)}</p>
         )}

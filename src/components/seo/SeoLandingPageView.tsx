@@ -24,7 +24,10 @@ import { ServiceLandingPhotos } from "@/components/seo/landing/ServiceLandingPho
 import { ServiceLandingReviews } from "@/components/seo/landing/ServiceLandingReviews";
 import { ServiceLandingMap } from "@/components/seo/landing/ServiceLandingMap";
 import { ServiceLandingBottomCta } from "@/components/seo/landing/ServiceLandingBottomCta";
-import { resolveLandingBookServiceId } from "@/lib/seo-landing-slug-profiles";
+import {
+  resolveLandingBookServiceId,
+  resolveLandingContentServiceId,
+} from "@/lib/seo-landing-slug-profiles";
 
 type Props = {
   page: SeoLandingPage;
@@ -36,6 +39,7 @@ export function SeoLandingPageView({ page }: Props) {
   const sl = t.seoLanding;
   const pageLoc = localizeSeoLandingPage(page, locale);
   const bookServiceId = resolveLandingBookServiceId(page.slug, page.serviceId);
+  const contentServiceId = resolveLandingContentServiceId(page.slug, page.serviceId);
   const [bookingService, setBookingService] = useState<ServiceId | null>(bookServiceId ?? null);
 
   const openBooking = () => {
@@ -43,6 +47,12 @@ export function SeoLandingPageView({ page }: Props) {
       setBookingService(bookServiceId);
     }
   };
+
+  const heroTitle =
+    pageLoc.title.toLowerCase().includes("warszawa") ||
+    pageLoc.title.toLowerCase().includes("warsaw")
+      ? pageLoc.title
+      : `${pageLoc.title} — Warszawa`;
 
   return (
     <>
@@ -57,7 +67,7 @@ export function SeoLandingPageView({ page }: Props) {
               <ServiceIcon name={page.icon} size={32} />
             </div>
             <h1 className="font-display text-3xl md:text-5xl font-bold uppercase text-glow">
-              {pageLoc.title}
+              {heroTitle}
             </h1>
             <p className="mt-4 text-xl md:text-2xl text-bm-red font-display uppercase tracking-wide">
               {pageLoc.line1}
@@ -131,19 +141,19 @@ export function SeoLandingPageView({ page }: Props) {
 
           <BrandServiceBlock slug={page.slug} />
 
-          {bookServiceId ? (
+          {contentServiceId ? (
             <>
-              <ServiceLandingPrice serviceId={bookServiceId} slug={page.slug} />
-              <ServiceLandingSteps serviceId={bookServiceId} slug={page.slug} />
-              <ServiceLandingEducation serviceId={bookServiceId} slug={page.slug} />
-              <ServiceLandingPhotos serviceId={bookServiceId} slug={page.slug} />
-              <ServiceLandingReviews />
-              <SeoServiceFaq serviceId={bookServiceId} slug={page.slug} />
+              <ServiceLandingPrice serviceId={contentServiceId} slug={page.slug} />
+              <ServiceLandingSteps serviceId={contentServiceId} slug={page.slug} />
+              <ServiceLandingEducation serviceId={contentServiceId} slug={page.slug} />
+              <ServiceLandingPhotos serviceId={contentServiceId} slug={page.slug} />
+              <ServiceLandingReviews serviceId={contentServiceId} />
+              <SeoServiceFaq serviceId={contentServiceId} slug={page.slug} />
               <ServiceLandingMap slug={page.slug} />
               <ServiceLandingBottomCta
                 slug={page.slug}
-                serviceId={bookServiceId}
-                onBook={openBooking}
+                serviceId={bookServiceId ?? contentServiceId}
+                onBook={bookServiceId ? openBooking : undefined}
               />
             </>
           ) : (

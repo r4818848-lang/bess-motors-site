@@ -8,7 +8,10 @@ import type {
 } from "@/lib/service-landing-content";
 
 export type SlugLandingProfile = {
+  /** Modal booking — may differ from page content (e.g. Toyota page → diag content, oil booking) */
   bookServiceId?: ServiceId;
+  /** Steps / FAQ / education service key when different from `seo-landing-pages` serviceId */
+  contentServiceId?: ServiceId;
   steps?: ServiceLandingStep[];
   education?: ServiceLandingEducationItem[];
   faqExtra?: { q: LocalizedText; a: LocalizedText }[];
@@ -85,6 +88,13 @@ export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
         body: L(
           "Diagnostyka ISTA-level, oleje Longlife, hamulce, zawieszenie i elektryka. Znamy typowe usterki N47, B48, xDrive.",
           "Диагностика, масла Longlife, тормоза, подвеска, электрика. Знаем типичные болячки N47, B48, xDrive."
+        ),
+      },
+      {
+        title: L("Oleje i serwis okresowy BMW", "Масло и ТО BMW"),
+        body: L(
+          "Oleje LL-04, LL-12FE, filtry oryginał lub OEM. Naklejka serwisowa z datą i przebiegiem.",
+          "Масла LL-04, LL-12FE, фильтры OEM. Сервисная наклейка."
         ),
       },
     ],
@@ -257,6 +267,7 @@ export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
   },
   "serwis-toyota": {
     bookServiceId: "oil",
+    contentServiceId: "diagnostic",
     education: [
       {
         title: L("Toyota i Lexus", "Toyota и Lexus"),
@@ -456,4 +467,13 @@ export function resolveLandingBookServiceId(
   serviceId?: ServiceId
 ): ServiceId | undefined {
   return getSlugLandingProfile(slug)?.bookServiceId ?? serviceId;
+}
+
+/** Content blocks (price/steps/education/FAQ) — never mix with booking-only overrides */
+export function resolveLandingContentServiceId(
+  slug: string,
+  pageServiceId?: ServiceId
+): ServiceId | undefined {
+  const profile = getSlugLandingProfile(slug);
+  return profile?.contentServiceId ?? pageServiceId ?? profile?.bookServiceId;
 }

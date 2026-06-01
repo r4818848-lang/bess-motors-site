@@ -3,7 +3,7 @@ import type { SeoLandingPage } from "@/lib/seo-landing-pages";
 import { getSiteUrl } from "@/lib/seo";
 import { siteConfig } from "@/lib/site";
 import { getServiceFaqForSchema } from "@/lib/seo-service-faq";
-import { resolveLandingBookServiceId } from "@/lib/seo-landing-slug-profiles";
+import { resolveLandingContentServiceId } from "@/lib/seo-landing-slug-profiles";
 
 export function faqPageSchema(items: { q: string; a: string }[]) {
   if (!items.length) return null;
@@ -95,8 +95,8 @@ export function servicesItemListSchema() {
 export function autoRepairServiceSchema(page: SeoLandingPage) {
   const siteUrl = getSiteUrl();
   const url = `${siteUrl}/${page.slug}`;
-  const bookId = resolveLandingBookServiceId(page.slug, page.serviceId);
-  const faq = getServiceFaqForSchema(bookId, page.slug);
+  const contentId = resolveLandingContentServiceId(page.slug, page.serviceId);
+  const faq = getServiceFaqForSchema(contentId, page.slug);
   const graph: Record<string, unknown>[] = [
     {
       "@type": "Service",

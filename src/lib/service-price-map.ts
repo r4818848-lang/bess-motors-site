@@ -20,7 +20,7 @@ export const serviceBasePriceId: Partial<Record<ServiceId, string>> = {
   electric: "computer_diag",
   filters: undefined,
   alignment: "alignment",
-  otherReason: undefined,
+  otherReason: "computer_diag",
 };
 
 /** Опции мастера → позиции прайса (serviceId:optionId при коллизии id) */

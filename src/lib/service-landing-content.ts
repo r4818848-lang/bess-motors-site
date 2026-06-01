@@ -437,8 +437,8 @@ export const SERVICE_LANDING_EDUCATION: Partial<
     {
       title: { pl: "Kiedy wymieniać olej?", ru: "Когда менять масло?" },
       body: {
-        pl: "Co 10 000–15 000 km przy oleju syntetycznym lub co rok. Objawy: czarny olej na bagnetcie, głośny silnik po zimnym starcie, większe spalanie, kontrolka ciśnienia.",
-        ru: "Каждые 10–15 тыс. км или раз в год. Симптомы: тёмное масло, шум при холодном пуске, повышенный расход, лампа давления.",
+        pl: "Co 10 000–15 000 km przy oleju syntetycznym lub co rok. W mieście i na krótkich trasach częściej (co 8 000–10 000 km). Objawy: czarny, gęsty olej na bagnetcie, głośniejszy silnik po zimnym starcie, większe spalanie, kontrolka ciśnienia oleju.",
+        ru: "Каждые 10–15 тыс. км или раз в год. В городе чаще (8–10 тыс. км). Симптомы: тёмное густое масло, шум при пуске, расход, лампа давления.",
       },
     },
     {
@@ -480,6 +480,20 @@ export const SERVICE_LANDING_EDUCATION: Partial<
         ru: "Стуки, люфт руля, неравномерный износ шин, увод.",
       },
     },
+    {
+      title: { pl: "Co wymieniamy", ru: "Что меняем" },
+      body: {
+        pl: "Amortyzatory, tuleje, sworznie, łączniki stabilizatora, wahacze — po diagnostyce.",
+        ru: "Амортизаторы, сайлентблоки, шаровые, стойки стабилизатора, рычаги.",
+      },
+    },
+    {
+      title: { pl: "Jazda po naprawie", ru: "После ремонта" },
+      body: {
+        pl: "Sprawdzamy luz i prowadzenie — bez stuków i ściągania.",
+        ru: "Проверяем люфт и увод — без стуков.",
+      },
+    },
   ],
   alignment: [
     {
@@ -487,6 +501,22 @@ export const SERVICE_LANDING_EDUCATION: Partial<
       body: {
         pl: "Po wymianie elementów zawieszenia, uderzeniu w dziurę, gdy auto ściąga lub opony zużywają się bokiem.",
         ru: "После ремонта подвески, удара, увода или бокового износа шин.",
+      },
+    },
+    {
+      title: { pl: "Stanowisko 3D", ru: "Стенд 3D" },
+      body: {
+        pl: "Pomiar przed i po regulacji — dostajesz wydruk kątów kół.",
+        ru: "Замер до и после — распечатка углов.",
+      },
+    },
+  ],
+  tires: [
+    {
+      title: { pl: "Sezonowa wymiana opon", ru: "Сезонная смена" },
+      body: {
+        pl: "Montaż, wyważanie, prawidłowe ciśnienie — komplet 4 kół bez kolejki po rezerwacji.",
+        ru: "Монтаж, балансировка, давление — 4 колеса без очереди.",
       },
     },
   ],
@@ -608,6 +638,16 @@ export const SERVICE_LANDING_FAQ_EXTRA: Partial<
       a: {
         pl: "Zwykle 30–60 minut, zależnie od objawów i liczby układów.",
         ru: "Обычно 30–60 минут в зависимости от симптомов.",
+      },
+    },
+    {
+      q: {
+        pl: "Czy po diagnostyce muszę od razu naprawiać?",
+        ru: "Нужно ли сразу ремонтировать?",
+      },
+      a: {
+        pl: "Nie — dostajesz priorytety: co pilne, co można zaplanować. Ty decydujesz o zakresie.",
+        ru: "Нет — приоритеты: что срочно, что отложить. Объём решаете вы.",
       },
     },
   ],
@@ -924,21 +964,65 @@ function getDefaultIncludes(serviceId: ServiceId): LocalizedText[] {
 
 const GENERIC_EDUCATION: ServiceLandingEducationItem[] = [
   {
-    title: { pl: "Dlaczego warto serwisować u nas?", ru: "Почему у нас?" },
+    title: { pl: "Dlaczego BESS MOTORS?", ru: "Почему BESS MOTORS?" },
     body: {
-      pl: "Doświadczeni mechanicy, przejrzysta wycena i oryginalne części. Każde auto traktujemy indywidualnie.",
-      ru: "Опытные механики, прозрачная смета и качественные запчасти. К каждому авто — индивидуальный подход.",
+      pl: "Aleja Krakowska 48/52 — dogodny dojazd S2 i lotniska. Strefa oczekiwania z kawą i Wi-Fi.",
+      ru: "Aleja Krakowska 48/52 — удобно с S2 и аэропорта. Зона ожидания с кофе и Wi-Fi.",
+    },
+  },
+  {
+    title: { pl: "Przejrzysta wycena", ru: "Прозрачная смета" },
+    body: {
+      pl: "Przed naprawą omawiamy zakres i koszt. Materiały i robocizna na fakturze — bez niespodzianek.",
+      ru: "Перед ремонтом согласуем объём и цену. Всё в чеке — без сюрпризов.",
+    },
+  },
+  {
+    title: { pl: "Rezerwacja online 24/7", ru: "Онлайн-запись 24/7" },
+    body: {
+      pl: "Wybierz usługę i termin w kalendarzu — potwierdzenie SMS lub Telegram.",
+      ru: "Услуга и время в календаре — подтверждение SMS или Telegram.",
     },
   },
 ];
+
+const FAQ_PAD: Partial<Record<ServiceId, { q: LocalizedText; a: LocalizedText }>> = {
+  diagnostic: {
+    q: { pl: "Czy muszę umawiać się wcześniej?", ru: "Нужна ли запись?" },
+    a: {
+      pl: "Tak — rezerwacja skraca czas oczekiwania. W nagłych przypadkach zadzwoń.",
+      ru: "Да — запись сокращает ожидание. Срочно — звоните.",
+    },
+  },
+  suspension: {
+    q: { pl: "Czy wymieniacie amortyzatory?", ru: "Меняете амортизаторы?" },
+    a: { pl: "Tak — po diagnostyce i wycenie.", ru: "Да — после диагностики и сметы." },
+  },
+  alignment: {
+    q: { pl: "Czy geometria jest na stanowisku 3D?", ru: "Развал на 3D?" },
+    a: { pl: "Tak — pomiar i regulacja z wydrukiem parametrów.", ru: "Да — замер и регулировка с распечаткой." },
+  },
+  otherReason: {
+    q: { pl: "Jak umówić wizytę?", ru: "Как записаться?" },
+    a: {
+      pl: "Online na stronie, telefon +48 791 257 229 lub Telegram.",
+      ru: "Онлайн, телефон или Telegram.",
+    },
+  },
+};
 
 export function getServiceLandingEducation(
   serviceId: ServiceId,
   slug?: string
 ): ServiceLandingEducationItem[] {
   const slugProfile = slug ? getSlugLandingProfile(slug) : undefined;
-  if (slugProfile?.education?.length) return slugProfile.education;
-  return SERVICE_LANDING_EDUCATION[serviceId] ?? GENERIC_EDUCATION;
+  const slugEdu = slugProfile?.education ?? [];
+  const serviceEdu = SERVICE_LANDING_EDUCATION[serviceId] ?? [];
+  const merged = [...slugEdu, ...serviceEdu, ...GENERIC_EDUCATION];
+  const unique = merged.filter(
+    (item, i, arr) => arr.findIndex((x) => x.title.pl === item.title.pl) === i
+  );
+  return unique.slice(0, 4);
 }
 
 export function getServiceLandingFaq(
@@ -954,7 +1038,24 @@ export function getServiceLandingFaq(
     ...(SERVICE_LANDING_FAQ_EXTRA[serviceId] ?? []),
     ...(slugProfile?.faqExtra ?? []),
   ];
-  return [...general, ...extra].slice(0, 5);
+  const pad = FAQ_PAD[serviceId];
+  const items = [...general, ...extra];
+  if (pad && !items.some((i) => i.q.pl === pad.q.pl)) {
+    items.push(pad);
+  }
+  while (items.length < 4) {
+    items.push({
+      q: {
+        pl: "Jak umówić wizytę w BESS MOTORS?",
+        ru: "Как записаться в BESS MOTORS?",
+      },
+      a: {
+        pl: "Rezerwacja online, telefon lub WhatsApp — Aleja Krakowska 48/52, Warszawa.",
+        ru: "Онлайн, телефон или WhatsApp — Warszawa.",
+      },
+    });
+  }
+  return items.slice(0, 5);
 }
 
 /** Gallery filter hints for landing photo strip */

@@ -132,7 +132,7 @@ export const seoLandingPages: SeoLandingPage[] = [
     metaTitle: "Serwis BMW Warszawa",
     metaDescription:
       "Serwis BMW w Warszawie — specjalizacja i profesjonalna obsługa. Diagnostyka, mechanika, olej. BESS MOTORS.",
-    serviceId: "otherReason",
+    serviceId: "diagnostic",
     icon: "Gauge",
   },
   {
@@ -143,7 +143,7 @@ export const seoLandingPages: SeoLandingPage[] = [
     metaTitle: "Serwis Mercedes Warszawa",
     metaDescription:
       "Serwis Mercedes — diagnostyka, naprawa, kompleksowa obsługa aut premium. BESS MOTORS Warszawa.",
-    serviceId: "otherReason",
+    serviceId: "diagnostic",
     icon: "Gauge",
   },
   {
@@ -154,7 +154,7 @@ export const seoLandingPages: SeoLandingPage[] = [
     metaTitle: "Serwis Audi VW Skoda Seat Warszawa",
     metaDescription:
       "Serwis grupy VAG — Audi, VW, Skoda, Seat. Naprawa i diagnostyka. BESS MOTORS Warszawa.",
-    serviceId: "otherReason",
+    serviceId: "diagnostic",
     icon: "Settings",
   },
   {
