@@ -1,4 +1,25 @@
+import { existsSync, readFileSync } from "fs";
+import { join } from "path";
 import { defineConfig, devices } from "@playwright/test";
+
+/** Load E2E_ADMIN_* from .env.e2e.local (not committed). */
+function loadE2eEnvFile(): void {
+  const path = join(__dirname, ".env.e2e.local");
+  if (!existsSync(path)) return;
+  for (const line of readFileSync(path, "utf8").split("\n")) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) continue;
+    const eq = trimmed.indexOf("=");
+    if (eq < 0) continue;
+    const key = trimmed.slice(0, eq).trim();
+    const value = trimmed
+      .slice(eq + 1)
+      .trim()
+      .replace(/^["']|["']$/g, "");
+    if (key && !process.env[key]) process.env[key] = value;
+  }
+}
+loadE2eEnvFile();
 
 const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://127.0.0.1:3000";
 const isCI = !!process.env.CI;

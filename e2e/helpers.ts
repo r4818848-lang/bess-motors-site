@@ -18,6 +18,7 @@ export async function loginStaff(
   await page.locator("#bess-client-phone").fill(phone);
   await page.locator("#bess-client-plate").fill(password);
   await page.getByRole("button", { name: /Zaloguj/i }).click();
+  await page.waitForURL(/\/(crm|mechanic)/, { timeout: 25_000 });
 }
 
 export function staffCredentials(): { phone: string; password: string } | null {

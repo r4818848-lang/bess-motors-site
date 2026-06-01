@@ -41,20 +41,15 @@ Playwright по умолчанию поднимает `npm run dev` на `http:/
 
 ## 3. Тесты CRM (нужен пароль админа)
 
-```bash
-cp .env.e2e.example .env.e2e.local
-# отредактируйте E2E_ADMIN_PHONE и E2E_ADMIN_PASSWORD (как на Vercel)
-```
-
-Windows PowerShell:
+1. Скопируйте `.env.e2e.example` → `.env.e2e.local` в папке `bess-motors`.
+2. Впишите **те же** `ADMIN_PHONE` и `ADMIN_PASSWORD`, что на Vercel.
+3. Запустите `npm run test:e2e:ui` и ▶ у `crm.spec.ts`, или:
 
 ```powershell
-$env:E2E_ADMIN_PHONE="+48..."
-$env:E2E_ADMIN_PASSWORD="..."
 npm run test:e2e -- e2e/crm.spec.ts
 ```
 
-Без переменных файл `e2e/crm.spec.ts` **пропускается** (не падает).
+Файл `.env.e2e.local` подхватывается автоматически. Без него CRM-тесты **пропускаются**.
 
 ## 4. Тест против продакшена
 
