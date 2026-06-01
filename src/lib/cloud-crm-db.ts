@@ -155,7 +155,7 @@ export function scheduleCrmCloudPush(_db?: Database): void {
   if (pushTimer) clearTimeout(pushTimer);
   pushTimer = setTimeout(() => {
     pushTimer = null;
-    void pushCrmToCloud(loadDb());
+    void pushCrmSave(loadDb());
   }, 800);
 }
 

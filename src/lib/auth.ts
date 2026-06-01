@@ -106,6 +106,33 @@ export async function verifyToken(
   return verifyTokenServer(token);
 }
 
+function resolveStaffUserFromSession(
+  db: ReturnType<typeof loadDb>,
+  session: { sub: string; role: AuthRole }
+): User | null {
+  let user = db.users.find((u) => u.id === session.sub) ?? null;
+  if (!user && session.role === "admin") {
+    user = db.users.find((u) => u.role === "admin") ?? null;
+  }
+  if (!user || user.role !== session.role) return null;
+  return user;
+}
+
+async function refreshStaffTokenFromApi(existingToken: string): Promise<string | null> {
+  try {
+    const res = await fetch("/api/auth/staff-refresh", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${existingToken}` },
+      cache: "no-store",
+    });
+    const data = (await res.json()) as { ok?: boolean; token?: string };
+    if (!res.ok || !data.ok || !data.token) return null;
+    return data.token;
+  } catch {
+    return null;
+  }
+}
+
 export async function restoreSessionFromToken(): Promise<User | null> {
   if (typeof window === "undefined") return null;
   const token = localStorage.getItem(TOKEN_KEY);
@@ -116,7 +143,10 @@ export async function restoreSessionFromToken(): Promise<User | null> {
     return null;
   }
   const db = loadDb();
-  const user = db.users.find((u) => u.id === session.sub) ?? null;
+  const user =
+    session.role === "admin" || session.role === "mechanic"
+      ? resolveStaffUserFromSession(db, session)
+      : db.users.find((u) => u.id === session.sub) ?? null;
   if (!user || user.role !== session.role) {
     clearSessionStorage();
     const cleared = loadDb();
@@ -131,9 +161,15 @@ export async function restoreSessionFromToken(): Promise<User | null> {
   saveDb(db);
   localStorage.setItem(SESSION_ROLE_KEY, session.role);
 
-  // Refresh JWT on visit (avoids expired / stale staff tokens breaking cloud sync)
-  const freshToken = await issueTokenForUser(user);
-  localStorage.setItem(TOKEN_KEY, freshToken);
+  if (user.role === "admin" || user.role === "mechanic") {
+    const serverToken = await refreshStaffTokenFromApi(token);
+    if (serverToken) {
+      localStorage.setItem(TOKEN_KEY, serverToken);
+    }
+  } else {
+    const freshToken = await issueTokenForUser(user);
+    localStorage.setItem(TOKEN_KEY, freshToken);
+  }
 
   return user;
 }
@@ -273,6 +309,11 @@ export async function loginWithPhonePassword(
   if (staffFromApi) return staffFromApi;
 
   if (isHiddenAdminCredentials(phone, credential)) {
+    const { fetchCloudConfigured } = await import("@/lib/cloud-crm-db");
+    const cloudOn = await fetchCloudConfigured();
+    if (cloudOn) {
+      return { ok: false, error: "invalid_credentials" };
+    }
     const admin = ensureAdminUser();
     const token = await issueToken(admin.id, "admin");
     persistSession(token, "admin", admin.id);
@@ -286,6 +327,10 @@ export async function loginWithPhonePassword(
   if (mechanicUser) {
     const valid = await checkMechanicPassword(mechanicUser, credential);
     if (!valid) return { ok: false, error: "invalid_credentials" };
+    const { fetchCloudConfigured } = await import("@/lib/cloud-crm-db");
+    if (await fetchCloudConfigured()) {
+      return { ok: false, error: "invalid_credentials" };
+    }
     const token = await issueToken(mechanicUser.id, "mechanic", mechanicUser.phone);
     persistSession(token, "mechanic", mechanicUser.id);
     return { ok: true, role: "mechanic", user: mechanicUser };
@@ -425,16 +470,19 @@ export function getSessionRole(): AuthRole | null {
   return null;
 }
 
-/** Re-issue JWT for current admin/mechanic (e.g. after 401 on /api/crm-db). */
+/** Re-issue staff JWT via server (matches production JWT_SECRET). */
 export async function refreshStaffSessionToken(): Promise<string | null> {
   if (typeof window === "undefined") return null;
   const role = getSessionRole();
   if (role !== "admin" && role !== "mechanic") return null;
   const user = getCurrentUser();
   if (!user || user.role !== role) return null;
-  const token = await issueTokenForUser(user);
-  persistSession(token, role, user.id);
-  return token;
+  const existing = localStorage.getItem(TOKEN_KEY);
+  if (!existing) return null;
+  const fresh = await refreshStaffTokenFromApi(existing);
+  if (!fresh) return null;
+  persistSession(fresh, role, user.id);
+  return fresh;
 }
 
 export function isAdminAuthenticated(): boolean {

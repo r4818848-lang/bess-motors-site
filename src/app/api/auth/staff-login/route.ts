@@ -69,12 +69,17 @@ export async function POST(req: Request) {
     normalizePhone(admin.phone) === normalized &&
     password === admin.password
   ) {
-    const token = await issueStaffToken("admin", "admin");
+    const token = await issueStaffToken("admin-1", "admin", admin.phone);
     return NextResponse.json({
       ok: true,
       role: "admin" as const,
       token,
-      user: { id: "admin", phone: admin.phone, name: "Admin", role: "admin" },
+      user: {
+        id: "admin-1",
+        phone: admin.phone,
+        name: "Administrator BESS MOTORS",
+        role: "admin",
+      },
     });
   }
 

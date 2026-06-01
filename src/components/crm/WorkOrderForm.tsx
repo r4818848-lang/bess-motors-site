@@ -276,7 +276,7 @@ export function WorkOrderForm({
     e.target.value = "";
   };
 
-  const persistOrder = (draft: WorkOrder, opts?: { close?: boolean }) => {
+  const persistOrder = async (draft: WorkOrder, opts?: { close?: boolean }) => {
     if (!draft.userId || !draft.vehicleId) {
       setSaveError(w.selectClientVehicle);
       if (isNew) setCreateStep("client");
@@ -316,14 +316,18 @@ export function WorkOrderForm({
       markInviteeDiscountUsed(fresh, updated.userId, updated);
     }
     const synced = syncWarehouseFromWorkOrder(fresh, updated);
-    saveDb(synced);
-    void pushCrmSave(synced);
+    saveDb(synced, { skipCloudPush: true });
+    const pushed = await pushCrmSave(synced);
+    if (!pushed) {
+      setSaveError(c.pushSyncFailed);
+      return false;
+    }
     if (opts?.close !== false) onSaved();
     return true;
   };
 
   const save = () => {
-    persistOrder(order);
+    void persistOrder(order);
   };
 
   const remove = async () => {
@@ -560,7 +564,7 @@ export function WorkOrderForm({
                 ...(documentStatus === "delivered" ? { status: "delivered" as const } : {}),
               });
               setOrder(next);
-              if (!isNew) persistOrder(next, { close: false });
+              if (!isNew) void persistOrder(next, { close: false });
             }}
           >
             {documentStatuses.map((s) => (
@@ -581,7 +585,7 @@ export function WorkOrderForm({
                   status: "delivered",
                 });
                 setOrder(closed);
-                persistOrder(closed);
+                void persistOrder(closed);
               }}
             >
               {c.markDelivered}
@@ -607,7 +611,7 @@ export function WorkOrderForm({
               };
               const draft = status === "delivered" ? applyWorkOrderClosure(next) : next;
               setOrder(draft);
-              if (!isNew) persistOrder(draft, { close: false });
+              if (!isNew) void persistOrder(draft, { close: false });
             }}
           >
             {statuses.map((s) => (
