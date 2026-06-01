@@ -8,12 +8,17 @@ import type { ServiceId } from "@/lib/services-catalog";
 import { getServiceLandingFaq } from "@/lib/service-landing-content";
 import { pickLocalized } from "@/lib/service-landing-locale";
 
-export function SeoServiceFaq({ serviceId }: { serviceId?: ServiceId }) {
+export function SeoServiceFaq({
+  serviceId,
+  slug,
+}: {
+  serviceId: ServiceId;
+  slug: string;
+}) {
   const { locale, t } = useI18n();
   const [open, setOpen] = useState<number | null>(0);
-  if (!serviceId) return null;
 
-  const items = getServiceLandingFaq(serviceId);
+  const items = getServiceLandingFaq(serviceId, slug);
   if (!items.length) return null;
 
   return (

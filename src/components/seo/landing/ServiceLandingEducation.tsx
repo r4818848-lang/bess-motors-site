@@ -8,9 +8,15 @@ import type { ServiceId } from "@/lib/services-catalog";
 import { getServiceLandingEducation } from "@/lib/service-landing-content";
 import { pickLocalized } from "@/lib/service-landing-locale";
 
-export function ServiceLandingEducation({ serviceId }: { serviceId: ServiceId }) {
+export function ServiceLandingEducation({
+  serviceId,
+  slug,
+}: {
+  serviceId: ServiceId;
+  slug: string;
+}) {
   const { t, locale } = useI18n();
-  const items = getServiceLandingEducation(serviceId);
+  const items = getServiceLandingEducation(serviceId, slug);
   const [open, setOpen] = useState<number | null>(0);
   if (!items.length) return null;
 

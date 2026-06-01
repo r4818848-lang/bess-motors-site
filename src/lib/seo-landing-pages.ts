@@ -1,4 +1,5 @@
 import type { ServiceId } from "@/lib/services-catalog";
+import { getSiteUrl } from "@/lib/seo";
 
 export type SeoLandingPage = {
   slug: string;
@@ -164,6 +165,7 @@ export const seoLandingPages: SeoLandingPage[] = [
     metaTitle: "Umów wizytę online — BESS MOTORS",
     metaDescription:
       "Umów wizytę online w BESS MOTORS — wybierz dogodny dzień i godzinę. Warszawa, Aleja Krakowska 48/52.",
+    serviceId: "diagnostic",
     icon: "Calendar",
   },
   {
@@ -300,9 +302,18 @@ export const seoLandingPages: SeoLandingPage[] = [
     metaTitle: "Promocje i rabaty — BESS MOTORS",
     metaDescription:
       "Aktualne promocje i rabaty w BESS MOTORS Warszawa. Oszczędzaj na naprawach i serwisie samochodowym.",
+    serviceId: "otherReason",
     icon: "Tag",
   },
 ];
+
+/** All 27 public landing URLs (for docs / QA) */
+export const seoLandingUrlTable = seoLandingPages.map((p) => ({
+  slug: p.slug,
+  url: `${getSiteUrl()}/${p.slug}`,
+  serviceId: p.serviceId ?? "—",
+  title: p.title,
+}));
 
 export const seoLandingSlugs = seoLandingPages.map((p) => p.slug);
 

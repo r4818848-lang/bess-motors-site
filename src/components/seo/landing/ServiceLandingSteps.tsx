@@ -6,9 +6,15 @@ import { getServiceLandingSteps } from "@/lib/service-landing-content";
 import { pickLocalized } from "@/lib/service-landing-locale";
 import { WaitTimeEstimator } from "@/components/booking/WaitTimeEstimator";
 
-export function ServiceLandingSteps({ serviceId }: { serviceId: ServiceId }) {
+export function ServiceLandingSteps({
+  serviceId,
+  slug,
+}: {
+  serviceId: ServiceId;
+  slug: string;
+}) {
   const { t, locale } = useI18n();
-  const steps = getServiceLandingSteps(serviceId);
+  const steps = getServiceLandingSteps(serviceId, slug);
 
   return (
     <section className="mt-12" aria-labelledby="landing-steps-heading">

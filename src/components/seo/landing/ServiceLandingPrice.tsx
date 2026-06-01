@@ -8,10 +8,16 @@ import { pickLocalized } from "@/lib/service-landing-locale";
 import { Card } from "@/components/ui/Card";
 import { Check } from "lucide-react";
 
-export function ServiceLandingPrice({ serviceId }: { serviceId: ServiceId }) {
+export function ServiceLandingPrice({
+  serviceId,
+  slug,
+}: {
+  serviceId: ServiceId;
+  slug: string;
+}) {
   const { t, locale } = useI18n();
   const sl = t.serviceLanding;
-  const price = getServiceLandingPrice(serviceId);
+  const price = getServiceLandingPrice(serviceId, slug);
   if (!price) return null;
 
   return (

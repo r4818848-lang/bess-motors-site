@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useI18n } from "@/lib/i18n/context";
 import type { ServiceId } from "@/lib/services-catalog";
-import { SERVICE_LANDING_GALLERY_TAGS } from "@/lib/service-landing-content";
+import { getServiceLandingGalleryTags } from "@/lib/service-landing-content";
 import type { PublicGalleryItem } from "@/app/api/gallery/route";
 import { Wrench, Camera } from "lucide-react";
 
@@ -14,13 +14,19 @@ const FALLBACK_IMAGES = [
   { src: "/images/logo.png", alt: "BESS MOTORS" },
 ];
 
-export function ServiceLandingPhotos({ serviceId }: { serviceId: ServiceId }) {
+export function ServiceLandingPhotos({
+  serviceId,
+  slug,
+}: {
+  serviceId: ServiceId;
+  slug: string;
+}) {
   const { t } = useI18n();
   const sl = t.serviceLanding;
   const [items, setItems] = useState<PublicGalleryItem[]>([]);
 
   useEffect(() => {
-    const tags = SERVICE_LANDING_GALLERY_TAGS[serviceId];
+    const tags = getServiceLandingGalleryTags(serviceId, slug);
     fetch("/api/gallery")
       .then((r) => r.json())
       .then((data: { items?: PublicGalleryItem[] }) => {
@@ -36,7 +42,7 @@ export function ServiceLandingPhotos({ serviceId }: { serviceId: ServiceId }) {
         setItems((filtered.length ? filtered : all).slice(0, 6));
       })
       .catch(() => setItems([]));
-  }, [serviceId]);
+  }, [serviceId, slug]);
 
   const showGallery = items.filter((i) => i.afterUrl || i.beforeUrl);
   const tiles =

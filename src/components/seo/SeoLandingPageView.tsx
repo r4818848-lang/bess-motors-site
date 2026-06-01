@@ -24,6 +24,7 @@ import { ServiceLandingPhotos } from "@/components/seo/landing/ServiceLandingPho
 import { ServiceLandingReviews } from "@/components/seo/landing/ServiceLandingReviews";
 import { ServiceLandingMap } from "@/components/seo/landing/ServiceLandingMap";
 import { ServiceLandingBottomCta } from "@/components/seo/landing/ServiceLandingBottomCta";
+import { resolveLandingBookServiceId } from "@/lib/seo-landing-slug-profiles";
 
 type Props = {
   page: SeoLandingPage;
@@ -34,23 +35,19 @@ export function SeoLandingPageView({ page }: Props) {
   const { t, locale } = useI18n();
   const sl = t.seoLanding;
   const pageLoc = localizeSeoLandingPage(page, locale);
-  const [bookingService, setBookingService] = useState<ServiceId | null>(
-    page.serviceId ?? null
-  );
+  const bookServiceId = resolveLandingBookServiceId(page.slug, page.serviceId);
+  const [bookingService, setBookingService] = useState<ServiceId | null>(bookServiceId ?? null);
 
   const openBooking = () => {
-    if (page.serviceId) {
-      setBookingService(page.serviceId);
+    if (bookServiceId) {
+      setBookingService(bookServiceId);
     }
   };
-
-  const sid = page.serviceId;
 
   return (
     <>
       <div className="pt-28 pb-20 min-h-[70vh]">
         <div className="mx-auto max-w-5xl px-4 lg:px-8">
-          {/* Hero */}
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
@@ -101,7 +98,7 @@ export function SeoLandingPageView({ page }: Props) {
           </motion.div>
 
           <div className="mt-10 flex flex-col sm:flex-row gap-3 justify-center">
-            {page.serviceId ? (
+            {bookServiceId ? (
               <button
                 type="button"
                 className="btn-primary inline-flex justify-center items-center gap-2"
@@ -134,18 +131,18 @@ export function SeoLandingPageView({ page }: Props) {
 
           <BrandServiceBlock slug={page.slug} />
 
-          {sid ? (
+          {bookServiceId ? (
             <>
-              <ServiceLandingPrice serviceId={sid} />
-              <ServiceLandingSteps serviceId={sid} />
-              <ServiceLandingEducation serviceId={sid} />
-              <ServiceLandingPhotos serviceId={sid} />
+              <ServiceLandingPrice serviceId={bookServiceId} slug={page.slug} />
+              <ServiceLandingSteps serviceId={bookServiceId} slug={page.slug} />
+              <ServiceLandingEducation serviceId={bookServiceId} slug={page.slug} />
+              <ServiceLandingPhotos serviceId={bookServiceId} slug={page.slug} />
               <ServiceLandingReviews />
-              <SeoServiceFaq serviceId={sid} />
+              <SeoServiceFaq serviceId={bookServiceId} slug={page.slug} />
               <ServiceLandingMap slug={page.slug} />
               <ServiceLandingBottomCta
                 slug={page.slug}
-                serviceId={sid}
+                serviceId={bookServiceId}
                 onBook={openBooking}
               />
             </>

@@ -1,6 +1,7 @@
 import type { ServiceId } from "@/lib/services-catalog";
 import { getPriceItem } from "@/lib/price-list";
 import { serviceBasePriceId } from "@/lib/service-price-map";
+import { getSlugLandingProfile } from "@/lib/seo-landing-slug-profiles";
 
 export type LocalizedText = { pl: string; ru: string };
 
@@ -247,6 +248,156 @@ export const SERVICE_LANDING_STEPS: Partial<Record<ServiceId, ServiceLandingStep
       },
     },
   ],
+  suspension: [
+    {
+      title: { pl: "Rezerwacja i opis objawów", ru: "Запись и симптомы" },
+      description: {
+        pl: "Stuki, luz, ściąganie — opisujesz objawy, rezerwujemy czas na podnośnik.",
+        ru: "Стуки, люфт, увод — описываете симптомы, бронируем подъёмник.",
+      },
+    },
+    {
+      title: { pl: "Kontrola zawieszenia na podnośniku", ru: "Осмотр подвески" },
+      description: {
+        pl: "Sprawdzamy amortyzatory, wahacze, tuleje, sworznie — mierzymy luz.",
+        ru: "Амортизаторы, рычаги, сайлентблоки — замер люфта.",
+      },
+    },
+    {
+      title: { pl: "Wymiana zużytych elementów", ru: "Замена деталей" },
+      description: {
+        pl: "Montujemy nowe części, dokręcamy momentem, smarujemy punkty ruchome.",
+        ru: "Монтаж, момент затяжки, смазка.",
+      },
+    },
+    {
+      title: { pl: "Jazda testowa i odbiór", ru: "Тест и выдача" },
+      description: {
+        pl: "Sprawdzamy ciszę i prowadzenie — auto nie stuka, nie ściąga.",
+        ru: "Без стуков, без увода.",
+      },
+    },
+  ],
+  alignment: [
+    {
+      title: { pl: "Rezerwacja geometrii", ru: "Запись на развал" },
+      description: {
+        pl: "Umawiasz się — podaj rozmiar felg i czy auto ściąga.",
+        ru: "Запись — размер дисков, увод.",
+      },
+    },
+    {
+      title: { pl: "Pomiar zbieżności 3D", ru: "Замер 3D" },
+      description: {
+        pl: "Mierzymy kąty kół przed korektą — wydruk parametrów.",
+        ru: "Замер углов — распечатка.",
+      },
+    },
+    {
+      title: { pl: "Regulacja zbieżności", ru: "Регулировка" },
+      description: {
+        pl: "Ustawiamy kąty wg danych producenta dla Twojego modelu.",
+        ru: "Углы по данным производителя.",
+      },
+    },
+    {
+      title: { pl: "Kontrola i odbiór", ru: "Проверка" },
+      description: {
+        pl: "Ponowny pomiar — auto jedzie prosto.",
+        ru: "Повторный замер — едет прямо.",
+      },
+    },
+  ],
+  engine: [
+    {
+      title: { pl: "Rezerwacja i opis problemu", ru: "Запись" },
+      description: {
+        pl: "Objawy silnika — dźwięki, moc, dym, zużycie oleju.",
+        ru: "Симптомы — звуки, мощность, дым.",
+      },
+    },
+    {
+      title: { pl: "Diagnostyka silnika", ru: "Диагностика" },
+      description: {
+        pl: "Komputer, kompresja, wycieki — ustalamy przyczynę.",
+        ru: "Сканер, компрессия, утечки.",
+      },
+    },
+    {
+      title: { pl: "Akceptacja zakresu i wyceny", ru: "Смета" },
+      description: {
+        pl: "Plan naprawy i koszt — po akceptacji zaczynamy.",
+        ru: "План и стоимость — после согласования.",
+      },
+    },
+    {
+      title: { pl: "Naprawa i test silnika", ru: "Ремонт" },
+      description: {
+        pl: "Uzgodnione prace, test na postoju i jazda.",
+        ru: "Работы и тест.",
+      },
+    },
+  ],
+  electric: [
+    {
+      title: { pl: "Opis usterki elektrycznej", ru: "Описание" },
+      description: {
+        pl: "Który układ — oświetlenie, rozrusznik, klima, czujniki.",
+        ru: "Какая система не работает.",
+      },
+    },
+    {
+      title: { pl: "Diagnostyka obwodów", ru: "Диагностика" },
+      description: {
+        pl: "Napięcia, przerwy, błędy modułów.",
+        ru: "Напряжение, обрывы, коды.",
+      },
+    },
+    {
+      title: { pl: "Akceptacja zakresu", ru: "Согласование" },
+      description: {
+        pl: "Wycena przed montażem części.",
+        ru: "Смета до монтажа.",
+      },
+    },
+    {
+      title: { pl: "Naprawa i weryfikacja", ru: "Ремонт" },
+      description: {
+        pl: "Montaż i sprawdzenie — błędy zgaszone.",
+        ru: "Монтаж и проверка.",
+      },
+    },
+  ],
+  otherReason: [
+    {
+      title: { pl: "Kontakt i zakres", ru: "Контакт" },
+      description: {
+        pl: "Ustalamy, co trzeba zrobić w Twoim aucie.",
+        ru: "Согласуем объём работ.",
+      },
+    },
+    {
+      title: { pl: "Przegląd stanu auta", ru: "Осмотр" },
+      description: {
+        pl: "Hamulce, płyny, zawieszenie, światła.",
+        ru: "Тормоза, жидкости, подвеска, свет.",
+      },
+    },
+    {
+      title: { pl: "Wykonanie prac", ru: "Работы" },
+      description: {
+        pl: "Wymiany lub przygotowanie do przeglądu technicznego.",
+        ru: "Замены или подготовка к техосмотру.",
+      },
+    },
+    {
+      title: { pl: "Raport i odbiór", ru: "Выдача" },
+      description: {
+        pl: "Lista wykonanych punktów — gotowe do jazdy.",
+        ru: "Список работ — можно ехать.",
+      },
+    },
+  ],
   tires: [
     {
       title: { pl: "Rezerwacja terminu", ru: "Запись на время" },
@@ -318,6 +469,60 @@ export const SERVICE_LANDING_EDUCATION: Partial<
       body: {
         pl: "Krótki odczyt kodów przy wizycie — często w ramach konsultacji. Pełna diagnostyka z raportem to osobna usługa.",
         ru: "Краткое считывание при визите часто бесплатно. Полная диагностика с отчётом — отдельная услуга.",
+      },
+    },
+  ],
+  suspension: [
+    {
+      title: { pl: "Objawy zużytego zawieszenia", ru: "Симптомы износа" },
+      body: {
+        pl: "Stuki na nierównościach, luz na kierownicy, nierówne zużycie opon, auto ściąga.",
+        ru: "Стуки, люфт руля, неравномерный износ шин, увод.",
+      },
+    },
+  ],
+  alignment: [
+    {
+      title: { pl: "Kiedy robić geometrię?", ru: "Когда делать развал?" },
+      body: {
+        pl: "Po wymianie elementów zawieszenia, uderzeniu w dziurę, gdy auto ściąga lub opony zużywają się bokiem.",
+        ru: "После ремонта подвески, удара, увода или бокового износа шин.",
+      },
+    },
+  ],
+  engine: [
+    {
+      title: { pl: "Typowe usterki silnika", ru: "Типичные неисправности" },
+      body: {
+        pl: "Wycieki oleju, spadki mocy, dym, Check Engine — zaczynamy od diagnostyki, nie od zgadywania.",
+        ru: "Утечки, потеря мощности, дым, Check Engine — с диагностики.",
+      },
+    },
+  ],
+  electric: [
+    {
+      title: { pl: "Co naprawiamy w elektryce?", ru: "Что ремонтируем?" },
+      body: {
+        pl: "Oświetlenie, rozrusznik/alternator, wiązki, czujniki, błędy modułów komfortu.",
+        ru: "Свет, стартер/генератор, проводка, датчики, блоки комфорта.",
+      },
+    },
+  ],
+  acRefill: [
+    {
+      title: { pl: "Objawy słabej klimy", ru: "Симптомы слабого кондиционера" },
+      body: {
+        pl: "Słabe chłodzenie, zapach pleśni, szumy sprężarki — często wystarczy serwis i napełnienie czynnikiem.",
+        ru: "Слабое охлаждение, запах, шум компрессора.",
+      },
+    },
+  ],
+  brakePads: [
+    {
+      title: { pl: "Kiedy wymieniać klocki?", ru: "Когда менять колодки?" },
+      body: {
+        pl: "Pisk, wibracje, wydłużona droga hamowania — nie czekaj do metalu na metalu.",
+        ru: "Скрип, вибрация, длинный тормозной путь.",
       },
     },
   ],
@@ -461,6 +666,67 @@ export const SERVICE_LANDING_FAQ_EXTRA: Partial<
         ru: "Раз в 1–2 года или при слабом охлаждении / запахе.",
       },
     },
+    {
+      q: {
+        pl: "Czy robicie odgrzybianie?",
+        ru: "Делаете антибактериальную обработку?",
+      },
+      a: {
+        pl: "Tak — ozonowanie i czyszczenie parownika na życzenie.",
+        ru: "Да — озонирование и очистка испарителя.",
+      },
+    },
+  ],
+  suspension: [
+    {
+      q: { pl: "Skąd stuki w zawieszeniu?", ru: "Откуда стуки?" },
+      a: {
+        pl: "Często tuleje, stabilizatory lub łączniki — diagnozujemy na podnośniku.",
+        ru: "Часто сайлентблоки или стойки стабилизатора.",
+      },
+    },
+  ],
+  alignment: [
+    {
+      q: { pl: "Czy geometria jest potrzebna co roku?", ru: "Развал каждый год?" },
+      a: {
+        pl: "Przy wymianie opon lub po uderzeniu w krawężnik — warto sprawdzić.",
+        ru: "После удара о бордюр или смены шин — стоит проверить.",
+      },
+    },
+  ],
+  engine: [
+    {
+      q: { pl: "Czy naprawiacie silniki diesel?", ru: "Ремонт дизелей?" },
+      a: { pl: "Tak — benzyna i diesel.", ru: "Да — бензин и дизель." },
+    },
+  ],
+  electric: [
+    {
+      q: { pl: "Czy naprawiacie instalacje dodatkowe?", ru: "Доп. оборудование?" },
+      a: {
+        pl: "Tak — kamery, audio, Webasto po wycenie.",
+        ru: "Да — камеры, аудио, Webasto по смете.",
+      },
+    },
+  ],
+  otherReason: [
+    {
+      q: { pl: "Czy przygotowujecie do przeglądu?", ru: "Подготовка к техосмотру?" },
+      a: {
+        pl: "Tak — checklist świateł, hamulców, emisji i płynów.",
+        ru: "Да — чек-лист света, тормозов, выхлопа.",
+      },
+    },
+  ],
+  tires: [
+    {
+      q: { pl: "Czy przechowujecie opony?", ru: "Хранение шин?" },
+      a: {
+        pl: "Tak — sezonowe przechowanie opon, zapytaj przy rezerwacji.",
+        ru: "Да — сезонное хранение, уточните при записи.",
+      },
+    },
   ],
 };
 
@@ -503,7 +769,13 @@ const ESTIMATE_STEP: ServiceLandingStep = {
   },
 };
 
-export function getServiceLandingSteps(serviceId: ServiceId): ServiceLandingStep[] {
+export function getServiceLandingSteps(
+  serviceId: ServiceId,
+  slug?: string
+): ServiceLandingStep[] {
+  const slugProfile = slug ? getSlugLandingProfile(slug) : undefined;
+  if (slugProfile?.steps?.length) return slugProfile.steps;
+
   const custom = SERVICE_LANDING_STEPS[serviceId];
   if (custom) return custom;
 
@@ -513,7 +785,36 @@ export function getServiceLandingSteps(serviceId: ServiceId): ServiceLandingStep
   return DEFAULT_STEPS;
 }
 
-export function getServiceLandingPrice(serviceId: ServiceId): ServiceLandingPrice | null {
+export function getServiceLandingPrice(
+  serviceId: ServiceId,
+  slug?: string
+): ServiceLandingPrice | null {
+  const slugProfile = slug ? getSlugLandingProfile(slug) : undefined;
+  if (slugProfile && "price" in slugProfile) {
+    return slugProfile.price ?? null;
+  }
+
+  if (serviceId === "chip") {
+    return {
+      fromZl: getPriceItem("stage1")?.basePrice ?? 1200,
+      priceFrom: true,
+      materialsExtra: false,
+      includes: getDefaultIncludes("chip"),
+      priceTable: [
+        {
+          label: { pl: "Stage 1", ru: "Stage 1" },
+          priceZl: getPriceItem("stage1")?.basePrice ?? 1200,
+          priceFrom: true,
+        },
+        {
+          label: { pl: "Stage 2", ru: "Stage 2" },
+          priceZl: getPriceItem("stage2")?.basePrice ?? 2500,
+          priceFrom: true,
+        },
+      ],
+    };
+  }
+
   const priceId = serviceBasePriceId[serviceId];
   if (!priceId) {
     if (serviceId === "brakePads") {
@@ -632,16 +933,28 @@ const GENERIC_EDUCATION: ServiceLandingEducationItem[] = [
 ];
 
 export function getServiceLandingEducation(
-  serviceId: ServiceId
+  serviceId: ServiceId,
+  slug?: string
 ): ServiceLandingEducationItem[] {
+  const slugProfile = slug ? getSlugLandingProfile(slug) : undefined;
+  if (slugProfile?.education?.length) return slugProfile.education;
   return SERVICE_LANDING_EDUCATION[serviceId] ?? GENERIC_EDUCATION;
 }
 
 export function getServiceLandingFaq(
-  serviceId: ServiceId
+  serviceId: ServiceId,
+  slug?: string
 ): { q: LocalizedText; a: LocalizedText }[] {
-  const extra = SERVICE_LANDING_FAQ_EXTRA[serviceId] ?? [];
-  return [...GENERAL_FAQ, ...extra].slice(0, 5);
+  const slugProfile = slug ? getSlugLandingProfile(slug) : undefined;
+  const general = [...GENERAL_FAQ];
+  if (slugProfile?.faqDuration) {
+    general[1] = { q: general[1]!.q, a: slugProfile.faqDuration };
+  }
+  const extra = [
+    ...(SERVICE_LANDING_FAQ_EXTRA[serviceId] ?? []),
+    ...(slugProfile?.faqExtra ?? []),
+  ];
+  return [...general, ...extra].slice(0, 5);
 }
 
 /** Gallery filter hints for landing photo strip */
@@ -651,4 +964,17 @@ export const SERVICE_LANDING_GALLERY_TAGS: Partial<Record<ServiceId, string[]>> 
   brakePads: ["hamulc", "brake"],
   chip: ["tuning", "chip"],
   tires: ["opon", "tire"],
+  suspension: ["zawies", "susp"],
+  alignment: ["geomet", "zbież"],
+  engine: ["silnik", "engine"],
+  acRefill: ["klim", "ac"],
 };
+
+export function getServiceLandingGalleryTags(
+  serviceId: ServiceId,
+  slug?: string
+): string[] | undefined {
+  const slugTags = slug ? getSlugLandingProfile(slug)?.galleryTags : undefined;
+  if (slugTags?.length) return slugTags;
+  return SERVICE_LANDING_GALLERY_TAGS[serviceId];
+}
