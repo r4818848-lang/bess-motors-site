@@ -39,20 +39,20 @@ export function CrmModalShell({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="crm-mw-modal-header flex items-center justify-between gap-3 shrink-0">
-          <div className="flex items-center gap-2 min-w-0 text-gray-800">
+          <div className="flex items-center gap-2 min-w-0">
             {icon}
             <h2 className="font-semibold text-sm sm:text-base truncate">{title}</h2>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-2 rounded hover:bg-gray-100 text-gray-600 shrink-0"
+            className="crm-mw-modal-close shrink-0"
             aria-label="Close"
           >
             <X size={22} />
           </button>
         </div>
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-white">{children}</div>
+        <div className="crm-mw-modal-body">{children}</div>
         {footer && <div className="crm-mw-modal-footer shrink-0">{footer}</div>}
       </div>
     </div>

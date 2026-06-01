@@ -595,6 +595,31 @@
     background: var(--crm-modal-footer-bg);
   }
 
+  .crm-shell .crm-mw-modal-body {
+    @apply flex-1 overflow-y-auto p-4 sm:p-6;
+    background: var(--crm-surface);
+    color: var(--crm-main-text);
+  }
+
+  .crm-shell .crm-mw-modal-close {
+    @apply p-2 rounded-lg transition-colors;
+    color: var(--crm-muted);
+  }
+
+  .crm-shell .crm-mw-modal-close:hover {
+    background: var(--crm-table-row-hover);
+    color: var(--crm-main-text);
+  }
+
+  .crm-shell[data-theme="dark"] .crm-mw-modal-header h2,
+  .crm-shell[data-theme="dark"] .crm-mw-modal-body {
+    color: var(--crm-main-text);
+  }
+
+  .crm-shell[data-theme="light"] .crm-mw-modal-header h2 {
+    color: var(--crm-main-text);
+  }
+
   .crm-shell .btn-primary {
     background: var(--crm-mw-blue) !important;
     color: #fff !important;
@@ -615,6 +640,23 @@
     border-color: var(--crm-mw-blue) !important;
     color: var(--crm-mw-blue) !important;
     background: #f8fafc !important;
+  }
+
+  .crm-shell[data-theme="dark"] .btn-outline {
+    background: var(--crm-input-bg);
+    color: var(--crm-main-text);
+    border-color: var(--crm-input-border) !important;
+  }
+
+  .crm-shell[data-theme="dark"] .btn-outline:hover {
+    background: var(--crm-table-row-hover);
+    color: var(--crm-link) !important;
+    border-color: var(--crm-mw-blue) !important;
+  }
+
+  .crm-shell[data-theme="dark"] .crm-mw-modal-body select option {
+    background: var(--crm-table-row-bg);
+    color: var(--crm-input-text);
   }
 
   .crm-shell .card-premium,
