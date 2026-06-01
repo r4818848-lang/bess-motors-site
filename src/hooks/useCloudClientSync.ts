@@ -42,7 +42,7 @@ export function useCloudClientSync(enabled = true): {
     return () => window.removeEventListener("focus", onFocus);
   }, [enabled, resync]);
 
-  useVisibleInterval(() => void resync(), 45_000, enabled);
+  useVisibleInterval(() => void resync(), 20_000, enabled);
 
   return { syncing, syncFailed, resync };
 }

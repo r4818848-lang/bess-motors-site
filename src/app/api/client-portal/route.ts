@@ -218,7 +218,7 @@ export async function POST(req: Request) {
       }
     }
 
-    const put = await cloudPutCrmStore(db);
+    const put = await cloudPutCrmStore(db, { skipNotify: true });
     if (!put.ok) {
       return NextResponse.json({ ok: false, error: put.error ?? "cloud_error" }, { status: 502 });
     }

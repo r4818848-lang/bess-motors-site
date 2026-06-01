@@ -9,10 +9,12 @@ import { TelegramOpenButton } from "@/components/shared/TelegramOpenButton";
 import { WaitTimeEstimator } from "@/components/booking/WaitTimeEstimator";
 
 type StatusResult = {
+  orderId?: string;
   number: string;
   statusLabel: string;
   progressPercent: number;
   needsSign: boolean;
+  paymentStatus?: "unpaid" | "paid";
   vehicle: { make: string; model: string; plate: string };
   queuePosition?: number | null;
   queueTotal?: number | null;
@@ -22,6 +24,7 @@ type StatusResult = {
 export default function StatusPage() {
   const { t, locale } = useI18n();
   const s = t.statusPage;
+  const ps = t.paymentStatus;
   const [phone, setPhone] = useState("");
   const [plate, setPlate] = useState("");
   const [loading, setLoading] = useState(false);
@@ -100,7 +103,20 @@ export default function StatusPage() {
                 />
               </div>
               <p className="text-sm text-bm-muted">{result.progressPercent}%</p>
-              {result.needsSign && (
+              {result.paymentStatus && (
+                <p className="text-sm text-bm-silver">
+                  {result.paymentStatus === "paid" ? ps.paid : ps.unpaid}
+                </p>
+              )}
+              {result.needsSign && result.orderId && (
+                <Link
+                  href={`/sign/${result.orderId}`}
+                  className="btn-primary text-sm inline-block mt-2"
+                >
+                  {t.activeRepair.signDocument}
+                </Link>
+              )}
+              {result.needsSign && !result.orderId && (
                 <p className="text-sm text-amber-400">{s.sign}</p>
               )}
               {result.clientPartsStatusLabel && (

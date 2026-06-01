@@ -1,4 +1,5 @@
 import { cleanEnvValue } from "@/lib/server/supabase-config";
+import { orderNeedsClientSignature as orderNeedsSignature } from "@/lib/order-signature";
 import { sendTelegramMessage } from "@/lib/server/telegram-api";
 import type { Database, User, WorkOrder } from "@/lib/store";
 import { calcClientTotal } from "@/lib/workorder-calc";
@@ -37,14 +38,6 @@ function cabinetUrl(): string {
 
 function signKeyboard(orderId: string, locale: BotLocale) {
   return signKeyboardLocalized(orderId, siteUrl(), locale);
-}
-
-function orderNeedsSignature(order: WorkOrder): boolean {
-  if (order.confirmationStatus === "confirmed") return false;
-  return (
-    order.confirmationStatus === "awaiting_confirmation" ||
-    order.documentStatus === "awaiting_signature"
-  );
 }
 
 async function sendToClient(

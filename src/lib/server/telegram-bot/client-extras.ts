@@ -1,6 +1,7 @@
 import { cloudGetCrmStore, cloudPutCrmStore } from "@/lib/server/crm-cloud";
 import { sendTelegramMessage } from "@/lib/server/telegram-api";
 import { repairProgressPercent } from "@/lib/repair-progress";
+import { orderNeedsClientSignature } from "@/lib/order-signature";
 import type { BotLocale } from "./client-i18n";
 import { getClientBotLabels } from "./client-i18n";
 import type { ClientRating, Database, User, WorkOrder } from "@/lib/store";
@@ -98,11 +99,9 @@ export async function saveTelegramRating(params: {
 }
 
 export function activeOrderForUser(orders: WorkOrder[]): WorkOrder | undefined {
-  return (
-    [...orders]
-      .filter((o) => o.status !== "delivered")
-      .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))[0] ?? orders[0]
-  );
+  return [...orders]
+    .filter((o) => o.status !== "delivered")
+    .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))[0];
 }
 
 export function queuePositionText(
@@ -140,7 +139,7 @@ export async function formatRepairStatusLine(
     `📋 <b>${active.number}</b>`,
     `📌 ${status} · <b>${pct}%</b>`,
     queue,
-    active.confirmationStatus !== "confirmed" ? L.needsSignature : "",
+    orderNeedsClientSignature(active) ? L.needsSignature : "",
   ]
     .filter(Boolean)
     .join("\n");

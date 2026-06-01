@@ -12,6 +12,7 @@ import {
   unlockInviteeRewardIfEligible,
 } from "./referral-system";
 import { incrementLoyaltyOnDelivered } from "./loyalty";
+import { orderNeedsClientSignature } from "./order-signature";
 
 export type { ClientNotification, ClientNotificationType } from "./store";
 
@@ -127,10 +128,7 @@ export function handleWorkOrderSignRequired(
   if (!isClientUserId(order.userId)) return false;
   if (order.confirmationStatus === "confirmed") return false;
 
-  const needsSignature =
-    order.confirmationStatus === "awaiting_confirmation" ||
-    order.documentStatus === "awaiting_signature";
-  if (!needsSignature) return false;
+  if (!orderNeedsClientSignature(order)) return false;
 
   if (previous?.confirmationStatus === "confirmed") return false;
 

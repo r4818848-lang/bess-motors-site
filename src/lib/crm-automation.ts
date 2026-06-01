@@ -174,10 +174,9 @@ function autoSyncOrders(db: Database, prev?: Database): void {
     autoPartsPipeline(order, p);
     autoWarranty(order, p, db.settings.defaultWarrantyMonths ?? 12);
     autoSla(order);
-    if (order.status === "ready" && !order.readyNotifiedAt) {
-      order.readyNotifiedAt = new Date().toISOString();
-    }
-    if (p && JSON.stringify(p) !== JSON.stringify(order)) {
+    if (prev && !p) {
+      handleWorkOrderClientNotifications(db, order, null);
+    } else if (p && JSON.stringify(p) !== JSON.stringify(order)) {
       handleWorkOrderClientNotifications(db, order, p);
     }
     if (order.status === "delivered" && p?.status !== "delivered") {

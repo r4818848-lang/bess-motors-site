@@ -20,6 +20,7 @@ import {
   generateOrderNumber,
 } from "@/lib/workorder-calc";
 import { applyWorkOrderCompletedAt } from "@/lib/work-order-dates";
+import { handleWorkOrderClientNotifications } from "@/lib/client-notifications";
 import {
   checklistLabel,
   quickCreateToggleItems,
@@ -170,6 +171,7 @@ export function QuickCreateOrderModal({
       updatedAt: receptionDate,
     });
     fresh.workOrders.push(order);
+    handleWorkOrderClientNotifications(fresh, order, null);
     saveDb(syncWarehouseFromWorkOrder(fresh, order));
     onCreated(order.id);
     onClose();

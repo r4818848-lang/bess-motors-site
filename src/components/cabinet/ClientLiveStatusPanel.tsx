@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useI18n } from "@/lib/i18n/context";
 import { getQueuePosition } from "@/lib/queue-position";
 import { repairProgressPercent } from "@/lib/repair-progress";
+import { orderNeedsClientSignature } from "@/lib/order-signature";
 import type { Database, WorkOrder } from "@/lib/store";
 import { Card } from "@/components/ui/Card";
 import { RepairStatusStepper } from "@/components/cabinet/RepairStatusStepper";
@@ -27,9 +28,7 @@ export function ClientLiveStatusPanel({
     arrived: t.activeRepair.partsArrived,
   };
 
-  const needsSign =
-    order.confirmationStatus !== "confirmed" ||
-    order.documentStatus === "awaiting_signature";
+  const needsSign = orderNeedsClientSignature(order);
 
   const pay = order.paymentStatus ?? "unpaid";
   const payLabel = pay === "paid" ? ps.paid : ps.unpaid;

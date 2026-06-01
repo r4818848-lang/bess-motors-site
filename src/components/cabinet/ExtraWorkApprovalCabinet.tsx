@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useI18n } from "@/lib/i18n/context";
+import { DB_CHANGED_EVENT } from "@/lib/db-events";
+import { pullClientPortalFromCloud } from "@/lib/client-portal";
 import { loadDb, saveDb, type Database, type WorkOrder } from "@/lib/store";
 import { calcClientTotal } from "@/lib/workorder-calc";
 import { Card } from "@/components/ui/Card";
@@ -42,7 +44,11 @@ export function ExtraWorkApprovalCabinet({ orders }: { orders: WorkOrder[] }) {
         },
         body: JSON.stringify({ orderId, approved }),
       });
-      if (res.ok) return;
+      if (res.ok) {
+        await pullClientPortalFromCloud();
+        window.dispatchEvent(new CustomEvent(DB_CHANGED_EVENT));
+        return;
+      }
       const db = loadDb();
       resolveLocal(db, orderId, approved);
     } finally {

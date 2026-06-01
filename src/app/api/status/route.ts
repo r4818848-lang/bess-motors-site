@@ -3,6 +3,7 @@ import { normalizePhone, normalizePlateKey } from "@/lib/auth";
 import { cloudGetCrmStore } from "@/lib/server/crm-cloud";
 import { repairProgressPercent } from "@/lib/repair-progress";
 import { getQueuePosition } from "@/lib/queue-position";
+import { orderNeedsClientSignature } from "@/lib/order-signature";
 import type { Database, RepairStatus, WorkOrder } from "@/lib/store";
 
 export const dynamic = "force-dynamic";
@@ -35,8 +36,7 @@ function findClient(db: Database, phone: string, plate: string) {
     .filter((o) => o.userId === user.id && o.vehicleId === vehicle.id)
     .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
 
-  const active =
-    orders.find((o) => o.status !== "delivered") ?? orders[0] ?? null;
+  const active = orders.find((o) => o.status !== "delivered") ?? null;
 
   return { user, vehicle, active, ordersCount: orders.length };
 }
@@ -77,13 +77,12 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
   return NextResponse.json({
     ok: true,
+    orderId: o.id,
     number: o.number,
     status: o.status,
     statusLabel: label,
     progressPercent: repairProgressPercent(o.status),
-    needsSign:
-      o.confirmationStatus !== "confirmed" ||
-      o.documentStatus === "awaiting_signature",
+    needsSign: orderNeedsClientSignature(o),
     paymentStatus: o.paymentStatus ?? "unpaid",
     clientPartsStatus: o.clientPartsStatus ?? null,
     clientPartsStatusLabel: partsLabel,

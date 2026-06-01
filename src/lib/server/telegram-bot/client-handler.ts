@@ -1,4 +1,5 @@
 import { normalizePhone, normalizePlateKey } from "@/lib/auth";
+import { orderNeedsClientSignature } from "@/lib/order-signature";
 import type { InlineKeyboardMarkup } from "@/lib/server/telegram-api";
 import {
   answerCallbackQuery,
@@ -297,7 +298,7 @@ async function handleStartDeepLinks(
     const detail = formatWorkOrderDetail(locale, slice, orderId);
     if (detail) {
       const order = slice.workOrders.find((o) => o.id === orderId);
-      const needsSign = order?.confirmationStatus !== "confirmed";
+      const needsSign = order ? orderNeedsClientSignature(order) : false;
       const L = getClientBotLabels(locale);
       await sendTelegramMessage(
         chatId,
@@ -348,7 +349,7 @@ async function showClientMenu(
       const detail = formatWorkOrderDetail(locale, slice, orderId);
       if (detail) {
         const order = slice.workOrders.find((o) => o.id === orderId);
-        const needsSign = order?.confirmationStatus !== "confirmed";
+        const needsSign = order ? orderNeedsClientSignature(order) : false;
         await sendTelegramMessage(
           chatId,
           needsSign ? `${L.signIntro}\n\n${detail}` : detail,
@@ -534,7 +535,7 @@ async function completeLink(
     const detail = formatWorkOrderDetail(locale, slice, sessionData.orderId);
     if (detail) {
       const order = slice.workOrders.find((o) => o.id === sessionData.orderId);
-      const needsSign = order?.confirmationStatus !== "confirmed";
+      const needsSign = order ? orderNeedsClientSignature(order) : false;
       await sendTelegramMessage(
         chatId,
         detail,
@@ -1523,7 +1524,7 @@ async function handleClientCallbackInner(cb: TelegramCallback): Promise<void> {
       .map((o) => ({
         id: o.id,
         number: o.number,
-        needsSign: o.confirmationStatus !== "confirmed",
+        needsSign: orderNeedsClientSignature(o),
       }));
     await replyOrEdit(
       chatId,
@@ -1558,7 +1559,11 @@ async function handleClientCallbackInner(cb: TelegramCallback): Promise<void> {
       messageId,
       locale,
       detail,
-      clientOrderDetailKeyboard(locale, orderId, order?.confirmationStatus !== "confirmed")
+      clientOrderDetailKeyboard(
+        locale,
+        orderId,
+        order ? orderNeedsClientSignature(order) : false
+      )
     );
     return;
   }
