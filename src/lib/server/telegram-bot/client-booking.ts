@@ -102,7 +102,10 @@ export async function createTelegramBooking(params: {
     return { ok: false, error: result.error ?? "save_failed" };
   }
 
-  await cloudUpsertAppointment(created).catch(() => null);
+  const aptRow = await cloudUpsertAppointment(created);
+  if (!aptRow.ok) {
+    console.warn("[telegram] booking appointments table sync failed", aptRow.error);
+  }
   await notifyAdminNewBooking(created, "booking");
   return { ok: true };
 }

@@ -1,4 +1,5 @@
 import type { ClientPortalSlice } from "@/lib/client-sign";
+import { orderNeedsClientSignature } from "@/lib/order-signature";
 import type { WorkOrder } from "@/lib/store";
 import { calcClientTotal } from "@/lib/workorder-calc";
 import { type BotLocale, getClientBotLabels } from "./client-i18n";
@@ -59,8 +60,7 @@ function formatOrderLine(
     ? `${vehicle.make} ${vehicle.model} · ${vehicle.plate}`.trim()
     : "—";
   const pay = o.paymentStatus === "paid" ? L.paid : L.unpaid;
-  const sign =
-    o.confirmationStatus !== "confirmed" ? L.needsSignBadge : "";
+  const sign = orderNeedsClientSignature(o) ? L.needsSignBadge : "";
   return [
     `<b>${esc(o.number)}</b>`,
     `${repairLabel(locale, o.status)}${sign}`,
@@ -90,7 +90,7 @@ export function formatWorkOrderDetail(
       ? `🚗 ${esc(vehicle.make)} ${esc(vehicle.model)} · ${esc(vehicle.plate)}`
       : "",
     `💰 <b>${zl(calcClientTotal(o))}</b> · ${o.paymentStatus === "paid" ? L.paid : L.unpaid}`,
-    o.confirmationStatus !== "confirmed" ? L.needsSignature : L.signed,
+    orderNeedsClientSignature(o) ? L.needsSignature : L.signed,
     services ? `\n🔧 <b>${L.works}:</b>\n${services}` : "",
     o.clientNotes ? `\n📝 ${esc(o.clientNotes)}` : "",
   ]
@@ -187,12 +187,7 @@ export function formatCarsSlice(locale: BotLocale, slice: ClientPortalSlice): st
 }
 
 export function countPendingSign(slice: ClientPortalSlice): number {
-  return slice.workOrders.filter(
-    (o) =>
-      o.confirmationStatus !== "confirmed" &&
-      (o.documentStatus === "awaiting_signature" ||
-        o.confirmationStatus === "awaiting_confirmation")
-  ).length;
+  return slice.workOrders.filter((o) => orderNeedsClientSignature(o)).length;
 }
 
 export function countUnread(slice: ClientPortalSlice): number {

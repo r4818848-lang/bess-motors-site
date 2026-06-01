@@ -25,7 +25,7 @@ import { isAdminAuthenticated, logoutAdmin } from "@/lib/auth";
 import { loadDb, saveDb, type RepairStatus } from "@/lib/store";
 import { filterWorkOrders, defaultWorkOrderFilters } from "@/lib/workorder-filters";
 import { applyWorkOrderClosure, filterOpenWorkOrders } from "@/lib/work-order-lifecycle";
-import { saveWorkOrderStatus } from "@/lib/work-order-status-update";
+import { saveWorkOrderStatusAndSync } from "@/lib/work-order-status-update";
 import { pullCrmFromCloud, pushCrmToCloud } from "@/lib/cloud-crm-db";
 import { filterWorkOrdersByQuery } from "@/lib/crm-search";
 import { WorkOrderFilters } from "@/components/crm/WorkOrderFilters";
@@ -120,32 +120,33 @@ function WorkOrdersPageContent() {
     setSelectedIds(new Set(pagedOrders.map((o) => o.id)));
   };
 
-  const deleteSelected = () => {
+  const deleteSelected = async () => {
     if (selectedIds.size === 0) return;
     if (!confirm(`${c.confirmDeleteSelected}\n\n${selectedIds.size}`)) return;
     const fresh = loadDb();
     fresh.workOrders = fresh.workOrders.filter((o) => !selectedIds.has(o.id));
     saveDb(fresh);
+    const ok = await pushCrmToCloud(fresh);
+    if (!ok) alert(c.syncFailed);
     setSelectedIds(new Set());
-    refresh();
   };
 
-  const markDelivered = (orderId: string) => {
+  const markDelivered = async (orderId: string) => {
     if (!confirm(c.markDeliveredConfirm)) return;
-    saveWorkOrderStatus(orderId, "delivered");
+    const ok = await saveWorkOrderStatusAndSync(orderId, "delivered");
+    if (!ok) alert(c.syncFailed);
     if (editingId === orderId) closeEditor();
     setSelectedIds((prev) => {
       const next = new Set(prev);
       next.delete(orderId);
       return next;
     });
-    refresh();
   };
 
-  const updateStatus = (orderId: string, status: RepairStatus) => {
-    saveWorkOrderStatus(orderId, status);
+  const updateStatus = async (orderId: string, status: RepairStatus) => {
+    const ok = await saveWorkOrderStatusAndSync(orderId, status);
+    if (!ok) alert(c.syncFailed);
     if (status === "delivered" && editingId === orderId) closeEditor();
-    refresh();
   };
 
   if (editingId) {

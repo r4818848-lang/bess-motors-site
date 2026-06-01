@@ -49,3 +49,17 @@ export function saveWorkOrderStatus(orderId: string, status: RepairStatus): bool
   saveDb(syncWarehouseFromWorkOrder(fresh, updated));
   return true;
 }
+
+/** Status change + immediate CRM cloud push (kanban, list actions). */
+export async function saveWorkOrderStatusAndSync(
+  orderId: string,
+  status: RepairStatus
+): Promise<boolean> {
+  const fresh = loadDb();
+  const updated = patchWorkOrderStatus(fresh, orderId, status);
+  if (!updated) return false;
+  const next = syncWarehouseFromWorkOrder(fresh, updated);
+  saveDb(next);
+  const { pushCrmToCloud } = await import("@/lib/cloud-crm-db");
+  return pushCrmToCloud(next);
+}

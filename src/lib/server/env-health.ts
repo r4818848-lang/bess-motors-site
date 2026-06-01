@@ -9,7 +9,9 @@ export type EnvCheckId =
   | "telegram_public"
   | "vapid"
   | "cron"
-  | "site_url";
+  | "site_url"
+  | "jwt_secret"
+  | "admin_env";
 
 export type EnvCheck = {
   id: EnvCheckId;
@@ -61,6 +63,19 @@ export function getEnvHealth(): { ok: boolean; checks: EnvCheck[] } {
       id: "site_url",
       ok: Boolean(cleanEnvValue(process.env.NEXT_PUBLIC_SITE_URL)),
       hint: "NEXT_PUBLIC_SITE_URL=https://www.bess-motors.com",
+    },
+    {
+      id: "jwt_secret",
+      ok: Boolean(cleanEnvValue(process.env.JWT_SECRET)),
+      hint: "JWT_SECRET (random string for API tokens)",
+    },
+    {
+      id: "admin_env",
+      ok: Boolean(
+        cleanEnvValue(process.env.ADMIN_PHONE) &&
+          cleanEnvValue(process.env.ADMIN_PASSWORD)
+      ),
+      hint: "ADMIN_PHONE + ADMIN_PASSWORD (staff login via /api/auth/staff-login)",
     },
   ];
 

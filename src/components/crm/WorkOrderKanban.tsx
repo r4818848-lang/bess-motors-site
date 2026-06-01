@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { useDbSync } from "@/hooks/useDbSync";
 import { loadDb, type RepairStatus, type WorkOrder } from "@/lib/store";
 import { useI18n } from "@/lib/i18n/context";
-import { saveWorkOrderStatus } from "@/lib/work-order-status-update";
+import { saveWorkOrderStatusAndSync } from "@/lib/work-order-status-update";
 
 const COLS: RepairStatus[] = [
   "received",
@@ -17,6 +17,7 @@ const COLS: RepairStatus[] = [
 
 export function WorkOrderKanban({ orders }: { orders?: import("@/lib/store").WorkOrder[] }) {
   const { t } = useI18n();
+  const c = t.crm;
   const tick = useDbSync();
   const [dragId, setDragId] = useState<string | null>(null);
 
@@ -33,11 +34,12 @@ export function WorkOrderKanban({ orders }: { orders?: import("@/lib/store").Wor
     return { db, map };
   }, [tick, orders]);
 
-  const move = (orderId: string, status: RepairStatus) => {
+  const move = async (orderId: string, status: RepairStatus) => {
     const db = loadDb();
     const order = db.workOrders.find((o) => o.id === orderId);
     if (!order || order.status === status) return;
-    saveWorkOrderStatus(orderId, status);
+    const ok = await saveWorkOrderStatusAndSync(orderId, status);
+    if (!ok) alert(c.syncFailed);
     setDragId(null);
   };
 

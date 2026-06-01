@@ -21,7 +21,7 @@ import {
   logout,
 } from "@/lib/auth";
 import { loadDb, saveDb, type RepairStatus } from "@/lib/store";
-import { handleWorkOrderClientNotifications } from "@/lib/client-notifications";
+import { patchWorkOrderStatus } from "@/lib/work-order-status-update";
 import { getAppointmentContext } from "@/lib/appointments";
 import { calcServiceLine, calcMechanicEarnings } from "@/lib/workorder-calc";
 import { pushCrmToCloud } from "@/lib/cloud-crm-db";
@@ -162,10 +162,11 @@ function MechanicPageContent() {
       return;
     }
 
-    const previous = { ...order };
-    order.status = status;
-    handleWorkOrderClientNotifications(fresh, order, previous);
-    saveDb(fresh);
+    const updated = patchWorkOrderStatus(fresh, orderId, status);
+    if (!updated) {
+      setConfirmingId(null);
+      return;
+    }
 
     const synced = await pushCrmToCloud(fresh);
     if (!synced) {
