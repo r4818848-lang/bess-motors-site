@@ -8,6 +8,7 @@ import { Trash2 } from "lucide-react";
 import { useDbSync } from "@/hooks/useDbSync";
 import { filterVehicleHistory } from "@/lib/crm-search";
 import { CrmSearchInput } from "./CrmSearchInput";
+import { pushCrmDelete } from "@/lib/cloud-crm-db";
 
 export function VehicleHistoryPanel() {
   const { t } = useI18n();
@@ -21,11 +22,13 @@ export function VehicleHistoryPanel() {
     return filterVehicleHistory(db, query);
   }, [query, dbTick]);
 
-  const removeEntry = (entryId: string) => {
+  const removeEntry = async (entryId: string) => {
     if (!confirm(c.confirmDeleteVehicleHistory)) return;
     const fresh = loadDb();
     fresh.vehicleHistory = fresh.vehicleHistory.filter((e) => e.id !== entryId);
     saveDb(fresh);
+    const ok = await pushCrmDelete(fresh);
+    if (!ok) alert(c.syncFailed);
   };
 
   return (

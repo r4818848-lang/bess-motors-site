@@ -27,9 +27,9 @@ import { filterWorkOrders, defaultWorkOrderFilters } from "@/lib/workorder-filte
 import { applyWorkOrderClosure, filterOpenWorkOrders } from "@/lib/work-order-lifecycle";
 import { saveWorkOrderStatusAndSync } from "@/lib/work-order-status-update";
 import {
-  cancelScheduledCrmCloudPush,
   pullCrmFromCloud,
-  pushCrmToCloud,
+  pushCrmDelete,
+  pushCrmSave,
 } from "@/lib/cloud-crm-db";
 import { filterWorkOrdersByQuery } from "@/lib/crm-search";
 import { WorkOrderFilters } from "@/components/crm/WorkOrderFilters";
@@ -63,7 +63,7 @@ function WorkOrdersPageContent() {
 
   const refresh = useCallback(() => {
     void (async () => {
-      await pushCrmToCloud(loadDb());
+      await pushCrmSave(loadDb());
       await pullCrmFromCloud({ force: true });
     })();
   }, []);
@@ -127,11 +127,10 @@ function WorkOrdersPageContent() {
   const deleteSelected = async () => {
     if (selectedIds.size === 0) return;
     if (!confirm(`${c.confirmDeleteSelected}\n\n${selectedIds.size}`)) return;
-    cancelScheduledCrmCloudPush();
     const fresh = loadDb();
     fresh.workOrders = fresh.workOrders.filter((o) => !selectedIds.has(o.id));
     saveDb(fresh);
-    const ok = await pushCrmToCloud(fresh, { skipPull: true });
+    const ok = await pushCrmDelete(fresh);
     if (!ok) alert(c.syncFailed);
     setSelectedIds(new Set());
   };

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Phone, Check } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { loadDb, saveDb, type CallRequest } from "@/lib/store";
-import { pushCrmToCloud } from "@/lib/cloud-crm-db";
+import { pushCrmSave } from "@/lib/cloud-crm-db";
 import { Button } from "@/components/ui/Button";
 
 export function CallRequestsPanel({ onUpdate }: { onUpdate?: () => void }) {
@@ -23,7 +23,7 @@ export function CallRequestsPanel({ onUpdate }: { onUpdate?: () => void }) {
     const r = next.callRequests.find((x) => x.id === id);
     if (r) r.status = status;
     saveDb(next);
-    const ok = await pushCrmToCloud(next);
+    const ok = await pushCrmSave(next);
     if (!ok) alert(c.syncFailed);
     setTick((n) => n + 1);
     onUpdate?.();

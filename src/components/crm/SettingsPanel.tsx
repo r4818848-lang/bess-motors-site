@@ -6,6 +6,7 @@ import { useI18n } from "@/lib/i18n/context";
 import { normalizePhone } from "@/lib/auth";
 import { hashPassword } from "@/lib/crypto";
 import { loadDb, saveDb, type MechanicProfile } from "@/lib/store";
+import { pushCrmSave } from "@/lib/cloud-crm-db";
 import { Button } from "@/components/ui/Button";
 import { PriceNumberInput } from "@/components/ui/PriceNumberInput";
 import { DataBackupPanel } from "@/components/crm/DataBackupPanel";
@@ -24,6 +25,7 @@ function loadMechanicRows(): MechRow[] {
 
 export function SettingsPanel({ onUpdate }: { onUpdate: () => void }) {
   const { t } = useI18n();
+  const c = t.crm;
   const w = t.wo;
   const db = loadDb();
   const [settings, setSettings] = useState({ ...db.settings });
@@ -104,6 +106,8 @@ export function SettingsPanel({ onUpdate }: { onUpdate: () => void }) {
       }
 
       saveDb(fresh);
+      const ok = await pushCrmSave(fresh);
+      if (!ok) alert(c.syncFailed);
       setMechanics(loadMechanicRows());
       onUpdate();
     } finally {

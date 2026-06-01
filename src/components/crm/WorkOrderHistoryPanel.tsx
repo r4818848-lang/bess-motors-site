@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Pencil, Trash2, User, Car } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { loadDb, saveDb } from "@/lib/store";
-import { cancelScheduledCrmCloudPush, pushCrmToCloud } from "@/lib/cloud-crm-db";
+import { pushCrmDelete } from "@/lib/cloud-crm-db";
 import { useDbSync } from "@/hooks/useDbSync";
 import { filterWorkOrdersByQuery } from "@/lib/crm-search";
 import { filterClosedWorkOrders } from "@/lib/work-order-lifecycle";
@@ -43,11 +43,10 @@ export function WorkOrderHistoryPanel({ searchQuery: externalQuery }: Props = {}
 
   const removeOrder = async (orderId: string) => {
     if (!confirm(c.confirmDeleteOrderHistory)) return;
-    cancelScheduledCrmCloudPush();
     const fresh = loadDb();
     fresh.workOrders = fresh.workOrders.filter((o) => o.id !== orderId);
     saveDb(fresh);
-    const ok = await pushCrmToCloud(fresh, { skipPull: true });
+    const ok = await pushCrmDelete(fresh);
     if (!ok) alert(c.syncFailed);
   };
 

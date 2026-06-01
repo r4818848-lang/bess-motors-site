@@ -6,11 +6,7 @@ import { Plus, Car, FileText, Trash2 } from "lucide-react";
 import { AddVehicleModal } from "./AddVehicleModal";
 import { useI18n } from "@/lib/i18n/context";
 import { deleteVehicleFromDb, loadDb, saveDb } from "@/lib/store";
-import {
-  cancelScheduledCrmCloudPush,
-  pullCrmFromCloud,
-  pushCrmToCloud,
-} from "@/lib/cloud-crm-db";
+import { pullCrmFromCloud, pushCrmDelete } from "@/lib/cloud-crm-db";
 import { useDbSync } from "@/hooks/useDbSync";
 import { filterVehiclesList } from "@/lib/crm-search";
 import { CrmSearchInput } from "./CrmSearchInput";
@@ -52,7 +48,6 @@ export function VehiclesListPanel() {
         ? `${c.confirmDeleteVehicleWithOrders}\n\n${label} · ${orderCount}`
         : `${c.confirmDeleteVehicle}\n\n${label}`;
     if (!confirm(msg)) return;
-    cancelScheduledCrmCloudPush();
     setDeletingId(vehicleId);
     const fresh = loadDb();
     const next = deleteVehicleFromDb(fresh, vehicleId);
@@ -62,7 +57,7 @@ export function VehiclesListPanel() {
       s.delete(vehicleId);
       return s;
     });
-    const ok = await pushCrmToCloud(next, { skipPull: true });
+    const ok = await pushCrmDelete(next);
     setDeletingId(null);
     if (!ok) {
       alert(c.syncFailed);
@@ -73,7 +68,6 @@ export function VehiclesListPanel() {
   const deleteSelected = async () => {
     if (selectedIds.size === 0) return;
     if (!confirm(`${c.confirmDeleteSelectedVehicles}\n\n${selectedIds.size}`)) return;
-    cancelScheduledCrmCloudPush();
     setDeletingId("__bulk__");
     let fresh = loadDb();
     for (const id of selectedIds) {
@@ -81,7 +75,7 @@ export function VehiclesListPanel() {
     }
     saveDb(fresh);
     setSelectedIds(new Set());
-    const ok = await pushCrmToCloud(fresh, { skipPull: true });
+    const ok = await pushCrmDelete(fresh);
     setDeletingId(null);
     if (!ok) {
       alert(c.syncFailed);

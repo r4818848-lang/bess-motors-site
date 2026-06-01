@@ -39,6 +39,21 @@ export function cancelScheduledCrmCloudPush(): void {
   }
 }
 
+/** After delete — queue push without pull (prevents resurrecting rows). */
+export async function pushCrmDelete(db: Database): Promise<boolean> {
+  cancelScheduledCrmCloudPush();
+  return pushCrmToCloud(db, { skipPull: true });
+}
+
+/** After add/edit — immediate serialized push (optional pull). */
+export async function pushCrmSave(
+  db?: Database,
+  options?: Pick<PushCrmOptions, "skipPull">
+): Promise<boolean> {
+  cancelScheduledCrmCloudPush();
+  return pushCrmToCloud(db ?? loadDb(), options);
+}
+
 export async function pullCrmFromCloud(options?: { force?: boolean }): Promise<PullCrmResult> {
   if (typeof window === "undefined") return "skipped";
   const token = localStorage.getItem(TOKEN_KEY);

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Car, Search } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { loadDb, saveDb } from "@/lib/store";
+import { pushCrmSave } from "@/lib/cloud-crm-db";
 import { createCrmVehicle } from "@/lib/crm-create-vehicle";
 import { CrmModalShell } from "./CrmModalShell";
 import { CrmFormField } from "./CrmFormField";
@@ -78,7 +79,7 @@ export function AddVehicleModal({ open, onClose, onCreated, initialUserId }: Pro
     }
   };
 
-  const submit = () => {
+  const submit = async () => {
     setError("");
     if (!userId) {
       setError(c.selectOwner);
@@ -113,6 +114,8 @@ export function AddVehicleModal({ open, onClose, onCreated, initialUserId }: Pro
         return;
       }
       saveDb(db);
+      const ok = await pushCrmSave(db);
+      if (!ok) alert(c.syncFailed);
       onCreated(result.vehicleId, userId);
       onClose();
     } finally {
