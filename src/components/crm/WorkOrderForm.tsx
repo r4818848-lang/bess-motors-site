@@ -133,7 +133,8 @@ export function WorkOrderForm({
   const dbTick = useDbSync();
   const db = useMemo(() => loadDb(), [dbTick]);
   const existing = orderId ? db.workOrders.find((o) => o.id === orderId) : null;
-  const isNew = !existing;
+  const isNew = !orderId;
+  const missingOrder = Boolean(orderId && !existing);
 
   const [order, setOrder] = useState<WorkOrder>(existing ?? emptyOrder(db));
   const [createStep, setCreateStep] = useState<CreateStep>("client");
@@ -364,6 +365,28 @@ export function WorkOrderForm({
   const vehicleLabel = vehicle
     ? `${vehicle.make} ${vehicle.model}${vehicle.plate ? ` · ${vehicle.plate}` : ""}`
     : undefined;
+
+  if (missingOrder) {
+    return (
+      <div className="space-y-6 pb-24">
+        <CrmPageHeader
+          breadcrumbs={[
+            { label: c.workOrders, href: "/crm/work-orders" },
+            { label: t.document.orderNotFound },
+          ]}
+          title={t.document.orderNotFound}
+        />
+        <p className="text-bm-muted text-sm">
+          {locale === "ru"
+            ? "Заказ удалён или ещё не синхронизирован. Нажмите «Синхронизировать» в меню CRM."
+            : "Zlecenie usunięte lub nie zsynchronizowane. Użyj «Synchronizuj» w menu CRM."}
+        </p>
+        <button type="button" className="btn-outline" onClick={onClose}>
+          ← {c.workOrders}
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 pb-24">

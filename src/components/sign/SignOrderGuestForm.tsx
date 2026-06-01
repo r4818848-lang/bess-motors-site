@@ -92,17 +92,20 @@ export function SignOrderGuestForm({ orderId, orderNumber, onVerified }: Props) 
         }),
       });
 
-      if (res.ok) {
-        const data = (await res.json()) as {
-          ok?: boolean;
-          token?: string;
-          order?: WorkOrder;
-          portal?: ClientPortalSlice;
-        };
-        if (data.ok && data.order && data.portal) {
-          await finishAccess(data.order, data.portal, "cloud", data.token);
-          return;
-        }
+      const data = (await res.json()) as {
+        ok?: boolean;
+        token?: string;
+        order?: WorkOrder;
+        portal?: ClientPortalSlice;
+        error?: string;
+      };
+      if (res.ok && data.ok && data.order && data.portal) {
+        await finishAccess(data.order, data.portal, "cloud", data.token);
+        return;
+      }
+      if (res.status === 404 && data.error === "order_not_found") {
+        setError(s.orderNotFound);
+        return;
       }
 
       if (process.env.NODE_ENV === "development" && res.status === 503) {

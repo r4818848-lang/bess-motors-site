@@ -163,11 +163,13 @@ function CabinetPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { sessionReady, clientUser, signOut, refreshAuth } = useAuth();
-  // One cloud pull is enough for cabinet (both hooks merged behavior via shared DB event)
-  const { syncing, syncFailed, resync } = useCloudClientSync(!!clientUser);
   const [mounted, setMounted] = useState(false);
   const [db, setDb] = useState<Database | null>(null);
   const [tab, setTab] = useState("cars");
+  const { syncing, syncFailed, resync } = useCloudClientSync(
+    !!clientUser,
+    tab === "status" ? 10_000 : 20_000
+  );
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [orderFilters, setOrderFilters] = useState(defaultWorkOrderFilters);
   const [vinForm, setVinForm] = useState(emptyVinForm);

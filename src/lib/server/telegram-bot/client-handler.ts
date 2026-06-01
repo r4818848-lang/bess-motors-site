@@ -1266,9 +1266,13 @@ async function handleClientCallbackInner(cb: TelegramCallback): Promise<void> {
       await sendTelegramMessage(chatId, L.saveFailed);
       return;
     }
-    const ok = data.startsWith("cl:extra:ok:");
-    await resolveExtraWorkApproval(orderId, ok);
-    await sendTelegramMessage(chatId, ok ? L.saved : L.cancel, clientUserMenu(locale, slice));
+    const approved = data.startsWith("cl:extra:ok:");
+    const result = await resolveExtraWorkApproval(orderId, approved);
+    await sendTelegramMessage(
+      chatId,
+      result.ok ? (approved ? L.saved : L.cancel) : L.saveFailed,
+      clientUserMenu(locale, slice)
+    );
     return;
   }
 

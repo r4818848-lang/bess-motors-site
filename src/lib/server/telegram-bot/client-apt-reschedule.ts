@@ -29,6 +29,7 @@ export async function rescheduleAppointment(
   if (userId && apt.userId !== userId) return { ok: false };
 
   apt.date = shiftDate(apt.date, days);
-  await cloudPutCrmStore(db);
+  const put = await cloudPutCrmStore(db);
+  if (!put.ok) return { ok: false };
   return { ok: true, apt };
 }

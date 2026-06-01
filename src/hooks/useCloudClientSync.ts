@@ -7,7 +7,7 @@ import { syncAppointmentsFromCloud } from "@/lib/cloud-appointments";
 import { useVisibleInterval } from "@/hooks/useVisibleInterval";
 
 /** Pull client work orders and profile from Supabase */
-export function useCloudClientSync(enabled = true): {
+export function useCloudClientSync(enabled = true, pollMs = 20_000): {
   syncing: boolean;
   syncFailed: boolean;
   resync: () => Promise<void>;
@@ -44,7 +44,7 @@ export function useCloudClientSync(enabled = true): {
     return () => window.removeEventListener("focus", onFocus);
   }, [enabled, resync]);
 
-  useVisibleInterval(() => void resync(), 20_000, enabled);
+  useVisibleInterval(() => void resync(), pollMs, enabled);
 
   return { syncing, syncFailed, resync };
 }
