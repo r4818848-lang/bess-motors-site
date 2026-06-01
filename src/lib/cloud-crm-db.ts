@@ -76,6 +76,7 @@ export async function saveDbAndPushCrmDelete(db: Database): Promise<boolean> {
 }
 
 async function revertCrmFromCloudAfterFailedPush(): Promise<void> {
+  if (isCrmDraftLockActive()) return;
   await pullCrmFromCloud({ force: true });
   if (typeof window !== "undefined") {
     window.dispatchEvent(new CustomEvent(DB_CHANGED_EVENT));
@@ -165,7 +166,7 @@ export async function pushCrmToCloud(
         localStorage.setItem(CLOUD_SYNCED_AT_KEY, data.updatedAt);
       }
       notifyCrmCloudPush(ok, data.error);
-      if (ok && !options?.skipPull) {
+      if (ok && !options?.skipPull && !isCrmDraftLockActive()) {
         await pullCrmFromCloud({ force: true });
       }
       return ok;

@@ -70,7 +70,7 @@ import { CrmPageHeader } from "@/components/crm/CrmPageHeader";
 import { applyWorkOrderCompletedAt } from "@/lib/work-order-dates";
 import { nowIsoTimestamp } from "@/lib/work-order-timestamp";
 import { applyWorkOrderClosure, isWorkOrderClosed } from "@/lib/work-order-lifecycle";
-import { setCrmDraftLock } from "@/lib/crm-draft-lock";
+import { acquireCrmDraftLock, releaseCrmDraftLock } from "@/lib/crm-draft-lock";
 
 type CreateStep = "client" | "works" | "more";
 type EditTab = "client" | "works" | "status" | "payment" | "documents" | "more";
@@ -154,8 +154,8 @@ export function WorkOrderForm({
 
   useEffect(() => {
     if (!isNew) return;
-    setCrmDraftLock(true);
-    return () => setCrmDraftLock(false);
+    acquireCrmDraftLock();
+    return () => releaseCrmDraftLock();
   }, [isNew]);
 
   useEffect(() => {
@@ -337,7 +337,7 @@ export function WorkOrderForm({
       setSaveError(c.pushSyncFailed);
       return false;
     }
-    if (isNew) setCrmDraftLock(false);
+    if (isNew) releaseCrmDraftLock();
     if (opts?.close !== false) onSaved();
     return true;
   };

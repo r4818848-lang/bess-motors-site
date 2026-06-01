@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import { X, Wrench, Plus, Trash2, Search, QrCode } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
@@ -31,7 +31,12 @@ import { crmWorkLineTemplates, workTemplateLabel } from "@/lib/crm-work-template
 import { ClientVehiclePicker } from "./ClientVehiclePicker";
 import { PriceNumberInput } from "@/components/ui/PriceNumberInput";
 import { Button } from "@/components/ui/Button";
-import { setCrmDraftLock } from "@/lib/crm-draft-lock";
+import { acquireCrmDraftLock, releaseCrmDraftLock } from "@/lib/crm-draft-lock";
+import {
+  clearQuickCreateOrderDraft,
+  loadQuickCreateOrderDraft,
+  saveQuickCreateOrderDraft,
+} from "@/lib/quick-create-order-draft";
 
 function emptyOrder(db: Database): WorkOrder {
   return {
@@ -94,6 +99,8 @@ export function QuickCreateOrderModal({
   const [showTemplates, setShowTemplates] = useState(false);
   const [error, setError] = useState("");
 
+  const wasOpenRef = useRef(false);
+
   const hasDraft =
     Boolean(userId || vehicleId || clientNotes.trim() || services.length > 0);
 
@@ -110,34 +117,75 @@ export function QuickCreateOrderModal({
     ) {
       return;
     }
+    clearQuickCreateOrderDraft();
     onClose();
   };
 
   useEffect(() => {
     if (!open) {
-      setCrmDraftLock(false);
+      if (wasOpenRef.current) releaseCrmDraftLock();
+      wasOpenRef.current = false;
       return;
     }
-    setCrmDraftLock(true);
-    const fresh = loadDb();
-    setMechanicId(fresh.mechanics[0]?.id ?? "");
-    setVatEnabled(fresh.settings.vatEnabledByDefault ?? true);
-    setServices([]);
-    setReceptionChecklist({});
-    setClientNotes("");
-    setShowReceptionDate(false);
-    setError("");
-    if (initialUserId) {
-      setUserId(initialUserId);
-      const v = fresh.vehicles.find((x) => x.userId === initialUserId);
-      setVehicleId(v?.id ?? "");
-    } else {
-      setUserId("");
-      setVehicleId("");
+
+    if (!wasOpenRef.current) {
+      wasOpenRef.current = true;
+      acquireCrmDraftLock();
+      const fresh = loadDb();
+      const saved = loadQuickCreateOrderDraft();
+      if (saved) {
+        setUserId(saved.userId);
+        setVehicleId(saved.vehicleId);
+        setClientNotes(saved.clientNotes);
+        setServices(saved.services);
+        setMechanicId(saved.mechanicId || (fresh.mechanics[0]?.id ?? ""));
+        setVatEnabled(saved.vatEnabled);
+        setReceptionChecklist(saved.receptionChecklist ?? {});
+        setReceptionDate(saved.receptionDate || new Date().toISOString().slice(0, 10));
+      } else {
+        setMechanicId(fresh.mechanics[0]?.id ?? "");
+        setVatEnabled(fresh.settings.vatEnabledByDefault ?? true);
+        setServices([]);
+        setReceptionChecklist({});
+        setClientNotes("");
+        setReceptionDate(new Date().toISOString().slice(0, 10));
+        if (initialUserId) {
+          setUserId(initialUserId);
+          const v = fresh.vehicles.find((x) => x.userId === initialUserId);
+          setVehicleId(v?.id ?? "");
+        } else {
+          setUserId("");
+          setVehicleId("");
+        }
+      }
+      setShowReceptionDate(false);
+      setError("");
     }
-    setReceptionDate(new Date().toISOString().slice(0, 10));
-    return () => setCrmDraftLock(false);
   }, [open, initialUserId]);
+
+  useEffect(() => {
+    if (!open) return;
+    saveQuickCreateOrderDraft({
+      userId,
+      vehicleId,
+      clientNotes,
+      services,
+      mechanicId,
+      vatEnabled,
+      receptionDate,
+      receptionChecklist,
+    });
+  }, [
+    open,
+    userId,
+    vehicleId,
+    clientNotes,
+    services,
+    mechanicId,
+    vatEnabled,
+    receptionDate,
+    receptionChecklist,
+  ]);
 
   const draftOrder = useMemo((): WorkOrder => {
     const fresh = loadDb();
@@ -203,7 +251,9 @@ export function QuickCreateOrderModal({
       setError(c.pushSyncFailed);
       return;
     }
-    setCrmDraftLock(false);
+    clearQuickCreateOrderDraft();
+    releaseCrmDraftLock();
+    wasOpenRef.current = false;
     onCreated(order.id);
     onClose();
   };

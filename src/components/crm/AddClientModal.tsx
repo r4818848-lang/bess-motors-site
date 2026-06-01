@@ -7,6 +7,7 @@ import { loadDb, saveDb, type ClientType, type PaymentMethod } from "@/lib/store
 import { saveDbAndPushCrm } from "@/lib/cloud-crm-db";
 import { createCrmClientWithVehicle } from "@/lib/crm-create-client";
 import { PAYMENT_METHODS } from "@/lib/payment";
+import { acquireCrmDraftLock, releaseCrmDraftLock } from "@/lib/crm-draft-lock";
 import { CrmModalShell } from "./CrmModalShell";
 import { CrmFormField } from "./CrmFormField";
 import { Button } from "@/components/ui/Button";
@@ -34,7 +35,10 @@ export function AddClientModal({
   const [clientType, setClientType] = useState<ClientType>(initialClientType);
 
   useEffect(() => {
-    if (open) setClientType(initialClientType);
+    if (!open) return;
+    acquireCrmDraftLock();
+    setClientType(initialClientType);
+    return () => releaseCrmDraftLock();
   }, [open, initialClientType]);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");

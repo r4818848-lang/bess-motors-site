@@ -5,6 +5,10 @@ function orderStamp(o: WorkOrder): string {
   return normalizeIsoTimestamp(o.updatedAt || o.createdAt);
 }
 
+function userStamp(u: { createdAt: string }): string {
+  return normalizeIsoTimestamp(u.createdAt);
+}
+
 function mergeById<T extends { id: string }>(
   local: T[],
   remote: T[],
@@ -82,10 +86,21 @@ function applySnapshotMembership(
     ? normalizeIsoTimestamp(options.lastCloudSyncedAt)
     : "";
 
+  const users = base.users.filter((u) => {
+    if (userIds.has(u.id)) return true;
+    if (!syncCutoff) return false;
+    return userStamp(u) > syncCutoff;
+  });
+  const keptUserIds = ids(users);
+
   return {
     ...base,
-    users: base.users.filter((u) => userIds.has(u.id)),
-    vehicles: base.vehicles.filter((v) => vehicleIds.has(v.id)),
+    users,
+    vehicles: base.vehicles.filter((v) => {
+      if (vehicleIds.has(v.id)) return true;
+      if (!syncCutoff) return false;
+      return keptUserIds.has(v.userId);
+    }),
     workOrders: base.workOrders.filter((o) => {
       if (orderIds.has(o.id)) return true;
       if (!syncCutoff) return false;

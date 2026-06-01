@@ -6,6 +6,7 @@ import { useI18n } from "@/lib/i18n/context";
 import { loadDb, saveDb } from "@/lib/store";
 import { saveDbAndPushCrm } from "@/lib/cloud-crm-db";
 import { createCrmVehicle } from "@/lib/crm-create-vehicle";
+import { acquireCrmDraftLock, releaseCrmDraftLock } from "@/lib/crm-draft-lock";
 import { CrmModalShell } from "./CrmModalShell";
 import { CrmFormField } from "./CrmFormField";
 import { Button } from "@/components/ui/Button";
@@ -44,7 +45,10 @@ export function AddVehicleModal({ open, onClose, onCreated, initialUserId }: Pro
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (open && initialUserId) setUserId(initialUserId);
+    if (!open) return;
+    acquireCrmDraftLock();
+    if (initialUserId) setUserId(initialUserId);
+    return () => releaseCrmDraftLock();
   }, [open, initialUserId]);
 
   const clients = open

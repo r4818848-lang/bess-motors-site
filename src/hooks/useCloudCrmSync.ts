@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { CRM_CLOUD_PUSH_EVENT, DB_SAVED_EVENT } from "@/lib/db-events";
+import { isCrmDraftLockActive } from "@/lib/crm-draft-lock";
 import {
   fetchCloudConfigured,
   pullCrmFromCloud,
@@ -27,6 +28,7 @@ export function useCloudCrmSync(enabled = true): {
 
   const resync = useCallback(async (): Promise<boolean> => {
     if (!enabled) return false;
+    if (isCrmDraftLockActive()) return true;
     setSyncing(true);
     try {
       const configured = await fetchCloudConfigured();
