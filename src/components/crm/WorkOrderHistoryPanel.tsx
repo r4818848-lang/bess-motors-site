@@ -1,35 +1,44 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import Link from "next/link";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, User, Car } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { loadDb, saveDb } from "@/lib/store";
 import { useDbSync } from "@/hooks/useDbSync";
 import { filterWorkOrdersByQuery } from "@/lib/crm-search";
 import { filterClosedWorkOrders } from "@/lib/work-order-lifecycle";
-import { calcClientTotal } from "@/lib/workorder-calc";
-import { CrmSearchInput } from "./CrmSearchInput";
-import { VehicleThumbnail } from "@/components/vehicle/VehicleThumbnail";
+import { displayOrderTotal } from "@/lib/crm-display-price";
+import { useCrmDisplay } from "@/contexts/CrmDisplayContext";
+import { repairStatusPillClass } from "@/lib/work-order-status-style";
+import { getWorkOrderCompletedAt } from "@/lib/work-order-dates";
 
-export function WorkOrderHistoryPanel() {
-  const { t } = useI18n();
+type Props = {
+  /** When set, hides internal search (parent provides toolbar search) */
+  searchQuery?: string;
+};
+
+export function WorkOrderHistoryPanel({ searchQuery: externalQuery }: Props = {}) {
+  const { t, locale } = useI18n();
   const c = t.crm;
   const w = t.wo;
-  const [query, setQuery] = useState("");
+  const { priceMode } = useCrmDisplay();
   const dbTick = useDbSync();
   void dbTick;
 
   const rows = useMemo(() => {
     const db = loadDb();
     const closed = filterClosedWorkOrders(db.workOrders);
-    const bySearch = filterWorkOrdersByQuery(db, closed, query);
+    const bySearch = filterWorkOrdersByQuery(db, closed, externalQuery ?? "");
+    const vatRate = db.settings.vatRate ?? 23;
     return bySearch.map((order) => ({
-        order,
-        client: db.users.find((u) => u.id === order.userId),
-        vehicle: db.vehicles.find((v) => v.id === order.vehicleId),
-      }));
-  }, [query, dbTick]);
+      order,
+      client: db.users.find((u) => u.id === order.userId),
+      vehicle: db.vehicles.find((v) => v.id === order.vehicleId),
+      total: displayOrderTotal(order, priceMode, vatRate),
+      completed: getWorkOrderCompletedAt(order),
+    }));
+  }, [externalQuery, dbTick, priceMode]);
 
   const removeOrder = (orderId: string) => {
     if (!confirm(c.confirmDeleteOrderHistory)) return;
@@ -38,60 +47,75 @@ export function WorkOrderHistoryPanel() {
     saveDb(fresh);
   };
 
+  const formatMoney = (n: number) =>
+    n.toLocaleString(locale === "pl" ? "pl-PL" : locale === "ru" || locale === "uk" ? "ru-RU" : "en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="font-display text-xl uppercase text-glow">{c.orderHistoryList}</h2>
-        <p className="text-sm text-bm-muted mt-1">{c.orderHistoryHint}</p>
-      </div>
-      <CrmSearchInput value={query} onChange={setQuery} placeholder={c.search} />
-      <div className="crm-mw-card">
-        <div className="table-scroll">
-        <table className="crm-mw-table min-w-[640px]">
+    <div className="crm-mw-card crm-mw-orders-card">
+      <div className="table-scroll">
+        <table className="crm-mw-table min-w-[800px]">
           <thead>
             <tr>
-              <th>#</th>
+              <th>{c.orderNumberColumn}</th>
+              <th>{c.createdDate}</th>
+              <th>{c.completedDate}</th>
               <th>{c.status}</th>
-              <th>{c.date}</th>
               <th>{c.client}</th>
-              <th>{c.vehicleColumn}</th>
               <th>{c.total}</th>
+              <th>{c.vehicleColumn}</th>
               <th />
             </tr>
           </thead>
           <tbody>
             {rows.length === 0 ? (
               <tr>
-                <td colSpan={7} className="text-center text-bm-muted py-8">
+                <td colSpan={8} className="crm-mw-empty">
                   {c.noSearchResults}
                 </td>
               </tr>
             ) : (
-              rows.map(({ order, client, vehicle }) => (
-                  <tr key={order.id} className="hover:bg-white/5 align-top">
-                    <td className="font-mono text-bm-red">{order.number}</td>
+              rows.map(({ order, client, vehicle, total, completed }) => {
+                const vehicleLine = vehicle
+                  ? `${vehicle.make} ${vehicle.model} ${vehicle.plate}`.trim()
+                  : "—";
+                return (
+                  <tr key={order.id}>
                     <td>
-                      <span className="status-pill bg-bm-muted/20 text-bm-muted text-[10px]">
+                      <Link
+                        href={`/crm/work-orders?edit=${encodeURIComponent(order.id)}`}
+                        className="crm-mw-order-link"
+                      >
+                        <Car size={14} className="shrink-0 text-gray-400" />
+                        {order.number}
+                      </Link>
+                    </td>
+                    <td className="crm-mw-date">{order.createdAt.slice(0, 10)}</td>
+                    <td className="crm-mw-date">{completed ?? "—"}</td>
+                    <td>
+                      <span className={repairStatusPillClass(order.status)}>
                         {t.repairStatus[order.status]}
                       </span>
                     </td>
-                    <td className="text-xs whitespace-nowrap">
-                      <span className="block">{order.createdAt.slice(0, 10)}</span>
-                      {order.updatedAt !== order.createdAt && (
-                        <span className="text-[10px] text-bm-muted">
-                          {c.updated}: {order.updatedAt.slice(0, 10)}
-                        </span>
-                      )}
-                    </td>
-                    <td>{client?.name ?? "—"}</td>
                     <td>
-                      <VehicleThumbnail vehicle={vehicle} />
+                      <div className="crm-mw-client-cell">
+                        <User size={14} className="text-gray-400 shrink-0" />
+                        {client?.name ?? "—"}
+                      </div>
                     </td>
-                    <td className="font-mono">{calcClientTotal(order).toFixed(2)} zł</td>
-                    <td className="whitespace-nowrap">
+                    <td className="crm-mw-amount">{formatMoney(total)}</td>
+                    <td>
+                      <div className="crm-mw-vehicle-cell">
+                        <Car size={14} className="text-gray-500 shrink-0" />
+                        <span className="truncate max-w-[180px]">{vehicleLine}</span>
+                      </div>
+                    </td>
+                    <td className="crm-mw-actions">
                       <Link
                         href={`/crm/work-orders?edit=${encodeURIComponent(order.id)}`}
-                        className="text-bm-red hover:text-white p-2 inline-flex"
+                        className="crm-mw-icon-btn"
                         title={w.editOrder}
                       >
                         <Pencil size={16} />
@@ -99,18 +123,18 @@ export function WorkOrderHistoryPanel() {
                       <button
                         type="button"
                         onClick={() => removeOrder(order.id)}
-                        className="text-red-400 hover:text-red-300 p-2 inline-flex"
+                        className="crm-mw-icon-btn text-red-600"
                         title={t.common.delete}
                       >
                         <Trash2 size={16} />
                       </button>
                     </td>
                   </tr>
-              ))
+                );
+              })
             )}
           </tbody>
         </table>
-        </div>
       </div>
     </div>
   );

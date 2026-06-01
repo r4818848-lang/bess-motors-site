@@ -177,7 +177,7 @@ export function QuickCreateOrderModal({
 
   return (
     <div
-      className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/85"
+      className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/40"
       role="dialog"
       aria-modal
       onClick={(e) => e.target === e.currentTarget && onClose()}
@@ -187,10 +187,10 @@ export function QuickCreateOrderModal({
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header — Motowarsztat style */}
-        <div className="shrink-0 flex flex-wrap items-center gap-2 sm:gap-3 px-3 sm:px-4 py-3 border-b border-bm-border bg-black">
+        <div className="crm-mw-modal-header shrink-0 flex flex-wrap items-center gap-2 sm:gap-3">
           <div className="flex items-center gap-2 min-w-0 flex-1">
             <Wrench className="text-bm-red shrink-0" size={22} />
-            <h2 className="font-display font-bold uppercase text-sm sm:text-base text-white truncate">
+            <h2 className="font-semibold text-sm sm:text-base text-gray-900 truncate">
               {c.quickCreateOrderTitle}
             </h2>
           </div>
@@ -222,7 +222,7 @@ export function QuickCreateOrderModal({
           <button
             type="button"
             onClick={onClose}
-            className="p-2 rounded-lg hover:bg-white/10 text-white shrink-0"
+            className="p-2 rounded-lg hover:bg-gray-100 text-gray-600 shrink-0"
             aria-label={t.common.cancel}
           >
             <X size={22} />
@@ -279,8 +279,8 @@ export function QuickCreateOrderModal({
 
           {/* Task list */}
           <section className="crm-mw-card overflow-hidden">
-            <div className="px-3 py-2.5 border-b border-bm-border bg-bm-graphite/80">
-              <h3 className="font-display font-bold uppercase text-sm text-white">
+            <div className="px-3 py-2.5 border-b border-bm-border bg-gray-50">
+              <h3 className="font-bold uppercase text-sm text-gray-800">
                 {c.taskListTitle}
               </h3>
             </div>
@@ -379,7 +379,7 @@ export function QuickCreateOrderModal({
                 </tfoot>
               </table>
             </div>
-            <div className="flex flex-wrap items-center gap-2 p-3 border-t border-bm-border bg-bm-graphite/40">
+            <div className="flex flex-wrap items-center gap-2 p-3 border-t border-bm-border bg-gray-50">
               <Button
                 type="button"
                 className="text-xs"
@@ -464,7 +464,7 @@ export function QuickCreateOrderModal({
           )}
         </div>
 
-        <div className="shrink-0 flex flex-col-reverse sm:flex-row gap-2 justify-end px-4 py-3 border-t border-bm-border bg-bm-graphite/95">
+        <div className="crm-mw-modal-footer shrink-0 flex flex-col-reverse sm:flex-row gap-2 justify-end">
           <Button type="button" variant="outline" onClick={onClose}>
             {t.common.cancel}
           </Button>

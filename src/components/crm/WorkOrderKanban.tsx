@@ -52,11 +52,11 @@ export function WorkOrderKanban({ orders }: { orders?: import("@/lib/store").Wor
         return (
           <div
             key={status}
-            className="min-w-[200px] flex-1 glass rounded-xl p-3"
+            className="min-w-[200px] flex-1 crm-kanban-column"
             onDragOver={(e) => e.preventDefault()}
             onDrop={() => dragId && move(dragId, status)}
           >
-            <p className="text-xs uppercase font-bold text-bm-red mb-2">
+            <p className="text-xs uppercase font-bold text-gray-600 mb-2">
               {t.repairStatus[status]} ({list.length})
             </p>
             <div className="space-y-2 max-h-[420px] overflow-y-auto">
@@ -68,9 +68,9 @@ export function WorkOrderKanban({ orders }: { orders?: import("@/lib/store").Wor
                     key={o.id}
                     draggable
                     onDragStart={() => setDragId(o.id)}
-                    className={`p-2 rounded-lg border bg-bm-black/40 text-xs cursor-grab ${sla}`}
+                    className={`crm-kanban-card cursor-grab ${sla}`}
                   >
-                    <p className="font-mono text-bm-red font-bold">{o.number}</p>
+                    <p className="font-mono font-bold text-gray-900">{o.number}</p>
                     <p className="text-bm-muted truncate">{client?.name ?? "—"}</p>
                     {o.estimatedReadyAt && (
                       <p className="text-[10px] mt-1">ETA {o.estimatedReadyAt}</p>

@@ -111,13 +111,16 @@ function CRMPageContent() {
 
   useEffect(() => {
     const q = searchParams.get("tab");
+    if (q === "orderHistory") {
+      router.replace("/crm/order-history");
+      return;
+    }
     if (
       q === "hot" ||
       q === "clients" ||
       q === "vehicles" ||
       q === "vehicleChanges" ||
       q === "clientHistory" ||
-      q === "orderHistory" ||
       q === "warehouse" ||
       q === "marketing" ||
       q === "expenses" ||
@@ -125,10 +128,10 @@ function CRMPageContent() {
       q === "settings"
     ) {
       setTab(q);
-    } else {
-      setTab("overview");
+    } else if (!q) {
+      router.replace("/crm/work-orders");
     }
-  }, [searchParams]);
+  }, [searchParams, router]);
 
   const db = loadDb();
   const vatRate = db.settings.vatRate ?? 23;
@@ -170,7 +173,7 @@ function CRMPageContent() {
           subtitle={pageSubtitle}
           actions={
             <>
-              <Link href="/crm/work-orders?create=1" className="btn-primary text-xs py-2 inline-flex items-center gap-2">
+              <Link href="/crm/work-orders?create=1" className="crm-mw-btn-create text-xs py-2 inline-flex items-center gap-2">
                 <Plus size={16} /> {c.createOrder}
               </Link>
               {tab === "overview" && (
@@ -245,7 +248,6 @@ function CRMPageContent() {
         {tab === "clientHistory" && <ClientHistoryPanel />}
         {tab === "vehicles" && <VehiclesListPanel />}
         {tab === "vehicleChanges" && <VehicleHistoryPanel />}
-        {tab === "orderHistory" && <WorkOrderHistoryPanel />}
         {tab === "warehouse" && <WarehousePanel />}
         {tab === "marketing" && (
           <div className="space-y-8">

@@ -393,17 +393,13 @@ export function WorkOrderForm({
       )}
 
       {!isNew && (
-        <div className="flex flex-wrap gap-1 border-b border-bm-border pb-1">
+        <div className="crm-mw-tabs">
           {editTabs.map(({ id, label }) => (
             <button
               key={id}
               type="button"
               onClick={() => setEditTab(id)}
-              className={`px-4 py-2 rounded-t-lg text-xs font-bold uppercase tracking-wide transition-all ${
-                editTab === id
-                  ? "bg-bm-red/25 text-bm-red border border-bm-red/40 border-b-0"
-                  : "text-bm-muted hover:text-white"
-              }`}
+              className={`crm-mw-tab ${editTab === id ? "active" : ""}`}
             >
               {label}
             </button>
@@ -425,10 +421,8 @@ export function WorkOrderForm({
                 }
                 setCreateStep(id);
               }}
-              className={`px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wide border transition-all ${
-                createStep === id
-                  ? "bg-bm-red/25 border-bm-red text-bm-red shadow-neon-sm"
-                  : "border-bm-border text-bm-muted hover:text-white"
+              className={`crm-mw-tab rounded-full ${
+                createStep === id ? "active border-blue-200" : ""
               }`}
             >
               {i + 1}. {label}
@@ -476,7 +470,7 @@ export function WorkOrderForm({
       )}
 
       {showClient && (
-      <div className="glass-red rounded-xl p-6 neon-border space-y-4">
+      <div className="crm-mw-card rounded-md p-6 space-y-4">
         <ClientVehiclePicker
           userId={order.userId}
           vehicleId={order.vehicleId}
@@ -512,7 +506,7 @@ export function WorkOrderForm({
       )}
 
       {client && vehicle && (!isNew || showMore) && (
-        <div className="glass-red rounded-xl p-6 neon-border">
+        <div className="crm-mw-card rounded-md p-6">
           <h3 className="font-display text-sm uppercase text-bm-red mb-4 flex items-center gap-2">
             <FileText size={16} /> {w.sendDocuments}
           </h3>
@@ -591,7 +585,7 @@ export function WorkOrderForm({
       )}
 
       {showStatusFields && (
-      <div className="glass-red rounded-xl p-6 neon-border space-y-4">
+      <div className="crm-mw-card rounded-md p-6 space-y-4">
         <h3 className="font-display text-sm uppercase text-bm-red font-bold">{c.tabOrderStatus}</h3>
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
         <div>
@@ -793,7 +787,7 @@ export function WorkOrderForm({
         </div>
       </div>
 
-      <div className="glass-red rounded-xl p-6 neon-border space-y-4">
+      <div className="crm-mw-card rounded-md p-6 space-y-4">
         <h3 className="font-display text-sm uppercase text-bm-red font-bold">{w.paymentTitle}</h3>
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
@@ -878,7 +872,7 @@ export function WorkOrderForm({
 
       {showWorks && (
       <>
-      <div className="glass-red rounded-xl overflow-hidden neon-border">
+      <div className="crm-mw-card rounded-md overflow-hidden">
         <div className="px-4 py-3 border-b border-bm-border bg-bm-red/10 flex justify-between items-center">
           <h3 className="font-display text-sm uppercase font-bold text-bm-red">{w.worksTable}</h3>
           <button
@@ -966,7 +960,7 @@ export function WorkOrderForm({
         </div>
       </div>
 
-      <div className="glass-red rounded-xl overflow-hidden neon-border mt-4">
+      <div className="crm-mw-card rounded-md overflow-hidden mt-4">
         <div className="px-4 py-3 border-b border-bm-border bg-bm-red/10 flex justify-between items-center">
           <h3 className="font-display text-sm uppercase font-bold text-bm-red">{w.partsTable}</h3>
           <button
@@ -1119,7 +1113,7 @@ export function WorkOrderForm({
       </div>
 
       {/* Files */}
-      <div className="glass-red rounded-xl p-6 neon-border">
+      <div className="crm-mw-card rounded-md p-6">
         <h3 className="font-display text-sm uppercase text-bm-red mb-4">{w.attachments}</h3>
         <div className="flex flex-wrap gap-3 mb-4">
           {(
@@ -1179,21 +1173,21 @@ export function WorkOrderForm({
 
       {(showPaymentFields || (isNew && (createStep === "works" || createStep === "more"))) && (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <div className="glass-red rounded-xl p-4 neon-border">
+        <div className="crm-mw-card rounded-md p-4">
           <p className="text-xs text-bm-muted uppercase">{w.worksTotal}</p>
           <p className="font-display text-xl font-bold">{totals.servicesSub.toFixed(2)} zł</p>
         </div>
-        <div className="glass-red rounded-xl p-4 neon-border">
+        <div className="crm-mw-card rounded-md p-4">
           <p className="text-xs text-bm-muted uppercase">{w.partsTotal}</p>
           <p className="font-display text-xl font-bold">{totals.partsSub.toFixed(2)} zł</p>
         </div>
-        <div className="glass-red rounded-xl p-4 neon-border">
+        <div className="crm-mw-card rounded-md p-4">
           <p className="text-xs text-bm-muted uppercase">{w.discountAmount}</p>
           <p className="font-display text-xl text-bm-red">
             {totals.discountAmt > 0 ? `-${totals.discountAmt.toFixed(2)}` : "—"} zł
           </p>
         </div>
-        <div className="glass-red rounded-xl p-4 neon-border border-bm-red">
+        <div className="crm-mw-card rounded-md p-4 border-bm-red">
           <p className="text-xs text-bm-muted uppercase">{w.clientTotal}</p>
           <p className="font-display text-2xl font-bold text-glow">
             {breakdown.grossTotal.toFixed(2)} zł
@@ -1204,7 +1198,7 @@ export function WorkOrderForm({
             </p>
           )}
         </div>
-        <div className="glass-red rounded-xl p-4 neon-border border-green-500/40 sm:col-span-2">
+        <div className="crm-mw-card rounded-md p-4 border-green-500/40 sm:col-span-2">
           <p className="text-xs text-bm-muted uppercase">{w.serviceProfit}</p>
           <p
             className={`font-display text-2xl font-bold ${
@@ -1223,11 +1217,11 @@ export function WorkOrderForm({
               ` · ${w.mechanicSalary}: −${totals.serviceProfit.mechanicPay.toFixed(2)} zł`}
           </p>
         </div>
-        <div className="glass-red rounded-xl p-4 neon-border">
+        <div className="crm-mw-card rounded-md p-4">
           <p className="text-xs text-bm-muted uppercase">{c.profit} ({w.partsProfit})</p>
           <p className="font-display text-xl text-green-400">+{totals.partsProfit.toFixed(2)} zł</p>
         </div>
-        <div className="glass-red rounded-xl p-4 neon-border sm:col-span-2 lg:col-span-1">
+        <div className="crm-mw-card rounded-md p-4 sm:col-span-2 lg:col-span-1">
           <p className="text-xs text-bm-muted uppercase">{w.mechanicSalary}</p>
           <p className="font-display text-2xl text-amber-400">
             {totals.earnings.total.toFixed(2)} zł

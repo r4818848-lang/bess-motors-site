@@ -73,7 +73,7 @@ export function VehiclesListPanel() {
       <div className="flex flex-wrap items-center justify-end gap-2">
         <button
           type="button"
-          className="btn-primary text-xs py-2 inline-flex items-center gap-2"
+          className="crm-mw-btn-create text-xs py-2 inline-flex items-center gap-2"
           onClick={() => setVehicleModalOpen(true)}
         >
           <Plus size={16} /> {c.addNewVehicle}

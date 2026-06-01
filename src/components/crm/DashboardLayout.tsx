@@ -111,15 +111,10 @@ function DashboardLayoutInner({
 
   const adminSections: NavSection[] = [
     {
-      items: [
-        { href: "/crm", path: "/crm", icon: LayoutDashboard, label: c.dashboard, tab: null },
-        { href: "/crm?tab=hot", path: "/crm", icon: Flame, label: c.hotOrders, tab: "hot" },
-      ],
-    },
-    {
       title: c.navOrders,
       items: [
         { href: "/crm/work-orders", path: "/crm/work-orders", icon: FileText, label: c.workOrders },
+        { href: "/crm?tab=hot", path: "/crm", icon: Flame, label: c.hotOrders, tab: "hot" },
         { href: "/crm/order-history", path: "/crm/order-history", icon: Archive, label: c.orderHistoryList },
         { href: "/crm/calendar", path: "/crm/calendar", icon: Calendar, label: t.calendar.title },
         { href: "/crm/appointments", path: "/crm/appointments", icon: CalendarDays, label: t.calendar.appointmentsTitle },
@@ -249,7 +244,7 @@ function DashboardLayoutInner({
   return (
     <div className="min-h-screen flex flex-col lg:flex-row">
       {/* Mobile top bar */}
-      <header className="lg:hidden fixed top-0 left-0 right-0 z-50 border-b border-bm-border bg-bm-graphite/95 backdrop-blur safe-area-pt">
+      <header className="crm-mobile-header lg:hidden fixed top-0 left-0 right-0 z-50 backdrop-blur safe-area-pt">
         <div className="flex items-center gap-2 px-3 py-2.5 min-h-[3.25rem]">
           <button
             type="button"
@@ -344,7 +339,7 @@ function DashboardLayoutInner({
 
       {/* Mobile bottom navigation */}
       <nav
-        className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-bm-border bg-bm-graphite/95 backdrop-blur safe-area-pb"
+        className="crm-mobile-nav lg:hidden fixed bottom-0 left-0 right-0 z-50 backdrop-blur safe-area-pb"
         aria-label="CRM"
       >
         <div className="flex items-stretch justify-around min-h-[3.5rem]">

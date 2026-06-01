@@ -12,8 +12,6 @@ import { useCrmDisplay } from "@/contexts/CrmDisplayContext";
 import { CrmSearchInput } from "./CrmSearchInput";
 import { CrmListToolbar } from "./CrmListToolbar";
 import { AddClientModal } from "./AddClientModal";
-import { Button } from "@/components/ui/Button";
-
 export function ClientsListPanel() {
   const { t } = useI18n();
   const c = t.crm;
@@ -53,19 +51,22 @@ export function ClientsListPanel() {
 
   return (
     <div className="space-y-5">
-      <div className="flex flex-wrap items-center justify-end gap-2">
-        <Button type="button" className="text-xs" onClick={() => setClientModalOpen(true)}>
-          <Plus size={16} /> {c.addNewClient}
-        </Button>
-        <Button
+      <div className="crm-mw-toolbar">
+        <button
           type="button"
-          variant="outline"
-          className="text-xs"
+          className="crm-mw-btn-create"
+          onClick={() => setClientModalOpen(true)}
+        >
+          <Plus size={18} /> {c.addNewClient}
+        </button>
+        <button
+          type="button"
+          className="crm-mw-btn-delete border-amber-200 bg-amber-50 text-amber-900"
           onClick={() => setCompanyModalOpen(true)}
         >
           <Plus size={16} /> {c.addNewCompany}
-        </Button>
-        <Link href="/crm/work-orders?create=1" className="btn-outline text-xs py-2 inline-flex items-center gap-2">
+        </button>
+        <Link href="/crm/work-orders?create=1" className="crm-mw-toolbar-icon inline-flex items-center gap-1 text-sm">
           <FileText size={16} /> {c.createOrder}
         </Link>
       </div>
