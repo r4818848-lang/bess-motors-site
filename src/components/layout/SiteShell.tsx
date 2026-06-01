@@ -6,6 +6,7 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { StickyContactBar } from "@/components/layout/StickyContactBar";
 import { BookNowSticky } from "@/components/layout/BookNowSticky";
+import { WhatsAppFloatingButton } from "@/components/layout/WhatsAppFloatingButton";
 
 const MINIMAL_CHROME_PREFIXES = ["/crm", "/admin", "/mechanic", "/sign"];
 
@@ -29,6 +30,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
       <Footer />
       <StickyContactBar />
       <BookNowSticky />
+      <WhatsAppFloatingButton />
     </div>
   );
 }

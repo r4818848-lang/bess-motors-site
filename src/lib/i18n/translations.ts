@@ -697,6 +697,7 @@ const pl = {
   },
   stickyBar: {
     call: "Zadzwoń",
+    whatsapp: "WA",
     book: "Umów",
   },
   reviewsExt: {
@@ -2218,6 +2219,7 @@ const ru: TranslationKeys = {
   },
   stickyBar: {
     call: "Звонок",
+    whatsapp: "WA",
     book: "Запись",
   },
   reviewsExt: {
@@ -3568,7 +3570,7 @@ const en: TranslationKeys = {
   partners: { ...pl.partners, title: "Partners", subtitle: "Trusted parts and oil brands" },
   faq: { ...pl.faq, title: "FAQ", subtitle: "Indicative prices — exact quote after diagnostics" },
   thankYou: { ...pl.thankYou, title: "Booking received!", message: "Thank you! We will contact you to confirm." },
-  stickyBar: { call: "Call", book: "Book" },
+  stickyBar: { call: "Call", whatsapp: "WA", book: "Book" },
   reviewsExt: { googleCta: "Google reviews" },
   notifExt: {
     carReadyTitle: "Your car is ready!",
