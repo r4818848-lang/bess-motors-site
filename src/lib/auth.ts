@@ -1,4 +1,4 @@
-import { SignJWT } from "jose";
+import { SignJWT, jwtVerify } from "jose";
 import { verifyToken as verifyTokenServer } from "@/lib/server/verify-session";
 
 import { loadDb, saveDb, type User, type Vehicle } from "./store";
@@ -138,9 +138,31 @@ async function verifyClientSessionViaApi(
       headers: { Authorization: `Bearer ${token}` },
       cache: "no-store",
     });
-    const data = (await res.json()) as { ok?: boolean; userId?: string };
+    const data = (await res.json()) as {
+      ok?: boolean;
+      userId?: string;
+      role?: AuthRole;
+    };
     if (!res.ok || !data.ok || !data.userId) return null;
     return { sub: data.userId, role: "client" };
+  } catch {
+    return null;
+  }
+}
+
+/** Local-only mode (no Supabase): tokens signed in browser with dev secret. */
+async function verifyTokenLocalDev(
+  token: string
+): Promise<{ sub: string; role: AuthRole; phone?: string } | null> {
+  try {
+    const { payload } = await jwtVerify(token, getSecret());
+    const role = payload.role as AuthRole | undefined;
+    if (!role || !payload.sub) return null;
+    return {
+      sub: String(payload.sub),
+      role,
+      phone: typeof payload.phone === "string" ? payload.phone : undefined,
+    };
   } catch {
     return null;
   }
@@ -192,6 +214,12 @@ export async function verifyToken(
   if (typeof window === "undefined") {
     return verifyTokenServer(token);
   }
+  const { fetchCloudConfigured } = await import("@/lib/cloud-crm-db");
+  const cloudOn = await fetchCloudConfigured();
+  if (!cloudOn) {
+    const local = await verifyTokenLocalDev(token);
+    if (local) return local;
+  }
   return verifyTokenViaApi(token);
 }
 
@@ -241,8 +269,19 @@ export async function restoreSessionFromToken(): Promise<User | null> {
   if (typeof window === "undefined") return null;
   const token = localStorage.getItem(TOKEN_KEY);
   if (!token) return null;
-  const session = await verifyToken(token);
+  let session = await verifyToken(token);
   if (!session) {
+    const hintedRole = localStorage.getItem(SESSION_ROLE_KEY);
+    if (hintedRole === "client" || !hintedRole) {
+      const { loadClientCredentials } = await import("@/lib/client-credentials");
+      const creds = loadClientCredentials();
+      if (creds) {
+        const relogin = await tryClientLoginViaCloud(creds.phone, creds.plate);
+        if (relogin?.ok && relogin.role === "client") {
+          return relogin.user;
+        }
+      }
+    }
     clearSessionStorage();
     return null;
   }
@@ -459,42 +498,58 @@ export async function loginWithPhonePassword(
   if (user) {
     const valid = await checkClientPlate(user, credential);
     if (!valid) {
-      if (typeof window !== "undefined") {
-        const { loginClientViaCloudApi } = await import("@/lib/client-cloud-login");
-        const cloud = await loginClientViaCloudApi(phone, credential);
-        if (cloud) {
-          const db2 = loadDb();
-          ensureReferralCode(cloud.user, db2);
-          applyPendingReferralForUser(db2, cloud.user.id);
-          saveDb(db2);
-          return { ok: true, role: "client", user: cloud.user };
-        }
-      }
+      const cloudLogin = await tryClientLoginViaCloud(phone, credential);
+      if (cloudLogin !== null) return cloudLogin;
       return { ok: false, error: "invalid_credentials" };
     }
-  } else if (typeof window !== "undefined") {
-    const { loginClientViaCloudApi } = await import("@/lib/client-cloud-login");
-    const cloud = await loginClientViaCloudApi(phone, credential);
-    if (cloud) {
-      const db2 = loadDb();
-      ensureReferralCode(cloud.user, db2);
-      applyPendingReferralForUser(db2, cloud.user.id);
-      saveDb(db2);
-      return { ok: true, role: "client", user: cloud.user };
-    }
-    return { ok: false, error: "invalid_credentials" };
-  } else {
+    return finishClientLogin(phone, credential, user);
+  }
+
+  const cloudLogin = await tryClientLoginViaCloud(phone, credential);
+  if (cloudLogin !== null) return cloudLogin;
+
+  return { ok: false, error: "invalid_credentials" };
+}
+
+/** Production: JWT only from server (client-login). Returns null if cloud is off (caller may use offline token). */
+async function tryClientLoginViaCloud(
+  phone: string,
+  plate: string
+): Promise<AuthResult | null> {
+  if (typeof window === "undefined") return null;
+  const { fetchCloudConfigured } = await import("@/lib/cloud-crm-db");
+  if (!(await fetchCloudConfigured())) return null;
+
+  const { loginClientViaCloudApi } = await import("@/lib/client-cloud-login");
+  const cloud = await loginClientViaCloudApi(phone, plate);
+  if (!cloud) {
     return { ok: false, error: "invalid_credentials" };
   }
 
-  ensureReferralCode(user!, db);
-  applyPendingReferralForUser(db, user!.id);
+  const db2 = loadDb();
+  ensureReferralCode(cloud.user, db2);
+  applyPendingReferralForUser(db2, cloud.user.id);
+  saveDb(db2);
+  return { ok: true, role: "client", user: cloud.user };
+}
+
+async function finishClientLogin(
+  phone: string,
+  plate: string,
+  user: User
+): Promise<AuthResult> {
+  const cloudResult = await tryClientLoginViaCloud(phone, plate);
+  if (cloudResult !== null) return cloudResult;
+
+  const db = loadDb();
+  ensureReferralCode(user, db);
+  applyPendingReferralForUser(db, user.id);
   saveDb(db);
 
-  const token = await issueToken(user!.id, "client", user!.phone);
-  persistSession(token, "client", user!.id);
-  saveClientCredentials(phone, credential);
-  return { ok: true, role: "client", user: user! };
+  const token = await issueToken(user.id, "client", user.phone);
+  persistSession(token, "client", user.id);
+  saveClientCredentials(phone, plate);
+  return { ok: true, role: "client", user };
 }
 
 async function checkMechanicPassword(user: User, passwordInput: string): Promise<boolean> {

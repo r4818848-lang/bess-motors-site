@@ -79,7 +79,8 @@ export function PhoneAuthForm({ onSuccess, staffCrm: staffCrmProp }: PhoneAuthFo
 
       refreshAuth();
       onSuccess?.();
-      router.refresh();
+      window.location.assign("/cabinet");
+      return;
     } catch {
       setError(t.auth.invalidCredentials);
     } finally {

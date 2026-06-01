@@ -7,6 +7,10 @@ import type {
 } from "./store";
 import { siteConfig } from "./site";
 import {
+  buildCarReadyWhatsAppUrl as buildCarReadyWaUrl,
+  type WaMsgLocale,
+} from "./whatsapp-messages";
+import {
   isReferralQualifiedWorkOrder,
   recomputeReferrerFromDb,
   unlockInviteeRewardIfEligible,
@@ -429,29 +433,17 @@ export function getNotificationCopy(
   }
 }
 
-function phoneDigits(phone: string): string {
-  return phone.replace(/\D/g, "");
-}
-
 /** Pre-filled WhatsApp message when car is ready + Google review link */
 export function buildCarReadyWhatsAppUrl(
   clientPhone: string,
   orderNumber: string,
   vehicleLabel: string,
-  locale: "pl" | "ru" | "en" | "uk"
+  locale: WaMsgLocale
 ): string {
-  const reviewUrl = siteConfig.googleMapsReviewsUrl;
-  const loc = locale === "ru" || locale === "uk" ? "ru" : locale === "en" ? "en" : "pl";
-
-  const messages: Record<string, string> = {
-    pl: `Dzień dobry! Państwa ${vehicleLabel} jest gotowy do odbioru (${orderNumber}). Prosimy o odbiór w ciągu 7 dni. Będziemy wdzięczni za opinię w Google Maps: ${reviewUrl}`,
-    ru: `Здравствуйте! Ваш автомобиль ${vehicleLabel} готов к выдаче (${orderNumber}). Заберите в течение 7 дней. Будем благодарны за отзыв в Google Maps: ${reviewUrl}`,
-    en: `Hello! Your ${vehicleLabel} is ready for pickup (${orderNumber}). Please collect within 7 days. We would appreciate a Google Maps review: ${reviewUrl}`,
-  };
-
-  const text = messages[loc] ?? messages.pl;
-  const digits = phoneDigits(clientPhone);
-  return `https://wa.me/${digits}?text=${encodeURIComponent(text)}`;
+  return (
+    buildCarReadyWaUrl(clientPhone, orderNumber, vehicleLabel, locale) ??
+    `${siteConfig.whatsapp}`
+  );
 }
 
 const PUSH_SEEN_PREFIX = "bess-notif-pushed-";

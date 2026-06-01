@@ -24,5 +24,10 @@ export async function POST(req: Request) {
   }
 
   const fresh = await issueClientToken(session.sub, session.phone ?? "");
-  return NextResponse.json({ ok: true, token: fresh, userId: session.sub });
+  return NextResponse.json({
+    ok: true,
+    token: fresh,
+    userId: session.sub,
+    role: "client" as const,
+  });
 }

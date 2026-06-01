@@ -27,8 +27,8 @@ export const adminQuickTemplates: AdminQuickTemplate[] = [
   {
     id: "sign",
     label: "Podpis",
-    pl: "✍️ Prosimy o podpis dokumentu w kabinecie lub przez link z Telegram.",
-    ru: "✍️ Пожалуйста, подпишите документ в кабинете или по ссылке из Telegram.",
+    pl: "✍️ Prosimy o podpis dokumentu w kabinecie lub przez link (WhatsApp / SMS).",
+    ru: "✍️ Пожалуйста, подпишите документ в кабинете или по ссылке (WhatsApp / SMS).",
   },
 ];
 

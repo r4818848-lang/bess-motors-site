@@ -14,14 +14,17 @@ export async function loginClientViaCloudApi(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ phone, plate }),
   });
-  if (!res.ok) return null;
-
   const data = (await res.json()) as {
     ok?: boolean;
+    error?: string;
     token?: string;
     portal?: ClientPortalSlice;
     user?: User;
   };
+  if (!res.ok) {
+    if (res.status === 503 || data.error === "cloud_disabled") return null;
+    return null;
+  }
   if (!data.ok || !data.token || !data.portal || !data.user) return null;
 
   mergeClientPortalIntoDb(data.portal);

@@ -1,5 +1,6 @@
 import { cleanEnvValue, isSupabaseConfigured } from "@/lib/server/supabase-config";
 import { getVapidPublicKey } from "@/lib/server/web-push-send";
+import { isWhatsAppConfigured } from "@/lib/server/whatsapp-api";
 
 export type EnvCheckId =
   | "supabase"
@@ -7,6 +8,8 @@ export type EnvCheckId =
   | "telegram_admin"
   | "telegram_webhook"
   | "telegram_public"
+  | "whatsapp_api"
+  | "whatsapp_webhook"
   | "vapid"
   | "cron"
   | "site_url"
@@ -48,6 +51,16 @@ export function getEnvHealth(): { ok: boolean; checks: EnvCheck[] } {
       id: "telegram_public",
       ok: Boolean(cleanEnvValue(process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME)),
       hint: "NEXT_PUBLIC_TELEGRAM_BOT_USERNAME",
+    },
+    {
+      id: "whatsapp_api",
+      ok: isWhatsAppConfigured(),
+      hint: "WHATSAPP_PHONE_NUMBER_ID + WHATSAPP_ACCESS_TOKEN",
+    },
+    {
+      id: "whatsapp_webhook",
+      ok: Boolean(cleanEnvValue(process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN)),
+      hint: "WHATSAPP_WEBHOOK_VERIFY_TOKEN + Meta webhook → /api/whatsapp/webhook",
     },
     {
       id: "vapid",

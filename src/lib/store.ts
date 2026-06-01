@@ -81,6 +81,10 @@ export interface User {
   telegramLinkedAt?: string;
   /** Client Telegram bot UI language */
   telegramLocale?: "pl" | "ru" | "uk" | "en";
+  /** WhatsApp Cloud API recipient id (digits, e.g. 48123456789) */
+  whatsappWaId?: string;
+  whatsappLinkedAt?: string;
+  whatsappProfileName?: string;
   /** Who referred this client (user id) */
   referredByUserId?: string;
   /** When referral link was applied */

@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { Plus, Trash2, Save, X, Upload, FileText } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
-import { handleWorkOrderClientNotifications, buildCarReadyWhatsAppUrl } from "@/lib/client-notifications";
+import { handleWorkOrderClientNotifications } from "@/lib/client-notifications";
 import {
   loadDb,
   saveDb,
@@ -643,24 +643,10 @@ export function WorkOrderForm({
             <CrmMessageTemplates
               clientPhone={client.phone}
               orderNumber={order.number}
+              orderId={order.id}
               vehicleLabel={`${vehicle.make} ${vehicle.model} · ${vehicle.plate}`}
               locale={locale === "uk" ? "uk" : locale === "ru" ? "ru" : locale === "en" ? "en" : "pl"}
             />
-          )}
-          {order.status === "ready" && client?.phone && vehicle && (
-            <a
-              href={buildCarReadyWhatsAppUrl(
-                client.phone,
-                order.number,
-                `${vehicle.make} ${vehicle.model} · ${vehicle.plate}`,
-                locale
-              )}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-2 inline-block text-xs text-green-400 hover:text-green-300 underline"
-            >
-              {t.notifExt.whatsAppReady}
-            </a>
           )}
         </div>
         <div>

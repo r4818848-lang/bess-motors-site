@@ -24,7 +24,8 @@ import {
 } from "@/lib/work-order-locale";
 import { WorkOrderPrintView } from "./WorkOrderPrintView";
 import { DocumentLocalePicker } from "./DocumentLocalePicker";
-import { buildShareMessage, whatsappShareUrl, telegramShareUrl } from "@/lib/work-order-share";
+import { buildShareMessage, telegramShareUrl } from "@/lib/work-order-share";
+import { whatsappToClientUrl } from "@/lib/whatsapp-messages";
 import { SignLinkShareBlock } from "./SignLinkShareBlock";
 import { openWorkOrderPreview } from "@/lib/work-order-preview";
 
@@ -81,6 +82,10 @@ export function WorkOrderDocumentActions({
   const shareText = useMemo(
     () => buildShareMessage(order, client, docLang),
     [order, client, docLang]
+  );
+  const clientWhatsAppHref = useMemo(
+    () => whatsappToClientUrl(client.phone, shareText),
+    [client.phone, shareText]
   );
 
   const setDocLang = (loc: DocLocale) => onDocumentLocaleChange?.(loc);
@@ -190,15 +195,17 @@ export function WorkOrderDocumentActions({
             onDocumentLocaleChange={onDocumentLocaleChange}
           />
         )}
+        {clientWhatsAppHref && (
         <a
-          href={whatsappShareUrl(shareText)}
+          href={clientWhatsAppHref}
           target="_blank"
           rel="noopener noreferrer"
           className="wo-doc-icon-btn"
-          title="WhatsApp"
+          title={d.sendWhatsApp}
         >
           <MessageCircle size={iconSize} />
         </a>
+        )}
         <a
           href={telegramShareUrl(shareText)}
           target="_blank"

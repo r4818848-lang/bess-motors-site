@@ -2,6 +2,9 @@ import { sendTelegramMessage } from "@/lib/server/telegram-api";
 import type { InlineKeyboardMarkup } from "@/lib/server/telegram-api";
 import type { Database, WorkOrder } from "@/lib/store";
 import { notifyTelegramSignByPhone } from "./client-telegram-notify";
+import { notifyWhatsAppSignByPhone } from "@/lib/server/whatsapp-bot/client-whatsapp-notify";
+import { isWhatsAppConfigured } from "@/lib/server/whatsapp-api";
+import { resolveWhatsAppRecipient } from "@/lib/server/whatsapp-bot/whatsapp-phone";
 import { esc } from "./format";
 
 export function listUnsignedOrders(db: Database): WorkOrder[] {
@@ -31,6 +34,7 @@ export function formatUnsignedList(db: Database): string {
       client ? `👤 ${esc(client.name)} · ${esc(client.phone)}` : "",
       vehicle ? `🚗 ${esc(vehicle.plate)}` : "",
       client?.telegramChatId ? "📱 Telegram ✓" : "📱 Telegram ✗",
+      client && resolveWhatsAppRecipient(client) ? "💬 WhatsApp ✓" : "💬 WhatsApp ✗",
       ""
     );
   }
@@ -57,12 +61,18 @@ export async function remindClientToSign(
   if (!order) return { ok: false, message: "Заказ-наряд не найден." };
 
   const user = db.users.find((u) => u.id === order.userId);
-  if (!user?.telegramChatId) {
-    return { ok: false, message: "У клиента нет Telegram — напомните по телефону." };
+  const hasTg = !!user?.telegramChatId;
+  const hasWa = !!(user && isWhatsAppConfigured() && resolveWhatsAppRecipient(user));
+
+  if (!hasTg && !hasWa) {
+    return { ok: false, message: "Нет Telegram и WhatsApp — напомните по телефону." };
   }
 
-  await notifyTelegramSignByPhone(db, order);
-  return { ok: true, message: `✅ Напоминание отправлено: ${order.number}` };
+  if (hasTg) await notifyTelegramSignByPhone(db, order);
+  if (hasWa) await notifyWhatsAppSignByPhone(db, order);
+
+  const via = [hasTg && "Telegram", hasWa && "WhatsApp"].filter(Boolean).join(" + ");
+  return { ok: true, message: `✅ Напоминание (${via}): ${order.number}` };
 }
 
 export async function sendQuickStatusToClient(

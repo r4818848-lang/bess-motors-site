@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useMemo } from "react";
-import { Link2, Copy, Check, MessageSquare, Smartphone } from "lucide-react";
+import { Link2, Copy, Check, MessageSquare, Smartphone, MessageCircle } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import type { WorkOrder, User } from "@/lib/store";
 import { Button } from "@/components/ui/Button";
@@ -10,6 +10,7 @@ import {
   getSignUrl,
   smsShareUrl,
 } from "@/lib/work-order-share";
+import { whatsappToClientUrl } from "@/lib/whatsapp-messages";
 import {
   resolveOrderDocumentLocale,
   type DocLocale,
@@ -60,6 +61,10 @@ export function SignLinkShareBlock({
     () => buildShareMessage(order, client, docLang),
     [order, client, docLang]
   );
+  const whatsAppHref = useMemo(
+    () => whatsappToClientUrl(client.phone, smsText),
+    [client.phone, smsText]
+  );
 
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedSms, setCopiedSms] = useState(false);
@@ -109,6 +114,18 @@ export function SignLinkShareBlock({
         >
           <Smartphone size={16} />
         </a>
+        {whatsAppHref && (
+          <a
+            href={whatsAppHref}
+            title={d.sendWhatsApp}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="p-2 rounded-lg text-green-400 hover:bg-green-500/20 transition-colors"
+          >
+            <MessageCircle size={16} />
+          </a>
+        )}
       </div>
     );
   }
@@ -165,6 +182,16 @@ export function SignLinkShareBlock({
         >
           <Smartphone size={14} /> {d.sendSms}
         </a>
+        {whatsAppHref && (
+          <a
+            href={whatsAppHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-outline text-xs inline-flex items-center gap-1 border-green-600/40 text-green-400 hover:bg-green-500/10"
+          >
+            <MessageCircle size={14} /> {d.sendWhatsApp}
+          </a>
+        )}
       </div>
 
       <details className="text-[10px] text-bm-muted">

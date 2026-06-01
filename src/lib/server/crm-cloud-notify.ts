@@ -10,6 +10,11 @@ export async function notifyAfterCrmCloudSave(
   );
   void dispatchTelegramFromCrmSave(previous, next);
 
+  const { dispatchWhatsAppFromCrmSave } = await import(
+    "./whatsapp-bot/client-whatsapp-notify"
+  );
+  void dispatchWhatsAppFromCrmSave(previous, next);
+
   const { dispatchWebPushFromCrmSave } = await import("@/lib/web-push-order-events");
   void dispatchWebPushFromCrmSave(previous, next);
 
