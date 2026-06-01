@@ -99,5 +99,12 @@ checkServiceIds();
 checkApiRoutesExportMethods();
 checkClientRefreshExported();
 
+const pwConfig = join(root, "playwright.config.ts");
+if (existsSync(pwConfig)) {
+  console.log("✅ Playwright E2E configured (npm run test:e2e)");
+} else {
+  console.warn("⚠ playwright.config.ts missing");
+}
+
 console.log(failed ? "\n❌ Audit failed" : "\n✅ All audits passed");
 process.exit(failed ? 1 : 0);

@@ -9,6 +9,10 @@
     "start": "next start",
     "lint": "next lint",
     "audit": "node scripts/audit-site.mjs",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:report": "playwright show-report",
     "purge:cloud": "node scripts/purge-cloud.mjs"
   },
   "dependencies": {
@@ -29,6 +33,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
+    "@playwright/test": "^1.60.0",
     "@types/node": "^22.10.0",
     "@types/qrcode": "^1.5.6",
     "@types/react": "^19.0.0",
