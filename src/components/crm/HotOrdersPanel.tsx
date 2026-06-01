@@ -24,7 +24,7 @@ import {
 } from "@/lib/hot-orders";
 import { createWorkOrderFromAppointment } from "@/lib/create-work-order-from-booking";
 import { deleteAppointmentFromCloud } from "@/lib/cloud-appointments";
-import { pushCrmToCloud } from "@/lib/cloud-crm-db";
+import { cancelScheduledCrmCloudPush, pushCrmToCloud } from "@/lib/cloud-crm-db";
 import { syncAppointmentToCloud } from "@/lib/appointment-cloud-sync";
 import { Button } from "@/components/ui/Button";
 
@@ -116,6 +116,7 @@ export function HotOrdersPanel({ onUpdate }: { onUpdate?: () => void }) {
     const woId = workOrderIdFor(row);
     const msg = woId ? c.confirmDeleteHotOrderWithWo : c.confirmDeleteHotOrder;
     if (!confirm(msg)) return;
+    cancelScheduledCrmCloudPush();
 
     if (row.kind === "booking") {
       await deleteAppointmentFromCloud(row.id);
@@ -132,7 +133,7 @@ export function HotOrdersPanel({ onUpdate }: { onUpdate?: () => void }) {
       next.callRequests = next.callRequests.filter((x) => x.id !== row.id);
     }
     saveDb(next);
-    const ok = await pushCrmToCloud(next);
+    const ok = await pushCrmToCloud(next, { skipPull: true });
     if (!ok) alert(c.syncFailed);
     refresh();
   };

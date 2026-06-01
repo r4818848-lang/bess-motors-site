@@ -6,7 +6,11 @@ import { Plus, Car, FileText, Trash2 } from "lucide-react";
 import { AddVehicleModal } from "./AddVehicleModal";
 import { useI18n } from "@/lib/i18n/context";
 import { deleteVehicleFromDb, loadDb, saveDb } from "@/lib/store";
-import { pushCrmToCloud } from "@/lib/cloud-crm-db";
+import {
+  cancelScheduledCrmCloudPush,
+  pullCrmFromCloud,
+  pushCrmToCloud,
+} from "@/lib/cloud-crm-db";
 import { useDbSync } from "@/hooks/useDbSync";
 import { filterVehiclesList } from "@/lib/crm-search";
 import { CrmSearchInput } from "./CrmSearchInput";
@@ -19,6 +23,7 @@ export function VehiclesListPanel() {
   const [query, setQuery] = useState("");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [vehicleModalOpen, setVehicleModalOpen] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const dbTick = useDbSync();
   void dbTick;
 
@@ -47,6 +52,8 @@ export function VehiclesListPanel() {
         ? `${c.confirmDeleteVehicleWithOrders}\n\n${label} · ${orderCount}`
         : `${c.confirmDeleteVehicle}\n\n${label}`;
     if (!confirm(msg)) return;
+    cancelScheduledCrmCloudPush();
+    setDeletingId(vehicleId);
     const fresh = loadDb();
     const next = deleteVehicleFromDb(fresh, vehicleId);
     saveDb(next);
@@ -55,21 +62,31 @@ export function VehiclesListPanel() {
       s.delete(vehicleId);
       return s;
     });
-    const ok = await pushCrmToCloud(next);
-    if (!ok) alert(c.syncFailed);
+    const ok = await pushCrmToCloud(next, { skipPull: true });
+    setDeletingId(null);
+    if (!ok) {
+      alert(c.syncFailed);
+      await pullCrmFromCloud({ force: true });
+    }
   };
 
   const deleteSelected = async () => {
     if (selectedIds.size === 0) return;
     if (!confirm(`${c.confirmDeleteSelectedVehicles}\n\n${selectedIds.size}`)) return;
+    cancelScheduledCrmCloudPush();
+    setDeletingId("__bulk__");
     let fresh = loadDb();
     for (const id of selectedIds) {
       fresh = deleteVehicleFromDb(fresh, id);
     }
     saveDb(fresh);
     setSelectedIds(new Set());
-    const ok = await pushCrmToCloud(fresh);
-    if (!ok) alert(c.syncFailed);
+    const ok = await pushCrmToCloud(fresh, { skipPull: true });
+    setDeletingId(null);
+    if (!ok) {
+      alert(c.syncFailed);
+      await pullCrmFromCloud({ force: true });
+    }
   };
 
   const allSelected = rows.length > 0 && rows.every((r) => selectedIds.has(r.vehicle.id));
@@ -211,8 +228,9 @@ export function VehiclesListPanel() {
                         )}
                         <button
                           type="button"
-                          onClick={() => removeVehicle(vehicle.id, label, orderCount)}
-                          className="flex items-center gap-1 text-xs text-red-400 hover:text-red-300 mt-1"
+                          disabled={deletingId !== null}
+                          onClick={() => void removeVehicle(vehicle.id, label, orderCount)}
+                          className="flex items-center gap-1 text-xs text-red-400 hover:text-red-300 mt-1 disabled:opacity-50"
                         >
                           <Trash2 size={14} /> {c.deleteVehicle}
                         </button>

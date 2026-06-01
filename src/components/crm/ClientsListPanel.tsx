@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Plus, FileText, Trash2 } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { deleteClientFromDb, loadDb, saveDb } from "@/lib/store";
-import { pushCrmToCloud } from "@/lib/cloud-crm-db";
+import { cancelScheduledCrmCloudPush, pushCrmToCloud } from "@/lib/cloud-crm-db";
 import { useDbSync } from "@/hooks/useDbSync";
 import { filterClients } from "@/lib/crm-search";
 import { displayOrderTotal } from "@/lib/crm-display-price";
@@ -46,10 +46,11 @@ export function ClientsListPanel() {
         ? `${c.confirmDeleteClientWithOrders}\n\n${name} · ${orderCount}`
         : `${c.confirmDeleteClient}\n\n${name}`;
     if (!confirm(msg)) return;
+    cancelScheduledCrmCloudPush();
     const fresh = loadDb();
     const next = deleteClientFromDb(fresh, userId);
     saveDb(next);
-    const ok = await pushCrmToCloud(next);
+    const ok = await pushCrmToCloud(next, { skipPull: true });
     if (!ok) alert(c.syncFailed);
   };
 

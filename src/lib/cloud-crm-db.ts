@@ -8,8 +8,12 @@ const SESSION_ROLE_KEY = "bess-session-role";
 const CLOUD_SYNCED_AT_KEY = "bess-crm-cloud-synced-at";
 
 let pushTimer: ReturnType<typeof setTimeout> | null = null;
-let pushInFlight = false;
-let pushQueued: Database | null = null;
+let pushChain: Promise<boolean> = Promise.resolve(true);
+
+export type PushCrmOptions = {
+  /** After delete — do not pull (old cloud would resurrect rows). */
+  skipPull?: boolean;
+};
 
 function isStaffCloudWriter(): boolean {
   if (typeof window === "undefined") return false;
@@ -26,6 +30,14 @@ function dbForCloud(db: Database): Database {
 }
 
 export type PullCrmResult = "merged" | "unchanged" | "skipped" | "error";
+
+/** Cancel debounced push so a delete is not overwritten by an older snapshot. */
+export function cancelScheduledCrmCloudPush(): void {
+  if (pushTimer) {
+    clearTimeout(pushTimer);
+    pushTimer = null;
+  }
+}
 
 export async function pullCrmFromCloud(options?: { force?: boolean }): Promise<PullCrmResult> {
   if (typeof window === "undefined") return "skipped";
@@ -81,62 +93,59 @@ export async function pullCrmFromCloud(options?: { force?: boolean }): Promise<P
   }
 }
 
-export async function pushCrmToCloud(db?: Database): Promise<boolean> {
+export async function pushCrmToCloud(
+  db?: Database,
+  options?: PushCrmOptions
+): Promise<boolean> {
   if (typeof window === "undefined" || !isCrmCloudWriter()) return false;
 
   const token = localStorage.getItem(TOKEN_KEY);
   if (!token) return false;
 
-  if (pushInFlight) {
-    pushQueued = dbForCloud(db ?? loadDb());
-    return false;
-  }
-
   const payload = dbForCloud(db ?? loadDb());
 
-  pushInFlight = true;
-  try {
-    const res = await fetch("/api/crm-db", {
-      method: "PUT",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    });
-    if (!res.ok) {
-      console.warn("[cloud] CRM push failed", res.status, await res.text());
+  const run = async (): Promise<boolean> => {
+    try {
+      const res = await fetch("/api/crm-db", {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) {
+        console.warn("[cloud] CRM push failed", res.status, await res.text());
+        notifyCrmCloudPush(false);
+        return false;
+      }
+      const data = (await res.json()) as { ok?: boolean; updatedAt?: string; error?: string };
+      const ok = data.ok === true;
+      if (data.updatedAt) {
+        localStorage.setItem(CLOUD_SYNCED_AT_KEY, data.updatedAt);
+      }
+      notifyCrmCloudPush(ok, data.error);
+      if (ok && !options?.skipPull) {
+        await pullCrmFromCloud({ force: true });
+      }
+      return ok;
+    } catch {
       notifyCrmCloudPush(false);
       return false;
     }
-    const data = (await res.json()) as { ok?: boolean; updatedAt?: string; error?: string };
-    const ok = data.ok === true;
-    if (data.updatedAt) {
-      localStorage.setItem(CLOUD_SYNCED_AT_KEY, data.updatedAt);
-    }
-    notifyCrmCloudPush(ok, data.error);
-    if (ok) {
-      await pullCrmFromCloud({ force: true });
-    }
-    return ok;
-  } catch {
-    notifyCrmCloudPush(false);
-    return false;
-  } finally {
-    pushInFlight = false;
-    if (pushQueued) {
-      const next = pushQueued;
-      pushQueued = null;
-      void pushCrmToCloud(next);
-    }
-  }
+  };
+
+  const result = pushChain.then(run);
+  pushChain = result.catch(() => false);
+  return result;
 }
 
-export function scheduleCrmCloudPush(db: Database): void {
+export function scheduleCrmCloudPush(_db?: Database): void {
   if (!isCrmCloudWriter()) return;
   if (pushTimer) clearTimeout(pushTimer);
   pushTimer = setTimeout(() => {
-    void pushCrmToCloud(db);
+    pushTimer = null;
+    void pushCrmToCloud(loadDb());
   }, 800);
 }
 

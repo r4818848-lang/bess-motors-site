@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Pencil, Trash2 } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { loadDb, saveDb } from "@/lib/store";
-import { pushCrmToCloud } from "@/lib/cloud-crm-db";
+import { cancelScheduledCrmCloudPush, pushCrmToCloud } from "@/lib/cloud-crm-db";
 import { useDbSync } from "@/hooks/useDbSync";
 import { filterClientHistory } from "@/lib/crm-search";
 import { displayOrderTotal } from "@/lib/crm-display-price";
@@ -34,10 +34,11 @@ export function ClientHistoryPanel() {
 
   const removeOrder = async (orderId: string, number: string) => {
     if (!confirm(`${c.confirmDeleteOrderHistory}\n\n${number}`)) return;
+    cancelScheduledCrmCloudPush();
     const fresh = loadDb();
     fresh.workOrders = fresh.workOrders.filter((o) => o.id !== orderId);
     saveDb(fresh);
-    const ok = await pushCrmToCloud(fresh);
+    const ok = await pushCrmToCloud(fresh, { skipPull: true });
     if (!ok) alert(c.syncFailed);
   };
 

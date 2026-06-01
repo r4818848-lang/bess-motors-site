@@ -20,7 +20,7 @@ import {
   deriveDocumentStatus,
 } from "@/lib/store";
 import { PAYMENT_METHODS } from "@/lib/payment";
-import { pushCrmToCloud } from "@/lib/cloud-crm-db";
+import { cancelScheduledCrmCloudPush, pushCrmToCloud } from "@/lib/cloud-crm-db";
 import { syncWarehouseFromWorkOrder } from "@/lib/warehouse-stock";
 import {
   applyInviteeDiscountToOrder,
@@ -326,10 +326,11 @@ export function WorkOrderForm({
 
   const remove = async () => {
     if (!confirm(w.confirmDelete)) return;
+    cancelScheduledCrmCloudPush();
     const fresh = loadDb();
     fresh.workOrders = fresh.workOrders.filter((o) => o.id !== order.id);
     saveDb(fresh);
-    const ok = await pushCrmToCloud(fresh);
+    const ok = await pushCrmToCloud(fresh, { skipPull: true });
     if (!ok) alert(c.syncFailed);
     onSaved();
   };

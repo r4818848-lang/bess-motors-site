@@ -26,7 +26,11 @@ import { loadDb, saveDb, type RepairStatus } from "@/lib/store";
 import { filterWorkOrders, defaultWorkOrderFilters } from "@/lib/workorder-filters";
 import { applyWorkOrderClosure, filterOpenWorkOrders } from "@/lib/work-order-lifecycle";
 import { saveWorkOrderStatusAndSync } from "@/lib/work-order-status-update";
-import { pullCrmFromCloud, pushCrmToCloud } from "@/lib/cloud-crm-db";
+import {
+  cancelScheduledCrmCloudPush,
+  pullCrmFromCloud,
+  pushCrmToCloud,
+} from "@/lib/cloud-crm-db";
 import { filterWorkOrdersByQuery } from "@/lib/crm-search";
 import { WorkOrderFilters } from "@/components/crm/WorkOrderFilters";
 import { WorkOrderKanban } from "@/components/crm/WorkOrderKanban";
@@ -123,10 +127,11 @@ function WorkOrdersPageContent() {
   const deleteSelected = async () => {
     if (selectedIds.size === 0) return;
     if (!confirm(`${c.confirmDeleteSelected}\n\n${selectedIds.size}`)) return;
+    cancelScheduledCrmCloudPush();
     const fresh = loadDb();
     fresh.workOrders = fresh.workOrders.filter((o) => !selectedIds.has(o.id));
     saveDb(fresh);
-    const ok = await pushCrmToCloud(fresh);
+    const ok = await pushCrmToCloud(fresh, { skipPull: true });
     if (!ok) alert(c.syncFailed);
     setSelectedIds(new Set());
   };
