@@ -152,7 +152,7 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
         if (ids.length) addPriceIdsToCart(ids);
       }
     },
-    [addPriceIdsToCart]
+    [serviceId, addPriceIdsToCart]
   );
 
   const total = cartSubtotal(cart);

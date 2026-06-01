@@ -13,7 +13,9 @@ for (const file of readdirSync(root)) {
   if (!file.endsWith(".ts")) continue;
   const text = readFileSync(join(root, file), "utf8");
   for (const m of text.matchAll(/callback_data:\s*[`'"]([^`'"]+)[`'"]/g)) {
-    callbacks.add(m[1]);
+    const data = m[1];
+    if (data.includes("${")) continue;
+    callbacks.add(data);
   }
 }
 

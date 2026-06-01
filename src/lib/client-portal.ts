@@ -8,6 +8,7 @@ import {
   sliceForClient,
   type ClientPortalSlice,
 } from "@/lib/client-sign";
+import { clientAuthenticatedFetch } from "@/lib/client-authenticated-fetch";
 import { mergeClientPortalIntoLocal } from "@/lib/client-portal-merge";
 import { loadDb, saveDb, type WorkOrder } from "@/lib/store";
 
@@ -26,15 +27,12 @@ export async function pushClientPortalPatchToCloud(
     typeof window !== "undefined" ? localStorage.getItem("bess-jwt") : null;
   if (!token) return false;
 
-  const res = await fetch("/api/client-portal", {
+  const res = await clientAuthenticatedFetch("/api/client-portal", {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ action: "sync-client-state", ...patch }),
   });
-  return res.ok;
+  return !!res?.ok;
 }
 
 export async function localClientPortalAccess(
@@ -86,11 +84,10 @@ export async function pullClientPortalFromCloud(): Promise<ClientPortalSlice | n
   if (!token) return null;
 
   try {
-    const res = await fetch("/api/client-portal", {
-      headers: { Authorization: `Bearer ${token}` },
+    const res = await clientAuthenticatedFetch("/api/client-portal", {
       cache: "no-store",
     });
-    if (!res.ok) return null;
+    if (!res?.ok) return null;
 
     const data = (await res.json()) as { ok?: boolean; portal?: ClientPortalSlice };
     if (!data.ok || !data.portal) return null;

@@ -13,7 +13,7 @@ import {
   type Database,
 } from "@/lib/store";
 import { syncWarehouseFromWorkOrder } from "@/lib/warehouse-stock";
-import { pushCrmSave } from "@/lib/cloud-crm-db";
+import { saveDbAndPushCrm } from "@/lib/cloud-crm-db";
 import {
   calcServiceLine,
   calcClientTotal,
@@ -175,8 +175,7 @@ export function QuickCreateOrderModal({
     fresh.workOrders.push(order);
     handleWorkOrderClientNotifications(fresh, order, null);
     const synced = syncWarehouseFromWorkOrder(fresh, order);
-    saveDb(synced);
-    const ok = await pushCrmSave(synced);
+    const ok = await saveDbAndPushCrm(synced);
     if (!ok) {
       setError(c.pushSyncFailed);
       onCreated(order.id);

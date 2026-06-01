@@ -24,7 +24,7 @@ import {
 } from "@/lib/hot-orders";
 import { createWorkOrderFromAppointment } from "@/lib/create-work-order-from-booking";
 import { deleteAppointmentFromCloud } from "@/lib/cloud-appointments";
-import { pushCrmDelete, pushCrmSave } from "@/lib/cloud-crm-db";
+import { saveDbAndPushCrm, saveDbAndPushCrmDelete } from "@/lib/cloud-crm-db";
 import { syncAppointmentToCloud } from "@/lib/appointment-cloud-sync";
 import { Button } from "@/components/ui/Button";
 
@@ -77,8 +77,7 @@ export function HotOrdersPanel({ onUpdate }: { onUpdate?: () => void }) {
     const next = loadDb();
     const r = next.callRequests.find((x) => x.id === id);
     if (r) r.status = status;
-    saveDb(next);
-    const ok = await pushCrmSave(next);
+    const ok = await saveDbAndPushCrm(next);
     if (!ok) return;
     refresh();
   };
@@ -88,7 +87,7 @@ export function HotOrdersPanel({ onUpdate }: { onUpdate?: () => void }) {
     const apt = next.appointments.find((x) => x.id === id);
     if (!apt) return;
     createWorkOrderFromAppointment(next, apt, serviceLabel);
-    saveDb(next);
+    saveDb(next, { skipCloudPush: true });
     const ok = await syncAppointmentToCloud(next, apt);
     if (!ok) return;
     refresh();
@@ -103,7 +102,7 @@ export function HotOrdersPanel({ onUpdate }: { onUpdate?: () => void }) {
     const a = next.appointments.find((x) => x.id === id);
     if (!a) return;
     a.appointmentStatus = status;
-    saveDb(next);
+    saveDb(next, { skipCloudPush: true });
     const ok = await syncAppointmentToCloud(next, a);
     if (!ok) return;
     refresh();
@@ -130,8 +129,7 @@ export function HotOrdersPanel({ onUpdate }: { onUpdate?: () => void }) {
     } else {
       next.callRequests = next.callRequests.filter((x) => x.id !== row.id);
     }
-    saveDb(next);
-    const ok = await pushCrmDelete(next);
+    const ok = await saveDbAndPushCrmDelete(next);
     if (!ok) return;
     refresh();
   };

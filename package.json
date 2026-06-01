@@ -8,6 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "audit": "node scripts/audit-site.mjs",
     "purge:cloud": "node scripts/purge-cloud.mjs"
   },
   "dependencies": {

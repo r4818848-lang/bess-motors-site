@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { UserPlus, Search, Building2, User } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { loadDb, saveDb, type ClientType, type PaymentMethod } from "@/lib/store";
-import { pushCrmSave } from "@/lib/cloud-crm-db";
+import { saveDbAndPushCrm } from "@/lib/cloud-crm-db";
 import { createCrmClientWithVehicle } from "@/lib/crm-create-client";
 import { PAYMENT_METHODS } from "@/lib/payment";
 import { CrmModalShell } from "./CrmModalShell";
@@ -167,8 +167,7 @@ export function AddClientModal({
         );
         return;
       }
-      saveDb(db);
-      const ok = await pushCrmSave(db);
+      const ok = await saveDbAndPushCrm(db);
       onCreated(result.userId, result.vehicleId);
       if (!ok) {
         setError(c.pushSyncFailed);

@@ -1,7 +1,6 @@
+import { clientAuthenticatedFetch } from "@/lib/client-authenticated-fetch";
 import type { Appointment } from "./store";
 import { isKnownTestAppointment, loadDb, saveDb } from "./store";
-
-const TOKEN_KEY = "bess-jwt";
 
 export function mergeAppointmentsIntoDb(cloud: Appointment[]): boolean {
   if (!cloud.length) return false;
@@ -25,15 +24,12 @@ export function mergeAppointmentsIntoDb(cloud: Appointment[]): boolean {
 /** Pull bookings from server DB (phone + PC see the same data) */
 export async function syncAppointmentsFromCloud(): Promise<boolean> {
   if (typeof window === "undefined") return false;
-  const token = localStorage.getItem(TOKEN_KEY);
-  if (!token) return false;
 
   try {
-    const res = await fetch("/api/appointments", {
-      headers: { Authorization: `Bearer ${token}` },
+    const res = await clientAuthenticatedFetch("/api/appointments", {
       cache: "no-store",
     });
-    if (!res.ok) return false;
+    if (!res?.ok) return false;
     const data = (await res.json()) as {
       appointments?: Appointment[];
       cloud?: boolean;
@@ -48,15 +44,13 @@ export async function syncAppointmentsFromCloud(): Promise<boolean> {
 
 export async function deleteAppointmentFromCloud(id: string): Promise<boolean> {
   if (typeof window === "undefined") return false;
-  const token = localStorage.getItem(TOKEN_KEY);
-  if (!token) return false;
 
   try {
-    const res = await fetch(`/api/appointments?id=${encodeURIComponent(id)}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    return res.ok;
+    const res = await clientAuthenticatedFetch(
+      `/api/appointments?id=${encodeURIComponent(id)}`,
+      { method: "DELETE" }
+    );
+    return !!res?.ok;
   } catch {
     return false;
   }

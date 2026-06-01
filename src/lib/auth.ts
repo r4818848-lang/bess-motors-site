@@ -529,6 +529,20 @@ export async function refreshStaffSessionToken(): Promise<string | null> {
   return fresh;
 }
 
+/** Re-issue client JWT via server (matches production JWT_SECRET). */
+export async function refreshClientSessionToken(): Promise<string | null> {
+  if (typeof window === "undefined") return null;
+  if (getSessionRole() !== "client") return null;
+  const user = getCurrentUser();
+  if (!user || user.role !== "client") return null;
+  const existing = localStorage.getItem(TOKEN_KEY);
+  if (!existing) return null;
+  const fresh = await refreshClientTokenFromApi(existing);
+  if (!fresh) return null;
+  persistSession(fresh, "client", user.id);
+  return fresh;
+}
+
 export function isAdminAuthenticated(): boolean {
   if (typeof window === "undefined") return false;
   return getSessionRole() === "admin" && !!localStorage.getItem(TOKEN_KEY);

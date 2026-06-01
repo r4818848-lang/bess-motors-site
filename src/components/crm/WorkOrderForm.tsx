@@ -20,7 +20,7 @@ import {
   deriveDocumentStatus,
 } from "@/lib/store";
 import { PAYMENT_METHODS } from "@/lib/payment";
-import { pushCrmDelete, pushCrmSave } from "@/lib/cloud-crm-db";
+import { pushCrmDelete, saveDbAndPushCrm } from "@/lib/cloud-crm-db";
 import { syncWarehouseFromWorkOrder } from "@/lib/warehouse-stock";
 import {
   applyInviteeDiscountToOrder,
@@ -216,8 +216,7 @@ export function WorkOrderForm({
           userId,
         };
         fresh.vehicles.push(newVehicle);
-        saveDb(fresh);
-        void pushCrmSave(fresh);
+        void saveDbAndPushCrm(fresh);
         vid = newVehicle.id;
       }
     }
@@ -317,8 +316,7 @@ export function WorkOrderForm({
       markInviteeDiscountUsed(fresh, updated.userId, updated);
     }
     const synced = syncWarehouseFromWorkOrder(fresh, updated);
-    saveDb(synced, { skipCloudPush: true });
-    const pushed = await pushCrmSave(synced);
+    const pushed = await saveDbAndPushCrm(synced);
     if (!pushed) {
       setSaveError(c.pushSyncFailed);
       return false;

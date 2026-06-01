@@ -55,6 +55,32 @@ export async function pushCrmSave(
   return pushCrmToCloud(db ?? loadDb(), { skipPull: true, ...options });
 }
 
+/** Persist locally then push; on failure reload cloud snapshot so UI matches server. */
+export async function saveDbAndPushCrm(
+  db: Database,
+  options?: PushCrmOptions
+): Promise<boolean> {
+  saveDb(db, { skipCloudPush: true });
+  const ok = await pushCrmSave(db, options);
+  if (!ok) await revertCrmFromCloudAfterFailedPush();
+  return ok;
+}
+
+/** After delete — persist, push without pull; revert local if push fails. */
+export async function saveDbAndPushCrmDelete(db: Database): Promise<boolean> {
+  saveDb(db, { skipCloudPush: true });
+  const ok = await pushCrmDelete(db);
+  if (!ok) await revertCrmFromCloudAfterFailedPush();
+  return ok;
+}
+
+async function revertCrmFromCloudAfterFailedPush(): Promise<void> {
+  await pullCrmFromCloud({ force: true });
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent(DB_CHANGED_EVENT));
+  }
+}
+
 export async function pullCrmFromCloud(options?: { force?: boolean }): Promise<PullCrmResult> {
   if (typeof window === "undefined" || !isCrmCloudWriter()) return "skipped";
 

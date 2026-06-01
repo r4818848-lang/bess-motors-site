@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { useDbSync } from "@/hooks/useDbSync";
 import { useI18n } from "@/lib/i18n/context";
 import { loadDb, saveDb } from "@/lib/store";
-import { pushCrmSave } from "@/lib/cloud-crm-db";
+import { saveDbAndPushCrm } from "@/lib/cloud-crm-db";
 import { ReferralLeaderboard } from "@/components/crm/ReferralLeaderboard";
 import {
   exportReferralsCsv,
@@ -136,8 +136,7 @@ export function ReferralAdminPanel() {
   const recompute = async () => {
     const db = loadDb();
     const result = recomputeAllReferrals(db);
-    saveDb(db);
-    const ok = await pushCrmSave(db);
+    const ok = await saveDbAndPushCrm(db);
     if (!ok) setMsg(c.pushSyncFailed);
     setMsg(
       c.referralRecomputeDone

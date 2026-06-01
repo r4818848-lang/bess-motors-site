@@ -6,7 +6,7 @@ import { useI18n } from "@/lib/i18n/context";
 import { loadDb, saveDb, type ServiceExpense, type ExpenseCategory } from "@/lib/store";
 import { useDbSync } from "@/hooks/useDbSync";
 import { Button } from "@/components/ui/Button";
-import { pushCrmDelete, pushCrmSave } from "@/lib/cloud-crm-db";
+import { saveDbAndPushCrm, saveDbAndPushCrmDelete } from "@/lib/cloud-crm-db";
 import { PriceNumberInput } from "@/components/ui/PriceNumberInput";
 
 const categories: ExpenseCategory[] = [
@@ -41,8 +41,7 @@ export function ExpensesPanel({ onUpdate }: { onUpdate: () => void }) {
       id: `ex-${Date.now()}`,
       ...form,
     });
-    saveDb(fresh);
-    const ok = await pushCrmSave(fresh);
+    const ok = await saveDbAndPushCrm(fresh);
     onUpdate();
     if (!ok) return;
     setForm({ category: "other", description: "", amount: 0, date: form.date });
@@ -51,8 +50,7 @@ export function ExpensesPanel({ onUpdate }: { onUpdate: () => void }) {
   const remove = async (id: string) => {
     const fresh = loadDb();
     fresh.expenses = fresh.expenses.filter((e) => e.id !== id);
-    saveDb(fresh);
-    const ok = await pushCrmDelete(fresh);
+    const ok = await saveDbAndPushCrmDelete(fresh);
     onUpdate();
     if (!ok) return;
   };

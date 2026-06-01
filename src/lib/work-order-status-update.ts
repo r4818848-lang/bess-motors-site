@@ -59,7 +59,6 @@ export async function saveWorkOrderStatusAndSync(
   const updated = patchWorkOrderStatus(fresh, orderId, status);
   if (!updated) return false;
   const next = syncWarehouseFromWorkOrder(fresh, updated);
-  saveDb(next);
-  const { pushCrmSave } = await import("@/lib/cloud-crm-db");
-  return pushCrmSave(next);
+  const { saveDbAndPushCrm } = await import("@/lib/cloud-crm-db");
+  return saveDbAndPushCrm(next);
 }

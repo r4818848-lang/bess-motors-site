@@ -7,7 +7,7 @@ import { useDbSync } from "@/hooks/useDbSync";
 import { useI18n } from "@/lib/i18n/context";
 import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { pushCrmDelete, pushCrmSave } from "@/lib/cloud-crm-db";
+import { saveDbAndPushCrm, saveDbAndPushCrmDelete } from "@/lib/cloud-crm-db";
 import { PriceNumberInput } from "@/components/ui/PriceNumberInput";
 
 export function WarehousePanel() {
@@ -24,9 +24,8 @@ export function WarehousePanel() {
     if (!confirm(c.confirmDeleteWarehouse)) return;
     const fresh = loadDb();
     fresh.warehouse = fresh.warehouse.filter((w) => w.id !== id);
-    saveDb(fresh);
     if (edit?.id === id) setEdit(null);
-    const ok = await pushCrmDelete(fresh);
+    const ok = await saveDbAndPushCrmDelete(fresh);
     if (!ok) return;
   };
 
@@ -37,9 +36,8 @@ export function WarehousePanel() {
     const row = migrateWarehouseItem(edit);
     if (idx >= 0) fresh.warehouse[idx] = row;
     else fresh.warehouse.push({ ...row, id: `wh-${Date.now()}` });
-    saveDb(fresh);
     setEdit(null);
-    const ok = await pushCrmSave(fresh);
+    const ok = await saveDbAndPushCrm(fresh);
     if (!ok) return;
   };
 
