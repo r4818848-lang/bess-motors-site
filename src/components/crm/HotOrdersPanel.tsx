@@ -79,7 +79,7 @@ export function HotOrdersPanel({ onUpdate }: { onUpdate?: () => void }) {
     if (r) r.status = status;
     saveDb(next);
     const ok = await pushCrmSave(next);
-    if (!ok) alert(c.syncFailed);
+    if (!ok) return;
     refresh();
   };
 
@@ -90,7 +90,7 @@ export function HotOrdersPanel({ onUpdate }: { onUpdate?: () => void }) {
     createWorkOrderFromAppointment(next, apt, serviceLabel);
     saveDb(next);
     const ok = await syncAppointmentToCloud(next, apt);
-    if (!ok) alert(c.syncFailed);
+    if (!ok) return;
     refresh();
   };
 
@@ -105,7 +105,7 @@ export function HotOrdersPanel({ onUpdate }: { onUpdate?: () => void }) {
     a.appointmentStatus = status;
     saveDb(next);
     const ok = await syncAppointmentToCloud(next, a);
-    if (!ok) alert(c.syncFailed);
+    if (!ok) return;
     refresh();
   };
 
@@ -132,7 +132,7 @@ export function HotOrdersPanel({ onUpdate }: { onUpdate?: () => void }) {
     }
     saveDb(next);
     const ok = await pushCrmDelete(next);
-    if (!ok) alert(c.syncFailed);
+    if (!ok) return;
     refresh();
   };
 

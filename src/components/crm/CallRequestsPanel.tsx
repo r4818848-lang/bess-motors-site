@@ -24,7 +24,7 @@ export function CallRequestsPanel({ onUpdate }: { onUpdate?: () => void }) {
     if (r) r.status = status;
     saveDb(next);
     const ok = await pushCrmSave(next);
-    if (!ok) alert(c.syncFailed);
+    if (!ok) return;
     setTick((n) => n + 1);
     onUpdate?.();
   };

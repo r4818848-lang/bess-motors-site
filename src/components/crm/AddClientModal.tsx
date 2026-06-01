@@ -171,7 +171,7 @@ export function AddClientModal({
       const ok = await pushCrmSave(db);
       onCreated(result.userId, result.vehicleId);
       if (!ok) {
-        setError(c.syncFailed);
+        setError(c.pushSyncFailed);
         return;
       }
       if (!result.createdUser) setInfo(c.existingClientLinked);
@@ -331,6 +331,8 @@ export function AddClientModal({
             <input
               className="input-premium"
               type="tel"
+              name="bm-client-phone"
+              autoComplete="off"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
             />
@@ -339,6 +341,8 @@ export function AddClientModal({
             <input
               className="input-premium"
               type="email"
+              name="bm-client-email"
+              autoComplete="off"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />

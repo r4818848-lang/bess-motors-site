@@ -131,14 +131,14 @@ function WorkOrdersPageContent() {
     fresh.workOrders = fresh.workOrders.filter((o) => !selectedIds.has(o.id));
     saveDb(fresh);
     const ok = await pushCrmDelete(fresh);
-    if (!ok) alert(c.syncFailed);
+    if (!ok) return;
     setSelectedIds(new Set());
   };
 
   const markDelivered = async (orderId: string) => {
     if (!confirm(c.markDeliveredConfirm)) return;
     const ok = await saveWorkOrderStatusAndSync(orderId, "delivered");
-    if (!ok) alert(c.syncFailed);
+    if (!ok) return;
     if (editingId === orderId) closeEditor();
     setSelectedIds((prev) => {
       const next = new Set(prev);
@@ -149,7 +149,7 @@ function WorkOrdersPageContent() {
 
   const updateStatus = async (orderId: string, status: RepairStatus) => {
     const ok = await saveWorkOrderStatusAndSync(orderId, status);
-    if (!ok) alert(c.syncFailed);
+    if (!ok) return;
     if (status === "delivered" && editingId === orderId) closeEditor();
   };
 

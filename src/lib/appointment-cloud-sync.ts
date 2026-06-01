@@ -1,6 +1,6 @@
 import type { Appointment, Database } from "./store";
 import { pushAppointmentToCloud } from "./cloud-appointments";
-import { pushCrmToCloud } from "./cloud-crm-db";
+import { pushCrmSave } from "./cloud-crm-db";
 
 /** Sync one appointment row + full CRM snapshot (calendar, hot orders). */
 export async function syncAppointmentToCloud(
@@ -9,7 +9,7 @@ export async function syncAppointmentToCloud(
 ): Promise<boolean> {
   const [aptOk, crmOk] = await Promise.all([
     pushAppointmentToCloud(apt),
-    pushCrmToCloud(db),
+    pushCrmSave(db),
   ]);
   if (!aptOk) console.warn("[cloud] appointment row sync failed", apt.id);
   if (!crmOk) console.warn("[cloud] crm snapshot sync failed");

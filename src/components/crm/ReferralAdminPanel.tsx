@@ -138,7 +138,7 @@ export function ReferralAdminPanel() {
     const result = recomputeAllReferrals(db);
     saveDb(db);
     const ok = await pushCrmSave(db);
-    if (!ok) alert(c.syncFailed);
+    if (!ok) setMsg(c.pushSyncFailed);
     setMsg(
       c.referralRecomputeDone
         .replace("{referrers}", String(result.referrersUpdated))

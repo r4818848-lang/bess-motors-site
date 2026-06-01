@@ -24,7 +24,7 @@ import { loadDb, saveDb, type RepairStatus } from "@/lib/store";
 import { patchWorkOrderStatus } from "@/lib/work-order-status-update";
 import { getAppointmentContext } from "@/lib/appointments";
 import { calcServiceLine, calcMechanicEarnings } from "@/lib/workorder-calc";
-import { pushCrmToCloud } from "@/lib/cloud-crm-db";
+import { pushCrmSave } from "@/lib/cloud-crm-db";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { DB_CHANGED_EVENT } from "@/lib/db-events";
@@ -168,7 +168,7 @@ function MechanicPageContent() {
       return;
     }
 
-    const synced = await pushCrmToCloud(fresh);
+    const synced = await pushCrmSave(fresh);
     if (!synced) {
       setSyncError(m.statusSyncFailed);
     }

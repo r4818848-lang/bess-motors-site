@@ -108,7 +108,7 @@ function CRMPageContent() {
   const refresh = useCallback(() => {
     void import("@/lib/cloud-crm-db").then(async (m) => {
       const { loadDb } = await import("@/lib/store");
-      await m.pushCrmToCloud(loadDb());
+      await m.pushCrmSave(loadDb());
       await m.pullCrmFromCloud({ force: true });
     });
   }, []);

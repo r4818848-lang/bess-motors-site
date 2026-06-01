@@ -39,7 +39,7 @@ export function WorkOrderKanban({ orders }: { orders?: import("@/lib/store").Wor
     const order = db.workOrders.find((o) => o.id === orderId);
     if (!order || order.status === status) return;
     const ok = await saveWorkOrderStatusAndSync(orderId, status);
-    if (!ok) alert(c.syncFailed);
+    if (!ok) return;
     setDragId(null);
   };
 

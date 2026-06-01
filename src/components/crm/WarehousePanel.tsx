@@ -27,7 +27,7 @@ export function WarehousePanel() {
     saveDb(fresh);
     if (edit?.id === id) setEdit(null);
     const ok = await pushCrmDelete(fresh);
-    if (!ok) alert(c.syncFailed);
+    if (!ok) return;
   };
 
   const saveItem = async () => {
@@ -40,7 +40,7 @@ export function WarehousePanel() {
     saveDb(fresh);
     setEdit(null);
     const ok = await pushCrmSave(fresh);
-    if (!ok) alert(c.syncFailed);
+    if (!ok) return;
   };
 
   return (

@@ -31,6 +31,7 @@ export function SettingsPanel({ onUpdate }: { onUpdate: () => void }) {
   const [settings, setSettings] = useState({ ...db.settings });
   const [mechanics, setMechanics] = useState<MechRow[]>(loadMechanicRows);
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
 
   const addMechanic = () => {
     const id = `mech-${Date.now()}`;
@@ -59,6 +60,7 @@ export function SettingsPanel({ onUpdate }: { onUpdate: () => void }) {
 
   const save = async () => {
     setSaving(true);
+    setSaveError("");
     try {
       const fresh = loadDb();
       const removedIds = fresh.mechanics
@@ -107,7 +109,13 @@ export function SettingsPanel({ onUpdate }: { onUpdate: () => void }) {
 
       saveDb(fresh);
       const ok = await pushCrmSave(fresh);
-      if (!ok) alert(c.syncFailed);
+      if (!ok) {
+        setSaveError(c.pushSyncFailed);
+        setMechanics(loadMechanicRows());
+        onUpdate();
+        return;
+      }
+      setSaveError("");
       setMechanics(loadMechanicRows());
       onUpdate();
     } finally {
@@ -122,6 +130,12 @@ export function SettingsPanel({ onUpdate }: { onUpdate: () => void }) {
       </h2>
 
       <CrmEnvHealthPanel />
+
+      {saveError && (
+        <p className="text-sm text-amber-300 bg-amber-500/10 border border-amber-500/30 rounded-lg px-3 py-2">
+          {saveError}
+        </p>
+      )}
 
       <div className="glass-red rounded-xl p-6 neon-border space-y-4">
         <h3 className="font-display text-sm uppercase text-bm-red">{w.automationTitle}</h3>

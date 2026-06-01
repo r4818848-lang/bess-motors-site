@@ -630,6 +630,18 @@
     color: var(--crm-main-text);
   }
 
+  .crm-shell .crm-sync-banner {
+    @apply mx-3 mt-3 lg:mx-6 lg:mt-4 px-4 py-3 rounded-lg border text-sm flex flex-wrap items-center justify-between gap-2;
+    border-color: rgba(251, 191, 36, 0.45);
+    background: rgba(251, 191, 36, 0.12);
+    color: var(--crm-main-text);
+  }
+
+  .crm-shell .crm-sync-banner button {
+    @apply text-xs font-bold uppercase tracking-wide underline;
+    color: var(--crm-link);
+  }
+
   .crm-shell .btn-primary {
     background: var(--crm-mw-blue) !important;
     color: #fff !important;
@@ -906,6 +918,25 @@
 
   .input-premium:focus {
     @apply border-bm-red shadow-neon-sm;
+  }
+
+  .input-premium:-webkit-autofill,
+  .input-premium:-webkit-autofill:hover,
+  .input-premium:-webkit-autofill:focus,
+  .input-premium:-webkit-autofill:active {
+    -webkit-text-fill-color: #ffffff !important;
+    caret-color: #ffffff;
+    box-shadow: 0 0 0 1000px rgba(20, 20, 20, 0.95) inset !important;
+    transition: background-color 99999s ease-in-out 0s;
+  }
+
+  .crm-shell[data-theme="light"] .input-premium:-webkit-autofill,
+  .crm-shell[data-theme="light"] .input-premium:-webkit-autofill:hover,
+  .crm-shell[data-theme="light"] .input-premium:-webkit-autofill:focus,
+  .crm-shell[data-theme="light"] .input-premium:-webkit-autofill:active {
+    -webkit-text-fill-color: var(--crm-input-text) !important;
+    caret-color: var(--crm-input-text);
+    box-shadow: 0 0 0 1000px var(--crm-input-bg) inset !important;
   }
 
   .input {

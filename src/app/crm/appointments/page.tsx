@@ -8,7 +8,7 @@ import { DashboardLayout } from "@/components/crm/DashboardLayout";
 import { AppointmentsList } from "@/components/crm/AppointmentsList";
 import { logoutAdmin } from "@/lib/auth";
 import { loadDb } from "@/lib/store";
-import { pullCrmFromCloud, pushCrmToCloud } from "@/lib/cloud-crm-db";
+import { pullCrmFromCloud, pushCrmSave } from "@/lib/cloud-crm-db";
 import { Button } from "@/components/ui/Button";
 
 function AppointmentsPageContent() {
@@ -16,7 +16,7 @@ function AppointmentsPageContent() {
   const c = t.crm;
   const refresh = useCallback(() => {
     void (async () => {
-      await pushCrmToCloud(loadDb());
+      await pushCrmSave(loadDb());
       await pullCrmFromCloud({ force: true });
     })();
   }, []);

@@ -60,8 +60,8 @@ export function VehiclesListPanel() {
     const ok = await pushCrmDelete(next);
     setDeletingId(null);
     if (!ok) {
-      alert(c.syncFailed);
       await pullCrmFromCloud({ force: true });
+      return;
     }
   };
 
@@ -78,8 +78,8 @@ export function VehiclesListPanel() {
     const ok = await pushCrmDelete(fresh);
     setDeletingId(null);
     if (!ok) {
-      alert(c.syncFailed);
       await pullCrmFromCloud({ force: true });
+      return;
     }
   };
 

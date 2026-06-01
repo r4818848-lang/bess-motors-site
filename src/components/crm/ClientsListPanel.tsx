@@ -50,7 +50,7 @@ export function ClientsListPanel() {
     const next = deleteClientFromDb(fresh, userId);
     saveDb(next);
     const ok = await pushCrmDelete(next);
-    if (!ok) alert(c.syncFailed);
+    if (!ok) return;
   };
 
   return (

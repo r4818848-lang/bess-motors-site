@@ -152,11 +152,12 @@ export function QuickCreateOrderModal({
 
   const db = loadDb();
 
-  const handleCreate = () => {
+  const handleCreate = async () => {
     if (!userId || !vehicleId) {
       setError(w.selectClientVehicle);
       return;
     }
+    setError("");
     const fresh = loadDb();
     const base = emptyOrder(fresh);
     const order: WorkOrder = applyWorkOrderCompletedAt({
@@ -175,7 +176,12 @@ export function QuickCreateOrderModal({
     handleWorkOrderClientNotifications(fresh, order, null);
     const synced = syncWarehouseFromWorkOrder(fresh, order);
     saveDb(synced);
-    void pushCrmSave(synced);
+    const ok = await pushCrmSave(synced);
+    if (!ok) {
+      setError(c.pushSyncFailed);
+      onCreated(order.id);
+      return;
+    }
     onCreated(order.id);
     onClose();
   };
@@ -234,7 +240,14 @@ export function QuickCreateOrderModal({
           </button>
         </div>
 
-        <div className="crm-mw-modal-body space-y-5">
+        <form
+          className="crm-mw-modal-body space-y-5"
+          autoComplete="off"
+          onSubmit={(e) => {
+            e.preventDefault();
+            void handleCreate();
+          }}
+        >
           <div className="space-y-2">
             <div className="flex justify-end">
               <button
@@ -285,7 +298,7 @@ export function QuickCreateOrderModal({
           {/* Task list */}
           <section className="crm-mw-card overflow-hidden">
             <div className="px-3 py-2.5 border-b border-bm-border bg-gray-50">
-              <h3 className="font-bold uppercase text-sm text-gray-800">
+              <h3 className="crm-mw-section-title font-bold uppercase text-sm">
                 {c.taskListTitle}
               </h3>
             </div>
@@ -467,13 +480,13 @@ export function QuickCreateOrderModal({
               {error}
             </p>
           )}
-        </div>
+        </form>
 
         <div className="crm-mw-modal-footer shrink-0 flex flex-col-reverse sm:flex-row gap-2 justify-end">
           <Button type="button" variant="outline" onClick={onClose}>
             {t.common.cancel}
           </Button>
-          <Button type="button" onClick={handleCreate}>
+          <Button type="button" onClick={() => void handleCreate()}>
             {c.createOrder}
           </Button>
         </div>

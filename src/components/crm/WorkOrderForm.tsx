@@ -332,7 +332,7 @@ export function WorkOrderForm({
     fresh.workOrders = fresh.workOrders.filter((o) => o.id !== order.id);
     saveDb(fresh);
     const ok = await pushCrmDelete(fresh);
-    if (!ok) alert(c.syncFailed);
+    if (!ok) return;
     onSaved();
   };
 

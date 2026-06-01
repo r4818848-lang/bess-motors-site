@@ -6,7 +6,7 @@ import {
   fetchCloudConfigured,
   pullCrmFromCloud,
   pushCrmIfCloudEmpty,
-  pushCrmToCloud,
+  pushCrmSave,
   scheduleCrmCloudPush,
 } from "@/lib/cloud-crm-db";
 import { loadDb, type Database } from "@/lib/store";
@@ -36,7 +36,11 @@ export function useCloudCrmSync(enabled = true): {
         return false;
       }
       await pushCrmIfCloudEmpty();
-      await pushCrmToCloud(loadDb());
+      const pushed = await pushCrmSave(loadDb());
+      if (!pushed) {
+        setPushFailed(true);
+        return false;
+      }
       const result = await pullCrmFromCloud({ force: true });
       const ok = result !== "error" && result !== "skipped";
       setSyncFailed(!ok);

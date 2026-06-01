@@ -43,9 +43,9 @@ export function ExpensesPanel({ onUpdate }: { onUpdate: () => void }) {
     });
     saveDb(fresh);
     const ok = await pushCrmSave(fresh);
-    if (!ok) alert(c.syncFailed);
-    setForm({ category: "other", description: "", amount: 0, date: form.date });
     onUpdate();
+    if (!ok) return;
+    setForm({ category: "other", description: "", amount: 0, date: form.date });
   };
 
   const remove = async (id: string) => {
@@ -53,8 +53,8 @@ export function ExpensesPanel({ onUpdate }: { onUpdate: () => void }) {
     fresh.expenses = fresh.expenses.filter((e) => e.id !== id);
     saveDb(fresh);
     const ok = await pushCrmDelete(fresh);
-    if (!ok) alert(c.syncFailed);
     onUpdate();
+    if (!ok) return;
   };
 
   const total = db.expenses.reduce((s, e) => s + e.amount, 0);

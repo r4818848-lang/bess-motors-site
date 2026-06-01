@@ -1,12 +1,12 @@
 import { DB_CHANGED_EVENT, notifyCrmCloudPush } from "@/lib/db-events";
 import { syncAppointmentsFromCloud } from "@/lib/cloud-appointments";
 import { mergeCloudIntoLocal } from "@/lib/crm-db-merge";
+import { staffCrmFetch } from "@/lib/crm-staff-fetch";
 import { loadDb, mergeStoredDb, saveDb, type Database } from "@/lib/store";
 
 const TOKEN_KEY = "bess-jwt";
 const SESSION_ROLE_KEY = "bess-session-role";
 const CLOUD_SYNCED_AT_KEY = "bess-crm-cloud-synced-at";
-const CLOUD_PUSH_TIMEOUT_MS = 28_000;
 
 let pushTimer: ReturnType<typeof setTimeout> | null = null;
 let pushChain: Promise<boolean> = Promise.resolve(true);
@@ -56,16 +56,11 @@ export async function pushCrmSave(
 }
 
 export async function pullCrmFromCloud(options?: { force?: boolean }): Promise<PullCrmResult> {
-  if (typeof window === "undefined") return "skipped";
-  const token = localStorage.getItem(TOKEN_KEY);
-  if (!token || !isCrmCloudWriter()) return "skipped";
+  if (typeof window === "undefined" || !isCrmCloudWriter()) return "skipped";
 
   try {
-    const res = await fetch("/api/crm-db", {
-      headers: { Authorization: `Bearer ${token}` },
-      cache: "no-store",
-    });
-    if (!res.ok) return "error";
+    const res = await staffCrmFetch("/api/crm-db", { cache: "no-store" });
+    if (!res || !res.ok) return "error";
 
     const data = (await res.json()) as {
       cloud?: boolean;
@@ -114,43 +109,23 @@ export async function pushCrmToCloud(
   options?: PushCrmOptions
 ): Promise<boolean> {
   if (typeof window === "undefined" || !isCrmCloudWriter()) return false;
-
-  let token = localStorage.getItem(TOKEN_KEY);
-  if (!token) return false;
+  if (!localStorage.getItem(TOKEN_KEY)) return false;
 
   const payload = dbForCloud(db ?? loadDb());
 
   const run = async (): Promise<boolean> => {
-    const putOnce = async (authToken: string): Promise<Response> => {
-      const ac = new AbortController();
-      const timer = setTimeout(() => ac.abort(), CLOUD_PUSH_TIMEOUT_MS);
-      try {
-        return await fetch("/api/crm-db", {
-          method: "PUT",
-          headers: {
-            Authorization: `Bearer ${authToken}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(payload),
-          signal: ac.signal,
-        });
-      } finally {
-        clearTimeout(timer);
-      }
-    };
-
     try {
-      let res = await putOnce(token!);
-      if (res.status === 401 && isStaffCloudWriter()) {
-        const { refreshStaffSessionToken } = await import("@/lib/auth");
-        const fresh = await refreshStaffSessionToken();
-        if (fresh) {
-          token = fresh;
-          res = await putOnce(fresh);
-        }
-      }
-      if (!res.ok) {
-        console.warn("[cloud] CRM push failed", res.status, await res.text());
+      const res = await staffCrmFetch("/api/crm-db", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!res || !res.ok) {
+        console.warn(
+          "[cloud] CRM push failed",
+          res?.status ?? "network",
+          res ? await res.text() : ""
+        );
         notifyCrmCloudPush(false);
         return false;
       }
@@ -199,15 +174,10 @@ export async function fetchCloudConfigured(): Promise<boolean> {
 /** Upload local CRM if cloud is empty (first admin device) */
 export async function pushCrmIfCloudEmpty(): Promise<void> {
   if (!isCrmCloudWriter()) return;
-  const token = localStorage.getItem(TOKEN_KEY);
-  if (!token) return;
 
   try {
-    const res = await fetch("/api/crm-db", {
-      headers: { Authorization: `Bearer ${token}` },
-      cache: "no-store",
-    });
-    if (!res.ok) return;
+    const res = await staffCrmFetch("/api/crm-db", { cache: "no-store" });
+    if (!res || !res.ok) return;
     const data = (await res.json()) as { db?: Database | null };
     if (data.db) return;
     await pushCrmToCloud(loadDb());

@@ -362,6 +362,14 @@ function DashboardLayoutInner({
       </aside>
 
       <div className="crm-main flex-1 lg:ml-64 min-w-0 w-full pt-[3.25rem] lg:pt-0 pb-[4.25rem] lg:pb-0">
+        {(syncFailed || pushFailed) && !syncing && cloudConfigured && (
+          <div className="crm-sync-banner" role="status">
+            <span>{pushFailed ? c.pushSyncFailed : c.syncFailed}</span>
+            <button type="button" onClick={() => void resync()}>
+              {c.syncNow}
+            </button>
+          </div>
+        )}
         {children}
       </div>
 

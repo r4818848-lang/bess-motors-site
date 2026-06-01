@@ -38,7 +38,7 @@ export function ClientHistoryPanel() {
     fresh.workOrders = fresh.workOrders.filter((o) => o.id !== orderId);
     saveDb(fresh);
     const ok = await pushCrmDelete(fresh);
-    if (!ok) alert(c.syncFailed);
+    if (!ok) return;
   };
 
   return (

@@ -108,7 +108,7 @@ export function AppointmentCalendar({
     setSyncing(true);
     const ok = await syncAppointmentToCloud(fresh, apt);
     setSyncing(false);
-    if (!ok) alert(c.syncFailed);
+    if (!ok) return;
     setSelected({ ...apt });
   };
 

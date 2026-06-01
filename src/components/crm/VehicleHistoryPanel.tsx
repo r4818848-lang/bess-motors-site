@@ -28,7 +28,7 @@ export function VehicleHistoryPanel() {
     fresh.vehicleHistory = fresh.vehicleHistory.filter((e) => e.id !== entryId);
     saveDb(fresh);
     const ok = await pushCrmDelete(fresh);
-    if (!ok) alert(c.syncFailed);
+    if (!ok) return;
   };
 
   return (

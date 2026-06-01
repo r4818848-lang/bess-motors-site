@@ -47,7 +47,7 @@ export function WorkOrderHistoryPanel({ searchQuery: externalQuery }: Props = {}
     fresh.workOrders = fresh.workOrders.filter((o) => o.id !== orderId);
     saveDb(fresh);
     const ok = await pushCrmDelete(fresh);
-    if (!ok) alert(c.syncFailed);
+    if (!ok) return;
   };
 
   const formatMoney = (n: number) =>

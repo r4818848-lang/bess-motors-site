@@ -116,7 +116,7 @@ export function AddVehicleModal({ open, onClose, onCreated, initialUserId }: Pro
       saveDb(db);
       const ok = await pushCrmSave(db);
       if (!ok) {
-        setError(c.syncFailed);
+        setError(c.pushSyncFailed);
         onCreated(result.vehicleId, userId);
         return;
       }
@@ -145,7 +145,14 @@ export function AddVehicleModal({ open, onClose, onCreated, initialUserId }: Pro
         </>
       }
     >
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <form
+        className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
+        autoComplete="off"
+        onSubmit={(e) => {
+          e.preventDefault();
+          void submit();
+        }}
+      >
         <CrmFormField label={c.currentOwner} required className="sm:col-span-2 lg:col-span-4">
           <select
             className="input-premium"
@@ -278,7 +285,7 @@ export function AddVehicleModal({ open, onClose, onCreated, initialUserId }: Pro
             onChange={(e) => setNotes(e.target.value)}
           />
         </CrmFormField>
-      </div>
+      </form>
 
       {error && (
         <p className="mt-4 text-sm text-red-400 bg-red-500/10 border border-red-500/30 rounded-lg px-3 py-2">
