@@ -31,7 +31,6 @@ import {
   markReferralDiscountUsed,
 } from "@/lib/referral-system";
 import {
-  calcServiceLine,
   calcPartLine,
   calcPartLineProfit,
   calcPartMarginPercent,
@@ -46,6 +45,15 @@ import {
   calcOrderBreakdown,
   generateOrderNumber,
 } from "@/lib/workorder-calc";
+import { useCrmDisplay } from "@/contexts/CrmDisplayContext";
+import {
+  displayOrderTotal,
+  displayOrderTotalLabel,
+  displayPartLineTotal,
+  displayServiceLineTotal,
+  displayUnitPrice,
+  storeUnitPriceFromDisplay,
+} from "@/lib/crm-display-price";
 import { Button } from "@/components/ui/Button";
 import { PriceNumberInput } from "@/components/ui/PriceNumberInput";
 import { VehicleClientEditor } from "@/components/crm/VehicleClientEditor";
@@ -131,6 +139,7 @@ export function WorkOrderForm({
   const pm = t.paymentMethods;
   const ps = t.paymentStatus;
 
+  const { priceMode } = useCrmDisplay();
   const dbTick = useDbSync();
   const db = useMemo(() => loadDb(), [dbTick]);
   const existing = orderId ? db.workOrders.find((o) => o.id === orderId) : null;
@@ -342,7 +351,13 @@ export function WorkOrderForm({
   const client = db.users.find((u) => u.id === order.userId);
   const vehicle = db.vehicles.find((v) => v.id === order.vehicleId);
   const vatRate = db.settings.vatRate ?? 23;
+  const vatEnabled = order.vatEnabled ?? false;
   const breakdown = calcOrderBreakdown(order, vatRate);
+  const clientTotalDisplay = displayOrderTotal(order, priceMode, vatRate);
+  const clientTotalLabel = displayOrderTotalLabel(order, priceMode, {
+    net: c.netto,
+    gross: c.brutto,
+  });
   const referralDiscountReady = client ? canUseReferralDiscount(client, db) : false;
   const inviteeDiscountReady = client ? canUseInviteeDiscount(client) : false;
 
@@ -876,8 +891,17 @@ export function WorkOrderForm({
                       className="input-premium text-sm py-1 w-20"
                       min={0}
                       step={0.01}
-                      value={line.price}
-                      onChange={(price) => updateService(i, { price })}
+                      value={displayUnitPrice(line.price, priceMode, vatRate, vatEnabled)}
+                      onChange={(displayPrice) =>
+                        updateService(i, {
+                          price: storeUnitPriceFromDisplay(
+                            displayPrice,
+                            priceMode,
+                            vatRate,
+                            vatEnabled
+                          ),
+                        })
+                      }
                     />
                   </td>
                   <td>
@@ -890,7 +914,7 @@ export function WorkOrderForm({
                     />
                   </td>
                   <td className="font-mono text-bm-red whitespace-nowrap">
-                    {calcServiceLine(line).toFixed(2)} zł
+                    {displayServiceLineTotal(line, priceMode, vatRate, vatEnabled).toFixed(2)} zł
                   </td>
                   <td>
                     <button
@@ -1001,8 +1025,17 @@ export function WorkOrderForm({
                       className="input-premium text-sm py-1 w-18"
                       min={0}
                       step={0.01}
-                      value={line.sellPrice}
-                      onChange={(sellPrice) => updatePart(i, { sellPrice })}
+                      value={displayUnitPrice(line.sellPrice, priceMode, vatRate, vatEnabled)}
+                      onChange={(displayPrice) =>
+                        updatePart(i, {
+                          sellPrice: storeUnitPriceFromDisplay(
+                            displayPrice,
+                            priceMode,
+                            vatRate,
+                            vatEnabled
+                          ),
+                        })
+                      }
                     />
                   </td>
                   <td>
@@ -1018,7 +1051,7 @@ export function WorkOrderForm({
                     {calcPartMarginPercent(line).toFixed(0)}%
                   </td>
                   <td className="font-mono text-bm-red whitespace-nowrap">
-                    {calcPartLine(line).toFixed(2)} zł
+                    {displayPartLineTotal(line, priceMode, vatRate, vatEnabled).toFixed(2)} zł
                   </td>
                   <td>
                     <button
@@ -1138,13 +1171,19 @@ export function WorkOrderForm({
           </p>
         </div>
         <div className="crm-mw-card rounded-md p-4 border-bm-red">
-          <p className="text-xs text-bm-muted uppercase">{w.clientTotal}</p>
-          <p className="font-display text-2xl font-bold text-glow">
-            {breakdown.grossTotal.toFixed(2)} zł
+          <p className="text-xs text-bm-muted uppercase">
+            {w.clientTotal}
+            <span className="block font-normal normal-case text-[10px] mt-0.5">
+              {clientTotalLabel}
+            </span>
           </p>
-          {order.vatEnabled && breakdown.vatAmount > 0 && (
+          <p className="font-display text-2xl font-bold text-glow">
+            {clientTotalDisplay.toFixed(2)} zł
+          </p>
+          {order.vatEnabled && breakdown.vatAmount > 0 && priceMode === "net" && (
             <p className="text-xs text-bm-muted mt-1">
-              {w.vatAmount}: {breakdown.vatAmount.toFixed(2)} zł
+              {c.brutto}: {breakdown.grossTotal.toFixed(2)} zł ({w.vatAmount}{" "}
+              {breakdown.vatAmount.toFixed(2)} zł)
             </p>
           )}
         </div>

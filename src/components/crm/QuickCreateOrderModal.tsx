@@ -14,12 +14,13 @@ import {
 } from "@/lib/store";
 import { syncWarehouseFromWorkOrder } from "@/lib/warehouse-stock";
 import { saveDbAndPushCrm } from "@/lib/cloud-crm-db";
+import { generateOrderNumber } from "@/lib/workorder-calc";
 import {
-  calcServiceLine,
-  calcClientTotal,
-  calcClientTotalWithVat,
-  generateOrderNumber,
-} from "@/lib/workorder-calc";
+  displayOrderTotal,
+  displayServiceLineTotal,
+  displayUnitPrice,
+  storeUnitPriceFromDisplay,
+} from "@/lib/crm-display-price";
 import { applyWorkOrderCompletedAt } from "@/lib/work-order-dates";
 import { handleWorkOrderClientNotifications } from "@/lib/client-notifications";
 import {
@@ -130,10 +131,7 @@ export function QuickCreateOrderModal({
   }, [userId, vehicleId, services, mechanicId, clientNotes, vatEnabled, receptionChecklist, receptionDate]);
 
   const vatRate = loadDb().settings.vatRate ?? 23;
-  const displayTotal =
-    priceMode === "gross" && vatEnabled
-      ? calcClientTotalWithVat(draftOrder, vatRate)
-      : calcClientTotal(draftOrder);
+  const displayTotal = displayOrderTotal(draftOrder, priceMode, vatRate);
 
   const toggleFlag = (id: string) => {
     setReceptionChecklist((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -349,8 +347,17 @@ export function QuickCreateOrderModal({
                             className="input-premium text-sm py-1 w-20"
                             min={0}
                             step={0.01}
-                            value={line.price}
-                            onChange={(price) => updateService(i, { price })}
+                            value={displayUnitPrice(line.price, priceMode, vatRate, vatEnabled)}
+                            onChange={(displayPrice) =>
+                              updateService(i, {
+                                price: storeUnitPriceFromDisplay(
+                                  displayPrice,
+                                  priceMode,
+                                  vatRate,
+                                  vatEnabled
+                                ),
+                              })
+                            }
                           />
                         </td>
                         <td>
@@ -363,7 +370,7 @@ export function QuickCreateOrderModal({
                           />
                         </td>
                         <td className="font-mono text-sm text-right whitespace-nowrap text-bm-red">
-                          {calcServiceLine(line).toFixed(2)}
+                          {displayServiceLineTotal(line, priceMode, vatRate, vatEnabled).toFixed(2)}
                         </td>
                         <td>
                           <button
