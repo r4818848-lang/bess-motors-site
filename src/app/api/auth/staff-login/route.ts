@@ -63,8 +63,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: "invalid" }, { status: 400 });
   }
 
-  const phone = stripEnvQuotes(String(body.phone ?? ""));
-  const password = stripEnvQuotes(String(body.password ?? ""));
+  const phone = stripEnvQuotes(String(body.phone ?? "")).trim();
+  const password = stripEnvQuotes(String(body.password ?? "")).trim();
   if (!phone || !password) {
     return NextResponse.json({ ok: false, error: "invalid" }, { status: 400 });
   }
@@ -82,7 +82,8 @@ export async function POST(req: Request) {
     );
   }
 
-  if (phoneDigitsMatch(admin.phone, phone) && password === admin.password) {
+  const adminPassword = admin.password.trim();
+  if (phoneDigitsMatch(admin.phone, phone) && password === adminPassword) {
     const token = await issueStaffToken("admin-1", "admin", admin.phone);
     return NextResponse.json({
       ok: true,

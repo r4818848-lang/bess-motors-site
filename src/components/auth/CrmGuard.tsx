@@ -15,26 +15,59 @@ export function CrmGuard({ children }: { children: React.ReactNode }) {
   const [allowed, setAllowed] = useState(false);
 
   useEffect(() => {
+    let cancelled = false;
+
+    const deny = () => {
+      if (cancelled) return;
+      if (isMechanicAuthenticated()) {
+        router.replace(
+          pathname.startsWith("/crm/work-orders") ? pathname : "/mechanic"
+        );
+        return;
+      }
+      router.replace("/cabinet?crm=1");
+    };
+
+    const allow = () => {
+      if (!cancelled) setAllowed(true);
+    };
+
+    /* Right after login: token is in localStorage — do not block CRM on slow verify */
+    if (isAdminAuthenticated()) {
+      allow();
+      void restoreSessionFromToken().then((user) => {
+        if (cancelled) return;
+        if (!user && !isAdminAuthenticated()) {
+          setAllowed(false);
+          deny();
+        }
+      });
+      return () => {
+        cancelled = true;
+      };
+    }
+
     restoreSessionFromToken()
       .catch(() => null)
       .finally(() => {
+        if (cancelled) return;
         if (isAdminAuthenticated()) {
-          setAllowed(true);
+          allow();
           return;
         }
         if (
           isMechanicAuthenticated() &&
           pathname.startsWith("/crm/work-orders")
         ) {
-          setAllowed(true);
+          allow();
           return;
         }
-        if (isMechanicAuthenticated()) {
-          router.replace("/mechanic");
-          return;
-        }
-        router.replace("/cabinet?crm=1");
+        deny();
       });
+
+    return () => {
+      cancelled = true;
+    };
   }, [router, pathname]);
 
   if (!allowed) {

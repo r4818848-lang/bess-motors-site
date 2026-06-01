@@ -1,4 +1,4 @@
-const CACHE = "bess-motors-v2";
+const CACHE = "bess-motors-v3";
 const PRECACHE = ["/", "/cennik", "/booking", "/contacts", "/status", "/offline.html", "/api/price-list", "/offline-contacts.json"];
 
 self.addEventListener("install", (event) => {
@@ -40,6 +40,9 @@ self.addEventListener("notificationclick", (event) => {
 });
 
 self.addEventListener("fetch", (event) => {
+  const url = new URL(event.request.url);
+  /* Never cache API — auth/session must not be served from stale cache */
+  if (url.pathname.startsWith("/api/")) return;
   if (event.request.method !== "GET") return;
   event.respondWith(
     caches.match(event.request).then((cached) => {

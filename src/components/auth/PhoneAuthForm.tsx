@@ -7,7 +7,10 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useI18n } from "@/lib/i18n/context";
 import { useAuth } from "@/lib/auth/session-context";
 import { loginWithPhonePassword, type AuthResult } from "@/lib/auth";
-import { loadClientCredentials } from "@/lib/client-credentials";
+import {
+  clearClientCredentials,
+  loadClientCredentials,
+} from "@/lib/client-credentials";
 import { pullClientPortalFromCloud } from "@/lib/client-portal";
 import { Button } from "@/components/ui/Button";
 import { TelegramLoginButton } from "@/components/auth/TelegramLoginButton";
@@ -31,12 +34,13 @@ export function PhoneAuthForm({ onSuccess, staffCrm: staffCrmProp }: PhoneAuthFo
   const [focused, setFocused] = useState<"phone" | "plate" | null>(null);
 
   useEffect(() => {
+    if (staffCrm) return;
     const saved = loadClientCredentials();
     if (saved) {
       setPhone(saved.phone);
       setPlate(saved.plate);
     }
-  }, []);
+  }, [staffCrm]);
 
   const errorMessage = (result: Extract<AuthResult, { ok: false }>) => {
     switch (result.error) {
@@ -66,6 +70,7 @@ export function PhoneAuthForm({ onSuccess, staffCrm: staffCrmProp }: PhoneAuthFo
       }
 
       if (result.role === "admin") {
+        clearClientCredentials();
         window.location.assign("/crm");
         return;
       }

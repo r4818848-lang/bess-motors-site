@@ -113,6 +113,7 @@ async function verifyStaffSessionViaApi(
       method: "POST",
       headers: { Authorization: `Bearer ${token}` },
       cache: "no-store",
+      credentials: "same-origin",
     });
     const data = (await res.json()) as {
       ok?: boolean;
@@ -137,6 +138,7 @@ async function verifyClientSessionViaApi(
       method: "POST",
       headers: { Authorization: `Bearer ${token}` },
       cache: "no-store",
+      credentials: "same-origin",
     });
     const data = (await res.json()) as {
       ok?: boolean;
@@ -189,6 +191,7 @@ async function verifyTokenViaApi(
     const res = await fetch("/api/auth/session", {
       headers: { Authorization: `Bearer ${token}` },
       cache: "no-store",
+      credentials: "same-origin",
     });
     const data = (await res.json()) as {
       ok?: boolean;
@@ -214,13 +217,30 @@ export async function verifyToken(
   if (typeof window === "undefined") {
     return verifyTokenServer(token);
   }
-  const { fetchCloudConfigured } = await import("@/lib/cloud-crm-db");
-  const cloudOn = await fetchCloudConfigured();
-  if (!cloudOn) {
-    const local = await verifyTokenLocalDev(token);
-    if (local) return local;
+
+  const hinted =
+    typeof window !== "undefined"
+      ? (localStorage.getItem(SESSION_ROLE_KEY) as AuthRole | null)
+      : null;
+
+  /* Staff JWT is always server-signed — check API before dev-local secret */
+  if (hinted === "admin" || hinted === "mechanic") {
+    const staff = await verifyStaffSessionViaApi(token);
+    if (staff) return staff;
   }
-  return verifyTokenViaApi(token);
+  if (hinted === "client") {
+    const client = await verifyClientSessionViaApi(token);
+    if (client) return client;
+  }
+
+  const api = await verifyTokenViaApi(token);
+  if (api) return api;
+
+  const { fetchCloudConfigured } = await import("@/lib/cloud-crm-db");
+  if (!(await fetchCloudConfigured())) {
+    return verifyTokenLocalDev(token);
+  }
+  return null;
 }
 
 function resolveStaffUserFromSession(
@@ -267,11 +287,25 @@ async function refreshClientTokenFromApi(existingToken: string): Promise<string 
 
 export async function restoreSessionFromToken(): Promise<User | null> {
   if (typeof window === "undefined") return null;
-  const token = localStorage.getItem(TOKEN_KEY);
+  let token = localStorage.getItem(TOKEN_KEY);
   if (!token) return null;
+
+  const hintedRole = localStorage.getItem(SESSION_ROLE_KEY) as AuthRole | null;
   let session = await verifyToken(token);
+
+  if (
+    !session &&
+    (hintedRole === "admin" || hintedRole === "mechanic")
+  ) {
+    const fresh = await refreshStaffTokenFromApi(token);
+    if (fresh) {
+      token = fresh;
+      localStorage.setItem(TOKEN_KEY, fresh);
+      session = await verifyToken(fresh);
+    }
+  }
+
   if (!session) {
-    const hintedRole = localStorage.getItem(SESSION_ROLE_KEY);
     if (hintedRole === "client" || !hintedRole) {
       const { loadClientCredentials } = await import("@/lib/client-credentials");
       const creds = loadClientCredentials();
@@ -285,11 +319,17 @@ export async function restoreSessionFromToken(): Promise<User | null> {
     clearSessionStorage();
     return null;
   }
+
   const db = loadDb();
-  const user =
+  let user =
     session.role === "admin" || session.role === "mechanic"
       ? resolveStaffUserFromSession(db, session)
       : db.users.find((u) => u.id === session.sub) ?? null;
+
+  if (!user && session.role === "admin") {
+    user = ensureAdminUser();
+  }
+
   if (!user || user.role !== session.role) {
     clearSessionStorage();
     const cleared = loadDb();
@@ -411,7 +451,8 @@ async function tryStaffLoginViaApi(
     const res = await fetch("/api/auth/staff-login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ phone, password }),
+      body: JSON.stringify({ phone: phone.trim(), password: password.trim() }),
+      cache: "no-store",
     });
     const data = (await res.json()) as {
       ok?: boolean;
@@ -701,7 +742,9 @@ export async function refreshClientSessionToken(): Promise<string | null> {
 
 export function isAdminAuthenticated(): boolean {
   if (typeof window === "undefined") return false;
-  return getSessionRole() === "admin" && !!localStorage.getItem(TOKEN_KEY);
+  if (getSessionRole() !== "admin" || !localStorage.getItem(TOKEN_KEY)) return false;
+  const user = getCurrentUser();
+  return !user || user.role === "admin";
 }
 
 export function isMechanicAuthenticated(): boolean {
