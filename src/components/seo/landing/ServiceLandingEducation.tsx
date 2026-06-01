@@ -5,28 +5,26 @@ import { ChevronDown } from "lucide-react";
 import { clsx } from "clsx";
 import { useI18n } from "@/lib/i18n/context";
 import type { ServiceId } from "@/lib/services-catalog";
-import { getServiceLandingFaq } from "@/lib/service-landing-content";
+import { getServiceLandingEducation } from "@/lib/service-landing-content";
 import { pickLocalized } from "@/lib/service-landing-locale";
 
-export function SeoServiceFaq({ serviceId }: { serviceId?: ServiceId }) {
-  const { locale, t } = useI18n();
+export function ServiceLandingEducation({ serviceId }: { serviceId: ServiceId }) {
+  const { t, locale } = useI18n();
+  const items = getServiceLandingEducation(serviceId);
   const [open, setOpen] = useState<number | null>(0);
-  if (!serviceId) return null;
-
-  const items = getServiceLandingFaq(serviceId);
   if (!items.length) return null;
 
   return (
-    <section className="mt-12" aria-labelledby="landing-faq-heading">
-      <h2 id="landing-faq-heading" className="font-display text-xl uppercase mb-4">
-        {t.seoServiceFaq.title}
+    <section className="mt-12" aria-labelledby="landing-edu-heading">
+      <h2 id="landing-edu-heading" className="font-display text-xl uppercase mb-4">
+        {t.serviceLanding.educationTitle}
       </h2>
       <div className="space-y-2">
         {items.map((item, i) => {
           const isOpen = open === i;
           return (
             <div
-              key={item.q.pl}
+              key={item.title.pl}
               className="rounded-xl border border-bm-border/50 overflow-hidden"
             >
               <button
@@ -35,7 +33,9 @@ export function SeoServiceFaq({ serviceId }: { serviceId?: ServiceId }) {
                 aria-expanded={isOpen}
                 onClick={() => setOpen(isOpen ? null : i)}
               >
-                <span className="font-semibold text-sm">{pickLocalized(item.q, locale)}</span>
+                <span className="font-semibold text-sm">
+                  {pickLocalized(item.title, locale)}
+                </span>
                 <ChevronDown
                   size={18}
                   className={clsx("shrink-0 text-bm-red transition-transform", isOpen && "rotate-180")}
@@ -43,7 +43,7 @@ export function SeoServiceFaq({ serviceId }: { serviceId?: ServiceId }) {
               </button>
               {isOpen && (
                 <div className="px-4 pb-4 text-sm text-bm-muted leading-relaxed border-t border-bm-border/30 pt-3">
-                  {pickLocalized(item.a, locale)}
+                  {pickLocalized(item.body, locale)}
                 </div>
               )}
             </div>

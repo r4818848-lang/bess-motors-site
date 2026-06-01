@@ -17,7 +17,13 @@ import { useMetaViewContent } from "@/hooks/useMetaViewContent";
 import { localizeSeoLandingPage } from "@/lib/seo-landing-i18n";
 import { BrandServiceBlock } from "@/components/seo/BrandServiceBlock";
 import { SeoServiceFaq } from "@/components/seo/SeoServiceFaq";
-import { SeoHowItWorks } from "@/components/seo/SeoHowItWorks";
+import { ServiceLandingPrice } from "@/components/seo/landing/ServiceLandingPrice";
+import { ServiceLandingSteps } from "@/components/seo/landing/ServiceLandingSteps";
+import { ServiceLandingEducation } from "@/components/seo/landing/ServiceLandingEducation";
+import { ServiceLandingPhotos } from "@/components/seo/landing/ServiceLandingPhotos";
+import { ServiceLandingReviews } from "@/components/seo/landing/ServiceLandingReviews";
+import { ServiceLandingMap } from "@/components/seo/landing/ServiceLandingMap";
+import { ServiceLandingBottomCta } from "@/components/seo/landing/ServiceLandingBottomCta";
 
 type Props = {
   page: SeoLandingPage;
@@ -38,10 +44,13 @@ export function SeoLandingPageView({ page }: Props) {
     }
   };
 
+  const sid = page.serviceId;
+
   return (
     <>
       <div className="pt-28 pb-20 min-h-[70vh]">
-        <div className="mx-auto max-w-4xl px-4 lg:px-8">
+        <div className="mx-auto max-w-5xl px-4 lg:px-8">
+          {/* Hero */}
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
@@ -69,14 +78,18 @@ export function SeoLandingPageView({ page }: Props) {
             <Card glow className="flex gap-3 items-start">
               <MapPin className="w-5 h-5 text-bm-red shrink-0 mt-0.5" />
               <div className="text-left text-sm">
-                <p className="text-bm-muted uppercase text-[10px] tracking-wide">{t.contacts.address}</p>
+                <p className="text-bm-muted uppercase text-[10px] tracking-wide">
+                  {t.contacts.address}
+                </p>
                 <p className="font-medium mt-1">{siteConfig.address}</p>
               </div>
             </Card>
             <Card glow className="flex gap-3 items-start">
               <Phone className="w-5 h-5 text-bm-red shrink-0 mt-0.5" />
               <div className="text-left text-sm">
-                <p className="text-bm-muted uppercase text-[10px] tracking-wide">{t.contacts.phone}</p>
+                <p className="text-bm-muted uppercase text-[10px] tracking-wide">
+                  {t.contacts.phone}
+                </p>
                 <PhoneLink
                   trackSource={`landing_${page.slug}`}
                   className="font-medium mt-1 block hover:text-bm-red"
@@ -121,8 +134,28 @@ export function SeoLandingPageView({ page }: Props) {
 
           <BrandServiceBlock slug={page.slug} />
 
-          <SeoHowItWorks serviceId={page.serviceId} />
-          <SeoServiceFaq serviceId={page.serviceId} />
+          {sid ? (
+            <>
+              <ServiceLandingPrice serviceId={sid} />
+              <ServiceLandingSteps serviceId={sid} />
+              <ServiceLandingEducation serviceId={sid} />
+              <ServiceLandingPhotos serviceId={sid} />
+              <ServiceLandingReviews />
+              <SeoServiceFaq serviceId={sid} />
+              <ServiceLandingMap slug={page.slug} />
+              <ServiceLandingBottomCta
+                slug={page.slug}
+                serviceId={sid}
+                onBook={openBooking}
+              />
+            </>
+          ) : (
+            <>
+              <ServiceLandingReviews />
+              <ServiceLandingMap slug={page.slug} />
+              <ServiceLandingBottomCta slug={page.slug} />
+            </>
+          )}
 
           <p className="mt-8 text-center text-sm text-bm-muted">
             <Link href="/services" className="hover:text-bm-red transition-colors">
