@@ -2,14 +2,33 @@
 
 import { useState, useEffect, useCallback, Suspense, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
-import { Plus, LogOut, Trash2, ChevronDown, ChevronUp } from "lucide-react";
+import Link from "next/link";
+import {
+  Plus,
+  Trash2,
+  ChevronDown,
+  ChevronUp,
+  Search,
+  Home,
+  Calendar,
+  Users,
+  Car,
+  Archive,
+  RefreshCw,
+} from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
+import { useCrmDisplay } from "@/contexts/CrmDisplayContext";
 import { DashboardLayout } from "@/components/crm/DashboardLayout";
 import { WorkOrderForm } from "@/components/crm/WorkOrderForm";
 import { CrmPageHeader } from "@/components/crm/CrmPageHeader";
-import { CrmListToolbar } from "@/components/crm/CrmListToolbar";
 import { logoutAdmin } from "@/lib/auth";
-import { loadDb, saveDb } from "@/lib/store";
+import {
+  loadDb,
+  saveDb,
+  deriveDocumentStatus,
+  type RepairStatus,
+  type WorkOrder,
+} from "@/lib/store";
 import { filterWorkOrders, defaultWorkOrderFilters } from "@/lib/workorder-filters";
 import { applyWorkOrderClosure, filterOpenWorkOrders } from "@/lib/work-order-lifecycle";
 import { applyWorkOrderCompletedAt } from "@/lib/work-order-dates";
@@ -17,27 +36,30 @@ import { syncWarehouseFromWorkOrder } from "@/lib/warehouse-stock";
 import { handleWorkOrderClientNotifications } from "@/lib/client-notifications";
 import { filterWorkOrdersByQuery } from "@/lib/crm-search";
 import { WorkOrderFilters } from "@/components/crm/WorkOrderFilters";
-import { CrmSearchInput } from "@/components/crm/CrmSearchInput";
-import { Button } from "@/components/ui/Button";
 import { WorkOrderKanban } from "@/components/crm/WorkOrderKanban";
 import { useDbSync } from "@/hooks/useDbSync";
+import { usePinnedWorkOrders } from "@/hooks/usePinnedWorkOrders";
 import { CrmWorkOrderPresets } from "@/components/crm/CrmWorkOrderPresets";
 import { QuickCreateOrderModal } from "@/components/crm/QuickCreateOrderModal";
 import { WorkOrdersTable } from "@/components/crm/WorkOrdersTable";
-import Link from "next/link";
 
 function WorkOrdersPageContent() {
   const { t } = useI18n();
   const w = t.wo;
   const c = t.crm;
+  const { priceMode, setPriceMode } = useCrmDisplay();
   const searchParams = useSearchParams();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [kanbanOpen, setKanbanOpen] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [searchQuery, setSearchQuery] = useState("");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(100);
   const dbTick = useDbSync();
   const [filters, setFilters] = useState(defaultWorkOrderFilters);
-  const [searchQuery, setSearchQuery] = useState("");
+  const { isPinned, toggle: togglePin } = usePinnedWorkOrders();
 
   const refresh = useCallback(() => {}, []);
 
@@ -53,8 +75,23 @@ function WorkOrdersPageContent() {
     const openOnly = filterOpenWorkOrders(db.workOrders);
     const byStatus = filterWorkOrders([...openOnly], filters);
     const bySearch = filterWorkOrdersByQuery(db, byStatus, searchQuery);
-    return bySearch;
-  }, [db, filters, searchQuery, dbTick]);
+    return [...bySearch].sort((a, b) => {
+      const ap = isPinned(a.id) ? 0 : 1;
+      const bp = isPinned(b.id) ? 0 : 1;
+      if (ap !== bp) return ap - bp;
+      return b.updatedAt.localeCompare(a.updatedAt);
+    });
+  }, [db, filters, searchQuery, dbTick, isPinned]);
+
+  const pagedOrders = useMemo(() => {
+    const start = (page - 1) * pageSize;
+    return filteredOrders.slice(start, start + pageSize);
+  }, [filteredOrders, page, pageSize]);
+
+  useEffect(() => {
+    const maxPage = Math.max(1, Math.ceil(filteredOrders.length / pageSize));
+    if (page > maxPage) setPage(maxPage);
+  }, [filteredOrders.length, page, pageSize]);
 
   const toggleSelect = (id: string) => {
     setSelectedIds((prev) => {
@@ -70,7 +107,7 @@ function WorkOrdersPageContent() {
       setSelectedIds(new Set());
       return;
     }
-    setSelectedIds(new Set(filteredOrders.map((o) => o.id)));
+    setSelectedIds(new Set(pagedOrders.map((o) => o.id)));
   };
 
   const deleteSelected = () => {
@@ -108,6 +145,33 @@ function WorkOrdersPageContent() {
     refresh();
   };
 
+  const updateStatus = (orderId: string, status: RepairStatus) => {
+    const fresh = loadDb();
+    const idx = fresh.workOrders.findIndex((o) => o.id === orderId);
+    if (idx < 0) return;
+    const previous = { ...fresh.workOrders[idx] };
+    const order = fresh.workOrders[idx];
+    let next: WorkOrder = {
+      ...order,
+      status,
+      documentStatus:
+        status === "delivered"
+          ? "delivered"
+          : order.documentStatus && order.confirmationStatus === "confirmed"
+            ? order.documentStatus
+            : deriveDocumentStatus(status, order.confirmationStatus),
+    };
+    if (status === "delivered") {
+      next = applyWorkOrderClosure(next);
+    }
+    const updated = applyWorkOrderCompletedAt(next);
+    fresh.workOrders[idx] = updated;
+    handleWorkOrderClientNotifications(fresh, updated, previous);
+    saveDb(syncWarehouseFromWorkOrder(fresh, updated));
+    if (status === "delivered" && editingId === orderId) setEditingId(null);
+    refresh();
+  };
+
   if (editingId) {
     return (
       <DashboardLayout role="admin">
@@ -127,87 +191,143 @@ function WorkOrdersPageContent() {
 
   return (
     <DashboardLayout role="admin">
-      <div className="crm-page-padding space-y-5 sm:space-y-6">
-        <CrmPageHeader
-          breadcrumbs={[
-            { label: c.dashboard, href: "/crm" },
-            { label: w.ordersTitle },
-          ]}
-          title={w.ordersTitle}
-          subtitle={`${c.openOrdersOnly} · ${filteredOrders.length}`}
-          actions={
-            <>
-              <Link
-                href="/crm/order-history"
-                className="btn-outline text-xs py-2 inline-flex items-center gap-2 self-center"
-              >
-                {c.orderHistoryList}
-              </Link>
-              <Button onClick={() => setCreateModalOpen(true)}>
-                <Plus size={16} /> {c.createOrder}
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  logoutAdmin();
-                  refresh();
-                }}
-              >
-                <LogOut size={16} /> {c.logout}
-              </Button>
-            </>
-          }
-        />
-
-        <CrmListToolbar
-          actions={
-            selectedIds.size > 0 ? (
-              <Button variant="outline" className="text-red-600 border-red-300" onClick={deleteSelected}>
-                <Trash2 size={16} /> {c.deleteSelected} ({selectedIds.size})
-              </Button>
-            ) : null
-          }
-        >
-          <CrmSearchInput
-            value={searchQuery}
-            onChange={setSearchQuery}
-            placeholder={c.search}
-            className="max-w-full"
+      <div className="crm-page-padding space-y-4">
+        <div className="crm-mw-page-top">
+          <CrmPageHeader
+            breadcrumbs={[
+              { label: c.dashboard, href: "/crm" },
+              { label: w.ordersTitle },
+            ]}
+            title={w.ordersTitle}
+            className="flex-1 min-w-0 mb-0"
           />
-        </CrmListToolbar>
+          <div className="crm-price-toggle shrink-0" role="group" aria-label={c.priceDisplayMode}>
+            <button
+              type="button"
+              className={priceMode === "net" ? "active" : ""}
+              onClick={() => setPriceMode("net")}
+            >
+              {c.netto}
+            </button>
+            <button
+              type="button"
+              className={priceMode === "gross" ? "active" : ""}
+              onClick={() => setPriceMode("gross")}
+            >
+              {c.brutto}
+            </button>
+          </div>
+        </div>
 
-        <CrmWorkOrderPresets
-          active={filters.preset ?? (filters.repairStatus !== "all" ? "parts" : "all")}
-          onApply={(patch) => setFilters({ ...filters, ...patch })}
-        />
-        <WorkOrderFilters filters={filters} onChange={setFilters} openOrdersOnly />
-
-        <section className="crm-mw-card">
+        <div className="crm-mw-toolbar">
           <button
             type="button"
-            className="w-full flex items-center justify-between px-4 py-3 text-sm font-bold uppercase tracking-wide text-white hover:bg-white/5"
-            onClick={() => setKanbanOpen((v) => !v)}
+            className="crm-mw-btn-create"
+            onClick={() => setCreateModalOpen(true)}
           >
-            <span>{c.kanbanTitle}</span>
-            {kanbanOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+            <Plus size={18} />
+            {c.createOrder}
           </button>
-          {kanbanOpen && (
-            <div className="p-3 border-t border-bm-border">
-              <WorkOrderKanban orders={filteredOrders} />
+          <button
+            type="button"
+            className="crm-mw-btn-delete"
+            disabled={selectedIds.size === 0}
+            onClick={deleteSelected}
+          >
+            <Trash2 size={16} />
+            {c.deleteSelected}
+          </button>
+          <div className="crm-mw-toolbar-icons">
+            <button
+              type="button"
+              className="crm-mw-toolbar-icon"
+              onClick={() => refresh()}
+              title={c.syncNow}
+            >
+              <RefreshCw size={18} />
+            </button>
+            <Link href="/crm/calendar" className="crm-mw-toolbar-icon" title={t.calendar.title}>
+              <Calendar size={18} />
+            </Link>
+            <Link href="/crm?tab=clients" className="crm-mw-toolbar-icon" title={c.navClients}>
+              <Users size={18} />
+            </Link>
+            <Link href="/crm?tab=vehicles" className="crm-mw-toolbar-icon" title={c.vehiclesList}>
+              <Car size={18} />
+            </Link>
+            <Link href="/crm/order-history" className="crm-mw-toolbar-icon" title={c.orderHistoryList}>
+              <Archive size={18} />
+            </Link>
+            <Link href="/crm" className="crm-mw-toolbar-icon" title={c.dashboard}>
+              <Home size={18} />
+            </Link>
+          </div>
+          <div className="crm-mw-search w-full sm:w-auto sm:min-w-[240px]">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+            <input
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setPage(1);
+              }}
+              placeholder={c.searchOrdersPlaceholder}
+              aria-label={c.search}
+            />
+          </div>
+        </div>
+
+        <div className="crm-mw-filters-panel">
+          <button
+            type="button"
+            className="w-full flex items-center justify-between text-sm font-semibold text-gray-700"
+            onClick={() => setFiltersOpen((v) => !v)}
+          >
+            <span>{c.kanbanTitle} / {c.openOrdersOnly}</span>
+            {filtersOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+          </button>
+          {filtersOpen && (
+            <div className="mt-3 space-y-3 border-t border-gray-200 pt-3">
+              <CrmWorkOrderPresets
+                active={filters.preset ?? (filters.repairStatus !== "all" ? "parts" : "all")}
+                onApply={(patch) => setFilters({ ...filters, ...patch })}
+              />
+              <WorkOrderFilters filters={filters} onChange={setFilters} openOrdersOnly />
+              <section className="rounded border border-gray-200 overflow-hidden">
+                <button
+                  type="button"
+                  className="w-full flex items-center justify-between px-4 py-2 text-sm font-medium text-gray-700 bg-gray-50"
+                  onClick={() => setKanbanOpen((v) => !v)}
+                >
+                  <span>{c.kanbanTitle}</span>
+                  {kanbanOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                </button>
+                {kanbanOpen && (
+                  <div className="p-3">
+                    <WorkOrderKanban orders={filteredOrders} />
+                  </div>
+                )}
+              </section>
             </div>
           )}
-        </section>
+        </div>
 
         <WorkOrdersTable
           db={db}
-          orders={filteredOrders}
+          orders={pagedOrders}
           onEdit={(id) => setEditingId(id)}
+          onStatusChange={updateStatus}
           onMarkDelivered={markDelivered}
-          showExtended
           selectable
           selectedIds={selectedIds}
           onToggleSelect={toggleSelect}
           onToggleSelectAll={toggleSelectAll}
+          isPinned={isPinned}
+          onTogglePin={togglePin}
+          page={page}
+          pageSize={pageSize}
+          totalCount={filteredOrders.length}
+          onPageChange={setPage}
+          onPageSizeChange={setPageSize}
         />
 
         <QuickCreateOrderModal
