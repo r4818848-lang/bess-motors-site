@@ -69,10 +69,16 @@ export async function resolveMechanicActor(
         };
       }
     }
-    if (mechanicChatIdsFromEnv().has(key)) {
+    if (
+      process.env.TELEGRAM_MECHANIC_ALLOW_LEGACY_CHAT_IDS === "true" &&
+      mechanicChatIdsFromEnv().has(key)
+    ) {
       const first = db.users.find((u) => u.role === "mechanic");
       if (first) {
         const profile = db.mechanics.find((m) => m.id === first.id);
+        console.warn(
+          "[telegram] legacy TELEGRAM_MECHANIC_CHAT_IDS match — prefer /linkmech binding"
+        );
         return {
           mechanicId: first.id,
           userId: first.id,

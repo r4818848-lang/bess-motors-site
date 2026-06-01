@@ -27,9 +27,9 @@ function mergeById<T extends { id: string }>(
   return [...map.values()];
 }
 
-/** Merge cloud snapshot into local CRM — newer record wins per id */
+/** Merge cloud snapshot into local CRM — newer record wins per id; remote membership drops deletions */
 export function mergeCloudIntoLocal(local: Database, remote: Database): Database {
-  return {
+  const merged: Database = {
     ...local,
     ...remote,
     currentUserId: local.currentUserId,
@@ -49,6 +49,7 @@ export function mergeCloudIntoLocal(local: Database, remote: Database): Database
     passwordResets: remote.passwordResets ?? local.passwordResets,
     settings: { ...local.settings, ...remote.settings },
   };
+  return applySnapshotMembership(merged, remote);
 }
 
 export function collectRemovedIds<T extends { id: string }>(

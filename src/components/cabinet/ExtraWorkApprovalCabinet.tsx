@@ -39,9 +39,9 @@ export function ExtraWorkApprovalCabinet({ orders }: { orders: WorkOrder[] }) {
         window.dispatchEvent(new CustomEvent(DB_CHANGED_EVENT));
         return;
       }
-      setError(e.title);
+      setError(e.actionFailed);
     } catch {
-      setError(e.title);
+      setError(e.actionFailed);
     } finally {
       setBusy(null);
     }

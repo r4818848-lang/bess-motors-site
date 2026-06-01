@@ -35,6 +35,10 @@ export function ClientLiveStatusPanel({
 
   return (
     <div className="space-y-4 max-w-3xl">
+      <p className="text-xs text-green-400/90 flex items-center gap-2">
+        <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" aria-hidden />
+        {t.cabinet.syncLiveHint}
+      </p>
       <Card glow className="p-6">
         <p className="font-mono text-lg font-bold text-bm-red">{order.number}</p>
         {vehicle && (

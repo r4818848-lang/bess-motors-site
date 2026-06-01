@@ -1,6 +1,7 @@
 import { normalizePhone } from "@/lib/auth";
 import { handleAppointmentNotification } from "@/lib/client-notifications";
 import { ensureClientForBooking } from "@/lib/create-work-order-from-booking";
+import { cloudUpsertAppointment } from "@/lib/server/appointments-cloud";
 import { mutateCrm } from "./crm-actions";
 import type { Appointment } from "@/lib/store";
 
@@ -33,6 +34,7 @@ export async function createQuickAppointment(params: {
   comment: string;
   clientName?: string;
 }): Promise<{ ok: boolean; id?: string; error?: string }> {
+  let created: Appointment | null = null;
   const result = await mutateCrm((db) => {
     const name = params.clientName?.trim() || "Klient Telegram";
     const { userId, vehicleId } = ensureClientForBooking(db, name, params.phone);
@@ -54,8 +56,16 @@ export async function createQuickAppointment(params: {
     };
     db.appointments.push(apt);
     handleAppointmentNotification(db, apt, "scheduled");
+    created = apt;
     return apt.id;
   });
+
+  if (result.ok && created) {
+    const row = await cloudUpsertAppointment(created);
+    if (!row.ok) {
+      console.warn("[telegram] quick apt appointments table sync failed", row.error);
+    }
+  }
 
   return result.ok
     ? { ok: true, id: result.result }

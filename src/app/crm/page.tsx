@@ -106,7 +106,11 @@ function CRMPageContent() {
   const [search, setSearch] = useState("");
   const dbTick = useDbSync();
   const refresh = useCallback(() => {
-    void import("@/lib/cloud-crm-db").then((m) => m.pullCrmFromCloud({ force: true }));
+    void import("@/lib/cloud-crm-db").then(async (m) => {
+      const { loadDb } = await import("@/lib/store");
+      await m.pushCrmToCloud(loadDb());
+      await m.pullCrmFromCloud({ force: true });
+    });
   }, []);
 
   void dbTick;

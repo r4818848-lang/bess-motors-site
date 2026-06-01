@@ -138,7 +138,11 @@ export function AppointmentsList() {
                     <td>{ctx.mechanic?.name}</td>
                     <td className="max-w-[120px] truncate text-bm-muted text-xs">{apt.comment}</td>
                     <td>
-                      <Link href="/crm/calendar" className="text-bm-red p-2 inline-flex">
+                      <Link
+                        href={`/crm/calendar?apt=${encodeURIComponent(apt.id)}`}
+                        className="text-bm-red p-2 inline-flex"
+                        title={cal.details}
+                      >
                         <Pencil size={14} />
                       </Link>
                     </td>

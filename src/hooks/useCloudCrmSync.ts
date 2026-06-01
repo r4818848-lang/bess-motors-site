@@ -6,9 +6,10 @@ import {
   fetchCloudConfigured,
   pullCrmFromCloud,
   pushCrmIfCloudEmpty,
+  pushCrmToCloud,
   scheduleCrmCloudPush,
 } from "@/lib/cloud-crm-db";
-import type { Database } from "@/lib/store";
+import { loadDb, type Database } from "@/lib/store";
 import { useVisibleInterval } from "@/hooks/useVisibleInterval";
 
 /** Sync full CRM database with Supabase for admin (all devices) */
@@ -35,6 +36,7 @@ export function useCloudCrmSync(enabled = true): {
         return false;
       }
       await pushCrmIfCloudEmpty();
+      await pushCrmToCloud(loadDb());
       const result = await pullCrmFromCloud({ force: true });
       const ok = result !== "error" && result !== "skipped";
       setSyncFailed(!ok);

@@ -1,10 +1,6 @@
 import { SignJWT } from "jose";
-import { siteConfig } from "@/lib/site";
 import { normalizePhone } from "@/lib/server/normalize-phone";
-
-function getSecret(): Uint8Array {
-  return new TextEncoder().encode(siteConfig.jwtSecret);
-}
+import { getJwtSecretBytes } from "@/lib/server/jwt-secret";
 
 export async function issueClientToken(userId: string, phone: string): Promise<string> {
   const normalized = normalizePhone(phone);
@@ -13,5 +9,5 @@ export async function issueClientToken(userId: string, phone: string): Promise<s
     .setSubject(userId)
     .setIssuedAt()
     .setExpirationTime("365d")
-    .sign(getSecret());
+    .sign(getJwtSecretBytes());
 }

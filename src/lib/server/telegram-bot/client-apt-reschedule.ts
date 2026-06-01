@@ -1,4 +1,6 @@
+import { handleAppointmentNotification } from "@/lib/client-notifications";
 import { cloudGetCrmStore, cloudPutCrmStore } from "@/lib/server/crm-cloud";
+import { cloudUpsertAppointment } from "@/lib/server/appointments-cloud";
 import type { Database, Appointment } from "@/lib/store";
 import { nextBookableDates } from "./client-services";
 
@@ -28,8 +30,18 @@ export async function rescheduleAppointment(
   if (!apt) return { ok: false };
   if (userId && apt.userId !== userId) return { ok: false };
 
+  const previous = {
+    date: apt.date,
+    time: apt.time,
+    appointmentStatus: apt.appointmentStatus,
+  };
   apt.date = shiftDate(apt.date, days);
+  handleAppointmentNotification(db, apt, "rescheduled", previous);
   const put = await cloudPutCrmStore(db);
   if (!put.ok) return { ok: false };
+  const row = await cloudUpsertAppointment(apt);
+  if (!row.ok) {
+    console.warn("[telegram] reschedule appointments table sync failed", row.error);
+  }
   return { ok: true, apt };
 }

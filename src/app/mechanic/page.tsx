@@ -28,6 +28,7 @@ import { pushCrmToCloud } from "@/lib/cloud-crm-db";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { DB_CHANGED_EVENT } from "@/lib/db-events";
+import { PhoneAuthForm } from "@/components/auth/PhoneAuthForm";
 
 const statuses: RepairStatus[] = [
   "received",
@@ -58,6 +59,11 @@ function MechanicPageContent() {
   const [pendingStatus, setPendingStatus] = useState<Record<string, RepairStatus>>({});
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
   const [syncError, setSyncError] = useState("");
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    setHydrated(true);
+  }, []);
 
   useEffect(() => {
     const view = searchParams.get("view");
@@ -188,7 +194,26 @@ function MechanicPageContent() {
     { id: "calendar", icon: CalendarDays, label: cal.title },
   ];
 
-  if (!mechanicId || !user) return null;
+  if (!hydrated) {
+    return (
+      <div className="pt-28 pb-20 min-h-[70vh] flex items-center justify-center px-4">
+        <div className="text-center">
+          <div className="h-10 w-10 rounded-full border-2 border-bm-red border-t-transparent animate-spin mx-auto" />
+          <p className="mt-4 text-sm text-bm-muted">{t.common.loading}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!mechanicId || !user) {
+    return (
+      <div className="pt-28 pb-20 min-h-[70vh] flex items-center justify-center px-4">
+        <div className="w-full max-w-md">
+          <PhoneAuthForm onSuccess={() => setTick((n) => n + 1)} />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <DashboardLayout role="mechanic">

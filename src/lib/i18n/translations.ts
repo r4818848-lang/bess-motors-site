@@ -271,6 +271,7 @@ const pl = {
     title: "Dodatkowe prace — Twoja zgoda",
     approve: "Zgadzam się",
     decline: "Odmawiam",
+    actionFailed: "Nie udało się zapisać odpowiedzi",
   },
   servicePackages: {
     title: "Pakiety usług",
@@ -572,7 +573,25 @@ const pl = {
     dashboardTitle: "Przegląd",
     garageTitle: "Twój garaż",
     detailsLink: "Szczegóły",
-    statusWithoutLogin: "Status bez logowania",
+    statusWithoutLogin: "Status bez logowania — telefon i tablica",
+    syncUpdating: "Synchronizacja z serwerem…",
+    syncUpdated: "Dane zaktualizowane · {time}",
+    syncFailed: "Brak połączenia z serwerem",
+    syncRefresh: "Odśwież teraz",
+    syncOfflineHint:
+      "Widzisz ostatnio zapisane dane na tym urządzeniu. Po przywróceniu połączenia kliknij «Odśwież».",
+    syncHowTitle: "Jak działa synchronizacja?",
+    syncHowBody:
+      "• Po zalogowaniu konto łączy się z chmurą BESS Motors.\n• Zlecenia, wizyty, powiadomienia i status naprawy pobieramy co ok. 20 s (na zakładce «Status naprawy» — co 10 s).\n• Po powrocie do karty przeglądarki dane odświeżają się od razu.\n• Zmiany z warsztatu (status, zdjęcia, dodatkowe prace) pojawią się tutaj automatycznie.",
+    syncLiveHint: "tryb na żywo",
+    statusPageHint:
+      "Strona /status (bez logowania) pokazuje jednorazowy podgląd po telefonie i tablicy. W kabinecie status jest zawsze aktualny po synchronizacji.",
+    vehicleCloudFailed: "Samochód zapisany lokalnie, ale nie wysłano na serwer — użyj «Odśwież».",
+    extraWorkFailed: "Nie udało się wysłać odpowiedzi. Spróbuj ponownie lub zadzwoń do warsztatu.",
+    emptyWarranty: "Brak aktywnych gwarancji na Twoich zleceniach.",
+    emptyPhotos: "Zdjęcia z naprawy pojawią się tutaj, gdy mechanik je doda do zlecenia.",
+    noOrders: "Brak zleceń — umów wizytę lub poczekaj na synchronizację.",
+    emptyAppointments: "Brak zaplanowanych wizyt.",
   },
   reportsExt: {
     revenueByMonth: "Przychód wg miesięcy (12 m-cy)",
@@ -1740,6 +1759,7 @@ const ru: TranslationKeys = {
     title: "Нужно ваше согласие на доп. работы",
     approve: "Согласен",
     decline: "Отказ",
+    actionFailed: "Не удалось сохранить ответ",
   },
   servicePackages: {
     title: "Пакеты услуг",
@@ -2041,7 +2061,25 @@ const ru: TranslationKeys = {
     dashboardTitle: "Обзор",
     garageTitle: "Ваш гараж",
     detailsLink: "Подробнее",
-    statusWithoutLogin: "Статус без входа",
+    statusWithoutLogin: "Статус без входа — телефон и номер",
+    syncUpdating: "Синхронизация с сервером…",
+    syncUpdated: "Данные обновлены · {time}",
+    syncFailed: "Нет связи с сервером",
+    syncRefresh: "Обновить",
+    syncOfflineHint:
+      "Показаны последние сохранённые данные на этом устройстве. Когда связь восстановится — нажмите «Обновить».",
+    syncHowTitle: "Как работает синхронизация?",
+    syncHowBody:
+      "• После входа кабинет подключается к облаку BESS Motors.\n• Заказ-наряды, записи, уведомления и статус ремонта подгружаются каждые ~20 сек (на вкладке «Статус ремонта» — каждые 10 сек).\n• При возврате на вкладку браузера данные обновляются сразу.\n• Изменения из сервиса (статус, фото, доп. работы) появятся здесь автоматически.",
+    syncLiveHint: "онлайн-режим",
+    statusPageHint:
+      "Страница /status (без входа) — разовый просмотр по телефону и госномеру. В кабинете статус всегда актуален после синхронизации.",
+    vehicleCloudFailed: "Авто сохранено локально, но не отправлено на сервер — нажмите «Обновить».",
+    extraWorkFailed: "Не удалось отправить ответ. Повторите или позвоните в сервис.",
+    emptyWarranty: "Нет активных гарантий по вашим заказ-нарядам.",
+    emptyPhotos: "Фото ремонта появятся здесь, когда мастер добавит их в заказ-наряд.",
+    noOrders: "Нет заказ-нарядов — запишитесь на сервис или дождитесь синхронизации.",
+    emptyAppointments: "Нет запланированных визитов.",
   },
   reportsExt: {
     revenueByMonth: "Доход по месяцам (12 мес.)",
@@ -3198,7 +3236,25 @@ const en: TranslationKeys = {
     dashboardTitle: "Overview",
     garageTitle: "Your garage",
     detailsLink: "Details",
-    statusWithoutLogin: "Status without login",
+    statusWithoutLogin: "Status without login — phone & plate",
+    syncUpdating: "Syncing with server…",
+    syncUpdated: "Data updated · {time}",
+    syncFailed: "Cannot reach server",
+    syncRefresh: "Refresh now",
+    syncOfflineHint:
+      "Showing the last saved data on this device. When connection returns, tap «Refresh now».",
+    syncHowTitle: "How does sync work?",
+    syncHowBody:
+      "• After sign-in your portal connects to BESS Motors cloud.\n• Work orders, appointments, notifications and repair status refresh about every 20s (on «Repair Status» tab — every 10s).\n• Returning to this browser tab triggers an immediate refresh.\n• Workshop updates (status, photos, extra work) appear here automatically.",
+    syncLiveHint: "live mode",
+    statusPageHint:
+      "/status (no login) is a one-time lookup by phone and plate. In the portal, status stays current after sync.",
+    vehicleCloudFailed: "Vehicle saved on this device but not uploaded — tap Refresh.",
+    extraWorkFailed: "Could not send your answer. Try again or call the workshop.",
+    emptyWarranty: "No active warranties on your work orders.",
+    emptyPhotos: "Repair photos will appear when the workshop adds them to your order.",
+    noOrders: "No work orders yet — book a visit or wait for sync.",
+    emptyAppointments: "No upcoming appointments.",
   },
   homeMiniQuote: {
     title: "Quick quote",
@@ -3351,6 +3407,7 @@ const en: TranslationKeys = {
     title: "Extra work needs your approval",
     approve: "Approve",
     decline: "Decline",
+    actionFailed: "Could not save your response",
   },
   servicePackages: {
     title: "Service packages",

@@ -6,6 +6,7 @@ import { Plus, Car, FileText, Trash2 } from "lucide-react";
 import { AddVehicleModal } from "./AddVehicleModal";
 import { useI18n } from "@/lib/i18n/context";
 import { deleteVehicleFromDb, loadDb, saveDb } from "@/lib/store";
+import { pushCrmToCloud } from "@/lib/cloud-crm-db";
 import { useDbSync } from "@/hooks/useDbSync";
 import { filterVehiclesList } from "@/lib/crm-search";
 import { CrmSearchInput } from "./CrmSearchInput";
@@ -40,22 +41,25 @@ export function VehiclesListPanel() {
     else setSelectedIds(new Set(rows.map((r) => r.vehicle.id)));
   };
 
-  const removeVehicle = (vehicleId: string, label: string, orderCount: number) => {
+  const removeVehicle = async (vehicleId: string, label: string, orderCount: number) => {
     const msg =
       orderCount > 0
         ? `${c.confirmDeleteVehicleWithOrders}\n\n${label} · ${orderCount}`
         : `${c.confirmDeleteVehicle}\n\n${label}`;
     if (!confirm(msg)) return;
     const fresh = loadDb();
-    saveDb(deleteVehicleFromDb(fresh, vehicleId));
+    const next = deleteVehicleFromDb(fresh, vehicleId);
+    saveDb(next);
     setSelectedIds((prev) => {
-      const next = new Set(prev);
-      next.delete(vehicleId);
-      return next;
+      const s = new Set(prev);
+      s.delete(vehicleId);
+      return s;
     });
+    const ok = await pushCrmToCloud(next);
+    if (!ok) alert(c.syncFailed);
   };
 
-  const deleteSelected = () => {
+  const deleteSelected = async () => {
     if (selectedIds.size === 0) return;
     if (!confirm(`${c.confirmDeleteSelectedVehicles}\n\n${selectedIds.size}`)) return;
     let fresh = loadDb();
@@ -64,6 +68,8 @@ export function VehiclesListPanel() {
     }
     saveDb(fresh);
     setSelectedIds(new Set());
+    const ok = await pushCrmToCloud(fresh);
+    if (!ok) alert(c.syncFailed);
   };
 
   const allSelected = rows.length > 0 && rows.every((r) => selectedIds.has(r.vehicle.id));

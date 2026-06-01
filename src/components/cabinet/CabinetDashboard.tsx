@@ -94,7 +94,11 @@ export function CabinetDashboard({
 
       <div className="flex flex-wrap gap-3">
         <BookingLink className="btn-primary text-sm px-4 py-2 rounded-lg">{t.nav.booking}</BookingLink>
-        <Link href="/status" className="text-sm text-bm-muted hover:text-bm-red">
+        <Link
+          href="/status"
+          className="text-sm text-bm-muted hover:text-bm-red max-w-xs"
+          title={t.cabinet.statusPageHint}
+        >
           {t.cabinet.statusWithoutLogin}
         </Link>
       </div>

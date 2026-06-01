@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Plus, FileText, Trash2 } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { deleteClientFromDb, loadDb, saveDb } from "@/lib/store";
+import { pushCrmToCloud } from "@/lib/cloud-crm-db";
 import { useDbSync } from "@/hooks/useDbSync";
 import { filterClients } from "@/lib/crm-search";
 import { displayOrderTotal } from "@/lib/crm-display-price";
@@ -39,14 +40,17 @@ export function ClientsListPanel() {
     });
   }, [query, dbTick, priceMode]);
 
-  const removeClient = (userId: string, name: string, orderCount: number) => {
+  const removeClient = async (userId: string, name: string, orderCount: number) => {
     const msg =
       orderCount > 0
         ? `${c.confirmDeleteClientWithOrders}\n\n${name} · ${orderCount}`
         : `${c.confirmDeleteClient}\n\n${name}`;
     if (!confirm(msg)) return;
     const fresh = loadDb();
-    saveDb(deleteClientFromDb(fresh, userId));
+    const next = deleteClientFromDb(fresh, userId);
+    saveDb(next);
+    const ok = await pushCrmToCloud(next);
+    if (!ok) alert(c.syncFailed);
   };
 
   return (

@@ -1,20 +1,27 @@
 "use client";
 
-import { useState, useEffect, useCallback, Suspense } from "react";
+import { useCallback, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { LogOut } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { DashboardLayout } from "@/components/crm/DashboardLayout";
 import { AppointmentCalendar } from "@/components/crm/AppointmentCalendar";
 import { logoutAdmin } from "@/lib/auth";
-import { pullCrmFromCloud } from "@/lib/cloud-crm-db";
+import { loadDb } from "@/lib/store";
+import { pullCrmFromCloud, pushCrmToCloud } from "@/lib/cloud-crm-db";
 import { Button } from "@/components/ui/Button";
 
 function CalendarPageContent() {
   const { t } = useI18n();
   const c = t.crm;
+  const searchParams = useSearchParams();
+  const initialAptId = searchParams.get("apt") ?? undefined;
   const refresh = useCallback(() => {
-    void pullCrmFromCloud({ force: true });
+    void (async () => {
+      await pushCrmToCloud(loadDb());
+      await pullCrmFromCloud({ force: true });
+    })();
   }, []);
 
   return (
@@ -28,7 +35,7 @@ function CalendarPageContent() {
             <LogOut size={16} /> {c.logout}
           </Button>
         </div>
-        <AppointmentCalendar role="admin" />
+        <AppointmentCalendar role="admin" initialAptId={initialAptId} />
       </div>
     </DashboardLayout>
   );

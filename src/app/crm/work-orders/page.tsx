@@ -26,7 +26,7 @@ import { loadDb, saveDb, type RepairStatus } from "@/lib/store";
 import { filterWorkOrders, defaultWorkOrderFilters } from "@/lib/workorder-filters";
 import { applyWorkOrderClosure, filterOpenWorkOrders } from "@/lib/work-order-lifecycle";
 import { saveWorkOrderStatus } from "@/lib/work-order-status-update";
-import { pullCrmFromCloud } from "@/lib/cloud-crm-db";
+import { pullCrmFromCloud, pushCrmToCloud } from "@/lib/cloud-crm-db";
 import { filterWorkOrdersByQuery } from "@/lib/crm-search";
 import { WorkOrderFilters } from "@/components/crm/WorkOrderFilters";
 import { WorkOrderKanban } from "@/components/crm/WorkOrderKanban";
@@ -58,7 +58,10 @@ function WorkOrdersPageContent() {
   const { isPinned, toggle: togglePin } = usePinnedWorkOrders();
 
   const refresh = useCallback(() => {
-    void pullCrmFromCloud({ force: true });
+    void (async () => {
+      await pushCrmToCloud(loadDb());
+      await pullCrmFromCloud({ force: true });
+    })();
   }, []);
 
   const closeEditor = useCallback(() => {
@@ -219,21 +222,34 @@ function WorkOrdersPageContent() {
             >
               <RefreshCw size={18} />
             </button>
-            <Link href="/crm/calendar" className="crm-mw-toolbar-icon" title={t.calendar.title}>
-              <Calendar size={18} />
-            </Link>
-            <Link href="/crm?tab=clients" className="crm-mw-toolbar-icon" title={c.navClients}>
-              <Users size={18} />
-            </Link>
-            <Link href="/crm?tab=vehicles" className="crm-mw-toolbar-icon" title={c.vehiclesList}>
-              <Car size={18} />
-            </Link>
-            <Link href="/crm/order-history" className="crm-mw-toolbar-icon" title={c.orderHistoryList}>
-              <Archive size={18} />
-            </Link>
-            <Link href="/crm" className="crm-mw-toolbar-icon" title={c.dashboard}>
-              <Home size={18} />
-            </Link>
+            {crmRole === "admin" && (
+              <>
+                <Link href="/crm/calendar" className="crm-mw-toolbar-icon" title={t.calendar.title}>
+                  <Calendar size={18} />
+                </Link>
+                <Link href="/crm?tab=clients" className="crm-mw-toolbar-icon" title={c.navClients}>
+                  <Users size={18} />
+                </Link>
+                <Link href="/crm?tab=vehicles" className="crm-mw-toolbar-icon" title={c.vehiclesList}>
+                  <Car size={18} />
+                </Link>
+                <Link
+                  href="/crm/order-history"
+                  className="crm-mw-toolbar-icon"
+                  title={c.orderHistoryList}
+                >
+                  <Archive size={18} />
+                </Link>
+                <Link href="/crm" className="crm-mw-toolbar-icon" title={c.dashboard}>
+                  <Home size={18} />
+                </Link>
+              </>
+            )}
+            {crmRole === "mechanic" && (
+              <Link href="/mechanic" className="crm-mw-toolbar-icon" title={t.mechanic.title}>
+                <Home size={18} />
+              </Link>
+            )}
           </div>
           <div className="crm-mw-search w-full sm:w-auto sm:min-w-[240px]">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />

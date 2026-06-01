@@ -11,6 +11,7 @@ import {
   generateWorkOrderPdfBw,
 } from "@/lib/pdf";
 import { Button } from "@/components/ui/Button";
+import { orderNeedsClientSignature } from "@/lib/order-signature";
 
 interface Props {
   db: Database;
@@ -241,7 +242,7 @@ function TimelineEntry({
           <Button className="text-xs" onClick={onOpen}>
             <FileText size={14} /> {labels.viewOrder}
           </Button>
-          {order.confirmationStatus !== "confirmed" && (
+          {orderNeedsClientSignature(order) && (
             <Button variant="outline" className="text-xs" onClick={onOpen}>
               <PenLine size={14} /> {labels.signNow}
             </Button>

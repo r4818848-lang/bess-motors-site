@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import {
+  deleteVehicleFromDb,
   loadDb,
   saveDb,
   type Database,
@@ -83,6 +84,8 @@ import { VehicleHealthScore } from "@/components/cabinet/VehicleHealthScore";
 import { LastVisitCountdown } from "@/components/cabinet/LastVisitCountdown";
 import { MaintenanceCalculator } from "@/components/pricing/MaintenanceCalculator";
 import { CabinetRatingPanel } from "@/components/cabinet/CabinetRatingPanel";
+import { ClientSyncStatusBar } from "@/components/cabinet/ClientSyncStatusBar";
+import { CabinetTabNav } from "@/components/cabinet/CabinetTabNav";
 import { TelegramOpenButton } from "@/components/shared/TelegramOpenButton";
 import { VehicleThumbnail } from "@/components/vehicle/VehicleThumbnail";
 import { VehiclePhoto } from "@/components/vehicle/VehiclePhoto";
@@ -167,7 +170,7 @@ function CabinetPageContent() {
   const [mounted, setMounted] = useState(false);
   const [db, setDb] = useState<Database | null>(null);
   const [tab, setTab] = useState("cars");
-  const { syncing, syncFailed, resync } = useCloudClientSync(
+  const { syncing, syncFailed, lastSyncedAt, resync } = useCloudClientSync(
     !!clientUser,
     tab === "status" ? 10_000 : 20_000
   );
@@ -291,11 +294,7 @@ function CabinetPageContent() {
     setVinMessage({ type: "ok", text: t.cabinet.carAdded });
     void pushVehicleToCloud(vehicle).then((ok) => {
       if (!ok) {
-        setVinMessage({
-          type: "err",
-          text:
-            t.mechanic.statusSyncFailed,
-        });
+        setVinMessage({ type: "err", text: t.cabinet.vehicleCloudFailed });
       }
     });
   };
@@ -336,10 +335,14 @@ function CabinetPageContent() {
       : t.cabinet.confirmDeleteCar;
     if (!confirm(msg)) return;
 
-    fresh.vehicles = fresh.vehicles.filter((v) => v.id !== vehicleId);
-    saveDb(fresh);
-    setDb({ ...fresh });
-    void deleteVehicleFromCloud(vehicleId);
+    const next = deleteVehicleFromDb(fresh, vehicleId);
+    saveDb(next);
+    setDb({ ...next });
+    void deleteVehicleFromCloud(vehicleId).then((ok) => {
+      if (!ok) {
+        setVinMessage({ type: "err", text: t.cabinet.vehicleCloudFailed });
+      }
+    });
   };
 
   if (!mounted || !sessionReady) {
@@ -422,40 +425,15 @@ function CabinetPageContent() {
           </Button>
         </div>
 
-        {syncFailed && (
-          <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm">
-            <span className="text-amber-300">{t.crm.syncFailed}</span>
-            <Button
-              type="button"
-              variant="outline"
-              className="text-xs"
-              disabled={syncing}
-              onClick={() => void resync()}
-            >
-              {syncing ? "…" : t.crm.syncNow}
-            </Button>
-          </div>
-        )}
+        <ClientSyncStatusBar
+          syncing={syncing}
+          syncFailed={syncFailed}
+          lastSyncedAt={lastSyncedAt}
+          liveMode={tab === "status"}
+          onResync={resync}
+        />
 
-        <div className="flex flex-wrap gap-2 mb-8 overflow-x-auto pb-2">
-          {tabs.map(({ id, icon: Icon, label, badge }) => (
-            <button
-              key={id}
-              type="button"
-              onClick={() => selectTab(id)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm whitespace-nowrap transition-all ${
-                tab === id ? "bg-bm-red shadow-neon-sm" : "glass text-bm-muted hover:text-white"
-              }`}
-            >
-              <Icon size={16} /> {label}
-              {badge ? (
-                <span className="ml-1 min-w-[18px] h-[18px] px-1 rounded-full bg-bm-red text-[10px] font-bold flex items-center justify-center">
-                  {badge}
-                </span>
-              ) : null}
-            </button>
-          ))}
-        </div>
+        <CabinetTabNav tabs={tabs} activeId={tab} onSelect={selectTab} />
 
         {(tab === "cars" || tab === "status") && (
           <>
@@ -663,7 +641,7 @@ function CabinetPageContent() {
             <h3 className="font-display uppercase text-bm-red">{t.calendar.visitHistory}</h3>
             {myAppointments.length === 0 ? (
               <Card glow>
-                <p className="text-bm-muted text-sm">{t.crm.noBookings}</p>
+                <p className="text-bm-muted text-sm">{t.cabinet.emptyAppointments}</p>
                 <BookingLink trackSource="cabinet" className="btn-primary inline-block mt-4 text-sm">
                   {t.booking.title}
                 </BookingLink>
@@ -775,7 +753,7 @@ function CabinetPageContent() {
                 />
                 {filteredMyOrders.length === 0 ? (
                   <Card glow className="text-center py-12 text-bm-muted">
-                    {t.crm.noOrders}
+                    {t.cabinet.noOrders}
                   </Card>
                 ) : (
                   filteredMyOrders.map((order) => {
@@ -978,7 +956,10 @@ function CabinetPageContent() {
             ))}
             {myOrders.every((o) => !o.warrantyUntil) && (
               <Card glow className="text-center py-12 text-bm-muted">
-                {t.cabinet.warranties}
+                <p className="font-display uppercase text-sm text-bm-muted mb-2">
+                  {t.cabinet.warranties}
+                </p>
+                <p className="text-sm">{t.cabinet.emptyWarranty}</p>
               </Card>
             )}
           </div>
@@ -1012,7 +993,10 @@ function CabinetPageContent() {
             )}
             {myOrders.every((o) => !(o.files ?? []).some((f) => f.type === "image")) && (
               <Card glow className="col-span-full text-center py-12 text-bm-muted">
-                {t.cabinet.photos}
+                <p className="font-display uppercase text-sm text-bm-muted mb-2">
+                  {t.cabinet.photos}
+                </p>
+                <p className="text-sm">{t.cabinet.emptyPhotos}</p>
               </Card>
             )}
           </div>

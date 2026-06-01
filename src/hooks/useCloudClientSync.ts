@@ -10,10 +10,12 @@ import { useVisibleInterval } from "@/hooks/useVisibleInterval";
 export function useCloudClientSync(enabled = true, pollMs = 20_000): {
   syncing: boolean;
   syncFailed: boolean;
+  lastSyncedAt: number | null;
   resync: () => Promise<void>;
 } {
   const [syncing, setSyncing] = useState(false);
   const [syncFailed, setSyncFailed] = useState(false);
+  const [lastSyncedAt, setLastSyncedAt] = useState<number | null>(null);
 
   const resync = useCallback(async () => {
     if (!enabled) return;
@@ -23,6 +25,7 @@ export function useCloudClientSync(enabled = true, pollMs = 20_000): {
       await syncAppointmentsFromCloud();
       setSyncFailed(!pulled);
       if (pulled) {
+        setLastSyncedAt(Date.now());
         window.dispatchEvent(new CustomEvent(DB_CHANGED_EVENT));
       }
     } catch {
@@ -46,5 +49,5 @@ export function useCloudClientSync(enabled = true, pollMs = 20_000): {
 
   useVisibleInterval(() => void resync(), pollMs, enabled);
 
-  return { syncing, syncFailed, resync };
+  return { syncing, syncFailed, lastSyncedAt, resync };
 }

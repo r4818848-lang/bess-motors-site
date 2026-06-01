@@ -25,6 +25,7 @@ import {
 import { createWorkOrderFromAppointment } from "@/lib/create-work-order-from-booking";
 import { deleteAppointmentFromCloud } from "@/lib/cloud-appointments";
 import { pushCrmToCloud } from "@/lib/cloud-crm-db";
+import { syncAppointmentToCloud } from "@/lib/appointment-cloud-sync";
 import { Button } from "@/components/ui/Button";
 
 const FILTERS: HotOrderFilter[] = [
@@ -88,7 +89,7 @@ export function HotOrdersPanel({ onUpdate }: { onUpdate?: () => void }) {
     if (!apt) return;
     createWorkOrderFromAppointment(next, apt, serviceLabel);
     saveDb(next);
-    const ok = await pushCrmToCloud(next);
+    const ok = await syncAppointmentToCloud(next, apt);
     if (!ok) alert(c.syncFailed);
     refresh();
   };
@@ -103,7 +104,7 @@ export function HotOrdersPanel({ onUpdate }: { onUpdate?: () => void }) {
     if (!a) return;
     a.appointmentStatus = status;
     saveDb(next);
-    const ok = await pushCrmToCloud(next);
+    const ok = await syncAppointmentToCloud(next, a);
     if (!ok) alert(c.syncFailed);
     refresh();
   };

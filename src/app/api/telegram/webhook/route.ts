@@ -7,7 +7,11 @@ export const runtime = "nodejs";
 
 export async function POST(req: Request) {
   const secret = cleanEnvValue(process.env.TELEGRAM_WEBHOOK_SECRET);
-  if (process.env.NODE_ENV === "production" && !secret) {
+  const deployed =
+    process.env.VERCEL_ENV === "production" ||
+    process.env.VERCEL_ENV === "preview" ||
+    process.env.NODE_ENV === "production";
+  if (deployed && !secret) {
     return NextResponse.json(
       { ok: false, error: "webhook_secret_required" },
       { status: 503 }

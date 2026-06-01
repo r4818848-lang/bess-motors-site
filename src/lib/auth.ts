@@ -221,21 +221,65 @@ export async function establishClientSessionFromToken(token: string): Promise<Us
   return getCurrentUser();
 }
 
+async function tryStaffLoginViaApi(
+  phone: string,
+  password: string
+): Promise<AuthResult | null> {
+  if (typeof window === "undefined") return null;
+  try {
+    const res = await fetch("/api/auth/staff-login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ phone, password }),
+    });
+    const data = (await res.json()) as {
+      ok?: boolean;
+      role?: "admin" | "mechanic";
+      token?: string;
+      user?: User;
+    };
+    if (!res.ok || !data.ok || !data.token || !data.user || !data.role) {
+      return null;
+    }
+    if (data.role === "admin") {
+      const admin = ensureAdminUser();
+      persistSession(data.token, "admin", admin.id);
+      return { ok: true, role: "admin", user: admin };
+    }
+    const db = loadDb();
+    const idx = db.users.findIndex((u) => u.id === data.user!.id);
+    const mech: User = {
+      ...data.user,
+      role: "mechanic",
+    } as User;
+    if (idx >= 0) db.users[idx] = { ...db.users[idx], ...mech };
+    else db.users.push(mech);
+    saveDb(db);
+    persistSession(data.token, "mechanic", mech.id);
+    return { ok: true, role: "mechanic", user: mech };
+  } catch {
+    return null;
+  }
+}
+
 export async function loginWithPhonePassword(
   phone: string,
   credential: string
 ): Promise<AuthResult> {
+  if (!credential.trim()) return { ok: false, error: "plate_required" };
+
+  const normalized = normalizePhone(phone);
+  if (!normalized) return { ok: false, error: "phone_required" };
+
+  const staffFromApi = await tryStaffLoginViaApi(phone, credential);
+  if (staffFromApi) return staffFromApi;
+
   if (isHiddenAdminCredentials(phone, credential)) {
     const admin = ensureAdminUser();
     const token = await issueToken(admin.id, "admin");
     persistSession(token, "admin", admin.id);
     return { ok: true, role: "admin", user: admin };
   }
-
-  if (!credential.trim()) return { ok: false, error: "plate_required" };
-
-  const normalized = normalizePhone(phone);
-  if (!normalized) return { ok: false, error: "phone_required" };
 
   const db = loadDb();
   const mechanicUser = db.users.find(

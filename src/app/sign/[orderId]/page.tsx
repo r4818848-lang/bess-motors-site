@@ -2,7 +2,7 @@
 
 import { use, useEffect, useState, Suspense } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { CheckCircle2 } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { loadDb, type Database, type User, type Vehicle, type WorkOrder } from "@/lib/store";
@@ -55,6 +55,7 @@ function SignWorkOrderContent({
   params: Promise<{ orderId: string }>;
 }) {
   const { orderId } = use(params);
+  const router = useRouter();
   const searchParams = useSearchParams();
   const urlLang = searchParams.get("lang");
   const { t, locale } = useI18n();
@@ -257,7 +258,7 @@ function SignWorkOrderContent({
         order={order}
         db={signDb}
         documentLocale={docLocale}
-        onBack={() => {}}
+        onBack={() => router.push(`/cabinet?tab=orders&order=${encodeURIComponent(orderId)}`)}
       />
     </div>
   );

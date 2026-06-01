@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { Fragment } from "react";
 import { ChevronLeft, ChevronRight, GripVertical, ExternalLink } from "lucide-react";
@@ -9,9 +9,11 @@ import {
   loadDb,
   saveDb,
   type Appointment,
+  type AppointmentStatus,
   type RepairStatus,
-  type Database,
 } from "@/lib/store";
+import { createWorkOrderFromAppointment } from "@/lib/create-work-order-from-booking";
+import { syncAppointmentToCloud } from "@/lib/appointment-cloud-sync";
 import {
   WORK_HOURS,
   CalendarView,
@@ -33,24 +35,51 @@ const statuses: RepairStatus[] = [
   "delivered",
 ];
 
+const appointmentStatuses: AppointmentStatus[] = [
+  "scheduled",
+  "confirmed",
+  "completed",
+  "cancelled",
+];
+
 interface Props {
   role?: "admin" | "mechanic";
   mechanicId?: string;
+  /** Open details panel (from /crm/calendar?apt=…) */
+  initialAptId?: string;
 }
 
-export function AppointmentCalendar({ role = "admin", mechanicId }: Props) {
+export function AppointmentCalendar({
+  role = "admin",
+  mechanicId,
+  initialAptId,
+}: Props) {
   const { t } = useI18n();
   const cal = t.calendar;
+  const c = t.crm;
   const [view, setView] = useState<CalendarView>("week");
   const [cursor, setCursor] = useState(new Date());
   const [selected, setSelected] = useState<Appointment | null>(null);
   const [dragId, setDragId] = useState<string | null>(null);
+  const [syncing, setSyncing] = useState(false);
 
   const dbTick = useDbSync();
   const db = loadDb();
   void dbTick;
 
-  const refresh = () => {};
+  const serviceLabel = useCallback(
+    (id: string) => t.serviceItems[id as keyof typeof t.serviceItems] ?? id,
+    [t.serviceItems]
+  );
+
+  useEffect(() => {
+    if (!initialAptId) return;
+    const apt = db.appointments.find((a) => a.id === initialAptId);
+    if (!apt) return;
+    setSelected(apt);
+    const d = new Date(`${apt.date}T12:00:00`);
+    if (!Number.isNaN(d.getTime())) setCursor(d);
+  }, [initialAptId, dbTick]);
 
   const appointments = useMemo(() => {
     let list = db.appointments;
@@ -75,38 +104,56 @@ export function AppointmentCalendar({ role = "admin", mechanicId }: Props) {
     [appointments]
   );
 
+  const persistApt = async (fresh: ReturnType<typeof loadDb>, apt: Appointment) => {
+    setSyncing(true);
+    const ok = await syncAppointmentToCloud(fresh, apt);
+    setSyncing(false);
+    if (!ok) alert(c.syncFailed);
+    setSelected({ ...apt });
+  };
+
   const moveAppointment = (id: string, date: string, time: string) => {
     const fresh = loadDb();
     const apt = fresh.appointments.find((a) => a.id === id);
-    if (apt) {
-      const previous = { date: apt.date, time: apt.time, appointmentStatus: apt.appointmentStatus };
-      apt.date = date;
-      apt.time = time;
-      handleAppointmentNotification(fresh, apt, "rescheduled", previous);
-      saveDb(fresh);
-      refresh();
-      setSelected(apt);
-    }
+    if (!apt) return;
+    const previous = { date: apt.date, time: apt.time, appointmentStatus: apt.appointmentStatus };
+    apt.date = date;
+    apt.time = time;
+    handleAppointmentNotification(fresh, apt, "rescheduled", previous);
+    saveDb(fresh);
+    void persistApt(fresh, apt);
   };
 
   const updateSelected = (patch: Partial<Appointment>) => {
     if (!selected) return;
     const fresh = loadDb();
     const apt = fresh.appointments.find((a) => a.id === selected.id);
-    if (apt) {
-      const previous = {
-        date: apt.date,
-        time: apt.time,
-        appointmentStatus: apt.appointmentStatus,
-      };
-      Object.assign(apt, patch);
-      if (patch.date !== undefined || patch.time !== undefined) {
-        handleAppointmentNotification(fresh, apt, "rescheduled", previous);
-      }
-      saveDb(fresh);
-      setSelected({ ...apt });
-      refresh();
+    if (!apt) return;
+    const previous = {
+      date: apt.date,
+      time: apt.time,
+      appointmentStatus: apt.appointmentStatus,
+    };
+    const wantsConfirm = patch.appointmentStatus === "confirmed";
+    Object.assign(apt, patch);
+    if (patch.date !== undefined || patch.time !== undefined) {
+      handleAppointmentNotification(fresh, apt, "rescheduled", previous);
     }
+    if (wantsConfirm && !apt.workOrderId) {
+      createWorkOrderFromAppointment(fresh, apt, serviceLabel);
+    }
+    saveDb(fresh);
+    void persistApt(fresh, apt);
+  };
+
+  const confirmSelectedBooking = () => {
+    if (!selected || role === "mechanic") return;
+    const fresh = loadDb();
+    const apt = fresh.appointments.find((a) => a.id === selected.id);
+    if (!apt || apt.workOrderId) return;
+    createWorkOrderFromAppointment(fresh, apt, serviceLabel);
+    saveDb(fresh);
+    void persistApt(fresh, apt);
   };
 
   const navLabel =
@@ -344,6 +391,36 @@ export function AppointmentCalendar({ role = "admin", mechanicId }: Props) {
                         .map((id) => t.serviceItems[id as keyof typeof t.serviceItems] ?? id)
                         .join(", ")}
                     </p>
+                    <div>
+                      <label className="text-xs text-bm-muted uppercase">{c.status}</label>
+                      <select
+                        className="input-premium mt-1 text-sm"
+                        value={selected.appointmentStatus}
+                        disabled={syncing || role === "mechanic"}
+                        onChange={(e) =>
+                          updateSelected({
+                            appointmentStatus: e.target.value as AppointmentStatus,
+                          })
+                        }
+                      >
+                        {appointmentStatuses.map((s) => (
+                          <option key={s} value={s}>
+                            {c.bookingStatus[s]}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    {role === "admin" &&
+                      selected.appointmentStatus === "scheduled" &&
+                      !selected.workOrderId && (
+                        <Button
+                          className="w-full text-xs"
+                          disabled={syncing}
+                          onClick={confirmSelectedBooking}
+                        >
+                          {c.bookingStatus.confirmed}
+                        </Button>
+                      )}
                     <div>
                       <label className="text-xs text-bm-muted uppercase">{cal.mechanic}</label>
                       <select
