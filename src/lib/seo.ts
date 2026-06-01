@@ -7,6 +7,28 @@ export function getSiteUrl(): string {
 }
 
 /** Public pages for Google (no cabinet, CRM, admin) */
+/** Landing slugs that 301 to another URL — exclude from sitemap */
+export const sitemapExcludedSlugs = new Set([
+  "klocki-hamulcowe",
+  "serwis-klimatyzacji",
+]);
+
+export const defaultSeoKeywords = [
+  "BESS MOTORS",
+  "serwis samochodowy Warszawa",
+  "warsztat samochodowy Warszawa",
+  "mechanik Warszawa Włochy",
+  "wymiana opon Warszawa",
+  "wulkanizacja Warszawa",
+  "serwis klimatyzacji samochodowej",
+  "wymiana oleju Warszawa",
+  "chip tuning Warszawa",
+  "diagnostyka komputerowa",
+  "serwis BMW Warszawa",
+  "serwis Mercedes Warszawa",
+  "Aleja Krakowska serwis",
+];
+
 export const publicSitemapPaths: {
   path: string;
   changeFrequency: "weekly" | "monthly";

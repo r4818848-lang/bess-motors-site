@@ -8,6 +8,7 @@ import { PhoneLink } from "@/components/analytics/PhoneLink";
 import { BookingLink } from "@/components/analytics/BookingLink";
 import { SocialContactLink } from "@/components/analytics/SocialContactLink";
 import { Logo } from "@/components/brand/Logo";
+import { seoFooterServiceLinks } from "@/lib/seo-footer-links";
 
 export function Footer() {
   const { t } = useI18n();
@@ -109,6 +110,21 @@ export function Footer() {
                 <Facebook className="w-4 h-4" /> bessmotorss
               </a>
             </div>
+          </div>
+        </div>
+
+        <div className="mt-8 border-t border-bm-border pt-8">
+          <p className="text-xs uppercase text-bm-muted mb-3 tracking-wider">Usługi w Warszawie</p>
+          <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs">
+            {seoFooterServiceLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="text-bm-muted hover:text-bm-red transition-colors"
+              >
+                {link.label}
+              </Link>
+            ))}
           </div>
         </div>
 

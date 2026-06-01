@@ -282,6 +282,17 @@ export const seoLandingPages: SeoLandingPage[] = [
     icon: "Settings",
   },
   {
+    slug: "chip-tuning-warszawa",
+    title: "Chip Tuning Warszawa",
+    line1: "Więcej mocy i momentu obrotowego",
+    line2: "Stage 1 i Stage 2 — bezpiecznie",
+    metaTitle: "Chip tuning Warszawa — Stage 1 / Stage 2",
+    metaDescription:
+      "Chip tuning w BESS MOTORS — Stage 1 od 1200 zł, Stage 2 od 2500 zł. Diagnostyka przed tuningiem, mapa ECU, jazda testowa. Warszawa.",
+    serviceId: "chip",
+    icon: "Cpu",
+  },
+  {
     slug: "promocje",
     title: "Promocje i Rabaty",
     line1: "Aktualne promocje serwisu",

@@ -69,14 +69,18 @@ export async function PUT(req: Request) {
   }
 
   const before = await cloudGetCrmStore();
+  const { mergeCloudDocuments } = await import("@/lib/crm-db-merge");
   const { applyWorkOrderClosure } = await import("@/lib/work-order-lifecycle");
   const { applyWorkOrderCompletedAt } = await import("@/lib/work-order-dates");
-  const payload = docForCloud({
+  const incoming = docForCloud({
     ...db,
     workOrders: db.workOrders.map((o) =>
       applyWorkOrderCompletedAt(applyWorkOrderClosure(o))
     ),
   });
+  const payload = before?.doc
+    ? docForCloud(mergeCloudDocuments(before.doc, incoming))
+    : incoming;
   const { runCrmAutomation } = await import("@/lib/crm-automation");
   runCrmAutomation(payload, before?.doc ?? null);
   const result = await cloudPutCrmStore(payload);

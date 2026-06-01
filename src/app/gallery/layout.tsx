@@ -1,13 +1,12 @@
 import type { Metadata } from "next";
-import { getSiteUrl } from "@/lib/seo";
+import { buildPageMetadata } from "@/lib/seo-metadata";
 
-const siteUrl = getSiteUrl();
-
-export const metadata: Metadata = {
-  title: "Galeria",
-  description: "Galeria prac serwisu BESS MOTORS — Warszawa.",
-  alternates: { canonical: `${siteUrl}/gallery` },
-};
+export const metadata: Metadata = buildPageMetadata({
+  title: "Galeria — realizacje serwisu",
+  description:
+    "Galeria prac BESS MOTORS — naprawy, tuning, wulkanizacja i serwis samochodowy w Warszawie. Zdjęcia przed i po.",
+  path: "/gallery",
+});
 
 export default function GalleryLayout({ children }: { children: React.ReactNode }) {
   return children;

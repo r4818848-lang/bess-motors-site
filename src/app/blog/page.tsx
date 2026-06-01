@@ -1,21 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { blogPosts } from "@/lib/blog-posts";
-import { getSiteUrl } from "@/lib/seo";
+import { buildPageMetadata } from "@/lib/seo-metadata";
 
-const siteUrl = getSiteUrl();
-
-export const metadata: Metadata = {
+export const metadata: Metadata = buildPageMetadata({
   title: "Blog — porady serwisowe",
   description:
-    "Porady BESS MOTORS: wymiana oleju, check engine, program poleceń. Serwis samochodowy Warszawa.",
-  alternates: { canonical: `${siteUrl}/blog` },
-  openGraph: {
-    title: "Blog BESS MOTORS",
-    description: "Porady serwisowe i aktualności warsztatu w Warszawie.",
-    url: `${siteUrl}/blog`,
-  },
-};
+    "Porady BESS MOTORS: wymiana oleju, check engine, geometria kół, chip tuning, program poleceń. Serwis samochodowy Warszawa.",
+  path: "/blog",
+});
 
 export default function BlogPage() {
   return (

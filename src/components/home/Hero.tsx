@@ -25,7 +25,7 @@ export function Hero() {
       <div className="absolute inset-0 z-0" aria-hidden>
         <Image
           src={siteConfig.bannerImage}
-          alt=""
+          alt="BESS MOTORS — serwis samochodowy Warszawa, wulkanizacja i mechanika"
           fill
           priority
           className="object-cover object-[72%_42%] sm:object-[75%_40%]"

@@ -3,49 +3,30 @@
 import { useI18n } from "@/lib/i18n/context";
 import { contentLocale } from "@/lib/i18n/locale-utils";
 import type { ServiceId } from "@/lib/services-catalog";
+import { SEO_SERVICE_FAQ_PL } from "@/lib/seo-service-faq";
 import { Card } from "@/components/ui/Card";
 
-const FAQ: Partial<
-  Record<
-    ServiceId,
-    { pl: { q: string; a: string }[]; ru: { q: string; a: string }[] }
-  >
-> = {
-  diagnostic: {
-    pl: [
-      { q: "Ile trwa diagnostyka?", a: "Zwykle 30–60 min, zależnie od objawów." },
-      { q: "Czy muszę zapisać się wcześniej?", a: "Tak — rezerwacja skraca czas oczekiwania." },
-    ],
-    ru: [
-      { q: "Сколько длится диагностика?", a: "Обычно 30–60 минут в зависимости от симптомов." },
-      { q: "Нужна ли запись?", a: "Да — запись сокращает ожидание." },
-    ],
-  },
-  oil: {
-    pl: [
-      { q: "Jaki olej używacie?", a: "Dobieramy specyfikację pod VIN i przebieg." },
-      { q: "Czy wymiana trwa długo?", a: "Standardowo ok. 1 godziny." },
-    ],
-    ru: [
-      { q: "Какое масло заливаете?", a: "Подбираем по VIN и пробегу." },
-      { q: "Сколько по времени?", a: "Обычно около 1 часа." },
-    ],
-  },
-  brakePads: {
-    pl: [
-      { q: "Skąd wiem, że klocki są zużyte?", a: "Pisk, dłuższy hamulec, kontrolka ABS." },
-    ],
-    ru: [{ q: "Как понять, что колодки изношены?", a: "Писк, удлинённый тормозной путь." }],
-  },
+const FAQ_RU: Partial<Record<ServiceId, { q: string; a: string }[]>> = {
+  diagnostic: [
+    { q: "Сколько длится диагностика?", a: "Обычно 30–60 минут в зависимости от симптомов." },
+    { q: "Нужна ли запись?", a: "Да — запись сокращает ожидание." },
+  ],
+  oil: [
+    { q: "Какое масло заливаете?", a: "Подбираем по VIN и пробегу." },
+    { q: "Сколько по времени?", a: "Обычно около 1 часа." },
+  ],
+  brakePads: [
+    { q: "Как понять, что колодки изношены?", a: "Писк, удлинённый тормозной путь." },
+  ],
 };
 
 export function SeoServiceFaq({ serviceId }: { serviceId?: ServiceId }) {
   const { locale, t } = useI18n();
   if (!serviceId) return null;
-  const block = FAQ[serviceId];
-  if (!block) return null;
   const useRu = contentLocale(locale) === "ru";
-  const items = useRu ? block.ru : block.pl;
+  const items = useRu
+    ? FAQ_RU[serviceId]
+    : SEO_SERVICE_FAQ_PL[serviceId];
   if (!items?.length) return null;
 
   return (

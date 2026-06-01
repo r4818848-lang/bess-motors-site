@@ -7,7 +7,6 @@ import {
   pushCrmIfCloudEmpty,
   scheduleCrmCloudPush,
 } from "@/lib/cloud-crm-db";
-import { DB_CHANGED_EVENT } from "@/lib/db-events";
 import type { Database } from "@/lib/store";
 import { useVisibleInterval } from "@/hooks/useVisibleInterval";
 
@@ -25,12 +24,10 @@ export function useCloudCrmSync(enabled = true): {
     setSyncing(true);
     try {
       await pushCrmIfCloudEmpty();
-      const pulled = await pullCrmFromCloud();
-      if (pulled) {
-        window.dispatchEvent(new CustomEvent(DB_CHANGED_EVENT));
-      }
-      setSyncFailed(!pulled);
-      return pulled;
+      const result = await pullCrmFromCloud({ force: true });
+      const ok = result !== "error" && result !== "skipped";
+      setSyncFailed(result === "error");
+      return ok;
     } catch {
       setSyncFailed(true);
       return false;
@@ -59,7 +56,7 @@ export function useCloudCrmSync(enabled = true): {
     };
   }, [enabled, resync]);
 
-  useVisibleInterval(() => void resync(), 45_000, enabled);
+  useVisibleInterval(() => void resync(), 20_000, enabled);
 
   return { syncing, syncFailed, resync };
 }

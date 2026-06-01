@@ -31,6 +31,30 @@ export const blogPosts: BlogPost[] = [
     body:
       "Każdy klient ma link polecający w kabinecie i Telegramie. Po pierwszej opłaconej wizycie znajomego odblokujesz nagrodę — szczegóły na stronie /referral.",
   },
+  {
+    slug: "geometria-kol-kiedy",
+    title: "Kiedy robić geometrię kół?",
+    date: "2026-05-22",
+    excerpt: "Objawy złej zbieżności i zużycia opon.",
+    body:
+      "Auto ściąga na bok, nierównomierne zużycie bieżnika lub po wymianie zawieszenia — to sygnał do ustawienia geometrii. W BESS MOTORS wykonujemy pomiar i korektę zbieżności na nowoczesnym stanowisku. Umów wizytę online — zwykle 1–2 godziny.",
+  },
+  {
+    slug: "serwis-klimatyzacji-porady",
+    title: "Serwis klimatyzacji — kiedy i dlaczego?",
+    date: "2026-05-24",
+    excerpt: "Nabijanie, odgrzybianie i diagnostyka klimy.",
+    body:
+      "Słaba chłodziwość, zapach pleśni lub wilgoć na szybie to powody wizyty w serwisie klimatyzacji. Co 1–2 lata warto sprawdzić szczelność i doładować czynnik. Oferujemy diagnostykę, napełnianie i odgrzybianie w BESS MOTORS Warszawa.",
+  },
+  {
+    slug: "wulkanizacja-sezonowa",
+    title: "Wymiana opon — kiedy zmieniać sezon?",
+    date: "2026-05-26",
+    excerpt: "Terminy wymiany letnia / zima w Polsce.",
+    body:
+      "W Polsce większość kierowców zmienia opony przy +7°C — zazwyczaj marzec–kwiecień (lato) i październik–listopad (zima). W BESS MOTORS: montaż, wyważanie, naprawa opon i przechowanie. Rezerwacja online skraca czas oczekiwania.",
+  },
 ];
 
 export function getBlogPost(slug: string): BlogPost | undefined {

@@ -14,10 +14,12 @@ import { MetaPixelPageView } from "@/components/analytics/MetaPixelPageView";
 import { META_PIXEL_ID, metaPixelInitScript } from "@/lib/meta-pixel";
 import { JsonLd } from "@/components/seo/JsonLd";
 import {
+  defaultSeoKeywords,
   facebookDomainVerification,
   getSiteUrl,
   googleSiteVerification,
 } from "@/lib/seo";
+import { buildPageMetadata, DEFAULT_OG_IMAGE } from "@/lib/seo-metadata";
 
 
 
@@ -29,34 +31,36 @@ const orbitron = Orbitron({ subsets: ["latin"], variable: "--font-orbitron" });
 
 const siteUrl = getSiteUrl();
 
+const homeSeo = buildPageMetadata({
+  title: "BESS MOTORS — Serwis samochodowy Warszawa",
+  absoluteTitle: true,
+  description:
+    "BESS MOTORS — serwis samochodowy Warszawa Włochy, Aleja Krakowska 48/52. Wulkanizacja, klimatyzacja, wymiana oleju, hamulce, diagnostyka, chip tuning. Rezerwacja online 24/7.",
+  path: "/",
+  keywords: defaultSeoKeywords,
+});
+
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
+  ...homeSeo,
   title: {
     default: "BESS MOTORS — Serwis samochodowy Warszawa",
     template: "%s | BESS MOTORS",
   },
-  description:
-    "BESS MOTORS — serwis samochodowy Warszawa, Aleja Krakowska. Wymiana opon, serwis klimatyzacji, wymiana oleju, chip tuning, mechanika. Rezerwacja online i konto klienta.",
-  keywords: [
-    "BESS MOTORS",
-    "serwis samochodowy Warszawa",
-    "warsztat samochodowy",
-    "wymiana opon Warszawa",
-    "chip tuning",
-    "wymiana oleju",
-  ],
   openGraph: {
-    type: "website",
-    locale: "pl_PL",
-    url: siteUrl,
-    siteName: "BESS MOTORS",
-    title: "BESS MOTORS — Serwis samochodowy Warszawa",
+    ...homeSeo.openGraph,
     description:
-      "Szybko, profesjonalnie, najlepsze ceny — serwis i tuning w Warszawie.",
-    images: [{ url: "/images/banner.png", width: 1200, height: 630, alt: "BESS MOTORS" }],
+      "Szybko, profesjonalnie, najlepsze ceny — serwis i tuning w Warszawie. Umów wizytę online.",
+    images: [
+      {
+        url: DEFAULT_OG_IMAGE,
+        width: 1200,
+        height: 630,
+        alt: "BESS MOTORS — serwis samochodowy Warszawa",
+      },
+    ],
   },
   robots: { index: true, follow: true, googleBot: { index: true, follow: true } },
-  alternates: { canonical: siteUrl },
   icons: { icon: "/images/logo.png", apple: "/images/logo.png" },
   ...(googleSiteVerification
     ? { verification: { google: googleSiteVerification } }

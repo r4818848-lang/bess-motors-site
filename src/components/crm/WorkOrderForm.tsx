@@ -62,7 +62,7 @@ import { applyWorkOrderCompletedAt } from "@/lib/work-order-dates";
 import { applyWorkOrderClosure, isWorkOrderClosed } from "@/lib/work-order-lifecycle";
 
 type CreateStep = "client" | "works" | "more";
-type EditTab = "client" | "works" | "status" | "payment" | "more";
+type EditTab = "client" | "works" | "status" | "payment" | "documents" | "more";
 
 const statuses: RepairStatus[] = [
   "received",
@@ -346,6 +346,7 @@ export function WorkOrderForm({
   const showWorks = isNew ? createStep === "works" : editTab === "works";
   const showStatus = !isNew && editTab === "status";
   const showPayment = !isNew && editTab === "payment";
+  const showDocuments = isNew ? createStep === "more" : editTab === "documents";
   const showMore = isNew ? createStep === "more" : editTab === "more";
   const showStatusFields = showStatus || (isNew && createStep === "more");
   const showPaymentFields = showPayment || (isNew && createStep === "more");
@@ -355,6 +356,7 @@ export function WorkOrderForm({
     { id: "works", label: c.tabWorksParts },
     { id: "status", label: c.tabOrderStatus },
     { id: "payment", label: c.tabPayment },
+    { id: "documents", label: c.tabDocumentsSend },
     { id: "more", label: c.tabMore },
   ];
 
@@ -431,7 +433,7 @@ export function WorkOrderForm({
         </div>
       )}
 
-      {(showMore || !isNew) && referralDiscountReady && client && (
+      {showMore && referralDiscountReady && client && (
         <div className="glass rounded-xl p-4 border border-green-500/40 flex flex-wrap items-center justify-between gap-3">
           <p className="text-sm text-green-400">
             🎁 Klient ma <b>15% rabatu referral</b> (5 potwierdzonych poleceń). Jednorazowo na to
@@ -453,7 +455,7 @@ export function WorkOrderForm({
         </div>
       )}
 
-      {(showMore || !isNew) && inviteeDiscountReady && client && (
+      {showMore && inviteeDiscountReady && client && (
         <div className="glass rounded-xl p-4 border border-blue-500/40 flex flex-wrap items-center justify-between gap-3">
           <p className="text-sm text-blue-300">
             🎁 Klient przyszedł z polecenia — <b>5% rabatu</b> na to zlecenie (po pierwszym WZ).
@@ -502,78 +504,6 @@ export function WorkOrderForm({
           >
             {w.stepNext}
           </Button>
-        </div>
-      )}
-
-      {client && vehicle && (!isNew || showMore) && (
-        <div className="crm-mw-card rounded-md p-6">
-          <h3 className="font-display text-sm uppercase text-bm-red mb-4 flex items-center gap-2">
-            <FileText size={16} /> {w.sendDocuments}
-          </h3>
-          <div className="mb-4">
-            <label className="text-xs uppercase text-bm-muted block mb-2">
-              {doc.signatureMode}
-            </label>
-            <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                className={`px-4 py-2 rounded-lg text-xs font-bold uppercase border transition-all ${
-                  (order.signatureMode ?? "electronic") === "electronic"
-                    ? "bg-bm-red/25 border-bm-red text-bm-red"
-                    : "border-bm-border text-bm-muted hover:text-white"
-                }`}
-                onClick={() => setOrder({ ...order, signatureMode: "electronic" })}
-              >
-                {doc.signatureElectronic}
-              </button>
-              <button
-                type="button"
-                className={`px-4 py-2 rounded-lg text-xs font-bold uppercase border transition-all ${
-                  order.signatureMode === "physical"
-                    ? "bg-bm-red/25 border-bm-red text-bm-red"
-                    : "border-bm-border text-bm-muted hover:text-white"
-                }`}
-                onClick={() => setOrder({ ...order, signatureMode: "physical" as SignatureMode })}
-              >
-                {doc.signaturePhysical}
-              </button>
-            </div>
-            <p className="text-[10px] text-bm-muted mt-2">{doc.signatureModeHint}</p>
-          </div>
-          <WorkOrderDocumentActions
-            order={order}
-            client={client}
-            vehicle={vehicle}
-            onDocumentLocaleChange={setDocumentLocale}
-          />
-          {order.signature && (order.signatureMode ?? "electronic") === "electronic" && (
-            <div className="mt-4 pt-4 border-t border-bm-border text-xs text-bm-muted">
-              <p className="text-green-400">{t.signature.confirmed}</p>
-              <p>{new Date(order.signature.signedAt).toLocaleString()}</p>
-              <p>IP: {order.signature.ip}</p>
-              {order.signature.deviceInfo && <p className="truncate">{order.signature.deviceInfo}</p>}
-            </div>
-          )}
-          {client && vehicle && (
-            <div className="flex flex-wrap gap-2 mt-4">
-              <Button
-                type="button"
-                variant="outline"
-                className="text-xs"
-                onClick={() => void downloadReceptionAct(order, vehicle, client)}
-              >
-                PDF przyjęcie
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                className="text-xs"
-                onClick={() => void downloadDeliveryAct(order, vehicle, client)}
-              >
-                {c.pdfDeliveryAct}
-              </Button>
-            </div>
-          )}
         </div>
       )}
 
@@ -1233,6 +1163,76 @@ export function WorkOrderForm({
           </p>
         </div>
       </div>
+      )}
+
+      {client && vehicle && showDocuments && (
+        <div className="crm-mw-card rounded-md p-6">
+          <h3 className="font-display text-sm uppercase text-bm-red mb-4 flex items-center gap-2">
+            <FileText size={16} /> {w.sendDocuments}
+          </h3>
+          <div className="mb-4">
+            <label className="text-xs uppercase text-bm-muted block mb-2">
+              {doc.signatureMode}
+            </label>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                className={`px-4 py-2 rounded-lg text-xs font-bold uppercase border transition-all ${
+                  (order.signatureMode ?? "electronic") === "electronic"
+                    ? "bg-bm-red/25 border-bm-red text-bm-red"
+                    : "border-bm-border text-bm-muted hover:text-white"
+                }`}
+                onClick={() => setOrder({ ...order, signatureMode: "electronic" })}
+              >
+                {doc.signatureElectronic}
+              </button>
+              <button
+                type="button"
+                className={`px-4 py-2 rounded-lg text-xs font-bold uppercase border transition-all ${
+                  order.signatureMode === "physical"
+                    ? "bg-bm-red/25 border-bm-red text-bm-red"
+                    : "border-bm-border text-bm-muted hover:text-white"
+                }`}
+                onClick={() => setOrder({ ...order, signatureMode: "physical" as SignatureMode })}
+              >
+                {doc.signaturePhysical}
+              </button>
+            </div>
+            <p className="text-[10px] text-bm-muted mt-2">{doc.signatureModeHint}</p>
+          </div>
+          <WorkOrderDocumentActions
+            order={order}
+            client={client}
+            vehicle={vehicle}
+            onDocumentLocaleChange={setDocumentLocale}
+          />
+          {order.signature && (order.signatureMode ?? "electronic") === "electronic" && (
+            <div className="mt-4 pt-4 border-t border-bm-border text-xs text-bm-muted">
+              <p className="text-green-400">{t.signature.confirmed}</p>
+              <p>{new Date(order.signature.signedAt).toLocaleString()}</p>
+              <p>IP: {order.signature.ip}</p>
+              {order.signature.deviceInfo && <p className="truncate">{order.signature.deviceInfo}</p>}
+            </div>
+          )}
+          <div className="flex flex-wrap gap-2 mt-4">
+            <Button
+              type="button"
+              variant="outline"
+              className="text-xs"
+              onClick={() => void downloadReceptionAct(order, vehicle, client)}
+            >
+              PDF przyjęcie
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="text-xs"
+              onClick={() => void downloadDeliveryAct(order, vehicle, client)}
+            >
+              {c.pdfDeliveryAct}
+            </Button>
+          </div>
+        </div>
       )}
 
       {isNew && createStep === "works" && (

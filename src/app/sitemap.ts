@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { getSiteUrl, publicSitemapPaths } from "@/lib/seo";
+import { getSiteUrl, publicSitemapPaths, sitemapExcludedSlugs } from "@/lib/seo";
 import { seoLandingSlugs } from "@/lib/seo-landing-pages";
 import { blogPosts } from "@/lib/blog-posts";
 
@@ -31,6 +31,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   }
 
   for (const slug of seoLandingSlugs) {
+    if (sitemapExcludedSlugs.has(slug)) continue;
     add(`/${slug}`, "weekly", 0.8);
   }
 

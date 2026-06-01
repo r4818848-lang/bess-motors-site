@@ -1,9 +1,9 @@
 import { siteConfig } from "@/lib/site";
 import { getSiteUrl } from "@/lib/seo";
-
-/** Schema.org for local auto repair — helps Google Maps / local search */
+/** Global Schema.org — local business + website (FAQ only on /faq and landing pages) */
 export function JsonLd() {
   const siteUrl = getSiteUrl();
+
   const data = {
     "@context": "https://schema.org",
     "@graph": [
@@ -11,16 +11,19 @@ export function JsonLd() {
         "@type": ["AutoRepair", "LocalBusiness"],
         "@id": `${siteUrl}/#business`,
         name: siteConfig.name,
+        legalName: siteConfig.legalName,
         description:
-          "Serwis samochodowy Warszawa — wulkanizacja, klimatyzacja, wymiana oleju, chip tuning, mechanika.",
+          "Serwis samochodowy Warszawa Włochy — wulkanizacja, klimatyzacja, wymiana oleju, hamulce, diagnostyka, chip tuning, mechanika. Rezerwacja online.",
         url: siteUrl,
         telephone: siteConfig.phone,
         email: siteConfig.email,
         image: `${siteUrl}${siteConfig.logoImage}`,
+        logo: `${siteUrl}${siteConfig.logoImage}`,
         address: {
           "@type": "PostalAddress",
           streetAddress: "Aleja Krakowska 48/52",
           addressLocality: "Warszawa",
+          addressRegion: "mazowieckie",
           postalCode: "02-284",
           addressCountry: "PL",
         },
@@ -45,7 +48,14 @@ export function JsonLd() {
           },
         ],
         priceRange: "$$",
-        areaServed: { "@type": "City", name: "Warszawa" },
+        currenciesAccepted: "PLN",
+        paymentAccepted: "Cash, Credit Card, Bank Transfer",
+        areaServed: [
+          { "@type": "City", name: "Warszawa" },
+          { "@type": "AdministrativeArea", name: "Włochy" },
+          { "@type": "AdministrativeArea", name: "Ursynów" },
+        ],
+        hasMap: siteConfig.googleMapsReviewsUrl,
         sameAs: [
           siteConfig.instagram,
           siteConfig.facebook,
@@ -58,18 +68,28 @@ export function JsonLd() {
         url: siteUrl,
         name: siteConfig.name,
         publisher: { "@id": `${siteUrl}/#business` },
-        inLanguage: ["pl", "ru", "en"],
-        potentialAction: {
-          "@type": "ReserveAction",
-          target: {
-            "@type": "EntryPoint",
-            urlTemplate: `${siteUrl}/booking`,
-            actionPlatform: [
-              "http://schema.org/DesktopWebPlatform",
-              "http://schema.org/MobileWebPlatform",
-            ],
+        inLanguage: "pl",
+        potentialAction: [
+          {
+            "@type": "ReserveAction",
+            target: {
+              "@type": "EntryPoint",
+              urlTemplate: `${siteUrl}/booking`,
+              actionPlatform: [
+                "http://schema.org/DesktopWebPlatform",
+                "http://schema.org/MobileWebPlatform",
+              ],
+            },
           },
-        },
+          {
+            "@type": "SearchAction",
+            target: {
+              "@type": "EntryPoint",
+              urlTemplate: `${siteUrl}/services?q={search_term_string}`,
+            },
+            "query-input": "required name=search_term_string",
+          },
+        ],
       },
     ],
   };

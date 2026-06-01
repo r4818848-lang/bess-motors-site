@@ -1,18 +1,13 @@
 import type { Metadata } from "next";
-import { getSiteUrl } from "@/lib/seo";
+import { buildPageMetadata } from "@/lib/seo-metadata";
 
-const siteUrl = getSiteUrl();
-
-export const metadata: Metadata = {
+export const metadata: Metadata = buildPageMetadata({
   title: "Zapis online i cennik",
   description:
-    "Zapis na serwis BESS MOTORS online z oficjalnym cennikiem. Wulkanizacja, olej, hamulce, klimatyzacja — Warszawa Aleja Krakowska.",
-  alternates: { canonical: `${siteUrl}/booking` },
-  openGraph: {
-    title: "Zapis online | BESS MOTORS",
-    url: `${siteUrl}/booking`,
-  },
-};
+    "Zapis na serwis BESS MOTORS online z oficjalnym cennikiem. Wulkanizacja, olej, hamulce, klimatyzacja, chip tuning — Warszawa Aleja Krakowska.",
+  path: "/booking",
+  keywords: ["zapis online serwis", "rezerwacja warsztat Warszawa", "cennik serwis"],
+});
 
 export default function BookingLayout({ children }: { children: React.ReactNode }) {
   return children;

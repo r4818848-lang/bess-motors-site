@@ -1,13 +1,12 @@
 import type { Metadata } from "next";
-import { getSiteUrl } from "@/lib/seo";
+import { buildPageMetadata } from "@/lib/seo-metadata";
 
-const siteUrl = getSiteUrl();
-
-export const metadata: Metadata = {
-  title: "O nas",
-  description: "BESS MOTORS — warsztat samochodowy w Warszawie. Doświadczenie, nowoczesny sprzęt, chip tuning i serwis kompleksowy.",
-  alternates: { canonical: `${siteUrl}/about` },
-};
+export const metadata: Metadata = buildPageMetadata({
+  title: "O nas — warsztat samochodowy",
+  description:
+    "BESS MOTORS — warsztat samochodowy w Warszawie Włochy. Doświadczenie, nowoczesny sprzęt, chip tuning i serwis kompleksowy na Alei Krakowskiej.",
+  path: "/about",
+});
 
 export default function AboutLayout({ children }: { children: React.ReactNode }) {
   return children;

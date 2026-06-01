@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { SeoLandingPageView } from "@/components/seo/SeoLandingPageView";
+import { StructuredData } from "@/components/seo/StructuredData";
 import {
   getSeoLandingPage,
   seoLandingSlugs,
 } from "@/lib/seo-landing-pages";
-import { getSiteUrl } from "@/lib/seo";
+import { buildPageMetadata } from "@/lib/seo-metadata";
+import { autoRepairServiceSchema } from "@/lib/seo-structured-data";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -18,17 +20,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const page = getSeoLandingPage(slug);
   if (!page) return {};
 
-  const siteUrl = getSiteUrl();
-  return {
+  return buildPageMetadata({
     title: page.metaTitle,
     description: page.metaDescription,
-    alternates: { canonical: `${siteUrl}/${page.slug}` },
-    openGraph: {
-      title: page.metaTitle,
-      description: page.metaDescription,
-      url: `${siteUrl}/${page.slug}`,
-    },
-  };
+    path: `/${page.slug}`,
+    keywords: [
+      page.metaTitle,
+      "BESS MOTORS",
+      "serwis samochodowy Warszawa",
+      "Aleja Krakowska",
+    ],
+  });
 }
 
 export default async function SeoLandingRoute({ params }: Props) {
@@ -36,5 +38,10 @@ export default async function SeoLandingRoute({ params }: Props) {
   const page = getSeoLandingPage(slug);
   if (!page) notFound();
 
-  return <SeoLandingPageView page={page} />;
+  return (
+    <>
+      <StructuredData data={autoRepairServiceSchema(page)} />
+      <SeoLandingPageView page={page} />
+    </>
+  );
 }

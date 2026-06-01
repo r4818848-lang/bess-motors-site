@@ -20,6 +20,15 @@ const nextConfig: NextConfig = {
       { source: "/kontakty", destination: "/contacts", permanent: true },
       { source: "/klocki-hamulcowe", destination: "/hamulce", permanent: true },
       { source: "/serwis-klimatyzacji", destination: "/klimatyzacja", permanent: true },
+      { source: "/wulkanizacja", destination: "/opony", permanent: true },
+      { source: "/wulkanizacja-warszawa", destination: "/opony", permanent: true },
+      { source: "/chip-tuning", destination: "/chip-tuning-warszawa", permanent: true },
+      { source: "/tuning", destination: "/chip-tuning-warszawa", permanent: true },
+      { source: "/serwis-samochodowy", destination: "/", permanent: true },
+      { source: "/warsztat-samochodowy", destination: "/", permanent: true },
+      { source: "/mechanik-warszawa", destination: "/warszawa-wlochy", permanent: true },
+      { source: "/cennik-uslug", destination: "/cennik", permanent: true },
+      { source: "/zapis-online", destination: "/booking", permanent: true },
     ];
   },
 };
