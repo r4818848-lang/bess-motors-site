@@ -29,6 +29,10 @@ export async function requestExtraWorkApproval(
     status: "pending",
     createdAt: new Date().toISOString(),
   };
+  order.updatedAt = new Date().toISOString().slice(0, 10);
+
+  const { runCrmAutomation } = await import("@/lib/crm-automation");
+  runCrmAutomation(db, snap.doc as Database);
 
   await cloudPutCrmStore(db);
 
@@ -86,17 +90,7 @@ export async function resolveExtraWorkApproval(
   order.lastNotifiedClientTotal = calcClientTotal(order);
 
   const put = await cloudPutCrmStore(db);
-  if (!put.ok) return { ok: false };
-
-  const snapAfter = await cloudGetCrmStore();
-  if (snapAfter?.doc) {
-    const { dispatchTelegramFromCrmSave } = await import("./client-telegram-notify");
-    void dispatchTelegramFromCrmSave(snap.doc as Database, snapAfter.doc as Database);
-    const { dispatchWebPushFromCrmSave } = await import("@/lib/web-push-order-events");
-    void dispatchWebPushFromCrmSave(snap.doc as Database, snapAfter.doc as Database);
-  }
-
-  return { ok: true };
+  return { ok: put.ok };
 }
 
 /** Parse admin line: "Название;цена" or "Название 200" */

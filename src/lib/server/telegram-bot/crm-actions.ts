@@ -34,11 +34,6 @@ export async function mutateCrm(
   const result = await cloudPutCrmStore(db);
   if (!result.ok) return { ok: false, error: result.error };
 
-  const { dispatchTelegramFromCrmSave } = await import("./client-telegram-notify");
-  void dispatchTelegramFromCrmSave(prevDb, db);
-  const { dispatchWebPushFromCrmSave } = await import("@/lib/web-push-order-events");
-  void dispatchWebPushFromCrmSave(prevDb, db);
-
   return { ok: true, result: typeof extra === "string" ? extra : undefined };
 }
 

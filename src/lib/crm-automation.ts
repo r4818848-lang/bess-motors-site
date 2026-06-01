@@ -184,6 +184,14 @@ function autoSyncOrders(db: Database, prev?: Database): void {
       syncWarehouseFromWorkOrder(db, order);
     }
   }
+
+  for (const apt of db.appointments) {
+    if (!apt.workOrderId) continue;
+    const wo = db.workOrders.find((o) => o.id === apt.workOrderId);
+    if (wo && apt.repairStatus !== wo.status) {
+      apt.repairStatus = wo.status;
+    }
+  }
 }
 
 /** Run all CRM automations in-place on db. Returns summary for logs. */

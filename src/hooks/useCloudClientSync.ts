@@ -8,18 +8,23 @@ import { useVisibleInterval } from "@/hooks/useVisibleInterval";
 /** Pull client work orders and profile from Supabase */
 export function useCloudClientSync(enabled = true): {
   syncing: boolean;
+  syncFailed: boolean;
   resync: () => Promise<void>;
 } {
   const [syncing, setSyncing] = useState(false);
+  const [syncFailed, setSyncFailed] = useState(false);
 
   const resync = useCallback(async () => {
     if (!enabled) return;
     setSyncing(true);
     try {
       const pulled = await pullClientPortalFromCloud();
+      setSyncFailed(!pulled);
       if (pulled) {
         window.dispatchEvent(new CustomEvent(DB_CHANGED_EVENT));
       }
+    } catch {
+      setSyncFailed(true);
     } finally {
       setSyncing(false);
     }
@@ -39,5 +44,5 @@ export function useCloudClientSync(enabled = true): {
 
   useVisibleInterval(() => void resync(), 45_000, enabled);
 
-  return { syncing, resync };
+  return { syncing, syncFailed, resync };
 }

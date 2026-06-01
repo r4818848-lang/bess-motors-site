@@ -35,9 +35,15 @@ export async function cloudGetCrmStore(): Promise<CrmCloudSnapshot | null> {
   }
 }
 
-export async function cloudPutCrmStore(doc: Database): Promise<{ ok: boolean; updatedAt?: string; error?: string }> {
+export async function cloudPutCrmStore(
+  doc: Database,
+  options?: { skipNotify?: boolean }
+): Promise<{ ok: boolean; updatedAt?: string; error?: string }> {
   const cfg = getSupabaseConfig();
   if (!cfg) return { ok: false, error: "cloud_disabled" };
+
+  const before =
+    options?.skipNotify === true ? null : await cloudGetCrmStore();
 
   const updatedAt = new Date().toISOString();
   const row = { id: ROW_ID, doc, updated_at: updatedAt };
@@ -58,6 +64,12 @@ export async function cloudPutCrmStore(doc: Database): Promise<{ ok: boolean; up
       const text = (await res.text()).slice(0, 500);
       return { ok: false, error: text || `http_${res.status}` };
     }
+
+    if (before?.doc && options?.skipNotify !== true) {
+      const { notifyAfterCrmCloudSave } = await import("./crm-cloud-notify");
+      void notifyAfterCrmCloudSave(before.doc, doc);
+    }
+
     return { ok: true, updatedAt };
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);

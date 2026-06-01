@@ -85,14 +85,19 @@ export async function pullClientPortalFromCloud(): Promise<ClientPortalSlice | n
     typeof window !== "undefined" ? localStorage.getItem("bess-jwt") : null;
   if (!token) return null;
 
-  const res = await fetch("/api/client-portal", {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  if (!res.ok) return null;
+  try {
+    const res = await fetch("/api/client-portal", {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+    });
+    if (!res.ok) return null;
 
-  const data = (await res.json()) as { ok?: boolean; portal?: ClientPortalSlice };
-  if (!data.ok || !data.portal) return null;
+    const data = (await res.json()) as { ok?: boolean; portal?: ClientPortalSlice };
+    if (!data.ok || !data.portal) return null;
 
-  mergeClientPortalIntoDb(data.portal);
-  return data.portal;
+    mergeClientPortalIntoDb(data.portal);
+    return data.portal;
+  } catch {
+    return null;
+  }
 }

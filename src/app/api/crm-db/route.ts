@@ -91,22 +91,5 @@ export async function PUT(req: Request) {
     );
   }
 
-  if (before?.doc) {
-    const { dispatchTelegramFromCrmSave } = await import(
-      "@/lib/server/telegram-bot/client-telegram-notify"
-    );
-    void dispatchTelegramFromCrmSave(before.doc, payload).then(async () => {
-      const { runReferralTelegramEffects } = await import(
-        "@/lib/server/referral-telegram-notify"
-      );
-      for (const order of payload.workOrders) {
-        const old = before.doc!.workOrders.find((o) => o.id === order.id);
-        if (old) await runReferralTelegramEffects(payload, order, old);
-      }
-    });
-    const { dispatchWebPushFromCrmSave } = await import("@/lib/web-push-order-events");
-    void dispatchWebPushFromCrmSave(before.doc, payload);
-  }
-
   return NextResponse.json({ ok: true, updatedAt: result.updatedAt });
 }

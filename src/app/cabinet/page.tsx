@@ -164,7 +164,7 @@ function CabinetPageContent() {
   const router = useRouter();
   const { sessionReady, clientUser, signOut, refreshAuth } = useAuth();
   // One cloud pull is enough for cabinet (both hooks merged behavior via shared DB event)
-  useCloudClientSync(!!clientUser);
+  const { syncing, syncFailed, resync } = useCloudClientSync(!!clientUser);
   const [mounted, setMounted] = useState(false);
   const [db, setDb] = useState<Database | null>(null);
   const [tab, setTab] = useState("cars");
@@ -417,6 +417,21 @@ function CabinetPageContent() {
           </Button>
         </div>
 
+        {syncFailed && (
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm">
+            <span className="text-amber-300">{t.crm.syncFailed}</span>
+            <Button
+              type="button"
+              variant="outline"
+              className="text-xs"
+              disabled={syncing}
+              onClick={() => void resync()}
+            >
+              {syncing ? "…" : t.crm.syncNow}
+            </Button>
+          </div>
+        )}
+
         <div className="flex flex-wrap gap-2 mb-8 overflow-x-auto pb-2">
           {tabs.map(({ id, icon: Icon, label, badge }) => (
             <button
@@ -651,6 +666,10 @@ function CabinetPageContent() {
             ) : (
               myAppointments.map((apt) => {
                 const ctx = getAppointmentContext(activeDb, apt);
+                const linkedOrder = apt.workOrderId
+                  ? myOrders.find((o) => o.id === apt.workOrderId)
+                  : undefined;
+                const displayStatus = linkedOrder?.status ?? apt.repairStatus;
                 return (
                   <Card key={apt.id} glow>
                     <div className="flex flex-wrap justify-between gap-2">
@@ -675,7 +694,7 @@ function CabinetPageContent() {
                         </p>
                       </div>
                       <span className="status-pill bg-bm-red/20 text-bm-red h-fit">
-                        {t.repairStatus[apt.repairStatus]}
+                        {t.repairStatus[displayStatus]}
                       </span>
                     </div>
                   </Card>
