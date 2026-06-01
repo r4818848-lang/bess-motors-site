@@ -54,11 +54,77 @@ function mergeCloudRecords(local: Database, remote: Database): Database {
   };
 }
 
+export type MergeCloudPullOptions = {
+  /** Browser last successful cloud pull/push timestamp */
+  lastCloudSyncedAt?: string;
+  /** `updatedAt` from GET /api/crm-db */
+  remoteUpdatedAt?: string;
+};
+
 /**
- * Pull from cloud into browser — never drop local-only rows (new client/order not uploaded yet).
+ * Pull from cloud: merge by id, then apply remote deletions when cloud snapshot is newer.
+ * Rows changed locally after `lastCloudSyncedAt` are kept (unsynced draft / new order).
  */
-export function mergeCloudPullIntoLocal(local: Database, remote: Database): Database {
-  return mergeCloudRecords(local, remote);
+export function mergeCloudPullIntoLocal(
+  local: Database,
+  remote: Database,
+  options?: MergeCloudPullOptions
+): Database {
+  const merged = mergeCloudRecords(local, remote);
+  const lastSynced = options?.lastCloudSyncedAt;
+  const remoteAt = options?.remoteUpdatedAt;
+  if (!lastSynced || !remoteAt) return merged;
+  if (mergeTimestampMs(remoteAt) <= mergeTimestampMs(lastSynced)) return merged;
+  return applyPullRemoteDeletions(merged, remote, lastSynced);
+}
+
+/** Drop local rows removed on server; keep items created/edited locally after last sync */
+function applyPullRemoteDeletions(
+  base: Database,
+  remote: Database,
+  lastCloudSyncedAt: string
+): Database {
+  const syncCutoff = normalizeIsoTimestamp(lastCloudSyncedAt);
+  const orderIds = ids(remote.workOrders);
+  const userIds = ids(remote.users);
+  const vehicleIds = ids(remote.vehicles);
+  const aptIds = ids(remote.appointments);
+
+  const users = base.users.filter((u) => {
+    if (userIds.has(u.id)) return true;
+    return mergeTimestampMs(userStamp(u)) > mergeTimestampMs(syncCutoff);
+  });
+  const keptUserIds = ids(users);
+
+  return {
+    ...base,
+    users,
+    vehicles: base.vehicles.filter((v) => {
+      if (vehicleIds.has(v.id)) return true;
+      return keptUserIds.has(v.userId);
+    }),
+    workOrders: base.workOrders.filter((o) => {
+      if (orderIds.has(o.id)) return true;
+      return mergeTimestampMs(orderStamp(o)) > mergeTimestampMs(syncCutoff);
+    }),
+    appointments: base.appointments.filter((a) => {
+      if (aptIds.has(a.id)) return true;
+      return (
+        mergeTimestampMs(normalizeIsoTimestamp(a.createdAt)) >
+        mergeTimestampMs(syncCutoff)
+      );
+    }),
+    callRequests: (base.callRequests ?? []).filter(
+      (c) => !c.userId || userIds.has(c.userId) || keptUserIds.has(c.userId)
+    ),
+    vehicleHistory: (base.vehicleHistory ?? []).filter(
+      (h) => keptUserIds.has(h.userId) && vehicleIds.has(h.vehicleId)
+    ),
+    notifications: (base.notifications ?? []).filter((n) => keptUserIds.has(n.userId)),
+    clientRatings: (base.clientRatings ?? []).filter(
+      (r) => !r.userId || keptUserIds.has(r.userId)
+    ),
+  };
 }
 
 /** Merge cloud snapshot into local CRM — newer record wins per id; remote membership drops deletions */

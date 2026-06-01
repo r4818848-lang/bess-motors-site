@@ -122,7 +122,10 @@ export async function pullCrmFromCloud(options?: { force?: boolean }): Promise<P
       return "unchanged";
     }
 
-    const merged = mergeCloudPullIntoLocal(local, remote);
+    const merged = mergeCloudPullIntoLocal(local, remote, {
+      lastCloudSyncedAt: lastSynced || undefined,
+      remoteUpdatedAt: data.updatedAt,
+    });
     saveDb(merged, { skipCloudPush: true });
     localStorage.setItem(CLOUD_SYNCED_AT_KEY, data.updatedAt);
     await syncAppointmentsFromCloud();
