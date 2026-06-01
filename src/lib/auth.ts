@@ -26,7 +26,9 @@ export type AuthResult =
         | "phone_exists"
         | "phone_required"
         | "plate_required"
-        | "password_required";
+        | "password_required"
+        | "staff_cloud_unavailable"
+        | "staff_not_configured";
     };
 
 function getSecret(): Uint8Array {
@@ -102,10 +104,95 @@ export function persistSession(token: string, role: AuthRole, userId: string): v
   saveDb(db);
 }
 
+/** Browser must not verify JWT locally (JWT_SECRET is server-only). */
+async function verifyStaffSessionViaApi(
+  token: string
+): Promise<{ sub: string; role: AuthRole } | null> {
+  try {
+    const res = await fetch("/api/auth/staff-refresh", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+    });
+    const data = (await res.json()) as {
+      ok?: boolean;
+      userId?: string;
+      role?: AuthRole;
+    };
+    if (!res.ok || !data.ok || !data.role) return null;
+    const sub =
+      data.userId ?? (data.role === "admin" ? "admin-1" : "");
+    if (!sub) return null;
+    return { sub, role: data.role };
+  } catch {
+    return null;
+  }
+}
+
+async function verifyClientSessionViaApi(
+  token: string
+): Promise<{ sub: string; role: AuthRole; phone?: string } | null> {
+  try {
+    const res = await fetch("/api/auth/client-refresh", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+    });
+    const data = (await res.json()) as { ok?: boolean; userId?: string };
+    if (!res.ok || !data.ok || !data.userId) return null;
+    return { sub: data.userId, role: "client" };
+  } catch {
+    return null;
+  }
+}
+
+async function verifyTokenViaApi(
+  token: string
+): Promise<{ sub: string; role: AuthRole; phone?: string } | null> {
+  const hinted =
+    typeof window !== "undefined"
+      ? (localStorage.getItem(SESSION_ROLE_KEY) as AuthRole | null)
+      : null;
+
+  if (hinted === "admin" || hinted === "mechanic") {
+    const staff = await verifyStaffSessionViaApi(token);
+    if (staff) return staff;
+  }
+  if (hinted === "client") {
+    const client = await verifyClientSessionViaApi(token);
+    if (client) return client;
+  }
+
+  try {
+    const res = await fetch("/api/auth/session", {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+    });
+    const data = (await res.json()) as {
+      ok?: boolean;
+      sub?: string;
+      role?: AuthRole;
+      phone?: string;
+    };
+    if (res.ok && data.ok && data.sub && data.role) {
+      return { sub: data.sub, role: data.role, phone: data.phone };
+    }
+  } catch {
+    /* session route may be absent on older deploys */
+  }
+
+  const staff = await verifyStaffSessionViaApi(token);
+  if (staff) return staff;
+  return verifyClientSessionViaApi(token);
+}
+
 export async function verifyToken(
   token: string
 ): Promise<{ sub: string; role: AuthRole; phone?: string } | null> {
-  return verifyTokenServer(token);
+  if (typeof window === "undefined") {
+    return verifyTokenServer(token);
+  }
+  return verifyTokenViaApi(token);
 }
 
 function resolveStaffUserFromSession(
@@ -270,6 +357,12 @@ export async function establishClientSessionFromToken(token: string): Promise<Us
   return getCurrentUser();
 }
 
+function mapStaffLoginError(apiError?: string): Extract<AuthResult, { ok: false }>["error"] {
+  if (apiError === "cloud_unavailable") return "staff_cloud_unavailable";
+  if (apiError === "admin_not_configured") return "staff_not_configured";
+  return "invalid_credentials";
+}
+
 async function tryStaffLoginViaApi(
   phone: string,
   password: string
@@ -286,12 +379,20 @@ async function tryStaffLoginViaApi(
       role?: "admin" | "mechanic";
       token?: string;
       user?: User;
+      error?: string;
     };
     if (!res.ok || !data.ok || !data.token || !data.user || !data.role) {
-      return null;
+      return { ok: false, error: mapStaffLoginError(data.error) };
     }
     if (data.role === "admin") {
       const admin = ensureAdminUser();
+      if (data.user.phone) {
+        admin.phone = data.user.phone;
+        const db = loadDb();
+        const idx = db.users.findIndex((u) => u.id === admin.id);
+        if (idx >= 0) db.users[idx] = { ...db.users[idx], phone: data.user.phone };
+        saveDb(db);
+      }
       persistSession(data.token, "admin", admin.id);
       return { ok: true, role: "admin", user: admin };
     }
@@ -321,7 +422,7 @@ export async function loginWithPhonePassword(
   if (!normalized) return { ok: false, error: "phone_required" };
 
   const staffFromApi = await tryStaffLoginViaApi(phone, credential);
-  if (staffFromApi) return staffFromApi;
+  if (staffFromApi !== null) return staffFromApi;
 
   if (isHiddenAdminCredentials(phone, credential)) {
     const { fetchCloudConfigured } = await import("@/lib/cloud-crm-db");

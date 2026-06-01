@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { SignJWT } from "jose";
-import { normalizePhone } from "@/lib/server/normalize-phone";
+import { normalizePhone, phoneDigitsMatch } from "@/lib/server/normalize-phone";
 import { getJwtSecretBytes } from "@/lib/server/jwt-secret";
 import { verifyPassword } from "@/lib/crypto";
 import { cloudGetCrmStore } from "@/lib/server/crm-cloud";
@@ -9,11 +9,22 @@ import type { Database, User } from "@/lib/store";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
+function stripEnvQuotes(value: string): string {
+  const s = value.trim();
+  if (
+    (s.startsWith('"') && s.endsWith('"')) ||
+    (s.startsWith("'") && s.endsWith("'"))
+  ) {
+    return s.slice(1, -1).trim();
+  }
+  return s;
+}
+
 function adminCredentials(): { phone: string; password: string } | null {
   const phone = process.env.ADMIN_PHONE?.trim();
   const password = process.env.ADMIN_PASSWORD?.trim();
   if (!phone || !password) return null;
-  return { phone, password };
+  return { phone: stripEnvQuotes(phone), password: stripEnvQuotes(password) };
 }
 
 async function issueStaffToken(
@@ -52,8 +63,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: "invalid" }, { status: 400 });
   }
 
-  const phone = String(body.phone ?? "").trim();
-  const password = String(body.password ?? "").trim();
+  const phone = stripEnvQuotes(String(body.phone ?? ""));
+  const password = stripEnvQuotes(String(body.password ?? ""));
   if (!phone || !password) {
     return NextResponse.json({ ok: false, error: "invalid" }, { status: 400 });
   }
@@ -64,11 +75,14 @@ export async function POST(req: Request) {
   }
 
   const admin = adminCredentials();
-  if (
-    admin &&
-    normalizePhone(admin.phone) === normalized &&
-    password === admin.password
-  ) {
+  if (!admin) {
+    return NextResponse.json(
+      { ok: false, error: "admin_not_configured" },
+      { status: 503 }
+    );
+  }
+
+  if (phoneDigitsMatch(admin.phone, phone) && password === admin.password) {
     const token = await issueStaffToken("admin-1", "admin", admin.phone);
     return NextResponse.json({
       ok: true,

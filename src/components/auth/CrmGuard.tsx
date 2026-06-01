@@ -33,7 +33,7 @@ export function CrmGuard({ children }: { children: React.ReactNode }) {
           router.replace("/mechanic");
           return;
         }
-        router.replace("/cabinet");
+        router.replace("/cabinet?crm=1");
       });
   }, [router, pathname]);
 

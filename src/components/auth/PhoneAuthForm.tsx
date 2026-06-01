@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Phone, Car, LogIn, ChevronRight } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useI18n } from "@/lib/i18n/context";
 import { useAuth } from "@/lib/auth/session-context";
 import { loginWithPhonePassword, type AuthResult } from "@/lib/auth";
@@ -14,11 +14,15 @@ import { TelegramLoginButton } from "@/components/auth/TelegramLoginButton";
 
 interface PhoneAuthFormProps {
   onSuccess?: () => void;
+  /** True when redirected from /crm — show admin password hint */
+  staffCrm?: boolean;
 }
 
-export function PhoneAuthForm({ onSuccess }: PhoneAuthFormProps) {
+export function PhoneAuthForm({ onSuccess, staffCrm: staffCrmProp }: PhoneAuthFormProps) {
   const { t } = useI18n();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const staffCrm = staffCrmProp ?? searchParams.get("crm") === "1";
   const { refreshAuth } = useAuth();
   const [phone, setPhone] = useState("");
   const [plate, setPlate] = useState("");
@@ -40,8 +44,12 @@ export function PhoneAuthForm({ onSuccess }: PhoneAuthFormProps) {
         return t.auth.phoneRequired;
       case "plate_required":
         return t.auth.plateRequired;
+      case "staff_cloud_unavailable":
+        return t.auth.staffCloudError;
+      case "staff_not_configured":
+        return t.auth.staffNotConfigured;
       default:
-        return t.auth.invalidCredentials;
+        return staffCrm ? t.auth.staffInvalidCredentials : t.auth.invalidCredentials;
     }
   };
 
@@ -58,12 +66,12 @@ export function PhoneAuthForm({ onSuccess }: PhoneAuthFormProps) {
       }
 
       if (result.role === "admin") {
-        router.push("/crm");
+        window.location.assign("/crm");
         return;
       }
 
       if (result.role === "mechanic") {
-        router.push("/mechanic");
+        window.location.assign("/mechanic");
         return;
       }
 
@@ -102,8 +110,16 @@ export function PhoneAuthForm({ onSuccess }: PhoneAuthFormProps) {
           <h1 className="font-display text-2xl sm:text-3xl font-bold uppercase text-center tracking-widest text-glow">
             {t.cabinet.title}
           </h1>
-          <p className="text-center text-sm text-bm-muted mt-2 mb-2">{t.auth.subtitle}</p>
-          <p className="text-center text-[10px] text-bm-muted/80 mb-6">{t.auth.loginHint}</p>
+          <p className="text-center text-sm text-bm-muted mt-2 mb-2">
+            {staffCrm ? t.auth.staffCrmBanner : t.auth.subtitle}
+          </p>
+          {staffCrm ? (
+            <p className="text-center text-xs text-amber-300/90 bg-amber-500/10 border border-amber-500/30 rounded-lg px-3 py-2 mb-4">
+              {t.auth.staffCrmHint}
+            </p>
+          ) : (
+            <p className="text-center text-[10px] text-bm-muted/80 mb-6">{t.auth.loginHint}</p>
+          )}
 
           <div className="space-y-4">
             <div className="relative group">
@@ -153,7 +169,9 @@ export function PhoneAuthForm({ onSuccess }: PhoneAuthFormProps) {
                       ? "0 0 24px rgba(225, 6, 0, 0.35), inset 0 0 0 1px rgba(225,6,0,0.5)"
                       : undefined,
                 }}
-                placeholder={t.cabinet.registrationPlate}
+                placeholder={
+                  staffCrm ? t.auth.staffCrmSecondField : t.cabinet.registrationPlate
+                }
                 value={plate}
                 onFocus={() => setFocused("plate")}
                 onBlur={() => setFocused(null)}
