@@ -9,14 +9,8 @@ export async function extractTextFromImportFile(
   }
 
   if (mime === "application/pdf") {
-    const { PDFParse } = await import("pdf-parse");
-    const parser = new PDFParse({ data: buffer });
-    try {
-      const data = await parser.getText();
-      return data.text ?? "";
-    } finally {
-      await parser.destroy();
-    }
+    const { extractPdfTextFromBuffer } = await import("@/lib/server/pdf-text-extract");
+    return extractPdfTextFromBuffer(buffer);
   }
 
   if (mime.startsWith("image/")) {

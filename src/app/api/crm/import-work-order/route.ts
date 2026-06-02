@@ -77,6 +77,10 @@ export async function POST(req: Request) {
     const msg = e instanceof Error ? e.message : "parse_failed";
     const status =
       msg === "file_too_large" ? 413 : msg === "unsupported_type" ? 400 : 500;
-    return NextResponse.json({ error: msg }, { status });
+    const hint =
+      /dommatrix|canvas|pdf-parse/i.test(msg)
+        ? "Błąd odczytu PDF na serwerze — spróbuj zdjęcia (JPG) lub ponów za chwilę"
+        : undefined;
+    return NextResponse.json({ error: msg, hint }, { status });
   }
 }
