@@ -855,7 +855,14 @@ export function WorkOrderForm({
                 ...order,
                 services: [
                   ...order.services,
-                  { id: `s-${Date.now()}`, name: "", qty: 1, price: 0, discount: 0 },
+                  {
+                    id: `s-${Date.now()}`,
+                    name: "",
+                    qty: 1,
+                    price: 0,
+                    discount: 0,
+                    mechanicId: order.mechanicId,
+                  },
                 ],
               })
             }
@@ -869,6 +876,7 @@ export function WorkOrderForm({
             <thead>
               <tr>
                 <th>{c.name}</th>
+                <th className="min-w-[120px]">{w.workLineMechanic}</th>
                 <th>{c.qty}</th>
                 <th>{c.price}</th>
                 <th>{c.discount} %</th>
@@ -885,6 +893,25 @@ export function WorkOrderForm({
                       value={line.name}
                       onChange={(e) => updateService(i, { name: e.target.value })}
                     />
+                  </td>
+                  <td>
+                    <select
+                      className="input-premium text-sm py-1 min-w-[110px] max-w-[160px]"
+                      value={line.mechanicId ?? ""}
+                      onChange={(e) =>
+                        updateService(i, {
+                          mechanicId: e.target.value || undefined,
+                        })
+                      }
+                      title={w.workLineMechanic}
+                    >
+                      <option value="">{w.workLineMechanicDefault}</option>
+                      {db.mechanics.map((m) => (
+                        <option key={m.id} value={m.id}>
+                          {m.name}
+                        </option>
+                      ))}
+                    </select>
                   </td>
                   <td>
                     <input

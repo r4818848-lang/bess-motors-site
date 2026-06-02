@@ -4,6 +4,15 @@ export function calcServiceLine(line: WorkOrderLine): number {
   return line.qty * line.price * (1 - line.discount / 100);
 }
 
+/** Mechanic assigned to a labor line (line override or order default). */
+export function resolveServiceLineMechanicId(
+  line: WorkOrderLine,
+  order: WorkOrder
+): string {
+  const id = line.mechanicId?.trim();
+  return id || order.mechanicId;
+}
+
 export function calcPartLine(line: PartLine): number {
   return line.qty * line.sellPrice * (1 - line.discount / 100);
 }

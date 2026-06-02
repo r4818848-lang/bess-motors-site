@@ -65,8 +65,15 @@ function emptyOrder(db: Database): WorkOrder {
   };
 }
 
-function newServiceLine(): WorkOrderLine {
-  return { id: `s-${Date.now()}-${Math.random().toString(36).slice(2, 5)}`, name: "", qty: 1, price: 0, discount: 0 };
+function newServiceLine(mechanicId?: string): WorkOrderLine {
+  return {
+    id: `s-${Date.now()}-${Math.random().toString(36).slice(2, 5)}`,
+    name: "",
+    qty: 1,
+    price: 0,
+    discount: 0,
+    mechanicId,
+  };
 }
 
 type Props = {
@@ -399,6 +406,7 @@ export function QuickCreateOrderModal({
                 <thead>
                   <tr>
                     <th>{c.name}</th>
+                    <th className="min-w-[100px]">{w.workLineMechanic}</th>
                     <th className="w-14">{c.unitPcs}</th>
                     <th className="w-16">{c.qty}</th>
                     <th className="w-20">{c.price}</th>
@@ -410,7 +418,7 @@ export function QuickCreateOrderModal({
                 <tbody>
                   {services.length === 0 ? (
                     <tr>
-                      <td colSpan={8} className="text-center text-bm-muted py-6 text-sm">
+                      <td colSpan={9} className="text-center text-bm-muted py-6 text-sm">
                         {c.noTaskData}
                       </td>
                     </tr>
@@ -423,6 +431,24 @@ export function QuickCreateOrderModal({
                             value={line.name}
                             onChange={(e) => updateService(i, { name: e.target.value })}
                           />
+                        </td>
+                        <td>
+                          <select
+                            className="input-premium text-sm py-1 min-w-[100px]"
+                            value={line.mechanicId ?? ""}
+                            onChange={(e) =>
+                              updateService(i, {
+                                mechanicId: e.target.value || undefined,
+                              })
+                            }
+                          >
+                            <option value="">{w.workLineMechanicDefault}</option>
+                            {db.mechanics.map((m) => (
+                              <option key={m.id} value={m.id}>
+                                {m.name}
+                              </option>
+                            ))}
+                          </select>
                         </td>
                         <td className="text-xs text-bm-muted text-center">{c.unitPcs}</td>
                         <td>
@@ -484,7 +510,7 @@ export function QuickCreateOrderModal({
                 </tbody>
                 <tfoot>
                   <tr>
-                    <td colSpan={6} className="text-right text-xs uppercase text-bm-muted">
+                    <td colSpan={7} className="text-right text-xs uppercase text-bm-muted">
                       {c.tableTotal}
                       <span className="block font-normal normal-case text-[9px]">
                         {priceMode === "gross" ? c.brutto : c.netto}
@@ -502,7 +528,7 @@ export function QuickCreateOrderModal({
               <Button
                 type="button"
                 className="text-xs"
-                onClick={() => setServices((prev) => [...prev, newServiceLine()])}
+                onClick={() => setServices((prev) => [...prev, newServiceLine(mechanicId)])}
               >
                 <Plus size={14} /> {w.addWork}
               </Button>

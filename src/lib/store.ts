@@ -177,6 +177,8 @@ export interface WorkOrderLine {
   qty: number;
   price: number;
   discount: number;
+  /** Per-line mechanic; empty = use order.mechanicId */
+  mechanicId?: string;
 }
 
 export interface PartLine {

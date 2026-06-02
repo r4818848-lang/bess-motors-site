@@ -37,7 +37,10 @@ function findVehicleForPlate(db: Database, userId: string, plate: string) {
   );
 }
 
-function mapImportServices(draft: ImportWorkOrderDraft): WorkOrderLine[] {
+function mapImportServices(
+  draft: ImportWorkOrderDraft,
+  defaultMechanicId: string
+): WorkOrderLine[] {
   const ts = Date.now();
   return draft.services
     .filter((s) => s.name.trim())
@@ -47,6 +50,7 @@ function mapImportServices(draft: ImportWorkOrderDraft): WorkOrderLine[] {
       qty: s.qty > 0 ? s.qty : 1,
       price: Math.max(0, s.price),
       discount: 0,
+      mechanicId: defaultMechanicId || undefined,
     }));
 }
 
@@ -154,7 +158,7 @@ export async function createWorkOrderFromImport(
     userId,
     vehicleId,
     status: "received",
-    services: mapImportServices(input),
+    services: mapImportServices(input, db.mechanics[0]?.id ?? ""),
     parts: mapImportParts(input),
     mechanicId: db.mechanics[0]?.id ?? "",
     mechanicLaborPercent: -1,
