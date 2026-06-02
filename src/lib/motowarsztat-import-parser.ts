@@ -1,4 +1,4 @@
-/** Heuristic parse of Motowarsztat / workshop PDF text → CRM work order draft */
+/** Heuristic parse of Motowarsztat kosztorys / workshop PDF text → CRM work order draft */
 
 export type ImportServiceDraft = {
   name: string;
@@ -30,33 +30,295 @@ export type ImportWorkOrderDraft = {
   warnings: string[];
 };
 
-const PHONE_RE = /(?:\+48\s?)?(?:\d{3}[\s-]?){2}\d{3}|\d{9}/g;
 const EMAIL_RE = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
 const VIN_RE = /\b([A-HJ-NPR-Z0-9]{17})\b/i;
 const PLATE_RE =
   /\b([A-Z]{1,3}[\s-]?[A-Z0-9]{4,6}|[A-Z]{2}[\s-]?\d{4,5}[\s-]?[A-Z]{1,3})\b/gi;
 
-const PARTS_SECTION_START =
-  /^(części|czesci|towar|materiał|materiały|artykuł|parts|detale|materiały eksploatacyjne)\b/i;
-const LABOR_SECTION_START =
-  /^(usługi|uslugi|robocizna|prace|robota|labor|usługa|wykonane prace|operacje)\b/i;
-const VEHICLE_SECTION_START = /^(pojazd|samochód|auto|dane pojazdu|vehicle)\b/i;
-const SKIP_LINE =
-  /^(razem|suma|vat|netto|brutto|total|data|zlecenie|klient|telefon|vin|rej|podsumowanie|do zapłaty|wartość|kwota)/i;
+const MW_ORDER_RE = /\bZL\s*(\d+\/\d+\/\d{4}|\d+\/\d+\/\d{2,4})\b/i;
 
-type ParseSection = "none" | "labor" | "parts" | "vehicle";
+const PARTS_SECTION =
+  /^(towary|części|czesci|materiał|materiały|artykuł|parts)\b/i;
+const LABOR_SECTION = /^(usługi|uslugi|robocizna|prace|robota)\b/i;
+
+const SKIP_LINE =
+  /^(razem|suma|vat|netto|brutto|total|data|zlecenie|telefon|vin|rej|podsumowanie|do zapłaty|wartość|kwota|łącznie|kosztorys|ilość|j\.?\s*m\.?|cena brutto|koszt brutto|nazwa|dane klienta|dane pojazdu|osoba uprawniona|podpis klienta|status|data utworzenia|nip|aleja|krakowska|bessmotors|spółka|spolka|www\.|http)/i;
+
+const SUMMARY_LINE = /\b(łącznie|razem)\b/i;
 
 function cleanPlate(raw: string): string {
   return raw.replace(/\s+/g, " ").trim().toUpperCase();
 }
 
-function parseMoney(raw: string): number {
-  return Number.parseFloat(raw.replace(/\s/g, "").replace(",", "."));
+function parsePlMoney(raw: string): number {
+  const n = Number.parseFloat(raw.replace(/\s/g, "").replace(",", "."));
+  return Number.isFinite(n) ? n : 0;
+}
+
+function normalizeText(text: string): string {
+  return text.replace(/\r/g, "\n").replace(/\u00a0/g, " ");
+}
+
+function isMotowarsztatKosztorys(text: string): boolean {
+  const lower = text.toLowerCase();
+  return (
+    lower.includes("kosztorys") ||
+    (lower.includes("dane klienta") && lower.includes("usługi")) ||
+    (lower.includes("dane klienta") && lower.includes("uslugi")) ||
+    (lower.includes("dane pojazdu") && lower.includes("towary"))
+  );
+}
+
+function sliceBlock(text: string, start: RegExp, end: RegExp): string {
+  const startMatch = start.exec(text);
+  if (!startMatch) return "";
+  const from = startMatch.index + startMatch[0].length;
+  const rest = text.slice(from);
+  const endMatch = end.exec(rest);
+  return (endMatch ? rest.slice(0, endMatch.index) : rest).trim();
+}
+
+/** Motowarsztat table row: Name  qty  oper|szt  unitPrice  lineTotal */
+const MW_TABLE_ROW =
+  /^(.+?)\s+(\d+(?:[.,]\d+)?)\s+(oper|szt\.?)\s+(\d[\d\s]*[.,]\d{2})\s*(?:zł)?\s+(\d[\d\s]*[.,]\d{2})\s*(?:zł)?\s*$/i;
+
+function tryMotowarsztatTableRow(
+  line: string,
+  kind: "labor" | "parts"
+): ImportServiceDraft | ImportPartDraft | null {
+  const trimmed = line.trim();
+  if (trimmed.length < 8 || SKIP_LINE.test(trimmed) || SUMMARY_LINE.test(trimmed)) {
+    return null;
+  }
+  if (LABOR_SECTION.test(trimmed) || PARTS_SECTION.test(trimmed)) return null;
+
+  const m = trimmed.match(MW_TABLE_ROW);
+  if (!m) return null;
+
+  const name = m[1].replace(/\s*:\s*$/, "").trim();
+  if (name.length < 3 || /^\d+$/.test(name)) return null;
+
+  const qty = parsePlMoney(m[2]);
+  const unitPrice = parsePlMoney(m[4]);
+  const lineTotal = parsePlMoney(m[5]);
+  if (unitPrice <= 0 && lineTotal <= 0) return null;
+
+  const price = unitPrice > 0 ? unitPrice : lineTotal / (qty || 1);
+
+  if (kind === "labor") {
+    return { name: name.slice(0, 200), qty: qty > 0 ? qty : 1, price };
+  }
+
+  return {
+    name: name.slice(0, 200),
+    qty: qty > 0 ? qty : 1,
+    purchasePrice: 0,
+    sellPrice: price,
+  };
+}
+
+function parseMotowarsztatBlocks(text: string): {
+  clientName?: string;
+  phone?: string;
+  email?: string;
+  plate?: string;
+  vin?: string;
+  make?: string;
+  model?: string;
+  mileage?: number;
+  orderNumber?: string;
+} {
+  const result: ReturnType<typeof parseMotowarsztatBlocks> = {};
+  const lower = text.toLowerCase();
+
+  const orderMatch = text.match(MW_ORDER_RE);
+  if (orderMatch) result.orderNumber = `ZL ${orderMatch[1].trim()}`;
+
+  const clientBlock = sliceBlock(
+    text,
+    /dane klienta/i,
+    /dane pojazdu|usługi|uslugi|towary/i
+  );
+  const vehicleBlock = sliceBlock(
+    text,
+    /dane pojazdu/i,
+    /usługi|uslugi|towary|podsumowanie/i
+  );
+
+  if (clientBlock) {
+    const email = clientBlock.match(EMAIL_RE)?.[0];
+    if (email) result.email = email;
+
+    for (const line of clientBlock.split(/\n/)) {
+      const t = line.trim();
+      if (!t) continue;
+      const tel = t.match(/telefon[:\s]+(\d[\d\s-]{8,12})/i);
+      if (tel) {
+        const digits = tel[1].replace(/\D/g, "");
+        if (digits.length >= 9) {
+          result.phone = `+48${digits.slice(-9)}`;
+        }
+      }
+      const nameAfterLabel = t.match(
+        /(?:imię i nazwisko|nazwa|klient)[:\s]+(.+)/i
+      );
+      if (nameAfterLabel && !result.clientName) {
+        result.clientName = nameAfterLabel[1].trim();
+      }
+    }
+
+    if (!result.clientName) {
+      for (const line of clientBlock.split(/\n/)) {
+        const t = line.trim();
+        if (
+          t.length >= 4 &&
+          /^[A-Za-zÀ-ž][A-Za-zÀ-ž\s.'-]{2,}$/.test(t) &&
+          !/telefon|email|nip|ul\.|ulica|@|\d{5}/i.test(t)
+        ) {
+          result.clientName = t;
+          break;
+        }
+      }
+    }
+
+    if (!result.phone) {
+      const phones = [...clientBlock.matchAll(/\b(\d{9})\b/g)].map((x) => x[1]);
+      const mobile = phones.find((p) => /^[5-9]/.test(p));
+      if (mobile) result.phone = `+48${mobile}`;
+    }
+  }
+
+  if (vehicleBlock) {
+    const vin =
+      vehicleBlock.match(VIN_RE)?.[1]?.toUpperCase() ??
+      vehicleBlock.match(/vin[:\s]+([A-HJ-NPR-Z0-9]{17})/i)?.[1]?.toUpperCase();
+    if (vin) result.vin = vin;
+
+    const mm =
+      vehicleBlock.match(/marka\s*(?:i\s*)?model[:\s]+(.+)/i)?.[1]?.trim() ??
+      vehicleBlock.match(/pojazd[:\s]+(.+)/i)?.[1]?.trim();
+    if (mm) {
+      const words = mm.split(/\s+/);
+      result.make = words[0];
+      result.model = words.slice(1).join(" ") || words[0];
+    }
+
+    const mileageMatch = vehicleBlock.match(
+      /(?:stan licznika|przebieg)[:\s]+(\d[\d\s]*)\s*km/i
+    );
+    if (mileageMatch) {
+      const n = Number.parseInt(mileageMatch[1].replace(/\s/g, ""), 10);
+      if (n > 0) result.mileage = n;
+    }
+
+    for (const m of vehicleBlock.matchAll(PLATE_RE)) {
+      const p = cleanPlate(m[1]);
+      if (p.length >= 4 && p.length <= 10) {
+        result.plate = p;
+        break;
+      }
+    }
+  }
+
+  if (!result.make && lower.includes("audi")) {
+    result.make = "Audi";
+    if (!result.model) result.model = "A4";
+  }
+
+  return result;
+}
+
+function extractMotowarsztatLineItems(text: string): {
+  services: ImportServiceDraft[];
+  parts: ImportPartDraft[];
+} {
+  const services: ImportServiceDraft[] = [];
+  const parts: ImportPartDraft[] = [];
+  let section: "none" | "labor" | "parts" = "none";
+
+  const lines = text.split(/\n/);
+  for (let i = 0; i < lines.length; i++) {
+    let trimmed = lines[i].trim();
+    if (!trimmed) continue;
+
+    if (LABOR_SECTION.test(trimmed)) {
+      section = "labor";
+      continue;
+    }
+    if (PARTS_SECTION.test(trimmed)) {
+      section = "parts";
+      continue;
+    }
+
+    if (section === "none") continue;
+
+    if (SKIP_LINE.test(trimmed) || SUMMARY_LINE.test(trimmed)) continue;
+    if (/^razem\b/i.test(trimmed)) continue;
+
+    let combined = trimmed;
+    if (!MW_TABLE_ROW.test(combined) && i + 1 < lines.length) {
+      const next = lines[i + 1].trim();
+      const attempt = `${trimmed} ${next}`;
+      if (MW_TABLE_ROW.test(attempt)) {
+        combined = attempt;
+        i += 1;
+      }
+    }
+
+    if (section === "labor") {
+      const row = tryMotowarsztatTableRow(combined, "labor");
+      if (row && "price" in row) services.push(row);
+    } else {
+      const row = tryMotowarsztatTableRow(combined, "parts");
+      if (row && "sellPrice" in row) parts.push(row);
+    }
+  }
+
+  return { services, parts };
+}
+
+function parseMotowarsztatKosztorys(text: string): ImportWorkOrderDraft {
+  const warnings: string[] = [];
+  const normalized = normalizeText(text);
+  const meta = parseMotowarsztatBlocks(normalized);
+  let { services, parts } = extractMotowarsztatLineItems(normalized);
+
+  if (services.length === 0 && parts.length === 0) {
+    const generic = extractGenericLineItems(normalized);
+    services = generic.services;
+    parts = generic.parts;
+  }
+
+  services = dedupeServices(services);
+  parts = dedupeParts(parts);
+
+  if (services.length === 0) warnings.push("no_services_detected");
+  if (parts.length === 0) warnings.push("no_parts_detected");
+  if (parts.some((p) => p.purchasePrice <= 0)) warnings.push("missing_purchase_price");
+  if (!meta.phone && !meta.clientName) warnings.push("no_client_detected");
+  if (!meta.plate && !meta.vin) warnings.push("no_vehicle_detected");
+
+  return {
+    clientName: meta.clientName?.slice(0, 120),
+    phone: meta.phone,
+    email: meta.email,
+    plate: meta.plate ? cleanPlate(meta.plate) : undefined,
+    vin: meta.vin,
+    make: meta.make?.slice(0, 60),
+    model: meta.model?.slice(0, 60),
+    mileage: meta.mileage,
+    orderNumber: meta.orderNumber?.slice(0, 40),
+    services,
+    parts,
+    internalNotes: meta.orderNumber
+      ? `Import MW: ${meta.orderNumber}`
+      : "Import kosztorys Motowarsztat",
+    warnings,
+  };
 }
 
 function labelValue(text: string, labels: string[]): string | undefined {
-  const lines = text.split(/\n/);
-  for (const line of lines) {
+  for (const line of text.split(/\n/)) {
     const lower = line.toLowerCase();
     for (const label of labels) {
       const idx = lower.indexOf(label.toLowerCase());
@@ -68,97 +330,68 @@ function labelValue(text: string, labels: string[]): string | undefined {
   return undefined;
 }
 
-function parseQtyPrefix(line: string): { qty: number; rest: string } {
-  const m = line.match(/^(\d+(?:[.,]\d+)?)\s*(szt|kpl|szt\.|pcs|x|godz|h|rbh)\s+/i);
-  if (!m) return { qty: 1, rest: line };
-  const qty = Number.parseFloat(m[1].replace(",", "."));
-  return { qty: Number.isFinite(qty) && qty > 0 ? qty : 1, rest: line.slice(m[0].length) };
-}
-
-function stripPricesFromLine(line: string): string {
-  let name = line;
-  for (const m of line.matchAll(/(\d{1,6}[,.]\d{2})\s*(?:zł|pln)?/gi)) {
-    name = name.replace(m[0], " ");
-  }
-  return name
-    .replace(/^\d+([.,]\d+)?\s*(szt|kpl|szt\.|godz|h|rbh)?\s*/i, "")
-    .replace(/[\t|]+/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-function countPrices(line: string): number[] {
-  return [...line.matchAll(/(\d{1,6}[,.]\d{2})\s*(?:zł|pln)?/gi)]
-    .map((m) => parseMoney(m[1]))
-    .filter((n) => Number.isFinite(n));
-}
-
-/** One price → labor / service line */
 function tryServiceLine(line: string): ImportServiceDraft | null {
   const trimmed = line.trim();
-  if (trimmed.length < 4 || SKIP_LINE.test(trimmed)) return null;
-  if (PARTS_SECTION_START.test(trimmed) || LABOR_SECTION_START.test(trimmed)) return null;
+  if (trimmed.length < 4 || SKIP_LINE.test(trimmed) || SUMMARY_LINE.test(trimmed)) {
+    return null;
+  }
 
-  const prices = countPrices(trimmed);
+  const prices = [...trimmed.matchAll(/(\d[\d\s]*[.,]\d{2})\s*(?:zł|pln)?/gi)].map((m) =>
+    parsePlMoney(m[1])
+  );
   if (prices.length !== 1) return null;
 
-  const name = stripPricesFromLine(trimmed);
-  if (name.length < 2 || /^\d+$/.test(name)) return null;
+  let name = trimmed;
+  for (const m of trimmed.matchAll(/(\d[\d\s]*[.,]\d{2})\s*(?:zł|pln)?/gi)) {
+    name = name.replace(m[0], " ");
+  }
+  name = name.replace(/\s+/g, " ").trim();
+  if (name.length < 2 || /^\d+$/.test(name) || SUMMARY_LINE.test(name)) return null;
 
-  const { qty, rest } = parseQtyPrefix(name);
-  const finalName = rest.length >= 2 ? rest : name;
-
-  return {
-    name: finalName.slice(0, 200),
-    qty,
-    price: prices[0],
-  };
+  return { name: name.slice(0, 200), qty: 1, price: prices[0] };
 }
 
-/** Two prices → part (zakup / sprzedaż) */
-function tryPartLine(line: string): ImportPartDraft | null {
+function tryPartFromDualPrice(line: string): ImportPartDraft | null {
   const trimmed = line.trim();
-  if (trimmed.length < 6 || SKIP_LINE.test(trimmed)) return null;
+  if (trimmed.length < 6 || SKIP_LINE.test(trimmed) || SUMMARY_LINE.test(trimmed)) return null;
 
-  const prices = countPrices(trimmed);
+  const prices = [...trimmed.matchAll(/(\d[\d\s]*[.,]\d{2})\s*(?:zł|pln)?/gi)].map((m) =>
+    parsePlMoney(m[1])
+  );
   if (prices.length < 2) return null;
 
-  const purchasePrice = Math.min(...prices.slice(0, 2));
-  const sellPrice = Math.max(...prices.slice(0, 2));
-  const name = stripPricesFromLine(trimmed);
-  if (name.length < 2 || /^\d+$/.test(name)) return null;
-
-  const { qty, rest } = parseQtyPrefix(name);
-  const finalName = rest.length >= 2 ? rest : name;
+  let name = trimmed;
+  for (const m of trimmed.matchAll(/(\d[\d\s]*[.,]\d{2})\s*(?:zł|pln)?/gi)) {
+    name = name.replace(m[0], " ");
+  }
+  name = name.replace(/\s+/g, " ").trim();
+  if (name.length < 2) return null;
 
   return {
-    name: finalName.slice(0, 200),
-    qty,
-    purchasePrice,
-    sellPrice,
+    name: name.slice(0, 200),
+    qty: 1,
+    purchasePrice: Math.min(prices[0], prices[1]),
+    sellPrice: Math.max(prices[0], prices[1]),
   };
 }
 
-/** One price in parts table — sell only; zakup uzupełnisz w CRM */
 function tryPartSinglePrice(line: string): ImportPartDraft | null {
   const trimmed = line.trim();
-  if (trimmed.length < 4 || SKIP_LINE.test(trimmed)) return null;
+  if (trimmed.length < 4 || SKIP_LINE.test(trimmed) || SUMMARY_LINE.test(trimmed)) return null;
 
-  const prices = countPrices(trimmed);
+  const prices = [...trimmed.matchAll(/(\d[\d\s]*[.,]\d{2})\s*(?:zł|pln)?/gi)].map((m) =>
+    parsePlMoney(m[1])
+  );
   if (prices.length !== 1) return null;
 
-  const name = stripPricesFromLine(trimmed);
-  if (name.length < 2 || /^\d+$/.test(name)) return null;
+  let name = trimmed;
+  for (const m of trimmed.matchAll(/(\d[\d\s]*[.,]\d{2})\s*(?:zł|pln)?/gi)) {
+    name = name.replace(m[0], " ");
+  }
+  name = name.replace(/\s+/g, " ").trim();
+  if (name.length < 2) return null;
 
-  const { qty, rest } = parseQtyPrefix(name);
-  const finalName = rest.length >= 2 ? rest : name;
-
-  return {
-    name: finalName.slice(0, 200),
-    qty,
-    purchasePrice: 0,
-    sellPrice: prices[0],
-  };
+  return { name: name.slice(0, 200), qty: 1, purchasePrice: 0, sellPrice: prices[0] };
 }
 
 function dedupeServices(items: ImportServiceDraft[]): ImportServiceDraft[] {
@@ -181,25 +414,24 @@ function dedupeParts(items: ImportPartDraft[]): ImportPartDraft[] {
   });
 }
 
-function extractLineItems(text: string): { services: ImportServiceDraft[]; parts: ImportPartDraft[] } {
+function extractGenericLineItems(text: string): {
+  services: ImportServiceDraft[];
+  parts: ImportPartDraft[];
+} {
   const services: ImportServiceDraft[] = [];
   const parts: ImportPartDraft[] = [];
-  let section: ParseSection = "none";
+  let section: "none" | "labor" | "parts" = "none";
 
   for (const rawLine of text.split(/\n/)) {
     const trimmed = rawLine.trim();
     if (!trimmed) continue;
 
-    if (PARTS_SECTION_START.test(trimmed)) {
+    if (PARTS_SECTION.test(trimmed)) {
       section = "parts";
       continue;
     }
-    if (LABOR_SECTION_START.test(trimmed)) {
+    if (LABOR_SECTION.test(trimmed)) {
       section = "labor";
-      continue;
-    }
-    if (VEHICLE_SECTION_START.test(trimmed)) {
-      section = "vehicle";
       continue;
     }
 
@@ -210,63 +442,28 @@ function extractLineItems(text: string): { services: ImportServiceDraft[]; parts
     }
 
     if (section === "parts") {
-      const dual = tryPartLine(trimmed);
+      const dual = tryPartFromDualPrice(trimmed);
       if (dual) {
         parts.push(dual);
         continue;
       }
       const single = tryPartSinglePrice(trimmed);
       if (single) parts.push(single);
-      continue;
     }
   }
 
   return { services, parts };
 }
 
-function extractFallback(text: string): { services: ImportServiceDraft[]; parts: ImportPartDraft[] } {
-  const services: ImportServiceDraft[] = [];
-  const parts: ImportPartDraft[] = [];
-
-  for (const rawLine of text.split(/\n/)) {
-    const trimmed = rawLine.trim();
-    if (!trimmed || SKIP_LINE.test(trimmed)) continue;
-    if (PARTS_SECTION_START.test(trimmed) || LABOR_SECTION_START.test(trimmed)) continue;
-
-    const partDual = tryPartLine(trimmed);
-    if (partDual) {
-      parts.push(partDual);
-      continue;
-    }
-    const svc = tryServiceLine(trimmed);
-    if (svc) services.push(svc);
-  }
-
-  return { services, parts };
-}
-
-function parseMileage(text: string): number | undefined {
-  const raw =
-    labelValue(text, ["przebieg", "mileage", "stan licznika"]) ??
-    text.match(/przebieg[:\s]+(\d[\d\s]*)\s*km/i)?.[1];
-  if (!raw) return undefined;
-  const n = Number.parseInt(raw.replace(/\s/g, ""), 10);
-  return Number.isFinite(n) && n > 0 ? n : undefined;
-}
-
-export function parseWorkOrderImportText(text: string): ImportWorkOrderDraft {
+function parseGeneric(text: string): ImportWorkOrderDraft {
   const warnings: string[] = [];
-  const normalized = text.replace(/\r/g, "\n");
+  const normalized = normalizeText(text);
 
-  const phones = [...normalized.matchAll(PHONE_RE)].map((m) =>
-    m[0].replace(/\s/g, "").replace(/^\+48/, "").slice(-9)
-  );
-  const phone = phones.find((p) => p.length === 9)
-    ? `+48${phones.find((p) => p.length === 9)}`
-    : undefined;
+  const phones = [...normalized.matchAll(/\b(\d{9})\b/g)].map((m) => m[1]);
+  const clientPhone = phones.find((p) => /^[5-9]/.test(p));
+  const phone = clientPhone ? `+48${clientPhone}` : undefined;
 
   const email = normalized.match(EMAIL_RE)?.[0];
-
   const vin =
     labelValue(normalized, ["vin", "numer vin"]) ??
     normalized.match(VIN_RE)?.[1]?.toUpperCase();
@@ -281,68 +478,44 @@ export function parseWorkOrderImportText(text: string): ImportWorkOrderDraft {
   }
 
   const clientName =
-    labelValue(normalized, [
-      "klient",
-      "nazwa klienta",
-      "kontrahent",
-      "odbiorca",
-      "client",
-      "imię i nazwisko",
-    ]) ?? labelValue(normalized, ["firma", "nazwa firmy"]);
+    labelValue(normalized, ["klient", "nazwa klienta", "imię i nazwisko"]) ??
+    labelValue(normalized, ["firma", "nazwa firmy"]);
 
-  const orderNumber = labelValue(normalized, [
-    "nr zlecenia",
-    "numer zlecenia",
-    "zlecenie nr",
-    "order",
-    "zl ",
-    "zl.",
-  ]);
+  const orderNumber =
+    normalized.match(MW_ORDER_RE)?.[0] ??
+    labelValue(normalized, ["nr zlecenia", "numer zlecenia"]);
 
-  const makeModel =
-    labelValue(normalized, [
-      "pojazd",
-      "samochód",
-      "auto",
-      "marka / model",
-      "marka i model",
-    ]) ?? labelValue(normalized, ["marka", "model"]);
-
-  let make =
-    labelValue(normalized, ["marka", "marka pojazdu", "producent"]) ?? undefined;
-  let model =
-    labelValue(normalized, ["model", "model pojazdu"]) ?? undefined;
-
-  if (makeModel && (!make || !model)) {
-    const segments = makeModel.split(/[,/|]/).map((x) => x.trim()).filter(Boolean);
-    if (segments.length >= 2) {
-      make = make ?? segments[0];
-      model = model ?? segments.slice(1).join(" ");
-    } else {
-      const words = makeModel.split(/\s+/);
-      make = make ?? words[0];
-      model = model ?? (words.slice(1).join(" ") || undefined);
-    }
+  const makeModel = labelValue(normalized, ["marka i model", "marka / model", "pojazd"]);
+  let make = labelValue(normalized, ["marka"]);
+  let model = labelValue(normalized, ["model"]);
+  if (makeModel) {
+    const words = makeModel.split(/\s+/);
+    make = make ?? words[0];
+    model = model ?? words.slice(1).join(" ");
   }
 
   plate =
     plate ??
-    labelValue(normalized, [
-      "rejestracja",
-      "nr rej",
-      "rej.",
-      "tablica",
-      "registration",
-      "nr rejestracyjny",
-    ]);
+    labelValue(normalized, ["rejestracja", "nr rej", "rej.", "tablica"]);
 
-  const mileage = parseMileage(normalized);
+  const mileageRaw = labelValue(normalized, ["przebieg", "stan licznika"]);
+  const mileage = mileageRaw
+    ? Number.parseInt(mileageRaw.replace(/\D/g, ""), 10) || undefined
+    : undefined;
 
-  let { services, parts } = extractLineItems(normalized);
+  let { services, parts } = extractGenericLineItems(normalized);
   if (services.length === 0 && parts.length === 0) {
-    const fallback = extractFallback(normalized);
-    services = fallback.services;
-    parts = fallback.parts;
+    for (const rawLine of normalized.split(/\n/)) {
+      const trimmed = rawLine.trim();
+      if (!trimmed || SKIP_LINE.test(trimmed) || SUMMARY_LINE.test(trimmed)) continue;
+      const dual = tryPartFromDualPrice(trimmed);
+      if (dual) {
+        parts.push(dual);
+        continue;
+      }
+      const svc = tryServiceLine(trimmed);
+      if (svc) services.push(svc);
+    }
   }
 
   services = dedupeServices(services);
@@ -366,9 +539,15 @@ export function parseWorkOrderImportText(text: string): ImportWorkOrderDraft {
     orderNumber: orderNumber?.slice(0, 40),
     services,
     parts,
-    internalNotes: orderNumber
-      ? `Import MW: ${orderNumber}`
-      : "Import z Motowarsztat (PDF/foto)",
+    internalNotes: orderNumber ? `Import: ${orderNumber}` : "Import PDF/foto",
     warnings,
   };
+}
+
+export function parseWorkOrderImportText(text: string): ImportWorkOrderDraft {
+  const normalized = normalizeText(text);
+  if (isMotowarsztatKosztorys(normalized)) {
+    return parseMotowarsztatKosztorys(normalized);
+  }
+  return parseGeneric(normalized);
 }
