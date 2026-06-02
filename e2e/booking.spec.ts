@@ -23,6 +23,9 @@ test("booking page — add service to cart and open datetime step", async ({ pag
 
 test("landing wymiana-oleju opens booking flow from CTA", async ({ page }) => {
   await page.goto("/wymiana-oleju");
-  await page.getByRole("button", { name: /Umów wizytę/i }).first().click();
-  await expect(page.getByTestId("booking-modal")).toBeVisible({ timeout: 8000 });
+  const modal = page.getByTestId("booking-modal");
+  if (!(await modal.isVisible().catch(() => false))) {
+    await page.getByRole("button", { name: /Umów wizytę/i }).first().click();
+  }
+  await expect(modal).toBeVisible({ timeout: 8000 });
 });

@@ -16,7 +16,7 @@ const SEO_RU: Partial<Record<string, SeoText>> = {
   "wymiana-oleju": {
     title: "Замена масла",
     line1: "Масло и фильтры за 1 час",
-    line2: "Оригинальные расходники",
+    line2: "Расходники OEM/OES",
     metaTitle: "Замена масла Варшава",
     metaDescription: "Замена масла и фильтров в BESS MOTORS — быстро, качественно. Сервис Варшава.",
   },

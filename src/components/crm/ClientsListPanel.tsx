@@ -8,11 +8,14 @@ import { deleteClientFromDb, loadDb, saveDb } from "@/lib/store";
 import { pushCrmDelete } from "@/lib/cloud-crm-db";
 import { useDbSync } from "@/hooks/useDbSync";
 import { filterClients } from "@/lib/crm-search";
+import { FLEET_CLIENT_TAG } from "@/lib/client-fleet-access";
 import { displayOrderTotal } from "@/lib/crm-display-price";
 import { useCrmDisplay } from "@/contexts/CrmDisplayContext";
 import { CrmSearchInput } from "./CrmSearchInput";
 import { CrmListToolbar } from "./CrmListToolbar";
 import { AddClientModal } from "./AddClientModal";
+import { ClientFleetModal } from "./ClientFleetModal";
+
 export function ClientsListPanel() {
   const { t } = useI18n();
   const c = t.crm;
@@ -20,6 +23,7 @@ export function ClientsListPanel() {
   const [query, setQuery] = useState("");
   const [clientModalOpen, setClientModalOpen] = useState(false);
   const [companyModalOpen, setCompanyModalOpen] = useState(false);
+  const [fleetUserId, setFleetUserId] = useState<string | null>(null);
   const dbTick = useDbSync();
   void dbTick;
 
@@ -82,6 +86,7 @@ export function ClientsListPanel() {
         onClose={() => setCompanyModalOpen(false)}
         onCreated={() => setCompanyModalOpen(false)}
       />
+      <ClientFleetModal userId={fleetUserId} onClose={() => setFleetUserId(null)} />
 
       <CrmListToolbar>
         <CrmSearchInput value={query} onChange={setQuery} placeholder={c.searchClients} className="max-w-full" />
@@ -128,6 +133,11 @@ export function ClientsListPanel() {
                           VIP
                         </span>
                       )}
+                    {user.clientTags?.includes(FLEET_CLIENT_TAG) && (
+                        <span className="ml-2 text-[10px] uppercase bg-sky-100 text-sky-800 px-1.5 py-0.5 rounded">
+                          FLEET
+                        </span>
+                      )}
                     </td>
                     <td className="text-xs text-bm-muted">{user.email || "—"}</td>
                     <td className="font-mono text-sm text-bm-red">{user.phone}</td>
@@ -151,9 +161,16 @@ export function ClientsListPanel() {
                       {lifetimeTotal.toFixed(2)} zł
                     </td>
                     <td className="space-y-1 whitespace-nowrap">
+                      <button
+                        type="button"
+                        onClick={() => setFleetUserId(user.id)}
+                        className="block text-left text-xs text-bm-red hover:underline font-semibold"
+                      >
+                        {c.fleetPanel}
+                      </button>
                       <Link
                         href={`/crm/work-orders?create=1&client=${user.id}`}
-                        className="block text-xs text-bm-red hover:underline font-semibold"
+                        className="block text-xs text-bm-muted hover:text-bm-red"
                       >
                         {c.createOrderForClient}
                       </Link>

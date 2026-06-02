@@ -1,4 +1,10 @@
 import type { ClientPortalSlice } from "@/lib/client-sign";
+import { isFleetPortalClient } from "@/lib/client-fleet-access";
+import {
+  buildFleetFinance,
+  type FleetFinanceSummary,
+  type VehicleFinanceRow,
+} from "@/lib/client-fleet-finance";
 import { orderNeedsClientSignature } from "@/lib/order-signature";
 import type { WorkOrder } from "@/lib/store";
 import { calcClientTotal } from "@/lib/workorder-calc";
@@ -175,16 +181,162 @@ export function formatCarsSlice(locale: BotLocale, slice: ClientPortalSlice): st
   }
 
   const lines = [L.carsTitle, ""];
-  for (const v of slice.vehicles) {
-    lines.push(
-      `<b>${esc(v.plate)}</b>`,
-      `${esc(v.make)} ${esc(v.model)}`.trim(),
-      v.vin ? `VIN: ${esc(v.vin)}` : "",
-      ""
-    );
+
+  if (isFleetPortalClient(slice)) {
+    const finance = buildFleetFinance(slice);
+    const byId = new Map(finance.vehicles.map((r) => [r.vehicleId, r]));
+    for (const v of slice.vehicles) {
+      const row = byId.get(v.id);
+      const debt =
+        row && row.unpaidTotal > 0
+          ? L.carDebtLine(zl(row.unpaidTotal), row.unpaidOrders.length)
+          : row && row.orderCount > 0
+            ? L.carAllPaid
+            : L.carNoOrders;
+      lines.push(
+        `<b>${esc(v.plate)}</b>`,
+        `${esc(v.make)} ${esc(v.model)}`.trim(),
+        v.vin ? `VIN: ${esc(v.vin)}` : "",
+        debt,
+        ""
+      );
+    }
+    if (finance.grandUnpaid > 0) {
+      lines.push(L.carsTotalDebt(zl(finance.grandUnpaid)));
+    }
+    lines.push(L.fleetCarsHint);
+  } else {
+    for (const v of slice.vehicles) {
+      lines.push(
+        `<b>${esc(v.plate)}</b>`,
+        `${esc(v.make)} ${esc(v.model)}`.trim(),
+        v.vin ? `VIN: ${esc(v.vin)}` : "",
+        ""
+      );
+    }
   }
   return lines.join("\n");
 }
+
+export function formatFleetFinanceReport(
+  locale: BotLocale,
+  slice: ClientPortalSlice
+): string {
+  const L = getClientBotLabels(locale);
+  const finance = buildFleetFinance(slice);
+
+  if (slice.workOrders.length === 0) {
+    return L.fleetReportEmpty;
+  }
+
+  const unpaidRows = finance.vehicles.filter((r) => r.unpaidTotal > 0);
+  const paidRows = finance.vehicles.filter(
+    (r) => r.orderCount > 0 && r.unpaidTotal <= 0
+  );
+  const idleRows = finance.vehicles.filter((r) => r.orderCount === 0);
+
+  const lines = [
+    L.fleetReportTitle,
+    "",
+    L.fleetTotalAll(zl(finance.grandTotal)),
+    L.fleetTotalPaid(zl(finance.grandPaid)),
+    L.fleetTotalUnpaid(zl(finance.grandUnpaid)),
+    L.fleetOrderStats(finance.paidOrderCount, finance.unpaidOrderCount),
+    "",
+  ];
+
+  if (unpaidRows.length > 0) {
+    lines.push(`<b>${L.fleetUnpaidSection}</b>`, "");
+    for (const row of unpaidRows) {
+      lines.push(...formatVehicleFinanceBlock(locale, row), "");
+    }
+  }
+
+  if (paidRows.length > 0) {
+    lines.push(`<b>${L.fleetPaidSection}</b>`, "");
+    for (const row of paidRows) {
+      lines.push(...formatVehicleFinanceBlock(locale, row), "");
+    }
+  }
+
+  if (idleRows.length > 0) {
+    lines.push(`<b>${L.fleetIdleSection}</b>`, "");
+    for (const row of idleRows) {
+      lines.push(
+        `<b>${esc(row.plate)}</b> · ${esc(row.makeModel)}`,
+        L.carNoOrders,
+        ""
+      );
+    }
+  }
+
+  if (finance.grandUnpaid <= 0 && unpaidRows.length === 0) {
+    lines.push(L.fleetNoUnpaid);
+  }
+
+  return lines.join("\n");
+}
+
+export function formatVehicleFinanceDetail(
+  locale: BotLocale,
+  slice: ClientPortalSlice,
+  vehicleId: string
+): string | null {
+  const L = getClientBotLabels(locale);
+  const finance = buildFleetFinance(slice);
+  const row = finance.vehicles.find((r) => r.vehicleId === vehicleId);
+  if (!row) return null;
+
+  const lines = [
+    L.fleetCarDetailTitle(esc(row.plate)),
+    `${esc(row.makeModel)}`,
+    "",
+    L.fleetTotalAll(zl(row.totalAll)),
+    L.fleetTotalPaid(zl(row.paidTotal)),
+    L.fleetTotalUnpaid(zl(row.unpaidTotal)),
+    L.fleetOrderStats(
+      row.orderCount - row.unpaidOrders.length,
+      row.unpaidOrders.length
+    ),
+  ];
+
+  if (row.unpaidOrders.length > 0) {
+    lines.push("", `<b>${L.fleetUnpaidList}</b>`, "");
+    for (const o of row.unpaidOrders.slice(0, 12)) {
+      lines.push(
+        `• <b>${esc(o.number)}</b> — ${zl(o.total)}`,
+        `  ${repairLabel(locale, o.status)} · ${o.createdAt.slice(0, 10)}`,
+        ""
+      );
+    }
+    if (row.unpaidOrders.length > 12) {
+      lines.push(L.fleetMoreOrders(row.unpaidOrders.length - 12));
+    }
+  } else {
+    lines.push("", L.fleetCarNoDebt);
+  }
+
+  return lines.join("\n");
+}
+
+function formatVehicleFinanceBlock(
+  locale: BotLocale,
+  row: VehicleFinanceRow
+): string[] {
+  const L = getClientBotLabels(locale);
+  const debt =
+    row.unpaidTotal > 0
+      ? `⏳ <b>${zl(row.unpaidTotal)}</b>`
+      : row.orderCount > 0
+        ? "✅"
+        : "—";
+  return [
+    `<b>${esc(row.plate)}</b> · ${esc(row.makeModel)}`,
+    `${L.fleetOrderStats(row.orderCount - row.unpaidOrders.length, row.unpaidOrders.length)} · ${debt}`,
+  ];
+}
+
+export { buildFleetFinance, type FleetFinanceSummary };
 
 export function countPendingSign(slice: ClientPortalSlice): number {
   return slice.workOrders.filter((o) => orderNeedsClientSignature(o)).length;

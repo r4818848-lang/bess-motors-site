@@ -1,6 +1,6 @@
 import type { ServiceId } from "./services-catalog";
 
-/** Official BESS MOTORS contact & brand data */
+/** BESS MOTORS contact & site data (independent workshop, not a car brand dealer) */
 
 export const siteConfig = {
   name: "BESS MOTORS",

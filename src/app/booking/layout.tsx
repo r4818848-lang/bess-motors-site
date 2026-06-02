@@ -4,7 +4,7 @@ import { buildPageMetadata } from "@/lib/seo-metadata";
 export const metadata: Metadata = buildPageMetadata({
   title: "Zapis online i cennik",
   description:
-    "Zapis na serwis BESS MOTORS online z oficjalnym cennikiem. Wulkanizacja, olej, hamulce, klimatyzacja, chip tuning — Warszawa Aleja Krakowska.",
+    "Zapis na serwis BESS MOTORS online z aktualnym cennikiem. Wulkanizacja, olej, hamulce, klimatyzacja, chip tuning — Warszawa Aleja Krakowska.",
   path: "/booking",
   keywords: ["zapis online serwis", "rezerwacja warsztat Warszawa", "cennik serwis"],
 });

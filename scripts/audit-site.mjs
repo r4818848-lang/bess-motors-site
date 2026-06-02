@@ -65,7 +65,11 @@ function checkApiRoutesExportMethods() {
       if (name.isDirectory()) walk(p);
       else if (name.name === "route.ts") {
         const text = readFileSync(p, "utf8");
-        if (!/export\s+(async\s+)?function\s+(GET|POST|PUT|DELETE|PATCH|HEAD|OPTIONS)/.test(text)) {
+        const hasHandler =
+          /export\s+(async\s+)?function\s+(GET|POST|PUT|DELETE|PATCH|HEAD|OPTIONS)/.test(
+            text
+          ) || /export\s*\{\s*GET\b/.test(text);
+        if (!hasHandler) {
           issues.push(p.replace(root, ""));
         }
       }

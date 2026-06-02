@@ -22,6 +22,28 @@ export type ClientBotLabels = {
   myOrders: string;
   notifications: string;
   myCars: string;
+  fleetFinance: string;
+  fleetReportTitle: string;
+  fleetReportEmpty: string;
+  fleetTotalAll: (amount: string) => string;
+  fleetTotalPaid: (amount: string) => string;
+  fleetTotalUnpaid: (amount: string) => string;
+  fleetOrderStats: (paidCount: number, unpaidCount: number) => string;
+  fleetByVehicle: string;
+  fleetNoUnpaid: string;
+  fleetUnpaidList: string;
+  fleetMoreOrders: (n: number) => string;
+  fleetCarDetailTitle: (plate: string) => string;
+  fleetCarNoDebt: string;
+  carDebtLine: (amount: string, count: number) => string;
+  carAllPaid: string;
+  carsTotalDebt: (amount: string) => string;
+  fleetNotAvailable: string;
+  fleetUnpaidSection: string;
+  fleetPaidSection: string;
+  fleetIdleSection: string;
+  carNoOrders: string;
+  fleetCarsHint: string;
   addVin: string;
   activate: string;
   contacts: string;
@@ -214,6 +236,30 @@ const LABELS: Record<BotLocale, ClientBotLabels> = {
     myOrders: "📋 Zlecenia",
     notifications: "🔔 Powiadomienia",
     myCars: "🚗 Moje auta",
+    fleetFinance: "💳 Rozliczenia",
+    fleetReportTitle: "💳 <b>Raport finansowy — Twoje auta</b>",
+    fleetReportEmpty:
+      "💳 <b>Rozliczenia</b>\n\nBrak zleceń. Po pierwszej wizycie zobaczysz tu kwoty i status płatności.",
+    fleetTotalAll: (a) => `📊 Razem usług: <b>${a}</b>`,
+    fleetTotalPaid: (a) => `✅ Opłacone: <b>${a}</b>`,
+    fleetTotalUnpaid: (a) => `⏳ Do zapłaty: <b>${a}</b>`,
+    fleetOrderStats: (paid, unpaid) =>
+      `Zlecenia: ${paid} opł. · ${unpaid} nieopł.`,
+    fleetByVehicle: "<b>Według pojazdu:</b>",
+    fleetNoUnpaid: "✅ Brak zaległości — dziękujemy!",
+    fleetUnpaidList: "Nieopłacone zlecenia",
+    fleetMoreOrders: (n) => `… i jeszcze ${n} zleceń`,
+    fleetCarDetailTitle: (plate) => `🚗 <b>${plate}</b>`,
+    fleetCarNoDebt: "✅ Wszystkie zlecenia tego auta są opłacone.",
+    carDebtLine: (a, n) => `⏳ Do zapłaty: <b>${a}</b> (${n} zlec.)`,
+    carAllPaid: "✅ Opłacone",
+    carsTotalDebt: (a) => `\n<b>Łącznie do zapłaty: ${a}</b>`,
+    fleetNotAvailable: "Ta sekcja jest dostępna tylko dla klientów flotowych. Skontaktuj się z warsztatem.",
+    fleetUnpaidSection: "⏳ Do zapłaty",
+    fleetPaidSection: "✅ Opłacone",
+    fleetIdleSection: "🚗 Bez zleceń w systemie",
+    carNoOrders: "Brak zleceń",
+    fleetCarsHint: "💡 Pełny raport: przycisk «Rozliczenia» w menu.",
     addVin: "➕ Dodaj VIN",
     activate: "🔐 Połącz konto",
     contacts: "📍 Kontakt",
@@ -427,6 +473,31 @@ const LABELS: Record<BotLocale, ClientBotLabels> = {
     myOrders: "📋 Заказ-наряды",
     notifications: "🔔 Уведомления",
     myCars: "🚗 Мои авто",
+    fleetFinance: "💳 Оплаты",
+    fleetReportTitle: "💳 <b>Финансовый отчёт — ваши автомобили</b>",
+    fleetReportEmpty:
+      "💳 <b>Оплаты</b>\n\nЗаказов пока нет. После визита здесь будут суммы и статус оплаты.",
+    fleetTotalAll: (a) => `📊 Всего услуг: <b>${a}</b>`,
+    fleetTotalPaid: (a) => `✅ Оплачено: <b>${a}</b>`,
+    fleetTotalUnpaid: (a) => `⏳ К оплате: <b>${a}</b>`,
+    fleetOrderStats: (paid, unpaid) =>
+      `Заказы: ${paid} опл. · ${unpaid} долг`,
+    fleetByVehicle: "<b>По автомобилям:</b>",
+    fleetNoUnpaid: "✅ Задолженностей нет — спасибо!",
+    fleetUnpaidList: "Неоплаченные заказы",
+    fleetMoreOrders: (n) => `… и ещё ${n} заказов`,
+    fleetCarDetailTitle: (plate) => `🚗 <b>${plate}</b>`,
+    fleetCarNoDebt: "✅ По этому авто всё оплачено.",
+    carDebtLine: (a, n) => `⏳ К оплате: <b>${a}</b> (${n} зак.)`,
+    carAllPaid: "✅ Оплачено",
+    carsTotalDebt: (a) => `\n<b>Итого к оплате: ${a}</b>`,
+    fleetNotAvailable:
+      "Этот раздел только для клиентов с автопарком. Свяжитесь с сервисом, если вам нужен такой доступ.",
+    fleetUnpaidSection: "⏳ К оплате",
+    fleetPaidSection: "✅ Оплачено",
+    fleetIdleSection: "🚗 Без заказов в системе",
+    carNoOrders: "Нет заказов",
+    fleetCarsHint: "💡 Полный отчёт — кнопка «Оплаты» в меню.",
     addVin: "➕ Добавить VIN",
     activate: "🔐 Подключить кабинет",
     contacts: "📍 Контакты",
@@ -641,6 +712,31 @@ const LABELS: Record<BotLocale, ClientBotLabels> = {
     myOrders: "📋 Замовлення",
     notifications: "🔔 Сповіщення",
     myCars: "🚗 Мої авто",
+    fleetFinance: "💳 Оплати",
+    fleetReportTitle: "💳 <b>Фінансовий звіт — ваші авто</b>",
+    fleetReportEmpty:
+      "💳 <b>Оплати</b>\n\nЗамовлень ще немає. Після візиту тут будуть суми та статус оплати.",
+    fleetTotalAll: (a) => `📊 Всього послуг: <b>${a}</b>`,
+    fleetTotalPaid: (a) => `✅ Сплачено: <b>${a}</b>`,
+    fleetTotalUnpaid: (a) => `⏳ До сплати: <b>${a}</b>`,
+    fleetOrderStats: (paid, unpaid) =>
+      `Замовлення: ${paid} опл. · ${unpaid} борг`,
+    fleetByVehicle: "<b>За авто:</b>",
+    fleetNoUnpaid: "✅ Боргів немає — дякуємо!",
+    fleetUnpaidList: "Неоплачені замовлення",
+    fleetMoreOrders: (n) => `… і ще ${n} замовлень`,
+    fleetCarDetailTitle: (plate) => `🚗 <b>${plate}</b>`,
+    fleetCarNoDebt: "✅ По цьому авто все сплачено.",
+    carDebtLine: (a, n) => `⏳ До сплати: <b>${a}</b> (${n} зам.)`,
+    carAllPaid: "✅ Сплачено",
+    carsTotalDebt: (a) => `\n<b>Разом до сплати: ${a}</b>`,
+    fleetNotAvailable:
+      "Цей розділ лише для клієнтів з автопарком. Зверніться до сервісу.",
+    fleetUnpaidSection: "⏳ До сплати",
+    fleetPaidSection: "✅ Сплачено",
+    fleetIdleSection: "🚗 Без замовлень у системі",
+    carNoOrders: "Немає замовлень",
+    fleetCarsHint: "💡 Повний звіт — кнопка «Оплати» в меню.",
     addVin: "➕ Додати VIN",
     activate: "🔐 Підключити кабінет",
     contacts: "📍 Контакти",
@@ -849,6 +945,31 @@ const LABELS: Record<BotLocale, ClientBotLabels> = {
     myOrders: "📋 Work orders",
     notifications: "🔔 Notifications",
     myCars: "🚗 My cars",
+    fleetFinance: "💳 Billing",
+    fleetReportTitle: "💳 <b>Financial report — your vehicles</b>",
+    fleetReportEmpty:
+      "💳 <b>Billing</b>\n\nNo orders yet. After your first visit you will see amounts and payment status here.",
+    fleetTotalAll: (a) => `📊 Total services: <b>${a}</b>`,
+    fleetTotalPaid: (a) => `✅ Paid: <b>${a}</b>`,
+    fleetTotalUnpaid: (a) => `⏳ Due: <b>${a}</b>`,
+    fleetOrderStats: (paid, unpaid) =>
+      `Orders: ${paid} paid · ${unpaid} due`,
+    fleetByVehicle: "<b>By vehicle:</b>",
+    fleetNoUnpaid: "✅ Nothing due — thank you!",
+    fleetUnpaidList: "Unpaid orders",
+    fleetMoreOrders: (n) => `… and ${n} more orders`,
+    fleetCarDetailTitle: (plate) => `🚗 <b>${plate}</b>`,
+    fleetCarNoDebt: "✅ All orders for this car are paid.",
+    carDebtLine: (a, n) => `⏳ Due: <b>${a}</b> (${n} orders)`,
+    carAllPaid: "✅ Paid",
+    carsTotalDebt: (a) => `\n<b>Total due: ${a}</b>`,
+    fleetNotAvailable:
+      "This section is for fleet clients only. Contact the workshop if you need fleet billing access.",
+    fleetUnpaidSection: "⏳ Due",
+    fleetPaidSection: "✅ Paid",
+    fleetIdleSection: "🚗 No orders on file",
+    carNoOrders: "No orders",
+    fleetCarsHint: "💡 Full report: «Billing» in the menu.",
     addVin: "➕ Add VIN",
     activate: "🔐 Link account",
     contacts: "📍 Contacts",

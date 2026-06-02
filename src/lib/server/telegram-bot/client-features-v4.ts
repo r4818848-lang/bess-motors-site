@@ -236,6 +236,33 @@ export async function handleClientTextCommands(
     await sendTelegramMessage(chatId, line ?? getClientBotLabels(locale).signIntro);
     return true;
   }
+  if (
+    cmd === "/finance" ||
+    cmd === "/platnosci" ||
+    cmd === "/rozliczenia" ||
+    cmd === "/billing" ||
+    cmd === "/оплата"
+  ) {
+    const slice = await getClientPortalByChat(chatKey);
+    const L = getClientBotLabels(locale);
+    if (!slice) {
+      await sendTelegramMessage(chatId, L.signIntro);
+      return true;
+    }
+    const { isFleetPortalClient } = await import("@/lib/client-fleet-access");
+    if (!isFleetPortalClient(slice)) {
+      await sendTelegramMessage(chatId, L.fleetNotAvailable);
+      return true;
+    }
+    const { formatFleetFinanceReport } = await import("./client-cabinet-format");
+    const { clientFleetFinanceKeyboard } = await import("./client-fleet-keyboards");
+    await sendTelegramMessage(
+      chatId,
+      formatFleetFinanceReport(locale, slice),
+      clientFleetFinanceKeyboard(locale, slice)
+    );
+    return true;
+  }
   if (cmd === "/book") {
     const { clearTelegramSessionKeepLocale } = await import("./client-locale");
     await clearTelegramSessionKeepLocale(chatKey);

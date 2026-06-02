@@ -76,7 +76,7 @@ const pl = {
   priceList: {
     title: "Pełny cennik serwisu",
     subtitle:
-      "Oficjalne ceny BESS MOTORS — diagnostyka, mechanika, klimatyzacja, chip tuning i więcej. Wybierz usługi i umów wizytę online.",
+      "Aktualny cennik BESS MOTORS — diagnostyka, mechanika, klimatyzacja, chip tuning i więcej. Wybierz usługi i umów wizytę online.",
     hourlyRate: "Norma-godzina",
     bookCta: "Rezerwacja z cennika",
     notesTitle: "Ważne informacje",
@@ -309,6 +309,8 @@ const pl = {
   seoLanding: {
     allServices: "Wszystkie usługi",
     bookOnline: "Umów wizytę online",
+    brandNotice:
+      "Niezależny serwis samochodowy: nie jesteśmy dealerem ani autoryzowanym salonem wymienionych marek. Nazwy marek służą do opisu zakresu napraw. Współpracujemy z dostawcami części i olejów.",
   },
   cookieConsent: {
     title: "Pliki cookie i analityka",
@@ -665,7 +667,8 @@ const pl = {
   partners: {
     title: "Partnerzy i dostawcy",
     subtitle: "Współpracujemy z sprawdzonymi markami części i olejów",
-    disclaimer: "Nazwy marek należą do ich właścicieli. BESS MOTORS jest niezależnym serwisem.",
+    disclaimer:
+      "Nazwy marek samochodów należą do ich właścicieli. BESS MOTORS to niezależny warsztat — nie jesteśmy autoryzowanym dealerem ani salonem żadnej marki. Poniżej: partnerzy dostawców części i olejów, z którymi współpracujemy.",
   },
   faq: {
     title: "Częste pytania",
@@ -1069,6 +1072,34 @@ const pl = {
     email: "E-mail",
     lastOrderDate: "Ostatnie zlecenie",
     clientLifetimeTotal: "Suma zleceń",
+    fleetPanel: "Flota / Telegram",
+    fleet: {
+      title: "Klient — flota i rozliczenia",
+      telegramOk: "Telegram podłączony — klient widzi raport w bocie",
+      telegramNo: "Brak Telegram — klient musi aktywować bota (telefon + tablica)",
+      total: "Razem",
+      paid: "Opłacone",
+      unpaid: "Do zapłaty",
+      vehicles: "Pojazdy",
+      noVehicles: "Brak pojazdów — dodaj tablice rejestracyjne",
+      orders: "Zlecenia",
+      addVehicle: "Dodaj pojazd do klienta",
+      platePlaceholder: "Tablica (np. WX 12345)",
+      makePlaceholder: "Marka",
+      modelPlaceholder: "Model",
+      addBtn: "Dodaj auto",
+      plateExists: "Ten numer jest już przypisany do tego klienta",
+      linkOrphanOrders: "Przypisz zlecenia bez auta do pierwszego pojazdu",
+      linkedOrders: (n: number) => `Przypisano ${n} zleceń`,
+      hint: "W zleceniach ustaw status płatności (opłacone / nieopłacone) — klient zobaczy to w Telegramie.",
+      unpaidOrders: "Nieopłacone zlecenia",
+      allPaid: "Wszystko opłacone",
+      fleetTagLabel: "Raporty floty w Telegramie",
+      fleetTagOn: "Włączone — klient widzi «Rozliczenia» w bocie",
+      fleetTagOff: "Wyłączone — zwykły klient w bocie",
+      fleetTagHint:
+        "Włącz przed podłączeniem klienta (osobny numer telefonu). Inni klienci bez zmian.",
+    },
     deleteVehicle: "Usuń pojazd",
     confirmDeleteVehicle: "Usunąć pojazd z bazy?",
     confirmDeleteVehicleWithOrders:
@@ -1673,7 +1704,7 @@ const ru: TranslationKeys = {
   priceList: {
     title: "Полный прайс-лист сервиса",
     subtitle:
-      "Официальные цены BESS MOTORS — диагностика, механика, кондиционер, chip tuning и другое. Выберите услуги и запишитесь онлайн.",
+      "Актуальные цены BESS MOTORS — диагностика, механика, кондиционер, chip tuning и другое. Выберите услуги и запишитесь онлайн.",
     hourlyRate: "Норма-час",
     bookCta: "Запись с прайса",
     notesTitle: "Важная информация",
@@ -1905,6 +1936,8 @@ const ru: TranslationKeys = {
   seoLanding: {
     allServices: "Все услуги",
     bookOnline: "Записаться онлайн",
+    brandNotice:
+      "Независимый автосервис: мы не являемся официальным дилером и не авторизованный салон перечисленных марок. Названия марок — только для описания услуг. Сотрудничаем с поставщиками запчастей и масел.",
   },
   cookieConsent: {
     title: "Cookies и аналитика",
@@ -2261,7 +2294,8 @@ const ru: TranslationKeys = {
   partners: {
     title: "Партнёры и поставщики",
     subtitle: "Работаем с проверенными брендами масел и запчастей",
-    disclaimer: "Названия брендов принадлежат правообладателям. BESS MOTORS — независимый сервис.",
+    disclaimer:
+      "Названия автомобильных марок принадлежат правообладателям. BESS MOTORS — независимый автосервис, мы не официальный дилер и не салон какой-либо марки. Ниже — поставщики запчастей и масел, с которыми сотрудничаем.",
   },
   faq: {
     title: "Частые вопросы",
@@ -2652,6 +2686,34 @@ const ru: TranslationKeys = {
     email: "E-mail",
     lastOrderDate: "Последний заказ-наряд",
     clientLifetimeTotal: "Сумма заказов",
+    fleetPanel: "Автопарк / Telegram",
+    fleet: {
+      title: "Клиент — автопарк и оплаты",
+      telegramOk: "Telegram подключён — клиент видит отчёт в боте",
+      telegramNo: "Нет Telegram — клиент активирует бота (телефон + номер авто)",
+      total: "Всего",
+      paid: "Оплачено",
+      unpaid: "К оплате",
+      vehicles: "Автомобили",
+      noVehicles: "Нет авто — добавьте госномера",
+      orders: "Заказы",
+      addVehicle: "Добавить автомобиль",
+      platePlaceholder: "Госномер",
+      makePlaceholder: "Марка",
+      modelPlaceholder: "Модель",
+      addBtn: "Добавить",
+      plateExists: "Этот номер уже привязан к клиенту",
+      linkOrphanOrders: "Привязать заказы без авто к первому авто",
+      linkedOrders: (n: number) => `Привязано заказов: ${n}`,
+      hint: "В CRM отмечайте оплату заказа — клиент увидит это в Telegram.",
+      unpaidOrders: "Неоплаченные заказы",
+      allPaid: "Всё оплачено",
+      fleetTagLabel: "Отчёты автопарка в Telegram",
+      fleetTagOn: "Включено — в боте кнопка «Оплаты»",
+      fleetTagOff: "Выключено — обычный клиент в боте",
+      fleetTagHint:
+        "Включите перед привязкой клиента (отдельный номер). Остальные клиенты без изменений.",
+    },
     deleteVehicle: "Удалить авто",
     confirmDeleteVehicle: "Удалить автомобиль из базы?",
     confirmDeleteVehicleWithOrders:
@@ -3661,6 +3723,8 @@ const en: TranslationKeys = {
   seoLanding: {
     allServices: "All services",
     bookOnline: "Book online",
+    brandNotice:
+      "Independent car workshop: we are not an authorized dealer or franchise of the brands mentioned. Brand names describe repair scope only. We work with parts and oil suppliers.",
   },
   cookieConsent: {
     title: "Cookies & analytics",
@@ -3728,7 +3792,13 @@ const en: TranslationKeys = {
     cabinetLink: "Open account",
     shareVisit: "Share visit",
   },
-  partners: { ...pl.partners, title: "Partners", subtitle: "Trusted parts and oil brands" },
+  partners: {
+    ...pl.partners,
+    title: "Partners",
+    subtitle: "Trusted parts and oil suppliers we work with",
+    disclaimer:
+      "Car brand names belong to their owners. BESS MOTORS is an independent workshop — not an authorized dealer or franchise of any car brand. Listed below are parts and oil suppliers we cooperate with.",
+  },
   faq: { ...pl.faq, title: "FAQ", subtitle: "Indicative prices — exact quote after diagnostics" },
   thankYou: { ...pl.thankYou, title: "Booking received!", message: "Thank you! We will contact you to confirm." },
   stickyBar: { call: "Call", whatsapp: "WA", book: "Book" },
@@ -3913,6 +3983,34 @@ const en: TranslationKeys = {
     email: "Email",
     lastOrderDate: "Last order",
     clientLifetimeTotal: "Lifetime total",
+    fleetPanel: "Fleet / Telegram",
+    fleet: {
+      title: "Client fleet & billing",
+      telegramOk: "Telegram linked — client sees report in bot",
+      telegramNo: "No Telegram — client must activate bot (phone + plate)",
+      total: "Total",
+      paid: "Paid",
+      unpaid: "Due",
+      vehicles: "Vehicles",
+      noVehicles: "No vehicles — add license plates",
+      orders: "Orders",
+      addVehicle: "Add vehicle",
+      platePlaceholder: "Plate",
+      makePlaceholder: "Make",
+      modelPlaceholder: "Model",
+      addBtn: "Add",
+      plateExists: "Plate already assigned to this client",
+      linkOrphanOrders: "Assign orders without vehicle to first car",
+      linkedOrders: (n: number) => `Linked ${n} orders`,
+      hint: "Mark payment status on work orders — client sees it in Telegram.",
+      unpaidOrders: "Unpaid orders",
+      allPaid: "All paid",
+      fleetTagLabel: "Fleet reports in Telegram",
+      fleetTagOn: "On — bot shows «Billing» menu",
+      fleetTagOff: "Off — standard client bot",
+      fleetTagHint:
+        "Enable before linking the fleet client (separate phone). Other clients unchanged.",
+    },
     deleteVehicle: "Delete vehicle",
     confirmDeleteVehicle: "Remove this vehicle from the database?",
     confirmDeleteVehicleWithOrders:

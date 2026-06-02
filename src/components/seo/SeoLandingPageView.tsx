@@ -28,6 +28,7 @@ import {
   resolveLandingBookServiceId,
   resolveLandingContentServiceId,
 } from "@/lib/seo-landing-slug-profiles";
+import { isBrandSeoLandingSlug } from "@/lib/seo-brand-slugs";
 
 type Props = {
   page: SeoLandingPage;
@@ -73,6 +74,11 @@ export function SeoLandingPageView({ page }: Props) {
               {pageLoc.line1}
             </p>
             <p className="mt-2 text-lg text-bm-muted">{pageLoc.line2}</p>
+            {isBrandSeoLandingSlug(page.slug) ? (
+              <p className="mt-4 mx-auto max-w-2xl text-sm text-bm-muted/90 border border-bm-border/60 rounded-lg px-4 py-3 bg-bm-card/40">
+                {sl.brandNotice}
+              </p>
+            ) : null}
             <div className="mt-6 h-1 w-24 bg-bm-red shadow-neon-sm mx-auto" />
           </motion.div>
 

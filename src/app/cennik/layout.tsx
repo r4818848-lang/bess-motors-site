@@ -4,7 +4,7 @@ import { buildPageMetadata } from "@/lib/seo-metadata";
 export const metadata: Metadata = buildPageMetadata({
   title: "Cennik — pełny cennik serwisu",
   description:
-    "Oficjalny cennik BESS MOTORS Warszawa: diagnostyka, olej, hamulce, zawieszenie, silnik, DSG, klimatyzacja, chip tuning. Norma-godzina 250 zł.",
+    "Aktualny cennik BESS MOTORS Warszawa: diagnostyka, olej, hamulce, zawieszenie, silnik, DSG, klimatyzacja, chip tuning. Norma-godzina 250 zł. Niezależny serwis — nie jesteśmy dealerem marek.",
   path: "/cennik",
   keywords: ["cennik serwis samochodowy Warszawa", "ceny wymiana oleju", "chip tuning cena"],
 });

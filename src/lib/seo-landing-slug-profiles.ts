@@ -23,6 +23,18 @@ export type SlugLandingProfile = {
 
 const L = (pl: string, ru: string): LocalizedText => ({ pl, ru });
 
+/** Shown on brand SEO landings — avoids confusion with official dealerships */
+const BRAND_INDEPENDENT_FAQ = {
+  q: L(
+    "Czy jesteście autoryzowanym dealerem lub salonem marki?",
+    "Вы официальный дилер или салон марки?"
+  ),
+  a: L(
+    "Nie. BESS MOTORS to niezależny warsztat samochodowy. Obsługujemy wiele marek; współpracujemy z dostawcami części i olejów (m.in. Inter Cars, Motul, Castrol). Nazwy marek należą do ich właścicieli.",
+    "Нет. BESS MOTORS — независимый автосервис. Мы обслуживаем разные марки и сотрудничаем с поставщиками запчастей и масел (Inter Cars, Motul, Castrol и др.). Названия брендов принадлежат правообладателям."
+  ),
+};
+
 const chipPriceTable: ServiceLandingPrice = {
   fromZl: getPriceItem("stage1")?.basePrice ?? 1200,
   priceFrom: true,
@@ -102,21 +114,22 @@ export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
     bookServiceId: "diagnostic",
     education: [
       {
-        title: L("Serwis BMW w BESS MOTORS", "Сервис BMW"),
+        title: L("Niezależny serwis BMW w BESS MOTORS", "Независимый сервис BMW"),
         body: L(
-          "Diagnostyka ISTA-level, oleje Longlife, hamulce, zawieszenie i elektryka. Znamy typowe usterki N47, B48, xDrive.",
-          "Диагностика, масла Longlife, тормоза, подвеска, электрика. Знаем типичные болячки N47, B48, xDrive."
+          "Zaawansowana diagnostyka, oleje Longlife, hamulce, zawieszenie i elektryka. Znamy typowe usterki N47, B48, xDrive. Nie jesteśmy dealerem BMW.",
+          "Диагностика, масла Longlife, тормоза, подвеска. Знаем N47, B48, xDrive. Мы не дилер BMW."
         ),
       },
       {
         title: L("Oleje i serwis okresowy BMW", "Масло и ТО BMW"),
         body: L(
-          "Oleje LL-04, LL-12FE, filtry oryginał lub OEM. Naklejka serwisowa z datą i przebiegiem.",
-          "Масла LL-04, LL-12FE, фильтры OEM. Сервисная наклейка."
+          "Oleje LL-04, LL-12FE, filtry OEM/OES od sprawdzonych dostawców. Naklejka serwisowa z datą i przebiegiem.",
+          "Масла LL-04, LL-12FE, фильтры OEM/OES. Сервисная наклейка."
         ),
       },
     ],
     faqExtra: [
+      BRAND_INDEPENDENT_FAQ,
       {
         q: L("Czy serwisujecie wszystkie modele BMW?", "Все ли модели BMW?"),
         a: L("Tak — od serii 1 do X5/X6, diesel i benzyna.", "Да — от 1-й серии до X5/X6, дизель и бензин."),
@@ -133,10 +146,10 @@ export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
     bookServiceId: "diagnostic",
     education: [
       {
-        title: L("Serwis Mercedes-Benz", "Сервис Mercedes"),
+        title: L("Niezależny serwis Mercedes-Benz", "Независимый сервис Mercedes"),
         body: L(
-          "Diagnostyka, serwis olejowy MB 229.5, hamulce, klima, elektryka. Obsługa A/B/C/GLA/GLC i klasy E.",
-          "Диагностика, масло MB 229.5, тормоза, климат, электрика. A/B/C/GLA/GLC и E-класс."
+          "Diagnostyka, serwis olejowy MB 229.5, hamulce, klima, elektryka. Obsługa A/B/C/GLA/GLC i klasy E. Nie jesteśmy autoryzowanym salonem Mercedes.",
+          "Диагностика, масло MB 229.5, тормоза, климат. Мы не официальный салон Mercedes."
         ),
       },
       {
@@ -155,6 +168,7 @@ export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
       },
     ],
     faqExtra: [
+      BRAND_INDEPENDENT_FAQ,
       {
         q: L("Czy macie doświadczenie z AdBlue i dieslami?", "AdBlue и дизели?"),
         a: L("Tak — diagnostyka układu SCR i typowych błędów silników CDI.", "Да — SCR и типичные ошибки CDI."),
@@ -169,8 +183,8 @@ export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
       {
         title: L("Grupa VAG — Audi, VW, Skoda, Seat", "Группа VAG"),
         body: L(
-          "Specjalizacja VAG: DSG, rozrząd, olej 504.00, diagnostyka VCDS. Warszawa Aleja Krakowska.",
-          "VAG: DSG, ГРМ, масло 504.00, VCDS. Варшава."
+          "Doświadczenie VAG: DSG, rozrząd, olej 504.00, diagnostyka. Niezależny warsztat — nie jesteśmy dealerem VAG.",
+          "Опыт VAG: DSG, ГРМ, масло 504.00. Независимый сервис, не дилер VAG."
         ),
       },
       {
@@ -189,6 +203,7 @@ export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
       },
     ],
     faqExtra: [
+      BRAND_INDEPENDENT_FAQ,
       {
         q: L("Czy serwisujecie skrzynie DSG?", "DSG?"),
         a: L("Tak — wymiana oleju DSG, diagnostyka i naprawy według wyceny.", "Да — масло DSG, диагностика и ремонт."),
@@ -309,14 +324,15 @@ export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
     bookServiceId: "diagnostic",
     education: [
       {
-        title: L("Serwis Audi Warszawa", "Сервис Audi"),
+        title: L("Niezależny serwis Audi Warszawa", "Независимый сервис Audi"),
         body: L(
-          "Quattro, TFSI, TDI — diagnostyka VAG, olej 504.00, hamulce, DSG, elektryka. Nie musisz jechać do ASO.",
-          "Quattro, TFSI, TDI — VAG, масло 504.00, DSG, электрика."
+          "Quattro, TFSI, TDI — diagnostyka VAG, olej 504.00, hamulce, DSG, elektryka. Niezależny warsztat — nie jesteśmy salonem Audi.",
+          "Quattro, TFSI, TDI — VAG, DSG. Независимый сервис, не салон Audi."
         ),
       },
     ],
     faqExtra: [
+      BRAND_INDEPENDENT_FAQ,
       {
         q: L("Czy obsługujecie Audi A3/A4/Q5?", "A3/A4/Q5?"),
         a: L("Tak — wszystkie modele Audi grupy VAG.", "Да — все модели VAG."),
@@ -329,14 +345,15 @@ export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
     contentServiceId: "diagnostic",
     education: [
       {
-        title: L("Toyota i Lexus", "Toyota и Lexus"),
+        title: L("Niezależny serwis Toyota i Lexus", "Независимый сервис Toyota / Lexus"),
         body: L(
-          "Hybrydy i benzyna — olej 0W-20/0W-16, hamulce, diagnostyka Check Engine, serwis okresowy.",
-          "Гибриды и бензин — масло 0W-20, тормоза, Check Engine."
+          "Hybrydy i benzyna — olej 0W-20/0W-16, hamulce, diagnostyka Check Engine, serwis okresowy. Nie jesteśmy dealerem Toyota.",
+          "Гибриды и бензин — масло 0W-20, тормоза. Мы не дилер Toyota."
         ),
       },
     ],
     faqExtra: [
+      BRAND_INDEPENDENT_FAQ,
       {
         q: L("Czy serwisujecie Prius / hybrid?", "Prius / hybrid?"),
         a: L("Tak — obsługa hybryd po procedurze producenta.", "Да — гибриды по процедуре."),
@@ -362,6 +379,7 @@ export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
       },
     ],
     faqExtra: [
+      BRAND_INDEPENDENT_FAQ,
       {
         q: L("Czy macie olej Dexos2?", "Dexos2?"),
         a: L("Tak — dobieramy specyfikację pod silnik.", "Да — по мотору."),
@@ -387,6 +405,7 @@ export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
         ),
       },
     ],
+    faqExtra: [BRAND_INDEPENDENT_FAQ],
     faqDuration: L("Ford: zwykle 1–3 godziny.", "Ford: 1–3 часа."),
   },
   "serwis-renault": {
@@ -407,6 +426,7 @@ export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
         ),
       },
     ],
+    faqExtra: [BRAND_INDEPENDENT_FAQ],
     faqDuration: L("Renault / Dacia: od 1 godziny.", "Renault: от 1 часа."),
   },
   "serwis-peugeot": {
@@ -428,6 +448,7 @@ export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
       },
     ],
     faqExtra: [
+      BRAND_INDEPENDENT_FAQ,
       {
         q: L("Czy serwisujecie Citroën?", "Citroën?"),
         a: L("Tak — grupa PSA, te same procedury.", "Да — группа PSA."),

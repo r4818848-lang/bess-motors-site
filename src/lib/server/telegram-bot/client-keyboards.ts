@@ -17,6 +17,7 @@ import {
   nextBookableDates,
 } from "./client-services";
 import type { ClientPortalSlice } from "@/lib/client-sign";
+import { isFleetPortalClient } from "@/lib/client-fleet-access";
 
 function siteBase(): string {
   return process.env.NEXT_PUBLIC_SITE_URL || "https://www.bess-motors.com";
@@ -77,17 +78,27 @@ export function clientMainKeyboard(locale: BotLocale, linked = false): InlineKey
 /** Linked client — 6 compact rows */
 export function clientLinkedMenuKeyboard(
   locale: BotLocale,
-  _slice: ClientPortalSlice,
+  slice: ClientPortalSlice,
   pendingSign: number,
   unread: number
 ): InlineKeyboardMarkup {
   const L = getClientBotLabels(locale);
+  const fleet = isFleetPortalClient(slice);
   const ordersLabel =
     pendingSign > 0 ? `${L.myOrders} (✍️${pendingSign})` : L.myOrders;
   const notifLabel = unread > 0 ? `${L.notifications} (${unread})` : L.notifications;
 
-  return {
-    inline_keyboard: [
+  const carsRow: InlineKeyboardMarkup["inline_keyboard"][0] = fleet
+    ? [
+        { text: L.fleetFinance, callback_data: "cl:finance" },
+        { text: L.myCars, callback_data: "cl:cars" },
+      ]
+    : [
+        { text: L.myCars, callback_data: "cl:cars" },
+        { text: L.referralShare, callback_data: "cl:referral" },
+      ];
+
+  const rows: InlineKeyboardMarkup["inline_keyboard"] = [
       [
         { text: ordersLabel, callback_data: "cl:orders:0" },
         { text: L.myStatus, callback_data: "cl:status" },
@@ -100,28 +111,33 @@ export function clientLinkedMenuKeyboard(
         { text: L.myAppointments, callback_data: "cl:apts" },
         { text: notifLabel, callback_data: "cl:notif" },
       ],
-      [
-        { text: L.myCars, callback_data: "cl:cars" },
-        { text: L.referralShare, callback_data: "cl:referral" },
-      ],
-      [
-        { text: L.contacts, callback_data: "cl:contacts" },
-        { text: L.cabinetSite, url: `${siteBase()}/cabinet` },
-      ],
-      [
-        { text: L.serviceHistory, callback_data: "cl:history" },
-        { text: L.warrantyBtn, callback_data: "cl:warranty" },
-      ],
-      [
-        { text: L.notifySettings, callback_data: "cl:notify" },
-        { text: L.sendPhoto, callback_data: "cl:photo" },
-      ],
-      [
-        { text: "❓ FAQ", callback_data: "cl:more" },
-        { text: L.changeLanguage, callback_data: "cl:lang:pick" },
-      ],
+      carsRow,
+  ];
+
+  if (fleet) {
+    rows.push([{ text: L.referralShare, callback_data: "cl:referral" }]);
+  }
+
+  rows.push(
+    [
+      { text: L.contacts, callback_data: "cl:contacts" },
+      { text: L.cabinetSite, url: `${siteBase()}/cabinet` },
     ],
-  };
+    [
+      { text: L.serviceHistory, callback_data: "cl:history" },
+      { text: L.warrantyBtn, callback_data: "cl:warranty" },
+    ],
+    [
+      { text: L.notifySettings, callback_data: "cl:notify" },
+      { text: L.sendPhoto, callback_data: "cl:photo" },
+    ],
+    [
+      { text: "❓ FAQ", callback_data: "cl:more" },
+      { text: L.changeLanguage, callback_data: "cl:lang:pick" },
+    ]
+  );
+
+  return { inline_keyboard: rows };
 }
 
 export function clientMenuForUser(

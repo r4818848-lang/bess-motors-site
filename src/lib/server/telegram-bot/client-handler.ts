@@ -13,6 +13,8 @@ import {
   countUnread,
   formatAppointmentsSlice,
   formatCarsSlice,
+  formatFleetFinanceReport,
+  formatVehicleFinanceDetail,
   formatLinkedWelcome,
   formatNotifications,
   formatWorkOrderDetail,
@@ -141,6 +143,11 @@ import {
   sendExtrasMenu,
 } from "./client-features-v4";
 import { formatTelegramSaveError } from "./client-telegram-errors";
+import { isFleetPortalClient } from "@/lib/client-fleet-access";
+import {
+  clientFleetCarKeyboard,
+  clientFleetFinanceKeyboard,
+} from "./client-fleet-keyboards";
 
 type TelegramUser = {
   id: number;
@@ -1595,14 +1602,58 @@ async function handleClientCallbackInner(cb: TelegramCallback): Promise<void> {
     return;
   }
 
+  if (data === "cl:finance") {
+    if (!slice) {
+      await startLinkFlow(chatId, messageId, chatKey, locale, profile);
+      return;
+    }
+    if (!isFleetPortalClient(slice)) {
+      await replyOrEdit(chatId, messageId, locale, L.fleetNotAvailable, {
+        inline_keyboard: [clientBackMenuRow(locale)],
+      });
+      return;
+    }
+    await replyOrEdit(
+      chatId,
+      messageId,
+      locale,
+      formatFleetFinanceReport(locale, slice),
+      clientFleetFinanceKeyboard(locale, slice)
+    );
+    return;
+  }
+
+  if (data.startsWith("cl:fin:")) {
+    if (!slice) {
+      await startLinkFlow(chatId, messageId, chatKey, locale, profile);
+      return;
+    }
+    if (!isFleetPortalClient(slice)) {
+      await replyOrEdit(chatId, messageId, locale, L.fleetNotAvailable, {
+        inline_keyboard: [clientBackMenuRow(locale)],
+      });
+      return;
+    }
+    const vehicleId = data.slice(7);
+    const text = formatVehicleFinanceDetail(locale, slice, vehicleId);
+    if (!text) {
+      await sendTelegramMessage(chatId, L.orderNotFound);
+      return;
+    }
+    await replyOrEdit(chatId, messageId, locale, text, clientFleetCarKeyboard(locale));
+    return;
+  }
+
   if (data === "cl:cars") {
     if (!slice) {
       await startLinkFlow(chatId, messageId, chatKey, locale, profile);
       return;
     }
-    const inlineRows: InlineKeyboardMarkup["inline_keyboard"] = [
-      [{ text: L.addVin, callback_data: "cl:vin" }],
-    ];
+    const inlineRows: InlineKeyboardMarkup["inline_keyboard"] = [];
+    if (isFleetPortalClient(slice)) {
+      inlineRows.push([{ text: L.fleetFinance, callback_data: "cl:finance" }]);
+    }
+    inlineRows.push([{ text: L.addVin, callback_data: "cl:vin" }]);
     if (vehiclePickKeyboard(locale, slice)) {
       inlineRows.unshift([{ text: L.vehiclePick, callback_data: "cl:veh:pick" }]);
     }

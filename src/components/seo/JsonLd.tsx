@@ -13,7 +13,7 @@ export function JsonLd() {
         name: siteConfig.name,
         legalName: siteConfig.legalName,
         description:
-          "Serwis samochodowy Warszawa Włochy — wulkanizacja, klimatyzacja, wymiana oleju, hamulce, diagnostyka, chip tuning, mechanika. Rezerwacja online.",
+          "Niezależny serwis samochodowy Warszawa Włochy — wulkanizacja, klimatyzacja, wymiana oleju, hamulce, diagnostyka, chip tuning. Nie jesteśmy dealerem marek samochodowych. Rezerwacja online.",
         url: siteUrl,
         telephone: siteConfig.phone,
         email: siteConfig.email,
