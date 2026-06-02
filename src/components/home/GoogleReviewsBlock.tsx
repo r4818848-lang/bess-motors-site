@@ -1,49 +1,12 @@
 "use client";
 
-import Link from "next/link";
-import { Star } from "lucide-react";
-import { useI18n } from "@/lib/i18n/context";
-import { contentLocale } from "@/lib/i18n/locale-utils";
-import { siteConfig } from "@/lib/site";
-
-const REVIEWS = [
-  { name: "Marek K.", textPl: "Szybka diagnostyka i uczciwa wycena.", textRu: "Быстрая диагностика и честная смета." },
-  { name: "Anna W.", textPl: "Polecam — profesjonalna obsługa.", textRu: "Рекомендую — профессиональный сервис." },
-  { name: "Oleg P.", textPl: "Naprawa hamulców na czas.", textRu: "Тормоза сделали в срок." },
-];
+import { GoogleBusinessReviews } from "@/components/reviews/GoogleBusinessReviews";
 
 export function GoogleReviewsBlock() {
-  const { locale, t } = useI18n();
-  const useRu = contentLocale(locale) === "ru";
-
   return (
-    <section className="py-16 border-t border-bm-border/30">
-      <div className="mx-auto max-w-5xl px-4">
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
-          <h2 className="font-display text-2xl uppercase text-glow">{t.googleReviews.title}</h2>
-          <Link
-            href={siteConfig.googleMapsReviewsUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn-outline text-sm"
-          >
-            Google Maps
-          </Link>
-        </div>
-        <div className="grid md:grid-cols-3 gap-4">
-          {REVIEWS.map((r) => (
-            <article key={r.name} className="glass rounded-xl p-5">
-              <div className="flex gap-1 text-amber-400 mb-2">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Star key={i} size={14} fill="currentColor" />
-                ))}
-              </div>
-              <p className="text-sm text-bm-silver">{useRu ? r.textRu : r.textPl}</p>
-              <p className="text-xs text-bm-muted mt-3">{r.name}</p>
-            </article>
-          ))}
-        </div>
-      </div>
-    </section>
+    <GoogleBusinessReviews
+      variant="default"
+      className="py-16 border-t border-bm-border/30"
+    />
   );
 }

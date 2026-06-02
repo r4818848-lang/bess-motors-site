@@ -9,6 +9,10 @@ import { Providers } from "./providers";
 import { SiteShell } from "@/components/layout/SiteShell";
 import { GoogleAdsTag } from "@/components/analytics/GoogleAdsTag";
 import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
+import {
+  GoogleTagManagerBody,
+  GoogleTagManagerHead,
+} from "@/components/analytics/GoogleTagManager";
 import { GoogleAnalyticsPageView } from "@/components/analytics/GoogleAnalyticsPageView";
 import { MetaPixelPageView } from "@/components/analytics/MetaPixelPageView";
 import { META_PIXEL_ID, metaPixelInitScript } from "@/lib/meta-pixel";
@@ -139,6 +143,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             `,
           }}
         />
+        <GoogleTagManagerHead />
         <GoogleAdsTag />
         {/* Meta Pixel — inline in <head>, no next/script (Meta Pixel Helper) */}
         {META_PIXEL_ID ? (
@@ -171,6 +176,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         suppressHydrationWarning
 
       >
+        <GoogleTagManagerBody />
         <JsonLd />
         <GoogleAnalytics />
         <GoogleAnalyticsPageView />

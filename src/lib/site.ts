@@ -42,9 +42,24 @@ export const siteConfig = {
 
   workingHours: "Pn–Sb 8:00–20:00",
 
-  /** Google Maps — reviews (replace with your place review URL) */
+  /** Google Maps — business profile / reviews list */
   googleMapsReviewsUrl:
     "https://www.google.com/maps/search/?api=1&query=BESS+MOTORS+Aleja+Krakowska+48+52+Warszawa",
+
+  /**
+   * Optional: set GOOGLE_PLACE_ID in Vercel for direct review link + Places API.
+   * Find ID: Google Maps → share → „Place ID” or Places API Place ID finder.
+   */
+  googlePlaceId: process.env.NEXT_PUBLIC_GOOGLE_PLACE_ID?.trim() || "",
+
+  /** Ask clients to leave a review (uses place id when configured) */
+  get googleWriteReviewUrl(): string {
+    const pid = this.googlePlaceId;
+    if (pid) {
+      return `https://search.google.com/local/writereview?placeid=${encodeURIComponent(pid)}`;
+    }
+    return this.googleMapsReviewsUrl;
+  },
 };
 
 export const sitePartners = [

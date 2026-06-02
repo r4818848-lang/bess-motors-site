@@ -14,6 +14,7 @@ import { LiveQueueBanner } from "@/components/home/LiveQueueBanner";
 import { PriceMatchBanner } from "@/components/home/PriceMatchBanner";
 import { MiniQuoteWidget } from "@/components/home/MiniQuoteWidget";
 import { GoogleReviewsBlock } from "@/components/home/GoogleReviewsBlock";
+import { WorkshopGallerySection } from "@/components/home/WorkshopGallerySection";
 
 export default function HomePage() {
   return (
@@ -30,6 +31,7 @@ export default function HomePage() {
       <Advantages />
       <SymptomFaq />
       <PartnersSection />
+      <WorkshopGallerySection />
       <GoogleReviewsBlock />
       <Reviews />
     </>

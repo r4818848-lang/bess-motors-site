@@ -194,6 +194,21 @@ const pl = {
   googleReviews: {
     title: "Opinie klientów",
   },
+  googleReviewsBlock: {
+    subtitleGoogle: "Średnia {rating} · {count} opinii w Google Maps",
+    subtitleHonest:
+      "Opinie z Twojej wizytówki Google — zachęcamy klientów do oceny po naprawie.",
+    viewOnMaps: "Zobacz w Google Maps",
+    leaveReview: "Zostaw opinię w Google",
+    fallback:
+      "Opinie z Google pojawią się tutaj po podłączeniu wizytówki (klucz API). Tymczasem zostaw opinię bezpośrednio w Maps.",
+  },
+  workshopGallery: {
+    title: "Zdjęcia z warsztatu",
+    subtitle:
+      "Prawdziwe realizacje i prace zespołu — więcej zdjęć dodajemy na bieżąco w galerii.",
+    viewAll: "Cała galeria",
+  },
   promoBanner: {
     text: "Kod {code} — {percent}% zniżki na rezerwację online",
     cta: "Rezerwuj",
@@ -315,7 +330,7 @@ const pl = {
     photosTitle: "Zdjęcia z warsztatu",
     photosHint: "Prawdziwe zdjęcia procesu, sprzętu i strefy oczekiwania.",
     photosGalleryLink: "Galeria realizacji",
-    reviewsHint: "Opinie z Google Maps · tysiące zrealizowanych zleceń",
+    reviewsHint: "Opinie z Google Maps",
     reviewsFromClients: "{count} opinii klientów na stronie",
     reviewsServiceHint: "Zobacz też opinie na Google Maps",
     priceOnRequest: "Wycena po kontakcie / rezerwacji online",
@@ -1742,6 +1757,20 @@ const ru: TranslationKeys = {
   googleReviews: {
     title: "Отзывы клиентов",
   },
+  googleReviewsBlock: {
+    subtitleGoogle: "Средняя оценка {rating} · {count} отзывов в Google Maps",
+    subtitleHonest:
+      "Отзывы с вашей карточки Google — просим клиентов оставлять оценку после ремонта.",
+    viewOnMaps: "Смотреть в Google Maps",
+    leaveReview: "Оставить отзыв в Google",
+    fallback:
+      "Отзывы Google появятся здесь после подключения карточки (API-ключ). Пока можно оставить отзыв в Maps.",
+  },
+  workshopGallery: {
+    title: "Фото с сервиса",
+    subtitle: "Реальные работы команды — больше фото в галерее.",
+    viewAll: "Вся галерея",
+  },
   promoBanner: {
     text: "Промокод {code} — скидка {percent}% на онлайн-запись",
     cta: "Записаться",
@@ -1863,7 +1892,7 @@ const ru: TranslationKeys = {
     photosTitle: "Фото из сервиса",
     photosHint: "Реальные фото процесса, оборудования и зоны ожидания.",
     photosGalleryLink: "Галерея работ",
-    reviewsHint: "Отзывы Google Maps · тысячи выполненных заказов",
+    reviewsHint: "Отзывы Google Maps",
     reviewsFromClients: "{count} отзывов клиентов на сайте",
     reviewsServiceHint: "Смотрите также Google Maps",
     priceOnRequest: "Смета после записи / звонка",
@@ -3450,6 +3479,20 @@ const en: TranslationKeys = {
   googleReviews: {
     title: "Customer reviews",
   },
+  googleReviewsBlock: {
+    subtitleGoogle: "Average {rating} · {count} reviews on Google Maps",
+    subtitleHonest:
+      "Reviews from your Google Business Profile — we ask customers to rate us after service.",
+    viewOnMaps: "View on Google Maps",
+    leaveReview: "Leave a Google review",
+    fallback:
+      "Google reviews appear here once the business profile API is connected. You can still review us on Maps.",
+  },
+  workshopGallery: {
+    title: "Workshop photos",
+    subtitle: "Real jobs from our team — more photos in the gallery.",
+    viewAll: "Full gallery",
+  },
   promoBanner: {
     text: "Promo {code} — {percent}% off online booking",
     cta: "Book now",
@@ -3571,7 +3614,7 @@ const en: TranslationKeys = {
     photosTitle: "Workshop photos",
     photosHint: "Real photos of the process, equipment and waiting area.",
     photosGalleryLink: "Project gallery",
-    reviewsHint: "Google Maps reviews · thousands of jobs completed",
+    reviewsHint: "Google Maps reviews",
     reviewsFromClients: "{count} client reviews on site",
     reviewsServiceHint: "See more on Google Maps",
     priceOnRequest: "Quote after booking / call",

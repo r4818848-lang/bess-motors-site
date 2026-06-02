@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Gauge, Users, Award, Zap } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { Card } from "@/components/ui/Card";
+import { WorkshopGallerySection } from "@/components/home/WorkshopGallerySection";
 
 export default function AboutPage() {
   const { t } = useI18n();
@@ -55,6 +56,7 @@ export default function AboutPage() {
             </div>
           </div>
         </div>
+        <WorkshopGallerySection />
       </div>
     </div>
   );

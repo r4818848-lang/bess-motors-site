@@ -32,14 +32,14 @@ export function ServiceLandingPhotos({
       .then((data: { items?: PublicGalleryItem[] }) => {
         const all = data.items ?? [];
         if (!tags?.length) {
-          setItems(all.slice(0, 6));
+          setItems(all.slice(0, 9));
           return;
         }
         const filtered = all.filter((item) => {
           const hay = `${item.make ?? ""} ${item.title ?? ""}`.toLowerCase();
           return tags.some((tag) => hay.includes(tag.toLowerCase()));
         });
-        setItems((filtered.length ? filtered : all).slice(0, 6));
+        setItems((filtered.length ? filtered : all).slice(0, 9));
       })
       .catch(() => setItems([]));
   }, [serviceId, slug]);
@@ -66,7 +66,7 @@ export function ServiceLandingPhotos({
         </Link>
       </div>
       <p className="text-sm text-bm-muted mb-4">{sl.photosHint}</p>
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-3">
         {tiles.map((tile) => (
           <div
             key={tile.key}
