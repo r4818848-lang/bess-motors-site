@@ -52,14 +52,16 @@ function formatImportPreview(draft: ImportWorkOrderDraft): string {
     `🚗 ${escapeHtml(draft.plate || "—")}`,
   ];
   if (draft.vin) lines.push(`VIN: <code>${escapeHtml(draft.vin)}</code>`);
-  lines.push(`🔧 Услуг: ${draft.services.length}`);
-  if (draft.services.length > 0) {
-    const top = draft.services.slice(0, 5);
-    for (const s of top) {
-      lines.push(`• ${escapeHtml(s.name)} — ${s.price.toFixed(2)} zł`);
+  lines.push(`🔩 Частей: ${draft.parts.length} (работы не импортируются)`);
+  if (draft.parts.length > 0) {
+    const top = draft.parts.slice(0, 5);
+    for (const p of top) {
+      lines.push(
+        `• ${escapeHtml(p.name)} — zakup ${p.purchasePrice.toFixed(2)} / sprzedaż ${p.sellPrice.toFixed(2)} zł`
+      );
     }
-    if (draft.services.length > 5) {
-      lines.push(`… ещё ${draft.services.length - 5}`);
+    if (draft.parts.length > 5) {
+      lines.push(`… ещё ${draft.parts.length - 5}`);
     }
   }
   if (draft.warnings.length) {

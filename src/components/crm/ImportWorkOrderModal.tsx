@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { X, FileUp, Loader2 } from "lucide-react";
+import { X, FileUp, Loader2, Plus, Trash2 } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { staffCrmFetch } from "@/lib/crm-staff-fetch";
-import type { ImportWorkOrderDraft } from "@/lib/motowarsztat-import-parser";
+import type { ImportPartDraft, ImportWorkOrderDraft } from "@/lib/motowarsztat-import-parser";
+import { calcPartLineProfit } from "@/lib/workorder-calc";
 import { createWorkOrderFromImport } from "@/lib/create-work-order-from-import";
 import { loadDb } from "@/lib/store";
 import { saveDbAndPushCrm } from "@/lib/cloud-crm-db";
@@ -94,6 +95,43 @@ export function ImportWorkOrderModal({ open, onClose, onCreated }: Props) {
       setParsing(false);
     }
   };
+
+  const updatePart = (index: number, patch: Partial<ImportPartDraft>) => {
+    if (!draft) return;
+    const parts = draft.parts.map((p, i) => (i === index ? { ...p, ...patch } : p));
+    setDraft({ ...draft, parts });
+  };
+
+  const addPartRow = () => {
+    if (!draft) return;
+    setDraft({
+      ...draft,
+      parts: [
+        ...draft.parts,
+        { name: "", qty: 1, purchasePrice: 0, sellPrice: 0 },
+      ],
+    });
+  };
+
+  const removePartRow = (index: number) => {
+    if (!draft) return;
+    setDraft({ ...draft, parts: draft.parts.filter((_, i) => i !== index) });
+  };
+
+  const partsProfitPreview =
+    draft?.parts.reduce(
+      (sum, p) =>
+        sum +
+        calcPartLineProfit({
+          id: "",
+          name: p.name,
+          qty: p.qty || 1,
+          purchasePrice: p.purchasePrice,
+          sellPrice: p.sellPrice,
+          discount: 0,
+        }),
+      0
+    ) ?? 0;
 
   const handleCreate = async () => {
     if (!draft || !file) return;
@@ -237,17 +275,98 @@ export function ImportWorkOrderModal({ open, onClose, onCreated }: Props) {
                   />
                 </label>
               </div>
-              <p className="text-xs text-bm-muted">
-                {imp.servicesDetected}: {draft.services.length}
-              </p>
-              {draft.services.length > 0 && (
-                <ul className="text-xs space-y-1 max-h-32 overflow-y-auto border border-bm-border/40 rounded-lg p-2">
-                  {draft.services.map((s, i) => (
-                    <li key={i}>
-                      {s.name} — {s.price.toFixed(2)} zł
-                    </li>
-                  ))}
-                </ul>
+              <p className="text-xs text-bm-muted">{imp.noLaborHint}</p>
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-xs font-medium uppercase text-bm-muted">
+                  {imp.partsDetected}: {draft.parts.length}
+                </p>
+                <button
+                  type="button"
+                  className="text-xs text-bm-red flex items-center gap-1"
+                  onClick={addPartRow}
+                >
+                  <Plus size={14} /> {imp.addPart}
+                </button>
+              </div>
+              {draft.parts.length > 0 && (
+                <div className="overflow-x-auto border border-bm-border/40 rounded-lg">
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="text-bm-muted border-b border-bm-border/40">
+                        <th className="text-left p-2">{c.name}</th>
+                        <th className="p-2">{c.qty}</th>
+                        <th className="p-2">{c.purchasePrice}</th>
+                        <th className="p-2">{c.sellPrice}</th>
+                        <th className="p-2"></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {draft.parts.map((p, i) => (
+                        <tr key={i} className="border-b border-bm-border/20 last:border-0">
+                          <td className="p-1">
+                            <input
+                              className="input-premium text-xs w-full min-w-[100px]"
+                              value={p.name}
+                              onChange={(e) => updatePart(i, { name: e.target.value })}
+                            />
+                          </td>
+                          <td className="p-1">
+                            <input
+                              type="number"
+                              min={1}
+                              className="input-premium text-xs w-12"
+                              value={p.qty}
+                              onChange={(e) =>
+                                updatePart(i, { qty: Number(e.target.value) || 1 })
+                              }
+                            />
+                          </td>
+                          <td className="p-1">
+                            <input
+                              type="number"
+                              min={0}
+                              step={0.01}
+                              className="input-premium text-xs w-16"
+                              value={p.purchasePrice}
+                              onChange={(e) =>
+                                updatePart(i, {
+                                  purchasePrice: Number(e.target.value) || 0,
+                                })
+                              }
+                            />
+                          </td>
+                          <td className="p-1">
+                            <input
+                              type="number"
+                              min={0}
+                              step={0.01}
+                              className="input-premium text-xs w-16"
+                              value={p.sellPrice}
+                              onChange={(e) =>
+                                updatePart(i, { sellPrice: Number(e.target.value) || 0 })
+                              }
+                            />
+                          </td>
+                          <td className="p-1">
+                            <button
+                              type="button"
+                              className="text-bm-muted hover:text-bm-red"
+                              onClick={() => removePartRow(i)}
+                              aria-label={t.common.delete}
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+              {draft.parts.length > 0 && (
+                <p className="text-xs text-green-500">
+                  {imp.estimatedPartsProfit}: +{partsProfitPreview.toFixed(2)} zł
+                </p>
               )}
               <details className="text-xs">
                 <summary className="cursor-pointer text-bm-muted">{imp.rawText}</summary>

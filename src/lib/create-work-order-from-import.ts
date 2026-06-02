@@ -5,7 +5,7 @@ import { generateOrderNumber } from "@/lib/workorder-calc";
 import { applyWorkOrderCompletedAt } from "@/lib/work-order-dates";
 import { handleWorkOrderClientNotifications } from "@/lib/client-notifications";
 import { syncWarehouseFromWorkOrder } from "@/lib/warehouse-stock";
-import type { AttachedFile, Database, WorkOrder, WorkOrderLine } from "@/lib/store";
+import type { AttachedFile, Database, PartLine, WorkOrder } from "@/lib/store";
 
 export type CreateFromImportInput = ImportWorkOrderDraft & {
   attachment?: {
@@ -29,6 +29,20 @@ function findVehicleForPlate(db: Database, userId: string, plate: string) {
   return db.vehicles.find(
     (v) => v.userId === userId && normalizePlateKey(v.plate) === key
   );
+}
+
+function mapImportParts(draft: ImportWorkOrderDraft): PartLine[] {
+  const ts = Date.now();
+  return draft.parts.map((p, i) => ({
+    id: `p-imp-${ts}-${i}`,
+    name: p.name,
+    partNumber: p.partNumber ?? "",
+    supplier: "",
+    qty: p.qty > 0 ? p.qty : 1,
+    purchasePrice: Math.max(0, p.purchasePrice),
+    sellPrice: Math.max(0, p.sellPrice),
+    discount: 0,
+  }));
 }
 
 export async function createWorkOrderFromImport(
@@ -88,25 +102,6 @@ export async function createWorkOrderFromImport(
     return { ok: false, error: "client_vehicle_required" };
   }
 
-  const services: WorkOrderLine[] =
-    input.services.length > 0
-      ? input.services.map((s, i) => ({
-          id: `s-imp-${Date.now()}-${i}`,
-          name: s.name,
-          qty: s.qty || 1,
-          price: s.price || 0,
-          discount: 0,
-        }))
-      : [
-          {
-            id: `s-imp-${Date.now()}`,
-            name: "Usługi (import — uzupełnij)",
-            qty: 1,
-            price: 0,
-            discount: 0,
-          },
-        ];
-
   const files: AttachedFile[] = [];
   if (input.attachment?.dataUrl) {
     files.push({
@@ -125,8 +120,8 @@ export async function createWorkOrderFromImport(
     userId,
     vehicleId,
     status: "received",
-    services,
-    parts: [],
+    services: [],
+    parts: mapImportParts(input),
     mechanicId: db.mechanics[0]?.id ?? "",
     mechanicLaborPercent: -1,
     mechanicPartsPercent: -1,
