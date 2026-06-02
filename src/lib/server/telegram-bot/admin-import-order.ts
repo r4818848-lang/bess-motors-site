@@ -52,17 +52,23 @@ function formatImportPreview(draft: ImportWorkOrderDraft): string {
     `🚗 ${escapeHtml(draft.plate || "—")}`,
   ];
   if (draft.vin) lines.push(`VIN: <code>${escapeHtml(draft.vin)}</code>`);
-  lines.push(`🔩 Частей: ${draft.parts.length} (работы не импортируются)`);
+  if (draft.make || draft.model) {
+    lines.push(`🚙 ${escapeHtml([draft.make, draft.model].filter(Boolean).join(" "))}`);
+  }
+  lines.push(`🔧 Работ: ${draft.services.length} · 🔩 Частей: ${draft.parts.length}`);
+  if (draft.services.length > 0) {
+    for (const s of draft.services.slice(0, 3)) {
+      lines.push(`• ${escapeHtml(s.name)} — ${s.price.toFixed(2)} zł`);
+    }
+    if (draft.services.length > 3) lines.push(`… работ +${draft.services.length - 3}`);
+  }
   if (draft.parts.length > 0) {
-    const top = draft.parts.slice(0, 5);
-    for (const p of top) {
+    for (const p of draft.parts.slice(0, 3)) {
       lines.push(
-        `• ${escapeHtml(p.name)} — zakup ${p.purchasePrice.toFixed(2)} / sprzedaż ${p.sellPrice.toFixed(2)} zł`
+        `• ${escapeHtml(p.name)} — zakup ${p.purchasePrice.toFixed(2)} / sprz. ${p.sellPrice.toFixed(2)} zł`
       );
     }
-    if (draft.parts.length > 5) {
-      lines.push(`… ещё ${draft.parts.length - 5}`);
-    }
+    if (draft.parts.length > 3) lines.push(`… частей +${draft.parts.length - 3}`);
   }
   if (draft.warnings.length) {
     lines.push("", "⚠️ Проверьте поля перед созданием.");

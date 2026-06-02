@@ -5,7 +5,13 @@ import { generateOrderNumber } from "@/lib/workorder-calc";
 import { applyWorkOrderCompletedAt } from "@/lib/work-order-dates";
 import { handleWorkOrderClientNotifications } from "@/lib/client-notifications";
 import { syncWarehouseFromWorkOrder } from "@/lib/warehouse-stock";
-import type { AttachedFile, Database, PartLine, WorkOrder } from "@/lib/store";
+import type {
+  AttachedFile,
+  Database,
+  PartLine,
+  WorkOrder,
+  WorkOrderLine,
+} from "@/lib/store";
 
 export type CreateFromImportInput = ImportWorkOrderDraft & {
   attachment?: {
@@ -31,18 +37,33 @@ function findVehicleForPlate(db: Database, userId: string, plate: string) {
   );
 }
 
+function mapImportServices(draft: ImportWorkOrderDraft): WorkOrderLine[] {
+  const ts = Date.now();
+  return draft.services
+    .filter((s) => s.name.trim())
+    .map((s, i) => ({
+      id: `s-imp-${ts}-${i}`,
+      name: s.name.trim(),
+      qty: s.qty > 0 ? s.qty : 1,
+      price: Math.max(0, s.price),
+      discount: 0,
+    }));
+}
+
 function mapImportParts(draft: ImportWorkOrderDraft): PartLine[] {
   const ts = Date.now();
-  return draft.parts.map((p, i) => ({
-    id: `p-imp-${ts}-${i}`,
-    name: p.name,
-    partNumber: p.partNumber ?? "",
-    supplier: "",
-    qty: p.qty > 0 ? p.qty : 1,
-    purchasePrice: Math.max(0, p.purchasePrice),
-    sellPrice: Math.max(0, p.sellPrice),
-    discount: 0,
-  }));
+  return draft.parts
+    .filter((p) => p.name.trim())
+    .map((p, i) => ({
+      id: `p-imp-${ts}-${i}`,
+      name: p.name.trim(),
+      partNumber: p.partNumber ?? "",
+      supplier: "",
+      qty: p.qty > 0 ? p.qty : 1,
+      purchasePrice: Math.max(0, p.purchasePrice),
+      sellPrice: Math.max(0, p.sellPrice),
+      discount: 0,
+    }));
 }
 
 export async function createWorkOrderFromImport(
@@ -66,6 +87,7 @@ export async function createWorkOrderFromImport(
         vin: input.vin,
         make: input.make,
         model: input.model,
+        mileage: input.mileage,
       });
       if (!created.ok) {
         return { ok: false, error: created.error };
@@ -76,8 +98,13 @@ export async function createWorkOrderFromImport(
       userId = user.id;
       if (plateRaw !== "—") {
         const v = findVehicleForPlate(db, userId, plateRaw);
-        if (v) vehicleId = v.id;
-        else {
+        if (v) {
+          vehicleId = v.id;
+          if (input.vin?.trim()) v.vin = input.vin.trim();
+          if (input.make?.trim()) v.make = input.make.trim();
+          if (input.model?.trim()) v.model = input.model.trim();
+          if (input.mileage != null && input.mileage > 0) v.mileage = input.mileage;
+        } else {
           const created = await createCrmClientWithVehicle(db, {
             phone,
             name: user.name,
@@ -85,13 +112,20 @@ export async function createWorkOrderFromImport(
             vin: input.vin,
             make: input.make,
             model: input.model,
+            mileage: input.mileage,
           });
           if (created.ok) vehicleId = created.vehicleId;
         }
       }
       if (!vehicleId) {
         const first = db.vehicles.find((v) => v.userId === userId);
-        vehicleId = first?.id ?? "";
+        if (first) {
+          vehicleId = first.id;
+          if (input.vin?.trim()) first.vin = input.vin.trim();
+          if (input.make?.trim()) first.make = input.make.trim();
+          if (input.model?.trim()) first.model = input.model.trim();
+          if (input.mileage != null && input.mileage > 0) first.mileage = input.mileage;
+        }
       }
     }
   } else {
@@ -120,7 +154,7 @@ export async function createWorkOrderFromImport(
     userId,
     vehicleId,
     status: "received",
-    services: [],
+    services: mapImportServices(input),
     parts: mapImportParts(input),
     mechanicId: db.mechanics[0]?.id ?? "",
     mechanicLaborPercent: -1,
