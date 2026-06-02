@@ -21,7 +21,6 @@ import { ServiceLandingPrice } from "@/components/seo/landing/ServiceLandingPric
 import { ServiceLandingSteps } from "@/components/seo/landing/ServiceLandingSteps";
 import { ServiceLandingEducation } from "@/components/seo/landing/ServiceLandingEducation";
 import { ServiceLandingPhotos } from "@/components/seo/landing/ServiceLandingPhotos";
-import { ServiceLandingReviews } from "@/components/seo/landing/ServiceLandingReviews";
 import { ServiceLandingMap } from "@/components/seo/landing/ServiceLandingMap";
 import { ServiceLandingBottomCta } from "@/components/seo/landing/ServiceLandingBottomCta";
 import { SeoLandingRelatedLinks } from "@/components/seo/landing/SeoLandingRelatedLinks";
@@ -148,7 +147,6 @@ export function SeoLandingPageView({ page }: Props) {
               <ServiceLandingSteps serviceId={contentServiceId} slug={page.slug} />
               <ServiceLandingEducation serviceId={contentServiceId} slug={page.slug} />
               <ServiceLandingPhotos serviceId={contentServiceId} slug={page.slug} />
-              <ServiceLandingReviews serviceId={contentServiceId} />
               <SeoServiceFaq serviceId={contentServiceId} slug={page.slug} />
               <ServiceLandingMap slug={page.slug} />
               <SeoLandingRelatedLinks slug={page.slug} />
@@ -160,7 +158,6 @@ export function SeoLandingPageView({ page }: Props) {
             </>
           ) : (
             <>
-              <ServiceLandingReviews />
               <ServiceLandingMap slug={page.slug} />
               <ServiceLandingBottomCta slug={page.slug} />
             </>
