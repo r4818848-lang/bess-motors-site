@@ -13,54 +13,74 @@ import {
 import { loadDb, type Database } from "@/lib/store";
 import { useVisibleInterval } from "@/hooks/useVisibleInterval";
 
+export type CrmResyncOptions = {
+  /** Default true — manual «Synchronizuj»; auto timers never pull */
+  pull?: boolean;
+};
+
 /** Sync full CRM database with Supabase for admin (all devices) */
 export function useCloudCrmSync(enabled = true): {
   syncing: boolean;
   syncFailed: boolean;
   cloudConfigured: boolean;
   pushFailed: boolean;
-  resync: () => Promise<boolean>;
+  resync: (options?: CrmResyncOptions) => Promise<boolean>;
 } {
   const [syncing, setSyncing] = useState(false);
   const [syncFailed, setSyncFailed] = useState(false);
   const [cloudConfigured, setCloudConfigured] = useState(true);
   const [pushFailed, setPushFailed] = useState(false);
 
-  const resync = useCallback(async (): Promise<boolean> => {
-    if (!enabled) return false;
-    if (isCrmDraftLockActive()) return true;
-    setSyncing(true);
-    try {
-      const configured = await fetchCloudConfigured();
-      setCloudConfigured(configured);
-      if (!configured) {
+  const resync = useCallback(
+    async (options?: CrmResyncOptions): Promise<boolean> => {
+      if (!enabled) return false;
+      if (isCrmDraftLockActive() && options?.pull !== false) {
+        return true;
+      }
+
+      setSyncing(true);
+      try {
+        const configured = await fetchCloudConfigured();
+        setCloudConfigured(configured);
+        if (!configured) {
+          setSyncFailed(true);
+          return false;
+        }
+
+        await pushCrmIfCloudEmpty();
+        const pushed = await pushCrmSave(loadDb());
+        if (!pushed) {
+          setPushFailed(true);
+          return false;
+        }
+
+        const shouldPull = options?.pull === true && !isCrmDraftLockActive();
+        if (!shouldPull) {
+          setPushFailed(false);
+          setSyncFailed(false);
+          return true;
+        }
+
+        const result = await pullCrmFromCloud({ force: true });
+        const ok = result !== "error" && result !== "skipped";
+        setSyncFailed(!ok);
+        if (ok) setPushFailed(false);
+        return ok;
+      } catch {
         setSyncFailed(true);
         return false;
+      } finally {
+        setSyncing(false);
       }
-      await pushCrmIfCloudEmpty();
-      const pushed = await pushCrmSave(loadDb());
-      if (!pushed) {
-        setPushFailed(true);
-        return false;
-      }
-      const result = await pullCrmFromCloud({ force: true });
-      const ok = result !== "error" && result !== "skipped";
-      setSyncFailed(!ok);
-      if (ok) setPushFailed(false);
-      return ok;
-    } catch {
-      setSyncFailed(true);
-      return false;
-    } finally {
-      setSyncing(false);
-    }
-  }, [enabled]);
+    },
+    [enabled]
+  );
 
   useEffect(() => {
     if (!enabled) return;
 
     void fetchCloudConfigured().then(setCloudConfigured);
-    void resync();
+    void pushCrmIfCloudEmpty();
 
     const onSaved = (e: Event) => {
       if (isCrmDraftLockActive()) return;
@@ -75,17 +95,18 @@ export function useCloudCrmSync(enabled = true): {
 
     window.addEventListener(DB_SAVED_EVENT, onSaved);
     window.addEventListener(CRM_CLOUD_PUSH_EVENT, onPush);
-    const onFocus = () => void resync();
-    window.addEventListener("focus", onFocus);
 
     return () => {
       window.removeEventListener(DB_SAVED_EVENT, onSaved);
       window.removeEventListener(CRM_CLOUD_PUSH_EVENT, onPush);
-      window.removeEventListener("focus", onFocus);
     };
-  }, [enabled, resync]);
+  }, [enabled]);
 
-  useVisibleInterval(() => void resync(), 20_000, enabled);
+  /** Push local changes only — no pull (pull wipes open drafts) */
+  useVisibleInterval(() => {
+    if (!enabled || isCrmDraftLockActive()) return;
+    void pushCrmSave(loadDb());
+  }, 60_000, enabled);
 
   return {
     syncing,

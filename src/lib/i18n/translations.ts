@@ -947,6 +947,8 @@ const pl = {
     syncing: "Synchronizacja…",
     syncFailed: "Błąd synchronizacji z chmurą",
     cloudSynced: "Zsynchronizowano",
+    syncPausedDraft:
+      "Synchronizacja wstrzymana — dokończ zlecenie i zamknij okno, potem «Synchronizuj»",
     cloudNotConfigured: "Chmura wyłączona — ustaw SUPABASE_* w Vercel",
     pushSyncFailed: "Nie zapisano w chmurze — kliknij Synchronizuj",
     storageQuotaExceeded:
@@ -2496,6 +2498,8 @@ const ru: TranslationKeys = {
     syncing: "Синхронизация…",
     syncFailed: "Ошибка синхронизации с облаком",
     cloudSynced: "Синхронизировано",
+    syncPausedDraft:
+      "Синхронизация приостановлена — закончите заказ-наряд и закройте окно, затем «Синхронизировать»",
     cloudNotConfigured: "Облако выключено — задайте SUPABASE_* в Vercel",
     pushSyncFailed: "Не сохранилось в облако — нажмите «Синхронизировать»",
     storageQuotaExceeded:

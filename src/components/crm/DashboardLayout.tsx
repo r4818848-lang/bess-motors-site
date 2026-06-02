@@ -31,6 +31,7 @@ import { useCrmDisplay } from "@/contexts/CrmDisplayContext";
 import { useHotOrdersBadgeCount } from "@/components/crm/HotOrdersPanel";
 import { useCloudAppointmentsSync } from "@/hooks/useCloudAppointmentsSync";
 import { useCloudCrmSync } from "@/hooks/useCloudCrmSync";
+import { useCrmDraftLockActive } from "@/hooks/useCrmDraftLockActive";
 import { DB_STORAGE_QUOTA_EVENT } from "@/lib/db-events";
 
 type NavItem = {
@@ -121,6 +122,7 @@ function DashboardLayoutInner({
   const { syncing, syncFailed, cloudConfigured, pushFailed, resync } = useCloudCrmSync(
     role === "admin" || role === "mechanic"
   );
+  const draftLockActive = useCrmDraftLockActive();
   const hotBadge = useHotOrdersBadgeCount();
 
   const adminSections: NavSection[] = [
@@ -247,7 +249,7 @@ function DashboardLayoutInner({
         <button
           type="button"
           className="text-amber-400 hover:text-bm-red"
-          onClick={() => void resync()}
+          onClick={() => void resync({ pull: true })}
         >
           {pushFailed ? c.pushSyncFailed : c.syncFailed} · {c.syncNow}
         </button>
@@ -375,10 +377,15 @@ function DashboardLayoutInner({
             <span>{c.storageQuotaExceeded}</span>
           </div>
         )}
-        {(syncFailed || pushFailed) && !syncing && cloudConfigured && (
+        {draftLockActive && (
+          <div className="crm-sync-banner border-bm-red/40" role="status">
+            <span>{c.syncPausedDraft}</span>
+          </div>
+        )}
+        {(syncFailed || pushFailed) && !syncing && cloudConfigured && !draftLockActive && (
           <div className="crm-sync-banner" role="status">
             <span>{pushFailed ? c.pushSyncFailed : c.syncFailed}</span>
-            <button type="button" onClick={() => void resync()}>
+            <button type="button" onClick={() => void resync({ pull: true })}>
               {c.syncNow}
             </button>
           </div>

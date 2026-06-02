@@ -31,6 +31,7 @@ import {
   pushCrmDelete,
   pushCrmSave,
 } from "@/lib/cloud-crm-db";
+import { isCrmDraftLockActive } from "@/lib/crm-draft-lock";
 import { filterWorkOrdersByQuery } from "@/lib/crm-search";
 import { WorkOrderFilters } from "@/components/crm/WorkOrderFilters";
 import { WorkOrderKanban } from "@/components/crm/WorkOrderKanban";
@@ -62,6 +63,7 @@ function WorkOrdersPageContent() {
   const { isPinned, toggle: togglePin } = usePinnedWorkOrders();
 
   const refresh = useCallback(() => {
+    if (isCrmDraftLockActive()) return;
     void (async () => {
       await pushCrmSave(loadDb());
       await pullCrmFromCloud({ force: true });

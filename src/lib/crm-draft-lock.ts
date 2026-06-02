@@ -1,10 +1,18 @@
 /** Blocks cloud pull while CRM create/edit draft is open (prevents losing unsaved data). */
 const COUNT_KEY = "bess-crm-draft-count";
 
+export const CRM_DRAFT_LOCK_EVENT = "bess-crm-draft-lock";
+
+function notifyDraftLockChange(): void {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(new CustomEvent(CRM_DRAFT_LOCK_EVENT));
+}
+
 export function acquireCrmDraftLock(): void {
   if (typeof window === "undefined") return;
   const n = Number.parseInt(sessionStorage.getItem(COUNT_KEY) ?? "0", 10) + 1;
   sessionStorage.setItem(COUNT_KEY, String(n));
+  notifyDraftLockChange();
 }
 
 export function releaseCrmDraftLock(): void {
@@ -12,6 +20,7 @@ export function releaseCrmDraftLock(): void {
   const n = Math.max(0, Number.parseInt(sessionStorage.getItem(COUNT_KEY) ?? "0", 10) - 1);
   if (n <= 0) sessionStorage.removeItem(COUNT_KEY);
   else sessionStorage.setItem(COUNT_KEY, String(n));
+  notifyDraftLockChange();
 }
 
 /** @deprecated use acquire/release — kept for simple call sites */
