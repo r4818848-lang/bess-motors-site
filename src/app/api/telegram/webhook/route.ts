@@ -4,6 +4,7 @@ import { handleTelegramUpdate } from "@/lib/server/telegram-bot/handler";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
+export const maxDuration = 60;
 
 export async function POST(req: Request) {
   const secret = cleanEnvValue(process.env.TELEGRAM_WEBHOOK_SECRET);

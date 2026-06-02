@@ -15,6 +15,7 @@ import {
   Car,
   Archive,
   RefreshCw,
+  FileUp,
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { useCrmDisplay } from "@/contexts/CrmDisplayContext";
@@ -39,6 +40,7 @@ import { useDbSync } from "@/hooks/useDbSync";
 import { usePinnedWorkOrders } from "@/hooks/usePinnedWorkOrders";
 import { CrmWorkOrderPresets } from "@/components/crm/CrmWorkOrderPresets";
 import { QuickCreateOrderModal } from "@/components/crm/QuickCreateOrderModal";
+import { ImportWorkOrderModal } from "@/components/crm/ImportWorkOrderModal";
 import { WorkOrdersTable } from "@/components/crm/WorkOrdersTable";
 
 function WorkOrdersPageContent() {
@@ -52,6 +54,7 @@ function WorkOrdersPageContent() {
   const crmRole = isAdminAuthenticated() ? "admin" : "mechanic";
   const [editingId, setEditingId] = useState<string | null>(null);
   const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [importModalOpen, setImportModalOpen] = useState(false);
   const [kanbanOpen, setKanbanOpen] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -213,6 +216,15 @@ function WorkOrdersPageContent() {
           </button>
           <button
             type="button"
+            className="crm-mw-btn-create bg-bm-graphite hover:bg-bm-graphite/90"
+            onClick={() => setImportModalOpen(true)}
+            title={c.importOrder.title}
+          >
+            <FileUp size={18} />
+            {c.importOrder.title}
+          </button>
+          <button
+            type="button"
             className="crm-mw-btn-delete"
             disabled={selectedIds.size === 0}
             onClick={deleteSelected}
@@ -338,6 +350,14 @@ function WorkOrdersPageContent() {
           onClose={() => setCreateModalOpen(false)}
           onCreated={(orderId) => {
             setCreateModalOpen(false);
+            setEditingId(orderId);
+          }}
+        />
+        <ImportWorkOrderModal
+          open={importModalOpen}
+          onClose={() => setImportModalOpen(false)}
+          onCreated={(orderId) => {
+            setImportModalOpen(false);
             setEditingId(orderId);
           }}
         />

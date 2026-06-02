@@ -94,10 +94,16 @@ import {
   parseExtraWorkLines,
   requestExtraWorkApproval,
 } from "./extra-work-approval";
+import {
+  confirmImportWorkOrder,
+  handleAdminImportMediaMessage,
+  handleAdminImportPhoneText,
+  promptImportPhoneEdit,
+  startImportWorkOrderFlow,
+  type AdminTelegramFileMessage,
+} from "./admin-import-order";
 
-type TelegramMessage = {
-  message_id: number;
-  chat: { id: number };
+type TelegramMessage = AdminTelegramFileMessage & {
   text?: string;
 };
 
@@ -178,8 +184,22 @@ export async function handleTelegramUpdate(update: {
     await handleCallback(update.callback_query);
     return;
   }
-  if (update.message?.text) {
+  if (!update.message) return;
+
+  if (update.message.text) {
     await handleMessage(update.message);
+    return;
+  }
+
+  if (update.message.photo?.length || update.message.document) {
+    const handled = await handleAdminImportMediaMessage(update.message);
+    if (!handled) {
+      await sendTelegramMessage(
+        chatId,
+        "📄 Чтобы импортировать заказ-наряд: меню → <b>Импорт PDF/фото</b>.",
+        mainMenuKeyboard()
+      );
+    }
   }
 }
 
@@ -239,6 +259,10 @@ async function handleMessage(msg: TelegramMessage): Promise<void> {
     } else {
       await sendTelegramMessage(chatId, "Клиент не в Telegram.", mainMenuKeyboard());
     }
+    return;
+  }
+
+  if (await handleAdminImportPhoneText(chatId, text)) {
     return;
   }
 
@@ -444,6 +468,23 @@ async function handleCallback(cb: TelegramCallback): Promise<void> {
     await replyOrEdit(chatId, messageId, BOT.quickAptPrompt, {
       inline_keyboard: [[{ text: BOT.cancel, callback_data: "menu" }]],
     });
+    return;
+  }
+
+  if (data === "imp:menu") {
+    await startImportWorkOrderFlow(chatId, messageId);
+    return;
+  }
+
+  if (data === "imp:phone") {
+    await promptImportPhoneEdit(chatId, messageId);
+    return;
+  }
+
+  if (data === "imp:confirm") {
+    await sendTelegramMessage(chatId, BOT.importParsing);
+    const resultText = await confirmImportWorkOrder(chatId);
+    await replyOrEdit(chatId, messageId, resultText, mainMenuKeyboard());
     return;
   }
 

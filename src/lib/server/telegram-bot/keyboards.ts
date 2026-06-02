@@ -39,6 +39,7 @@ export function mainMenuKeyboard(): InlineKeyboardMarkup {
         { text: BOT.calls, callback_data: "calls:0" },
         { text: BOT.quickApt, callback_data: "qapt:menu" },
       ],
+      [{ text: BOT.importWo, callback_data: "imp:menu" }],
       [{ text: BOT.search, callback_data: "search:menu" }],
       [
         { text: BOT.mechLoad, callback_data: "mech:dash:menu" },

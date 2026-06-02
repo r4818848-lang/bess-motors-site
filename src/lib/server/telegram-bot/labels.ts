@@ -52,6 +52,7 @@ export const BOT = {
   unsigned: "✍️ Подписи",
   calls: "📞 Звонки",
   quickApt: "➕ Запись",
+  importWo: "📄 Импорт PDF/фото",
   mechLoad: "🔧 Загрузка цеха",
   extraWork: "➕ Доп. работы",
   customMsg: "✉️ Свой текст",
@@ -83,9 +84,20 @@ export const BOT = {
   markCalled: "📞 Позвонил",
   statusChanged: "Статус обновлён.",
   helpText:
-    "<b>Команды:</b>\n/start — меню\n/find WA12345 — поиск\n\n<b>Расход:</b> Расходы → Добавить → категория → <code>450 Описание</code>\n\n<b>Механик:</b> <code>/linkmech +48… пароль</code> — привязка Telegram к CRM",
+    "<b>Команды:</b>\n/start — меню\n/find WA12345 — поиск\n\n<b>Импорт:</b> «📄 Импорт PDF/фото» → отправьте PDF или скрин Motowarsztat → подтвердите.\n\n<b>Расход:</b> Расходы → Добавить → категория → <code>450 Описание</code>\n\n<b>Механик:</b> <code>/linkmech +48… пароль</code> — привязка Telegram к CRM",
   quickAptPrompt:
     "➕ <b>Быстрая запись</b>\n\nОтправьте одной строкой:\n<code>+48123456789 2026-06-01 10:00 комментарий</code>",
+  importPrompt:
+    "📄 <b>Импорт заказ-наряда</b>\n\nОтправьте <b>PDF</b> или <b>фото</b> (скрин/скан из Motowarsztat).\nСистема распознает текст — вы подтвердите перед созданием в CRM.",
+  importParsing: "⏳ Читаю документ… (до 1 минуты)",
+  importNoText:
+    "❌ Текст не найден. Попробуйте более чёткое фото или PDF с текстовым слоем.",
+  importBadFile: "❌ Отправьте PDF или изображение (фото/скрин).",
+  importDownloadFailed: "❌ Не удалось скачать файл из Telegram.",
+  importConfirm: "✅ Создать заказ-наряд",
+  importEditPhone: "📱 Изменить телефон",
+  importPhonePrompt: "📱 Введите телефон клиента (например <code>+48791257229</code>):",
+  importPhoneInvalid: "❌ Неверный телефон. Пример: <code>+48123456789</code>",
   extraWorkPrompt:
     "➕ <b>Доп. работы</b> для <b>{number}</b>\n\nКаждая строка:\n<code>Название;цена</code> или <code>Название 200</code>\nПервая строка — комментарий клиенту.",
   customMsgPrompt:

@@ -22,7 +22,10 @@ export type TelegramSessionStep =
   | "client_symptom"
   | "admin_quick_apt"
   | "admin_custom_msg"
-  | "admin_extra_work";
+  | "admin_extra_work"
+  | "admin_import_file"
+  | "admin_import_review"
+  | "admin_import_phone";
 
 export type TelegramSession = {
   step?: TelegramSessionStep;

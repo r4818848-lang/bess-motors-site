@@ -260,10 +260,20 @@ export async function notifyAdminTelegram(text: string): Promise<boolean> {
   return any;
 }
 
-/** Download Telegram file as data URL (for CRM attachments) */
-export async function downloadTelegramPhotoAsDataUrl(
+function mimeFromTelegramPath(filePath: string, fallback?: string): string {
+  const lower = filePath.toLowerCase();
+  if (lower.endsWith(".pdf")) return "application/pdf";
+  if (lower.endsWith(".png")) return "image/png";
+  if (lower.endsWith(".webp")) return "image/webp";
+  if (lower.endsWith(".heic")) return "image/heic";
+  if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) return "image/jpeg";
+  return fallback || "application/octet-stream";
+}
+
+/** Download Telegram file (photo, document) up to 8 MB */
+export async function downloadTelegramFileBuffer(
   fileId: string
-): Promise<string | null> {
+): Promise<{ buffer: Buffer; mime: string; fileName: string } | null> {
   const token = getTelegramBotToken();
   if (!token) return null;
 
@@ -275,10 +285,20 @@ export async function downloadTelegramPhotoAsDataUrl(
     const res = await fetch(`https://api.telegram.org/file/bot${token}/${filePath}`);
     if (!res.ok) return null;
     const buf = Buffer.from(await res.arrayBuffer());
-    if (buf.length > 4_500_000) return null;
-    const mime = filePath.toLowerCase().endsWith(".png") ? "image/png" : "image/jpeg";
-    return `data:${mime};base64,${buf.toString("base64")}`;
+    if (buf.length > 8 * 1024 * 1024) return null;
+    const mime = mimeFromTelegramPath(filePath);
+    const fileName = filePath.split("/").pop() || "file";
+    return { buffer: buf, mime, fileName };
   } catch {
     return null;
   }
+}
+
+/** Download Telegram file as data URL (for CRM attachments) */
+export async function downloadTelegramPhotoAsDataUrl(
+  fileId: string
+): Promise<string | null> {
+  const file = await downloadTelegramFileBuffer(fileId);
+  if (!file || file.buffer.length > 4_500_000) return null;
+  return `data:${file.mime};base64,${file.buffer.toString("base64")}`;
 }
