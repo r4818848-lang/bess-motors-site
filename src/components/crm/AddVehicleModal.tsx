@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { useDbSync } from "@/hooks/useDbSync";
 import { Car, Search } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { loadDb, saveDb } from "@/lib/store";
@@ -24,6 +25,7 @@ export function AddVehicleModal({ open, onClose, onCreated, initialUserId }: Pro
   const { t } = useI18n();
   const c = t.crm;
   const w = t.wo;
+  const dbTick = useDbSync();
 
   const [userId, setUserId] = useState(initialUserId ?? "");
   const [plate, setPlate] = useState("");
@@ -47,13 +49,15 @@ export function AddVehicleModal({ open, onClose, onCreated, initialUserId }: Pro
   useEffect(() => {
     if (!open) return;
     acquireCrmDraftLock();
-    if (initialUserId) setUserId(initialUserId);
+    setUserId(initialUserId ?? "");
     return () => releaseCrmDraftLock();
   }, [open, initialUserId]);
 
-  const clients = open
-    ? loadDb().users.filter((u) => u.role === "client")
-    : [];
+  const clients = useMemo(
+    () =>
+      open ? loadDb().users.filter((u) => u.role === "client") : [],
+    [open, dbTick]
+  );
 
   const decodeVin = async () => {
     const v = vin.replace(/\s/g, "").toUpperCase();

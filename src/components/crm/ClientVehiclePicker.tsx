@@ -6,6 +6,7 @@ import { useI18n } from "@/lib/i18n/context";
 import { loadDb } from "@/lib/store";
 import { useDbSync } from "@/hooks/useDbSync";
 import {
+  findClientByQuery,
   searchClientsAndVehicles,
   searchClientsOnly,
   searchVehiclesOnly,
@@ -52,7 +53,9 @@ export function ClientVehiclePicker({
   const [showClientList, setShowClientList] = useState(false);
   const [clientModalOpen, setClientModalOpen] = useState(false);
   const [vehicleModalOpen, setVehicleModalOpen] = useState(false);
+  const [vehicleModalUserId, setVehicleModalUserId] = useState<string | undefined>();
   const [companyModalOpen, setCompanyModalOpen] = useState(false);
+  const [clientPickHint, setClientPickHint] = useState("");
   const vehicleRef = useRef<HTMLDivElement>(null);
   const clientRef = useRef<HTMLDivElement>(null);
 
@@ -101,6 +104,32 @@ export function ClientVehiclePicker({
     onSelect(uid, vid);
     setShowClientList(false);
     setClientQ("");
+    setClientPickHint("");
+  };
+
+  const ensureClientFromQuery = (): string => {
+    if (userId) return userId;
+    const found = findClientByQuery(db, clientQ);
+    if (!found) return "";
+    pickClient(found.id);
+    return found.id;
+  };
+
+  const openAddVehicleModal = () => {
+    const uid = ensureClientFromQuery();
+    if (!uid) {
+      if (clientQ.trim() && searchClientsOnly(db, clientQ).length > 1) {
+        setClientPickHint(c.clientAmbiguousPick);
+      } else if (clientQ.trim()) {
+        setClientPickHint(c.clientConfirmPick);
+      } else {
+        setClientPickHint(c.clientConfirmPick);
+      }
+      setShowClientList(true);
+      return;
+    }
+    setVehicleModalUserId(uid);
+    setVehicleModalOpen(true);
   };
 
   const clientLabel = (u: (typeof db.users)[0]) => {
@@ -170,7 +199,7 @@ export function ClientVehiclePicker({
           <button
             type="button"
             className="mt-2 text-xs text-bm-red hover:underline inline-flex items-center gap-1"
-            onClick={() => setVehicleModalOpen(true)}
+            onClick={openAddVehicleModal}
           >
             <Plus size={12} /> {c.addNewVehicle}
           </button>
@@ -208,9 +237,17 @@ export function ClientVehiclePicker({
               }
               onChange={(e) => {
                 setClientQ(e.target.value);
+                setClientPickHint("");
                 setShowClientList(true);
               }}
               onFocus={() => setShowClientList(true)}
+              onBlur={() => {
+                setShowClientList(false);
+                if (!userId && clientQ.trim()) {
+                  const found = findClientByQuery(db, clientQ);
+                  if (found) pickClient(found.id);
+                }
+              }}
             />
           </div>
           {showClientList && (
@@ -295,12 +332,17 @@ export function ClientVehiclePicker({
       {!userId && (
         <p className="text-xs text-bm-muted">{w.selectClientVehicle}</p>
       )}
+      {!userId && clientPickHint && (
+        <p className="text-xs text-amber-400">{clientPickHint}</p>
+      )}
 
       <AddClientModal
         open={clientModalOpen}
         onClose={() => setClientModalOpen(false)}
         onCreated={(uid, vid) => {
           onSelect(uid, vid);
+          setClientQ("");
+          setClientPickHint("");
           setClientModalOpen(false);
         }}
       />
@@ -310,15 +352,18 @@ export function ClientVehiclePicker({
         onClose={() => setCompanyModalOpen(false)}
         onCreated={(uid, vid) => {
           onSelect(uid, vid);
+          setClientQ("");
+          setClientPickHint("");
           setCompanyModalOpen(false);
         }}
       />
       <AddVehicleModal
         open={vehicleModalOpen}
         onClose={() => setVehicleModalOpen(false)}
-        initialUserId={userId || undefined}
+        initialUserId={(vehicleModalUserId ?? userId) || undefined}
         onCreated={(vid, uid) => {
           onSelect(uid, vid);
+          setClientQ("");
           setVehicleModalOpen(false);
         }}
       />

@@ -1109,6 +1109,9 @@ const pl = {
     clientTypeCompany: "Firma",
     addNewCompany: "Dodaj firmę (NIP)",
     addNewVehicle: "Dodaj pojazd",
+    clientConfirmPick:
+      "Wybierz klienta z listy lub zapisz nowego — sam wpisany tekst nie wystarczy.",
+    clientAmbiguousPick: "Znaleziono kilku klientów — wybierz właściwego z listy.",
     newVehicleTitle: "Dodaj nowy pojazd",
     saveVehicle: "Zapisz pojazd",
     savingVehicle: "Zapisywanie pojazdu…",
@@ -2723,6 +2726,9 @@ const ru: TranslationKeys = {
     clientTypeCompany: "Компания",
     addNewCompany: "Добавить юрлицо (NIP)",
     addNewVehicle: "Добавить авто",
+    clientConfirmPick:
+      "Выберите клиента из списка или сохраните нового — одного текста в поле недостаточно.",
+    clientAmbiguousPick: "Найдено несколько клиентов — выберите нужного из списка.",
     newVehicleTitle: "Добавить новый автомобиль",
     saveVehicle: "Сохранить авто",
     savingVehicle: "Сохранение…",
@@ -4020,6 +4026,9 @@ const en: TranslationKeys = {
     clientTypeCompany: "Company",
     addNewCompany: "Add company (NIP)",
     addNewVehicle: "Add vehicle",
+    clientConfirmPick:
+      "Pick the client from the list or save a new one — typed text alone is not enough.",
+    clientAmbiguousPick: "Several clients match — pick the right one from the list.",
     newVehicleTitle: "Add new vehicle",
     saveVehicle: "Save vehicle",
     savingVehicle: "Saving…",
