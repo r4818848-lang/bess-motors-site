@@ -973,7 +973,18 @@ export function loadDb(): Database {
     setCachedDb(db);
     return db;
   } catch {
-    /* ignore */
+    try {
+      const backup = localStorage.getItem(DB_BACKUP_KEY);
+      if (backup) {
+        const parsed = JSON.parse(backup) as Partial<Database>;
+        const recovered = mergeStoredDb(parsed);
+        localStorage.setItem(STORAGE_KEY, backup);
+        setCachedDb(recovered);
+        return recovered;
+      }
+    } catch {
+      /* ignore */
+    }
   }
   const fallback = { ...defaultDb };
   setCachedDb(fallback);

@@ -25,6 +25,7 @@ import {
 import { handleAppointmentNotification } from "@/lib/client-notifications";
 import { Button } from "@/components/ui/Button";
 import { useDbSync } from "@/hooks/useDbSync";
+import { acquireCrmDraftLock, releaseCrmDraftLock } from "@/lib/crm-draft-lock";
 
 const statuses: RepairStatus[] = [
   "received",
@@ -80,6 +81,12 @@ export function AppointmentCalendar({
     const d = new Date(`${apt.date}T12:00:00`);
     if (!Number.isNaN(d.getTime())) setCursor(d);
   }, [initialAptId, dbTick]);
+
+  useEffect(() => {
+    if (!selected) return;
+    acquireCrmDraftLock();
+    return () => releaseCrmDraftLock();
+  }, [selected?.id]);
 
   const appointments = useMemo(() => {
     let list = db.appointments;

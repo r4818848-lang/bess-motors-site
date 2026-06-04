@@ -5,6 +5,7 @@ import { CRM_CLOUD_PUSH_EVENT, DB_CHANGED_EVENT, DB_SAVED_EVENT } from "@/lib/db
 import { isCrmDraftLockActive } from "@/lib/crm-draft-lock";
 import {
   fetchCloudConfigured,
+  getCloudSyncedAt,
   pullCrmFromCloud,
   pushCrmIfCloudEmpty,
   pushCrmSave,
@@ -24,12 +25,14 @@ export function useCloudCrmSync(enabled = true): {
   syncFailed: boolean;
   cloudConfigured: boolean;
   pushFailed: boolean;
+  lastSyncedAt: string | null;
   resync: (options?: CrmResyncOptions) => Promise<boolean>;
 } {
   const [syncing, setSyncing] = useState(false);
   const [syncFailed, setSyncFailed] = useState(false);
   const [cloudConfigured, setCloudConfigured] = useState(true);
   const [pushFailed, setPushFailed] = useState(false);
+  const [lastSyncedAt, setLastSyncedAt] = useState<string | null>(null);
 
   const resync = useCallback(
     async (options?: CrmResyncOptions): Promise<boolean> => {
@@ -66,6 +69,7 @@ export function useCloudCrmSync(enabled = true): {
 
         setPushFailed(false);
         setSyncFailed(false);
+        setLastSyncedAt(getCloudSyncedAt());
         return true;
       } catch {
         setSyncFailed(true);
@@ -96,15 +100,22 @@ export function useCloudCrmSync(enabled = true): {
     const onPush = (e: Event) => {
       const detail = (e as CustomEvent<{ ok?: boolean }>).detail;
       if (detail?.ok === false) setPushFailed(true);
-      else if (detail?.ok === true) setPushFailed(false);
+      else if (detail?.ok === true) {
+        setPushFailed(false);
+        setLastSyncedAt(getCloudSyncedAt());
+      }
     };
+    const refreshSyncedAt = () => setLastSyncedAt(getCloudSyncedAt());
 
+    refreshSyncedAt();
     window.addEventListener(DB_SAVED_EVENT, onSaved);
     window.addEventListener(CRM_CLOUD_PUSH_EVENT, onPush);
+    window.addEventListener(DB_CHANGED_EVENT, refreshSyncedAt);
 
     return () => {
       window.removeEventListener(DB_SAVED_EVENT, onSaved);
       window.removeEventListener(CRM_CLOUD_PUSH_EVENT, onPush);
+      window.removeEventListener(DB_CHANGED_EVENT, refreshSyncedAt);
     };
   }, [enabled]);
 
@@ -133,6 +144,7 @@ export function useCloudCrmSync(enabled = true): {
     syncFailed: syncFailed || !cloudConfigured || pushFailed,
     cloudConfigured,
     pushFailed,
+    lastSyncedAt,
     resync,
   };
 }

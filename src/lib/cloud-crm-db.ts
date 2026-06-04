@@ -9,6 +9,11 @@ const TOKEN_KEY = "bess-jwt";
 const SESSION_ROLE_KEY = "bess-session-role";
 const CLOUD_SYNCED_AT_KEY = "bess-crm-cloud-synced-at";
 
+export function getCloudSyncedAt(): string | null {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem(CLOUD_SYNCED_AT_KEY);
+}
+
 let pushTimer: ReturnType<typeof setTimeout> | null = null;
 let pushChain: Promise<boolean> = Promise.resolve(true);
 

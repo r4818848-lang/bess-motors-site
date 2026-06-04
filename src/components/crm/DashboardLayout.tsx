@@ -119,9 +119,8 @@ function DashboardLayoutInner({
     window.addEventListener(DB_STORAGE_QUOTA_EVENT, onQuota);
     return () => window.removeEventListener(DB_STORAGE_QUOTA_EVENT, onQuota);
   }, []);
-  const { syncing, syncFailed, cloudConfigured, pushFailed, resync } = useCloudCrmSync(
-    role === "admin" || role === "mechanic"
-  );
+  const { syncing, syncFailed, cloudConfigured, pushFailed, lastSyncedAt, resync } =
+    useCloudCrmSync(role === "admin" || role === "mechanic");
   const draftLockActive = useCrmDraftLockActive();
   const hotBadge = useHotOrdersBadgeCount();
 
@@ -254,7 +253,17 @@ function DashboardLayoutInner({
           {pushFailed ? c.pushSyncFailed : c.syncFailed} · {c.syncNow}
         </button>
       ) : (
-        <span className="text-green-500">{c.cloudSynced}</span>
+        <span className="text-green-500" title={lastSyncedAt ?? undefined}>
+          {c.cloudSynced}
+          {lastSyncedAt
+            ? ` · ${new Date(lastSyncedAt).toLocaleString(undefined, {
+                day: "2-digit",
+                month: "2-digit",
+                hour: "2-digit",
+                minute: "2-digit",
+              })}`
+            : null}
+        </span>
       )}
     </div>
   );
