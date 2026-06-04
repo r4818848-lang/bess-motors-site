@@ -9,6 +9,7 @@
     "start": "next start",
     "lint": "next lint",
     "audit": "node scripts/audit-site.mjs",
+    "checkup": "npm run audit && npm run build",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Pencil, Trash2 } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { loadDb, saveDb } from "@/lib/store";
-import { pushCrmDelete } from "@/lib/cloud-crm-db";
+import { pullCrmFromCloud, pushCrmDelete } from "@/lib/cloud-crm-db";
 import { useDbSync } from "@/hooks/useDbSync";
 import { filterClientHistory } from "@/lib/crm-search";
 import { displayOrderTotal } from "@/lib/crm-display-price";
@@ -36,9 +36,12 @@ export function ClientHistoryPanel() {
     if (!confirm(`${c.confirmDeleteOrderHistory}\n\n${number}`)) return;
     const fresh = loadDb();
     fresh.workOrders = fresh.workOrders.filter((o) => o.id !== orderId);
-    saveDb(fresh);
+    saveDb(fresh, { skipCloudPush: true });
     const ok = await pushCrmDelete(fresh);
-    if (!ok) return;
+    if (!ok) {
+      await pullCrmFromCloud({ force: true });
+      return;
+    }
   };
 
   return (
