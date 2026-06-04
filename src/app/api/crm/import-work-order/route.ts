@@ -58,7 +58,8 @@ export async function POST(req: Request) {
       return NextResponse.json(
         {
           error: "no_text",
-          hint: "PDF bez tekstu lub złe zdjęcie — spróbuj wyraźniejszego skanu",
+          hint:
+            "Mało tekstu na zdjęciu — cały kosztorys Motowarsztat (ZL, klient, usługi, towary) lub PDF",
         },
         { status: 422 }
       );

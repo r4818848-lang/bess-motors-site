@@ -961,6 +961,12 @@ const pl = {
       analyze: "Odczytaj dokument",
       parsing: "Odczyt… (PDF lub OCR może potrwać do minuty)",
       parseFailed: "Nie udało się odczytać pliku",
+      parseNoText:
+        "Za mało tekstu na zdjęciu — zrób wyraźny zrzut ekranu (cały kosztorys, bez przycięcia) lub wyślij PDF",
+      parseLowQuality:
+        "Tekst odczytany, ale tabele niepewne — sprawdź prace i części ręcznie (surowy tekst poniżej)",
+      photoHint:
+        "Zdjęcie: cały dokument Motowarsztat (ZL, dane klienta, usługi, towary). PDF działa najlepiej.",
       phoneRequired: "Podaj numer telefonu klienta",
       createFailed: "Nie udało się utworzyć zlecenia",
       sectionClient: "Klient",
@@ -2578,6 +2584,12 @@ const ru: TranslationKeys = {
       analyze: "Распознать документ",
       parsing: "Чтение… (PDF или OCR может занять до минуты)",
       parseFailed: "Не удалось прочитать файл",
+      parseNoText:
+        "На фото мало текста — сделайте чёткий скрин всего косторыса (ZL, клиент, услуги, товары) или отправьте PDF",
+      parseLowQuality:
+        "Текст прочитан, но таблицы могут быть неточны — проверьте работы и запчасти вручную",
+      photoHint:
+        "Фото: весь документ Motowarsztat целиком. PDF распознаётся надёжнее.",
       phoneRequired: "Укажите телефон клиента",
       createFailed: "Не удалось создать заказ-наряд",
       sectionClient: "Клиент",

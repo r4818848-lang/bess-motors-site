@@ -4,10 +4,11 @@ import { useState, useRef } from "react";
 import { X, FileUp, Loader2, Plus, Trash2 } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { staffCrmFetch } from "@/lib/crm-staff-fetch";
-import type {
-  ImportPartDraft,
-  ImportServiceDraft,
-  ImportWorkOrderDraft,
+import {
+  parseWorkOrderImportText,
+  type ImportPartDraft,
+  type ImportServiceDraft,
+  type ImportWorkOrderDraft,
 } from "@/lib/motowarsztat-import-parser";
 import { calcPartLineProfit } from "@/lib/workorder-calc";
 import { createWorkOrderFromImport } from "@/lib/create-work-order-from-import";
@@ -79,6 +80,33 @@ export function ImportWorkOrderModal({ open, onClose, onCreated }: Props) {
     setError("");
   };
 
+  const runClientOcr = async (f: File): Promise<string> => {
+    const { createWorker, PSM } = await import("tesseract.js");
+    const worker = await createWorker("pol+eng", undefined, { logger: () => {} });
+    try {
+      await worker.setParameters({
+        tessedit_pageseg_mode: PSM.SINGLE_BLOCK,
+        preserve_interword_spaces: "1",
+      });
+      const result = await worker.recognize(f);
+      return result.data.text ?? "";
+    } finally {
+      await worker.terminate();
+    }
+  };
+
+  const applyParsedText = (rawText: string) => {
+    const parsed = parseWorkOrderImportText(rawText);
+    setDraft(parsed);
+    setRawPreview(rawText.slice(0, 4000));
+    if (
+      parsed.warnings.includes("no_services_detected") &&
+      parsed.warnings.includes("no_parts_detected")
+    ) {
+      setError(imp.parseLowQuality);
+    }
+  };
+
   const runParse = async () => {
     if (!file) return;
     setParsing(true);
@@ -92,21 +120,50 @@ export function ImportWorkOrderModal({ open, onClose, onCreated }: Props) {
         { method: "POST", body: form },
         90_000
       );
-      if (!res?.ok) {
-        const data = (await res?.json().catch(() => ({}))) as {
-          error?: string;
-          hint?: string;
+      if (res?.ok) {
+        const data = (await res.json()) as {
+          parsed: ImportWorkOrderDraft;
+          rawTextPreview?: string;
         };
-        setError(data.hint || data.error || imp.parseFailed);
+        setDraft(data.parsed);
+        setRawPreview(data.rawTextPreview ?? "");
         return;
       }
-      const data = (await res.json()) as {
-        parsed: ImportWorkOrderDraft;
-        rawTextPreview?: string;
+
+      const data = (await res?.json().catch(() => ({}))) as {
+        error?: string;
+        hint?: string;
       };
-      setDraft(data.parsed);
-      setRawPreview(data.rawTextPreview ?? "");
+      const canTryBrowserOcr =
+        file.type.startsWith("image/") &&
+        (data.error === "no_text" || (res?.status ?? 0) >= 500);
+
+      if (canTryBrowserOcr) {
+        const rawText = await runClientOcr(file);
+        if (rawText.replace(/\s+/g, " ").trim().length >= 8) {
+          applyParsedText(rawText);
+          return;
+        }
+      }
+
+      setError(
+        data.hint ||
+          (data.error === "no_text" ? imp.parseNoText : undefined) ||
+          data.error ||
+          imp.parseFailed
+      );
     } catch {
+      if (file.type.startsWith("image/")) {
+        try {
+          const rawText = await runClientOcr(file);
+          if (rawText.replace(/\s+/g, " ").trim().length >= 8) {
+            applyParsedText(rawText);
+            return;
+          }
+        } catch {
+          /* fall through */
+        }
+      }
       setError(imp.parseFailed);
     } finally {
       setParsing(false);
@@ -233,6 +290,9 @@ export function ImportWorkOrderModal({ open, onClose, onCreated }: Props) {
 
         <div className="crm-mw-modal-body overflow-y-auto space-y-4 flex-1">
           <p className="text-sm text-bm-muted">{imp.hint}</p>
+          {imp.photoHint ? (
+            <p className="text-xs text-bm-muted/90">{imp.photoHint}</p>
+          ) : null}
 
           <input
             ref={fileRef}

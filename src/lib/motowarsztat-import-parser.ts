@@ -59,13 +59,40 @@ function normalizeText(text: string): string {
   return text.replace(/\r/g, "\n").replace(/\u00a0/g, " ");
 }
 
+/** Fix common OCR mistakes on Motowarsztat kosztorys screenshots */
+function normalizeOcrForImport(text: string): string {
+  let t = normalizeText(text);
+  const replacements: [RegExp, string][] = [
+    [/u[s5][łl]?ugi/gi, "usługi"],
+    [/u[s5]lugi/gi, "usługi"],
+    [/towar[yv]/gi, "towary"],
+    [/dane\s*klien[a4]ta/gi, "dane klienta"],
+    [/dane\s*pojazdu/gi, "dane pojazdu"],
+    [/kosztory[s5]/gi, "kosztorys"],
+    [/łacznie|lącznie|lacznie/gi, "łącznie"],
+    [/0per/gi, "oper"],
+    [/imie\s+i\s+nazwisko/gi, "imię i nazwisko"],
+    [/marka\s*i\s*model/gi, "marka i model"],
+    [/stan\s*licznika/gi, "stan licznika"],
+    [/cena\s*brutto/gi, "cena brutto"],
+    [/koszt\s*brutto/gi, "koszt brutto"],
+    [/\bzl\b/gi, "zł"],
+  ];
+  for (const [re, rep] of replacements) t = t.replace(re, rep);
+  return t;
+}
+
 function isMotowarsztatKosztorys(text: string): boolean {
   const lower = text.toLowerCase();
   return (
+    MW_ORDER_RE.test(text) ||
     lower.includes("kosztorys") ||
+    (lower.includes("cena brutto") && lower.includes("koszt brutto")) ||
     (lower.includes("dane klienta") && lower.includes("usługi")) ||
     (lower.includes("dane klienta") && lower.includes("uslugi")) ||
-    (lower.includes("dane pojazdu") && lower.includes("towary"))
+    (lower.includes("dane pojazdu") && lower.includes("towary")) ||
+    (lower.includes("dane pojazdu") && lower.includes("usługi")) ||
+    (lower.includes("marka i model") && lower.includes("towary"))
   );
 }
 
@@ -78,9 +105,9 @@ function sliceBlock(text: string, start: RegExp, end: RegExp): string {
   return (endMatch ? rest.slice(0, endMatch.index) : rest).trim();
 }
 
-/** Motowarsztat table row: Name  qty  oper|szt  unitPrice  lineTotal */
+/** Motowarsztat table row: Name  qty  oper|szt  unitPrice  [lineTotal] */
 const MW_TABLE_ROW =
-  /^(.+?)\s+(\d+(?:[.,]\d+)?)\s+(oper|szt\.?)\s+(\d[\d\s]*[.,]\d{2})\s*(?:zł)?\s+(\d[\d\s]*[.,]\d{2})\s*(?:zł)?\s*$/i;
+  /^(.+?)\s+(\d+(?:[.,]\d+)?)\s+(oper|szt\.?|0per)\s+(\d[\d\s]*[.,]\d{2})\s*(?:zł|zl|pln)?(?:\s+(\d[\d\s]*[.,]\d{2})\s*(?:zł|zl|pln)?)?\s*$/i;
 
 function tryMotowarsztatTableRow(
   line: string,
@@ -100,10 +127,15 @@ function tryMotowarsztatTableRow(
 
   const qty = parsePlMoney(m[2]);
   const unitPrice = parsePlMoney(m[4]);
-  const lineTotal = parsePlMoney(m[5]);
+  const lineTotal = m[5] ? parsePlMoney(m[5]) : 0;
   if (unitPrice <= 0 && lineTotal <= 0) return null;
 
-  const price = unitPrice > 0 ? unitPrice : lineTotal / (qty || 1);
+  const price =
+    unitPrice > 0
+      ? unitPrice
+      : lineTotal > 0
+        ? lineTotal / (qty || 1)
+        : 0;
 
   if (kind === "labor") {
     return { name: name.slice(0, 200), qty: qty > 0 ? qty : 1, price };
@@ -159,11 +191,11 @@ function parseMotowarsztatBlocks(text: string): {
           result.phone = `+48${digits.slice(-9)}`;
         }
       }
-      const nameAfterLabel = t.match(
-        /(?:imię i nazwisko|nazwa|klient)[:\s]+(.+)/i
+      const personName = t.match(
+        /(?:imię i nazwisko|imie i nazwisko)[:\s]+(.+)/i
       );
-      if (nameAfterLabel && !result.clientName) {
-        result.clientName = nameAfterLabel[1].trim();
+      if (personName && !result.clientName) {
+        result.clientName = personName[1].trim();
       }
     }
 
@@ -213,10 +245,22 @@ function parseMotowarsztatBlocks(text: string): {
 
     for (const m of vehicleBlock.matchAll(PLATE_RE)) {
       const p = cleanPlate(m[1]);
-      if (p.length >= 4 && p.length <= 10) {
+      if (
+        p.length >= 4 &&
+        p.length <= 10 &&
+        !/^(MARKA|MODEL|NUMER|REJESTRAC)/i.test(p)
+      ) {
         result.plate = p;
         break;
       }
+    }
+
+    const plateLabel = vehicleBlock.match(
+      /numer\s*rejestrac(?:yjny|ji)?[:\s]+([A-Z0-9\s-]{3,12})/i
+    );
+    if (plateLabel) {
+      const p = cleanPlate(plateLabel[1]);
+      if (p.length >= 3 && !/^(MARKA|—|-)$/i.test(p)) result.plate = p;
     }
   }
 
@@ -268,9 +312,21 @@ function extractMotowarsztatLineItems(text: string): {
     if (section === "labor") {
       const row = tryMotowarsztatTableRow(combined, "labor");
       if (row && "price" in row) services.push(row);
+      else {
+        const svc = tryServiceLine(combined);
+        if (svc) services.push(svc);
+      }
     } else {
       const row = tryMotowarsztatTableRow(combined, "parts");
       if (row && "sellPrice" in row) parts.push(row);
+      else {
+        const dual = tryPartFromDualPrice(combined);
+        if (dual) parts.push(dual);
+        else {
+          const single = tryPartSinglePrice(combined);
+          if (single) parts.push(single);
+        }
+      }
     }
   }
 
@@ -279,7 +335,7 @@ function extractMotowarsztatLineItems(text: string): {
 
 function parseMotowarsztatKosztorys(text: string): ImportWorkOrderDraft {
   const warnings: string[] = [];
-  const normalized = normalizeText(text);
+  const normalized = normalizeOcrForImport(text);
   const meta = parseMotowarsztatBlocks(normalized);
   let { services, parts } = extractMotowarsztatLineItems(normalized);
 
@@ -545,7 +601,7 @@ function parseGeneric(text: string): ImportWorkOrderDraft {
 }
 
 export function parseWorkOrderImportText(text: string): ImportWorkOrderDraft {
-  const normalized = normalizeText(text);
+  const normalized = normalizeOcrForImport(text);
   if (isMotowarsztatKosztorys(normalized)) {
     return parseMotowarsztatKosztorys(normalized);
   }
