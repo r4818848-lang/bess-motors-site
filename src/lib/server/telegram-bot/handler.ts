@@ -98,6 +98,7 @@ import {
   confirmImportWorkOrder,
   handleAdminImportMediaMessage,
   handleAdminImportPhoneText,
+  handleAdminImportStepText,
   promptImportPhoneEdit,
   startImportWorkOrderFlow,
   type AdminTelegramFileMessage,
@@ -241,17 +242,7 @@ async function handleMessage(msg: TelegramMessage): Promise<void> {
 
   const session = await getTelegramSession(chatKey);
 
-  if (
-    session.step === "admin_import_file" ||
-    session.step === "admin_import_review"
-  ) {
-    await sendTelegramMessage(
-      chatId,
-      session.step === "admin_import_review"
-        ? "📄 Подтвердите импорт кнопками ниже или «Изменить телефон»."
-        : "📄 Отправьте <b>PDF</b> или изображение <b>файлом</b> (документ), не обычным фото в чат.",
-      mainMenuKeyboard()
-    );
+  if (await handleAdminImportStepText(chatId)) {
     return;
   }
 

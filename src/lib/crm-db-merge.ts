@@ -191,21 +191,42 @@ function applySnapshotMembership(
         mergeTimestampMs(syncCutoff)
       );
     }),
-    callRequests: (base.callRequests ?? []).filter(
-      (c) => !c.userId || userIds.has(c.userId)
+    callRequests: (base.callRequests ?? []).filter((c) => {
+      if (userIds.has(c.userId)) return true;
+      if (!syncCutoff) return false;
+      return (
+        mergeTimestampMs(normalizeIsoTimestamp(c.createdAt)) >
+        mergeTimestampMs(syncCutoff)
+      );
+    }),
+    vehicleHistory: (base.vehicleHistory ?? []).filter((h) =>
+      keptUserIds.has(h.userId)
     ),
-    vehicleHistory: (base.vehicleHistory ?? []).filter(
-      (h) => userIds.has(h.userId) && vehicleIds.has(h.vehicleId)
+    notifications: (base.notifications ?? []).filter((n) =>
+      keptUserIds.has(n.userId)
     ),
-    notifications: (base.notifications ?? []).filter((n) => userIds.has(n.userId)),
     clientRatings: (base.clientRatings ?? []).filter(
-      (r) => !r.userId || userIds.has(r.userId)
+      (r) => !r.userId || keptUserIds.has(r.userId)
     ),
   };
 }
 
-/** Merge incoming PUT with cloud: newer fields per id, but deletions in incoming are kept */
-export function mergeCloudDocuments(existing: Database, incoming: Database): Database {
+export type MergeCloudPutOptions = {
+  /** From browser — protects rows created elsewhere since last successful sync */
+  lastCloudSyncedAt?: string;
+};
+
+/** Merge incoming PUT with cloud: newer fields per id; deletions only with sync marker */
+export function mergeCloudDocuments(
+  existing: Database,
+  incoming: Database,
+  options?: MergeCloudPutOptions
+): Database {
   const merged = mergeCloudIntoLocal(incoming, existing);
-  return applySnapshotMembership(merged, incoming);
+  if (!options?.lastCloudSyncedAt?.trim()) {
+    return merged;
+  }
+  return applySnapshotMembership(merged, incoming, {
+    lastCloudSyncedAt: options.lastCloudSyncedAt,
+  });
 }

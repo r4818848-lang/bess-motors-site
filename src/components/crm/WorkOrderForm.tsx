@@ -350,7 +350,7 @@ export function WorkOrderForm({
     if (!confirm(w.confirmDelete)) return;
     const fresh = loadDb();
     fresh.workOrders = fresh.workOrders.filter((o) => o.id !== order.id);
-    saveDb(fresh);
+    saveDb(fresh, { skipCloudPush: true });
     const ok = await pushCrmDelete(fresh);
     if (!ok) return;
     onSaved();

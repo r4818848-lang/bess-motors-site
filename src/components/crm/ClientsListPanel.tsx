@@ -52,7 +52,7 @@ export function ClientsListPanel() {
     if (!confirm(msg)) return;
     const fresh = loadDb();
     const next = deleteClientFromDb(fresh, userId);
-    saveDb(next);
+    saveDb(next, { skipCloudPush: true });
     const ok = await pushCrmDelete(next);
     if (!ok) return;
   };

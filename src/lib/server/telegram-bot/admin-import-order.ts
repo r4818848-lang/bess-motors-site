@@ -195,6 +195,34 @@ export async function handleAdminImportMediaMessage(
   return true;
 }
 
+/** Text while import flow is active — keep inline keyboard on review step */
+export async function handleAdminImportStepText(chatId: number): Promise<boolean> {
+  const chatKey = String(chatId);
+  const session = await getTelegramSession(chatKey);
+  if (session.step === "admin_import_review" && session.data?.draftJson) {
+    try {
+      const draft = JSON.parse(session.data.draftJson) as ImportWorkOrderDraft;
+      await sendTelegramMessage(
+        chatId,
+        `📄 Используйте кнопки ниже.\n\n${formatImportPreview(draft)}`,
+        importPreviewKeyboard()
+      );
+    } catch {
+      await sendTelegramMessage(chatId, BOT.importPrompt, {
+        inline_keyboard: [[{ text: BOT.cancel, callback_data: "menu" }]],
+      });
+    }
+    return true;
+  }
+  if (session.step === "admin_import_file") {
+    await sendTelegramMessage(chatId, BOT.importPrompt, {
+      inline_keyboard: [[{ text: BOT.cancel, callback_data: "menu" }]],
+    });
+    return true;
+  }
+  return false;
+}
+
 export async function handleAdminImportPhoneText(
   chatId: number,
   text: string

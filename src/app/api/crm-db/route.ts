@@ -59,9 +59,17 @@ export async function PUT(req: Request) {
   if ("error" in auth && auth.error) return auth.error;
 
   let db: Database;
+  let lastCloudSyncedAt: string | undefined;
   try {
-    db = (await req.json()) as Database;
-    if (!db || typeof db !== "object") {
+    const body = (await req.json()) as Database | { db?: Database; lastCloudSyncedAt?: string };
+    if (body && typeof body === "object" && "db" in body && body.db) {
+      db = body.db;
+      lastCloudSyncedAt =
+        typeof body.lastCloudSyncedAt === "string" ? body.lastCloudSyncedAt : undefined;
+    } else {
+      db = body as Database;
+    }
+    if (!db || typeof db !== "object" || !Array.isArray(db.workOrders)) {
       return NextResponse.json({ error: "invalid" }, { status: 400 });
     }
   } catch {
@@ -79,7 +87,9 @@ export async function PUT(req: Request) {
     ),
   });
   const payload = before?.doc
-    ? docForCloud(mergeCloudDocuments(before.doc, incoming))
+    ? docForCloud(
+        mergeCloudDocuments(before.doc, incoming, { lastCloudSyncedAt })
+      )
     : incoming;
   const { runCrmAutomation } = await import("@/lib/crm-automation");
   runCrmAutomation(payload, before?.doc ?? null);

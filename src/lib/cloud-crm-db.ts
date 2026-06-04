@@ -2,7 +2,7 @@ import { isCrmDraftLockActive } from "@/lib/crm-draft-lock";
 import { DB_CHANGED_EVENT, notifyCrmCloudPush } from "@/lib/db-events";
 import { syncAppointmentsFromCloud } from "@/lib/cloud-appointments";
 import { mergeCloudPullIntoLocal } from "@/lib/crm-db-merge";
-import { staffCrmFetch } from "@/lib/crm-staff-fetch";
+import { staffCrmFetch, staffCrmFetchFailureReason } from "@/lib/crm-staff-fetch";
 import { loadDb, mergeStoredDb, saveDb, type Database } from "@/lib/store";
 
 const TOKEN_KEY = "bess-jwt";
@@ -75,8 +75,27 @@ export async function saveDbAndPushCrmDelete(db: Database): Promise<boolean> {
   return ok;
 }
 
-async function revertCrmFromCloudAfterFailedPush(): Promise<void> {
+const PENDING_CLOUD_REVERT_KEY = "bess-crm-pending-cloud-revert";
+
+function markPendingCloudRevert(): void {
+  if (typeof window === "undefined") return;
+  sessionStorage.setItem(PENDING_CLOUD_REVERT_KEY, "1");
+}
+
+export async function flushPendingCloudRevert(): Promise<void> {
+  if (typeof window === "undefined" || !isCrmCloudWriter()) return;
+  if (!sessionStorage.getItem(PENDING_CLOUD_REVERT_KEY)) return;
+  sessionStorage.removeItem(PENDING_CLOUD_REVERT_KEY);
   if (isCrmDraftLockActive()) return;
+  await pullCrmFromCloud({ force: true });
+  window.dispatchEvent(new CustomEvent(DB_CHANGED_EVENT));
+}
+
+async function revertCrmFromCloudAfterFailedPush(): Promise<void> {
+  if (isCrmDraftLockActive()) {
+    markPendingCloudRevert();
+    return;
+  }
   await pullCrmFromCloud({ force: true });
   if (typeof window !== "undefined") {
     window.dispatchEvent(new CustomEvent(DB_CHANGED_EVENT));
@@ -89,7 +108,11 @@ export async function pullCrmFromCloud(options?: { force?: boolean }): Promise<P
 
   try {
     const res = await staffCrmFetch("/api/crm-db", { cache: "no-store" });
-    if (!res || !res.ok) return "error";
+    if (!res || !res.ok) {
+      const why = staffCrmFetchFailureReason(res);
+      if (why) console.warn("[cloud] CRM pull failed:", why);
+      return "error";
+    }
 
     const data = (await res.json()) as {
       cloud?: boolean;
@@ -144,13 +167,17 @@ export async function pushCrmToCloud(
   if (!localStorage.getItem(TOKEN_KEY)) return false;
 
   const payload = dbForCloud(db ?? loadDb());
+  const lastCloudSyncedAt =
+    typeof window !== "undefined"
+      ? localStorage.getItem(CLOUD_SYNCED_AT_KEY) ?? undefined
+      : undefined;
 
   const run = async (): Promise<boolean> => {
     try {
       const res = await staffCrmFetch("/api/crm-db", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ db: payload, lastCloudSyncedAt }),
       });
       if (!res || !res.ok) {
         console.warn(

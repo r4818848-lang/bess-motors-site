@@ -18,8 +18,12 @@ export function acquireCrmDraftLock(): void {
 export function releaseCrmDraftLock(): void {
   if (typeof window === "undefined") return;
   const n = Math.max(0, Number.parseInt(sessionStorage.getItem(COUNT_KEY) ?? "0", 10) - 1);
-  if (n <= 0) sessionStorage.removeItem(COUNT_KEY);
-  else sessionStorage.setItem(COUNT_KEY, String(n));
+  if (n <= 0) {
+    sessionStorage.removeItem(COUNT_KEY);
+    void import("@/lib/cloud-crm-db").then((m) => m.flushPendingCloudRevert());
+  } else {
+    sessionStorage.setItem(COUNT_KEY, String(n));
+  }
   notifyDraftLockChange();
 }
 

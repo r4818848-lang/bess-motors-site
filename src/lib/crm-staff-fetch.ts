@@ -10,6 +10,13 @@ function isStaffCloudWriter(): boolean {
   return role === "admin" || role === "mechanic";
 }
 
+export type StaffCrmFetchFailure =
+  | "no_token"
+  | "not_staff"
+  | "timeout"
+  | "network"
+  | "unauthorized";
+
 /** Staff CRM API fetch with timeout and one 401 retry after JWT refresh. */
 export async function staffCrmFetch(
   url: string,
@@ -40,7 +47,21 @@ export async function staffCrmFetch(
       if (fresh) res = await doFetch(fresh);
     }
     return res;
-  } catch {
+  } catch (e) {
+    const aborted =
+      e instanceof Error &&
+      (e.name === "AbortError" || /aborted/i.test(e.message));
+    console.warn("[crm] fetch failed", url, aborted ? "timeout" : e);
     return null;
   }
+}
+
+export function staffCrmFetchFailureReason(res: Response | null): StaffCrmFetchFailure | null {
+  if (res) {
+    if (res.status === 401) return "unauthorized";
+    return null;
+  }
+  if (typeof window === "undefined" || !isStaffCloudWriter()) return "not_staff";
+  if (!localStorage.getItem(TOKEN_KEY)) return "no_token";
+  return "network";
 }

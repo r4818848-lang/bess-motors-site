@@ -51,7 +51,7 @@ export function VehiclesListPanel() {
     setDeletingId(vehicleId);
     const fresh = loadDb();
     const next = deleteVehicleFromDb(fresh, vehicleId);
-    saveDb(next);
+    saveDb(next, { skipCloudPush: true });
     setSelectedIds((prev) => {
       const s = new Set(prev);
       s.delete(vehicleId);
@@ -73,7 +73,7 @@ export function VehiclesListPanel() {
     for (const id of selectedIds) {
       fresh = deleteVehicleFromDb(fresh, id);
     }
-    saveDb(fresh);
+    saveDb(fresh, { skipCloudPush: true });
     setSelectedIds(new Set());
     const ok = await pushCrmDelete(fresh);
     setDeletingId(null);
