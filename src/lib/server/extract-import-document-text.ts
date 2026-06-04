@@ -14,20 +14,8 @@ export async function extractTextFromImportFile(
   }
 
   if (mime.startsWith("image/")) {
-    const { createWorker, PSM } = await import("tesseract.js");
-    const worker = await createWorker("pol+eng", undefined, {
-      logger: () => {},
-    });
-    try {
-      await worker.setParameters({
-        tessedit_pageseg_mode: PSM.SINGLE_BLOCK,
-        preserve_interword_spaces: "1",
-      });
-      const result = await worker.recognize(buffer);
-      return result.data.text ?? "";
-    } finally {
-      await worker.terminate();
-    }
+    const { ocrImportImageBuffer } = await import("@/lib/server/ocr-import-image");
+    return ocrImportImageBuffer(buffer);
   }
 
   throw new Error("unsupported_type");

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { verifyToken } from "@/lib/server/verify-session";
 import { extractTextFromImportFile } from "@/lib/server/extract-import-document-text";
 import { parseWorkOrderImportText } from "@/lib/motowarsztat-import-parser";
+import { isOcrTextLikelyUseful } from "@/lib/server/ocr-import-image";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -53,13 +54,26 @@ export async function POST(req: Request) {
     const buffer = Buffer.from(await file.arrayBuffer());
     const rawText = await extractTextFromImportFile(buffer, mime);
     const trimmed = rawText.replace(/\s+/g, " ").trim();
+    const isImage = mime.startsWith("image/");
 
     if (trimmed.length < 8) {
       return NextResponse.json(
         {
           error: "no_text",
-          hint:
-            "Mało tekstu na zdjęciu — cały kosztorys Motowarsztat (ZL, klient, usługi, towary) lub PDF",
+          hint: isImage
+            ? "Nie odczytano tekstu ze zdjęcia — wyślij PDF lub zdjęcie jako plik (nie skompresowane), ekran na pełnym świetle"
+            : "PDF bez tekstu — spróbuj zdjęcia (JPG) lub innego eksportu",
+        },
+        { status: 422 }
+      );
+    }
+
+    if (isImage && !isOcrTextLikelyUseful(rawText)) {
+      return NextResponse.json(
+        {
+          error: "ocr_low_quality",
+          hint: "Zdjęcie jest nieczytelne dla OCR. Wyślij PDF z programu, lub zrób zdjęcie prostopadle, bez rozmycia — w Telegram: jako dokument, nie jako zdjęcie.",
+          rawTextPreview: rawText.slice(0, 1500),
         },
         { status: 422 }
       );

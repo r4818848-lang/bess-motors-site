@@ -192,11 +192,16 @@ export async function handleTelegramUpdate(update: {
   }
 
   if (update.message.photo?.length || update.message.document) {
+    const chatKey = String(chatId);
+    const session = await getTelegramSession(chatKey);
+    if (session.step !== "admin_import_file") {
+      await setTelegramSession(chatKey, { step: "admin_import_file", data: {} });
+    }
     const handled = await handleAdminImportMediaMessage(update.message);
     if (!handled) {
       await sendTelegramMessage(
         chatId,
-        "📄 Чтобы импортировать заказ-наряд: меню → <b>Импорт PDF/фото</b>.",
+        "📄 Не удалось обработать файл. Меню → <b>Импорт PDF/фото</b> → PDF или фото как <b>документ</b>.",
         mainMenuKeyboard()
       );
     }

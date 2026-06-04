@@ -19,6 +19,7 @@ import {
   parseWorkOrderImportText,
   type ImportWorkOrderDraft,
 } from "@/lib/motowarsztat-import-parser";
+import { isOcrTextLikelyUseful } from "@/lib/server/ocr-import-image";
 import { BOT } from "./labels";
 
 export type AdminTelegramFileMessage = {
@@ -160,8 +161,16 @@ export async function handleAdminImportMediaMessage(
   }
 
   const trimmed = rawText.replace(/\s+/g, " ").trim();
+  const isImage = picked.mime.startsWith("image/");
   if (trimmed.length < 8) {
     await sendTelegramMessage(chatId, BOT.importNoText, {
+      inline_keyboard: [[{ text: BOT.cancel, callback_data: "menu" }]],
+    });
+    return true;
+  }
+
+  if (isImage && !isOcrTextLikelyUseful(rawText)) {
+    await sendTelegramMessage(chatId, BOT.importOcrPoor, {
       inline_keyboard: [[{ text: BOT.cancel, callback_data: "menu" }]],
     });
     return true;
