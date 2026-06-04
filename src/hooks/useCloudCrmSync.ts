@@ -34,8 +34,8 @@ export function useCloudCrmSync(enabled = true): {
   const resync = useCallback(
     async (options?: CrmResyncOptions): Promise<boolean> => {
       if (!enabled) return false;
-      if (isCrmDraftLockActive() && options?.pull !== false) {
-        return true;
+      if (isCrmDraftLockActive()) {
+        return false;
       }
 
       setSyncing(true);
@@ -48,24 +48,25 @@ export function useCloudCrmSync(enabled = true): {
         }
 
         await pushCrmIfCloudEmpty();
+
+        const shouldPull = options?.pull === true;
+        if (shouldPull) {
+          const pullResult = await pullCrmFromCloud({ force: true });
+          if (pullResult === "error") {
+            setSyncFailed(true);
+            return false;
+          }
+        }
+
         const pushed = await pushCrmSave(loadDb());
         if (!pushed) {
           setPushFailed(true);
           return false;
         }
 
-        const shouldPull = options?.pull === true && !isCrmDraftLockActive();
-        if (!shouldPull) {
-          setPushFailed(false);
-          setSyncFailed(false);
-          return true;
-        }
-
-        const result = await pullCrmFromCloud({ force: true });
-        const ok = result !== "error" && result !== "skipped";
-        setSyncFailed(!ok);
-        if (ok) setPushFailed(false);
-        return ok;
+        setPushFailed(false);
+        setSyncFailed(false);
+        return true;
       } catch {
         setSyncFailed(true);
         return false;
@@ -80,7 +81,12 @@ export function useCloudCrmSync(enabled = true): {
     if (!enabled) return;
 
     void fetchCloudConfigured().then(setCloudConfigured);
-    void pushCrmIfCloudEmpty();
+    void (async () => {
+      await pushCrmIfCloudEmpty();
+      if (!isCrmDraftLockActive()) {
+        await pullCrmFromCloud();
+      }
+    })();
 
     const onSaved = (e: Event) => {
       if (isCrmDraftLockActive()) return;
@@ -102,11 +108,14 @@ export function useCloudCrmSync(enabled = true): {
     };
   }, [enabled]);
 
-  /** Push local changes only — no pull (pull wipes open drafts) */
+  /** Pull cloud changes, then push local snapshot (skipped while a CRM form is open). */
   useVisibleInterval(() => {
     if (!enabled || isCrmDraftLockActive()) return;
-    void pushCrmSave(loadDb());
-  }, 60_000, enabled);
+    void (async () => {
+      await pullCrmFromCloud();
+      await pushCrmSave(loadDb());
+    })();
+  }, 90_000, enabled);
 
   return {
     syncing,

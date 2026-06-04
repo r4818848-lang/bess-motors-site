@@ -183,7 +183,14 @@ function applySnapshotMembership(
       if (!syncCutoff) return false;
       return mergeTimestampMs(orderStamp(o)) > mergeTimestampMs(syncCutoff);
     }),
-    appointments: base.appointments.filter((a) => aptIds.has(a.id)),
+    appointments: base.appointments.filter((a) => {
+      if (aptIds.has(a.id)) return true;
+      if (!syncCutoff) return false;
+      return (
+        mergeTimestampMs(normalizeIsoTimestamp(a.createdAt)) >
+        mergeTimestampMs(syncCutoff)
+      );
+    }),
     callRequests: (base.callRequests ?? []).filter(
       (c) => !c.userId || userIds.has(c.userId)
     ),

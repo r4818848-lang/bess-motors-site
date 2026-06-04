@@ -84,6 +84,7 @@ export function ImportWorkOrderModal({ open, onClose, onCreated }: Props) {
     setParsing(true);
     setError("");
     acquireCrmDraftLock();
+    let keepDraftLock = false;
     try {
       const form = new FormData();
       form.append("file", file);
@@ -110,10 +111,12 @@ export function ImportWorkOrderModal({ open, onClose, onCreated }: Props) {
       };
       setDraft(data.parsed);
       setRawPreview(data.rawTextPreview ?? "");
+      keepDraftLock = true;
     } catch {
       setError(imp.parseFailed);
     } finally {
       setParsing(false);
+      if (!keepDraftLock) releaseCrmDraftLock();
     }
   };
 

@@ -195,13 +195,18 @@ export async function handleTelegramUpdate(update: {
     const chatKey = String(chatId);
     const session = await getTelegramSession(chatKey);
     if (session.step !== "admin_import_file") {
-      await setTelegramSession(chatKey, { step: "admin_import_file", data: {} });
+      await sendTelegramMessage(
+        chatId,
+        "📄 Импорт: меню → <b>Импорт PDF/фото</b>, затем отправьте PDF или файл (не сжатое «фото»).",
+        mainMenuKeyboard()
+      );
+      return;
     }
     const handled = await handleAdminImportMediaMessage(update.message);
     if (!handled) {
       await sendTelegramMessage(
         chatId,
-        "📄 Не удалось обработать файл. Меню → <b>Импорт PDF/фото</b> → PDF или фото как <b>документ</b>.",
+        "📄 Не удалось обработать файл. PDF или фото как <b>документ</b>, без бликов.",
         mainMenuKeyboard()
       );
     }
@@ -235,6 +240,20 @@ async function handleMessage(msg: TelegramMessage): Promise<void> {
   }
 
   const session = await getTelegramSession(chatKey);
+
+  if (
+    session.step === "admin_import_file" ||
+    session.step === "admin_import_review"
+  ) {
+    await sendTelegramMessage(
+      chatId,
+      session.step === "admin_import_review"
+        ? "📄 Подтвердите импорт кнопками ниже или «Изменить телефон»."
+        : "📄 Отправьте <b>PDF</b> или изображение <b>файлом</b> (документ), не обычным фото в чат.",
+      mainMenuKeyboard()
+    );
+    return;
+  }
 
   if (session.step === "admin_extra_work" && session.data?.orderNumber) {
     const lines = text.split("\n");
