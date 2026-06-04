@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Plus, FileText, Trash2 } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { deleteClientFromDb, loadDb, saveDb } from "@/lib/store";
-import { pushCrmDelete } from "@/lib/cloud-crm-db";
+import { pullCrmFromCloud, pushCrmDelete } from "@/lib/cloud-crm-db";
 import { useDbSync } from "@/hooks/useDbSync";
 import { filterClients } from "@/lib/crm-search";
 import { FLEET_CLIENT_TAG } from "@/lib/client-fleet-access";
@@ -54,7 +54,10 @@ export function ClientsListPanel() {
     const next = deleteClientFromDb(fresh, userId);
     saveDb(next, { skipCloudPush: true });
     const ok = await pushCrmDelete(next);
-    if (!ok) return;
+    if (!ok) {
+      await pullCrmFromCloud({ force: true });
+      return;
+    }
   };
 
   return (

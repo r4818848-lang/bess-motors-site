@@ -954,6 +954,9 @@ const pl = {
       "Synchronizacja wstrzymana — dokończ zlecenie i zamknij okno, potem «Synchronizuj»",
     cloudNotConfigured: "Chmura wyłączona — ustaw SUPABASE_* w Vercel",
     pushSyncFailed: "Nie zapisano w chmurze — kliknij Synchronizuj",
+    syncRelogin: "Sesja wygasła — wyloguj się i zaloguj ponownie do CRM",
+    syncTimeout: "Przekroczono czas odpowiedzi serwera — spróbuj Synchronizuj",
+    syncNetwork: "Brak połączenia z serwerem — sprawdź internet i VPN",
     importOrder: {
       title: "Import z PDF / zdjęcia",
       hint: "Odczyt klienta, pojazdu, prac i części z PDF/foto. Przed zapisem sprawdź i uzupełnij ceny zakupu części — od tego liczy się marża w CRM.",
@@ -961,6 +964,8 @@ const pl = {
       analyze: "Odczytaj dokument",
       parsing: "Odczyt… (PDF lub OCR może potrwać do minuty)",
       parseFailed: "Nie udało się odczytać pliku",
+      sessionExpired: "Sesja CRM wygasła — wyloguj się i zaloguj ponownie",
+      networkError: "Brak połączenia z serwerem — sprawdź internet",
       ocrPoorPhoto:
         "Zdjęcie jest nieczytelne dla OCR. Wyślij PDF z programu lub zdjęcie jako plik (bez kompresji Telegram), prosto i ostro.",
       phoneRequired: "Podaj numer telefonu klienta",
@@ -2573,6 +2578,9 @@ const ru: TranslationKeys = {
       "Синхронизация приостановлена — закончите заказ-наряд и закройте окно, затем «Синхронизировать»",
     cloudNotConfigured: "Облако выключено — задайте SUPABASE_* в Vercel",
     pushSyncFailed: "Не сохранилось в облако — нажмите «Синхронизировать»",
+    syncRelogin: "Сессия истекла — выйдите и войдите в CRM снова",
+    syncTimeout: "Сервер не ответил вовремя — нажмите «Синхронизировать»",
+    syncNetwork: "Нет связи с сервером — проверьте интернет и VPN",
     importOrder: {
       title: "Импорт из PDF / фото",
       hint: "Читаются клиент, авто, работы и запчасти. Перед сохранением проверьте данные и введите закупочные цены запчастей — от них считается прибыль в CRM.",
@@ -2580,6 +2588,8 @@ const ru: TranslationKeys = {
       analyze: "Распознать документ",
       parsing: "Чтение… (PDF или OCR может занять до минуты)",
       parseFailed: "Не удалось прочитать файл",
+      sessionExpired: "Сессия CRM истекла — выйдите и войдите снова",
+      networkError: "Нет связи с сервером — проверьте интернет",
       ocrPoorPhoto:
         "Фото нечитаемо для OCR. Отправьте PDF из программы или фото как файл (без сжатия Telegram), ровно и без бликов.",
       phoneRequired: "Укажите телефон клиента",

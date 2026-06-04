@@ -3,7 +3,7 @@
 import { useState, useRef } from "react";
 import { X, FileUp, Loader2, Plus, Trash2 } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
-import { staffCrmFetch } from "@/lib/crm-staff-fetch";
+import { staffCrmFetch, staffCrmFetchFailureReason } from "@/lib/crm-staff-fetch";
 import type {
   ImportPartDraft,
   ImportServiceDraft,
@@ -94,7 +94,16 @@ export function ImportWorkOrderModal({ open, onClose, onCreated }: Props) {
         90_000
       );
       if (!res?.ok) {
-        const data = (await res?.json().catch(() => ({}))) as {
+        const why = staffCrmFetchFailureReason(res);
+        if (why === "unauthorized") {
+          setError(imp.sessionExpired);
+          return;
+        }
+        if (!res) {
+          setError(why === "timeout" ? c.syncTimeout : c.syncNetwork);
+          return;
+        }
+        const data = (await res.json().catch(() => ({}))) as {
           error?: string;
           hint?: string;
         };

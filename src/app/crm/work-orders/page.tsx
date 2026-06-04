@@ -134,9 +134,12 @@ function WorkOrdersPageContent() {
     if (!confirm(`${c.confirmDeleteSelected}\n\n${selectedIds.size}`)) return;
     const fresh = loadDb();
     fresh.workOrders = fresh.workOrders.filter((o) => !selectedIds.has(o.id));
-    saveDb(fresh);
+    saveDb(fresh, { skipCloudPush: true });
     const ok = await pushCrmDelete(fresh);
-    if (!ok) return;
+    if (!ok) {
+      await pullCrmFromCloud({ force: true });
+      return;
+    }
     setSelectedIds(new Set());
   };
 

@@ -36,6 +36,8 @@ const nextConfig: NextConfig = {
       { source: "/mechanik-warszawa", destination: "/warszawa-wlochy", permanent: true },
       { source: "/cennik-uslug", destination: "/cennik", permanent: true },
       { source: "/zapis-online", destination: "/booking", permanent: true },
+      { source: "/login", destination: "/cabinet", permanent: false },
+      { source: "/logowanie", destination: "/cabinet", permanent: false },
     ];
   },
 };

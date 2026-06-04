@@ -6,11 +6,13 @@ import { isCrmDraftLockActive } from "@/lib/crm-draft-lock";
 import {
   fetchCloudConfigured,
   getCloudSyncedAt,
+  getLastCrmSyncFailure,
   pullCrmFromCloud,
   pushCrmIfCloudEmpty,
   pushCrmSave,
   scheduleCrmCloudPush,
 } from "@/lib/cloud-crm-db";
+import type { StaffCrmFetchFailure } from "@/lib/crm-staff-fetch";
 import { loadDb, type Database } from "@/lib/store";
 import { useVisibleInterval } from "@/hooks/useVisibleInterval";
 
@@ -26,6 +28,7 @@ export function useCloudCrmSync(enabled = true): {
   cloudConfigured: boolean;
   pushFailed: boolean;
   lastSyncedAt: string | null;
+  syncFailureReason: StaffCrmFetchFailure | "draft_locked" | "cloud_off" | null;
   resync: (options?: CrmResyncOptions) => Promise<boolean>;
 } {
   const [syncing, setSyncing] = useState(false);
@@ -33,11 +36,15 @@ export function useCloudCrmSync(enabled = true): {
   const [cloudConfigured, setCloudConfigured] = useState(true);
   const [pushFailed, setPushFailed] = useState(false);
   const [lastSyncedAt, setLastSyncedAt] = useState<string | null>(null);
+  const [syncFailureReason, setSyncFailureReason] = useState<
+    StaffCrmFetchFailure | "draft_locked" | "cloud_off" | null
+  >(null);
 
   const resync = useCallback(
     async (options?: CrmResyncOptions): Promise<boolean> => {
       if (!enabled) return false;
       if (isCrmDraftLockActive()) {
+        setSyncFailureReason("draft_locked");
         return false;
       }
 
@@ -47,6 +54,7 @@ export function useCloudCrmSync(enabled = true): {
         setCloudConfigured(configured);
         if (!configured) {
           setSyncFailed(true);
+          setSyncFailureReason("cloud_off");
           return false;
         }
 
@@ -57,6 +65,7 @@ export function useCloudCrmSync(enabled = true): {
           const pullResult = await pullCrmFromCloud({ force: true });
           if (pullResult === "error") {
             setSyncFailed(true);
+            setSyncFailureReason(getLastCrmSyncFailure() ?? "network");
             return false;
           }
         }
@@ -64,15 +73,18 @@ export function useCloudCrmSync(enabled = true): {
         const pushed = await pushCrmSave(loadDb());
         if (!pushed) {
           setPushFailed(true);
+          setSyncFailureReason(getLastCrmSyncFailure() ?? "network");
           return false;
         }
 
         setPushFailed(false);
         setSyncFailed(false);
+        setSyncFailureReason(null);
         setLastSyncedAt(getCloudSyncedAt());
         return true;
       } catch {
         setSyncFailed(true);
+        setSyncFailureReason("network");
         return false;
       } finally {
         setSyncing(false);
@@ -99,9 +111,12 @@ export function useCloudCrmSync(enabled = true): {
     };
     const onPush = (e: Event) => {
       const detail = (e as CustomEvent<{ ok?: boolean }>).detail;
-      if (detail?.ok === false) setPushFailed(true);
-      else if (detail?.ok === true) {
+      if (detail?.ok === false) {
+        setPushFailed(true);
+        setSyncFailureReason(getLastCrmSyncFailure() ?? "network");
+      } else if (detail?.ok === true) {
         setPushFailed(false);
+        setSyncFailureReason(null);
         setLastSyncedAt(getCloudSyncedAt());
       }
     };
@@ -145,6 +160,7 @@ export function useCloudCrmSync(enabled = true): {
     cloudConfigured,
     pushFailed,
     lastSyncedAt,
+    syncFailureReason,
     resync,
   };
 }

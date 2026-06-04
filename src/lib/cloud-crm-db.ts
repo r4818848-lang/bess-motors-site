@@ -2,7 +2,25 @@ import { isCrmDraftLockActive } from "@/lib/crm-draft-lock";
 import { DB_CHANGED_EVENT, notifyCrmCloudPush } from "@/lib/db-events";
 import { syncAppointmentsFromCloud } from "@/lib/cloud-appointments";
 import { mergeCloudPullIntoLocal } from "@/lib/crm-db-merge";
-import { staffCrmFetch, staffCrmFetchFailureReason } from "@/lib/crm-staff-fetch";
+import {
+  staffCrmFetch,
+  staffCrmFetchFailureReason,
+  type StaffCrmFetchFailure,
+} from "@/lib/crm-staff-fetch";
+
+let lastCrmSyncFailure: StaffCrmFetchFailure | null = null;
+
+export function getLastCrmSyncFailure(): StaffCrmFetchFailure | null {
+  return lastCrmSyncFailure;
+}
+
+function noteCrmSyncFailure(res: Response | null): void {
+  lastCrmSyncFailure = staffCrmFetchFailureReason(res);
+}
+
+function clearCrmSyncFailure(): void {
+  lastCrmSyncFailure = null;
+}
 import { loadDb, mergeStoredDb, saveDb, type Database } from "@/lib/store";
 
 const TOKEN_KEY = "bess-jwt";
@@ -114,10 +132,12 @@ export async function pullCrmFromCloud(options?: { force?: boolean }): Promise<P
   try {
     const res = await staffCrmFetch("/api/crm-db", { cache: "no-store" });
     if (!res || !res.ok) {
-      const why = staffCrmFetchFailureReason(res);
+      noteCrmSyncFailure(res);
+      const why = lastCrmSyncFailure;
       if (why) console.warn("[cloud] CRM pull failed:", why);
       return "error";
     }
+    clearCrmSyncFailure();
 
     const data = (await res.json()) as {
       cloud?: boolean;
@@ -185,6 +205,7 @@ export async function pushCrmToCloud(
         body: JSON.stringify({ db: payload, lastCloudSyncedAt }),
       });
       if (!res || !res.ok) {
+        noteCrmSyncFailure(res);
         console.warn(
           "[cloud] CRM push failed",
           res?.status ?? "network",
@@ -195,6 +216,7 @@ export async function pushCrmToCloud(
       }
       const data = (await res.json()) as { ok?: boolean; updatedAt?: string; error?: string };
       const ok = data.ok === true;
+      if (ok) clearCrmSyncFailure();
       if (data.updatedAt) {
         localStorage.setItem(CLOUD_SYNCED_AT_KEY, data.updatedAt);
       }

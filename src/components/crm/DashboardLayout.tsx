@@ -119,8 +119,24 @@ function DashboardLayoutInner({
     window.addEventListener(DB_STORAGE_QUOTA_EVENT, onQuota);
     return () => window.removeEventListener(DB_STORAGE_QUOTA_EVENT, onQuota);
   }, []);
-  const { syncing, syncFailed, cloudConfigured, pushFailed, lastSyncedAt, resync } =
-    useCloudCrmSync(role === "admin" || role === "mechanic");
+  const {
+    syncing,
+    syncFailed,
+    cloudConfigured,
+    pushFailed,
+    lastSyncedAt,
+    syncFailureReason,
+    resync,
+  } = useCloudCrmSync(role === "admin" || role === "mechanic");
+
+  const syncErrorLabel = (() => {
+    if (syncFailureReason === "unauthorized") return c.syncRelogin;
+    if (syncFailureReason === "timeout") return c.syncTimeout;
+    if (syncFailureReason === "network") return c.syncNetwork;
+    if (syncFailureReason === "cloud_off") return c.cloudNotConfigured;
+    if (syncFailureReason === "draft_locked") return c.syncPausedDraft;
+    return pushFailed ? c.pushSyncFailed : c.syncFailed;
+  })();
   const draftLockActive = useCrmDraftLockActive();
   const hotBadge = useHotOrdersBadgeCount();
 
@@ -250,7 +266,7 @@ function DashboardLayoutInner({
           className="text-amber-400 hover:text-bm-red"
           onClick={() => void resync({ pull: true })}
         >
-          {pushFailed ? c.pushSyncFailed : c.syncFailed} · {c.syncNow}
+          {syncErrorLabel} · {c.syncNow}
         </button>
       ) : (
         <span className="text-green-500" title={lastSyncedAt ?? undefined}>
@@ -393,7 +409,7 @@ function DashboardLayoutInner({
         )}
         {(syncFailed || pushFailed) && !syncing && cloudConfigured && !draftLockActive && (
           <div className="crm-sync-banner" role="status">
-            <span>{pushFailed ? c.pushSyncFailed : c.syncFailed}</span>
+            <span>{syncErrorLabel}</span>
             <button type="button" onClick={() => void resync({ pull: true })}>
               {c.syncNow}
             </button>
