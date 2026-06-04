@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { CRM_CLOUD_PUSH_EVENT, DB_SAVED_EVENT } from "@/lib/db-events";
+import { CRM_CLOUD_PUSH_EVENT, DB_CHANGED_EVENT, DB_SAVED_EVENT } from "@/lib/db-events";
 import { isCrmDraftLockActive } from "@/lib/crm-draft-lock";
 import {
   fetchCloudConfigured,
@@ -108,14 +108,25 @@ export function useCloudCrmSync(enabled = true): {
     };
   }, [enabled]);
 
-  /** Pull cloud changes, then push local snapshot (skipped while a CRM form is open). */
+  /** Push local changes periodically; pull only when tab becomes visible (avoids overwriting open forms). */
   useVisibleInterval(() => {
     if (!enabled || isCrmDraftLockActive()) return;
-    void (async () => {
-      await pullCrmFromCloud();
-      await pushCrmSave(loadDb());
-    })();
-  }, 90_000, enabled);
+    void pushCrmSave(loadDb());
+  }, 60_000, enabled);
+
+  useEffect(() => {
+    if (!enabled) return;
+    const onVisible = () => {
+      if (document.visibilityState !== "visible" || isCrmDraftLockActive()) return;
+      void pullCrmFromCloud().then((r) => {
+        if (r === "merged" && typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent(DB_CHANGED_EVENT));
+        }
+      });
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+  }, [enabled]);
 
   return {
     syncing,

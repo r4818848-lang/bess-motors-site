@@ -103,6 +103,24 @@ checkServiceIds();
 checkApiRoutesExportMethods();
 checkClientRefreshExported();
 
+function runCrmMergeTest() {
+  const r = spawnSync("npx", ["--yes", "tsx", "scripts/test-crm-merge.mjs"], {
+    cwd: root,
+    encoding: "utf8",
+    shell: true,
+  });
+  const out = (r.stdout || "") + (r.stderr || "");
+  if (r.status !== 0) {
+    console.error(`\n❌ CRM cloud merge test failed:\n${out}`);
+    failed = true;
+  } else {
+    console.log("✅ CRM cloud merge safety");
+    if (out.trim()) console.log(out.trim());
+  }
+}
+
+runCrmMergeTest();
+
 const pwConfig = join(root, "playwright.config.ts");
 if (existsSync(pwConfig)) {
   console.log("✅ Playwright E2E configured (npm run test:e2e)");

@@ -25,6 +25,7 @@ e2e/.auth/
 /build
 
 # misc
+*.traineddata
 .DS_Store
 __MACOSX/
 *.pem

@@ -4,6 +4,7 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   serverExternalPackages: ["pdf-parse", "pdfjs-dist", "@napi-rs/canvas", "tesseract.js"],
   images: {
+    qualities: [75, 85],
     formats: ["image/avif", "image/webp"],
     remotePatterns: [
       {

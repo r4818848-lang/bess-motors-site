@@ -153,17 +153,16 @@ export function WorkOrderForm({
   const [saveError, setSaveError] = useState("");
 
   useEffect(() => {
-    if (!isNew) return;
     acquireCrmDraftLock();
     return () => releaseCrmDraftLock();
-  }, [isNew]);
+  }, []);
 
   useEffect(() => {
     if (!orderId || isNew) return;
     const fresh = loadDb().workOrders.find((o) => o.id === orderId);
     if (!fresh) return;
     setOrder((prev) => mergeRemoteWorkOrderPatch(prev, fresh));
-  }, [orderId, isNew, dbTick]);
+  }, [orderId, isNew]);
 
   useEffect(() => {
     if (!isNew || !initialUserId) return;
@@ -337,7 +336,6 @@ export function WorkOrderForm({
       setSaveError(c.pushSyncFailed);
       return false;
     }
-    if (isNew) releaseCrmDraftLock();
     if (opts?.close !== false) onSaved();
     return true;
   };
