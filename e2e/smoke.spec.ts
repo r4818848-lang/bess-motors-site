@@ -19,6 +19,13 @@ test("home page loads with brand and booking CTA", async ({ page }) => {
   await expect(page.getByRole("link", { name: /Umów|Zapisz|booking/i }).first()).toBeVisible();
 });
 
+test("Yandex Metrika counter is present on public pages", async ({ page }) => {
+  await page.goto("/");
+  const html = await page.content();
+  expect(html).toMatch(/mc\.yandex\.ru\/metrika\/tag\.js/);
+  expect(html).toMatch(/109683484/);
+});
+
 test("main navigation pages respond 200", async ({ page }) => {
   const paths = [
     "/",

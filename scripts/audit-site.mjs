@@ -84,6 +84,22 @@ function checkApiRoutesExportMethods() {
   }
 }
 
+function checkYandexMetrika() {
+  const layout = readFileSync(join(root, "src", "app", "layout.tsx"), "utf8");
+  const lib = readFileSync(join(root, "src", "lib", "yandex-metrika.ts"), "utf8");
+  const issues = [];
+  if (!layout.includes("YandexMetrika")) issues.push("layout missing YandexMetrika");
+  if (!layout.includes("YandexMetrikaPageView")) issues.push("layout missing YandexMetrikaPageView");
+  if (!lib.includes("mc.yandex.ru/metrika/tag.js")) issues.push("yandex-metrika init script");
+  if (!/109683484|NEXT_PUBLIC_YANDEX_METRIKA_ID/.test(lib)) issues.push("counter id");
+  if (issues.length) {
+    console.error("❌ Yandex Metrika:", issues);
+    failed = true;
+  } else {
+    console.log("✅ Yandex Metrika counter");
+  }
+}
+
 function checkClientRefreshExported() {
   const auth = readFileSync(join(root, "src", "lib", "auth.ts"), "utf8");
   if (!auth.includes("refreshClientSessionToken")) {
@@ -101,6 +117,7 @@ run("Telegram admin callbacks", "audit-telegram-admin-callbacks.mjs");
 checkNavRoutes();
 checkServiceIds();
 checkApiRoutesExportMethods();
+checkYandexMetrika();
 checkClientRefreshExported();
 
 function runCrmMergeTest() {

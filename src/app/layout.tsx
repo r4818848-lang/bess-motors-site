@@ -15,6 +15,8 @@ import {
 } from "@/components/analytics/GoogleTagManager";
 import { GoogleAnalyticsPageView } from "@/components/analytics/GoogleAnalyticsPageView";
 import { MetaPixelPageView } from "@/components/analytics/MetaPixelPageView";
+import { YandexMetrika } from "@/components/analytics/YandexMetrika";
+import { YandexMetrikaPageView } from "@/components/analytics/YandexMetrikaPageView";
 import { META_PIXEL_ID, metaPixelInitScript } from "@/lib/meta-pixel";
 import { JsonLd } from "@/components/seo/JsonLd";
 import {
@@ -143,6 +145,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             `,
           }}
         />
+        <YandexMetrika />
         <GoogleTagManagerHead />
         <GoogleAdsTag />
         {/* Meta Pixel — inline in <head>, no next/script (Meta Pixel Helper) */}
@@ -181,6 +184,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <GoogleAnalytics />
         <GoogleAnalyticsPageView />
         <MetaPixelPageView />
+        <YandexMetrikaPageView />
         <Providers>
           <SiteShell>{children}</SiteShell>
         </Providers>
