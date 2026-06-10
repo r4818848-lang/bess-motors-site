@@ -44,7 +44,7 @@ export function JsonLd() {
               "Saturday",
             ],
             opens: "08:00",
-            closes: "20:00",
+            closes: "18:00",
           },
         ],
         priceRange: "$$",

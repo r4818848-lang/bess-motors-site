@@ -40,7 +40,7 @@ export const siteConfig = {
   /** Dev fallback; production JWT must be JWT_SECRET on Vercel only */
   jwtSecret: "dev-local-jwt-only-not-for-production",
 
-  workingHours: "Pn–Sb 8:00–20:00",
+  workingHours: "Pn–Sb 8:00–18:00",
 
   /** Google Maps — business profile / reviews list */
   googleMapsReviewsUrl:

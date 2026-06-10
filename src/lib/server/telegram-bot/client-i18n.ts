@@ -313,7 +313,7 @@ const LABELS: Record<BotLocale, ClientBotLabels> = {
     noAppointments: "Brak nadchodzących wizyt.",
     cabinetHint: "🌐 Pełne konto: https://www.bess-motors.com/cabinet",
     contactsText:
-      "<b>BESS MOTORS</b>\n\n📍 Aleja Krakowska 48/52, 02-284 Warszawa\n☎️ +48 791 257 229\n✉️ bessmotorss@gmail.com\n\n🕐 Pn–Sb 8:00–20:00\n\n🌐 https://www.bess-motors.com",
+      "<b>BESS MOTORS</b>\n\n📍 Aleja Krakowska 48/52, 02-284 Warszawa\n☎️ +48 791 257 229\n✉️ bessmotorss@gmail.com\n\n🕐 Pn–Sb 8:00–18:00\n\n🌐 https://www.bess-motors.com",
     vinEnter: "🔎 Wpisz VIN (17 znaków):",
     vinInvalid: "❌ VIN musi mieć dokładnie 17 znaków.",
     vinNotFound: "❌ Nie rozpoznano VIN. Sprawdź i spróbuj ponownie.",
@@ -552,7 +552,7 @@ const LABELS: Record<BotLocale, ClientBotLabels> = {
     noAppointments: "Нет предстоящих записей.",
     cabinetHint: "🌐 Полный кабинет: https://www.bess-motors.com/cabinet",
     contactsText:
-      "<b>BESS MOTORS</b>\n\n📍 Aleja Krakowska 48/52, 02-284 Warszawa\n☎️ +48 791 257 229\n✉️ bessmotorss@gmail.com\n\n🕐 Pn–Sb 8:00–20:00\n\n🌐 https://www.bess-motors.com",
+      "<b>BESS MOTORS</b>\n\n📍 Aleja Krakowska 48/52, 02-284 Warszawa\n☎️ +48 791 257 229\n✉️ bessmotorss@gmail.com\n\n🕐 Pn–Sb 8:00–18:00\n\n🌐 https://www.bess-motors.com",
     vinEnter: "🔎 Введите VIN (17 символов):",
     vinInvalid: "❌ VIN должен содержать ровно 17 символов.",
     vinNotFound: "❌ Не удалось распознать VIN.",
@@ -786,7 +786,7 @@ const LABELS: Record<BotLocale, ClientBotLabels> = {
     noAppointments: "Немає майбутніх записів.",
     cabinetHint: "🌐 Кабінет: https://www.bess-motors.com/cabinet",
     contactsText:
-      "<b>BESS MOTORS</b>\n\n📍 Aleja Krakowska 48/52, Warszawa\n☎️ +48 791 257 229\n\n🕐 Pn–Sb 8:00–20:00",
+      "<b>BESS MOTORS</b>\n\n📍 Aleja Krakowska 48/52, Warszawa\n☎️ +48 791 257 229\n\n🕐 Pn–Sb 8:00–18:00",
     vinEnter: "🔎 VIN (17 символів):",
     vinInvalid: "❌ VIN — 17 символів.",
     vinNotFound: "❌ VIN не розпізнано.",
@@ -1019,7 +1019,7 @@ const LABELS: Record<BotLocale, ClientBotLabels> = {
     noAppointments: "No upcoming appointments.",
     cabinetHint: "🌐 Full account: https://www.bess-motors.com/cabinet",
     contactsText:
-      "<b>BESS MOTORS</b>\n\n📍 Aleja Krakowska 48/52, Warsaw\n☎️ +48 791 257 229\n\n🕐 Mon–Sat 8:00–20:00",
+      "<b>BESS MOTORS</b>\n\n📍 Aleja Krakowska 48/52, Warsaw\n☎️ +48 791 257 229\n\n🕐 Mon–Sat 8:00–18:00",
     vinEnter: "🔎 Enter VIN (17 chars):",
     vinInvalid: "❌ VIN must be 17 characters.",
     vinNotFound: "❌ VIN not recognized.",

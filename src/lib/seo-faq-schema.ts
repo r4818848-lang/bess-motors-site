@@ -10,7 +10,7 @@ export const siteFaqSchemaItems: { q: string; a: string }[] = [
   },
   {
     q: "Jak umówić wizytę?",
-    a: "Online na stronie /booking, telefonicznie +48 791 257 229 lub WhatsApp. Pn–Sb 8:00–20:00.",
+    a: "Online na stronie /booking, telefonicznie +48 791 257 229 lub WhatsApp. Pn–Sb 8:00–18:00.",
   },
   {
     q: "Ile trwa naprawa?",

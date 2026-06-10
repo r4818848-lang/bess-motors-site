@@ -686,7 +686,7 @@ const pl = {
       },
       {
         q: "Jak umówić wizytę?",
-        a: "Online na stronie /booking, telefonicznie +48 791 257 229 lub WhatsApp. Pn–Sb 8:00–20:00.",
+        a: "Online na stronie /booking, telefonicznie +48 791 257 229 lub WhatsApp. Pn–Sb 8:00–18:00.",
       },
       {
         q: "Ile trwa naprawa?",
@@ -708,7 +708,7 @@ const pl = {
       "Dziękujemy! Skontaktujemy się w celu potwierdzenia terminu. Zachowaj numer telefonu pod ręką.",
     syncPending:
       "Rezerwacja zapisana — potwierdzimy termin telefonicznie lub SMS-em w ciągu kilkunastu minut.",
-    hours: "Pn–Sb 8:00–20:00 · Aleja Krakowska 48/52, Warszawa",
+    hours: "Pn–Sb 8:00–18:00 · Aleja Krakowska 48/52, Warszawa",
     call: "Zadzwoń",
     cabinet: "Konto klienta",
     home: "Strona główna",
@@ -826,7 +826,7 @@ const pl = {
     phone: "Telefon",
     email: "E-mail",
     hours: "Godziny otwarcia",
-    hoursValue: "Poniedziałek – sobota, 8:00 – 20:00",
+    hoursValue: "Poniedziałek – sobota, 8:00 – 18:00",
     send: "Wyślij wiadomość",
     name: "Imię",
     message: "Wiadomość",
@@ -2323,7 +2323,7 @@ const ru: TranslationKeys = {
       },
       {
         q: "Как записаться?",
-        a: "На сайте /booking, по телефону +48 791 257 229 или WhatsApp. Пн–Сб 8:00–20:00.",
+        a: "На сайте /booking, по телефону +48 791 257 229 или WhatsApp. Пн–Сб 8:00–18:00.",
       },
       {
         q: "Сколько длится ремонт?",
@@ -2344,7 +2344,7 @@ const ru: TranslationKeys = {
     message: "Спасибо! Мы свяжемся для подтверждения времени. Держите телефон под рукой.",
     syncPending:
       "Запись сохранена — подтвердим время по телефону или SMS в ближайшие минуты.",
-    hours: "Пн–Сб 8:00–20:00 · Aleja Krakowska 48/52, Варшава",
+    hours: "Пн–Сб 8:00–18:00 · Aleja Krakowska 48/52, Варшава",
     call: "Позвонить",
     cabinet: "Личный кабинет",
     home: "На главную",
@@ -2468,7 +2468,7 @@ const ru: TranslationKeys = {
     phone: "Телефон",
     email: "E-mail",
     hours: "Часы работы",
-    hoursValue: "Понедельник – суббота, 8:00 – 20:00",
+    hoursValue: "Понедельник – суббота, 8:00 – 18:00",
     send: "Отправить сообщение",
     name: "Имя",
     message: "Сообщение",
@@ -3879,7 +3879,7 @@ const en: TranslationKeys = {
     phone: "Phone",
     email: "Email",
     hours: "Opening Hours",
-    hoursValue: "Monday – Saturday, 8:00 AM – 8:00 PM",
+    hoursValue: "Monday – Saturday, 8:00 AM – 6:00 PM",
     send: "Send Message",
     name: "Name",
     message: "Message",
