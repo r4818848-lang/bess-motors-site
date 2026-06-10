@@ -1,3 +1,4 @@
+import { formatLocalDateKey, formatWarsawDateKey, parseDateKey } from "@/lib/date-key";
 import { getPriceItem } from "@/lib/price-list";
 import { serviceBasePriceId } from "@/lib/service-price-map";
 import type { ServiceId } from "@/lib/services-catalog";
@@ -78,15 +79,14 @@ export function decodeTimeSlot(encoded: string): string {
   return encoded;
 }
 
-/** Next bookable dates (Mon–Sat), starting today */
+/** Next bookable dates (Mon–Sat), starting today (Warsaw workshop TZ). */
 export function nextBookableDates(count = 12): string[] {
   const dates: string[] = [];
-  const cursor = new Date();
-  cursor.setHours(12, 0, 0, 0);
+  const cursor = parseDateKey(formatWarsawDateKey());
 
   while (dates.length < count) {
     if (cursor.getDay() !== 0) {
-      dates.push(cursor.toISOString().slice(0, 10));
+      dates.push(formatLocalDateKey(cursor));
     }
     cursor.setDate(cursor.getDate() + 1);
   }

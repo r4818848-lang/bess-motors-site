@@ -41,7 +41,8 @@ export function useBookingAvailability(days = 14) {
   const isSlotAvailable = useCallback(
     (dateStr: string, time: string) => {
       if (loading) return false;
-      if (!loaded || availability.size === 0) return false;
+      // API error — don't grey out every slot; server validates on submit
+      if (!loaded || availability.size === 0) return true;
       return availability.get(`${dateStr}|${time}`) === true;
     },
     [availability, loading, loaded]

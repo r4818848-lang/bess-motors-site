@@ -8,6 +8,7 @@ import { BookingStepBack } from "@/components/booking/BookingStepBack";
 import { useI18n } from "@/lib/i18n/context";
 import { contentLocale } from "@/lib/i18n/locale-utils";
 import { serviceFlows, type ServiceId, type FlowOption } from "@/lib/services-catalog";
+import { formatDateKey } from "@/lib/appointments";
 import { timeSlots } from "@/lib/data";
 import { createCallRequest, createBookingAppointment } from "@/lib/booking-actions";
 import { BookingLink } from "@/components/analytics/BookingLink";
@@ -299,7 +300,7 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
 
   const submitBooking = async () => {
     if (!contactValid || submitting) return;
-    const dateStr = date?.toISOString().slice(0, 10) ?? "";
+    const dateStr = date ? formatDateKey(date) : "";
     if (!dateStr || !time) return;
     if (slotsLoading) {
       setSubmitError(bq.slotsLoading);
@@ -330,7 +331,7 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
         serviceIds: cart.length
           ? cart.map((l) => l.itemId)
           : [serviceId],
-        date: date?.toISOString().slice(0, 10) ?? "",
+        date: date ? formatDateKey(date) : "",
         time,
         comment,
         clientName: clientName.trim(),
@@ -647,7 +648,7 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
               {runningTotalBar}
               <div className="flex flex-wrap gap-2 justify-center">
                 {timeSlots.map((slot) => {
-                  const dateStr = date?.toISOString().slice(0, 10) ?? "";
+                  const dateStr = date ? formatDateKey(date) : "";
                   const available = dateStr ? isSlotAvailable(dateStr, slot) : true;
                   return (
                     <button

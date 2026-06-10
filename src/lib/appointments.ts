@@ -1,3 +1,4 @@
+import { formatLocalDateKey, parseDateKey } from "./date-key";
 import type { Appointment, Database, RepairStatus } from "./store";
 
 export type CalendarView = "day" | "week" | "month";
@@ -7,13 +8,10 @@ export const WORK_HOURS = [
   "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00",
 ];
 
-export function parseDateKey(d: string): Date {
-  const [y, m, day] = d.split("-").map(Number);
-  return new Date(y, m - 1, day);
-}
+export { parseDateKey };
 
 export function formatDateKey(d: Date): string {
-  return d.toISOString().slice(0, 10);
+  return formatLocalDateKey(d);
 }
 
 export function addDays(d: Date, n: number): Date {

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { addDays, format, startOfDay } from "date-fns";
+import { addDays } from "date-fns";
+import { formatLocalDateKey, formatWarsawDateKey, parseDateKey } from "@/lib/date-key";
 import { timeSlots } from "@/lib/data";
 import {
   cloudListAppointmentsForAdmin,
@@ -41,10 +42,10 @@ export async function GET(req: Request) {
     }
   }
 
-  const today = startOfDay(new Date());
+  const today = parseDateKey(formatWarsawDateKey());
   for (let d = 0; d < days; d++) {
     const day = addDays(today, d);
-    const dateStr = format(day, "yyyy-MM-dd");
+    const dateStr = formatLocalDateKey(day);
     const dow = day.getDay();
     if (dow === 0) continue; // Sunday closed
 

@@ -39,6 +39,7 @@ import { createBookingAppointment } from "@/lib/booking-actions";
 import { trackMetaCustomizeProduct } from "@/lib/meta-pixel";
 import { useAuth } from "@/lib/auth/session-context";
 import { BookingCalendar } from "@/components/booking/BookingCalendar";
+import { formatDateKey } from "@/lib/appointments";
 import { timeSlots } from "@/lib/data";
 import { Button } from "@/components/ui/Button";
 import { siteConfig } from "@/lib/site";
@@ -363,7 +364,7 @@ export function BookingQuoteFlow({ onDone }: Props) {
           name: clientName.trim(),
           step: phase,
           serviceSummary: cart.map((l) => l.label).join(", ").slice(0, 200),
-          date: date?.toISOString().slice(0, 10),
+          date: date ? formatDateKey(date) : undefined,
           time,
         }),
       });
@@ -373,7 +374,7 @@ export function BookingQuoteFlow({ onDone }: Props) {
 
   const submit = async () => {
     if (!contactValid || cart.length === 0 || !date || !time || submitting) return;
-    const dateStr = date.toISOString().slice(0, 10);
+    const dateStr = formatDateKey(date);
     if (slotsLoading) {
       setSubmitError(bq.slotsLoading);
       return;
@@ -401,7 +402,7 @@ export function BookingQuoteFlow({ onDone }: Props) {
       .join(" | ");
 
     saveLastBooking({
-      date: date.toISOString().slice(0, 10),
+      date: formatDateKey(date),
       time,
       clientName: clientName.trim(),
       estimatedTotal: total,
@@ -415,7 +416,7 @@ export function BookingQuoteFlow({ onDone }: Props) {
       const result = await createBookingAppointment({
         serviceId: "booking-quote",
         serviceIds: cart.map((l) => l.itemId),
-        date: date.toISOString().slice(0, 10),
+        date: formatDateKey(date),
         time,
         comment,
         clientName: clientName.trim(),
@@ -596,7 +597,7 @@ export function BookingQuoteFlow({ onDone }: Props) {
                 </h2>
                 <div className="flex flex-wrap gap-2 justify-center">
                   {timeSlots.map((slot) => {
-                    const dateStr = date.toISOString().slice(0, 10);
+                    const dateStr = formatDateKey(date);
                     const available = isSlotAvailable(dateStr, slot);
                     return (
                       <button
