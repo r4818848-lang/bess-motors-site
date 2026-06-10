@@ -18,7 +18,7 @@ export function BookingAvailability({
 
   useEffect(() => {
     let cancelled = false;
-    fetch("/api/appointments/availability?days=7")
+    fetch("/api/appointments/availability?days=14")
       .then((r) => r.json())
       .then((data: { available?: Slot[] }) => {
         if (!cancelled) setAvailable(data.available ?? []);

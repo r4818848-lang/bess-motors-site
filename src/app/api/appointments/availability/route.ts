@@ -7,6 +7,7 @@ import {
   isCloudAppointmentsEnabled,
 } from "@/lib/server/appointments-cloud";
 import { cloudGetCrmStore } from "@/lib/server/crm-cloud";
+import { BOOKING_HORIZON_DAYS } from "@/lib/booking-horizon";
 import { isSlotBlocked } from "@/lib/booking-slots";
 import type { AppSettings, Database } from "@/lib/store";
 
@@ -16,7 +17,10 @@ export const runtime = "nodejs";
 /** Public: busy slots only (no client data). */
 export async function GET(req: Request) {
   const url = new URL(req.url);
-  const days = Math.min(14, Math.max(1, Number(url.searchParams.get("days") || 7)));
+  const days = Math.min(
+    BOOKING_HORIZON_DAYS,
+    Math.max(1, Number(url.searchParams.get("days") || 14))
+  );
 
   const slots: { date: string; time: string; available: boolean }[] = [];
   const busy = new Set<string>();

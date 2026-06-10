@@ -108,7 +108,7 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
   const [submitError, setSubmitError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [syncPending, setSyncPending] = useState(false);
-  const { isSlotAvailable, loading: slotsLoading } = useBookingAvailability(14);
+  const { isSlotAvailable, loading: slotsLoading } = useBookingAvailability();
 
   useEffect(() => {
     if (!sessionReady || !clientUser) return;

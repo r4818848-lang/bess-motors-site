@@ -295,7 +295,7 @@ export function BookingQuoteFlow({ onDone }: Props) {
   const [submitError, setSubmitError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [promoError, setPromoError] = useState("");
-  const { isSlotAvailable, loading: slotsLoading } = useBookingAvailability(14);
+  const { isSlotAvailable, loading: slotsLoading } = useBookingAvailability();
 
   const prefillFromUrl = useCallback(() => {
     const { items: ids, plate } = parseBookingParamsFromSearch(searchParams.toString());

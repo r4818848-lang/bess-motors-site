@@ -9,11 +9,11 @@ import {
   isSameDay,
   addMonths,
   subMonths,
-  isBefore,
   startOfDay,
   startOfWeek,
   addDays,
 } from "date-fns";
+import { isDateBookable } from "@/lib/booking-horizon";
 import { pl, ru, enUS, uk } from "date-fns/locale";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
@@ -75,8 +75,7 @@ export function BookingCalendar({ selected, onSelect, locale }: BookingCalendarP
           <div key={`pad-${i}`} />
         ))}
         {days.map((day) => {
-          const isSunday = day.getDay() === 0;
-          const disabled = isBefore(day, today) || isSunday;
+          const disabled = !isDateBookable(day, today);
           const isSelected = selected && isSameDay(day, selected);
           const isCurrentMonth = isSameMonth(day, current);
 
