@@ -1,10 +1,12 @@
 "use client";
 
+import Image from "next/image";
 import { motion } from "framer-motion";
 import { Gauge, Users, Award, Zap } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { Card } from "@/components/ui/Card";
 import { WorkshopGallerySection } from "@/components/home/WorkshopGallerySection";
+import { WORKSHOP_HERO_PHOTO } from "@/lib/workshop-photos";
 
 export default function AboutPage() {
   const { t } = useI18n();
@@ -26,13 +28,18 @@ export default function AboutPage() {
 
         <div className="mt-16 grid lg:grid-cols-2 gap-12 items-center">
           <div className="relative aspect-video rounded-2xl metallic neon-border overflow-hidden">
-            <div className="absolute inset-0 bg-radial-glow" />
-            <div className="absolute inset-0 flex items-center justify-center">
-              <span className="font-display text-6xl font-black text-bm-red/30">BM</span>
-            </div>
+            <Image
+              src={WORKSHOP_HERO_PHOTO.src}
+              alt={t.workshopPhotos.exterior.alt}
+              fill
+              className="object-cover"
+              sizes="(max-width: 1024px) 100vw, 50vw"
+              priority
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
             <div className="absolute bottom-4 left-4 right-4 glass rounded-lg p-4">
-              <p className="font-mono text-xs text-bm-red">SYSTEM ONLINE</p>
-              <p className="text-sm text-bm-muted">Premium Automotive OS v2.0</p>
+              <p className="font-mono text-xs text-bm-red">BESS MOTORS</p>
+              <p className="text-sm text-bm-muted">{t.workshopPhotos.exterior.caption}</p>
             </div>
           </div>
           <div>

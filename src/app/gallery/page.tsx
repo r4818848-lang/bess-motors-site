@@ -7,6 +7,7 @@ import { useMetaViewContent } from "@/hooks/useMetaViewContent";
 import type { PublicGalleryItem } from "@/app/api/gallery/route";
 import Link from "next/link";
 import { GalleryBeforeAfter } from "@/components/gallery/GalleryBeforeAfter";
+import { WorkshopPhotosGrid } from "@/components/gallery/WorkshopPhotosGrid";
 
 export default function GalleryPage() {
   const { t } = useI18n();
@@ -32,11 +33,24 @@ export default function GalleryPage() {
           <div className="mt-4 h-1 w-24 bg-bm-red shadow-neon-sm" />
         </motion.div>
 
+        <div className="mt-12">
+          <h2 className="font-display text-xl uppercase text-glow mb-2">{t.workshopGallery.title}</h2>
+          <p className="text-sm text-bm-muted mb-6 max-w-2xl">{t.workshopGallery.subtitle}</p>
+          <WorkshopPhotosGrid heroFirst />
+        </div>
+
         {loading && (
           <p className="mt-16 text-center text-bm-muted animate-pulse">{g.loading}</p>
         )}
 
-        {!loading && items.length > 0 && <GalleryBeforeAfter items={items} />}
+        {!loading && items.length > 0 && (
+          <>
+            <h2 className="mt-16 font-display text-xl uppercase text-glow mb-6">
+              {g.repairsTitle}
+            </h2>
+            <GalleryBeforeAfter items={items} />
+          </>
+        )}
 
         {!loading && items.length > 0 && (
           <div className="mt-8 flex flex-wrap gap-2">

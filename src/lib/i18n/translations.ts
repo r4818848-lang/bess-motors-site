@@ -204,10 +204,28 @@ const pl = {
       "Opinie z Google pojawią się tutaj po podłączeniu wizytówki (klucz API). Tymczasem zostaw opinię bezpośrednio w Maps.",
   },
   workshopGallery: {
-    title: "Zdjęcia z warsztatu",
+    title: "Nasz warsztat",
     subtitle:
-      "Prawdziwe realizacje i prace zespołu — więcej zdjęć dodajemy na bieżąco w galerii.",
+      "Prawdziwe zdjęcia serwisu BESS MOTORS — wejście, stanowiska naprawcze i wulkanizacja.",
     viewAll: "Cała galeria",
+  },
+  workshopPhotos: {
+    exterior: {
+      alt: "Wjazd do warsztatu BESS MOTORS — Aleja Krakowska 48/52, Warszawa",
+      caption: "Wejście do serwisu",
+    },
+    liftBay: {
+      alt: "Stanowisko naprawcze z podnośnikiem i narzędziami",
+      caption: "Stanowisko mechaniczne",
+    },
+    workshopHall: {
+      alt: "Hala warsztatowa BESS MOTORS",
+      caption: "Hala serwisowa",
+    },
+    tireService: {
+      alt: "Stanowisko wulkanizacji i wyważania kół",
+      caption: "Wulkanizacja i diagnostyka",
+    },
   },
   promoBanner: {
     text: "Kod {code} — {percent}% zniżki na rezerwację online",
@@ -380,8 +398,9 @@ const pl = {
     shareVisit: "Udostępnij wizytę",
   },
   galleryPage: {
-    title: "Galeria prac",
-    subtitle: "Zdjęcia PRZED i PO z naszego serwisu — oznaczone w CRM do publikacji.",
+    title: "Galeria",
+    subtitle: "Zdjęcia warsztatu oraz prac PRZED i PO — oznaczone w CRM do publikacji.",
+    repairsTitle: "Realizacje PRZED / PO",
     loading: "Ładowanie galerii…",
     empty: "Galeria w przygotowaniu.",
     emptyHint: "Administrator może oznaczyć zlecenie „Pokaż w galerii” po dodaniu zdjęć PRZED/PO.",
@@ -1842,9 +1861,28 @@ const ru: TranslationKeys = {
       "Отзывы Google появятся здесь после подключения карточки (API-ключ). Пока можно оставить отзыв в Maps.",
   },
   workshopGallery: {
-    title: "Фото с сервиса",
-    subtitle: "Реальные работы команды — больше фото в галерее.",
+    title: "Наш сервис",
+    subtitle:
+      "Живые фото BESS MOTORS — вход, ремонтные посты и шиномонтаж.",
     viewAll: "Вся галерея",
+  },
+  workshopPhotos: {
+    exterior: {
+      alt: "Въезд в автосервис BESS MOTORS — Aleja Krakowska 48/52, Варшава",
+      caption: "Вход в сервис",
+    },
+    liftBay: {
+      alt: "Ремонтный пост с подъёмником и инструментами",
+      caption: "Механический участок",
+    },
+    workshopHall: {
+      alt: "Ремонтный цех BESS MOTORS",
+      caption: "Сервисный зал",
+    },
+    tireService: {
+      alt: "Шиномонтаж и балансировка колёс",
+      caption: "Шиномонтаж и диагностика",
+    },
   },
   promoBanner: {
     text: "Промокод {code} — скидка {percent}% на онлайн-запись",
@@ -2017,8 +2055,9 @@ const ru: TranslationKeys = {
     shareVisit: "Поделиться",
   },
   galleryPage: {
-    title: "Галерея работ",
-    subtitle: "Фото ДО и ПО — публикуются из CRM по отметке администратора.",
+    title: "Галерея",
+    subtitle: "Фото сервиса и работ ДО / ПО — публикуются из CRM по отметке администратора.",
+    repairsTitle: "Работы ДО / ПО",
     loading: "Загрузка…",
     empty: "Галерея пока пуста.",
     emptyHint: "В CRM отметьте заказ «Показать в галерее» и добавьте фото ДО/ПО.",
@@ -3639,9 +3678,34 @@ const en: TranslationKeys = {
       "Google reviews appear here once the business profile API is connected. You can still review us on Maps.",
   },
   workshopGallery: {
-    title: "Workshop photos",
-    subtitle: "Real jobs from our team — more photos in the gallery.",
+    title: "Our workshop",
+    subtitle:
+      "Real photos of BESS MOTORS — entrance, repair bays, and tire service.",
     viewAll: "Full gallery",
+  },
+  workshopPhotos: {
+    exterior: {
+      alt: "BESS MOTORS workshop entrance — Aleja Krakowska 48/52, Warsaw",
+      caption: "Service entrance",
+    },
+    liftBay: {
+      alt: "Repair bay with lift and tools",
+      caption: "Mechanical bay",
+    },
+    workshopHall: {
+      alt: "BESS MOTORS workshop floor",
+      caption: "Service hall",
+    },
+    tireService: {
+      alt: "Tire changer and wheel balancer",
+      caption: "Tires & diagnostics",
+    },
+  },
+  galleryPage: {
+    ...pl.galleryPage,
+    title: "Gallery",
+    subtitle: "Workshop photos and before/after jobs published from CRM.",
+    repairsTitle: "Before / after jobs",
   },
   promoBanner: {
     text: "Promo {code} — {percent}% off online booking",

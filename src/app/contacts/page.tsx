@@ -1,6 +1,8 @@
 "use client";
 
+import Image from "next/image";
 import { MapPin, Phone, Mail, Clock, MessageCircle } from "lucide-react";
+import { WORKSHOP_HERO_PHOTO } from "@/lib/workshop-photos";
 import { useI18n } from "@/lib/i18n/context";
 import { siteConfig } from "@/lib/site";
 import { PhoneLink } from "@/components/analytics/PhoneLink";
@@ -110,9 +112,17 @@ export default function ContactsPage() {
           rel="noopener noreferrer"
           className="mt-10 block aspect-[21/9] rounded-xl glass-red neon-border overflow-hidden relative group"
         >
-          <div className="absolute inset-0 flex items-center justify-center bg-bm-graphite group-hover:bg-bm-red/10 transition-colors">
-            <MapPin className="w-8 h-8 text-bm-red mr-2" />
-            <span className="text-bm-muted group-hover:text-white transition-colors">
+          <Image
+            src={WORKSHOP_HERO_PHOTO.src}
+            alt={t.workshopPhotos.exterior.alt}
+            fill
+            className="object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+            sizes="100vw"
+          />
+          <div className="absolute inset-0 bg-black/45 group-hover:bg-black/35 transition-colors" />
+          <div className="absolute inset-0 flex items-center justify-center px-4">
+            <MapPin className="w-8 h-8 text-bm-red mr-2 shrink-0" />
+            <span className="text-white font-medium text-center">
               {siteConfig.address} — Google Maps
             </span>
           </div>
