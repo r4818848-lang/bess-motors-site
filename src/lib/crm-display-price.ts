@@ -2,6 +2,10 @@ import type { PartLine, WorkOrder, WorkOrderLine } from "./store";
 import {
   calcClientTotal,
   calcClientTotalWithVat,
+  calcGrossPartLine,
+  calcGrossPartsSubtotal,
+  calcGrossServiceLine,
+  calcGrossServicesSubtotal,
   calcOrderBreakdown,
   calcPartLine,
   calcServiceLine,
@@ -27,9 +31,8 @@ export function displayServicesSubtotal(
   vatRate: number,
   vatEnabled: boolean
 ): number {
-  const net = order.services.reduce((s, l) => s + calcServiceLine(l), 0);
-  if (usesGrossEntry(mode, vatEnabled)) return netToGross(net, vatRate);
-  return roundMoney(net);
+  if (usesGrossEntry(mode, vatEnabled)) return calcGrossServicesSubtotal(order, vatRate);
+  return roundMoney(order.services.reduce((s, l) => s + calcServiceLine(l), 0));
 }
 
 export function displayPartsSubtotal(
@@ -38,9 +41,8 @@ export function displayPartsSubtotal(
   vatRate: number,
   vatEnabled: boolean
 ): number {
-  const net = order.parts.reduce((s, l) => s + calcPartLine(l), 0);
-  if (usesGrossEntry(mode, vatEnabled)) return netToGross(net, vatRate);
-  return roundMoney(net);
+  if (usesGrossEntry(mode, vatEnabled)) return calcGrossPartsSubtotal(order, vatRate);
+  return roundMoney(order.parts.reduce((s, l) => s + calcPartLine(l), 0));
 }
 
 /** Amount the client pays (brutto when VAT is on the document). */
@@ -89,11 +91,8 @@ export function displayServiceLineTotal(
   vatRate: number,
   vatEnabled: boolean
 ): number {
-  const net = calcServiceLine(line);
-  if (usesGrossEntry(mode, vatEnabled)) {
-    return netToGross(net, vatRate);
-  }
-  return roundMoney(net);
+  if (usesGrossEntry(mode, vatEnabled)) return calcGrossServiceLine(line, vatRate);
+  return roundMoney(calcServiceLine(line));
 }
 
 export function displayPartLineTotal(
@@ -102,11 +101,8 @@ export function displayPartLineTotal(
   vatRate: number,
   vatEnabled: boolean
 ): number {
-  const net = calcPartLine(line);
-  if (usesGrossEntry(mode, vatEnabled)) {
-    return netToGross(net, vatRate);
-  }
-  return roundMoney(net);
+  if (usesGrossEntry(mode, vatEnabled)) return calcGrossPartLine(line, vatRate);
+  return roundMoney(calcPartLine(line));
 }
 
 export function displayOrderTotal(

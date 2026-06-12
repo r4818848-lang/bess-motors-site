@@ -469,8 +469,6 @@ export function QuickCreateOrderModal({
                         <td>
                           <PriceNumberInput
                             className="input-premium text-sm py-1 w-20"
-                            min={0}
-                            step={0.01}
                             value={displayUnitPrice(line.price, priceMode, vatRate, vatEnabled)}
                             onChange={(displayPrice) =>
                               updateService(i, {
@@ -487,8 +485,7 @@ export function QuickCreateOrderModal({
                         <td>
                           <PriceNumberInput
                             className="input-premium text-sm py-1 w-14"
-                            min={0}
-                            max={100}
+                            variant="percent"
                             value={line.discount}
                             onChange={(discount) => updateService(i, { discount })}
                           />

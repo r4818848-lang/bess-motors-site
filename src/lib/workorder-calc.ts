@@ -53,10 +53,41 @@ function roundMoney(value: number): number {
   return Math.round(value * 100) / 100;
 }
 
+function netToGross(net: number, vatRate: number): number {
+  return roundMoney(net * (1 + vatRate / 100));
+}
+
+/** Brutto line total — per-line round-trip matches what staff type in CRM. */
+export function calcGrossServiceLine(line: WorkOrderLine, vatRate: number): number {
+  return netToGross(calcServiceLine(line), vatRate);
+}
+
+export function calcGrossPartLine(line: PartLine, vatRate: number): number {
+  return netToGross(calcPartLine(line), vatRate);
+}
+
+export function calcGrossServicesSubtotal(order: WorkOrder, vatRate: number): number {
+  return roundMoney(
+    order.services.reduce((s, l) => s + calcGrossServiceLine(l, vatRate), 0)
+  );
+}
+
+export function calcGrossPartsSubtotal(order: WorkOrder, vatRate: number): number {
+  return roundMoney(order.parts.reduce((s, l) => s + calcGrossPartLine(l, vatRate), 0));
+}
+
+/** Client pays sum of brutto lines (avoids 649.99 when e.g. 150 + 500). */
+export function calcGrossClientTotal(order: WorkOrder, vatRate: number): number {
+  const grossSub = roundMoney(
+    calcGrossServicesSubtotal(order, vatRate) + calcGrossPartsSubtotal(order, vatRate)
+  );
+  const grossDiscount = roundMoney(grossSub * (order.orderDiscount / 100));
+  return roundMoney(Math.max(0, grossSub - grossDiscount));
+}
+
 export function calcClientTotalWithVat(order: WorkOrder, vatRate: number): number {
   if (!order.vatEnabled) return calcClientTotal(order);
-  const net = calcClientTotal(order);
-  return roundMoney(net * (1 + vatRate / 100));
+  return calcGrossClientTotal(order, vatRate);
 }
 
 export function calcVatAmount(order: WorkOrder, vatRate: number): number {
@@ -81,8 +112,8 @@ export function calcOrderBreakdown(order: WorkOrder, vatRate = 23): OrderTotalsB
   const subtotal = servicesSub + partsSub;
   const discount = calcOrderDiscountAmount(order);
   const netTotal = calcClientTotal(order);
+  const grossTotal = calcClientTotalWithVat(order, vatRate);
   const vatAmount = calcVatAmount(order, vatRate);
-  const grossTotal = netTotal + vatAmount;
   return {
     servicesSub,
     partsSub,

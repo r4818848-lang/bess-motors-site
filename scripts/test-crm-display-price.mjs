@@ -23,4 +23,30 @@ console.assert(
   `client total ~ entered brutto (got ${clientTotal})`
 );
 
+import { calcGrossClientTotal } from "../src/lib/workorder-calc.ts";
+
+const twoJobs = {
+  vatEnabled: true,
+  orderDiscount: 0,
+  services: [
+    {
+      name: "A",
+      qty: 1,
+      price: storeUnitPriceFromDisplay(150, "gross", 23, true),
+      discount: 0,
+    },
+    {
+      name: "B",
+      qty: 1,
+      price: storeUnitPriceFromDisplay(500, "gross", 23, true),
+      discount: 0,
+    },
+  ],
+  parts: [],
+};
+console.assert(
+  calcGrossClientTotal(twoJobs, 23) === 650,
+  `150 + 500 brutto must be 650 (got ${calcGrossClientTotal(twoJobs, 23)})`
+);
+
 console.log("crm-display-price ok");

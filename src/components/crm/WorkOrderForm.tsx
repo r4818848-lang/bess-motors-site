@@ -711,8 +711,7 @@ export function WorkOrderForm({
           <label className="text-xs uppercase text-bm-muted">{w.orderDiscount}</label>
           <PriceNumberInput
             className="input-premium mt-1"
-            min={0}
-            max={100}
+            variant="percent"
             value={order.orderDiscount}
             onChange={(orderDiscount) => setOrder({ ...order, orderDiscount })}
           />
@@ -816,8 +815,6 @@ export function WorkOrderForm({
               <div>
                 <label className="text-xs uppercase text-bm-muted">{w.paidCashPart}</label>
                 <PriceNumberInput
-                  min={0}
-                  step={0.01}
                   className="input-premium mt-1"
                   value={order.paidCashAmount ?? 0}
                   onChange={(paidCashAmount) =>
@@ -831,8 +828,6 @@ export function WorkOrderForm({
               <div>
                 <label className="text-xs uppercase text-bm-muted">{w.paidCardPart}</label>
                 <PriceNumberInput
-                  min={0}
-                  step={0.01}
                   className="input-premium mt-1"
                   value={order.paidCardAmount ?? 0}
                   onChange={(paidCardAmount) =>
@@ -931,8 +926,6 @@ export function WorkOrderForm({
                   <td>
                     <PriceNumberInput
                       className="input-premium text-sm py-1 w-20"
-                      min={0}
-                      step={0.01}
                       value={displayUnitPrice(line.price, priceMode, vatRate, vatEnabled)}
                       onChange={(displayPrice) =>
                         updateService(i, {
@@ -949,8 +942,7 @@ export function WorkOrderForm({
                   <td>
                     <PriceNumberInput
                       className="input-premium text-sm py-1 w-14"
-                      min={0}
-                      max={100}
+                      variant="percent"
                       value={line.discount}
                       onChange={(discount) => updateService(i, { discount })}
                     />
@@ -1056,8 +1048,6 @@ export function WorkOrderForm({
                   <td>
                     <PriceNumberInput
                       className="input-premium text-sm py-1 w-18"
-                      min={0}
-                      step={0.01}
                       value={line.purchasePrice}
                       onChange={(purchasePrice) => updatePart(i, { purchasePrice })}
                     />
@@ -1065,8 +1055,6 @@ export function WorkOrderForm({
                   <td>
                     <PriceNumberInput
                       className="input-premium text-sm py-1 w-18"
-                      min={0}
-                      step={0.01}
                       value={displayUnitPrice(line.sellPrice, priceMode, vatRate, vatEnabled)}
                       onChange={(displayPrice) =>
                         updatePart(i, {
@@ -1083,8 +1071,7 @@ export function WorkOrderForm({
                   <td>
                     <PriceNumberInput
                       className="input-premium text-sm py-1 w-12"
-                      min={0}
-                      max={100}
+                      variant="percent"
                       value={line.discount}
                       onChange={(discount) => updatePart(i, { discount })}
                     />
