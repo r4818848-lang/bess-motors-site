@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -52,6 +52,12 @@ import {
 } from "@/lib/booking-url";
 import { WaitTimeEstimator } from "@/components/booking/WaitTimeEstimator";
 import { useBookingAvailability } from "@/hooks/useBookingAvailability";
+
+const WORKSHOP_PHONE = "+48 791 257 229";
+
+function withPhone(template: string): string {
+  return template.replace("{phone}", WORKSHOP_PHONE);
+}
 import {
   applyPromoDiscount,
   getPromoRules,
@@ -295,7 +301,14 @@ export function BookingQuoteFlow({ onDone }: Props) {
   const [submitError, setSubmitError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [promoError, setPromoError] = useState("");
-  const { isSlotAvailable, loading: slotsLoading } = useBookingAvailability();
+  const submitLock = useRef(false);
+  const { isSlotAvailable, loading: slotsLoading, availabilityError } = useBookingAvailability();
+
+  const onSelectDate = useCallback((d: Date | null) => {
+    setDate(d);
+    setTime("");
+    if (d) trackMetaCustomizeProduct("booking_date");
+  }, []);
 
   const prefillFromUrl = useCallback(() => {
     const { items: ids, plate } = parseBookingParamsFromSearch(searchParams.toString());
@@ -373,8 +386,12 @@ export function BookingQuoteFlow({ onDone }: Props) {
   }, [phase, clientPhone, clientName, cart, date, time]);
 
   const submit = async () => {
-    if (!contactValid || cart.length === 0 || !date || !time || submitting) return;
+    if (!contactValid || cart.length === 0 || !date || !time || submitting || submitLock.current) return;
     const dateStr = formatDateKey(date);
+    if (availabilityError) {
+      setSubmitError(bq.availabilityError);
+      return;
+    }
     if (slotsLoading) {
       setSubmitError(bq.slotsLoading);
       return;
@@ -412,6 +429,7 @@ export function BookingQuoteFlow({ onDone }: Props) {
 
     setSubmitting(true);
     setSubmitError("");
+    submitLock.current = true;
     try {
       const result = await createBookingAppointment({
         serviceId: "booking-quote",
@@ -431,17 +449,18 @@ export function BookingQuoteFlow({ onDone }: Props) {
         })),
       });
       if (!result.ok) {
-        setSubmitError(bq.submitFailed);
+        if (result.error === "slot_taken") {
+          setSubmitError(bq.slotTaken);
+        } else {
+          setSubmitError(withPhone(bq.cloudSyncFailed));
+        }
         return;
       }
       onDone?.();
-      if (!result.cloudOk) {
-        router.replace("/booking/thank-you?sync=pending");
-        return;
-      }
       router.replace("/booking/thank-you");
     } finally {
       setSubmitting(false);
+      submitLock.current = false;
     }
   };
 
@@ -584,10 +603,7 @@ export function BookingQuoteFlow({ onDone }: Props) {
             </h2>
             <BookingCalendar
               selected={date}
-              onSelect={(d) => {
-                setDate(d);
-                if (d) trackMetaCustomizeProduct("booking_date");
-              }}
+              onSelect={onSelectDate}
               locale={locale}
             />
             {date && (

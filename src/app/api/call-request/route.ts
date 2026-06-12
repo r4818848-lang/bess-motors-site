@@ -56,7 +56,13 @@ export async function POST(req: Request) {
     db.callRequests = db.callRequests ?? [];
     db.callRequests.push(entry);
   });
-  const cloudOk = put.ok;
+  if (!put.ok) {
+    console.error("[call-request] CRM save failed", put.error);
+    return NextResponse.json(
+      { ok: false, error: put.error ?? "cloud_failed", cloud: false },
+      { status: 502 }
+    );
+  }
 
   await notifyAdminTelegram(
     [
@@ -70,5 +76,5 @@ export async function POST(req: Request) {
       .join("\n")
   );
 
-  return NextResponse.json({ ok: true, cloud: cloudOk });
+  return NextResponse.json({ ok: true, cloud: true });
 }

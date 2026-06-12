@@ -56,8 +56,7 @@ export function useBookingAvailability(days = BOOKING_HORIZON_DAYS) {
   const isSlotAvailable = useCallback(
     (dateStr: string, time: string) => {
       if (loading) return false;
-      // API error — don't grey out every slot; server validates on submit
-      if (!loaded || availability.size === 0) return true;
+      if (!loaded || availability.size === 0) return false;
       if (!datesWithSlots.has(dateStr)) return false;
       return availability.get(`${dateStr}|${time}`) === true;
     },
@@ -68,5 +67,5 @@ export function useBookingAvailability(days = BOOKING_HORIZON_DAYS) {
     ? [...availability.values()].filter(Boolean).length
     : null;
 
-  return { isSlotAvailable, isDateInHorizon, loading, loaded, freeSlotCount };
+  return { isSlotAvailable, isDateInHorizon, loading, loaded, freeSlotCount, availabilityError: !loading && !loaded };
 }

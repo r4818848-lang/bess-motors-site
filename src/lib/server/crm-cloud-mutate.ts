@@ -1,4 +1,4 @@
-import { mergeCloudDocuments } from "@/lib/crm-db-merge";
+import { mergeServerCloudMutation } from "@/lib/crm-db-merge";
 import { runCrmAutomation } from "@/lib/crm-automation";
 import type { Database } from "@/lib/store";
 import { applyWorkOrderCompletedAt } from "@/lib/work-order-dates";
@@ -37,11 +37,11 @@ export async function cloudMutateCrmStore(
     if (extra === false) return { ok: false, error: "not_found" };
 
     const incoming = prepareIncoming(working);
-    let payload = mergeCloudDocuments(snap.doc, incoming);
+    let payload = mergeServerCloudMutation(snap.doc, incoming);
 
     const fresh = await cloudGetCrmStore();
     if (fresh?.doc && fresh.updatedAt !== snap.updatedAt) {
-      payload = mergeCloudDocuments(fresh.doc, incoming);
+      payload = mergeServerCloudMutation(fresh.doc, incoming);
       runCrmAutomation(payload, fresh.doc as Database);
     } else {
       runCrmAutomation(payload, prevDb);

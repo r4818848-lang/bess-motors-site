@@ -577,6 +577,8 @@ const pl = {
     submitting: "Zapisywanie…",
     submitFailed: "Nie udało się zapisać rezerwacji. Spróbuj ponownie lub zadzwoń.",
     cloudSyncFailed: "Rezerwacja nie dotarła do serwera. Zadzwoń pod {phone}, aby potwierdzić termin.",
+    callFailed: "Prośba o telefon nie dotarła do serwisu. Zadzwoń pod {phone}.",
+    availabilityError: "Nie udało się załadować wolnych terminów. Odśwież stronę lub zadzwoń.",
     slotTaken: "Ten termin jest już zajęty — wybierz inną godzinę.",
     slotsLoading: "Ładowanie wolnych terminów…",
   },
@@ -727,6 +729,8 @@ const pl = {
       "Dziękujemy! Skontaktujemy się w celu potwierdzenia terminu. Zachowaj numer telefonu pod ręką.",
     syncPending:
       "Rezerwacja zapisana — potwierdzimy termin telefonicznie lub SMS-em w ciągu kilkunastu minut.",
+    syncFailed:
+      "Rezerwacja nie dotarła do naszego systemu. Zadzwoń teraz pod +48 791 257 229 — potwierdzimy termin.",
     hours: "Pn–Sb 8:00–18:00 · Aleja Krakowska 48/52, Warszawa",
     call: "Zadzwoń",
     cabinet: "Konto klienta",
@@ -2234,6 +2238,8 @@ const ru: TranslationKeys = {
     submitting: "Сохранение…",
     submitFailed: "Не удалось сохранить запись. Попробуйте снова или позвоните нам.",
     cloudSyncFailed: "Запись не дошла до сервера. Позвоните {phone} для подтверждения.",
+    callFailed: "Запрос на звонок не дошёл до сервиса. Позвоните {phone}.",
+    availabilityError: "Не удалось загрузить свободные слоты. Обновите страницу или позвоните.",
     slotTaken: "Это время уже занято — выберите другой слот.",
     slotsLoading: "Загрузка свободных слотов…",
   },
@@ -2383,6 +2389,8 @@ const ru: TranslationKeys = {
     message: "Спасибо! Мы свяжемся для подтверждения времени. Держите телефон под рукой.",
     syncPending:
       "Запись сохранена — подтвердим время по телефону или SMS в ближайшие минуты.",
+    syncFailed:
+      "Запись не дошла до нашей системы. Позвоните сейчас +48 791 257 229 — подтвердим время.",
     hours: "Пн–Сб 8:00–18:00 · Aleja Krakowska 48/52, Варшава",
     call: "Позвонить",
     cabinet: "Личный кабинет",
@@ -3437,6 +3445,8 @@ const en: TranslationKeys = {
     submitting: "Saving…",
     submitFailed: "Could not save booking. Try again or call us.",
     cloudSyncFailed: "Booking did not reach the server. Call {phone} to confirm.",
+    callFailed: "Call request did not reach the workshop. Call {phone}.",
+    availabilityError: "Could not load available slots. Refresh the page or call us.",
     slotTaken: "This slot is taken — pick another time.",
     slotsLoading: "Loading available slots…",
   },

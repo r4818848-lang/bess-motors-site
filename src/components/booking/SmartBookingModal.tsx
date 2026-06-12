@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Phone, ArrowRight, ChevronLeft, Check, List } from "lucide-react";
@@ -37,6 +37,12 @@ import {
 
 type Phase = "manager" | "flow" | "date" | "time" | "problem" | "contact" | "done";
 type SubmitMode = "call" | "booking";
+
+const WORKSHOP_PHONE = "+48 791 257 229";
+
+function withPhone(template: string): string {
+  return template.replace("{phone}", WORKSHOP_PHONE);
+}
 
 type FlowScreen =
   | { type: "yesno"; key: string }
@@ -108,7 +114,13 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
   const [submitError, setSubmitError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [syncPending, setSyncPending] = useState(false);
-  const { isSlotAvailable, loading: slotsLoading } = useBookingAvailability();
+  const submitLock = useRef(false);
+  const { isSlotAvailable, loading: slotsLoading, availabilityError } = useBookingAvailability();
+
+  const onSelectDate = useCallback((d: Date | null) => {
+    setDate(d);
+    setTime("");
+  }, []);
 
   useEffect(() => {
     if (!sessionReady || !clientUser) return;
@@ -282,26 +294,40 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
   const problemValid = !isOtherReason || problem.trim().length >= 3;
 
   const submitCall = async () => {
-    if (!contactValid || submitting) return;
+    if (!contactValid || submitting || submitLock.current) return;
+    submitLock.current = true;
     setSubmitting(true);
-    await createCallRequest({
-      phone: clientPhone.trim(),
-      clientName: clientName.trim(),
-      serviceId,
-      serviceLabel,
-      comment: problem,
-    });
-    setSubmitting(false);
-    trackLead("call_request", { source: "smart_booking_modal", serviceId });
-    setDoneKind("call");
-    setPhase("done");
-    onSuccess?.("call");
+    setSubmitError("");
+    try {
+      const result = await createCallRequest({
+        phone: clientPhone.trim(),
+        clientName: clientName.trim(),
+        serviceId,
+        serviceLabel,
+        comment: problem,
+      });
+      if (!result.ok) {
+        setSubmitError(withPhone(bq.callFailed));
+        return;
+      }
+      trackLead("call_request", { source: "smart_booking_modal", serviceId });
+      setDoneKind("call");
+      setPhase("done");
+      onSuccess?.("call");
+    } finally {
+      setSubmitting(false);
+      submitLock.current = false;
+    }
   };
 
   const submitBooking = async () => {
-    if (!contactValid || submitting) return;
+    if (!contactValid || !problemValid || submitting || submitLock.current) return;
     const dateStr = date ? formatDateKey(date) : "";
     if (!dateStr || !time) return;
+    if (availabilityError) {
+      setSubmitError(bq.availabilityError);
+      return;
+    }
     if (slotsLoading) {
       setSubmitError(bq.slotsLoading);
       return;
@@ -325,6 +351,7 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
 
     setSubmitting(true);
     setSubmitError("");
+    submitLock.current = true;
     try {
       const result = await createBookingAppointment({
         serviceId,
@@ -346,16 +373,21 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
         })),
       });
       if (!result.ok) {
-        setSubmitError(bq.submitFailed);
+        if (result.error === "slot_taken") {
+          setSubmitError(bq.slotTaken);
+        } else {
+          setSubmitError(withPhone(bq.cloudSyncFailed));
+        }
         return;
       }
       trackLead("booking", { source: "smart_booking_modal", serviceId });
-      setSyncPending(!result.cloudOk);
+      setSyncPending(false);
       setDoneKind("booking");
       setPhase("done");
       onSuccess?.("booking");
     } finally {
       setSubmitting(false);
+      submitLock.current = false;
     }
   };
 
@@ -629,7 +661,7 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
             <motion.div key="date" className="space-y-4 pt-4">
               <h2 className="font-display text-lg uppercase text-center">{t.booking.selectDate}</h2>
               {runningTotalBar}
-              <BookingCalendar selected={date} onSelect={setDate} locale={locale} />
+              <BookingCalendar selected={date} onSelect={onSelectDate} locale={locale} />
               <div className="flex gap-2">
                 <Button variant="outline" className="flex-1" onClick={goBack}>
                   <ChevronLeft className="w-4 h-4" />

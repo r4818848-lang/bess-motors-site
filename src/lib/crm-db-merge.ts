@@ -221,6 +221,18 @@ export type MergeCloudPutOptions = {
   lastCloudSyncedAt?: string;
 };
 
+/**
+ * Server-side CRM mutation (Telegram, API routes): merge by id only.
+ * Never apply snapshot membership — that would drop newly inserted rows.
+ */
+export function mergeServerCloudMutation(
+  existing: Database,
+  mutated: Database
+): Database {
+  const merged = mergeCloudRecords(mutated, existing);
+  return { ...merged, currentUserId: null };
+}
+
 /** Merge incoming PUT with cloud: newer fields per id; deletions only with sync marker */
 export function mergeCloudDocuments(
   existing: Database,

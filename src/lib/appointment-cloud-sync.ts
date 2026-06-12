@@ -9,10 +9,11 @@ export async function syncAppointmentToCloud(
   db: Database,
   apt: Appointment
 ): Promise<boolean> {
-  const [aptOk, crmOk] = await Promise.all([
+  const [aptPush, crmOk] = await Promise.all([
     pushAppointmentToCloud(apt),
     pushCrmSave(db),
   ]);
+  const aptOk = aptPush.ok;
   if (!aptOk) console.warn("[cloud] appointment row sync failed", apt.id);
   if (!crmOk) console.warn("[cloud] crm snapshot sync failed");
   if (!aptOk || !crmOk) {

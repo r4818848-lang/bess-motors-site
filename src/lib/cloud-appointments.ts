@@ -56,20 +56,50 @@ export async function deleteAppointmentFromCloud(id: string): Promise<boolean> {
   }
 }
 
-export async function pushAppointmentToCloud(apt: Appointment): Promise<boolean> {
-  try {
-    const res = await fetch("/api/appointments", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(apt),
-    });
-    if (!res.ok) {
-      console.warn("[cloud] appointment push failed", res.status, await res.text());
-      return false;
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+export type PushAppointmentResult = {
+  ok: boolean;
+  slotTaken?: boolean;
+  error?: string;
+};
+
+export async function pushAppointmentToCloud(
+  apt: Appointment,
+  options?: { attempts?: number }
+): Promise<PushAppointmentResult> {
+  const attempts = options?.attempts ?? 3;
+
+  for (let i = 0; i < attempts; i++) {
+    try {
+      const res = await fetch("/api/appointments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(apt),
+      });
+
+      if (res.status === 409) {
+        return { ok: false, slotTaken: true, error: "slot_taken" };
+      }
+
+      if (res.ok) {
+        const data = (await res.json()) as { ok?: boolean };
+        if (data.ok === true) return { ok: true };
+      } else {
+        const text = await res.text();
+        console.warn("[cloud] appointment push failed", res.status, text);
+        if (res.status === 400 || res.status === 502) {
+          return { ok: false, error: text.slice(0, 200) };
+        }
+      }
+    } catch (e) {
+      console.warn("[cloud] appointment push network error", e);
     }
-    const data = (await res.json()) as { ok?: boolean };
-    return data.ok === true;
-  } catch {
-    return false;
+
+    if (i < attempts - 1) await sleep(400 * (i + 1));
   }
+
+  return { ok: false, error: "network" };
 }

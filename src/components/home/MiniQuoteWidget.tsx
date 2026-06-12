@@ -29,7 +29,7 @@ export function MiniQuoteWidget() {
     });
     setSending(false);
     if (result.ok) setDone(true);
-    else setError(mq.error);
+    else setError(t.bookingQuote.callFailed.replace("{phone}", "+48 791 257 229"));
   };
 
   if (done) {

@@ -1,6 +1,7 @@
 import { normalizePhone } from "@/lib/auth";
 import { handleAppointmentNotification } from "@/lib/client-notifications";
 import { ensureClientForBooking } from "@/lib/create-work-order-from-booking";
+import { assertBookingSlotAvailable } from "@/lib/server/booking-slot-validation";
 import { cloudUpsertAppointment } from "@/lib/server/appointments-cloud";
 import { notifyAdminTelegram } from "@/lib/server/telegram-api";
 import type { Appointment } from "@/lib/store";
@@ -60,7 +61,16 @@ export async function createTelegramBooking(params: {
   telegramProfile?: TelegramProfile;
   locale?: BotLocale;
 }): Promise<{ ok: boolean; error?: string }> {
+  const slotCheck = await assertBookingSlotAvailable({
+    date: params.date,
+    time: params.time,
+  });
+  if (!slotCheck.ok) {
+    return { ok: false, error: slotCheck.error };
+  }
+
   let created: Appointment | null = null;
+  const aptId = `apt-tg-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 
   const result = await mutateCrm((db) => {
     const { userId, vehicleId } = ensureClientForBooking(
@@ -74,7 +84,7 @@ export async function createTelegramBooking(params: {
     }
 
     const apt: Appointment = {
-      id: `apt-tg-${Date.now()}`,
+      id: aptId,
       userId,
       vehicleId,
       serviceIds: [params.serviceId],
@@ -104,7 +114,8 @@ export async function createTelegramBooking(params: {
 
   const aptRow = await cloudUpsertAppointment(created);
   if (!aptRow.ok) {
-    console.warn("[telegram] booking appointments table sync failed", aptRow.error);
+    console.error("[telegram] booking appointments table sync failed", aptRow.error);
+    return { ok: false, error: "appointments_sync_failed" };
   }
   await notifyAdminNewBooking(created, "booking");
   return { ok: true };

@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
 import { verifyToken } from "@/lib/server/verify-session";
+import { assertBookingSlotAvailable } from "@/lib/server/booking-slot-validation";
+import { cloudMutateCrmStore } from "@/lib/server/crm-cloud-mutate";
+import { normalizePhone } from "@/lib/server/normalize-phone";
 import type { Appointment } from "@/lib/store";
 import { notifyAdminTelegram } from "@/lib/server/admin-telegram";
 import {
@@ -33,19 +36,62 @@ export async function POST(req: Request) {
     if (!apt?.id || !apt.date || !apt.time) {
       return NextResponse.json({ ok: false, error: "invalid" }, { status: 400 });
     }
+    const phone = normalizePhone(apt.clientPhone ?? "");
+    if (phone.length < 9) {
+      return NextResponse.json({ ok: false, error: "phone" }, { status: 400 });
+    }
+    apt.clientPhone = phone;
   } catch {
     return NextResponse.json({ ok: false, error: "invalid" }, { status: 400 });
   }
 
-  const result = await cloudUpsertAppointment(apt);
-  if (!result.ok) {
+  const slotCheck = await assertBookingSlotAvailable({
+    date: apt.date,
+    time: apt.time,
+    excludeAptId: apt.id,
+  });
+  if (!slotCheck.ok) {
+    const status = slotCheck.error === "slot_taken" ? 409 : 400;
+    return NextResponse.json({ ok: false, error: slotCheck.error }, { status });
+  }
+
+  const { ensureClientCredentialsForBooking } = await import(
+    "@/lib/create-work-order-from-booking"
+  );
+
+  const crmPut = await cloudMutateCrmStore(async (db) => {
+    const { userId, vehicleId } = await ensureClientCredentialsForBooking(
+      db,
+      apt.clientName ?? "—",
+      apt.clientPhone ?? "",
+      apt.clientPlate,
+      apt.userId
+    );
+    apt.userId = userId;
+    apt.vehicleId = vehicleId;
+
+    const idx = db.appointments.findIndex((a) => a.id === apt.id);
+    if (idx >= 0) db.appointments[idx] = apt;
+    else db.appointments.push(apt);
+  });
+
+  if (!crmPut.ok) {
+    console.error("[booking] CRM sync failed", apt.id, crmPut.error);
     return NextResponse.json(
-      { ok: false, error: result.error, status: result.status },
-      { status: result.status === 401 ? 401 : 502 }
+      { ok: false, error: crmPut.error ?? "crm_sync_failed" },
+      { status: 502 }
     );
   }
 
-  // Admin notification should never block booking flow, but must be observable in logs
+  const tablePut = await cloudUpsertAppointment(apt);
+  if (!tablePut.ok) {
+    console.error("[booking] appointments table sync failed", apt.id, tablePut.error);
+    return NextResponse.json(
+      { ok: false, error: tablePut.error ?? "appointments_sync_failed", crmSynced: true },
+      { status: 502 }
+    );
+  }
+
   const telegramOk = await notifyAdminTelegram(
     [
       "<b>Nowa rezerwacja online</b>",
@@ -62,43 +108,22 @@ export async function POST(req: Request) {
   }
 
   try {
-    const { cloudMutateCrmStore } = await import("@/lib/server/crm-cloud-mutate");
-    const { ensureClientCredentialsForBooking } = await import(
-      "@/lib/create-work-order-from-booking"
-    );
-    const put = await cloudMutateCrmStore(async (db) => {
-      const { userId, vehicleId } = await ensureClientCredentialsForBooking(
-        db,
-        apt.clientName ?? "—",
-        apt.clientPhone ?? "",
-        apt.clientPlate,
-        apt.userId
-      );
-      apt.userId = userId;
-      apt.vehicleId = vehicleId;
-
-      const idx = db.appointments.findIndex((a) => a.id === apt.id);
-      if (idx >= 0) db.appointments[idx] = apt;
-      else db.appointments.push(apt);
-    });
-    if (put.ok) {
-      const { cloudGetCrmStore } = await import("@/lib/server/crm-cloud");
-      const snap = await cloudGetCrmStore();
-      const user = snap?.doc?.users.find((u) => u.id === apt.userId);
-      if (user?.pushSubscription?.endpoint) {
-        const { sendWebPushToUser } = await import("@/lib/server/web-push-send");
-        await sendWebPushToUser(user, {
-          title: "BESS MOTORS",
-          body: `Zapisano wizytę: ${apt.date} ${apt.time}`,
-          url: "/cabinet",
-        });
-      }
+    const { cloudGetCrmStore } = await import("@/lib/server/crm-cloud");
+    const snap = await cloudGetCrmStore();
+    const user = snap?.doc?.users.find((u) => u.id === apt.userId);
+    if (user?.pushSubscription?.endpoint) {
+      const { sendWebPushToUser } = await import("@/lib/server/web-push-send");
+      await sendWebPushToUser(user, {
+        title: "BESS MOTORS",
+        body: `Zapisano wizytę: ${apt.date} ${apt.time}`,
+        url: "/cabinet",
+      });
     }
   } catch (e) {
-    console.warn("[crm] auto-sync appointment failed", e);
+    console.warn("[booking] web push failed", e);
   }
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, crmSynced: true });
 }
 
 function escapeHtml(s: string): string {
@@ -165,5 +190,11 @@ export async function DELETE(req: Request) {
       { status: result.status === 401 ? 401 : 502 }
     );
   }
+
+  await cloudMutateCrmStore((db) => {
+    const idx = db.appointments.findIndex((a) => a.id === id);
+    if (idx >= 0) db.appointments.splice(idx, 1);
+  });
+
   return NextResponse.json({ ok: true });
 }

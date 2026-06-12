@@ -2,10 +2,8 @@ import { NextResponse } from "next/server";
 import { addDays } from "date-fns";
 import { formatLocalDateKey, formatWarsawDateKey, parseDateKey } from "@/lib/date-key";
 import { timeSlots } from "@/lib/data";
-import {
-  cloudListAppointmentsForAdmin,
-  isCloudAppointmentsEnabled,
-} from "@/lib/server/appointments-cloud";
+import { isCloudAppointmentsEnabled } from "@/lib/server/appointments-cloud";
+import { collectBusyBookingSlots } from "@/lib/server/booking-slot-validation";
 import { cloudGetCrmStore } from "@/lib/server/crm-cloud";
 import { BOOKING_HORIZON_DAYS } from "@/lib/booking-horizon";
 import { isSlotBlocked } from "@/lib/booking-slots";
@@ -39,11 +37,8 @@ export async function GET(req: Request) {
   }
 
   if (isCloudAppointmentsEnabled()) {
-    const appointments = await cloudListAppointmentsForAdmin();
-    for (const apt of appointments) {
-      if (apt.appointmentStatus === "cancelled") continue;
-      busy.add(`${apt.date}|${apt.time}`);
-    }
+    const busySlots = await collectBusyBookingSlots();
+    for (const key of busySlots) busy.add(key);
   }
 
   const today = parseDateKey(formatWarsawDateKey());
