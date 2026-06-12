@@ -1,17 +1,29 @@
 /** Monthly parts log — purchase vs sell prices (Telegram admin / CRM) */
 
+export const MONTHLY_PARTS_VAT_RATE = 0.23;
+
 export type MonthlyPartEntry = {
   id: string;
   /** YYYY-MM */
   month: string;
   name: string;
   partNumber: string;
+  /** Purchase price netto (zł) */
   purchasePrice: number;
+  /** Sale price netto (zł) */
   sellPrice: number;
   qty: number;
   createdAt: string;
   source?: "telegram" | "crm";
 };
+
+export function nettoToBrutto(netto: number): number {
+  return Math.round(netto * (1 + MONTHLY_PARTS_VAT_RATE) * 100) / 100;
+}
+
+export function formatMoneyPln(n: number): string {
+  return n.toFixed(2);
+}
 
 export function currentMonthKey(d = new Date()): string {
   return d.toISOString().slice(0, 7);
@@ -98,36 +110,6 @@ export function parseMonthlyPartLine(line: string): ParsedPartLine {
     };
   }
 
-  const pipe = trimmed.split("|").map((s) => s.trim());
-  if (pipe.length >= 4) {
-    const sell = parseMoney(pipe[pipe.length - 1]);
-    const purchase = parseMoney(pipe[pipe.length - 2]);
-    if (sell == null || purchase == null) return { ok: false };
-    return {
-      ok: true,
-      name: pipe.slice(0, pipe.length - 3).join(" | ").trim(),
-      partNumber: pipe[pipe.length - 3],
-      purchasePrice: purchase,
-      sellPrice: sell,
-      qty: 1,
-    };
-  }
-
-  const priceMatch = trimmed.match(/^(.+?)\s+(\d+(?:[.,]\d{1,2})?)\s+(\d+(?:[.,]\d{1,2})?)\s*$/);
-  if (priceMatch) {
-    const sell = parseMoney(priceMatch[3]);
-    const purchase = parseMoney(priceMatch[2]);
-    if (sell == null || purchase == null) return { ok: false };
-    return {
-      ok: true,
-      name: priceMatch[1].trim(),
-      partNumber: "",
-      purchasePrice: purchase,
-      sellPrice: sell,
-      qty: 1,
-    };
-  }
-
   return { ok: false };
 }
 
@@ -152,64 +134,145 @@ export function filterMonthlyParts(
 ): MonthlyPartEntry[] {
   return (items ?? [])
     .filter((e) => e.month === month)
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
 }
 
-export function formatMonthlyPartsList(
+function formatRowDate(iso: string): string {
+  const d = iso.slice(0, 10);
+  const [y, m, day] = d.split("-");
+  return `${day}.${m}`;
+}
+
+function clipCell(text: string, max: number): string {
+  const t = text.replace(/\s+/g, " ").trim();
+  if (t.length <= max) return t.padEnd(max, " ");
+  return `${t.slice(0, max - 1)}…`;
+}
+
+export type MonthlyPartsTotals = {
+  purchaseNetto: number;
+  purchaseBrutto: number;
+  sellNetto: number;
+  sellBrutto: number;
+  profitNetto: number;
+  profitBrutto: number;
+  count: number;
+};
+
+export function computeMonthlyPartsTotals(rows: MonthlyPartEntry[]): MonthlyPartsTotals {
+  let purchaseNetto = 0;
+  let purchaseBrutto = 0;
+  let sellNetto = 0;
+  let sellBrutto = 0;
+
+  for (const r of rows) {
+    const q = r.qty || 1;
+    const buyN = r.purchasePrice * q;
+    const sellN = r.sellPrice * q;
+    purchaseNetto += buyN;
+    purchaseBrutto += nettoToBrutto(r.purchasePrice) * q;
+    sellNetto += sellN;
+    sellBrutto += nettoToBrutto(r.sellPrice) * q;
+  }
+
+  return {
+    purchaseNetto,
+    purchaseBrutto,
+    sellNetto,
+    sellBrutto,
+    profitNetto: sellNetto - purchaseNetto,
+    profitBrutto: sellBrutto - purchaseBrutto,
+    count: rows.length,
+  };
+}
+
+/** Monospace table for Telegram (&lt;pre&gt;) */
+export function formatMonthlyPartsTable(
   items: MonthlyPartEntry[],
   month: string
 ): string {
   const rows = filterMonthlyParts(items, month);
   if (!rows.length) {
-    return `📦 <b>Запчасти — ${formatMonthLabel(month)}</b>\n\nПока пусто. Нажмите «Добавить» и отправьте строки.`;
+    return `📦 <b>Запчасти — ${formatMonthLabel(month)}</b>\n\nПока пусто. Нажмите «Добавить».`;
   }
 
-  let totalBuy = 0;
-  let totalSell = 0;
-  const lines = rows.slice(0, 40).map((r, i) => {
-    const buy = r.purchasePrice * r.qty;
-    const sell = r.sellPrice * r.qty;
-    totalBuy += buy;
-    totalSell += sell;
-    const num = r.partNumber ? ` · <code>${r.partNumber}</code>` : "";
-    return (
-      `${i + 1}. <b>${r.name}</b>${num}\n` +
-      `   закуп <b>${r.purchasePrice.toFixed(2)}</b> → продажа <b>${r.sellPrice.toFixed(2)}</b> zł` +
-      (r.qty !== 1 ? ` × ${r.qty}` : "")
+  const totals = computeMonthlyPartsTotals(rows);
+  const lines: string[] = [];
+  lines.push(
+    clipCell("Дата", 6) +
+      clipCell("Название", 18) +
+      clipCell("Зак.N", 8) +
+      clipCell("Зак.B", 8) +
+      clipCell("Пр.N", 8) +
+      clipCell("Пр.B", 8)
+  );
+  lines.push("─".repeat(56));
+
+  for (const r of rows.slice(0, 35)) {
+    const q = r.qty || 1;
+    const buyN = r.purchasePrice * q;
+    const buyB = nettoToBrutto(r.purchasePrice) * q;
+    const sellN = r.sellPrice * q;
+    const sellB = nettoToBrutto(r.sellPrice) * q;
+    lines.push(
+      clipCell(formatRowDate(r.createdAt), 6) +
+        clipCell(r.name, 18) +
+        clipCell(formatMoneyPln(buyN), 8) +
+        clipCell(formatMoneyPln(buyB), 8) +
+        clipCell(formatMoneyPln(sellN), 8) +
+        clipCell(formatMoneyPln(sellB), 8)
     );
-  });
+  }
 
-  const more = rows.length > 40 ? `\n\n… и ещё ${rows.length - 40} поз.` : "";
-  const margin = totalSell - totalBuy;
+  if (rows.length > 35) {
+    lines.push(`… ещё ${rows.length - 35} поз.`);
+  }
 
-  return [
-    `📦 <b>Запчасти — ${formatMonthLabel(month)}</b>`,
-    `Позиций: <b>${rows.length}</b>`,
-    "",
-    ...lines,
-    more,
-    "",
-    `Σ закуп: <b>${totalBuy.toFixed(2)} zł</b>`,
-    `Σ продажа: <b>${totalSell.toFixed(2)} zł</b>`,
-    `Маржа: <b>${margin >= 0 ? "+" : ""}${margin.toFixed(2)} zł</b>`,
-  ]
-    .filter(Boolean)
-    .join("\n");
+  lines.push("─".repeat(56));
+  lines.push(`Итого закуп (нет/брут): ${formatMoneyPln(totals.purchaseNetto)} / ${formatMoneyPln(totals.purchaseBrutto)} zł`);
+  lines.push(`Итого продажа (нет/брут): ${formatMoneyPln(totals.sellNetto)} / ${formatMoneyPln(totals.sellBrutto)} zł`);
+  lines.push(`Прибыль (нет/брут): ${formatMoneyPln(totals.profitNetto)} / ${formatMoneyPln(totals.profitBrutto)} zł`);
+  lines.push(`VAT ${Math.round(MONTHLY_PARTS_VAT_RATE * 100)}% — цены вводятся нетто, брутто считается автоматически`);
+
+  const table = lines.join("\n");
+  return (
+    `📦 <b>Запчасти — ${formatMonthLabel(month)}</b>\n` +
+    `Позиций: <b>${totals.count}</b>\n\n` +
+    `<pre>${table}</pre>`
+  );
+}
+
+/** @deprecated use formatMonthlyPartsTable */
+export function formatMonthlyPartsList(
+  items: MonthlyPartEntry[],
+  month: string
+): string {
+  return formatMonthlyPartsTable(items, month);
 }
 
 export function createMonthlyPartEntry(
   month: string,
-  parsed: Extract<ParsedPartLine, { ok: true }>
+  fields: {
+    name: string;
+    partNumber: string;
+    purchasePrice: number;
+    sellPrice: number;
+    qty?: number;
+  }
 ): MonthlyPartEntry {
   return {
     id: `mp-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
     month,
-    name: parsed.name,
-    partNumber: parsed.partNumber,
-    purchasePrice: parsed.purchasePrice,
-    sellPrice: parsed.sellPrice,
-    qty: parsed.qty,
+    name: fields.name.trim(),
+    partNumber: fields.partNumber.trim(),
+    purchasePrice: fields.purchasePrice,
+    sellPrice: fields.sellPrice,
+    qty: fields.qty ?? 1,
     createdAt: new Date().toISOString(),
     source: "telegram",
   };
+}
+
+export function parsePartMoneyInput(text: string): number | null {
+  return parseMoney(text);
 }

@@ -109,8 +109,11 @@ import {
   startQuickWorkOrderFlow,
 } from "./admin-quick-wo";
 import {
+  deleteMonthlyPart,
   finishMonthlyPartsInput,
-  handleMonthlyPartsStepText,
+  handleMonthlyPartsWizardCallback,
+  handleMonthlyPartsWizardText,
+  showMonthlyPartsDeleteMenu,
   showMonthlyPartsList,
   showMonthlyPartsMenu,
   shiftMonthlyPartsMonth,
@@ -318,7 +321,7 @@ async function handleMessage(msg: TelegramMessage): Promise<void> {
     return;
   }
 
-  if (await handleMonthlyPartsStepText(chatId, text)) {
+  if (await handleMonthlyPartsWizardText(chatId, text)) {
     return;
   }
 
@@ -932,6 +935,31 @@ async function handleCallback(cb: TelegramCallback): Promise<void> {
   if (data === "parts:done") {
     await finishMonthlyPartsInput(chatId, messageId);
     return;
+  }
+
+  if (data === "parts:del") {
+    const session = await getTelegramSession(chatKey);
+    const month = session.data?.partsMonth ?? new Date().toISOString().slice(0, 7);
+    await showMonthlyPartsDeleteMenu(chatId, messageId, db, month, 0);
+    return;
+  }
+
+  if (data.startsWith("parts:delp:")) {
+    const page = Number.parseInt(data.slice(10), 10) || 0;
+    const session = await getTelegramSession(chatKey);
+    const month = session.data?.partsMonth ?? new Date().toISOString().slice(0, 7);
+    await showMonthlyPartsDeleteMenu(chatId, messageId, db, month, page);
+    return;
+  }
+
+  if (data.startsWith("parts:rm:")) {
+    await deleteMonthlyPart(chatId, messageId, data.slice(9));
+    return;
+  }
+
+  if (data === "parts:skip" || data === "parts:back") {
+    const action = data === "parts:skip" ? "skip" : "back";
+    if (await handleMonthlyPartsWizardCallback(chatId, messageId, action)) return;
   }
 
   console.warn("[telegram admin] unhandled callback:", data);
