@@ -16,6 +16,18 @@ const cloud = {
   mechanics: [],
   expenses: [],
   warehouse: [],
+  monthlyParts: [
+    {
+      id: "mp-old",
+      month: "2026-06",
+      name: "Old part",
+      partNumber: "",
+      purchasePrice: 10,
+      sellPrice: 20,
+      qty: 1,
+      createdAt: "2026-06-01T10:00:00Z",
+    },
+  ],
   settings: {},
 };
 
@@ -54,9 +66,38 @@ console.assert(
   serverMerged.appointments.some((a) => a.id === "apt-new-web"),
   "server mutation must keep newly inserted appointment"
 );
+
+const deletedPart = {
+  ...cloud,
+  monthlyParts: [],
+};
+const afterDelete = mergeServerCloudMutation(cloud, deletedPart);
 console.assert(
-  serverMerged.appointments.some((a) => a.id === "apt-tg"),
-  "server mutation must keep existing cloud appointments"
+  !afterDelete.monthlyParts?.some((p) => p.id === "mp-old"),
+  "server mutation must apply deletions"
+);
+
+const guestCall = {
+  ...cloud,
+  callRequests: [
+    {
+      id: "call-1",
+      phone: "+48123456789",
+      clientName: "Test",
+      userId: "guest",
+      serviceId: "x",
+      serviceLabel: "x",
+      comment: "",
+      status: "needs_call",
+      source: "website",
+      createdAt: "2026-06-12T10:00:00Z",
+    },
+  ],
+};
+const callMerged = mergeServerCloudMutation(cloud, guestCall);
+console.assert(
+  callMerged.callRequests?.some((c) => c.id === "call-1"),
+  "server mutation must keep guest call requests"
 );
 
 console.log("crm-merge ok");

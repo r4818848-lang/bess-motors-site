@@ -206,9 +206,9 @@ export async function shiftMonthlyPartsMonth(
 }
 
 async function saveWizardPart(
-  chatId: number,
+  _chatId: number,
   data: Record<string, string>
-): Promise<{ ok: boolean; entry?: ReturnType<typeof createMonthlyPartEntry> }> {
+): Promise<{ ok: boolean; entry?: ReturnType<typeof createMonthlyPartEntry>; error?: string }> {
   const month = sessionMonth(data);
   const name = data.partsName?.trim();
   const purchase = parsePartMoneyInput(data.partsPurchase ?? "");
@@ -230,7 +230,7 @@ async function saveWizardPart(
     db.monthlyParts.push(entry);
   });
 
-  if (!put.ok) return { ok: false };
+  if (!put.ok) return { ok: false, error: put.error };
   return { ok: true, entry };
 }
 
@@ -305,7 +305,11 @@ export async function handleMonthlyPartsWizardText(
 
     const saved = await saveWizardPart(chatId, data);
     if (!saved.ok || !saved.entry) {
-      await sendTelegramMessage(chatId, BOT.saveFailed, wizardKeyboard("sell"));
+      const hint =
+        saved.ok === false
+          ? "\n\nПроверьте интернет и попробуйте ещё раз."
+          : "";
+      await sendTelegramMessage(chatId, `${BOT.saveFailed}${hint}`, wizardKeyboard("sell"));
       return true;
     }
 
@@ -453,15 +457,40 @@ export async function deleteMonthlyPart(
 
   const snap = await cloudGetCrmStore();
   const db = snap?.doc as Database | undefined;
-  if (db) {
+  if (!db) {
+    await showMonthlyPartsMenu(chatId, messageId, month);
+    return;
+  }
+
+  const remaining = filterMonthlyParts(db.monthlyParts, month);
+  if (!remaining.length) {
     await sendTelegramMessage(
       chatId,
-      `✅ Удалено: <b>${removedName || "позиция"}</b>`,
-      { inline_keyboard: [[{ text: "🗑 Ещё удалить", callback_data: "parts:del" }], [{ text: BOT.menu, callback_data: "parts:menu" }]] }
+      `✅ Удалено: <b>${removedName || "позиция"}</b>\n\nВ месяце больше нет позиций.`,
+      monthlyPartsMenuKeyboard(month)
     );
-    await showMonthlyPartsDeleteMenu(chatId, messageId, db, month, page);
+    return;
+  }
+
+  const text =
+    `🗑 <b>Удалить позицию</b>\n` +
+    `Месяц: <b>${formatMonthLabel(month)}</b>\n\n` +
+    `✅ Удалено: <b>${removedName || "позиция"}</b>\n\n` +
+    `Нажмите на позицию для удаления:`;
+
+  const totalPages = Math.max(1, Math.ceil(remaining.length / DELETE_PAGE_SIZE));
+  const safePage = Math.min(page, totalPages - 1);
+  const slice = remaining.slice(safePage * DELETE_PAGE_SIZE, (safePage + 1) * DELETE_PAGE_SIZE);
+  const buttons = slice.map((r, i) => ({
+    id: r.id,
+    label: `${safePage * DELETE_PAGE_SIZE + i + 1}. ${r.name}`.slice(0, 60),
+  }));
+  const keyboard = deleteMenuKeyboard(month, buttons, safePage, totalPages);
+
+  if (messageId) {
+    await updateTelegramInlineScreen(chatId, messageId, text, keyboard);
   } else {
-    await showMonthlyPartsMenu(chatId, messageId, month);
+    await sendTelegramMessage(chatId, text, keyboard);
   }
 }
 

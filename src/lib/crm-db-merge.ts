@@ -164,6 +164,10 @@ function applySnapshotMembership(
   const vehicleIds = ids(incoming.vehicles);
   const orderIds = ids(incoming.workOrders);
   const aptIds = ids(incoming.appointments);
+  const callIds = ids(incoming.callRequests ?? []);
+  const partIds = ids(incoming.monthlyParts ?? []);
+  const expenseIds = ids(incoming.expenses ?? []);
+  const warehouseIds = ids(incoming.warehouse ?? []);
   const syncCutoff = options?.lastCloudSyncedAt
     ? normalizeIsoTimestamp(options.lastCloudSyncedAt)
     : "";
@@ -197,12 +201,31 @@ function applySnapshotMembership(
       );
     }),
     callRequests: (base.callRequests ?? []).filter((c) => {
+      if (callIds.has(c.id)) return true;
       if (userIds.has(c.userId)) return true;
       if (!syncCutoff) return false;
       return (
         mergeTimestampMs(normalizeIsoTimestamp(c.createdAt)) >
         mergeTimestampMs(syncCutoff)
       );
+    }),
+    monthlyParts: (base.monthlyParts ?? []).filter((p) => {
+      if (partIds.has(p.id)) return true;
+      if (!syncCutoff) return false;
+      return (
+        mergeTimestampMs(normalizeIsoTimestamp(p.createdAt)) >
+        mergeTimestampMs(syncCutoff)
+      );
+    }),
+    expenses: (base.expenses ?? []).filter((e) => {
+      if (expenseIds.has(e.id)) return true;
+      if (!syncCutoff) return false;
+      return mergeTimestampMs(normalizeIsoTimestamp(e.date)) > mergeTimestampMs(syncCutoff);
+    }),
+    warehouse: (base.warehouse ?? []).filter((w) => {
+      if (warehouseIds.has(w.id)) return true;
+      if (!syncCutoff) return false;
+      return false;
     }),
     vehicleHistory: (base.vehicleHistory ?? []).filter((h) =>
       keptUserIds.has(h.userId)
@@ -222,15 +245,15 @@ export type MergeCloudPutOptions = {
 };
 
 /**
- * Server-side CRM mutation (Telegram, API routes): merge by id only.
- * Never apply snapshot membership — that would drop newly inserted rows.
+ * Server-side CRM mutation (Telegram, API routes).
+ * Merge field updates by id, then apply `mutated` membership so deletions stick.
  */
 export function mergeServerCloudMutation(
   existing: Database,
   mutated: Database
 ): Database {
   const merged = mergeCloudRecords(mutated, existing);
-  return { ...merged, currentUserId: null };
+  return { ...applySnapshotMembership(merged, mutated), currentUserId: null };
 }
 
 /** Merge incoming PUT with cloud: newer fields per id; deletions only with sync marker */

@@ -51,6 +51,7 @@ export async function cloudMutateCrmStore(
     if (put.ok) {
       return { ok: true, result: typeof extra === "string" ? extra : undefined };
     }
+    console.warn("[crm] cloud mutate put failed", put.error, "attempt", attempt + 1);
     if (attempt === 2) return { ok: false, error: put.error };
   }
 

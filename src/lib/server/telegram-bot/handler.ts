@@ -960,6 +960,8 @@ async function handleCallback(cb: TelegramCallback): Promise<void> {
   if (data === "parts:skip" || data === "parts:back") {
     const action = data === "parts:skip" ? "skip" : "back";
     if (await handleMonthlyPartsWizardCallback(chatId, messageId, action)) return;
+    await showMonthlyPartsMenu(chatId, messageId);
+    return;
   }
 
   console.warn("[telegram admin] unhandled callback:", data);

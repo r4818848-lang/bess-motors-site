@@ -65,9 +65,9 @@ async function readDoc(): Promise<TelegramBotDoc | null> {
   }
 }
 
-async function writeDoc(doc: TelegramBotDoc): Promise<void> {
+async function writeDoc(doc: TelegramBotDoc): Promise<boolean> {
   const cfg = getSupabaseConfig();
-  if (!cfg) return;
+  if (!cfg) return false;
 
   const row = {
     id: ROW_ID,
@@ -75,16 +75,26 @@ async function writeDoc(doc: TelegramBotDoc): Promise<void> {
     updated_at: new Date().toISOString(),
   };
 
-  await fetch(`${cfg.url}/rest/v1/crm_store`, {
-    method: "POST",
-    headers: {
-      apikey: cfg.key,
-      Authorization: `Bearer ${cfg.key}`,
-      "Content-Type": "application/json",
-      Prefer: "resolution=merge-duplicates",
-    },
-    body: JSON.stringify(row),
-  }).catch(() => null);
+  try {
+    const res = await fetch(`${cfg.url}/rest/v1/crm_store`, {
+      method: "POST",
+      headers: {
+        apikey: cfg.key,
+        Authorization: `Bearer ${cfg.key}`,
+        "Content-Type": "application/json",
+        Prefer: "resolution=merge-duplicates",
+      },
+      body: JSON.stringify(row),
+    });
+    if (!res.ok) {
+      console.warn("[telegram] session write failed", res.status, await res.text().catch(() => ""));
+      return false;
+    }
+    return true;
+  } catch (e) {
+    console.warn("[telegram] session write error", e);
+    return false;
+  }
 }
 
 export async function getTelegramSession(chatId: string): Promise<TelegramSession> {
@@ -110,14 +120,15 @@ export async function setTelegramSession(
   chatId: string,
   session: TelegramSession | null
 ): Promise<void> {
-  for (let attempt = 0; attempt < 4; attempt++) {
+  for (let attempt = 0; attempt < 6; attempt++) {
     const latest = (await readDoc()) ?? emptyDoc();
     const sessions = { ...latest.sessions };
     applySessionChange(sessions, chatId, session);
-    await writeDoc({ sessions });
+    const written = await writeDoc({ sessions });
+    if (!written) continue;
 
     const after = await readDoc();
-    if (!after) return;
+    if (!after) continue;
 
     const expected = sessions[chatId];
     const actual = after.sessions[chatId];
@@ -125,7 +136,7 @@ export async function setTelegramSession(
       JSON.stringify(expected ?? null) === JSON.stringify(actual ?? null);
     if (oursOk) return;
 
-    if (attempt === 3) {
+    if (attempt === 5) {
       console.warn("[telegram] session write conflict after retries", chatId);
     }
   }

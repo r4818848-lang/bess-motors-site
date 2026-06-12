@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { addDays } from "date-fns";
-import { formatLocalDateKey, formatWarsawDateKey, parseDateKey } from "@/lib/date-key";
+import { formatWarsawDateKey, parseDateKey } from "@/lib/date-key";
 import { timeSlots } from "@/lib/data";
 import { isCloudAppointmentsEnabled } from "@/lib/server/appointments-cloud";
 import { collectBusyBookingSlots } from "@/lib/server/booking-slot-validation";
@@ -44,7 +44,7 @@ export async function GET(req: Request) {
   const today = parseDateKey(formatWarsawDateKey());
   for (let d = 0; d < days; d++) {
     const day = addDays(today, d);
-    const dateStr = formatLocalDateKey(day);
+    const dateStr = formatWarsawDateKey(day);
     const dow = day.getDay();
     if (dow === 0) continue; // Sunday closed
 

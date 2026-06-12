@@ -143,6 +143,15 @@ function formatRowDate(iso: string): string {
   return `${day}.${m}`;
 }
 
+const TELEGRAM_SAFE_HTML_LIMIT = 3800;
+
+function escapePreText(text: string): string {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
 function clipCell(text: string, max: number): string {
   const t = text.replace(/\s+/g, " ").trim();
   if (t.length <= max) return t.padEnd(max, " ");
@@ -197,49 +206,60 @@ export function formatMonthlyPartsTable(
   }
 
   const totals = computeMonthlyPartsTotals(rows);
-  const lines: string[] = [];
-  lines.push(
-    clipCell("Дата", 6) +
-      clipCell("Название", 18) +
-      clipCell("Зак.N", 8) +
-      clipCell("Зак.B", 8) +
-      clipCell("Пр.N", 8) +
-      clipCell("Пр.B", 8)
-  );
-  lines.push("─".repeat(56));
-
-  for (const r of rows.slice(0, 35)) {
-    const q = r.qty || 1;
-    const buyN = r.purchasePrice * q;
-    const buyB = nettoToBrutto(r.purchasePrice) * q;
-    const sellN = r.sellPrice * q;
-    const sellB = nettoToBrutto(r.sellPrice) * q;
-    lines.push(
-      clipCell(formatRowDate(r.createdAt), 6) +
-        clipCell(r.name, 18) +
-        clipCell(formatMoneyPln(buyN), 8) +
-        clipCell(formatMoneyPln(buyB), 8) +
-        clipCell(formatMoneyPln(sellN), 8) +
-        clipCell(formatMoneyPln(sellB), 8)
-    );
-  }
-
-  if (rows.length > 35) {
-    lines.push(`… ещё ${rows.length - 35} поз.`);
-  }
-
-  lines.push("─".repeat(56));
-  lines.push(`Итого закуп (нет/брут): ${formatMoneyPln(totals.purchaseNetto)} / ${formatMoneyPln(totals.purchaseBrutto)} zł`);
-  lines.push(`Итого продажа (нет/брут): ${formatMoneyPln(totals.sellNetto)} / ${formatMoneyPln(totals.sellBrutto)} zł`);
-  lines.push(`Прибыль (нет/брут): ${formatMoneyPln(totals.profitNetto)} / ${formatMoneyPln(totals.profitBrutto)} zł`);
-  lines.push(`VAT ${Math.round(MONTHLY_PARTS_VAT_RATE * 100)}% — цены вводятся нетто, брутто считается автоматически`);
-
-  const table = lines.join("\n");
-  return (
+  const header =
     `📦 <b>Запчасти — ${formatMonthLabel(month)}</b>\n` +
-    `Позиций: <b>${totals.count}</b>\n\n` +
-    `<pre>${table}</pre>`
-  );
+    `Позиций: <b>${totals.count}</b>\n\n`;
+
+  const buildBody = (rowLimit: number): string => {
+    const lines: string[] = [];
+    lines.push(
+      clipCell("Дата", 6) +
+        clipCell("Название", 18) +
+        clipCell("Зак.N", 8) +
+        clipCell("Зак.B", 8) +
+        clipCell("Пр.N", 8) +
+        clipCell("Пр.B", 8)
+    );
+    lines.push("─".repeat(56));
+
+    const shown = rows.slice(0, rowLimit);
+    for (const r of shown) {
+      const q = r.qty || 1;
+      lines.push(
+        clipCell(formatRowDate(r.createdAt), 6) +
+          clipCell(r.name, 18) +
+          clipCell(formatMoneyPln(r.purchasePrice * q), 8) +
+          clipCell(formatMoneyPln(nettoToBrutto(r.purchasePrice) * q), 8) +
+          clipCell(formatMoneyPln(r.sellPrice * q), 8) +
+          clipCell(formatMoneyPln(nettoToBrutto(r.sellPrice) * q), 8)
+      );
+    }
+    if (rows.length > rowLimit) {
+      lines.push(`… ещё ${rows.length - rowLimit} поз.`);
+    }
+
+    lines.push("─".repeat(56));
+    lines.push(
+      `Итого закуп (нет/брут): ${formatMoneyPln(totals.purchaseNetto)} / ${formatMoneyPln(totals.purchaseBrutto)} zł`
+    );
+    lines.push(
+      `Итого продажа (нет/брут): ${formatMoneyPln(totals.sellNetto)} / ${formatMoneyPln(totals.sellBrutto)} zł`
+    );
+    lines.push(
+      `Прибыль (нет/брут): ${formatMoneyPln(totals.profitNetto)} / ${formatMoneyPln(totals.profitBrutto)} zł`
+    );
+    lines.push(`VAT ${Math.round(MONTHLY_PARTS_VAT_RATE * 100)}% — ввод нетто, брутто авто`);
+    return escapePreText(lines.join("\n"));
+  };
+
+  let rowLimit = Math.min(rows.length, 25);
+  let table = buildBody(rowLimit);
+  while (header.length + table.length + 11 > TELEGRAM_SAFE_HTML_LIMIT && rowLimit > 3) {
+    rowLimit -= 3;
+    table = buildBody(rowLimit);
+  }
+
+  return `${header}<pre>${table}</pre>`;
 }
 
 /** @deprecated use formatMonthlyPartsTable */
