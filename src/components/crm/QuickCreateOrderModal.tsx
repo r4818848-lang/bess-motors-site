@@ -16,6 +16,7 @@ import { syncWarehouseFromWorkOrder } from "@/lib/warehouse-stock";
 import { saveDbAndPushCrm } from "@/lib/cloud-crm-db";
 import { generateOrderNumber } from "@/lib/workorder-calc";
 import {
+  displayClientFacingTotal,
   displayOrderTotal,
   displayServiceLineTotal,
   displayUnitPrice,
@@ -227,7 +228,9 @@ export function QuickCreateOrderModal({
   }, [userId, vehicleId, services, mechanicId, clientNotes, vatEnabled, receptionChecklist, receptionDate]);
 
   const vatRate = loadDb().settings.vatRate ?? 23;
-  const displayTotal = displayOrderTotal(draftOrder, priceMode, vatRate);
+  const displayTotal = vatEnabled
+    ? displayClientFacingTotal(draftOrder, vatRate)
+    : displayOrderTotal(draftOrder, priceMode, vatRate);
 
   const toggleFlag = (id: string) => {
     setReceptionChecklist((prev) => ({ ...prev, [id]: !prev[id] }));

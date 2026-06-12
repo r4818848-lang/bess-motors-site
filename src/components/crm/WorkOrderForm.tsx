@@ -50,7 +50,10 @@ import {
   displayOrderTotal,
   displayOrderTotalLabel,
   displayPartLineTotal,
+  displayClientFacingTotal,
+  displayPartsSubtotal,
   displayServiceLineTotal,
+  displayServicesSubtotal,
   displayUnitPrice,
   storeUnitPriceFromDisplay,
 } from "@/lib/crm-display-price";
@@ -362,11 +365,14 @@ export function WorkOrderForm({
   const vatRate = db.settings.vatRate ?? 23;
   const vatEnabled = order.vatEnabled ?? false;
   const breakdown = calcOrderBreakdown(order, vatRate);
-  const clientTotalDisplay = displayOrderTotal(order, priceMode, vatRate);
-  const clientTotalLabel = displayOrderTotalLabel(order, priceMode, {
-    net: c.netto,
-    gross: c.brutto,
-  });
+  const clientTotalDisplay = vatEnabled
+    ? displayClientFacingTotal(order, vatRate)
+    : displayOrderTotal(order, priceMode, vatRate);
+  const clientTotalLabel = vatEnabled
+    ? c.brutto
+    : displayOrderTotalLabel(order, priceMode, { net: c.netto, gross: c.brutto });
+  const servicesSubDisplay = displayServicesSubtotal(order, priceMode, vatRate, vatEnabled);
+  const partsSubDisplay = displayPartsSubtotal(order, priceMode, vatRate, vatEnabled);
   const referralDiscountReady = client ? canUseReferralDiscount(client, db) : false;
   const inviteeDiscountReady = client ? canUseInviteeDiscount(client) : false;
 
@@ -1194,11 +1200,21 @@ export function WorkOrderForm({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <div className="crm-mw-card rounded-md p-4">
           <p className="text-xs text-bm-muted uppercase">{w.worksTotal}</p>
-          <p className="font-display text-xl font-bold">{totals.servicesSub.toFixed(2)} zł</p>
+          <p className="font-display text-xl font-bold">{servicesSubDisplay.toFixed(2)} zł</p>
+          {vatEnabled && (
+            <p className="text-[10px] text-bm-muted mt-0.5">
+              {c.netto}: {totals.servicesSub.toFixed(2)} zł
+            </p>
+          )}
         </div>
         <div className="crm-mw-card rounded-md p-4">
           <p className="text-xs text-bm-muted uppercase">{w.partsTotal}</p>
-          <p className="font-display text-xl font-bold">{totals.partsSub.toFixed(2)} zł</p>
+          <p className="font-display text-xl font-bold">{partsSubDisplay.toFixed(2)} zł</p>
+          {vatEnabled && totals.partsSub > 0 && (
+            <p className="text-[10px] text-bm-muted mt-0.5">
+              {c.netto}: {totals.partsSub.toFixed(2)} zł
+            </p>
+          )}
         </div>
         <div className="crm-mw-card rounded-md p-4">
           <p className="text-xs text-bm-muted uppercase">{w.discountAmount}</p>
@@ -1216,10 +1232,10 @@ export function WorkOrderForm({
           <p className="font-display text-2xl font-bold text-glow">
             {clientTotalDisplay.toFixed(2)} zł
           </p>
-          {order.vatEnabled && breakdown.vatAmount > 0 && priceMode === "net" && (
+          {vatEnabled && breakdown.vatAmount > 0 && (
             <p className="text-xs text-bm-muted mt-1">
-              {c.brutto}: {breakdown.grossTotal.toFixed(2)} zł ({w.vatAmount}{" "}
-              {breakdown.vatAmount.toFixed(2)} zł)
+              {c.netto}: {breakdown.netTotal.toFixed(2)} zł · {w.vatAmount}{" "}
+              {breakdown.vatAmount.toFixed(2)} zł
             </p>
           )}
         </div>

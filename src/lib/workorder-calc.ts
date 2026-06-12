@@ -49,13 +49,19 @@ export function calcClientTotal(order: WorkOrder): number {
   return Math.max(0, calcSubtotal(order) - calcOrderDiscountAmount(order));
 }
 
-export function calcVatAmount(order: WorkOrder, vatRate: number): number {
-  if (!order.vatEnabled) return 0;
-  return calcClientTotal(order) * (vatRate / 100);
+function roundMoney(value: number): number {
+  return Math.round(value * 100) / 100;
 }
 
 export function calcClientTotalWithVat(order: WorkOrder, vatRate: number): number {
-  return calcClientTotal(order) + calcVatAmount(order, vatRate);
+  if (!order.vatEnabled) return calcClientTotal(order);
+  const net = calcClientTotal(order);
+  return roundMoney(net * (1 + vatRate / 100));
+}
+
+export function calcVatAmount(order: WorkOrder, vatRate: number): number {
+  if (!order.vatEnabled) return 0;
+  return roundMoney(calcClientTotalWithVat(order, vatRate) - calcClientTotal(order));
 }
 
 export interface OrderTotalsBreakdown {
