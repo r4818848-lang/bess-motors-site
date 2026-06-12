@@ -109,6 +109,16 @@ import {
   startQuickWorkOrderFlow,
 } from "./admin-quick-wo";
 import {
+  deleteMonthlyConsumable,
+  handleMonthlyConsumablesWizardCallback,
+  handleMonthlyConsumablesWizardText,
+  showMonthlyConsumablesDeleteMenu,
+  showMonthlyConsumablesList,
+  showMonthlyConsumablesMenu,
+  shiftMonthlyConsumablesMonth,
+  startMonthlyConsumablesAdd,
+} from "./admin-monthly-consumables";
+import {
   deleteMonthlyPart,
   finishMonthlyPartsInput,
   handleMonthlyPartsWizardCallback,
@@ -172,6 +182,7 @@ function keepsTelegramInputSession(data: string): boolean {
     data.startsWith("qwo:") ||
     data.startsWith("imp:") ||
     data.startsWith("parts:") ||
+    data.startsWith("cons:") ||
     data.startsWith("exp:cat:") ||
     data.startsWith("wo:extra:") ||
     data.startsWith("wo:custom:")
@@ -322,6 +333,10 @@ async function handleMessage(msg: TelegramMessage): Promise<void> {
   }
 
   if (await handleMonthlyPartsWizardText(chatId, text)) {
+    return;
+  }
+
+  if (await handleMonthlyConsumablesWizardText(chatId, text)) {
     return;
   }
 
@@ -961,6 +976,55 @@ async function handleCallback(cb: TelegramCallback): Promise<void> {
     const action = data === "parts:skip" ? "skip" : "back";
     if (await handleMonthlyPartsWizardCallback(chatId, messageId, action)) return;
     await showMonthlyPartsMenu(chatId, messageId);
+    return;
+  }
+
+  if (data === "cons:menu") {
+    await showMonthlyConsumablesMenu(chatId, messageId);
+    return;
+  }
+
+  if (data === "cons:add") {
+    await startMonthlyConsumablesAdd(chatId, messageId);
+    return;
+  }
+
+  if (data === "cons:list") {
+    const session = await getTelegramSession(chatKey);
+    const month = session.data?.consMonth ?? new Date().toISOString().slice(0, 7);
+    await showMonthlyConsumablesList(chatId, messageId, db, month);
+    return;
+  }
+
+  if (data === "cons:prev" || data === "cons:next") {
+    await shiftMonthlyConsumablesMonth(chatId, messageId, data === "cons:prev" ? -1 : 1);
+    return;
+  }
+
+  if (data === "cons:del") {
+    const session = await getTelegramSession(chatKey);
+    const month = session.data?.consMonth ?? new Date().toISOString().slice(0, 7);
+    await showMonthlyConsumablesDeleteMenu(chatId, messageId, db, month, 0);
+    return;
+  }
+
+  if (data.startsWith("cons:delp:")) {
+    const page = Number.parseInt(data.slice(10), 10) || 0;
+    const session = await getTelegramSession(chatKey);
+    const month = session.data?.consMonth ?? new Date().toISOString().slice(0, 7);
+    await showMonthlyConsumablesDeleteMenu(chatId, messageId, db, month, page);
+    return;
+  }
+
+  if (data.startsWith("cons:rm:")) {
+    await deleteMonthlyConsumable(chatId, messageId, data.slice(8));
+    return;
+  }
+
+  if (data === "cons:skip" || data === "cons:back") {
+    const action = data === "cons:skip" ? "skip" : "back";
+    if (await handleMonthlyConsumablesWizardCallback(chatId, messageId, action)) return;
+    await showMonthlyConsumablesMenu(chatId, messageId);
     return;
   }
 

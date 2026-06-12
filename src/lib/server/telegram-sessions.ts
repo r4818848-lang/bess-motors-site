@@ -27,7 +27,8 @@ export type TelegramSessionStep =
   | "admin_import_review"
   | "admin_import_phone"
   | "admin_quick_wo"
-  | "admin_parts_wizard";
+  | "admin_parts_wizard"
+  | "admin_cons_wizard";
 
 export type TelegramSession = {
   step?: TelegramSessionStep;

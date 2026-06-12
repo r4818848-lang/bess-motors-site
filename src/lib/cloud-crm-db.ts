@@ -163,9 +163,25 @@ export async function pullCrmFromCloud(options?: { force?: boolean }): Promise<P
     const localIds = new Set(local.workOrders.map((o) => o.id));
     const remoteIds = new Set(remote.workOrders.map((o) => o.id));
     const hasNewRemoteOrders = [...remoteIds].some((id) => !localIds.has(id));
+    const localPartIds = new Set((local.monthlyParts ?? []).map((p) => p.id));
+    const remotePartIds = new Set((remote.monthlyParts ?? []).map((p) => p.id));
+    const partsChanged =
+      [...remotePartIds].some((id) => !localPartIds.has(id)) ||
+      [...localPartIds].some((id) => !remotePartIds.has(id));
+    const localConsIds = new Set((local.monthlyConsumables ?? []).map((p) => p.id));
+    const remoteConsIds = new Set((remote.monthlyConsumables ?? []).map((p) => p.id));
+    const consumablesChanged =
+      [...remoteConsIds].some((id) => !localConsIds.has(id)) ||
+      [...localConsIds].some((id) => !remoteConsIds.has(id));
     const timestampChanged = data.updatedAt !== lastSynced;
 
-    if (!options?.force && !timestampChanged && !hasNewRemoteOrders) {
+    if (
+      !options?.force &&
+      !timestampChanged &&
+      !hasNewRemoteOrders &&
+      !partsChanged &&
+      !consumablesChanged
+    ) {
       await syncAppointmentsFromCloud();
       return "unchanged";
     }

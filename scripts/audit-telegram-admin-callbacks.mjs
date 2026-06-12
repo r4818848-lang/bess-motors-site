@@ -41,6 +41,7 @@ const prefixes = [
   "exp:",
   "wh:",
   "parts:",
+  "cons:",
   "imp:",
 ];
 
@@ -62,6 +63,7 @@ function handled(data) {
   if (data.startsWith("exp:")) return true;
   if (data === "wh:0" || data === "wh:low") return true;
   if (data.startsWith("parts:")) return true;
+  if (data.startsWith("cons:")) return true;
   if (data === "imp:menu" || data === "imp:phone" || data === "imp:confirm") return true;
   if (data.startsWith("imp:")) return true;
   return false;

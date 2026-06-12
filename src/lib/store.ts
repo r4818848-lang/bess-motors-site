@@ -460,6 +460,7 @@ export interface WarehouseItem {
 }
 
 export type { MonthlyPartEntry } from "./monthly-parts";
+export type { MonthlyConsumableEntry } from "./monthly-consumables";
 
 import { DB_SAVED_EVENT, notifyDbChanged } from "./db-events";
 import { clearDbCache, getCachedDb, setCachedDb } from "./db-cache";
@@ -467,6 +468,7 @@ import { trimDatabaseFiles } from "./file-storage-trim";
 import { notifyDbStorageQuotaExceeded } from "./db-events";
 import { runCrmAutomation } from "./crm-automation";
 import type { MonthlyPartEntry } from "./monthly-parts";
+import type { MonthlyConsumableEntry } from "./monthly-consumables";
 import { migrateWarehouseItem } from "./warehouse-stock";
 
 const STORAGE_KEY = "bess-motors-db";
@@ -735,6 +737,7 @@ export interface Database {
   vehicleHistory: VehicleHistoryEntry[];
   warehouse: WarehouseItem[];
   monthlyParts: MonthlyPartEntry[];
+  monthlyConsumables: MonthlyConsumableEntry[];
   expenses: ServiceExpense[];
   mechanics: MechanicProfile[];
   settings: AppSettings;
@@ -780,6 +783,7 @@ const defaultDb: Database = {
     { id: "wh2", name: "Klocki hamulcowe Brembo", sku: "P85020", qty: 12, purchasePrice: 120, sellPrice: 220, supplier: "Auto Partner", qrCode: "BM-WH-002" },
   ],
   monthlyParts: [],
+  monthlyConsumables: [],
   currentUserId: null,
   notifications: [],
   clientRatings: [],
@@ -919,6 +923,7 @@ export function mergeStoredDb(parsed: Partial<Database>): Database {
     clientRatings: parsed.clientRatings ?? defaultDb.clientRatings,
     warehouse: (parsed.warehouse ?? defaultDb.warehouse).map(migrateWarehouseItem),
     monthlyParts: parsed.monthlyParts ?? defaultDb.monthlyParts,
+    monthlyConsumables: parsed.monthlyConsumables ?? defaultDb.monthlyConsumables,
   };
 }
 

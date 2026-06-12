@@ -50,6 +50,11 @@ function mergeCloudRecords(local: Database, remote: Database): Database {
     monthlyParts: mergeById(local.monthlyParts ?? [], remote.monthlyParts ?? [], (e) =>
       normalizeIsoTimestamp(e.createdAt)
     ),
+    monthlyConsumables: mergeById(
+      local.monthlyConsumables ?? [],
+      remote.monthlyConsumables ?? [],
+      (e) => normalizeIsoTimestamp(e.createdAt)
+    ),
     callRequests: mergeById(local.callRequests ?? [], remote.callRequests ?? []),
     vehicleHistory: mergeById(local.vehicleHistory ?? [], remote.vehicleHistory ?? []),
     notifications: mergeById(local.notifications ?? [], remote.notifications ?? []),
@@ -70,14 +75,34 @@ export type MergeCloudPullOptions = {
  * Pull from cloud: merge by id, then apply remote deletions when cloud snapshot is newer.
  * Rows changed locally after `lastCloudSyncedAt` are kept (unsynced draft / new order).
  */
+/** Telegram-only lists — on first pull, drop local rows absent in cloud. */
+function applyTelegramManagedRemoteMembership(
+  base: Database,
+  remote: Database
+): Database {
+  const partIds = ids(remote.monthlyParts ?? []);
+  const consumableIds = ids(remote.monthlyConsumables ?? []);
+  return {
+    ...base,
+    monthlyParts: (base.monthlyParts ?? []).filter((p) => partIds.has(p.id)),
+    monthlyConsumables: (base.monthlyConsumables ?? []).filter((p) =>
+      consumableIds.has(p.id)
+    ),
+  };
+}
+
 export function mergeCloudPullIntoLocal(
   local: Database,
   remote: Database,
   options?: MergeCloudPullOptions
 ): Database {
   const merged = mergeCloudRecords(local, remote);
-  const lastSynced = options?.lastCloudSyncedAt;
+  const lastSynced = options?.lastCloudSyncedAt?.trim();
   const remoteAt = options?.remoteUpdatedAt;
+
+  if (!lastSynced && remoteAt) {
+    return applyTelegramManagedRemoteMembership(merged, remote);
+  }
   if (!lastSynced || !remoteAt) return merged;
   if (mergeTimestampMs(remoteAt) <= mergeTimestampMs(lastSynced)) return merged;
   return applyPullRemoteDeletions(merged, remote, lastSynced);
@@ -94,6 +119,10 @@ function applyPullRemoteDeletions(
   const userIds = ids(remote.users);
   const vehicleIds = ids(remote.vehicles);
   const aptIds = ids(remote.appointments);
+  const partIds = ids(remote.monthlyParts ?? []);
+  const consumableIds = ids(remote.monthlyConsumables ?? []);
+  const expenseIds = ids(remote.expenses ?? []);
+  const warehouseIds = ids(remote.warehouse ?? []);
 
   const users = base.users.filter((u) => {
     if (userIds.has(u.id)) return true;
@@ -129,6 +158,28 @@ function applyPullRemoteDeletions(
     clientRatings: (base.clientRatings ?? []).filter(
       (r) => !r.userId || keptUserIds.has(r.userId)
     ),
+    monthlyParts: (base.monthlyParts ?? []).filter((p) => {
+      if (partIds.has(p.id)) return true;
+      return (
+        mergeTimestampMs(normalizeIsoTimestamp(p.createdAt)) >
+        mergeTimestampMs(syncCutoff)
+      );
+    }),
+    monthlyConsumables: (base.monthlyConsumables ?? []).filter((p) => {
+      if (consumableIds.has(p.id)) return true;
+      return (
+        mergeTimestampMs(normalizeIsoTimestamp(p.createdAt)) >
+        mergeTimestampMs(syncCutoff)
+      );
+    }),
+    expenses: (base.expenses ?? []).filter((e) => {
+      if (expenseIds.has(e.id)) return true;
+      return mergeTimestampMs(normalizeIsoTimestamp(e.date)) > mergeTimestampMs(syncCutoff);
+    }),
+    warehouse: (base.warehouse ?? []).filter((w) => {
+      if (warehouseIds.has(w.id)) return true;
+      return false;
+    }),
   };
 }
 
@@ -166,6 +217,7 @@ function applySnapshotMembership(
   const aptIds = ids(incoming.appointments);
   const callIds = ids(incoming.callRequests ?? []);
   const partIds = ids(incoming.monthlyParts ?? []);
+  const consumableIds = ids(incoming.monthlyConsumables ?? []);
   const expenseIds = ids(incoming.expenses ?? []);
   const warehouseIds = ids(incoming.warehouse ?? []);
   const syncCutoff = options?.lastCloudSyncedAt
@@ -211,6 +263,14 @@ function applySnapshotMembership(
     }),
     monthlyParts: (base.monthlyParts ?? []).filter((p) => {
       if (partIds.has(p.id)) return true;
+      if (!syncCutoff) return false;
+      return (
+        mergeTimestampMs(normalizeIsoTimestamp(p.createdAt)) >
+        mergeTimestampMs(syncCutoff)
+      );
+    }),
+    monthlyConsumables: (base.monthlyConsumables ?? []).filter((p) => {
+      if (consumableIds.has(p.id)) return true;
       if (!syncCutoff) return false;
       return (
         mergeTimestampMs(normalizeIsoTimestamp(p.createdAt)) >
@@ -266,7 +326,13 @@ export function mergeCloudDocuments(
   if (!options?.lastCloudSyncedAt?.trim()) {
     return merged;
   }
-  return applySnapshotMembership(merged, incoming, {
+  const withMembership = applySnapshotMembership(merged, incoming, {
     lastCloudSyncedAt: options.lastCloudSyncedAt,
   });
+  // Telegram manages these lists; browser CRM must not wipe them via empty local arrays.
+  return {
+    ...withMembership,
+    monthlyParts: merged.monthlyParts,
+    monthlyConsumables: merged.monthlyConsumables,
+  };
 }

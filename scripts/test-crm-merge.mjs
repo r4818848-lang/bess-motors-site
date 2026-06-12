@@ -1,4 +1,9 @@
-import { mergeCloudDocuments, mergeServerCloudMutation } from "../src/lib/crm-db-merge.ts";
+import {
+  mergeCloudDocuments,
+  mergeCloudPullIntoLocal,
+  mergeServerCloudMutation,
+} from "../src/lib/crm-db-merge.ts";
+import { bruttoToNetto, normalizePartPrices } from "../src/lib/monthly-parts.ts";
 
 const cloud = {
   users: [{ id: "u1", name: "A", phone: "+48111111111", role: "client", createdAt: "2026-01-01" }],
@@ -98,6 +103,110 @@ const callMerged = mergeServerCloudMutation(cloud, guestCall);
 console.assert(
   callMerged.callRequests?.some((c) => c.id === "call-1"),
   "server mutation must keep guest call requests"
+);
+
+const pullLocal = {
+  ...cloud,
+  monthlyParts: [
+    ...cloud.monthlyParts,
+    {
+      id: "mp-deleted-remote",
+      month: "2026-06",
+      name: "Gone",
+      partNumber: "",
+      purchaseBrutto: 50,
+      purchaseNetto: 40.65,
+      sellBrutto: 80,
+      sellNetto: 65.04,
+      qty: 1,
+      createdAt: "2026-06-02T10:00:00Z",
+    },
+  ],
+  monthlyConsumables: [
+    {
+      id: "mc-1",
+      month: "2026-06",
+      name: "Oil",
+      partNumber: "",
+      purchaseBrutto: 30,
+      purchaseNetto: 24.39,
+      qty: 1,
+      createdAt: "2026-06-03T10:00:00Z",
+    },
+    {
+      id: "mc-gone",
+      month: "2026-06",
+      name: "Filter",
+      partNumber: "",
+      purchaseBrutto: 20,
+      purchaseNetto: 16.26,
+      qty: 1,
+      createdAt: "2026-06-03T11:00:00Z",
+    },
+  ],
+};
+const pullRemote = {
+  ...cloud,
+  monthlyConsumables: [pullLocal.monthlyConsumables[0]],
+};
+const afterPull = mergeCloudPullIntoLocal(pullLocal, pullRemote, {
+  lastCloudSyncedAt: "2026-06-04T12:00:00Z",
+  remoteUpdatedAt: "2026-06-05T12:00:00Z",
+});
+console.assert(
+  !afterPull.monthlyParts?.some((p) => p.id === "mp-deleted-remote"),
+  "pull must drop monthly parts removed in cloud"
+);
+console.assert(
+  !afterPull.monthlyConsumables?.some((p) => p.id === "mc-gone"),
+  "pull must drop monthly consumables removed in cloud"
+);
+
+const browserWipe = mergeCloudDocuments(
+  cloud,
+  { ...cloud, monthlyParts: [], monthlyConsumables: [] },
+  { lastCloudSyncedAt: "2026-06-04T12:00:00Z" }
+);
+console.assert(
+  browserWipe.monthlyParts?.some((p) => p.id === "mp-old"),
+  "browser push with empty parts must not wipe cloud monthly parts"
+);
+
+const firstPull = mergeCloudPullIntoLocal(pullLocal, pullRemote, {
+  remoteUpdatedAt: "2026-06-05T12:00:00Z",
+});
+console.assert(
+  !firstPull.monthlyParts?.some((p) => p.id === "mp-deleted-remote"),
+  "first pull without sync marker must drop orphan monthly parts"
+);
+
+console.assert(bruttoToNetto(123) === 100, "123 brutto -> 100 netto");
+const legacy = normalizePartPrices({
+  id: "x",
+  month: "2026-06",
+  name: "x",
+  partNumber: "",
+  purchasePrice: 100,
+  sellPrice: 150,
+  qty: 1,
+  createdAt: "2026-06-01",
+});
+console.assert(legacy.purchaseNetto === 100 && legacy.sellNetto === 150, "legacy netto preserved");
+const bruttoRow = normalizePartPrices({
+  id: "y",
+  month: "2026-06",
+  name: "y",
+  partNumber: "",
+  purchaseBrutto: 123,
+  purchaseNetto: 99,
+  sellBrutto: 246,
+  sellNetto: 200,
+  qty: 1,
+  createdAt: "2026-06-01",
+});
+console.assert(
+  bruttoRow.purchaseNetto === 100 && bruttoRow.sellNetto === 200,
+  "brutto input wins over stale stored netto"
 );
 
 console.log("crm-merge ok");

@@ -5,7 +5,7 @@ import {
   formatMonthLabel,
   formatMonthlyPartsTable,
   MONTHLY_PARTS_VAT_RATE,
-  nettoToBrutto,
+  normalizePartPrices,
   parsePartMoneyInput,
   shiftMonthKey,
   filterMonthlyParts,
@@ -61,9 +61,9 @@ function stepPrompt(step: PartsWizardStep, month: string): string {
     number:
       "🔢 <b>Шаг 2/4 — Номер (артикул)</b>\n\nВведите номер детали или нажмите «Пропустить»:",
     purchase:
-      `💰 <b>Шаг 3/4 — Цена закупки</b>\n\nВведите цену закупки <b>нетто</b> (zł).\nБрутто (+${vat}% VAT) посчитается автоматически.`,
+      `💰 <b>Шаг 3/4 — Цена закупки</b>\n\nВведите цену закупки <b>брутто</b> (zł).\nНетто (−${vat}% VAT) посчитается автоматически.`,
     sell:
-      `💵 <b>Шаг 4/4 — Цена продажи</b>\n\nВведите цену продажи <b>нетто</b> (zł).\nМесяц: <b>${formatMonthLabel(month)}</b>`,
+      `💵 <b>Шаг 4/4 — Цена продажи</b>\n\nВведите цену продажи <b>брутто</b> (zł).\nМесяц: <b>${formatMonthLabel(month)}</b>`,
   };
   return map[step];
 }
@@ -150,8 +150,8 @@ export async function showMonthlyPartsMenu(
   const text =
     `📦 <b>Месячный список запчастей</b>\n\n` +
     `Месяц: <b>${formatMonthLabel(m)}</b>\n\n` +
-    `Пошагово: название → номер → закуп (нетто) → продажа (нетто).\n` +
-    `Брутто с VAT ${Math.round(MONTHLY_PARTS_VAT_RATE * 100)}% считается автоматически.`;
+    `Пошагово: название → номер → закуп (брутто) → продажа (брутто).\n` +
+    `Нетто с VAT ${Math.round(MONTHLY_PARTS_VAT_RATE * 100)}% считается автоматически.`;
 
   if (messageId) {
     await updateTelegramInlineScreen(chatId, messageId, text, monthlyPartsMenuKeyboard(m));
@@ -211,18 +211,18 @@ async function saveWizardPart(
 ): Promise<{ ok: boolean; entry?: ReturnType<typeof createMonthlyPartEntry>; error?: string }> {
   const month = sessionMonth(data);
   const name = data.partsName?.trim();
-  const purchase = parsePartMoneyInput(data.partsPurchase ?? "");
-  const sell = parsePartMoneyInput(data.partsSell ?? "");
+  const purchaseBrutto = parsePartMoneyInput(data.partsPurchase ?? "");
+  const sellBrutto = parsePartMoneyInput(data.partsSell ?? "");
 
-  if (!name || purchase == null || sell == null) {
+  if (!name || purchaseBrutto == null || sellBrutto == null) {
     return { ok: false };
   }
 
   const entry = createMonthlyPartEntry(month, {
     name,
     partNumber: data.partsNumber?.trim() ?? "",
-    purchasePrice: purchase,
-    sellPrice: sell,
+    purchaseBrutto,
+    sellBrutto,
   });
 
   const put = await cloudMutateCrmStore((db) => {
@@ -235,16 +235,15 @@ async function saveWizardPart(
 }
 
 function formatSavedSummary(entry: ReturnType<typeof createMonthlyPartEntry>): string {
-  const buyB = nettoToBrutto(entry.purchasePrice);
-  const sellB = nettoToBrutto(entry.sellPrice);
+  const p = normalizePartPrices(entry);
   const num = entry.partNumber ? `\n🔢 <code>${entry.partNumber}</code>` : "";
   return (
     `${BOT.saved}\n\n` +
     `<b>${entry.name}</b>${num}\n\n` +
-    `Закуп: <b>${formatMoneyPln(entry.purchasePrice)}</b> нет / <b>${formatMoneyPln(buyB)}</b> брут\n` +
-    `Продажа: <b>${formatMoneyPln(entry.sellPrice)}</b> нет / <b>${formatMoneyPln(sellB)}</b> брут\n` +
-    `Маржа: <b>${formatMoneyPln(entry.sellPrice - entry.purchasePrice)}</b> нет / ` +
-    `<b>${formatMoneyPln(sellB - buyB)}</b> брут`
+    `Закуп: <b>${formatMoneyPln(p.purchaseBrutto)}</b> брут / <b>${formatMoneyPln(p.purchaseNetto)}</b> нет\n` +
+    `Продажа: <b>${formatMoneyPln(p.sellBrutto)}</b> брут / <b>${formatMoneyPln(p.sellNetto)}</b> нет\n` +
+    `Маржа: <b>${formatMoneyPln(p.sellNetto - p.purchaseNetto)}</b> нет / ` +
+    `<b>${formatMoneyPln(p.sellBrutto - p.purchaseBrutto)}</b> брут`
   );
 }
 
@@ -281,7 +280,7 @@ export async function handleMonthlyPartsWizardText(
     if (price == null) {
       await sendTelegramMessage(
         chatId,
-        "❌ Неверная цена. Пример: <code>22</code> или <code>22,50</code>",
+        "❌ Неверная цена (брутто). Пример: <code>27,06</code> или <code>45</code>",
         wizardKeyboard("purchase")
       );
       return true;
@@ -296,7 +295,7 @@ export async function handleMonthlyPartsWizardText(
     if (price == null) {
       await sendTelegramMessage(
         chatId,
-        "❌ Неверная цена. Пример: <code>45</code> или <code>45,90</code>",
+        "❌ Неверная цена (брутто). Пример: <code>45</code> или <code>45,90</code>",
         wizardKeyboard("sell")
       );
       return true;
