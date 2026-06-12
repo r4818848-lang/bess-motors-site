@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 import { seoLandingSlugs } from "../src/lib/seo-landing-pages";
 import { preparePage } from "./helpers";
 
-test.describe("SEO landing pages (27)", () => {
+test.describe("SEO landing pages", () => {
   test.beforeEach(async ({ page }) => {
     await preparePage(page);
   });

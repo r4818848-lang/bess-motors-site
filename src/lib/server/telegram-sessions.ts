@@ -25,7 +25,9 @@ export type TelegramSessionStep =
   | "admin_extra_work"
   | "admin_import_file"
   | "admin_import_review"
-  | "admin_import_phone";
+  | "admin_import_phone"
+  | "admin_quick_wo"
+  | "admin_parts_input";
 
 export type TelegramSession = {
   step?: TelegramSessionStep;
@@ -38,9 +40,9 @@ type TelegramBotDoc = {
 
 const emptyDoc = (): TelegramBotDoc => ({ sessions: {} });
 
-async function readDoc(): Promise<TelegramBotDoc> {
+async function readDoc(): Promise<TelegramBotDoc | null> {
   const cfg = getSupabaseConfig();
-  if (!cfg) return emptyDoc();
+  if (!cfg) return null;
 
   try {
     const res = await fetch(
@@ -53,11 +55,13 @@ async function readDoc(): Promise<TelegramBotDoc> {
         cache: "no-store",
       }
     );
-    if (!res.ok) return emptyDoc();
+    if (!res.ok) return null;
     const rows = (await res.json()) as { doc?: TelegramBotDoc }[];
-    return rows[0]?.doc?.sessions ? rows[0].doc! : emptyDoc();
+    const doc = rows[0]?.doc;
+    if (!doc?.sessions) return emptyDoc();
+    return doc;
   } catch {
-    return emptyDoc();
+    return null;
   }
 }
 
@@ -85,20 +89,46 @@ async function writeDoc(doc: TelegramBotDoc): Promise<void> {
 
 export async function getTelegramSession(chatId: string): Promise<TelegramSession> {
   const doc = await readDoc();
+  if (!doc) return {};
   return doc.sessions[chatId] ?? {};
 }
 
+function applySessionChange(
+  sessions: Record<string, TelegramSession>,
+  chatId: string,
+  session: TelegramSession | null
+): void {
+  if (!session || (!session.step && !session.data)) {
+    delete sessions[chatId];
+  } else {
+    sessions[chatId] = session;
+  }
+}
+
+/** Merge session updates — avoids losing other chats on concurrent webhook calls. */
 export async function setTelegramSession(
   chatId: string,
   session: TelegramSession | null
 ): Promise<void> {
-  const doc = await readDoc();
-  if (!session || (!session.step && !session.data)) {
-    delete doc.sessions[chatId];
-  } else {
-    doc.sessions[chatId] = session;
+  for (let attempt = 0; attempt < 4; attempt++) {
+    const latest = (await readDoc()) ?? emptyDoc();
+    const sessions = { ...latest.sessions };
+    applySessionChange(sessions, chatId, session);
+    await writeDoc({ sessions });
+
+    const after = await readDoc();
+    if (!after) return;
+
+    const expected = sessions[chatId];
+    const actual = after.sessions[chatId];
+    const oursOk =
+      JSON.stringify(expected ?? null) === JSON.stringify(actual ?? null);
+    if (oursOk) return;
+
+    if (attempt === 3) {
+      console.warn("[telegram] session write conflict after retries", chatId);
+    }
   }
-  await writeDoc(doc);
 }
 
 export async function clearTelegramSession(chatId: string): Promise<void> {

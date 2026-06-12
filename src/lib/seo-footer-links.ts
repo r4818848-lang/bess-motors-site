@@ -8,4 +8,7 @@ export const seoFooterServiceLinks: { href: string; label: string }[] = [
   { href: "/chip-tuning-warszawa", label: "Chip tuning" },
   { href: "/bmw", label: "Serwis BMW" },
   { href: "/warszawa-wlochy", label: "Mechanik Włochy" },
+  { href: "/warszawa-ursynow", label: "Serwis Ursynów" },
+  { href: "/warszawa-mokotow", label: "Mechanik Mokotów" },
+  { href: "/warszawa-ochota", label: "Mechanik Ochota" },
 ];

@@ -48,10 +48,12 @@ export const BOT = {
   mechanics: "👷 Механики",
   expenses: "💸 Расходы",
   warehouse: "🏭 Склад",
+  monthlyParts: "📦 Запчасти (месяц)",
   search: "🔍 Поиск",
   unsigned: "✍️ Подписи",
   calls: "📞 Звонки",
   quickApt: "➕ Запись",
+  quickWo: "📋 Быстрый заказ",
   importWo: "📄 Импорт PDF/фото",
   mechLoad: "🔧 Загрузка цеха",
   extraWork: "➕ Доп. работы",
@@ -84,7 +86,10 @@ export const BOT = {
   markCalled: "📞 Позвонил",
   statusChanged: "Статус обновлён.",
   helpText:
-    "<b>Команды:</b>\n/start — меню\n/find WA12345 — поиск\n\n<b>Импорт:</b> «📄 Импорт PDF/фото» → отправьте PDF или скрин Motowarsztat → подтвердите.\n\n<b>Расход:</b> Расходы → Добавить → категория → <code>450 Описание</code>\n\n<b>Механик:</b> <code>/linkmech +48… пароль</code> — привязка Telegram к CRM",
+    "<b>Команды:</b>\n/start — меню\n/find WA12345 — поиск\n\n<b>Быстрый заказ:</b> «📋 Быстрый заказ» → пошагово имя, телефон, авто → сохранение в CRM.\n\n<b>Запчасти:</b> «📦 Запчасти (месяц)» → строка: <code>Название; номер; закуп; продажа</code> (можно несколько строк).\n\n<b>Импорт:</b> «📄 Импорт PDF/фото» → отправьте PDF или скрин Motowarsztat → подтвердите.\n\n<b>Расход:</b> Расходы → Добавить → категория → <code>450 Описание</code>\n\n<b>Механик:</b> <code>/linkmech +48… пароль</code> — привязка Telegram к CRM",
+  quickWoIntro:
+    "📋 <b>Быстрый заказ-наряд</b>\n\nПошагово: имя, фамилия, телефон, авто, работы.\nНа любом шаге можно нажать «Пропустить».",
+  quickWoPhoneRequired: "❌ Для сохранения нужен телефон. Введите номер или вернитесь назад.",
   quickAptPrompt:
     "➕ <b>Быстрая запись</b>\n\nОтправьте одной строкой:\n<code>+48123456789 2026-06-01 10:00 комментарий</code>",
   importPrompt:
@@ -100,6 +105,8 @@ export const BOT = {
   importEditPhone: "📱 Изменить телефон",
   importPhonePrompt: "📱 Введите телефон клиента (например <code>+48791257229</code>):",
   importPhoneInvalid: "❌ Неверный телефон. Пример: <code>+48123456789</code>",
+  partsInvalid:
+    "❌ Неверный формат. Пример:\n<code>Filtr oleju; HU7008z; 22; 45</code>\nили <code>Nazwa; 120; 280</code>",
   extraWorkPrompt:
     "➕ <b>Доп. работы</b> для <b>{number}</b>\n\nКаждая строка:\n<code>Название;цена</code> или <code>Название 200</code>\nПервая строка — комментарий клиенту.",
   customMsgPrompt:

@@ -39,6 +39,7 @@ export function mainMenuKeyboard(): InlineKeyboardMarkup {
         { text: BOT.calls, callback_data: "calls:0" },
         { text: BOT.quickApt, callback_data: "qapt:menu" },
       ],
+      [{ text: BOT.quickWo, callback_data: "qwo:menu" }],
       [{ text: BOT.importWo, callback_data: "imp:menu" }],
       [{ text: BOT.search, callback_data: "search:menu" }],
       [
@@ -49,7 +50,7 @@ export function mainMenuKeyboard(): InlineKeyboardMarkup {
         { text: BOT.expenses, callback_data: "exp:menu" },
         { text: BOT.analytics, callback_data: "an:menu" },
       ],
-      [{ text: BOT.warehouse, callback_data: "wh:0" }],
+      [{ text: BOT.warehouse, callback_data: "wh:0" }, { text: BOT.monthlyParts, callback_data: "parts:menu" }],
       [
         { text: "🌐 CRM на сайте", url: `${siteBase()}/crm` },
         { text: "📱 Сайт", url: siteBase() },

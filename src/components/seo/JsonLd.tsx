@@ -1,5 +1,10 @@
 import { siteConfig } from "@/lib/site";
 import { getSiteUrl } from "@/lib/seo";
+import {
+  LOCAL_SERVICE_RADIUS_KM,
+  schemaAreaServed,
+  schemaGeoCoordinates,
+} from "@/lib/seo-local";
 /** Global Schema.org — local business + website (FAQ only on /faq and landing pages) */
 export function JsonLd() {
   const siteUrl = getSiteUrl();
@@ -13,7 +18,7 @@ export function JsonLd() {
         name: siteConfig.name,
         legalName: siteConfig.legalName,
         description:
-          "Niezależny serwis samochodowy Warszawa Włochy — wulkanizacja, klimatyzacja, wymiana oleju, hamulce, diagnostyka, chip tuning. Nie jesteśmy dealerem marek samochodowych. Rezerwacja online.",
+          `Niezależny serwis samochodowy Warszawa Włochy (Aleja Krakowska 48/52) — obszar do ok. ${LOCAL_SERVICE_RADIUS_KM} km: Włochy, Ursynów, Mokotów, Ochota, Okęcie. Wulkanizacja, klimatyzacja, olej, hamulce, diagnostyka. Rezerwacja online.`,
         url: siteUrl,
         telephone: siteConfig.phone,
         email: siteConfig.email,
@@ -27,11 +32,7 @@ export function JsonLd() {
           postalCode: "02-284",
           addressCountry: "PL",
         },
-        geo: {
-          "@type": "GeoCoordinates",
-          latitude: 52.1785,
-          longitude: 20.9789,
-        },
+        geo: schemaGeoCoordinates(),
         openingHoursSpecification: [
           {
             "@type": "OpeningHoursSpecification",
@@ -50,11 +51,8 @@ export function JsonLd() {
         priceRange: "$$",
         currenciesAccepted: "PLN",
         paymentAccepted: "Cash, Credit Card, Bank Transfer",
-        areaServed: [
-          { "@type": "City", name: "Warszawa" },
-          { "@type": "AdministrativeArea", name: "Włochy" },
-          { "@type": "AdministrativeArea", name: "Ursynów" },
-        ],
+        areaServed: schemaAreaServed(),
+        serviceArea: schemaAreaServed(),
         hasMap: siteConfig.googleMapsReviewsUrl,
         sameAs: [
           siteConfig.instagram,

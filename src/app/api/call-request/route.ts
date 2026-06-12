@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
-import { cloudGetCrmStore, cloudPutCrmStore } from "@/lib/server/crm-cloud";
+import { cloudMutateCrmStore } from "@/lib/server/crm-cloud-mutate";
 import { notifyAdminTelegram } from "@/lib/server/admin-telegram";
 import { normalizePhone } from "@/lib/server/normalize-phone";
-import type { Database } from "@/lib/store";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -53,15 +52,11 @@ export async function POST(req: Request) {
     createdAt: new Date().toISOString(),
   };
 
-  let cloudOk = false;
-  const snap = await cloudGetCrmStore();
-  if (snap?.doc) {
-    const db = structuredClone(snap.doc) as Database;
+  const put = await cloudMutateCrmStore((db) => {
     db.callRequests = db.callRequests ?? [];
     db.callRequests.push(entry);
-    const put = await cloudPutCrmStore(db);
-    cloudOk = put.ok;
-  }
+  });
+  const cloudOk = put.ok;
 
   await notifyAdminTelegram(
     [

@@ -10,6 +10,7 @@ import { SocialContactLink } from "@/components/analytics/SocialContactLink";
 import { Card } from "@/components/ui/Card";
 import { OfflinePriceBanner } from "@/components/pwa/OfflinePriceBanner";
 import { Button } from "@/components/ui/Button";
+import { LocalServiceAreaSection } from "@/components/seo/LocalServiceAreaSection";
 
 export default function ContactsPage() {
   const { t } = useI18n();
@@ -127,6 +128,8 @@ export default function ContactsPage() {
             </span>
           </div>
         </a>
+
+        <LocalServiceAreaSection variant="compact" />
       </div>
     </div>
   );

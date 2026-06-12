@@ -46,6 +46,7 @@ export interface Vehicle {
   insuranceExpiry?: string;
   engineNumber?: string;
   carType?: string;
+  updatedAt?: string;
 }
 
 export type ClientType = "person" | "company";
@@ -458,11 +459,14 @@ export interface WarehouseItem {
   qrCode: string;
 }
 
+export type { MonthlyPartEntry } from "./monthly-parts";
+
 import { DB_SAVED_EVENT, notifyDbChanged } from "./db-events";
 import { clearDbCache, getCachedDb, setCachedDb } from "./db-cache";
 import { trimDatabaseFiles } from "./file-storage-trim";
 import { notifyDbStorageQuotaExceeded } from "./db-events";
 import { runCrmAutomation } from "./crm-automation";
+import type { MonthlyPartEntry } from "./monthly-parts";
 import { migrateWarehouseItem } from "./warehouse-stock";
 
 const STORAGE_KEY = "bess-motors-db";
@@ -730,6 +734,7 @@ export interface Database {
   callRequests: CallRequest[];
   vehicleHistory: VehicleHistoryEntry[];
   warehouse: WarehouseItem[];
+  monthlyParts: MonthlyPartEntry[];
   expenses: ServiceExpense[];
   mechanics: MechanicProfile[];
   settings: AppSettings;
@@ -774,6 +779,7 @@ const defaultDb: Database = {
     { id: "wh1", name: "Filtr oleju Mann", sku: "HU7008z", qty: 24, purchasePrice: 22, sellPrice: 45, supplier: "Inter Cars", qrCode: "BM-WH-001" },
     { id: "wh2", name: "Klocki hamulcowe Brembo", sku: "P85020", qty: 12, purchasePrice: 120, sellPrice: 220, supplier: "Auto Partner", qrCode: "BM-WH-002" },
   ],
+  monthlyParts: [],
   currentUserId: null,
   notifications: [],
   clientRatings: [],
@@ -912,6 +918,7 @@ export function mergeStoredDb(parsed: Partial<Database>): Database {
     notifications: parsed.notifications ?? defaultDb.notifications,
     clientRatings: parsed.clientRatings ?? defaultDb.clientRatings,
     warehouse: (parsed.warehouse ?? defaultDb.warehouse).map(migrateWarehouseItem),
+    monthlyParts: parsed.monthlyParts ?? defaultDb.monthlyParts,
   };
 }
 

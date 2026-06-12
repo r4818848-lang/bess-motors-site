@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "dev:clean": "node -e \"try{require('fs').rmSync('.next',{recursive:true,force:true})}catch(e){}\" && next dev",
+    "clean:cache": "node -e \"const fs=require('fs');for(const d of ['.next','test-results','playwright-report','tsconfig.tsbuildinfo']){try{fs.rmSync(d,{recursive:true,force:true})}catch(e){}}\"",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",

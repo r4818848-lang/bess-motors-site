@@ -167,6 +167,7 @@ export async function createCrmClientWithVehicle(
       if (input.model?.trim()) byPlate.model = input.model.trim();
       if (input.vin?.trim()) byPlate.vin = input.vin.trim();
       if (input.mileage != null && input.mileage > 0) byPlate.mileage = input.mileage;
+      byPlate.updatedAt = nowIso;
       return {
         ok: true,
         userId: user.id,
@@ -186,6 +187,7 @@ export async function createCrmClientWithVehicle(
     if (input.model?.trim()) vehicle.model = input.model.trim();
     if (input.vin?.trim()) vehicle.vin = input.vin.trim();
     if (input.mileage != null && input.mileage > 0) vehicle.mileage = input.mileage;
+    vehicle.updatedAt = nowIso;
     return {
       ok: true,
       userId: user.id,
@@ -203,6 +205,7 @@ export async function createCrmClientWithVehicle(
       model: input.model?.trim() || "—",
       vin: input.vin?.trim() || "",
       mileage: input.mileage ?? 0,
+      updatedAt: nowIso,
     };
     db.vehicles.push(vehicle);
     createdVehicle = true;

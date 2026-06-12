@@ -4,6 +4,7 @@ import { getSiteUrl } from "@/lib/seo";
 import { siteConfig } from "@/lib/site";
 import { getServiceFaqForSchema } from "@/lib/seo-service-faq";
 import { resolveLandingContentServiceId } from "@/lib/seo-landing-slug-profiles";
+import { schemaAreaServed } from "@/lib/seo-local";
 
 export function faqPageSchema(items: { q: string; a: string }[]) {
   if (!items.length) return null;
@@ -104,7 +105,8 @@ export function autoRepairServiceSchema(page: SeoLandingPage) {
       name: page.metaTitle,
       description: page.metaDescription,
       provider: { "@id": `${siteUrl}/#business` },
-      areaServed: { "@type": "City", name: "Warszawa" },
+      areaServed: schemaAreaServed(),
+      serviceArea: schemaAreaServed(),
       url,
     },
     breadcrumbSchema([

@@ -1,3 +1,5 @@
+import { localSeoKeywords } from "@/lib/seo-local";
+
 /** Canonical site URL for sitemap, robots, Open Graph (set in Vercel: NEXT_PUBLIC_SITE_URL) */
 /** Must match the URL verified in Google Search Console */
 export function getSiteUrl(): string {
@@ -27,6 +29,7 @@ export const defaultSeoKeywords = [
   "serwis BMW Warszawa",
   "serwis Mercedes Warszawa",
   "Aleja Krakowska serwis",
+  ...localSeoKeywords,
 ];
 
 export const publicSitemapPaths: {

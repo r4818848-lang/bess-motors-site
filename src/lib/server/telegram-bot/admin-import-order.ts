@@ -14,7 +14,7 @@ import {
   getTelegramSession,
   setTelegramSession,
 } from "@/lib/server/telegram-sessions";
-import { cloudGetCrmStore, cloudPutCrmStore } from "@/lib/server/crm-cloud";
+import { cloudMutateCrmStore } from "@/lib/server/crm-cloud-mutate";
 import {
   parseWorkOrderImportText,
   type ImportWorkOrderDraft,
@@ -327,42 +327,44 @@ export async function confirmImportWorkOrder(chatId: number): Promise<string> {
 
   draft.internalNotes = [draft.internalNotes, "Импорт: Telegram"].filter(Boolean).join("\n");
 
-  const snap = await cloudGetCrmStore();
-  if (!snap?.doc) {
-    return BOT.cloudOff;
-  }
-
-  const db = structuredClone(snap.doc);
-  const prevDb = structuredClone(snap.doc);
-  const result = await createWorkOrderFromImport(db, {
-    ...draft,
-    attachment,
+  let orderNumber = "";
+  let orderId = "";
+  let createError = "";
+  const put = await cloudMutateCrmStore(async (db) => {
+    const result = await createWorkOrderFromImport(db, {
+      ...draft,
+      attachment,
+    });
+    if (!result.ok) {
+      createError = result.error;
+      return false;
+    }
+    orderNumber = result.orderNumber;
+    orderId = result.orderId;
+    return result.orderNumber;
   });
 
-  if (!result.ok) {
+  if (createError) {
     const err =
-      result.error === "phone_required"
+      createError === "phone_required"
         ? "Нужен телефон клиента."
-        : result.error === "client_vehicle_required"
+        : createError === "client_vehicle_required"
           ? "Не удалось привязать авто — проверьте таблицу."
           : BOT.saveFailed;
     return `❌ ${err}`;
   }
 
-  const { runCrmAutomation } = await import("@/lib/crm-automation");
-  runCrmAutomation(db, prevDb);
-  const put = await cloudPutCrmStore(db);
-  await clearTelegramSession(chatKey);
-
   if (!put.ok) {
-    return `⚠️ Заказ <b>${result.orderNumber}</b> создан локально, но облако не сохранило. Синхронизируйте CRM на сайте.`;
+    return `${BOT.saveFailed}\n\nНажмите «Создать заказ-наряд» ещё раз.`;
   }
+
+  await clearTelegramSession(chatKey);
 
   const base =
     process.env.NEXT_PUBLIC_SITE_URL?.trim() || "https://www.bess-motors.com";
   return (
     `${BOT.saved}\n\n` +
-    `📋 Заказ-наряд <b>${result.orderNumber}</b>\n` +
-    `🔗 <a href="${base}/crm/work-orders?edit=${result.orderId}">Открыть в CRM</a>`
+    `📋 Заказ-наряд <b>${orderNumber}</b>\n` +
+    `🔗 <a href="${base}/crm/work-orders?edit=${orderId}">Открыть в CRM</a>`
   );
 }

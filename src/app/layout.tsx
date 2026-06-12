@@ -41,7 +41,7 @@ const homeSeo = buildPageMetadata({
   title: "BESS MOTORS — Serwis samochodowy Warszawa",
   absoluteTitle: true,
   description:
-    "BESS MOTORS — serwis samochodowy Warszawa Włochy, Aleja Krakowska 48/52. Wulkanizacja, klimatyzacja, wymiana oleju, hamulce, diagnostyka, chip tuning. Rezerwacja online 24/7.",
+    "BESS MOTORS — serwis samochodowy Warszawa Włochy, Aleja Krakowska 48/52. Obsługa kierowców w promieniu ok. 8 km: Włochy, Ursynów, Mokotów, Ochota, Okęcie. Wulkanizacja, klimatyzacja, olej, hamulce, diagnostyka. Rezerwacja online 24/7.",
   path: "/",
   keywords: defaultSeoKeywords,
 });

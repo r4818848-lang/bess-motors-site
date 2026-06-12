@@ -320,6 +320,50 @@ export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
     ],
     faqDuration: L("Czas zależy od usługi — podajemy przy rezerwacji.", "Время — при записи."),
   },
+  "warszawa-mokotow": {
+    bookServiceId: "diagnostic",
+    education: [
+      {
+        title: L("Serwis dla południowego Mokotowa", "Сервис для южного Mokotów"),
+        body: L(
+          "Z Służewca, Służewca lub Okęcia dojazd do Alei Krakowskiej 48/52 zajmuje zwykle 10–15 min. Diagnostyka, opony, hamulce, olej.",
+          "Из Służewiec/Okęcie — 10–15 мин до Aleja Krakowska."
+        ),
+      },
+    ],
+    faqExtra: [
+      {
+        q: L("Czy obsługujecie kierowców z Mokotowa?", "Обслуживаете Mokotów?"),
+        a: L(
+          "Tak — wielu klientów dojeżdża z południowego Mokotowa. Warsztat leży przy głównej Alei Krakowskiej (Włochy).",
+          "Да — многие клиенты едут с южного Mokotów."
+        ),
+      },
+    ],
+    faqDuration: L("Wizyta: od 30 min (diagnostyka) do całego dnia.", "Визит: от 30 мин до дня."),
+  },
+  "warszawa-ochota": {
+    bookServiceId: "diagnostic",
+    education: [
+      {
+        title: L("Mechanik blisko Ochoty i Rakowca", "Механик рядом с Ochota"),
+        body: L(
+          "BESS MOTORS — ok. 15 min autem z Rakowca lub Szczęśliwic. Kompleksowy serwis: diagnostyka, hamulce, klima, opony.",
+          "Ок. 15 мин от Rakowiec. Диагностика, тормоза, кондиционер."
+        ),
+      },
+    ],
+    faqExtra: [
+      {
+        q: L("Jak dojechać z Ochoty?", "Как доехать с Ochota?"),
+        a: L(
+          "Aleja Krakowska 48/52 (Włochy) — trasa przez Południową obwodnicę lub Al. Krakowską. Parking przy warsztacie.",
+          "Aleja Krakowska 48/52 — через obwodnicę или Aleja Krakowska."
+        ),
+      },
+    ],
+    faqDuration: L("Czas naprawy zależy od zakresu — informujemy po diagnostyce.", "Время — после диагностики."),
+  },
   "serwis-audi": {
     bookServiceId: "diagnostic",
     education: [

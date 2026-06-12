@@ -40,11 +40,16 @@ function mergeCloudRecords(local: Database, remote: Database): Database {
       orderStamp(b).localeCompare(orderStamp(a))
     ),
     users: mergeById(local.users, remote.users, userStamp),
-    vehicles: mergeById(local.vehicles, remote.vehicles),
+    vehicles: mergeById(local.vehicles, remote.vehicles, (v) =>
+      normalizeIsoTimestamp(v.updatedAt ?? "")
+    ),
     appointments: mergeById(local.appointments, remote.appointments),
     mechanics: mergeById(local.mechanics, remote.mechanics),
     expenses: mergeById(local.expenses, remote.expenses),
     warehouse: mergeById(local.warehouse, remote.warehouse),
+    monthlyParts: mergeById(local.monthlyParts ?? [], remote.monthlyParts ?? [], (e) =>
+      normalizeIsoTimestamp(e.createdAt)
+    ),
     callRequests: mergeById(local.callRequests ?? [], remote.callRequests ?? []),
     vehicleHistory: mergeById(local.vehicleHistory ?? [], remote.vehicleHistory ?? []),
     notifications: mergeById(local.notifications ?? [], remote.notifications ?? []),

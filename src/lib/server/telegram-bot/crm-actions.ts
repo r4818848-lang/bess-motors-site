@@ -2,7 +2,8 @@ import { normalizePhone } from "@/lib/auth";
 import { handleWorkOrderClientNotifications } from "@/lib/client-notifications";
 import { createWorkOrderFromAppointment } from "@/lib/create-work-order-from-booking";
 import { getPriceItem } from "@/lib/price-list";
-import { cloudGetCrmStore, cloudPutCrmStore } from "@/lib/server/crm-cloud";
+import { cloudGetCrmStore } from "@/lib/server/crm-cloud";
+import { cloudMutateCrmStore } from "@/lib/server/crm-cloud-mutate";
 import type {
   Database,
   ExpenseCategory,
@@ -20,21 +21,7 @@ export async function loadCrmFromCloud(): Promise<Database | null> {
 export async function mutateCrm(
   mutator: (db: Database) => void | string | false
 ): Promise<{ ok: boolean; error?: string; result?: string }> {
-  const snap = await cloudGetCrmStore();
-  if (!snap?.doc) return { ok: false, error: "cloud_empty" };
-
-  const db = structuredClone(snap.doc) as Database;
-  const prevDb = structuredClone(snap.doc) as Database;
-  const extra = mutator(db);
-  if (extra === false) return { ok: false, error: "not_found" };
-
-  const { runCrmAutomation } = await import("@/lib/crm-automation");
-  runCrmAutomation(db, prevDb);
-
-  const result = await cloudPutCrmStore(db);
-  if (!result.ok) return { ok: false, error: result.error };
-
-  return { ok: true, result: typeof extra === "string" ? extra : undefined };
+  return cloudMutateCrmStore(mutator);
 }
 
 function findOrder(db: Database, orderNumber: string): WorkOrder | undefined {

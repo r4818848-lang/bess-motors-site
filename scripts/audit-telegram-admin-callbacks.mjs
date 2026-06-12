@@ -28,6 +28,7 @@ const prefixes = [
   "sum:day",
   "calls:",
   "qapt:menu",
+  "qwo:",
   "unsigned:",
   "wo:",
   "mech:dash:",
@@ -39,6 +40,7 @@ const prefixes = [
   "apt:",
   "exp:",
   "wh:",
+  "parts:",
   "imp:",
 ];
 
@@ -48,6 +50,7 @@ function handled(data) {
   if (data === "sum:day") return true;
   if (data === "calls:0" || data.startsWith("calls:done:")) return true;
   if (data === "qapt:menu") return true;
+  if (data.startsWith("qwo:")) return true;
   if (data === "unsigned:0" || data.startsWith("unsigned:remind:")) return true;
   if (data.startsWith("wo:")) return true;
   if (data === "mech:dash:menu" || data.startsWith("mech:dash:")) return true;
@@ -58,6 +61,7 @@ function handled(data) {
   if (data.startsWith("apt:")) return true;
   if (data.startsWith("exp:")) return true;
   if (data === "wh:0" || data === "wh:low") return true;
+  if (data.startsWith("parts:")) return true;
   if (data === "imp:menu" || data === "imp:phone" || data === "imp:confirm") return true;
   if (data.startsWith("imp:")) return true;
   return false;

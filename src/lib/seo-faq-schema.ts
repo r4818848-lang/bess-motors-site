@@ -24,4 +24,12 @@ export const siteFaqSchemaItems: { q: string; a: string }[] = [
     q: "Czy wystawiacie fakturę VAT?",
     a: "Tak — przy zleceniu można włączyć VAT zgodnie z ustawieniami serwisu.",
   },
+  {
+    q: "Z jakich dzielnic Warszawy dojeżdżacie klienci?",
+    a: "Głównie Włochy, Okęcie, Ursynów, Mokotów, Ochota, Wilanów, Rakowiec, Służewiec — warsztat przy Alei Krakowskiej 48/52, wygodny dojazd w promieniu ok. 8 km.",
+  },
+  {
+    q: "Gdzie dokładnie znajduje się warsztat?",
+    a: "Aleja Krakowska 48/52, 02-284 Warszawa (dzielnica Włochy), Pn–Sb 8:00–18:00. Trasa w Google Maps: BESS MOTORS Aleja Krakowska.",
+  },
 ];

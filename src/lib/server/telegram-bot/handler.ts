@@ -103,6 +103,19 @@ import {
   startImportWorkOrderFlow,
   type AdminTelegramFileMessage,
 } from "./admin-import-order";
+import {
+  handleQuickWoCallback,
+  handleQuickWoStepText,
+  startQuickWorkOrderFlow,
+} from "./admin-quick-wo";
+import {
+  finishMonthlyPartsInput,
+  handleMonthlyPartsStepText,
+  showMonthlyPartsList,
+  showMonthlyPartsMenu,
+  shiftMonthlyPartsMonth,
+  startMonthlyPartsAdd,
+} from "./admin-monthly-parts";
 
 type TelegramMessage = AdminTelegramFileMessage & {
   text?: string;
@@ -145,6 +158,25 @@ async function replyOrEdit(
 async function showMainMenu(chatId: number, messageId?: number): Promise<void> {
   await clearTelegramSession(String(chatId));
   await replyOrEdit(chatId, messageId, BOT.welcome, mainMenuKeyboard());
+}
+
+/** Input wizards that expect the next message as field text — do not clear session on these callbacks */
+function keepsTelegramInputSession(data: string): boolean {
+  if (data === "qapt:menu" || data === "qwo:menu" || data === "imp:menu" || data === "search:menu") {
+    return true;
+  }
+  if (
+    data.startsWith("qwo:") ||
+    data.startsWith("imp:") ||
+    data.startsWith("parts:") ||
+    data.startsWith("exp:cat:") ||
+    data.startsWith("wo:extra:") ||
+    data.startsWith("wo:custom:")
+  ) {
+    return true;
+  }
+  if (data === "fin:custom") return true;
+  return false;
 }
 
 async function runSearch(chatId: number, query: string, messageId?: number): Promise<void> {
@@ -236,6 +268,7 @@ async function handleMessage(msg: TelegramMessage): Promise<void> {
   }
 
   if (text === "/help") {
+    await clearTelegramSession(chatKey);
     await sendTelegramMessage(chatId, BOT.helpText, mainMenuKeyboard());
     return;
   }
@@ -278,6 +311,14 @@ async function handleMessage(msg: TelegramMessage): Promise<void> {
   }
 
   if (await handleAdminImportPhoneText(chatId, text)) {
+    return;
+  }
+
+  if (await handleQuickWoStepText(chatId, text)) {
+    return;
+  }
+
+  if (await handleMonthlyPartsStepText(chatId, text)) {
     return;
   }
 
@@ -408,18 +449,26 @@ async function handleCallback(cb: TelegramCallback): Promise<void> {
 
   await answerCallbackQuery(cb.id);
 
+  const chatKey = String(chatId);
+
   if (data === "menu") {
     await showMainMenu(chatId, messageId);
     return;
   }
 
   if (data === "help") {
+    await clearTelegramSession(chatKey);
     await replyOrEdit(chatId, messageId, BOT.helpText, mainMenuKeyboard());
     return;
   }
 
+  if (data === "qwo:menu" || data === "qapt:menu" || data === "imp:menu" || data === "search:menu") {
+    await clearTelegramSession(chatKey);
+  } else if (!keepsTelegramInputSession(data)) {
+    await clearTelegramSession(chatKey);
+  }
+
   if (data === "search:menu") {
-    const chatKey = String(chatId);
     await setTelegramSession(chatKey, { step: "search_input", data: {} });
     await replyOrEdit(chatId, messageId, BOT.searchPrompt, {
       inline_keyboard: [[{ text: BOT.cancel, callback_data: "menu" }]],
@@ -432,8 +481,6 @@ async function handleCallback(cb: TelegramCallback): Promise<void> {
     await replyOrEdit(chatId, messageId, BOT.cloudOff, mainMenuKeyboard());
     return;
   }
-
-  const chatKey = String(chatId);
 
   if (data === "fin:menu") {
     await replyOrEdit(chatId, messageId, BOT.choosePeriod, financePeriodKeyboard());
@@ -483,6 +530,23 @@ async function handleCallback(cb: TelegramCallback): Promise<void> {
     await replyOrEdit(chatId, messageId, BOT.quickAptPrompt, {
       inline_keyboard: [[{ text: BOT.cancel, callback_data: "menu" }]],
     });
+    return;
+  }
+
+  if (data === "qwo:menu") {
+    await startQuickWorkOrderFlow(chatId, messageId);
+    return;
+  }
+
+  if (data === "qwo:skip" || data === "qwo:back" || data === "qwo:save") {
+    const action = data === "qwo:skip" ? "skip" : data === "qwo:back" ? "back" : "save";
+    if (await handleQuickWoCallback(chatId, messageId, action)) return;
+    await replyOrEdit(
+      chatId,
+      messageId,
+      "⚠️ Сессия истекла. Меню → <b>Быстрый заказ</b>.",
+      mainMenuKeyboard()
+    );
     return;
   }
 
@@ -840,6 +904,33 @@ async function handleCallback(cb: TelegramCallback): Promise<void> {
 
   if (data === "wh:low") {
     await replyOrEdit(chatId, messageId, formatWarehouseLowOnly(db), warehouseKeyboard());
+    return;
+  }
+
+  if (data === "parts:menu") {
+    await showMonthlyPartsMenu(chatId, messageId);
+    return;
+  }
+
+  if (data === "parts:add") {
+    await startMonthlyPartsAdd(chatId, messageId);
+    return;
+  }
+
+  if (data === "parts:list") {
+    const session = await getTelegramSession(chatKey);
+    const month = session.data?.partsMonth ?? new Date().toISOString().slice(0, 7);
+    await showMonthlyPartsList(chatId, messageId, db, month);
+    return;
+  }
+
+  if (data === "parts:prev" || data === "parts:next") {
+    await shiftMonthlyPartsMonth(chatId, messageId, data === "parts:prev" ? -1 : 1);
+    return;
+  }
+
+  if (data === "parts:done") {
+    await finishMonthlyPartsInput(chatId, messageId);
     return;
   }
 

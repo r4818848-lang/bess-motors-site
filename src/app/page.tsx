@@ -13,6 +13,7 @@ import { LiveQueueBanner } from "@/components/home/LiveQueueBanner";
 import { PriceMatchBanner } from "@/components/home/PriceMatchBanner";
 import { MiniQuoteWidget } from "@/components/home/MiniQuoteWidget";
 import { WorkshopGallerySection } from "@/components/home/WorkshopGallerySection";
+import { LocalServiceAreaSection } from "@/components/seo/LocalServiceAreaSection";
 
 export default function HomePage() {
   return (
@@ -30,6 +31,7 @@ export default function HomePage() {
       <SymptomFaq />
       <PartnersSection />
       <WorkshopGallerySection />
+      <LocalServiceAreaSection />
     </>
   );
 }

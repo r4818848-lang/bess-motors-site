@@ -175,7 +175,7 @@ export const seoLandingPages: SeoLandingPage[] = [
     line2: "Diagnostyka, naprawy, serwis",
     metaTitle: "Mechanik Włochy Warszawa — BESS MOTORS",
     metaDescription:
-      "Serwis samochodowy przy Alei Krakowskiej 48 — Włochy, Okęcie. Diagnostyka, hamulce, olej, klimatyzacja.",
+      "Serwis samochodowy przy Alei Krakowskiej 48/52 — Włochy, Okęcie (ok. 5 min). Diagnostyka, hamulce, olej, klimatyzacja. Warsztat w promieniu 8 km od południowej Warszawy.",
     serviceId: "diagnostic",
     icon: "MapPin",
   },
@@ -186,7 +186,29 @@ export const seoLandingPages: SeoLandingPage[] = [
     line2: "Umów wizytę online",
     metaTitle: "Serwis samochodowy Ursynów — BESS MOTORS",
     metaDescription:
-      "BESS MOTORS — wygodny dojazd z Ursynowa. Naprawy, diagnostyka, opony. Aleja Krakowska 48.",
+      "BESS MOTORS — serwis dla Ursynowa (Kabaty, Natolin, Stokłosy). Dojazd ok. 15–20 min. Naprawy, diagnostyka, opony. Aleja Krakowska 48/52.",
+    serviceId: "diagnostic",
+    icon: "MapPin",
+  },
+  {
+    slug: "warszawa-mokotow",
+    title: "Serwis dla Mokotowa",
+    line1: "Służewiec, Okęcie, południowy Mokotów",
+    line2: "Blisko Alei Krakowskiej — ok. 10–15 min",
+    metaTitle: "Mechanik Mokotów Warszawa — BESS MOTORS",
+    metaDescription:
+      "Serwis samochodowy dla Mokotowa — Służewiec, Wyględów, Okęcie. BESS MOTORS, Aleja Krakowska 48/52, ok. 8 km od centrum dzielnicy. Diagnostyka, opony, olej.",
+    serviceId: "diagnostic",
+    icon: "MapPin",
+  },
+  {
+    slug: "warszawa-ochota",
+    title: "Serwis dla Ochoty",
+    line1: "Rakowiec, Szczęśliwice — dojazd ok. 15 min",
+    line2: "Umów wizytę online bez kolejki",
+    metaTitle: "Mechanik Ochota Warszawa — BESS MOTORS",
+    metaDescription:
+      "Mechanik dla Ochoty i Rakowca — BESS MOTORS przy Alei Krakowskiej 48/52. Warsztat w zasięgu ok. 8 km: hamulce, diagnostyka, klimatyzacja, wymiana oleju.",
     serviceId: "diagnostic",
     icon: "MapPin",
   },

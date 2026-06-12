@@ -62,14 +62,11 @@ export async function POST(req: Request) {
   }
 
   try {
-    const { cloudGetCrmStore, cloudPutCrmStore } = await import("@/lib/server/crm-cloud");
-    const { runCrmAutomation } = await import("@/lib/crm-automation");
-    const snap = await cloudGetCrmStore();
-    if (snap?.doc) {
-      const db = structuredClone(snap.doc) as import("@/lib/store").Database;
-      const { ensureClientCredentialsForBooking } = await import(
-        "@/lib/create-work-order-from-booking"
-      );
+    const { cloudMutateCrmStore } = await import("@/lib/server/crm-cloud-mutate");
+    const { ensureClientCredentialsForBooking } = await import(
+      "@/lib/create-work-order-from-booking"
+    );
+    const put = await cloudMutateCrmStore(async (db) => {
       const { userId, vehicleId } = await ensureClientCredentialsForBooking(
         db,
         apt.clientName ?? "—",
@@ -83,9 +80,11 @@ export async function POST(req: Request) {
       const idx = db.appointments.findIndex((a) => a.id === apt.id);
       if (idx >= 0) db.appointments[idx] = apt;
       else db.appointments.push(apt);
-      runCrmAutomation(db, snap.doc as import("@/lib/store").Database);
-      await cloudPutCrmStore(db);
-      const user = db.users.find((u) => u.id === apt.userId);
+    });
+    if (put.ok) {
+      const { cloudGetCrmStore } = await import("@/lib/server/crm-cloud");
+      const snap = await cloudGetCrmStore();
+      const user = snap?.doc?.users.find((u) => u.id === apt.userId);
       if (user?.pushSubscription?.endpoint) {
         const { sendWebPushToUser } = await import("@/lib/server/web-push-send");
         await sendWebPushToUser(user, {
