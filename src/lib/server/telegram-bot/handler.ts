@@ -108,10 +108,8 @@ import {
   startQuickWorkOrderFlow,
 } from "./admin-quick-wo";
 import {
-  shiftExpensesMonth,
-  showExpensesAllList,
   showExpensesMenu,
-  showExpensesMonthList,
+  showFullExpensesList,
 } from "./admin-expenses";
 import {
   deleteMonthlyConsumable,
@@ -902,18 +900,7 @@ async function handleCallback(cb: TelegramCallback): Promise<void> {
   }
 
   if (data === "exp:list") {
-    await showExpensesMonthList(chatId, messageId, db);
-    return;
-  }
-
-  if (data === "exp:prev" || data === "exp:next") {
-    await shiftExpensesMonth(chatId, messageId, db, data === "exp:prev" ? -1 : 1);
-    return;
-  }
-
-  if (data.startsWith("exp:all:")) {
-    const page = Number.parseInt(data.slice(8), 10) || 0;
-    await showExpensesAllList(chatId, messageId, db, page);
+    await showFullExpensesList(chatId, messageId, db);
     return;
   }
 

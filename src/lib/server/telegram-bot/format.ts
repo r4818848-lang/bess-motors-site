@@ -3,7 +3,7 @@ import { filterOpenWorkOrders } from "@/lib/work-order-lifecycle";
 import type { CrmAnalytics, ReportPeriod } from "@/lib/crm-analytics";
 import { computeCrmAnalytics, filterByPeriod } from "@/lib/crm-analytics";
 import { calcClientTotal } from "@/lib/workorder-calc";
-import { formatExpensesTable, sortExpensesNewest } from "@/lib/service-expenses";
+import { buildExpensesListMessages, sortExpensesNewest } from "@/lib/service-expenses";
 import type { InlineKeyboardMarkup } from "@/lib/server/telegram-api";
 import type { HotOrderRow } from "@/lib/hot-orders";
 import type { SearchHit } from "./crm-actions";
@@ -229,11 +229,11 @@ export function formatMechanicsReport(db: Database, period: ReportPeriod, from =
 }
 
 export function formatExpensesList(db: Database): string {
-  return formatExpensesTable(sortExpensesNewest(db.expenses).slice(0, 40), {
+  return buildExpensesListMessages(sortExpensesNewest(db.expenses), {
     title: "Расходы",
     categoryLabel: (c) => EXPENSE_CATEGORY_RU[c],
     emptyHint: "Расходов пока нет.",
-  });
+  })[0];
 }
 
 export function formatWarehouse(db: Database): string {
