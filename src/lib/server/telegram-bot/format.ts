@@ -3,6 +3,7 @@ import { filterOpenWorkOrders } from "@/lib/work-order-lifecycle";
 import type { CrmAnalytics, ReportPeriod } from "@/lib/crm-analytics";
 import { computeCrmAnalytics, filterByPeriod } from "@/lib/crm-analytics";
 import { calcClientTotal } from "@/lib/workorder-calc";
+import { formatExpensesTable, sortExpensesNewest } from "@/lib/service-expenses";
 import type { InlineKeyboardMarkup } from "@/lib/server/telegram-api";
 import type { HotOrderRow } from "@/lib/hot-orders";
 import type { SearchHit } from "./crm-actions";
@@ -228,26 +229,11 @@ export function formatMechanicsReport(db: Database, period: ReportPeriod, from =
 }
 
 export function formatExpensesList(db: Database): string {
-  const recent = [...db.expenses].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 15);
-  const total = db.expenses.reduce((s, e) => s + e.amount, 0);
-
-  if (recent.length === 0) {
-    return "💸 <b>Расходы</b>\n\nРасходов пока нет.";
-  }
-
-  const lines = [
-    `💸 <b>Последние расходы</b>`,
-    `Всего в CRM: <b>${zl(total)}</b> (${db.expenses.length} записей)`,
-    "",
-  ];
-  for (const e of recent) {
-    lines.push(
-      `${e.date} · ${EXPENSE_CATEGORY_RU[e.category]}`,
-      `  ${esc(e.description)} — <b>${zl(e.amount)}</b>`,
-      ""
-    );
-  }
-  return lines.join("\n");
+  return formatExpensesTable(sortExpensesNewest(db.expenses).slice(0, 40), {
+    title: "Расходы",
+    categoryLabel: (c) => EXPENSE_CATEGORY_RU[c],
+    emptyHint: "Расходов пока нет.",
+  });
 }
 
 export function formatWarehouse(db: Database): string {

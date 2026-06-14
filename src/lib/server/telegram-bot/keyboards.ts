@@ -93,7 +93,8 @@ export function expenseMenuKeyboard(): InlineKeyboardMarkup {
   return {
     inline_keyboard: [
       [{ text: "➕ Добавить расход", callback_data: "exp:add" }],
-      [{ text: "📋 Последние расходы", callback_data: "exp:list" }],
+      [{ text: "📋 Полный список (месяц)", callback_data: "exp:list" }],
+      [{ text: "📚 Вся история", callback_data: "exp:all:0" }],
       backMenuRow(),
     ],
   };

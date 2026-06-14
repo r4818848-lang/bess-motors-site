@@ -27,7 +27,6 @@ import {
 } from "./crm-actions";
 import {
   formatAppointments,
-  formatExpensesList,
   formatFinanceReport,
   formatHotBookingDetail,
   formatHotCallDetail,
@@ -108,6 +107,12 @@ import {
   handleQuickWoStepText,
   startQuickWorkOrderFlow,
 } from "./admin-quick-wo";
+import {
+  shiftExpensesMonth,
+  showExpensesAllList,
+  showExpensesMenu,
+  showExpensesMonthList,
+} from "./admin-expenses";
 import {
   deleteMonthlyConsumable,
   handleMonthlyConsumablesWizardCallback,
@@ -892,12 +897,23 @@ async function handleCallback(cb: TelegramCallback): Promise<void> {
   }
 
   if (data === "exp:menu") {
-    await replyOrEdit(chatId, messageId, "💸 <b>Расходы сервиса</b>", expenseMenuKeyboard());
+    await showExpensesMenu(chatId, messageId, db);
     return;
   }
 
   if (data === "exp:list") {
-    await replyOrEdit(chatId, messageId, formatExpensesList(db), expenseMenuKeyboard());
+    await showExpensesMonthList(chatId, messageId, db);
+    return;
+  }
+
+  if (data === "exp:prev" || data === "exp:next") {
+    await shiftExpensesMonth(chatId, messageId, db, data === "exp:prev" ? -1 : 1);
+    return;
+  }
+
+  if (data.startsWith("exp:all:")) {
+    const page = Number.parseInt(data.slice(8), 10) || 0;
+    await showExpensesAllList(chatId, messageId, db, page);
     return;
   }
 
