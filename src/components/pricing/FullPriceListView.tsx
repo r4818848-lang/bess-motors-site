@@ -55,15 +55,13 @@ export function FullPriceListView() {
         </div>
         <button
           type="button"
-          onClick={() => downloadPriceListPdf(contentLoc)}
+          onClick={() => void downloadPriceListPdf(contentLoc)}
           className="mt-4 inline-flex items-center gap-2 text-sm text-bm-red hover:underline"
         >
           <Download size={16} />
           {t.priceList.downloadPdf}
         </button>
       </div>
-
-      <PriceListCalculator />
 
       <div className="flex flex-wrap gap-2 mb-8">
         {priceCategories.map((cat) => (
@@ -86,7 +84,7 @@ export function FullPriceListView() {
         key={category}
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
-        className="rounded-2xl border border-bm-border/60 overflow-hidden"
+        className="rounded-2xl border border-bm-border/60 overflow-hidden mb-10"
       >
         <div className="bg-bm-card/80 px-4 py-3 border-b border-bm-border/60">
           <h2 className="font-display text-lg uppercase text-bm-red">
@@ -110,6 +108,8 @@ export function FullPriceListView() {
         </ul>
       </motion.div>
 
+      <PriceListCalculator />
+
       <div className="mt-10 rounded-xl border border-bm-border/50 bg-bm-card/40 p-5 md:p-6">
         <h3 className="font-display text-sm uppercase text-bm-muted mb-4 tracking-wide">
           {t.priceList.notesTitle}
@@ -124,8 +124,8 @@ export function FullPriceListView() {
         </ul>
       </div>
 
-      <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
-        <BookingLink className="btn-premium text-center justify-center">
+      <div className="mt-10 mb-24 md:mb-10 flex flex-col sm:flex-row gap-4 justify-center">
+        <BookingLink className="btn-primary text-center justify-center">
           {t.priceList.bookCta}
         </BookingLink>
         <Link

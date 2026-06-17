@@ -14,6 +14,8 @@ interface Props {
   grandLabel: string;
   fromWarning?: string;
   compact?: boolean;
+  visitLabel?: string;
+  visitValue?: string;
 }
 
 export function BookingTotalSummary({
@@ -22,6 +24,8 @@ export function BookingTotalSummary({
   grandLabel,
   fromWarning,
   compact,
+  visitLabel,
+  visitValue,
 }: Props) {
   const total = cartSubtotal(lines);
   const hasFrom = cartHasFromPrices(lines);
@@ -35,6 +39,14 @@ export function BookingTotalSummary({
       }`}
     >
       <p className="text-[10px] uppercase tracking-widest text-bm-red mb-2">{title}</p>
+      {visitLabel && visitValue && (
+        <p className="text-sm text-white mb-3 pb-2 border-b border-bm-border/30">
+          <span className="text-bm-muted text-xs uppercase tracking-wide block mb-0.5">
+            {visitLabel}
+          </span>
+          {visitValue}
+        </p>
+      )}
       <ul className={`space-y-1.5 ${compact ? "text-xs" : "text-sm"}`}>
         {lines.map((line) => (
           <li key={line.id} className="flex justify-between gap-2 text-bm-silver">

@@ -43,6 +43,15 @@ export function CookieConsent() {
     }
   }, []);
 
+  useEffect(() => {
+    if (!visible) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [visible]);
+
   const accept = () => {
     try {
       localStorage.setItem(CONSENT_KEY, "granted");
@@ -66,24 +75,29 @@ export function CookieConsent() {
 
   return (
     <div
-      className="fixed bottom-0 left-0 right-0 z-[100] p-3 md:p-4 safe-area-pb"
+      className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md"
       role="dialog"
+      aria-modal="true"
       aria-label={cc.title}
     >
-      <div className="mx-auto max-w-3xl rounded-xl border border-bm-border/60 bg-bm-surface/95 backdrop-blur-md p-4 shadow-2xl">
-        <p className="font-display text-sm uppercase text-bm-red">{cc.title}</p>
-        <p className="text-sm text-bm-muted mt-2 leading-relaxed">{cc.body}</p>
-        <div className="mt-4 flex flex-wrap gap-2">
-          <button type="button" className="btn-primary text-xs py-2 px-4" onClick={accept}>
+      <div className="w-full max-w-lg rounded-2xl border border-bm-red/40 bg-bm-surface p-6 md:p-8 shadow-2xl">
+        <p className="font-display text-lg uppercase text-bm-red">{cc.title}</p>
+        <p className="text-sm text-bm-muted mt-3 leading-relaxed">{cc.body}</p>
+        <p className="text-xs text-bm-muted/80 mt-2">{cc.requiredHint}</p>
+        <div className="mt-6 flex flex-col sm:flex-row gap-3">
+          <button type="button" className="btn-primary flex-1 py-3" onClick={accept}>
             {cc.accept}
           </button>
-          <button type="button" className="btn-outline text-xs py-2 px-4" onClick={reject}>
+          <button type="button" className="btn-outline flex-1 py-3" onClick={reject}>
             {cc.reject}
           </button>
-          <Link href="/privacy" className="text-xs text-bm-muted hover:text-bm-red self-center px-2">
-            {cc.privacyLink}
-          </Link>
         </div>
+        <Link
+          href="/privacy"
+          className="block text-center text-xs text-bm-muted hover:text-bm-red mt-4"
+        >
+          {cc.privacyLink}
+        </Link>
       </div>
     </div>
   );

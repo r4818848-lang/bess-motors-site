@@ -82,6 +82,26 @@ export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
   },
   hamulce: {
     faqDuration: L("Wymiana klocków: 1–2 godziny; z tarczami dłużej.", "Колодки: 1–2 часа; с дисками дольше."),
+    price: {
+      fromZl: 120,
+      priceFrom: false,
+      materialsExtra: true,
+      includes: [
+        L("Wymiana klocków hamulcowych", "Замена тормозных колодок"),
+        L("Kontrola tarcz i przewodów", "Проверка дисков и шлангов"),
+        L("Jazda testowa po naprawie", "Тест-драйв после ремонта"),
+      ],
+      priceTable: [
+        {
+          label: L("Wymiana klocków (jedna oś)", "Замена колодок (одна ось)"),
+          priceZl: 120,
+        },
+        {
+          label: L("Tarcze + klocki (jedna oś)", "Диски + колодки (одна ось)"),
+          priceZl: 220,
+        },
+      ],
+    },
   },
   klimatyzacja: {
     faqDuration: L("Serwis klimy: 1–2 godziny.", "Кондиционер: 1–2 часа."),

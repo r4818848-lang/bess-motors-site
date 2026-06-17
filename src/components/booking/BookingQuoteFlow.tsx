@@ -292,7 +292,8 @@ export function BookingQuoteFlow({ onDone }: Props) {
   const [date, setDate] = useState<Date | null>(null);
   const [time, setTime] = useState("");
   const [note, setNote] = useState("");
-  const [clientName, setClientName] = useState("");
+  const [clientFirstName, setClientFirstName] = useState("");
+  const [clientLastName, setClientLastName] = useState("");
   const [clientPhone, setClientPhone] = useState("");
   const [vehicleNote, setVehicleNote] = useState("");
   const [clientPlate, setClientPlate] = useState("");
@@ -332,9 +333,13 @@ export function BookingQuoteFlow({ onDone }: Props) {
 
   useEffect(() => {
     if (!sessionReady || !clientUser) return;
-    setClientName(clientUser.name);
+    const parts = clientUser.name.trim().split(/\s+/);
+    setClientFirstName(parts[0] ?? "");
+    setClientLastName(parts.slice(1).join(" "));
     setClientPhone(clientUser.phone);
   }, [sessionReady, clientUser]);
+
+  const clientFullName = `${clientFirstName.trim()} ${clientLastName.trim()}`.trim();
 
   const labels: Record<string, string> = {
     addService: bq.addService,
@@ -362,9 +367,9 @@ export function BookingQuoteFlow({ onDone }: Props) {
   const hasPromos = getPromoRules().length > 0;
 
   const contactValid =
-    clientName.trim().length >= 2 &&
-    clientPhone.trim().length >= 9 &&
-    clientPlate.replace(/\s/g, "").length >= 2;
+    clientFirstName.trim().length >= 2 &&
+    clientLastName.trim().length >= 2 &&
+    clientPhone.trim().length >= 9;
 
   useEffect(() => {
     if (phase === "done" || clientPhone.trim().length < 9) return;
@@ -374,7 +379,7 @@ export function BookingQuoteFlow({ onDone }: Props) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           phone: clientPhone.trim(),
-          name: clientName.trim(),
+          name: clientFullName,
           step: phase,
           serviceSummary: cart.map((l) => l.label).join(", ").slice(0, 200),
           date: date ? formatDateKey(date) : undefined,
@@ -383,7 +388,7 @@ export function BookingQuoteFlow({ onDone }: Props) {
       });
     }, 2000);
     return () => clearTimeout(t);
-  }, [phase, clientPhone, clientName, cart, date, time]);
+  }, [phase, clientPhone, clientFullName, cart, date, time]);
 
   const submit = async () => {
     if (!contactValid || cart.length === 0 || !date || !time || submitting || submitLock.current) return;
@@ -421,7 +426,7 @@ export function BookingQuoteFlow({ onDone }: Props) {
     saveLastBooking({
       date: formatDateKey(date),
       time,
-      clientName: clientName.trim(),
+      clientName: clientFullName,
       estimatedTotal: total,
       serviceLabels: cart.map((l) => l.label).join(", "),
       serviceIds: cart.map((l) => l.itemId),
@@ -437,7 +442,7 @@ export function BookingQuoteFlow({ onDone }: Props) {
         date: formatDateKey(date),
         time,
         comment,
-        clientName: clientName.trim(),
+        clientName: clientFullName,
         clientPhone: clientPhone.trim(),
         clientPlate: clientPlate.trim(),
         estimatedTotal: total,
@@ -483,17 +488,6 @@ export function BookingQuoteFlow({ onDone }: Props) {
         <WaitTimeEstimator serviceId={cart[0]?.itemId} />
       </div>
 
-      <CarProblemWizard
-        onApply={(lines, cat) => {
-          setCart((prev) => {
-            const map = new Map(prev.map((l) => [l.itemId, l]));
-            for (const line of lines) map.set(line.itemId, line);
-            return [...map.values()];
-          });
-          setCategory(cat);
-        }}
-      />
-
       <AnimatePresence mode="wait">
         {phase === "services" && (
           <motion.div
@@ -538,6 +532,21 @@ export function BookingQuoteFlow({ onDone }: Props) {
                     onAdd={(qty) => addItem(item, qty)}
                   />
                 ))}
+              </div>
+              <div className="mt-8">
+                <CarProblemWizard
+                  onApply={(lines, cat) => {
+                    setCart((prev) => {
+                      const map = new Map(prev.map((l) => [l.itemId, l]));
+                      for (const line of lines) map.set(line.itemId, line);
+                      return [...map.values()];
+                    });
+                    setCategory(cat);
+                  }}
+                />
+                <p className="text-xs text-bm-muted mt-3 leading-relaxed">
+                  {t.carWizard.helpHint}
+                </p>
               </div>
             </div>
             <div className="hidden lg:block">
@@ -665,6 +674,17 @@ export function BookingQuoteFlow({ onDone }: Props) {
             className="max-w-xl mx-auto space-y-6"
           >
             <BookingStepBack label={bq.back} onClick={() => setPhase("datetime")} />
+            {date && time && (
+              <div className="rounded-xl border border-bm-red/30 bg-bm-red/10 px-4 py-3 text-center">
+                <p className="text-[10px] uppercase text-bm-muted tracking-wide">
+                  {bq.visitDateTime}
+                </p>
+                <p className="font-display text-lg text-white mt-1">
+                  {date.toLocaleDateString(locale === "pl" ? "pl-PL" : locale === "ru" ? "ru-RU" : "en-GB")}{" "}
+                  · {time}
+                </p>
+              </div>
+            )}
             <div className="glass-red rounded-2xl p-6 neon-border border-2 border-bm-red/40">
               <h2 className="font-display text-xl uppercase text-center text-glow mb-4">
                 {bq.finalTotalTitle}
@@ -733,12 +753,21 @@ export function BookingQuoteFlow({ onDone }: Props) {
             )}
 
             <div className="space-y-3">
-              <label className="text-[10px] uppercase text-bm-muted">{bq.yourName}</label>
+              <label className="text-[10px] uppercase text-bm-muted">{bq.firstName}</label>
               <input
                 type="text"
                 className="input-premium w-full"
-                value={clientName}
-                onChange={(e) => setClientName(e.target.value)}
+                value={clientFirstName}
+                onChange={(e) => setClientFirstName(e.target.value)}
+                autoComplete="given-name"
+              />
+              <label className="text-[10px] uppercase text-bm-muted">{bq.lastName}</label>
+              <input
+                type="text"
+                className="input-premium w-full"
+                value={clientLastName}
+                onChange={(e) => setClientLastName(e.target.value)}
+                autoComplete="family-name"
               />
               <label className="text-[10px] uppercase text-bm-muted">{bq.yourPhone}</label>
               <input
@@ -746,9 +775,10 @@ export function BookingQuoteFlow({ onDone }: Props) {
                 className="input-premium w-full"
                 value={clientPhone}
                 onChange={(e) => setClientPhone(e.target.value)}
+                autoComplete="tel"
               />
               <label className="text-[10px] uppercase text-bm-muted">
-                {t.cabinet.registrationPlate}
+                {t.cabinet.registrationPlate} (opcjonalnie)
               </label>
               <input
                 type="text"
@@ -789,8 +819,8 @@ export function BookingQuoteFlow({ onDone }: Props) {
         )}
       </AnimatePresence>
 
-      {phase === "services" && (
-        <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 glass-red border-t border-bm-red/40 p-3 shadow-[0_-8px_32px_rgba(0,0,0,0.85)]">
+      {(phase === "services" || phase === "datetime") && (
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 glass-red border-t border-bm-red/40 p-3 shadow-[0_-8px_32px_rgba(0,0,0,0.85)] safe-area-pb">
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
               <p className="text-[10px] uppercase text-bm-muted tracking-wide">
@@ -800,15 +830,26 @@ export function BookingQuoteFlow({ onDone }: Props) {
                 {formatPln(total)}
               </p>
             </div>
-            <Button
-              className="shrink-0"
-              data-fbq-track="InitiateCheckout"
-              disabled={cart.length === 0}
-              onClick={() => setPhase("datetime")}
-            >
-              {bq.continue}
-              <ChevronRight className="w-4 h-4" />
-            </Button>
+            {phase === "services" ? (
+              <Button
+                className="shrink-0"
+                data-fbq-track="InitiateCheckout"
+                disabled={cart.length === 0}
+                onClick={() => setPhase("datetime")}
+              >
+                {bq.continue}
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            ) : (
+              <Button
+                className="shrink-0"
+                disabled={!date || !time}
+                onClick={() => setPhase("confirm")}
+              >
+                {bq.continue}
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            )}
           </div>
         </div>
       )}

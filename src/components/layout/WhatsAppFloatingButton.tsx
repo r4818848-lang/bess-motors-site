@@ -24,7 +24,7 @@ export function WhatsAppFloatingButton() {
       trackSource="floating_whatsapp"
       aria-label={label}
       title={label}
-      className="fixed z-[85] flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-[0_4px_20px_rgba(37,211,102,0.45)] hover:scale-105 hover:shadow-[0_6px_28px_rgba(37,211,102,0.55)] transition-transform bottom-[5.25rem] right-4 md:bottom-6 md:right-6"
+      className="fixed z-[85] flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-[0_4px_20px_rgba(37,211,102,0.45)] hover:scale-105 hover:shadow-[0_6px_28px_rgba(37,211,102,0.55)] transition-transform bottom-6 left-4 md:left-auto md:right-6"
     >
       <MessageCircle size={28} strokeWidth={2} aria-hidden />
     </SocialContactLink>

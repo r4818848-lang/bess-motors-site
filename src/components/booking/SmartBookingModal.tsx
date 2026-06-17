@@ -3,7 +3,7 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Phone, ArrowRight, ChevronLeft, Check, List } from "lucide-react";
+import { X, Phone, ArrowRight, ChevronLeft, Check, List, ExternalLink } from "lucide-react";
 import { BookingStepBack } from "@/components/booking/BookingStepBack";
 import { useI18n } from "@/lib/i18n/context";
 import { contentLocale } from "@/lib/i18n/locale-utils";
@@ -34,6 +34,7 @@ import {
   getItemForOption,
   itemLabel,
 } from "@/lib/service-price-map";
+import { serviceLandingHref } from "@/lib/service-slug-map";
 
 type Phase = "manager" | "flow" | "date" | "time" | "problem" | "contact" | "done";
 type SubmitMode = "call" | "booking";
@@ -107,7 +108,8 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
   const [date, setDate] = useState<Date | null>(null);
   const [time, setTime] = useState("");
   const [problem, setProblem] = useState("");
-  const [clientName, setClientName] = useState("");
+  const [clientFirstName, setClientFirstName] = useState("");
+  const [clientLastName, setClientLastName] = useState("");
   const [clientPhone, setClientPhone] = useState("");
   const [clientPlate, setClientPlate] = useState("");
   const [doneKind, setDoneKind] = useState<"call" | "booking">("booking");
@@ -124,9 +126,14 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
 
   useEffect(() => {
     if (!sessionReady || !clientUser) return;
-    setClientName(clientUser.name);
+    const parts = clientUser.name.trim().split(/\s+/);
+    setClientFirstName(parts[0] ?? "");
+    setClientLastName(parts.slice(1).join(" "));
     setClientPhone(clientUser.phone);
   }, [sessionReady, clientUser]);
+
+  const clientFullName = `${clientFirstName.trim()} ${clientLastName.trim()}`.trim();
+  const servicePageHref = serviceLandingHref(serviceId);
 
   const lbl = (key: string) => {
     const flow = bf as Record<string, string>;
@@ -287,9 +294,9 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
   };
 
   const contactValid =
-    clientName.trim().length >= 2 &&
-    clientPhone.trim().length >= 9 &&
-    clientPlate.replace(/\s/g, "").length >= 2;
+    clientFirstName.trim().length >= 2 &&
+    clientLastName.trim().length >= 2 &&
+    clientPhone.trim().length >= 9;
 
   const problemValid = !isOtherReason || problem.trim().length >= 3;
 
@@ -301,7 +308,7 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
     try {
       const result = await createCallRequest({
         phone: clientPhone.trim(),
-        clientName: clientName.trim(),
+        clientName: clientFullName,
         serviceId,
         serviceLabel,
         comment: problem,
@@ -361,7 +368,7 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
         date: date ? formatDateKey(date) : "",
         time,
         comment,
-        clientName: clientName.trim(),
+        clientName: clientFullName,
         clientPhone: clientPhone.trim(),
         clientPlate: clientPlate.trim(),
         estimatedTotal: total,
@@ -502,18 +509,35 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
             <ChevronLeft className="w-4 h-4" />
             {bq.back}
           </Button>
+          {multi && (
+            <Button
+              variant="outline"
+              className="flex-1 text-xs"
+              onClick={() => {
+                setPicked([]);
+                nextFlow();
+              }}
+            >
+              {bf.skipExtras}
+            </Button>
+          )}
           <Button
             className="flex-1"
-            disabled={multi ? picked.length === 0 : !picked[0]}
+            disabled={!multi && !picked[0]}
             onClick={() => {
-              if (multi) addOptionsToCart(picked);
-              else if (picked[0]) addOptionsToCart(picked);
+              if (multi && picked.length) addOptionsToCart(picked);
+              else if (!multi && picked[0]) addOptionsToCart(picked);
               nextFlow();
             }}
           >
             {bf.next}
           </Button>
         </div>
+        {multi && (
+          <p className="text-xs text-bm-muted text-center mt-3 leading-relaxed">
+            {bf.extraServicesHint}
+          </p>
+        )}
       </>
     );
   };
@@ -531,13 +555,23 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
   const contactFields = (
     <div className="space-y-3">
       <div>
-        <label className="text-[10px] uppercase text-bm-muted tracking-wide">{bf.yourName}</label>
+        <label className="text-[10px] uppercase text-bm-muted tracking-wide">{bq.firstName}</label>
         <input
           type="text"
           className="input-premium w-full mt-1"
-          value={clientName}
-          onChange={(e) => setClientName(e.target.value)}
-          autoComplete="name"
+          value={clientFirstName}
+          onChange={(e) => setClientFirstName(e.target.value)}
+          autoComplete="given-name"
+        />
+      </div>
+      <div>
+        <label className="text-[10px] uppercase text-bm-muted tracking-wide">{bq.lastName}</label>
+        <input
+          type="text"
+          className="input-premium w-full mt-1"
+          value={clientLastName}
+          onChange={(e) => setClientLastName(e.target.value)}
+          autoComplete="family-name"
         />
       </div>
       <div>
@@ -613,6 +647,16 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
                 <List className="w-4 h-4" />
                 {bf.fullPriceList}
               </BookingLink>
+              {servicePageHref && (
+                <Link
+                  href={servicePageHref}
+                  onClick={onClose}
+                  className="flex items-center justify-center gap-2 w-full py-3 rounded-xl border border-bm-border text-bm-silver text-xs uppercase tracking-wide hover:border-bm-red/40 hover:text-white"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  {bf.viewServicePage}
+                </Link>
+              )}
               <button
                 type="button"
                 className="w-full py-4 rounded-xl bg-bm-red/20 border-2 border-bm-red shadow-neon-sm font-display uppercase text-sm flex items-center justify-center gap-2"
@@ -751,6 +795,12 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
                 title={bq.finalTotalTitle}
                 grandLabel={bq.grandTotal}
                 fromWarning={bq.fromWarning}
+                visitLabel={bq.visitDateTime}
+                visitValue={
+                  date && time
+                    ? `${date.toLocaleDateString(locale === "pl" ? "pl-PL" : locale === "ru" ? "ru-RU" : "en-GB")} · ${time}`
+                    : undefined
+                }
               />
               {contactFields}
               {submitError && (

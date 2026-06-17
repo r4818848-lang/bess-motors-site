@@ -1,5 +1,6 @@
 "use client";
 
+import { Calendar } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import type { ServiceId } from "@/lib/services-catalog";
 import { getServiceLandingSteps } from "@/lib/service-landing-content";
@@ -9,9 +10,11 @@ import { WaitTimeEstimator } from "@/components/booking/WaitTimeEstimator";
 export function ServiceLandingSteps({
   serviceId,
   slug,
+  onBook,
 }: {
   serviceId: ServiceId;
   slug: string;
+  onBook?: () => void;
 }) {
   const { t, locale } = useI18n();
   const steps = getServiceLandingSteps(serviceId, slug);
@@ -48,7 +51,18 @@ export function ServiceLandingSteps({
           </tbody>
         </table>
       </div>
-      <div className="mt-6">
+      <div className="mt-6 flex flex-col sm:flex-row gap-3 items-center justify-center">
+        {onBook && (
+          <button
+            type="button"
+            className="btn-primary inline-flex items-center gap-2"
+            data-fbq-track="InitiateCheckout"
+            onClick={onBook}
+          >
+            <Calendar size={18} />
+            {t.cabinet.bookVisit}
+          </button>
+        )}
         <WaitTimeEstimator serviceId={serviceId} />
       </div>
     </section>

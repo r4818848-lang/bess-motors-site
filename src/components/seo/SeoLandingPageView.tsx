@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Calendar, ChevronRight, MapPin, Phone } from "lucide-react";
@@ -23,6 +23,7 @@ import { ServiceLandingEducation } from "@/components/seo/landing/ServiceLanding
 import { ServiceLandingPhotos } from "@/components/seo/landing/ServiceLandingPhotos";
 import { ServiceLandingMap } from "@/components/seo/landing/ServiceLandingMap";
 import { ServiceLandingBottomCta } from "@/components/seo/landing/ServiceLandingBottomCta";
+import { ServiceLandingReviews } from "@/components/seo/landing/ServiceLandingReviews";
 import { SeoLandingRelatedLinks } from "@/components/seo/landing/SeoLandingRelatedLinks";
 import {
   resolveLandingBookServiceId,
@@ -41,13 +42,33 @@ export function SeoLandingPageView({ page }: Props) {
   const pageLoc = localizeSeoLandingPage(page, locale);
   const bookServiceId = resolveLandingBookServiceId(page.slug, page.serviceId);
   const contentServiceId = resolveLandingContentServiceId(page.slug, page.serviceId);
-  const [bookingService, setBookingService] = useState<ServiceId | null>(bookServiceId ?? null);
+  const [bookingService, setBookingService] = useState<ServiceId | null>(null);
+  const [scrollPromptShown, setScrollPromptShown] = useState(false);
 
-  const openBooking = () => {
+  const openBooking = useCallback(() => {
     if (bookServiceId) {
       setBookingService(bookServiceId);
     }
+  }, [bookServiceId]);
+
+  const scrollToMap = () => {
+    document.getElementById("landing-map-heading")?.scrollIntoView({ behavior: "smooth" });
   };
+
+  useEffect(() => {
+    if (!bookServiceId || scrollPromptShown) return;
+    const onScroll = () => {
+      const nearBottom =
+        window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 120;
+      if (nearBottom) {
+        setScrollPromptShown(true);
+        setBookingService(bookServiceId);
+        window.removeEventListener("scroll", onScroll);
+      }
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [bookServiceId, scrollPromptShown]);
 
   const heroTitle =
     pageLoc.title.toLowerCase().includes("warszawa") ||
@@ -88,7 +109,11 @@ export function SeoLandingPageView({ page }: Props) {
             transition={{ delay: 0.15 }}
             className="mt-12 grid sm:grid-cols-2 gap-4"
           >
-            <Card glow className="flex gap-3 items-start">
+            <Card
+              glow
+              className="flex gap-3 items-start cursor-pointer hover:border-bm-red/40 transition-colors"
+              onClick={scrollToMap}
+            >
               <MapPin className="w-5 h-5 text-bm-red shrink-0 mt-0.5" />
               <div className="text-left text-sm">
                 <p className="text-bm-muted uppercase text-[10px] tracking-wide">
@@ -150,10 +175,15 @@ export function SeoLandingPageView({ page }: Props) {
           {contentServiceId ? (
             <>
               <ServiceLandingPrice serviceId={contentServiceId} slug={page.slug} />
-              <ServiceLandingSteps serviceId={contentServiceId} slug={page.slug} />
+              <ServiceLandingSteps
+                serviceId={contentServiceId}
+                slug={page.slug}
+                onBook={bookServiceId ? openBooking : undefined}
+              />
               <ServiceLandingEducation serviceId={contentServiceId} slug={page.slug} />
               <ServiceLandingPhotos serviceId={contentServiceId} slug={page.slug} />
               <SeoServiceFaq serviceId={contentServiceId} slug={page.slug} />
+              <ServiceLandingReviews serviceId={contentServiceId} />
               <ServiceLandingMap slug={page.slug} />
               <SeoLandingRelatedLinks slug={page.slug} />
               <ServiceLandingBottomCta
