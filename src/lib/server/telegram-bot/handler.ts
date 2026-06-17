@@ -15,6 +15,7 @@ import {
   getTelegramSession,
   setTelegramSession,
 } from "@/lib/server/telegram-sessions";
+import { callbackPage, callbackSuffix } from "./callback-data";
 import {
   addExpenseToCrm,
   applyWorkOrderStatus,
@@ -964,7 +965,7 @@ async function handleCallback(cb: TelegramCallback): Promise<void> {
   }
 
   if (data.startsWith("parts:delp:")) {
-    const page = Number.parseInt(data.slice(10), 10) || 0;
+    const page = callbackPage(data, "parts:delp:");
     const session = await getTelegramSession(chatKey);
     const month = session.data?.partsMonth ?? currentMonthKey();
     await showMonthlyPartsDeleteMenu(chatId, messageId, db, month, page);
@@ -972,7 +973,7 @@ async function handleCallback(cb: TelegramCallback): Promise<void> {
   }
 
   if (data.startsWith("parts:rm:")) {
-    await deleteMonthlyPart(chatId, messageId, data.slice(9));
+    await deleteMonthlyPart(chatId, messageId, callbackSuffix(data, "parts:rm:"));
     return;
   }
 
@@ -1013,7 +1014,7 @@ async function handleCallback(cb: TelegramCallback): Promise<void> {
   }
 
   if (data.startsWith("cons:delp:")) {
-    const page = Number.parseInt(data.slice(10), 10) || 0;
+    const page = callbackPage(data, "cons:delp:");
     const session = await getTelegramSession(chatKey);
     const month = session.data?.consMonth ?? currentMonthKey();
     await showMonthlyConsumablesDeleteMenu(chatId, messageId, db, month, page);
@@ -1021,7 +1022,7 @@ async function handleCallback(cb: TelegramCallback): Promise<void> {
   }
 
   if (data.startsWith("cons:rm:")) {
-    await deleteMonthlyConsumable(chatId, messageId, data.slice(8));
+    await deleteMonthlyConsumable(chatId, messageId, callbackSuffix(data, "cons:rm:"));
     return;
   }
 
