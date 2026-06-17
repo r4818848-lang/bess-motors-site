@@ -136,7 +136,7 @@ export async function showMonthlyConsumablesMenu(
   const m = month ?? sessionMonth(session.data);
   await setTelegramSession(chatKeyStr, {
     step: undefined,
-    data: { consMonth: m },
+    data: { consMonth: m, consView: "menu" },
   });
 
   const text =
@@ -168,6 +168,11 @@ export async function showMonthlyConsumablesList(
   db: Database,
   month: string
 ): Promise<void> {
+  const chatKeyStr = chatKey(chatId);
+  await setTelegramSession(chatKeyStr, {
+    step: undefined,
+    data: { consMonth: month, consView: "list" },
+  });
   const text = formatMonthlyConsumablesTable(db.monthlyConsumables ?? [], month);
   const keyboard = monthlyConsumablesMenuKeyboard(month);
   if (messageId) {
@@ -180,15 +185,28 @@ export async function showMonthlyConsumablesList(
 export async function shiftMonthlyConsumablesMonth(
   chatId: number,
   messageId: number | undefined,
-  delta: number
+  delta: number,
+  db?: Database
 ): Promise<void> {
   const chatKeyStr = chatKey(chatId);
   const session = await getTelegramSession(chatKeyStr);
   const month = shiftMonthKey(sessionMonth(session.data), delta);
+  const view = session.data?.consView ?? "menu";
+  const delPage = Number.parseInt(session.data?.consDelPage ?? "0", 10) || 0;
+
   await setTelegramSession(chatKeyStr, {
     step: session.step,
-    data: { ...(session.data ?? {}), consMonth: month },
+    data: { ...(session.data ?? {}), consMonth: month, consView: view },
   });
+
+  if (view === "list" && db) {
+    await showMonthlyConsumablesList(chatId, messageId, db, month);
+    return;
+  }
+  if (view === "delete" && db) {
+    await showMonthlyConsumablesDeleteMenu(chatId, messageId, db, month, delPage);
+    return;
+  }
   await showMonthlyConsumablesMenu(chatId, messageId, month);
 }
 
@@ -366,7 +384,7 @@ export async function showMonthlyConsumablesDeleteMenu(
   const keyboard = deleteMenuKeyboard(month, buttons, safePage, totalPages);
   await setTelegramSession(chatKey(chatId), {
     step: undefined,
-    data: { consMonth: month, consDelPage: String(safePage) },
+    data: { consMonth: month, consView: "delete", consDelPage: String(safePage) },
   });
 
   if (messageId) {

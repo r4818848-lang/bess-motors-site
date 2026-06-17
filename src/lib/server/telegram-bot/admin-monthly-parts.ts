@@ -144,7 +144,7 @@ export async function showMonthlyPartsMenu(
   const m = month ?? sessionMonth(session.data);
   await setTelegramSession(chatKeyStr, {
     step: undefined,
-    data: { partsMonth: m },
+    data: { partsMonth: m, partsView: "menu" },
   });
 
   const text =
@@ -181,6 +181,11 @@ export async function showMonthlyPartsList(
   db: Database,
   month: string
 ): Promise<void> {
+  const chatKeyStr = chatKey(chatId);
+  await setTelegramSession(chatKeyStr, {
+    step: undefined,
+    data: { partsMonth: month, partsView: "list" },
+  });
   const text = formatMonthlyPartsTable(db.monthlyParts ?? [], month);
   const keyboard = monthlyPartsMenuKeyboard(month);
   if (messageId) {
@@ -193,15 +198,28 @@ export async function showMonthlyPartsList(
 export async function shiftMonthlyPartsMonth(
   chatId: number,
   messageId: number | undefined,
-  delta: number
+  delta: number,
+  db?: Database
 ): Promise<void> {
   const chatKeyStr = chatKey(chatId);
   const session = await getTelegramSession(chatKeyStr);
   const month = shiftMonthKey(sessionMonth(session.data), delta);
+  const view = session.data?.partsView ?? "menu";
+  const delPage = Number.parseInt(session.data?.partsDelPage ?? "0", 10) || 0;
+
   await setTelegramSession(chatKeyStr, {
     step: session.step,
-    data: { ...(session.data ?? {}), partsMonth: month },
+    data: { ...(session.data ?? {}), partsMonth: month, partsView: view },
   });
+
+  if (view === "list" && db) {
+    await showMonthlyPartsList(chatId, messageId, db, month);
+    return;
+  }
+  if (view === "delete" && db) {
+    await showMonthlyPartsDeleteMenu(chatId, messageId, db, month, delPage);
+    return;
+  }
   await showMonthlyPartsMenu(chatId, messageId, month);
 }
 
@@ -314,7 +332,7 @@ export async function handleMonthlyPartsWizardText(
 
     await setTelegramSession(chatKeyStr, {
       step: undefined,
-      data: { partsMonth: sessionMonth(data) },
+      data: { partsMonth: sessionMonth(data), partsView: "menu" },
     });
     await sendTelegramMessage(chatId, formatSavedSummary(saved.entry), afterSaveKeyboard());
     return true;
@@ -420,7 +438,7 @@ export async function showMonthlyPartsDeleteMenu(
   const chatKeyStr = chatKey(chatId);
   await setTelegramSession(chatKeyStr, {
     step: undefined,
-    data: { partsMonth: month, partsDelPage: String(safePage) },
+    data: { partsMonth: month, partsView: "delete", partsDelPage: String(safePage) },
   });
 
   if (messageId) {

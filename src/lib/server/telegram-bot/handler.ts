@@ -2,6 +2,7 @@ import type { ReportPeriod } from "@/lib/crm-analytics";
 import { computeCrmAnalytics } from "@/lib/crm-analytics";
 import { getWebsiteHotOrders } from "@/lib/hot-orders";
 import { getPriceItem } from "@/lib/price-list";
+import { currentMonthKey } from "@/lib/monthly-parts";
 import type { ExpenseCategory, RepairStatus } from "@/lib/store";
 import {
   answerCallbackQuery,
@@ -940,13 +941,13 @@ async function handleCallback(cb: TelegramCallback): Promise<void> {
 
   if (data === "parts:list") {
     const session = await getTelegramSession(chatKey);
-    const month = session.data?.partsMonth ?? new Date().toISOString().slice(0, 7);
+    const month = session.data?.partsMonth ?? currentMonthKey();
     await showMonthlyPartsList(chatId, messageId, db, month);
     return;
   }
 
   if (data === "parts:prev" || data === "parts:next") {
-    await shiftMonthlyPartsMonth(chatId, messageId, data === "parts:prev" ? -1 : 1);
+    await shiftMonthlyPartsMonth(chatId, messageId, data === "parts:prev" ? -1 : 1, db);
     return;
   }
 
@@ -957,7 +958,7 @@ async function handleCallback(cb: TelegramCallback): Promise<void> {
 
   if (data === "parts:del") {
     const session = await getTelegramSession(chatKey);
-    const month = session.data?.partsMonth ?? new Date().toISOString().slice(0, 7);
+    const month = session.data?.partsMonth ?? currentMonthKey();
     await showMonthlyPartsDeleteMenu(chatId, messageId, db, month, 0);
     return;
   }
@@ -965,7 +966,7 @@ async function handleCallback(cb: TelegramCallback): Promise<void> {
   if (data.startsWith("parts:delp:")) {
     const page = Number.parseInt(data.slice(10), 10) || 0;
     const session = await getTelegramSession(chatKey);
-    const month = session.data?.partsMonth ?? new Date().toISOString().slice(0, 7);
+    const month = session.data?.partsMonth ?? currentMonthKey();
     await showMonthlyPartsDeleteMenu(chatId, messageId, db, month, page);
     return;
   }
@@ -994,19 +995,19 @@ async function handleCallback(cb: TelegramCallback): Promise<void> {
 
   if (data === "cons:list") {
     const session = await getTelegramSession(chatKey);
-    const month = session.data?.consMonth ?? new Date().toISOString().slice(0, 7);
+    const month = session.data?.consMonth ?? currentMonthKey();
     await showMonthlyConsumablesList(chatId, messageId, db, month);
     return;
   }
 
   if (data === "cons:prev" || data === "cons:next") {
-    await shiftMonthlyConsumablesMonth(chatId, messageId, data === "cons:prev" ? -1 : 1);
+    await shiftMonthlyConsumablesMonth(chatId, messageId, data === "cons:prev" ? -1 : 1, db);
     return;
   }
 
   if (data === "cons:del") {
     const session = await getTelegramSession(chatKey);
-    const month = session.data?.consMonth ?? new Date().toISOString().slice(0, 7);
+    const month = session.data?.consMonth ?? currentMonthKey();
     await showMonthlyConsumablesDeleteMenu(chatId, messageId, db, month, 0);
     return;
   }
@@ -1014,7 +1015,7 @@ async function handleCallback(cb: TelegramCallback): Promise<void> {
   if (data.startsWith("cons:delp:")) {
     const page = Number.parseInt(data.slice(10), 10) || 0;
     const session = await getTelegramSession(chatKey);
-    const month = session.data?.consMonth ?? new Date().toISOString().slice(0, 7);
+    const month = session.data?.consMonth ?? currentMonthKey();
     await showMonthlyConsumablesDeleteMenu(chatId, messageId, db, month, page);
     return;
   }

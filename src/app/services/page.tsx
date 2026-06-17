@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { ServiceIcon } from "@/components/icons/ServiceIcon";
 import { useI18n } from "@/lib/i18n/context";
 import { popularServices, type ServiceId } from "@/lib/services-catalog";
+import { serviceLandingHref } from "@/lib/service-slug-map";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import Link from "next/link";
@@ -43,18 +44,28 @@ export default function ServicesPage() {
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
               {popularServices.map((cat, i) => {
                 const label = t.serviceItems[cat.id as keyof typeof t.serviceItems];
+                const detailHref = serviceLandingHref(cat.id as ServiceId);
                 return (
                   <Card
                     key={cat.id}
                     delay={Math.min(i * 0.02, 0.3)}
                     glow
-                    className="cursor-pointer group"
+                    className="cursor-pointer group flex flex-col"
                     onClick={() => setBookingService(cat.id)}
                   >
                     <div className="flex h-12 w-12 items-center justify-center rounded-xl metallic text-bm-red mb-3 group-hover:shadow-neon transition-shadow">
                       <ServiceIcon name={cat.icon} size={22} />
                     </div>
                     <h3 className="font-display font-semibold uppercase text-xs">{label}</h3>
+                    {detailHref && (
+                      <Link
+                        href={detailHref}
+                        onClick={(e) => e.stopPropagation()}
+                        className="mt-3 text-[10px] uppercase tracking-wide text-bm-red hover:underline"
+                      >
+                        {t.bookingFlow.viewServicePage} →
+                      </Link>
+                    )}
                   </Card>
                 );
               })}
