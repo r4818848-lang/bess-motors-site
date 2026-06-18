@@ -455,6 +455,13 @@ export const SERVICE_LANDING_EDUCATION: Partial<
         ru: "Castrol, Mobil, Shell, Motul — спецификация по VIN (VW 504.00, BMW LL-04 и т.д.).",
       },
     },
+    {
+      title: { pl: "Co dzieje się na podnośniku", ru: "Что происходит на подъёмнике" },
+      body: {
+        pl: "Podnosimy auto, spuszczamy olej, wymieniamy filtr, wlewamy nowy olej zgodny z VIN. Kontrola poziomu, szczelności i reset interwału serwisowego jeśli wymagany.",
+        ru: "Поднимаем авто, сливаем масло, меняем фильтр, заливаем по VIN. Проверка уровня, герметичности и сброс интервала ТО при необходимости.",
+      },
+    },
   ],
   diagnostic: [
     {
@@ -469,6 +476,13 @@ export const SERVICE_LANDING_EDUCATION: Partial<
       body: {
         pl: "Krótki odczyt kodów przy wizycie — często w ramach konsultacji. Pełna diagnostyka z raportem to osobna usługa.",
         ru: "Краткое считывание при визите часто бесплатно. Полная диагностика с отчётом — отдельная услуга.",
+      },
+    },
+    {
+      title: { pl: "Sprzęt diagnostyczny", ru: "Диагностическое оборудование" },
+      body: {
+        pl: "Profesjonalne skanery OBD, testy podzespołów na żywo, pomiary parametrów silnika i skrzyni. Raport z kodami i rekomendacjami napraw.",
+        ru: "Профессиональные OBD-сканеры, тесты узлов, замеры параметров двигателя и КПП. Отчёт с кодами и рекомендациями.",
       },
     },
   ],
@@ -553,6 +567,20 @@ export const SERVICE_LANDING_EDUCATION: Partial<
       body: {
         pl: "Pisk, wibracje, wydłużona droga hamowania — nie czekaj do metalu na metalu.",
         ru: "Скрип, вибрация, длинный тормозной путь.",
+      },
+    },
+    {
+      title: { pl: "Tarcze hamulcowe — kiedy wymiana?", ru: "Когда менять тормозные диски?" },
+      body: {
+        pl: "Tarcze wymieniamy gdy grubość poniżej minimum producenta, są rowki lub krzywizna. Przy wymianie tarcz zawsze nowe klocki — zestaw na jedną oś od 220 zł.",
+        ru: "Диски меняем при износе ниже минимума, бороздках или перекосе. С дисками — всегда новые колодки, комплект на ось от 220 zł.",
+      },
+    },
+    {
+      title: { pl: "Co sprawdzamy przy hamulcach", ru: "Что проверяем" },
+      body: {
+        pl: "Klocki, tarcze, zaciski, przewody, płyn hamulcowy i czujniki ABS. Po montażu jazda testowa i raport ze zdjęciami zużytych części.",
+        ru: "Колодки, диски, суппорты, шланги, жидкость и датчики ABS. После работ — тест-драйв и фото изношенных деталей.",
       },
     },
   ],
@@ -859,20 +887,31 @@ export function getServiceLandingPrice(
   if (!priceId) {
     if (serviceId === "brakePads") {
       return {
-        fromZl: 200,
-        priceFrom: true,
+        fromZl: 120,
+        priceFrom: false,
         materialsExtra: true,
         includes: [
           {
             pl: "Demontaż kół i kontrola układu hamulcowego",
             ru: "Снятие колёс и осмотр тормозов",
           },
-          { pl: "Wymiana klocków hamulcowych", ru: "Замена тормозных колодок" },
-          { pl: "Kontrola szczelności i jazda testowa", ru: "Проверка и тест" },
+          { pl: "Wymiana klocków i tarcz hamulcowych", ru: "Замена колодок и дисков" },
+          { pl: "Kontrola zacisków, przewodów i płynu hamulcowego", ru: "Проверка суппортов и шлангов" },
+          { pl: "Jazda testowa po naprawie", ru: "Тест-драйв после ремонта" },
+        ],
+        priceTable: [
+          {
+            label: { pl: "Wymiana klocków (jedna oś)", ru: "Замена колодок (одна ось)" },
+            priceZl: 120,
+          },
+          {
+            label: { pl: "Tarcze + klocki (jedna oś)", ru: "Диски + колодки (одна ось)" },
+            priceZl: 220,
+          },
         ],
         note: {
-          pl: "Cena zależy od osi i modelu — materiały według wyboru.",
-          ru: "Цена зависит от оси и модели — материалы отдельно.",
+          pl: "Materiały (klocki, tarcze) według wyboru — wycena przed montażem.",
+          ru: "Материалы (колодки, диски) по выбору — смета до монтажа.",
         },
       };
     }
@@ -925,6 +964,43 @@ export function getServiceLandingPrice(
     priceFrom: item.priceFrom ?? true,
     materialsExtra: serviceId === "oil" || serviceId === "acRefill",
     includes: getDefaultIncludes(serviceId),
+    priceTable:
+      serviceId === "oil"
+        ? [
+            {
+              label: { pl: "Wymiana oleju + filtr oleju", ru: "Масло + масляный фильтр" },
+              priceZl: getPriceItem("oil_filter")?.basePrice ?? 150,
+              priceFrom: true,
+            },
+            {
+              label: { pl: "Filtr powietrza", ru: "Воздушный фильтр" },
+              priceZl: getPriceItem("air_filter")?.basePrice ?? 30,
+              priceFrom: true,
+            },
+            {
+              label: { pl: "Filtr kabinowy", ru: "Салонный фильтр" },
+              priceZl: getPriceItem("cabin_filter")?.basePrice ?? 50,
+              priceFrom: true,
+            },
+          ]
+        : serviceId === "diagnostic"
+          ? [
+              {
+                label: { pl: "Diagnostyka komputerowa", ru: "Компьютерная диагностика" },
+                priceZl: getPriceItem("computer_diag")?.basePrice ?? 100,
+                priceFrom: true,
+              },
+              {
+                label: { pl: "Diagnostyka premium", ru: "Премиум диагностика" },
+                priceZl: getPriceItem("premium_diag")?.basePrice ?? 250,
+                priceFrom: true,
+              },
+              {
+                label: { pl: "Odczyt błędów OBD", ru: "Считывание OBD" },
+                priceZl: 0,
+              },
+            ]
+          : undefined,
     note:
       serviceId === "oil"
         ? {
@@ -1022,7 +1098,7 @@ export function getServiceLandingEducation(
   const unique = merged.filter(
     (item, i, arr) => arr.findIndex((x) => x.title.pl === item.title.pl) === i
   );
-  return unique.slice(0, 4);
+  return unique.slice(0, 6);
 }
 
 export function getServiceLandingFaq(

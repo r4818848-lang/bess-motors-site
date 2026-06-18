@@ -9,7 +9,14 @@ export function BookNowSticky() {
   const { t } = useI18n();
   const pathname = usePathname();
 
-  if (pathname.startsWith("/cabinet") || pathname.startsWith("/crm")) return null;
+  if (
+    pathname.startsWith("/cabinet") ||
+    pathname.startsWith("/crm") ||
+    pathname.startsWith("/booking") ||
+    pathname.startsWith("/cennik")
+  ) {
+    return null;
+  }
 
   return (
     <div className="fixed bottom-[4.75rem] right-3 z-40 md:hidden safe-area-pb">

@@ -50,6 +50,7 @@ import {
   parseBookingParamsFromSearch,
   saveLastBooking,
 } from "@/lib/booking-url";
+import { getServicePackage } from "@/lib/service-packages";
 import { WaitTimeEstimator } from "@/components/booking/WaitTimeEstimator";
 import { useBookingAvailability } from "@/hooks/useBookingAvailability";
 
@@ -302,6 +303,8 @@ export function BookingQuoteFlow({ onDone }: Props) {
   const [submitError, setSubmitError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [promoError, setPromoError] = useState("");
+  const [activePackageId, setActivePackageId] = useState<string | undefined>();
+  const [mobileCartOpen, setMobileCartOpen] = useState(true);
   const submitLock = useRef(false);
   const { isSlotAvailable, loading: slotsLoading, availabilityError } = useBookingAvailability();
 
@@ -312,7 +315,10 @@ export function BookingQuoteFlow({ onDone }: Props) {
   }, []);
 
   const prefillFromUrl = useCallback(() => {
-    const { items: ids, plate } = parseBookingParamsFromSearch(searchParams.toString());
+    const { items: ids, plate, packageId } = parseBookingParamsFromSearch(
+      searchParams.toString()
+    );
+    setActivePackageId(packageId);
     if (plate) {
       setVehicleNote(plate);
       setClientPlate(plate);
@@ -330,6 +336,10 @@ export function BookingQuoteFlow({ onDone }: Props) {
   useEffect(() => {
     prefillFromUrl();
   }, [prefillFromUrl]);
+
+  useEffect(() => {
+    if (cart.length > 0) setMobileCartOpen(true);
+  }, [phase, cart.length]);
 
   useEffect(() => {
     if (!sessionReady || !clientUser) return;
@@ -362,7 +372,18 @@ export function BookingQuoteFlow({ onDone }: Props) {
 
   const cartIds = new Set(cart.map((l) => l.itemId));
   const subtotal = cartSubtotal(cart);
-  const total = promoApplied ? applyPromoDiscount(subtotal, promoApplied) : subtotal;
+  const activePackage = activePackageId ? getServicePackage(activePackageId) : undefined;
+  const packageMatchesCart =
+    !!activePackage &&
+    activePackage.priceItemIds.length > 0 &&
+    activePackage.priceItemIds.every((id) => cartIds.has(id)) &&
+    cart.every((line) => activePackage.priceItemIds.includes(line.itemId));
+  const packageDiscount =
+    packageMatchesCart && activePackage
+      ? Math.max(0, subtotal - activePackage.packagePricePln)
+      : 0;
+  const afterPackage = subtotal - packageDiscount;
+  const total = promoApplied ? applyPromoDiscount(afterPackage, promoApplied) : afterPackage;
   const hasFrom = cartHasFromPrices(cart);
   const hasPromos = getPromoRules().length > 0;
 
@@ -470,7 +491,7 @@ export function BookingQuoteFlow({ onDone }: Props) {
   };
 
   return (
-    <div className="pb-32 lg:pb-8">
+    <div className="pb-52 lg:pb-8">
       <p className="text-center text-sm text-bm-muted mb-2">{siteConfig.workingHours}</p>
       <p className="text-center text-xs text-bm-muted/80 mb-6 max-w-xl mx-auto">
         {bq.hourlyNote} <strong className="text-bm-red">{HOURLY_RATE_PLN} zł/h</strong>
@@ -480,7 +501,6 @@ export function BookingQuoteFlow({ onDone }: Props) {
         onPick={(d, tm) => {
           setDate(new Date(d + "T12:00:00"));
           setTime(tm);
-          if (cart.length) setPhase("datetime");
         }}
       />
 
@@ -533,6 +553,30 @@ export function BookingQuoteFlow({ onDone }: Props) {
                   />
                 ))}
               </div>
+              {cart.length > 0 && (
+                <div className="lg:hidden mt-6">
+                  <CartPanel
+                    lines={cart}
+                    locale={locale}
+                    labels={labels}
+                    onRemove={(id) => setCart((c) => c.filter((l) => l.id !== id))}
+                    onQtyChange={(id, qty) =>
+                      setCart((c) =>
+                        c.map((l) => {
+                          if (l.id !== id) return l;
+                          const item = priceListItems.find((i) => i.id === l.itemId);
+                          if (!item) return l;
+                          return buildCartLine(
+                            item,
+                            l.label.split(" (")[0],
+                            qty
+                          );
+                        })
+                      )
+                    }
+                  />
+                </div>
+              )}
               <div className="mt-8">
                 <CarProblemWizard
                   onApply={(lines, cat) => {
@@ -591,7 +635,8 @@ export function BookingQuoteFlow({ onDone }: Props) {
             className="max-w-lg mx-auto space-y-6"
           >
             <BookingStepBack label={bq.back} onClick={() => setPhase("services")} />
-            <CartPanel
+            <div className="lg:sticky lg:top-24">
+              <CartPanel
               lines={cart}
               locale={locale}
               labels={labels}
@@ -607,6 +652,7 @@ export function BookingQuoteFlow({ onDone }: Props) {
                 )
               }
             />
+            </div>
             <h2 className="font-display text-lg uppercase text-center">
               {t.booking.selectDate}
             </h2>
@@ -674,6 +720,26 @@ export function BookingQuoteFlow({ onDone }: Props) {
             className="max-w-xl mx-auto space-y-6"
           >
             <BookingStepBack label={bq.back} onClick={() => setPhase("datetime")} />
+            {cart.length > 0 && (
+              <div className="lg:hidden">
+                <CartPanel
+                  lines={cart}
+                  locale={locale}
+                  labels={labels}
+                  onRemove={(id) => setCart((c) => c.filter((l) => l.id !== id))}
+                  onQtyChange={(id, qty) =>
+                    setCart((c) =>
+                      c.map((l) => {
+                        if (l.id !== id) return l;
+                        const item = priceListItems.find((i) => i.id === l.itemId);
+                        if (!item) return l;
+                        return buildCartLine(item, l.label.split(" (")[0], qty);
+                      })
+                    )
+                  }
+                />
+              </div>
+            )}
             {date && time && (
               <div className="rounded-xl border border-bm-red/30 bg-bm-red/10 px-4 py-3 text-center">
                 <p className="text-[10px] uppercase text-bm-muted tracking-wide">
@@ -716,10 +782,16 @@ export function BookingQuoteFlow({ onDone }: Props) {
                   {labels.fromWarning}
                 </p>
               )}
-              {promoApplied && subtotal > total && (
+              {packageDiscount > 0 && activePackage && (
+                <p className="text-xs text-green-400 mt-2">
+                  {t.servicePackages.packagePrice}: −{formatPln(packageDiscount)} (
+                  {contentLoc === "ru" ? activePackage.nameRu : activePackage.namePl})
+                </p>
+              )}
+              {promoApplied && afterPackage > total && (
                 <p className="text-xs text-green-400 mt-2">
                   {t.bookingPromo.applied}: −{promoApplied.percentOff}% (
-                  {formatPln(subtotal - total)})
+                  {formatPln(afterPackage - total)})
                 </p>
               )}
             </div>
@@ -807,7 +879,7 @@ export function BookingQuoteFlow({ onDone }: Props) {
                 {bq.back}
               </Button>
               <Button
-                className="flex-1"
+                className="flex-1 hidden lg:flex"
                 data-fbq-track="Lead"
                 disabled={!contactValid || submitting}
                 onClick={submit}
@@ -819,17 +891,33 @@ export function BookingQuoteFlow({ onDone }: Props) {
         )}
       </AnimatePresence>
 
-      {(phase === "services" || phase === "datetime") && (
-        <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 glass-red border-t border-bm-red/40 p-3 shadow-[0_-8px_32px_rgba(0,0,0,0.85)] safe-area-pb">
-          <div className="flex items-center justify-between gap-3">
-            <div className="min-w-0">
+      {(phase === "services" || phase === "datetime" || phase === "confirm") && (
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 z-[100] glass-red border-t border-bm-red/40 shadow-[0_-8px_32px_rgba(0,0,0,0.85)] safe-area-pb">
+          {mobileCartOpen && cart.length > 0 && (
+            <div className="max-h-40 overflow-y-auto border-b border-bm-border/40 px-3 py-2 space-y-1">
+              {cart.map((line) => (
+                <div key={line.id} className="flex justify-between text-xs gap-2">
+                  <span className="text-bm-silver truncate">{line.label}</span>
+                  <span className="font-mono text-bm-red shrink-0">
+                    {line.isFree ? labels.free : formatPln(line.lineTotal)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+          <div className="p-3 flex items-center justify-between gap-3">
+            <button
+              type="button"
+              className="min-w-0 text-left"
+              onClick={() => cart.length > 0 && setMobileCartOpen((o) => !o)}
+            >
               <p className="text-[10px] uppercase text-bm-muted tracking-wide">
                 {labels.cartTitle} ({cart.length})
               </p>
               <p className="font-display text-xl font-bold text-bm-red font-mono">
                 {formatPln(total)}
               </p>
-            </div>
+            </button>
             {phase === "services" ? (
               <Button
                 className="shrink-0"
@@ -840,7 +928,7 @@ export function BookingQuoteFlow({ onDone }: Props) {
                 {bq.continue}
                 <ChevronRight className="w-4 h-4" />
               </Button>
-            ) : (
+            ) : phase === "datetime" ? (
               <Button
                 className="shrink-0"
                 disabled={!date || !time}
@@ -848,6 +936,15 @@ export function BookingQuoteFlow({ onDone }: Props) {
               >
                 {bq.continue}
                 <ChevronRight className="w-4 h-4" />
+              </Button>
+            ) : (
+              <Button
+                className="shrink-0"
+                data-fbq-track="Lead"
+                disabled={!contactValid || submitting}
+                onClick={submit}
+              >
+                {submitting ? bq.submitting : bq.submit}
               </Button>
             )}
           </div>

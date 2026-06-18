@@ -509,18 +509,16 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
             <ChevronLeft className="w-4 h-4" />
             {bq.back}
           </Button>
-          {multi && (
-            <Button
-              variant="outline"
-              className="flex-1 text-xs"
-              onClick={() => {
-                setPicked([]);
-                nextFlow();
-              }}
-            >
-              {bf.skipExtras}
-            </Button>
-          )}
+          <Button
+            variant="outline"
+            className="flex-1 text-xs"
+            onClick={() => {
+              setPicked([]);
+              nextFlow();
+            }}
+          >
+            {bf.skipExtras}
+          </Button>
           <Button
             className="flex-1"
             disabled={!multi && !picked[0]}
@@ -620,6 +618,16 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
         </button>
 
         <p className="text-xs uppercase text-bm-red tracking-widest mb-1">{serviceLabel}</p>
+        {servicePageHref && phase !== "manager" && (
+          <Link
+            href={servicePageHref}
+            onClick={onClose}
+            className="inline-flex items-center gap-1 text-[10px] uppercase text-bm-red hover:underline mb-2"
+          >
+            <ExternalLink size={12} />
+            {bf.viewServicePage}
+          </Link>
+        )}
         <p className="text-[10px] text-bm-muted mb-3">
           {bq.hourlyNote} {HOURLY_RATE_PLN} zł/h
         </p>

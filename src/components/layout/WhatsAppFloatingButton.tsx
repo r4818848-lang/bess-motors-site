@@ -12,7 +12,13 @@ export function WhatsAppFloatingButton() {
   const { locale, t } = useI18n();
   const pathname = usePathname();
 
-  if (hiddenPaths.some((p) => pathname.startsWith(p))) return null;
+  if (
+    hiddenPaths.some((p) => pathname.startsWith(p)) ||
+    pathname.startsWith("/booking") ||
+    pathname.startsWith("/cennik")
+  ) {
+    return null;
+  }
 
   const href = whatsappContactUrl(whatsappDefaultMessage(locale));
   const label = t.integrations?.whatsapp ?? "WhatsApp";

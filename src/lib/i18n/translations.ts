@@ -81,6 +81,17 @@ const pl = {
     bookCta: "Rezerwacja z cennika",
     notesTitle: "Ważne informacje",
     downloadPdf: "Pobierz cennik PDF",
+    bookItem: "Umów",
+    callback: {
+      title: "Zadzwoń lub zamów oddzwonienie",
+      subtitle:
+        "Nie wiesz, której usługi potrzebujesz? Zostaw numer — oddzwonimy i doradzimy.",
+      phonePlaceholder: "Twój telefon",
+      submit: "Zamów oddzwonienie",
+      done: "Dziękujemy — oddzwonimy wkrótce.",
+      error: "Nie udało się wysłać. Zadzwoń do nas.",
+      commentDefault: "Prośba o oddzwonienie ze strony cennika",
+    },
   },
   priceCalculator: {
     title: "Kalkulator kosztów",
@@ -355,6 +366,8 @@ const pl = {
     educationTitle: "O usłudze",
     photosTitle: "Zdjęcia z warsztatu",
     photosHint: "Prawdziwe zdjęcia procesu, sprzętu i strefy oczekiwania.",
+    photosWorkshopTitle: "Nasz warsztat",
+    photosServiceTitle: "Zdjęcia związane z usługą",
     photosGalleryLink: "Galeria realizacji",
     reviewsHint: "Opinie z Google Maps",
     reviewsFromClients: "{count} opinii klientów na stronie",
@@ -587,7 +600,7 @@ const pl = {
     notePlaceholder: "Dodatkowe uwagi (opcjonalnie)…",
     submit: "Umów się",
     successHint: "Oddzwonimy lub potwierdzimy termin SMS-em.",
-    submitting: "Zapisywanie…",
+    submitting: "Umów się…",
     submitFailed: "Nie udało się zapisać rezerwacji. Spróbuj ponownie lub zadzwoń.",
     cloudSyncFailed: "Rezerwacja nie dotarła do serwera. Zadzwoń pod {phone}, aby potwierdzić termin.",
     callFailed: "Prośba o telefon nie dotarła do serwisu. Zadzwoń pod {phone}.",
@@ -1499,6 +1512,7 @@ const pl = {
     { name: "Anna W.", car: "Mercedes C300", text: "Detailing ceramiczny — auto jak nowe. Polecam BESS MOTORS!", rating: 5, tag: "detailing" as const },
     { name: "Dmitry S.", car: "Audi RS3", text: "Chip tuning i diagnostyka komputerowa — szybko i dokładnie.", rating: 5, tag: "diagnostic" as const },
     { name: "Piotr L.", car: "VW Golf GTI", text: "Wymiana tarcz i klocków — hamuje jak nowe.", rating: 5, tag: "brakes" as const },
+    { name: "Tomasz R.", car: "Skoda Octavia", text: "Wymiana oleju i filtrów — szybko, profesjonalnie, polecam.", rating: 5, tag: "all" as const },
   ],
   wo: {
     ordersTitle: "Zlecenia naprawcze",
@@ -1755,6 +1769,17 @@ const ru: TranslationKeys = {
     bookCta: "Запись с прайса",
     notesTitle: "Важная информация",
     downloadPdf: "Скачать прайс PDF",
+    bookItem: "Записаться",
+    callback: {
+      title: "Позвоните или закажите обратный звонок",
+      subtitle:
+        "Не уверены, какая услуга нужна? Оставьте номер — перезвоним и подскажем.",
+      phonePlaceholder: "Ваш телефон",
+      submit: "Заказать звонок",
+      done: "Спасибо — перезвоним в ближайшее время.",
+      error: "Не удалось отправить. Позвоните нам.",
+      commentDefault: "Запрос обратного звонка со страницы прайса",
+    },
   },
   priceCalculator: {
     title: "Калькулятор стоимости",
@@ -2029,6 +2054,8 @@ const ru: TranslationKeys = {
     educationTitle: "Об услуге",
     photosTitle: "Фото из сервиса",
     photosHint: "Реальные фото процесса, оборудования и зоны ожидания.",
+    photosWorkshopTitle: "Наш сервис",
+    photosServiceTitle: "Фото по услуге",
     photosGalleryLink: "Галерея работ",
     reviewsHint: "Отзывы Google Maps",
     reviewsFromClients: "{count} отзывов клиентов на сайте",
@@ -3147,6 +3174,7 @@ const ru: TranslationKeys = {
     { name: "Анна В.", car: "Mercedes C300", text: "Керамический детейлинг — машина как новая. Рекомендую BESS MOTORS!", rating: 5, tag: "detailing" as const },
     { name: "Дмитрий С.", car: "Audi RS3", text: "Чип-тюнинг и компьютерная диагностика — быстро и точно.", rating: 5, tag: "diagnostic" as const },
     { name: "Пётр Л.", car: "VW Golf GTI", text: "Замена дисков и колодок — тормозит как новая.", rating: 5, tag: "brakes" as const },
+    { name: "Томаш Р.", car: "Skoda Octavia", text: "Замена масла и фильтров — быстро и профессионально.", rating: 5, tag: "all" as const },
   ],
   charts: {
     revenueByMonth: "Доход по месяцам",
@@ -3377,6 +3405,17 @@ const en: TranslationKeys = {
     bookCta: "Book from price list",
     notesTitle: "Important notes",
     downloadPdf: "Download price list PDF",
+    bookItem: "Book",
+    callback: {
+      title: "Call us or request a callback",
+      subtitle:
+        "Not sure which service you need? Leave your number — we will call back.",
+      phonePlaceholder: "Your phone",
+      submit: "Request callback",
+      done: "Thank you — we will call you soon.",
+      error: "Could not send. Please call us.",
+      commentDefault: "Callback request from price list page",
+    },
   },
   hero: {
     title: "BESS",
@@ -3876,6 +3915,8 @@ const en: TranslationKeys = {
     educationTitle: "About this service",
     photosTitle: "Workshop photos",
     photosHint: "Real photos of the process, equipment and waiting area.",
+    photosWorkshopTitle: "Our workshop",
+    photosServiceTitle: "Service-related photos",
     photosGalleryLink: "Project gallery",
     reviewsHint: "Google Maps reviews",
     reviewsFromClients: "{count} client reviews on site",
@@ -4323,6 +4364,7 @@ const en: TranslationKeys = {
     { name: "Anna W.", car: "Mercedes C300", text: "Ceramic detailing — car like new. Highly recommend!", rating: 5, tag: "detailing" as const },
     { name: "Dmitry S.", car: "Audi RS3", text: "Chip tuning and computer diagnostics — fast and accurate.", rating: 5, tag: "diagnostic" as const },
     { name: "Piotr L.", car: "VW Golf GTI", text: "Brake discs and pads — stops like new.", rating: 5, tag: "brakes" as const },
+    { name: "Tomasz R.", car: "Skoda Octavia", text: "Oil and filter change — fast and professional.", rating: 5, tag: "all" as const },
   ],
   mechanic: {
     ...pl.mechanic,

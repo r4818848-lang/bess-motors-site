@@ -61,9 +61,9 @@ export default function ServicesPage() {
                       <Link
                         href={detailHref}
                         onClick={(e) => e.stopPropagation()}
-                        className="mt-3 text-[10px] uppercase tracking-wide text-bm-red hover:underline"
+                        className="mt-3 btn-primary text-[10px] uppercase tracking-wide inline-flex items-center justify-center px-3 py-2"
                       >
-                        {t.bookingFlow.viewServicePage} →
+                        {t.bookingFlow.viewServicePage}
                       </Link>
                     )}
                   </Card>

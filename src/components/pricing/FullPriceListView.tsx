@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Clock, Phone } from "lucide-react";
+import { Clock, Phone, Calendar } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import {
   HOURLY_RATE_PLN,
@@ -20,6 +20,9 @@ import { PhoneLink } from "@/components/analytics/PhoneLink";
 import { siteConfig } from "@/lib/site";
 import { PriceListCalculator } from "@/components/pricing/PriceListCalculator";
 import { downloadPriceListPdf } from "@/lib/price-list-pdf";
+import { buildBookingUrl } from "@/lib/booking-url";
+import { PriceListCallbackCta } from "@/components/pricing/PriceListCallbackCta";
+import { ServicePackagesSection } from "@/components/pricing/ServicePackagesSection";
 import { Download } from "lucide-react";
 
 function itemLabel(item: PriceListItem, locale: Parameters<typeof pickName>[1]) {
@@ -97,18 +100,32 @@ export function FullPriceListView() {
           {items.map((item) => (
             <li
               key={item.id}
-              className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 px-4 py-3.5 hover:bg-bm-red/5 transition-colors"
+              className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-4 py-3.5 hover:bg-bm-red/5 transition-colors"
             >
-              <span className="text-sm text-white/95 pr-4">{itemLabel(item, locale)}</span>
-              <span className="text-sm font-mono font-bold text-bm-red shrink-0">
-                {unitPriceHint(item, locale)}
-              </span>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 flex-1 min-w-0">
+                <span className="text-sm text-white/95 pr-4">{itemLabel(item, locale)}</span>
+                <span className="text-sm font-mono font-bold text-bm-red shrink-0">
+                  {unitPriceHint(item, locale)}
+                </span>
+              </div>
+              <BookingLink
+                href={buildBookingUrl([item.id])}
+                className="btn-primary text-xs shrink-0 inline-flex items-center justify-center gap-1.5 px-3 py-2 self-start sm:self-center"
+                trackSource={`cennik_${item.id}`}
+              >
+                <Calendar size={14} />
+                {t.priceList.bookItem}
+              </BookingLink>
             </li>
           ))}
         </ul>
       </motion.div>
 
+      <PriceListCallbackCta />
+
       <PriceListCalculator />
+
+      <ServicePackagesSection />
 
       <div className="mt-10 rounded-xl border border-bm-border/50 bg-bm-card/40 p-5 md:p-6">
         <h3 className="font-display text-sm uppercase text-bm-muted mb-4 tracking-wide">

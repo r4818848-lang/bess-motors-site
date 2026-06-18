@@ -8,7 +8,15 @@ import { BookingLink } from "@/components/analytics/BookingLink";
 import { SocialContactLink } from "@/components/analytics/SocialContactLink";
 import { whatsappContactUrl, whatsappDefaultMessage } from "@/lib/whatsapp";
 
-const hiddenPaths = ["/crm", "/mechanic", "/admin", "/sign", "/cabinet"];
+const hiddenPaths = [
+  "/crm",
+  "/mechanic",
+  "/admin",
+  "/sign",
+  "/cabinet",
+  "/booking",
+  "/cennik",
+];
 
 export function StickyContactBar() {
   const { t, locale } = useI18n();

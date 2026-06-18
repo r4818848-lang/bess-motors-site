@@ -27,7 +27,7 @@ export const servicePackages: ServicePackage[] = [
     priceItemIds: ["oil_filter", "air_filter"],
     namePl: "Pakiet TO — olej + filtry",
     nameRu: "Пакет ТО — масло + фильтры",
-    packagePricePln: 280,
+    packagePricePln: 180,
     validUntil: "2026-12-31",
   },
   {

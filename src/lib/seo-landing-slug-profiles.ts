@@ -62,6 +62,13 @@ export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
           "Считывание кодов, live-параметры — не только сброс Check Engine."
         ),
       },
+      {
+        title: L("Raport po diagnostyce", "Отчёт после диагностики"),
+        body: L(
+          "Dostajesz listę kodów błędów z wyjaśnieniem, priorytetami napraw i orientacyjną wyceną. Bez żargonu — wiesz co jest pilne.",
+          "Список кодов с объяснением, приоритетами и ориентировочной сметой. Без жаргона."
+        ),
+      },
     ],
     faqExtra: [
       {
@@ -79,16 +86,49 @@ export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
   },
   "wymiana-oleju": {
     faqDuration: L("Wymiana oleju i filtra: ok. 1 godziny.", "Замена масла: около 1 часа."),
+    education: [
+      {
+        title: L("Pełny serwis olejowy — nie tylko wlewanie", "Полный масляный сервис"),
+        body: L(
+          "Spuszczamy stary olej, wymieniamy filtr oleju, uzupełniamy specyfikacją pod VIN. Kontrolujemy poziom i szczelność — auto gotowe z naklejką serwisową.",
+          "Сливаем старое масло, меняем фильтр, заливаем по VIN. Проверяем уровень и герметичность — наклейка о сервисе."
+        ),
+      },
+      {
+        title: L("Marki oleju w warsztacie", "Масла в сервисе"),
+        body: L(
+          "Castrol, Motul, Shell, Liqui Moly — dobieramy normę producenta (VW 504.00, BMW LL-04, MB 229.5). Możesz przywieźć własny olej po wcześniejszym uzgodnieniu.",
+          "Castrol, Motul, Shell, Liqui Moly — норма производителя. Можно со своим маслом по согласованию."
+        ),
+      },
+    ],
   },
   hamulce: {
     faqDuration: L("Wymiana klocków: 1–2 godziny; z tarczami dłużej.", "Колодки: 1–2 часа; с дисками дольше."),
+    education: [
+      {
+        title: L("Klocki, tarcze i pełny układ hamulcowy", "Колодки, диски и вся тормозная система"),
+        body: L(
+          "Nie ograniczamy się do klocków — wymieniamy tarcze, przewody, zaciski i płyn hamulcowy. Mierzymy grubość tarcz i klocków, sprawdzamy szczelność układu.",
+          "Не только колодки — диски, шланги, суппорты и тормозная жидкость. Замеряем толщину дисков и колодок, проверяем герметичность."
+        ),
+      },
+      {
+        title: L("Przejrzyste ceny — bez niespodzianek", "Прозрачные цены"),
+        body: L(
+          "Klocki na jedną oś od 120 zł, tarcze z klockami od 220 zł za oś. Przed montażem pokazujemy zużyte części i akceptujesz zakres.",
+          "Колодки на ось от 120 zł, диски с колодками от 220 zł за ось. Перед работой показываем изношенные детали."
+        ),
+      },
+    ],
     price: {
       fromZl: 120,
       priceFrom: false,
       materialsExtra: true,
-      includes: [
+        includes: [
         L("Wymiana klocków hamulcowych", "Замена тормозных колодок"),
-        L("Kontrola tarcz i przewodów", "Проверка дисков и шлангов"),
+        L("Wymiana tarcz hamulcowych (gdy zużyte)", "Замена тормозных дисков при износе"),
+        L("Kontrola zacisków, przewodów i płynu", "Проверка суппортов, шлангов и жидкости"),
         L("Jazda testowa po naprawie", "Тест-драйв после ремонта"),
       ],
       priceTable: [

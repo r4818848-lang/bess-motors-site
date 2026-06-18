@@ -16,6 +16,14 @@ function usesMinimalChrome(pathname: string): boolean {
   );
 }
 
+const NO_MOBILE_STICKY_PREFIXES = ["/booking", "/cennik"];
+
+function hidesMobileStickyBar(pathname: string): boolean {
+  return NO_MOBILE_STICKY_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
+  );
+}
+
 export function SiteShell({ children }: { children: ReactNode }) {
   const pathname = usePathname() ?? "";
 
@@ -23,10 +31,18 @@ export function SiteShell({ children }: { children: ReactNode }) {
     return <main className="min-h-screen">{children}</main>;
   }
 
+  const hideMobileBar = hidesMobileStickyBar(pathname);
+
   return (
     <div className="min-h-screen overflow-x-clip">
       <Header />
-      <main className="min-h-screen pb-[4.5rem] md:pb-0">{children}</main>
+      <main
+        className={
+          hideMobileBar ? "min-h-screen" : "min-h-screen pb-[4.5rem] md:pb-0"
+        }
+      >
+        {children}
+      </main>
       <Footer />
       <StickyContactBar />
       <BookNowSticky />

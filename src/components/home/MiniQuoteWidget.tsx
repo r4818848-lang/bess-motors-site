@@ -38,15 +38,15 @@ export function MiniQuoteWidget() {
 
   return (
     <div className="glass rounded-xl p-5 max-w-md mx-auto mt-8">
-      <h3 className="font-display text-sm uppercase mb-3">{mq.title}</h3>
+      <h3 className="font-display text-sm uppercase mb-3 text-white">{mq.title}</h3>
       <input
-        className="input-premium w-full mb-2 text-white"
+        className="w-full mb-2 rounded-lg border border-bm-border/60 bg-white px-4 py-3 text-neutral-900 placeholder:text-neutral-500 outline-none focus:border-bm-red"
         placeholder={mq.phone}
         value={phone}
         onChange={(e) => setPhone(e.target.value)}
       />
       <textarea
-        className="input-premium w-full mb-3 min-h-[80px] text-white"
+        className="w-full mb-3 min-h-[80px] rounded-lg border border-bm-border/60 bg-white px-4 py-3 text-neutral-900 placeholder:text-neutral-500 outline-none focus:border-bm-red resize-y"
         placeholder={mq.comment}
         value={comment}
         onChange={(e) => setComment(e.target.value)}
