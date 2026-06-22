@@ -17,12 +17,23 @@ export type FeaturedGoogleReview = {
  */
 export const FEATURED_GOOGLE_REVIEWS: FeaturedGoogleReview[] = [
   {
+    id: "gr-jedrzej",
+    author: "Jędrzej Orłowski",
+    rating: 5,
+    text: "Gdyby można dałbym 6 gwiazdek. Pomogli w zholowaniu uszkodzonego auta, wykonali dokumentację zdjęciową elementów kwalifikujących się do wymiany (zgodnie ze stanem faktycznym, bez naciągania) a następnie w cenie 60% wartości ofert innych warsztatów wymienili sprzęgło, tarcze, klocki. Do tego wymienili olej w skrzyni biegów + uszczelki, zaspawali nieszczelny wydech, uzupełnili płyny, w tym chłodnicy w cenie!! Wszystko szybko, sprawnie i cały czas informując o postępach prac. Dla mnie rewelacja — oby z czasem dorobili się lepszej widoczności na rynku, drogi dojazdowej, oznaczeń budynku, itp. bo zasługują na uwagę!",
+    date: "19.06.2026",
+    shareUrl:
+      "https://www.google.com/maps/search/?api=1&query=BESS+MOTORS+Aleja+Krakowska+48+52+Warszawa",
+    mapsUrl:
+      "https://www.google.com/maps/search/?api=1&query=BESS+MOTORS+Aleja+Krakowska+48+52+Warszawa",
+  },
+  {
     id: "gr-konstantin",
     author: "Константин",
     rating: 5,
     text: "Polecam tę usługę do obsługi mojego samochodu. Szybka naprawa za odpowiednie pieniądze.",
     date: "02.06.2026",
-    shareUrl: "https://share.google/aQxH53ZogI7MT71J0",
+    shareUrl: "https://share.google/RqXC2bzV4Zof8kXlc",
     mapsUrl:
       "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT21KU05WQkZSV05DU1ZGNGFVdFZXV3BHVlhkTFpVRRAB!2m1!1s0x0:0x684ee899c310ad45!3m1!1s2@1:CAIQACodChtycF9oOmJSNVBFRWNCSVF4aUtVWWpGVXdLZUE%7C%7C?hl=pl",
   },
