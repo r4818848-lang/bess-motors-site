@@ -2,11 +2,11 @@ import { createCanvas, loadImage } from "@napi-rs/canvas";
 
 const MIN_USEFUL_OCR_LEN = 120;
 
-/** Upscale + white background for phone screenshots / Telegram JPEG. */
+/** Upscale + contrast for phone screenshots / Telegram JPEG. */
 export async function preprocessImageForOcr(buffer: Buffer): Promise<Buffer> {
   const img = await loadImage(buffer);
   const maxSide = Math.max(img.width, img.height);
-  const scale = Math.min(3, Math.max(1.75, 2400 / maxSide));
+  const scale = Math.min(3.5, Math.max(2, 2800 / maxSide));
   const w = Math.round(img.width * scale);
   const h = Math.round(img.height * scale);
   const canvas = createCanvas(w, h);
@@ -15,10 +15,21 @@ export async function preprocessImageForOcr(buffer: Buffer): Promise<Buffer> {
   ctx.fillRect(0, 0, w, h);
   ctx.imageSmoothingEnabled = true;
   ctx.drawImage(img, 0, 0, w, h);
+
+  const imageData = ctx.getImageData(0, 0, w, h);
+  const data = imageData.data;
+  const contrast = 1.35;
+  const intercept = 128 * (1 - contrast);
+  for (let i = 0; i < data.length; i += 4) {
+    data[i] = Math.min(255, Math.max(0, data[i]! * contrast + intercept));
+    data[i + 1] = Math.min(255, Math.max(0, data[i + 1]! * contrast + intercept));
+    data[i + 2] = Math.min(255, Math.max(0, data[i + 2]! * contrast + intercept));
+  }
+  ctx.putImageData(imageData, 0, 0);
   return canvas.toBuffer("image/png");
 }
 
-function ocrQualityScore(text: string): number {
+export function ocrQualityScore(text: string): number {
   const t = text.trim();
   if (!t.length) return 0;
   const lower = t.toLowerCase();
@@ -54,6 +65,7 @@ export async function ocrImportImageBuffer(buffer: Buffer): Promise<string> {
     const attempts: { buf: Buffer; psm: (typeof PSM)[keyof typeof PSM] }[] = [
       { buf: preprocessed, psm: PSM.AUTO },
       { buf: preprocessed, psm: PSM.SINGLE_BLOCK },
+      { buf: preprocessed, psm: PSM.SPARSE_TEXT },
       { buf: buffer, psm: PSM.AUTO },
     ];
 

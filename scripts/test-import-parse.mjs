@@ -57,8 +57,14 @@ function assert(cond, msg) {
   if (!cond) throw new Error(msg);
 }
 
-const parsed = parseWorkOrderImportText(sample);
-console.log("legacy sample:", JSON.stringify(parsed, null, 2));
+const legacy = parseWorkOrderImportText(sample);
+assert(legacy.services.length >= 2, "legacy services");
+assert(legacy.parts.length >= 2, "legacy parts");
+assert(legacy.parts.every((p) => p.purchasePrice === 0), "kosztorys parts have no purchase");
+assert(legacy.parts[0].sellPrice === 686.58, "legacy part sell");
+console.log("legacy sample: OK");
+
+const parsed = legacy;
 
 const tab = parseWorkOrderImportText(tabSample);
 assert(tab.clientName === "Bartosz Dabrowski", "tab client name");

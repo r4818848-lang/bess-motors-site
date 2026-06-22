@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useRef } from "react";
-import { X, FileUp, Loader2, Plus, Trash2 } from "lucide-react";
+import { useState, useRef, useMemo } from "react";
+import { X, FileUp, Loader2, Plus, Trash2, AlertTriangle, Info } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { staffCrmFetch, staffCrmFetchFailureReason } from "@/lib/crm-staff-fetch";
 import type {
@@ -9,6 +9,12 @@ import type {
   ImportServiceDraft,
   ImportWorkOrderDraft,
 } from "@/lib/motowarsztat-import-parser";
+import {
+  importDraftHasBlockingIssues,
+  issueAffectsRow,
+  normalizeImportDraftPrices,
+  validateImportDraft,
+} from "@/lib/import-draft-validate";
 import { calcPartLineProfit } from "@/lib/workorder-calc";
 import { createWorkOrderFromImport } from "@/lib/create-work-order-from-import";
 import { loadDb } from "@/lib/store";
@@ -58,14 +64,27 @@ export function ImportWorkOrderModal({ open, onClose, onCreated }: Props) {
   const [bulkSummary, setBulkSummary] = useState("");
   const [draft, setDraft] = useState<ImportWorkOrderDraft | null>(null);
   const [rawPreview, setRawPreview] = useState("");
+  const [parsedFromImage, setParsedFromImage] = useState(false);
 
   const file = files[0] ?? null;
   const isBulk = files.length > 1;
+  const isImageFile = Boolean(
+    file?.type.startsWith("image/") || /\.(jpe?g|png|webp|heic)$/i.test(file?.name ?? "")
+  );
+
+  const draftIssues = useMemo(
+    () => (draft ? validateImportDraft(draft, { fromImage: parsedFromImage }) : []),
+    [draft, parsedFromImage]
+  );
+
+  const issueText = (code: string) =>
+    (imp.issues as Record<string, string> | undefined)?.[code] ?? code;
 
   const reset = () => {
     setFiles([]);
     setDraft(null);
     setRawPreview("");
+    setParsedFromImage(false);
     setBulkSummary("");
     setError("");
     if (fileRef.current) fileRef.current.value = "";
@@ -83,6 +102,7 @@ export function ImportWorkOrderModal({ open, onClose, onCreated }: Props) {
     setFiles(next);
     setDraft(null);
     setRawPreview("");
+    setParsedFromImage(false);
     setBulkSummary("");
     setError("");
   };
@@ -187,9 +207,11 @@ export function ImportWorkOrderModal({ open, onClose, onCreated }: Props) {
       const data = (await res.json()) as {
         parsed: ImportWorkOrderDraft;
         rawTextPreview?: string;
+        fromImage?: boolean;
       };
-      setDraft(data.parsed);
+      setDraft(normalizeImportDraftPrices(data.parsed));
       setRawPreview(data.rawTextPreview ?? "");
+      setParsedFromImage(Boolean(data.fromImage));
       keepDraftLock = true;
     } catch {
       setError(imp.parseFailed);
@@ -248,6 +270,10 @@ export function ImportWorkOrderModal({ open, onClose, onCreated }: Props) {
 
   const handleCreate = async () => {
     if (!draft || !file) return;
+    if (importDraftHasBlockingIssues(draftIssues)) {
+      setError(imp.fixErrorsBeforeSave);
+      return;
+    }
     if (!draft.phone?.trim()) {
       setError(imp.phoneRequired);
       return;
@@ -359,6 +385,13 @@ export function ImportWorkOrderModal({ open, onClose, onCreated }: Props) {
             </Button>
           )}
 
+          {!draft && isImageFile && !isBulk && (
+            <p className="text-xs text-amber-700 flex items-start gap-2">
+              <AlertTriangle size={14} className="shrink-0 mt-0.5" />
+              {imp.preferPdf}
+            </p>
+          )}
+
           {!draft && !isBulk && (
             <Button
               type="button"
@@ -378,8 +411,36 @@ export function ImportWorkOrderModal({ open, onClose, onCreated }: Props) {
 
           {draft && (
             <div className="space-y-4 text-sm">
-              {draft.warnings.length > 0 && (
-                <p className="text-amber-600 text-xs">{imp.checkFields}</p>
+              <p
+                className={`text-xs flex items-start gap-2 ${
+                  parsedFromImage ? "text-amber-700" : "text-emerald-700"
+                }`}
+              >
+                {parsedFromImage ? (
+                  <AlertTriangle size={14} className="shrink-0 mt-0.5" />
+                ) : (
+                  <Info size={14} className="shrink-0 mt-0.5" />
+                )}
+                {parsedFromImage ? imp.parsedFromImage : imp.parsedFromPdf}
+              </p>
+
+              {draftIssues.length > 0 && (
+                <ul className="text-xs space-y-1 rounded-md border border-amber-200 bg-amber-50/80 p-3">
+                  {draftIssues.map((issue, idx) => (
+                    <li
+                      key={`${issue.code}-${issue.row ?? ""}-${idx}`}
+                      className={
+                        issue.severity === "error"
+                          ? "text-red-700"
+                          : issue.severity === "info"
+                            ? "text-bm-muted"
+                            : "text-amber-800"
+                      }
+                    >
+                      {issueText(issue.code)}
+                    </li>
+                  ))}
+                </ul>
               )}
 
               <section className="space-y-2">
@@ -496,7 +557,14 @@ export function ImportWorkOrderModal({ open, onClose, onCreated }: Props) {
                         </tr>
                       )}
                       {draft.services.map((s, i) => (
-                        <tr key={i} className="border-b border-bm-border/20 last:border-0">
+                        <tr
+                          key={i}
+                          className={`border-b border-bm-border/20 last:border-0 ${
+                            issueAffectsRow(draftIssues, "service", i)
+                              ? "bg-amber-50/60"
+                              : ""
+                          }`}
+                        >
                           <td className="p-1">
                             <input
                               className="input-premium text-xs w-full min-w-[120px]"
@@ -584,7 +652,12 @@ export function ImportWorkOrderModal({ open, onClose, onCreated }: Props) {
                         </tr>
                       )}
                       {draft.parts.map((p, i) => (
-                        <tr key={i} className="border-b border-bm-border/20 last:border-0">
+                        <tr
+                          key={i}
+                          className={`border-b border-bm-border/20 last:border-0 ${
+                            issueAffectsRow(draftIssues, "part", i) ? "bg-amber-50/60" : ""
+                          }`}
+                        >
                           <td className="p-1">
                             <input
                               className="input-premium text-xs w-full min-w-[100px]"
@@ -655,6 +728,11 @@ export function ImportWorkOrderModal({ open, onClose, onCreated }: Props) {
                   </p>
                 )}
               </section>
+
+              <p className="text-xs text-bm-muted flex items-start gap-2">
+                <Info size={14} className="shrink-0 mt-0.5" />
+                {imp.afterCreateHint}
+              </p>
 
               <details className="text-xs">
                 <summary className="cursor-pointer text-bm-muted">{imp.rawText}</summary>

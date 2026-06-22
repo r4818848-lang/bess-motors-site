@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { verifyToken } from "@/lib/server/verify-session";
 import { extractTextFromImportFile } from "@/lib/server/extract-import-document-text";
 import { parseWorkOrderImportText } from "@/lib/motowarsztat-import-parser";
-import { isOcrTextLikelyUseful } from "@/lib/server/ocr-import-image";
+import { isOcrTextLikelyUseful, ocrQualityScore } from "@/lib/server/ocr-import-image";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -85,6 +85,8 @@ export async function POST(req: Request) {
       ok: true,
       fileName: file.name,
       mime,
+      fromImage: isImage,
+      ocrScore: isImage ? ocrQualityScore(rawText) : null,
       rawTextPreview: rawText.slice(0, 4000),
       parsed,
     });

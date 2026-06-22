@@ -1,6 +1,7 @@
 /** Heuristic parse of Motowarsztat kosztorys / workshop PDF text → CRM work order draft */
 
 import { reflowImportOcrText } from "@/lib/import-ocr-reflow";
+import { normalizeImportDraftPrices } from "@/lib/import-draft-validate";
 
 export type ImportServiceDraft = {
   name: string;
@@ -98,6 +99,19 @@ function parsePlMoney(raw: string): number {
   return Number.isFinite(n) ? Math.round(n * 100) / 100 : 0;
 }
 
+/** Kosztorys columns (Cena brutto + Koszt brutto) are both sell — last column is line total. */
+function kosztorysSellFromPrices(prices: number[]): number {
+  if (!prices.length) return 0;
+  return prices[prices.length - 1]!;
+}
+
+function extractQtyBeforeUnit(line: string): number {
+  const m = line.match(/\b(\d+(?:[.,]\d+)?)\s+(?:oper|szt\.?|aper|apt|jm\.?)\b/i);
+  if (!m) return 1;
+  const q = parsePlMoney(m[1]);
+  return q > 0 ? q : 1;
+}
+
 function normalizeText(text: string): string {
   return text.replace(/\r/g, "\n").replace(/\u00a0/g, " ");
 }
@@ -127,7 +141,7 @@ function sliceBlock(text: string, start: RegExp, end: RegExp): string {
 
 /** Legacy row without Lp. column (OCR / old exports). */
 const MW_TABLE_ROW_LEGACY =
-  /^(.+?)\s+(\d+(?:[.,]\d+)?)\s+(oper|szt\.?)\s+(\d[\d\s]*[.,]\d{2})\s*(?:zł|zl)?\s+(\d[\d\s]*[.,]\d{2})\s*(?:zł|zl)?\s*$/i;
+  /^(.+?)\s+(\d+(?:[.,]\d+)?)\s+(oper|szt\.?|aper|apt)\s+(\d[\d\s]*[.,]\d{2})\s*(?:zł|zl)?\s+(\d[\d\s]*[.,]\d{2})\s*(?:zł|zl)?\s*$/i;
 
 /** Motowarsztat table row: Lp Name qty oper|szt unitPrice lineTotal */
 const MW_TABLE_ROW =
@@ -142,7 +156,7 @@ const MW_TABLE_ROW_DISCOUNT =
 
 /** OCR misreads «szt» as «aper», «oper», column headers merge into rows. */
 const MW_TABLE_ROW_OCR =
-  /^\d+\s+(.+?)\s+(\d+(?:[.,]\d+)?)\s+(?:aper|szt\.?|oper|jm\.?)\s+(\d[\d\s]*[.,]\d{2})\s*(?:zł|zl)\s+(\d[\d\s]*[.,]\d{2})\s*(?:zł|zl)?\s*$/i;
+  /^\d+\s+(.+?)\s+(\d+(?:[.,]\d+)?)\s+(?:aper|szt\.?|oper|apt|jm\.?)\s+(\d[\d\s]*[.,]\d{2})\s*(?:zł|zl)\s+(\d[\d\s]*[.,]\d{2})\s*(?:zł|zl)?\s*$/i;
 
 function rowMatchesMotowarsztatTable(line: string): boolean {
   const n = normalizeTableLine(line);
@@ -432,10 +446,24 @@ function extractMotowarsztatLineItems(text: string): {
 
     if (section === "labor") {
       const row = tryMotowarsztatTableRow(combined, "labor");
-      if (row && "price" in row) services.push(row);
+      if (row && "price" in row) {
+        services.push(row);
+      } else {
+        const svc = tryServiceLine(combined);
+        if (svc) services.push(svc);
+      }
     } else {
       const row = tryMotowarsztatTableRow(combined, "parts");
-      if (row && "sellPrice" in row) parts.push(row);
+      if (row && "sellPrice" in row) {
+        parts.push(row);
+      } else {
+        const dual = tryPartFromDualPrice(combined);
+        if (dual) parts.push(dual);
+        else {
+          const single = tryPartSinglePrice(combined);
+          if (single) parts.push(single);
+        }
+      }
     }
   }
 
@@ -459,7 +487,7 @@ function parseMotowarsztatKosztorys(text: string): ImportWorkOrderDraft {
 
   if (services.length === 0) warnings.push("no_services_detected");
   if (parts.length === 0) warnings.push("no_parts_detected");
-  if (parts.some((p) => p.purchasePrice <= 0)) warnings.push("missing_purchase_price");
+  if (parts.some((p) => p.purchasePrice <= 0)) warnings.push("purchase_via_screenshot");
   if (!meta.phone && !meta.clientName) warnings.push("no_client_detected");
   if (!meta.plate && !meta.vin) warnings.push("no_vehicle_detected");
 
@@ -500,11 +528,12 @@ function tryServiceLine(line: string): ImportServiceDraft | null {
   if (trimmed.length < 4 || SKIP_LINE.test(trimmed) || SUMMARY_LINE.test(trimmed)) {
     return null;
   }
+  if (/udzielono\s+rabatu/i.test(trimmed)) return null;
 
   const prices = [...trimmed.matchAll(/(\d[\d\s]*[.,]\d{2})\s*(?:zł|pln)?/gi)].map((m) =>
     parsePlMoney(m[1])
   );
-  if (prices.length !== 1) return null;
+  if (prices.length === 0) return null;
 
   let name = trimmed;
   for (const m of trimmed.matchAll(/(\d[\d\s]*[.,]\d{2})\s*(?:zł|pln)?/gi)) {
@@ -513,12 +542,15 @@ function tryServiceLine(line: string): ImportServiceDraft | null {
   name = name.replace(/\s+/g, " ").trim();
   if (name.length < 2 || /^\d+$/.test(name) || SUMMARY_LINE.test(name)) return null;
 
-  return { name: name.slice(0, 200), qty: 1, price: prices[0] };
+  const qty = extractQtyBeforeUnit(trimmed);
+  const sell = kosztorysSellFromPrices(prices);
+  return { name: name.slice(0, 200), qty, price: sell };
 }
 
 function tryPartFromDualPrice(line: string): ImportPartDraft | null {
   const trimmed = line.trim();
   if (trimmed.length < 6 || SKIP_LINE.test(trimmed) || SUMMARY_LINE.test(trimmed)) return null;
+  if (/udzielono\s+rabatu/i.test(trimmed)) return null;
 
   const prices = [...trimmed.matchAll(/(\d[\d\s]*[.,]\d{2})\s*(?:zł|pln)?/gi)].map((m) =>
     parsePlMoney(m[1])
@@ -532,11 +564,29 @@ function tryPartFromDualPrice(line: string): ImportPartDraft | null {
   name = name.replace(/\s+/g, " ").trim();
   if (name.length < 2) return null;
 
+  const qty = extractQtyBeforeUnit(trimmed);
+  const sell = kosztorysSellFromPrices(prices);
+
+  // Three+ money values on one line → likely CRM screenshot (purchase + sell + total)
+  if (prices.length >= 3) {
+    const sorted = [...prices].sort((a, b) => a - b);
+    const purchase = sorted[0]!;
+    const maxSell = sorted[sorted.length - 1]!;
+    if (purchase < maxSell * 0.98) {
+      return {
+        name: name.slice(0, 200),
+        qty,
+        purchasePrice: purchase,
+        sellPrice: maxSell,
+      };
+    }
+  }
+
   return {
     name: name.slice(0, 200),
-    qty: 1,
-    purchasePrice: Math.min(prices[0], prices[1]),
-    sellPrice: Math.max(prices[0], prices[1]),
+    qty,
+    purchasePrice: 0,
+    sellPrice: sell,
   };
 }
 
@@ -688,7 +738,7 @@ function parseGeneric(text: string): ImportWorkOrderDraft {
 
   if (services.length === 0) warnings.push("no_services_detected");
   if (parts.length === 0) warnings.push("no_parts_detected");
-  if (parts.some((p) => p.purchasePrice <= 0)) warnings.push("missing_purchase_price");
+  if (parts.some((p) => p.purchasePrice <= 0)) warnings.push("purchase_via_screenshot");
   if (!phone && !clientName) warnings.push("no_client_detected");
   if (!plate && !vin) warnings.push("no_vehicle_detected");
 
@@ -711,8 +761,8 @@ function parseGeneric(text: string): ImportWorkOrderDraft {
 
 export function parseWorkOrderImportText(text: string): ImportWorkOrderDraft {
   const normalized = reflowImportOcrText(normalizeText(text));
-  if (isMotowarsztatKosztorys(normalized)) {
-    return parseMotowarsztatKosztorys(normalized);
-  }
-  return parseGeneric(normalized);
+  const draft = isMotowarsztatKosztorys(normalized)
+    ? parseMotowarsztatKosztorys(normalized)
+    : parseGeneric(normalized);
+  return normalizeImportDraftPrices(draft);
 }
