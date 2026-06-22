@@ -43,12 +43,59 @@ const { cloudMutateCrmStore } = await import(
   "../src/lib/server/crm-cloud-mutate.ts"
 );
 
-async function main() {
-  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    console.error("Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY");
-    process.exit(1);
+const API_BASE = (process.env.CRM_API_BASE || "https://www.bess-motors.com").replace(
+  /\/$/,
+  ""
+);
+
+function hasSupabaseKeys() {
+  return Boolean(process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY);
+}
+
+async function staffLogin() {
+  const phone = process.env.ADMIN_PHONE?.trim();
+  const password = process.env.ADMIN_PASSWORD?.trim();
+  if (!phone || !password) {
+    throw new Error("Missing ADMIN_PHONE or ADMIN_PASSWORD in .env.local");
   }
 
+  const res = await fetch(`${API_BASE}/api/auth/staff-login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ phone, password }),
+  });
+  const data = await res.json();
+  if (!res.ok || !data.ok || !data.token) {
+    throw new Error(`staff login failed: ${data.error || res.status}`);
+  }
+  return data.token;
+}
+
+function applySnapshotsToDb(db) {
+  const results = [];
+
+  for (const snapshot of Object.values(KNOWN_CRM_SCREENSHOTS)) {
+    const order = findWorkOrderByNumber(db, snapshot.orderNumber);
+    if (!order) {
+      results.push({ order: snapshot.orderNumber, status: "not_found" });
+      continue;
+    }
+
+    const vatRate = db.settings.vatRate ?? 23;
+    const enrichResult = enrichWorkOrderFromScreenshot(order, snapshot, vatRate);
+    order.updatedAt = new Date().toISOString();
+    results.push({
+      order: snapshot.orderNumber,
+      status: "ok",
+      updates: enrichResult.updates ?? [],
+      warnings: enrichResult.warnings ?? [],
+    });
+  }
+
+  return results;
+}
+
+async function applyViaSupabase() {
   const results = [];
 
   for (const snapshot of Object.values(KNOWN_CRM_SCREENSHOTS)) {
@@ -75,6 +122,33 @@ async function main() {
     });
   }
 
+  return results;
+}
+
+async function applyViaProductionApi() {
+  const token = await staffLogin();
+
+  const batchRes = await fetch(`${API_BASE}/api/crm/work-orders/apply-known-screenshots`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  const batchText = await batchRes.text();
+  let batch;
+  try {
+    batch = JSON.parse(batchText);
+  } catch {
+    throw new Error(
+      `apply-known-screenshots failed (${batchRes.status}): ${batchText.slice(0, 200)}`
+    );
+  }
+  if (!batchRes.ok || !batch.ok) {
+    throw new Error(`apply-known-screenshots failed: ${batch.error || batchRes.status}`);
+  }
+
+  return batch.results ?? [];
+}
+
+function printResults(results) {
   for (const r of results) {
     console.log("\n", r.order, r.status);
     if (r.updates?.length) {
@@ -84,6 +158,14 @@ async function main() {
     }
     if (r.warnings?.length) console.log("  warnings:", r.warnings.join("; "));
   }
+}
+
+async function main() {
+  const results = hasSupabaseKeys()
+    ? await applyViaSupabase()
+    : await applyViaProductionApi();
+
+  printResults(results);
 }
 
 main().catch((e) => {
