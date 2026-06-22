@@ -1,11 +1,17 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Phone } from "lucide-react";
 import { createCallRequest } from "@/lib/booking-actions";
 import { normalizePhone } from "@/lib/auth";
 import { PhoneLink } from "@/components/analytics/PhoneLink";
 import { siteConfig } from "@/lib/site";
+import {
+  saveSubmissionSnapshot,
+  THANK_YOU_PATH,
+  type SubmissionSnapshot,
+} from "@/lib/submission-thank-you";
 
 export type CallbackRequestLabels = {
   title: string;
@@ -23,6 +29,13 @@ type Props = {
   serviceId?: string;
   serviceLabel?: string;
   className?: string;
+  redirectOnSuccess?: boolean;
+  snapshotExtras?: Partial<
+    Pick<
+      SubmissionSnapshot,
+      "clientFirstName" | "clientLastName" | "clientEmail" | "clientPlate" | "comment"
+    >
+  >;
 };
 
 export function CallbackRequestCta({
@@ -31,7 +44,10 @@ export function CallbackRequestCta({
   serviceId = "otherReason",
   serviceLabel,
   className = "",
+  redirectOnSuccess = true,
+  snapshotExtras,
 }: Props) {
+  const router = useRouter();
   const [phone, setPhone] = useState("");
   const [done, setDone] = useState(false);
   const [error, setError] = useState("");
@@ -44,15 +60,39 @@ export function CallbackRequestCta({
     setError("");
     const result = await createCallRequest({
       phone: p,
-      clientName: labels.title,
+      clientName:
+        [snapshotExtras?.clientFirstName, snapshotExtras?.clientLastName]
+          .filter(Boolean)
+          .join(" ")
+          .trim() || labels.title,
       serviceId,
       serviceLabel: serviceLabel ?? labels.title,
-      comment: labels.commentDefault,
+      comment: snapshotExtras?.comment ?? labels.commentDefault,
       source,
     });
     setSending(false);
-    if (result.ok) setDone(true);
-    else setError(labels.error);
+    if (!result.ok) {
+      setError(labels.error);
+      return;
+    }
+
+    saveSubmissionSnapshot({
+      kind: "call",
+      submittedAt: new Date().toISOString(),
+      clientPhone: p,
+      clientFirstName: snapshotExtras?.clientFirstName,
+      clientLastName: snapshotExtras?.clientLastName,
+      clientEmail: snapshotExtras?.clientEmail,
+      clientPlate: snapshotExtras?.clientPlate,
+      serviceLabel: serviceLabel ?? labels.title,
+      comment: snapshotExtras?.comment ?? labels.commentDefault,
+    });
+
+    if (redirectOnSuccess) {
+      router.push(THANK_YOU_PATH);
+      return;
+    }
+    setDone(true);
   };
 
   return (
@@ -90,5 +130,4 @@ export function CallbackRequestCta({
       {error ? <p className="text-xs text-red-400 mt-2">{error}</p> : null}
     </div>
   );
-
 }

@@ -49,8 +49,8 @@ import { BookingAvailability } from "@/components/booking/BookingAvailability";
 import { BookingVinLookup } from "@/components/booking/BookingVinLookup";
 import {
   parseBookingParamsFromSearch,
-  saveLastBooking,
 } from "@/lib/booking-url";
+import { saveSubmissionSnapshot, THANK_YOU_PATH } from "@/lib/submission-thank-you";
 import { getServicePackage } from "@/lib/service-packages";
 import { WaitTimeEstimator } from "@/components/booking/WaitTimeEstimator";
 import { useBookingAvailability } from "@/hooks/useBookingAvailability";
@@ -297,6 +297,7 @@ export function BookingQuoteFlow({ onDone }: Props) {
   const [clientFirstName, setClientFirstName] = useState("");
   const [clientLastName, setClientLastName] = useState("");
   const [clientPhone, setClientPhone] = useState("");
+  const [clientEmail, setClientEmail] = useState("");
   const [vehicleNote, setVehicleNote] = useState("");
   const [clientPlate, setClientPlate] = useState("");
   const [promoInput, setPromoInput] = useState("");
@@ -443,13 +444,25 @@ export function BookingQuoteFlow({ onDone }: Props) {
       .filter(Boolean)
       .join(" | ");
 
-    saveLastBooking({
+    saveSubmissionSnapshot({
+      kind: "booking",
+      submittedAt: new Date().toISOString(),
+      clientFirstName: clientFirstName.trim(),
+      clientLastName: clientLastName.trim(),
+      clientPhone: clientPhone.trim(),
+      clientEmail: clientEmail.trim() || undefined,
+      clientPlate: clientPlate.trim() || undefined,
       date: formatDateKey(date),
       time,
-      clientName: clientFullName,
-      estimatedTotal: total,
       serviceLabels: cart.map((l) => l.label).join(", "),
-      serviceIds: cart.map((l) => l.itemId),
+      cartLines: cart.map((l) => ({
+        label: l.label,
+        lineTotal: l.lineTotal,
+        priceFrom: l.priceFrom,
+        isFree: l.isFree,
+      })),
+      estimatedTotal: total,
+      comment: note.trim() || undefined,
     });
 
     setSubmitting(true);
@@ -482,7 +495,7 @@ export function BookingQuoteFlow({ onDone }: Props) {
         return;
       }
       onDone?.();
-      router.replace("/booking/thank-you");
+      router.replace(THANK_YOU_PATH);
     } finally {
       setSubmitting(false);
       submitLock.current = false;
@@ -846,6 +859,14 @@ export function BookingQuoteFlow({ onDone }: Props) {
                 value={clientPhone}
                 onChange={(e) => setClientPhone(e.target.value)}
                 autoComplete="tel"
+              />
+              <label className="text-[10px] uppercase text-bm-muted">{bq.emailOptional}</label>
+              <input
+                type="email"
+                className="input-premium w-full"
+                value={clientEmail}
+                onChange={(e) => setClientEmail(e.target.value)}
+                autoComplete="email"
               />
               <label className="text-[10px] uppercase text-bm-muted">
                 {t.cabinet.registrationPlate} (opcjonalnie)

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { ServiceIcon } from "@/components/icons/ServiceIcon";
 import { useI18n } from "@/lib/i18n/context";
@@ -14,14 +15,15 @@ import { useMetaViewContent } from "@/hooks/useMetaViewContent";
 import { CallbackRequestCta } from "@/components/callback/CallbackRequestCta";
 import { createCallRequest } from "@/lib/booking-actions";
 import { normalizePhone } from "@/lib/auth";
+import { saveSubmissionSnapshot, THANK_YOU_PATH } from "@/lib/submission-thank-you";
 
 export default function ServicesPage() {
+  const router = useRouter();
   const { t } = useI18n();
   const s = t.services;
   useMetaViewContent("Services Page");
   const [problem, setProblem] = useState("");
   const [phone, setPhone] = useState("");
-  const [submitted, setSubmitted] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [sending, setSending] = useState(false);
   const [bookingService, setBookingService] = useState<ServiceId | null>(null);
@@ -41,8 +43,18 @@ export default function ServicesPage() {
       source: "services_custom_request",
     });
     setSending(false);
-    if (result.ok) setSubmitted(true);
-    else setSubmitError(s.requestError);
+    if (!result.ok) {
+      setSubmitError(s.requestError);
+      return;
+    }
+    saveSubmissionSnapshot({
+      kind: "call",
+      submittedAt: new Date().toISOString(),
+      clientPhone: p,
+      serviceLabel: s.customRequest,
+      comment: problem.trim() || s.callback.commentDefault,
+    });
+    router.push(THANK_YOU_PATH);
   };
 
   return (
@@ -112,10 +124,7 @@ export default function ServicesPage() {
               <h2 className="font-display text-xl uppercase text-bm-red mb-6">
                 {s.customRequest}
               </h2>
-              {submitted ? (
-                <p className="text-center text-bm-red font-semibold py-8">{s.requestDone}</p>
-              ) : (
-                <form onSubmit={submitCustomRequest} className="space-y-4">
+              <form onSubmit={submitCustomRequest} className="space-y-4">
                   <input
                     type="tel"
                     className="input-premium"
@@ -139,7 +148,6 @@ export default function ServicesPage() {
                     <p className="text-xs text-red-400 text-center">{submitError}</p>
                   ) : null}
                 </form>
-              )}
             </Card>
           </section>
         </div>

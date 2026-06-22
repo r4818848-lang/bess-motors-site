@@ -2,8 +2,9 @@
 
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Phone, ArrowRight, ChevronLeft, Check, List, ExternalLink } from "lucide-react";
+import { X, Phone, ArrowRight, ChevronLeft, List, ExternalLink } from "lucide-react";
 import { BookingStepBack } from "@/components/booking/BookingStepBack";
 import { useI18n } from "@/lib/i18n/context";
 import { contentLocale } from "@/lib/i18n/locale-utils";
@@ -18,6 +19,7 @@ import { Button } from "@/components/ui/Button";
 import { BookingTotalSummary } from "@/components/booking/BookingTotalSummary";
 import { trackLead } from "@/lib/gtag";
 import { useBookingAvailability } from "@/hooks/useBookingAvailability";
+import { saveSubmissionSnapshot, THANK_YOU_PATH } from "@/lib/submission-thank-you";
 import {
   buildCartLine,
   cartSubtotal,
@@ -36,7 +38,7 @@ import {
 } from "@/lib/service-price-map";
 import { serviceLandingHref } from "@/lib/service-slug-map";
 
-type Phase = "manager" | "flow" | "date" | "time" | "problem" | "contact" | "done";
+type Phase = "manager" | "flow" | "date" | "time" | "problem" | "contact";
 type SubmitMode = "call" | "booking";
 
 const WORKSHOP_PHONE = "+48 791 257 229";
@@ -89,6 +91,7 @@ interface Props {
 }
 
 export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
+  const router = useRouter();
   const { t, locale } = useI18n();
   const bf = t.bookingFlow;
   const bq = t.bookingQuote;
@@ -111,11 +114,10 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
   const [clientFirstName, setClientFirstName] = useState("");
   const [clientLastName, setClientLastName] = useState("");
   const [clientPhone, setClientPhone] = useState("");
+  const [clientEmail, setClientEmail] = useState("");
   const [clientPlate, setClientPlate] = useState("");
-  const [doneKind, setDoneKind] = useState<"call" | "booking">("booking");
   const [submitError, setSubmitError] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [syncPending, setSyncPending] = useState(false);
   const submitLock = useRef(false);
   const { isSlotAvailable, loading: slotsLoading, availabilityError } = useBookingAvailability();
 
@@ -317,10 +319,21 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
         setSubmitError(withPhone(bq.callFailed));
         return;
       }
+      saveSubmissionSnapshot({
+        kind: "call",
+        submittedAt: new Date().toISOString(),
+        clientFirstName: clientFirstName.trim(),
+        clientLastName: clientLastName.trim(),
+        clientPhone: clientPhone.trim(),
+        clientEmail: clientEmail.trim() || undefined,
+        clientPlate: clientPlate.trim() || undefined,
+        serviceLabel,
+        comment: problem.trim() || undefined,
+      });
       trackLead("call_request", { source: "smart_booking_modal", serviceId });
-      setDoneKind("call");
-      setPhase("done");
       onSuccess?.("call");
+      onClose();
+      router.push(THANK_YOU_PATH);
     } finally {
       setSubmitting(false);
       submitLock.current = false;
@@ -387,11 +400,32 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
         }
         return;
       }
+      saveSubmissionSnapshot({
+        kind: "booking",
+        submittedAt: new Date().toISOString(),
+        clientFirstName: clientFirstName.trim(),
+        clientLastName: clientLastName.trim(),
+        clientPhone: clientPhone.trim(),
+        clientEmail: clientEmail.trim() || undefined,
+        clientPlate: clientPlate.trim() || undefined,
+        date: dateStr,
+        time,
+        serviceLabels: cart.length
+          ? cart.map((l) => l.label).join(", ")
+          : serviceLabel,
+        cartLines: cart.map((l) => ({
+          label: l.label,
+          lineTotal: l.lineTotal,
+          priceFrom: l.priceFrom,
+          isFree: l.isFree,
+        })),
+        estimatedTotal: total,
+        comment: problem.trim() || undefined,
+      });
       trackLead("booking", { source: "smart_booking_modal", serviceId });
-      setSyncPending(false);
-      setDoneKind("booking");
-      setPhase("done");
       onSuccess?.("booking");
+      onClose();
+      router.push(THANK_YOU_PATH);
     } finally {
       setSubmitting(false);
       submitLock.current = false;
@@ -541,7 +575,7 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
   };
 
   const runningTotalBar =
-    cart.length > 0 && phase !== "done" && phase !== "manager" ? (
+    cart.length > 0 && phase !== "manager" ? (
       <div className="rounded-lg border border-bm-red/30 bg-bm-red/10 px-3 py-2 flex justify-between items-center text-sm">
         <span className="text-bm-muted uppercase text-[10px] tracking-wide">
           {bq.total}
@@ -580,6 +614,16 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
           value={clientPhone}
           onChange={(e) => setClientPhone(e.target.value)}
           autoComplete="tel"
+        />
+      </div>
+      <div>
+        <label className="text-[10px] uppercase text-bm-muted tracking-wide">{bq.emailOptional}</label>
+        <input
+          type="email"
+          className="input-premium w-full mt-1"
+          value={clientEmail}
+          onChange={(e) => setClientEmail(e.target.value)}
+          autoComplete="email"
         />
       </div>
       <div>
@@ -632,7 +676,7 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
           {bq.hourlyNote} {HOURLY_RATE_PLN} zł/h
         </p>
 
-        {phase !== "manager" && phase !== "done" && (
+        {phase !== "manager" && (
           <BookingStepBack label={bq.back} onClick={goBack} className="mt-1" />
         )}
 
@@ -836,26 +880,6 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
                       : bq.submit}
                 </Button>
               </div>
-            </motion.div>
-          )}
-
-          {phase === "done" && (
-            <motion.div key="done" className="text-center py-8 space-y-4">
-              <Check className="w-14 h-14 text-bm-red mx-auto" />
-              <p className="font-display text-xl uppercase text-glow">
-                {doneKind === "call" ? bf.callSuccess : t.booking.success}
-              </p>
-              {syncPending && doneKind === "booking" && (
-                <p className="text-sm text-amber-400">{t.thankYou.syncPending}</p>
-              )}
-              {cart.length > 0 && (
-                <p className="text-sm text-bm-muted">
-                  {bq.grandTotal}: <span className="text-bm-red font-mono">{formatPln(total)}</span>
-                </p>
-              )}
-              <Button variant="outline" className="w-full" onClick={onClose}>
-                OK
-              </Button>
             </motion.div>
           )}
         </AnimatePresence>

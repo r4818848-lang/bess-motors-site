@@ -6,17 +6,17 @@ import Link from "next/link";
 import { CalendarPlus, QrCode, Share2, Send } from "lucide-react";
 import QRCode from "qrcode";
 import { useI18n } from "@/lib/i18n/context";
-import { loadLastBooking } from "@/lib/booking-url";
+import { loadSubmissionSnapshot, type SubmissionSnapshot } from "@/lib/submission-thank-you";
 import { buildBookingIcs, downloadIcsFile } from "@/lib/ics-calendar";
 import { siteConfig } from "@/lib/site";
 import { getSiteUrl } from "@/lib/seo";
 import { telegramBotUrl } from "@/lib/telegram-links";
 
-export function ThankYouExtras() {
+export function ThankYouExtras({ snapshot: snapshotProp }: { snapshot?: SubmissionSnapshot | null }) {
   const { t } = useI18n();
   const e = t.thankYouExtras;
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
-  const booking = loadLastBooking();
+  const booking = snapshotProp ?? loadSubmissionSnapshot();
 
   const tgLink = telegramBotUrl("rebook");
 
@@ -56,7 +56,7 @@ export function ThankYouExtras() {
         </Link>
       </p>
 
-      {booking?.date && booking?.time && (
+      {booking?.kind === "booking" && booking?.date && booking?.time && (
         <>
           <button
             type="button"

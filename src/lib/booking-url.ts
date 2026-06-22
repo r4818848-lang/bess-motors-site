@@ -2,6 +2,8 @@ import { getPriceItem } from "@/lib/price-list";
 import type { ServiceId } from "@/lib/services-catalog";
 import { getServicePackage } from "@/lib/service-packages";
 import { serviceBasePriceId } from "@/lib/service-price-map";
+import type { SubmissionSnapshot } from "@/lib/submission-thank-you";
+import { saveSubmissionSnapshot } from "@/lib/submission-thank-you";
 
 export type BookingUrlParams = {
   items: string[];
@@ -53,32 +55,27 @@ export function buildBookingUrl(itemIds: string[], base = "/booking"): string {
 
 export const LAST_BOOKING_STORAGE_KEY = "bess-last-booking";
 
-export type LastBookingSnapshot = {
-  date: string;
-  time: string;
-  clientName: string;
-  estimatedTotal?: number;
-  serviceLabels?: string;
-  serviceIds?: string[];
-  appointmentId?: string;
-};
+/** @deprecated Use SubmissionSnapshot from submission-thank-you */
+export type LastBookingSnapshot = Pick<
+  SubmissionSnapshot,
+  "date" | "time" | "clientFirstName" | "clientLastName" | "clientPhone" | "estimatedTotal" | "serviceLabels"
+> & { clientName?: string };
 
 export function saveLastBooking(snapshot: LastBookingSnapshot): void {
-  if (typeof window === "undefined") return;
-  try {
-    sessionStorage.setItem(LAST_BOOKING_STORAGE_KEY, JSON.stringify(snapshot));
-  } catch {
-    /* ignore */
-  }
+  const nameParts = snapshot.clientName?.trim().split(/\s+/) ?? [];
+  saveSubmissionSnapshot({
+    kind: "booking",
+    submittedAt: new Date().toISOString(),
+    clientFirstName: snapshot.clientFirstName ?? nameParts[0],
+    clientLastName: snapshot.clientLastName ?? nameParts.slice(1).join(" "),
+    clientPhone: snapshot.clientPhone ?? "",
+    date: snapshot.date,
+    time: snapshot.time,
+    estimatedTotal: snapshot.estimatedTotal,
+    serviceLabels: snapshot.serviceLabels,
+  });
 }
 
 export function loadLastBooking(): LastBookingSnapshot | null {
-  if (typeof window === "undefined") return null;
-  try {
-    const raw = sessionStorage.getItem(LAST_BOOKING_STORAGE_KEY);
-    if (!raw) return null;
-    return JSON.parse(raw) as LastBookingSnapshot;
-  } catch {
-    return null;
-  }
+  return null;
 }

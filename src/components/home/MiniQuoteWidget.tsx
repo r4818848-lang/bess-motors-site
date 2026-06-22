@@ -1,16 +1,18 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useI18n } from "@/lib/i18n/context";
 import { createCallRequest } from "@/lib/booking-actions";
 import { normalizePhone } from "@/lib/auth";
+import { saveSubmissionSnapshot, THANK_YOU_PATH } from "@/lib/submission-thank-you";
 
 export function MiniQuoteWidget() {
+  const router = useRouter();
   const { t } = useI18n();
   const mq = t.homeMiniQuote;
   const [phone, setPhone] = useState("");
   const [comment, setComment] = useState("");
-  const [done, setDone] = useState(false);
   const [error, setError] = useState("");
   const [sending, setSending] = useState(false);
 
@@ -28,13 +30,19 @@ export function MiniQuoteWidget() {
       source: "mini_quote",
     });
     setSending(false);
-    if (result.ok) setDone(true);
-    else setError(t.bookingQuote.callFailed.replace("{phone}", "+48 791 257 229"));
+    if (!result.ok) {
+      setError(t.bookingQuote.callFailed.replace("{phone}", "+48 791 257 229"));
+      return;
+    }
+    saveSubmissionSnapshot({
+      kind: "call",
+      submittedAt: new Date().toISOString(),
+      clientPhone: p,
+      serviceLabel: mq.title,
+      comment,
+    });
+    router.push(THANK_YOU_PATH);
   };
-
-  if (done) {
-    return <p className="text-sm text-bm-red text-center py-4">{mq.done}</p>;
-  }
 
   return (
     <div className="glass rounded-xl p-5 max-w-md mx-auto mt-8">
