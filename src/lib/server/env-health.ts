@@ -18,7 +18,8 @@ export type EnvCheckId =
   | "cron"
   | "site_url"
   | "jwt_secret"
-  | "admin_env";
+  | "admin_env"
+  | "google_places";
 
 export type EnvCheck = {
   id: EnvCheckId;
@@ -105,6 +106,14 @@ export function getEnvHealth(): { ok: boolean; checks: EnvCheck[] } {
           cleanEnvValue(process.env.ADMIN_PASSWORD)
       ),
       hint: "ADMIN_PHONE + ADMIN_PASSWORD (staff login via /api/auth/staff-login)",
+    },
+    {
+      id: "google_places",
+      ok: Boolean(
+        cleanEnvValue(process.env.GOOGLE_PLACES_API_KEY) ||
+          cleanEnvValue(process.env.GOOGLE_MAPS_API_KEY)
+      ),
+      hint: "GOOGLE_PLACES_API_KEY + Places API (New) enabled — live Google reviews on site",
     },
   ];
 

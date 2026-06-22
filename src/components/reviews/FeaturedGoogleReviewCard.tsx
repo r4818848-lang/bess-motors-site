@@ -70,7 +70,7 @@ export function FeaturedGoogleReviewCard({
 
       {review.text ? (
         <p
-          className={`text-bm-silver flex-1 ${compact ? "text-sm line-clamp-5" : "text-sm leading-relaxed"}`}
+          className={`text-bm-silver flex-1 ${compact ? "text-sm line-clamp-5" : "text-sm leading-relaxed line-clamp-8"}`}
         >
           “{review.text}”
         </p>

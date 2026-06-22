@@ -54,37 +54,81 @@ export default function GalleryPage() {
               {g.repairsTitle}
             </h2>
             <GalleryBeforeAfter items={items} />
-          </>
-        )}
 
-        {!loading && items.length > 0 && (
-          <div className="mt-8 flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => setMakeFilter("all")}
-              className={`px-3 py-1.5 rounded-full text-xs font-bold uppercase border ${
-                makeFilter === "all"
-                  ? "bg-bm-red/20 border-bm-red text-bm-red"
-                  : "border-bm-border text-bm-muted"
-              }`}
-            >
-              All
-            </button>
-            {[...new Set(items.map((i) => i.make).filter(Boolean))].map((make) => (
+            <div className="mt-8 flex flex-wrap gap-2">
               <button
-                key={make}
                 type="button"
-                onClick={() => setMakeFilter(make!)}
+                onClick={() => setMakeFilter("all")}
                 className={`px-3 py-1.5 rounded-full text-xs font-bold uppercase border ${
-                  makeFilter === make
+                  makeFilter === "all"
                     ? "bg-bm-red/20 border-bm-red text-bm-red"
                     : "border-bm-border text-bm-muted"
                 }`}
               >
-                {make}
+                All
               </button>
-            ))}
-          </div>
+              {[...new Set(items.map((i) => i.make).filter(Boolean))].map((make) => (
+                <button
+                  key={make}
+                  type="button"
+                  onClick={() => setMakeFilter(make!)}
+                  className={`px-3 py-1.5 rounded-full text-xs font-bold uppercase border ${
+                    makeFilter === make
+                      ? "bg-bm-red/20 border-bm-red text-bm-red"
+                      : "border-bm-border text-bm-muted"
+                  }`}
+                >
+                  {make}
+                </button>
+              ))}
+            </div>
+
+            <div className="mt-12 grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {items
+                .filter((item) => makeFilter === "all" || item.make === makeFilter)
+                .map((item, i) => (
+                  <motion.article
+                    key={item.id}
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.05 }}
+                    className="rounded-2xl overflow-hidden border border-bm-border/60 bg-bm-card/50"
+                  >
+                    <h2 className="px-4 py-3 font-display text-sm uppercase text-bm-red border-b border-bm-border/40">
+                      {item.title}
+                    </h2>
+                    <div className="grid grid-cols-2 gap-0.5 bg-bm-border/30">
+                      {item.beforeUrl && (
+                        <div className="relative aspect-[4/3]">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={item.beforeUrl}
+                            alt={`${item.title} — ${g.before}`}
+                            className="object-cover w-full h-full"
+                          />
+                          <span className="absolute top-2 left-2 text-[10px] uppercase bg-black/70 px-2 py-0.5 rounded">
+                            {g.before}
+                          </span>
+                        </div>
+                      )}
+                      {item.afterUrl && (
+                        <div className="relative aspect-[4/3]">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={item.afterUrl}
+                            alt={`${item.title} — ${g.after}`}
+                            className="object-cover w-full h-full"
+                          />
+                          <span className="absolute top-2 left-2 text-[10px] uppercase bg-bm-red/90 px-2 py-0.5 rounded">
+                            {g.after}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </motion.article>
+                ))}
+            </div>
+          </>
         )}
 
         {!loading && items.length === 0 && (
@@ -96,52 +140,6 @@ export default function GalleryPage() {
             </Link>
           </div>
         )}
-
-        <div className="mt-12 grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {items
-            .filter((item) => makeFilter === "all" || item.make === makeFilter)
-            .map((item, i) => (
-            <motion.article
-              key={item.id}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05 }}
-              className="rounded-2xl overflow-hidden border border-bm-border/60 bg-bm-card/50"
-            >
-              <h2 className="px-4 py-3 font-display text-sm uppercase text-bm-red border-b border-bm-border/40">
-                {item.title}
-              </h2>
-              <div className="grid grid-cols-2 gap-0.5 bg-bm-border/30">
-                {item.beforeUrl && (
-                  <div className="relative aspect-[4/3]">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={item.beforeUrl}
-                      alt={`${item.title} — ${g.before}`}
-                      className="object-cover w-full h-full"
-                    />
-                    <span className="absolute top-2 left-2 text-[10px] uppercase bg-black/70 px-2 py-0.5 rounded">
-                      {g.before}
-                    </span>
-                  </div>
-                )}
-                {item.afterUrl && (
-                  <div className="relative aspect-[4/3]">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={item.afterUrl}
-                      alt={`${item.title} — ${g.after}`}
-                      className="object-cover w-full h-full"
-                    />
-                    <span className="absolute top-2 left-2 text-[10px] uppercase bg-bm-red/90 px-2 py-0.5 rounded">
-                      {g.after}
-                    </span>
-                  </div>
-                )}
-              </div>
-            </motion.article>
-          ))}
-        </div>
       </div>
     </div>
   );
