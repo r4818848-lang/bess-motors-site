@@ -483,7 +483,9 @@ export function ImportWorkOrderModal({ open, onClose, onCreated }: Props) {
                 <div className="overflow-x-auto border border-bm-border/40 rounded-lg">
                   <table className="w-full text-xs min-w-[480px]">
                     <thead>
-                      <ImportTableHeader cols={[c.name, c.qty, c.price]} />
+                      <ImportTableHeader
+                        cols={[c.name, c.qty, `${c.price} (${c.brutto})`]}
+                      />
                     </thead>
                     <tbody>
                       {draft.services.length === 0 && (
@@ -565,7 +567,12 @@ export function ImportWorkOrderModal({ open, onClose, onCreated }: Props) {
                   <table className="w-full text-xs min-w-[560px]">
                     <thead>
                       <ImportTableHeader
-                        cols={[c.name, c.qty, c.purchasePrice, c.sellPrice]}
+                        cols={[
+                          c.name,
+                          c.qty,
+                          `${c.purchasePrice} (${c.brutto})`,
+                          `${c.sellPrice} (${c.brutto})`,
+                        ]}
                       />
                     </thead>
                     <tbody>

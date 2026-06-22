@@ -23,6 +23,10 @@ import { useI18n } from "@/lib/i18n/context";
 import type { WorkOrder, Vehicle, User } from "@/lib/store";
 import { siteConfig } from "@/lib/site";
 import {
+  calcGrossPartLine,
+  calcGrossPartsSubtotal,
+  calcGrossServiceLine,
+  calcGrossServicesSubtotal,
   calcOrderBreakdown,
   calcServiceLine,
   calcPartLine,
@@ -108,6 +112,13 @@ export function PremiumWorkOrderDocument({
   const footer = getFormFooterContent(docLocale);
   const legal = getWorkOrderLegalTexts(docLocale);
   const b = calcOrderBreakdown(order, vatRate);
+  const grossServicesSub = calcGrossServicesSubtotal(order, vatRate);
+  const grossPartsSub = calcGrossPartsSubtotal(order, vatRate);
+  const grossSubtotal = grossServicesSub + grossPartsSub;
+  const grossDiscount =
+    order.orderDiscount > 0
+      ? Math.round(grossSubtotal * (order.orderDiscount / 100) * 100) / 100
+      : 0;
   const signatureMode = resolveSignatureMode(order);
   const isBw = variant === "bw";
   const rootClass = isBw ? "wo-form-root wo-form-bw" : "wo-form-root wo-form-color";
@@ -122,7 +133,9 @@ export function PremiumWorkOrderDocument({
       key: s.id,
       num: i + 1,
       name: s.name,
-      total: calcServiceLine(s),
+      total: order.vatEnabled
+        ? calcGrossServiceLine(s, vatRate)
+        : calcServiceLine(s),
     }));
 
   const partLines = order.parts
@@ -131,7 +144,7 @@ export function PremiumWorkOrderDocument({
       key: p.id,
       name: p.name,
       qty: p.qty,
-      total: calcPartLine(p),
+      total: order.vatEnabled ? calcGrossPartLine(p, vatRate) : calcPartLine(p),
     }));
 
   const notesText = order.clientNotes || "";
@@ -315,17 +328,21 @@ export function PremiumWorkOrderDocument({
             <tbody>
               <tr>
                 <td>{L.worksCost}</td>
-                <td className="font-mono text-right">{b.servicesSub.toFixed(2)}</td>
+                <td className="font-mono text-right">
+                  {(order.vatEnabled ? grossServicesSub : b.servicesSub).toFixed(2)}
+                </td>
               </tr>
               <tr>
                 <td>{L.partsCost}</td>
-                <td className="font-mono text-right">{b.partsSub.toFixed(2)}</td>
+                <td className="font-mono text-right">
+                  {(order.vatEnabled ? grossPartsSub : b.partsSub).toFixed(2)}
+                </td>
               </tr>
               {b.discount > 0 && (
                 <tr>
                   <td>{L.orderDiscount}</td>
                   <td className="font-mono text-right" style={{ color: "var(--wo-accent)" }}>
-                    -{b.discount.toFixed(2)}
+                    -{(order.vatEnabled ? grossDiscount : b.discount).toFixed(2)}
                   </td>
                 </tr>
               )}

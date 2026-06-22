@@ -1,5 +1,6 @@
 import { normalizePhone, normalizePlateKey } from "@/lib/auth";
 import { createCrmClientWithVehicle } from "@/lib/crm-create-client";
+import { storeUnitPriceFromDisplay } from "@/lib/crm-display-price";
 import type { ImportWorkOrderDraft } from "@/lib/motowarsztat-import-parser";
 import { generateOrderNumber } from "@/lib/workorder-calc";
 import { applyWorkOrderCompletedAt } from "@/lib/work-order-dates";
@@ -39,7 +40,9 @@ function findVehicleForPlate(db: Database, userId: string, plate: string) {
 
 function mapImportServices(
   draft: ImportWorkOrderDraft,
-  defaultMechanicId: string
+  defaultMechanicId: string,
+  vatRate: number,
+  vatEnabled: boolean
 ): WorkOrderLine[] {
   const ts = Date.now();
   return draft.services
@@ -48,13 +51,22 @@ function mapImportServices(
       id: `s-imp-${ts}-${i}`,
       name: s.name.trim(),
       qty: s.qty > 0 ? s.qty : 1,
-      price: Math.max(0, s.price),
+      price: storeUnitPriceFromDisplay(
+        Math.max(0, s.price),
+        "gross",
+        vatRate,
+        vatEnabled
+      ),
       discount: 0,
       mechanicId: defaultMechanicId || undefined,
     }));
 }
 
-function mapImportParts(draft: ImportWorkOrderDraft): PartLine[] {
+function mapImportParts(
+  draft: ImportWorkOrderDraft,
+  vatRate: number,
+  vatEnabled: boolean
+): PartLine[] {
   const ts = Date.now();
   return draft.parts
     .filter((p) => p.name.trim())
@@ -64,8 +76,18 @@ function mapImportParts(draft: ImportWorkOrderDraft): PartLine[] {
       partNumber: p.partNumber ?? "",
       supplier: "",
       qty: p.qty > 0 ? p.qty : 1,
-      purchasePrice: Math.max(0, p.purchasePrice),
-      sellPrice: Math.max(0, p.sellPrice),
+      purchasePrice: storeUnitPriceFromDisplay(
+        Math.max(0, p.purchasePrice),
+        "gross",
+        vatRate,
+        vatEnabled
+      ),
+      sellPrice: storeUnitPriceFromDisplay(
+        Math.max(0, p.sellPrice),
+        "gross",
+        vatRate,
+        vatEnabled
+      ),
       discount: 0,
     }));
 }
@@ -163,6 +185,9 @@ export async function createWorkOrderFromImport(
     parseOrderDateFromNumber(input.orderNumber) ??
     new Date().toISOString().slice(0, 10);
 
+  const vatEnabled = db.settings.vatEnabledByDefault ?? true;
+  const vatRate = db.settings.vatRate ?? 23;
+
   const order: WorkOrder = applyWorkOrderCompletedAt(
     applyWorkOrderClosure({
     id: `wo-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
@@ -170,8 +195,13 @@ export async function createWorkOrderFromImport(
     userId,
     vehicleId,
     status: "delivered",
-    services: mapImportServices(input, db.mechanics[0]?.id ?? ""),
-    parts: mapImportParts(input),
+    services: mapImportServices(
+      input,
+      db.mechanics[0]?.id ?? "",
+      vatRate,
+      vatEnabled
+    ),
+    parts: mapImportParts(input, vatRate, vatEnabled),
     mechanicId: db.mechanics[0]?.id ?? "",
     mechanicLaborPercent: -1,
     mechanicPartsPercent: -1,
@@ -183,7 +213,7 @@ export async function createWorkOrderFromImport(
     updatedAt: `${orderDate}T12:00:00.000Z`,
     confirmationStatus: "confirmed",
     documentStatus: "delivered",
-    vatEnabled: db.settings.vatEnabledByDefault ?? true,
+    vatEnabled,
     paymentStatus: "paid",
     signatureMode: "electronic",
     receptionChecklist: {},

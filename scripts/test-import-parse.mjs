@@ -1,5 +1,6 @@
 import { readFileSync } from "fs";
 import { parseWorkOrderImportText } from "../src/lib/motowarsztat-import-parser.ts";
+import { storeUnitPriceFromDisplay } from "../src/lib/crm-display-price.ts";
 
 const sample = `BESSMOTORS SPÓŁKA Z OGRANICZONĄ ODPOWIEDZIALNOŚCIĄ
 ZL 1/06/2026
@@ -71,6 +72,10 @@ assert(disc.services.length === 2, "discount services count");
 assert(disc.services[0].price === 360, "discount service price");
 assert(!disc.services.some((s) => /rabatu/i.test(s.name)), "no discount summary as service");
 console.log("discount sample: OK");
+
+const stored250 = storeUnitPriceFromDisplay(250, "gross", 23, true);
+console.assert(Math.abs(stored250 - 203.25) < 0.02, "250 brutto stores as net");
+console.log("brutto storage sample: OK");
 
 const imgPath =
   process.argv[2] ||

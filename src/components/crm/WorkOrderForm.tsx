@@ -1048,8 +1048,22 @@ export function WorkOrderForm({
                   <td>
                     <PriceNumberInput
                       className="input-premium text-sm py-1 w-18"
-                      value={line.purchasePrice}
-                      onChange={(purchasePrice) => updatePart(i, { purchasePrice })}
+                      value={displayUnitPrice(
+                        line.purchasePrice,
+                        priceMode,
+                        vatRate,
+                        vatEnabled
+                      )}
+                      onChange={(displayPrice) =>
+                        updatePart(i, {
+                          purchasePrice: storeUnitPriceFromDisplay(
+                            displayPrice,
+                            priceMode,
+                            vatRate,
+                            vatEnabled
+                          ),
+                        })
+                      }
                     />
                   </td>
                   <td>
