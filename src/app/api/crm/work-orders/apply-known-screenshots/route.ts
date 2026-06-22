@@ -4,6 +4,7 @@ import { KNOWN_CRM_SCREENSHOTS } from "@/lib/motowarsztat-crm-screenshot-parser"
 import {
   enrichWorkOrderFromScreenshot,
   findWorkOrderByNumber,
+  type EnrichWorkOrderResult,
 } from "@/lib/enrich-work-order-from-screenshot";
 import { cloudMutateCrmStore } from "@/lib/server/crm-cloud-mutate";
 
@@ -41,17 +42,17 @@ export async function POST(req: Request) {
   }> = [];
 
   for (const snapshot of Object.values(KNOWN_CRM_SCREENSHOTS)) {
-    let enrichResult: ReturnType<typeof enrichWorkOrderFromScreenshot> | null = null;
+    const applied: { result?: EnrichWorkOrderResult } = {};
     const put = await cloudMutateCrmStore((db) => {
       const order = findWorkOrderByNumber(db, snapshot.orderNumber);
       if (!order) return false;
       const vatRate = db.settings.vatRate ?? 23;
-      enrichResult = enrichWorkOrderFromScreenshot(order, snapshot, vatRate);
+      applied.result = enrichWorkOrderFromScreenshot(order, snapshot, vatRate);
       order.updatedAt = new Date().toISOString();
       return order.number;
     });
 
-    if (!put.ok || !enrichResult) {
+    if (!put.ok || !applied.result) {
       results.push({ order: snapshot.orderNumber, status: "not_found" });
       continue;
     }
@@ -59,8 +60,8 @@ export async function POST(req: Request) {
     results.push({
       order: snapshot.orderNumber,
       status: "ok",
-      updates: enrichResult.updates,
-      warnings: enrichResult.warnings,
+      updates: applied.result.updates,
+      warnings: applied.result.warnings,
     });
   }
 
