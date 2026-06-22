@@ -41,7 +41,8 @@ function buildPriceListHtml(locale: "pl" | "ru"): string {
     body += `<p style="font-size:9px;color:#888;margin:4px 0;">${isRu ? note.ru : note.pl}</p>`;
   }
 
-  return `<div style="font-family:Arial,Helvetica,sans-serif;background:#111;color:#fff;padding:24px;width:794px;">
+  return `<style>@import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700&subset=latin,latin-ext&display=swap');</style>
+  <div style="font-family:'Noto Sans','Segoe UI',Arial,sans-serif;background:#111;color:#fff;padding:24px;width:794px;">
     <h1 style="font-size:20px;margin:0 0 8px;color:#e10600;">${title}</h1>
     <p style="font-size:12px;margin:0 0 16px;color:#ccc;">${hourly}</p>
     ${body}
@@ -57,7 +58,11 @@ export async function downloadPriceListPdf(locale: "pl" | "ru"): Promise<void> {
   document.body.appendChild(container);
 
   try {
-    const canvas = await html2canvas(container.firstElementChild as HTMLElement, {
+    await document.fonts?.ready;
+    await new Promise((r) => setTimeout(r, 400));
+    const target = container.querySelector("div");
+    if (!target) return;
+    const canvas = await html2canvas(target, {
       scale: 2,
       backgroundColor: "#111111",
       useCORS: true,

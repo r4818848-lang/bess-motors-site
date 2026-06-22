@@ -5,6 +5,7 @@ import { Phone, Check } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { loadDb, saveDb, type CallRequest } from "@/lib/store";
 import { saveDbAndPushCrm } from "@/lib/cloud-crm-db";
+import { formatDisplayDateTime } from "@/lib/display-date";
 import { Button } from "@/components/ui/Button";
 
 export function CallRequestsPanel({ onUpdate }: { onUpdate?: () => void }) {
@@ -44,7 +45,7 @@ export function CallRequestsPanel({ onUpdate }: { onUpdate?: () => void }) {
               <p className="font-mono text-bm-red font-bold mt-1">{r.phone}</p>
               <p className="text-sm mt-1">{r.serviceLabel}</p>
               <p className="text-xs text-bm-muted mt-1">
-                {new Date(r.createdAt).toLocaleString()} · {c.callStatus[r.status]}
+                {formatDisplayDateTime(r.createdAt)} · {c.callStatus[r.status]}
               </p>
               {r.comment && (
                 <p className="text-xs text-bm-muted mt-2 italic">{r.comment}</p>

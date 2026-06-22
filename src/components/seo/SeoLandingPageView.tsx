@@ -79,7 +79,7 @@ export function SeoLandingPageView({ page }: Props) {
 
   return (
     <>
-      <div className="pt-28 pb-20 min-h-[70vh]">
+      <div className="pt-28 pb-28 min-h-[70vh]">
         <div className="mx-auto max-w-5xl px-4 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
@@ -183,9 +183,9 @@ export function SeoLandingPageView({ page }: Props) {
                 onBook={bookServiceId ? openBooking : undefined}
               />
               <ServiceLandingEducation serviceId={contentServiceId} slug={page.slug} />
-              <ServiceLandingPhotos serviceId={contentServiceId} slug={page.slug} />
               <SeoServiceFaq serviceId={contentServiceId} slug={page.slug} />
               <ServiceLandingReviews serviceId={contentServiceId} />
+              <ServiceLandingPhotos serviceId={contentServiceId} slug={page.slug} />
               <ServiceLandingMap slug={page.slug} />
               <SeoLandingRelatedLinks slug={page.slug} />
               <ServiceLandingBottomCta

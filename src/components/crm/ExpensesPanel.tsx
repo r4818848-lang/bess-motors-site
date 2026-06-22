@@ -7,6 +7,7 @@ import { loadDb, saveDb, type ServiceExpense, type ExpenseCategory } from "@/lib
 import { useDbSync } from "@/hooks/useDbSync";
 import { Button } from "@/components/ui/Button";
 import { saveDbAndPushCrm, saveDbAndPushCrmDelete } from "@/lib/cloud-crm-db";
+import { formatDisplayDateKey } from "@/lib/display-date";
 import { PriceNumberInput } from "@/components/ui/PriceNumberInput";
 
 const categories: ExpenseCategory[] = [
@@ -123,7 +124,7 @@ export function ExpensesPanel({ onUpdate }: { onUpdate: () => void }) {
           <tbody>
             {[...db.expenses].reverse().map((e) => (
               <tr key={e.id}>
-                <td>{e.date}</td>
+                <td>{formatDisplayDateKey(e.date)}</td>
                 <td>{w.expenseCategories[e.category]}</td>
                 <td>{e.description}</td>
                 <td className="font-mono text-red-400">-{e.amount.toFixed(2)} zł</td>

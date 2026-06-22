@@ -8,6 +8,7 @@ import type { PublicGalleryItem } from "@/app/api/gallery/route";
 import Link from "next/link";
 import { GalleryBeforeAfter } from "@/components/gallery/GalleryBeforeAfter";
 import { WorkshopPhotosGrid } from "@/components/gallery/WorkshopPhotosGrid";
+import { InstagramReelsSection } from "@/components/gallery/InstagramReelsSection";
 
 export default function GalleryPage() {
   const { t } = useI18n();
@@ -37,6 +38,10 @@ export default function GalleryPage() {
           <h2 className="font-display text-xl uppercase text-glow mb-2">{t.workshopGallery.title}</h2>
           <p className="text-sm text-bm-muted mb-6 max-w-2xl">{t.workshopGallery.subtitle}</p>
           <WorkshopPhotosGrid heroFirst />
+        </div>
+
+        <div className="mt-12">
+          <InstagramReelsSection showHeader />
         </div>
 
         {loading && (

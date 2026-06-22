@@ -7,6 +7,10 @@ import { Star, ExternalLink } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { contentLocale } from "@/lib/i18n/locale-utils";
 import { siteConfig } from "@/lib/site";
+import { FEATURED_GOOGLE_REVIEWS } from "@/lib/featured-google-reviews";
+import {
+  FeaturedGoogleReviewsGrid,
+} from "@/components/reviews/FeaturedGoogleReviewCard";
 import type { GooglePlaceReviewsPayload } from "@/lib/server/google-places-reviews";
 
 type Props = {
@@ -28,12 +32,12 @@ export function GoogleBusinessReviews({ variant = "default", className = "" }: P
       .catch(() => setData({ source: "unconfigured", reviews: [] }));
   }, [lang]);
 
-  const mapsUrl =
-    data?.googleMapsUri || siteConfig.googleMapsReviewsUrl;
+  const mapsUrl = data?.googleMapsUri || siteConfig.googleMapsReviewsUrl;
   const writeReviewUrl = siteConfig.googleWriteReviewUrl;
-  const hasGoogle = (data?.reviews.length ?? 0) > 0;
-  const rating = data?.rating ?? 0;
-  const count = data?.userRatingCount ?? 0;
+  const apiReviews = data?.reviews ?? [];
+  const hasApi = apiReviews.length > 0;
+  const rating = data?.rating ?? 5;
+  const count = data?.userRatingCount ?? FEATURED_GOOGLE_REVIEWS.length;
 
   const headingClass =
     variant === "compact"
@@ -41,10 +45,7 @@ export function GoogleBusinessReviews({ variant = "default", className = "" }: P
       : "font-display text-2xl uppercase text-glow";
 
   return (
-    <section
-      className={className}
-      aria-labelledby="google-reviews-heading"
-    >
+    <section className={className} aria-labelledby="google-reviews-heading">
       <div className={variant === "compact" ? "" : "mx-auto max-w-6xl px-4"}>
         <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
           <div>
@@ -52,13 +53,13 @@ export function GoogleBusinessReviews({ variant = "default", className = "" }: P
               {t.googleReviews.title}
             </h2>
             <p className="text-sm text-bm-muted mt-2 max-w-xl">
-              {hasGoogle && count > 0
+              {hasApi && count > 0
                 ? gr.subtitleGoogle
                     .replace("{rating}", rating.toFixed(1))
                     .replace("{count}", String(count))
-                : gr.subtitleHonest}
+                : gr.subtitleFeatured.replace("{count}", String(FEATURED_GOOGLE_REVIEWS.length))}
             </p>
-            {hasGoogle && data?.placeName ? (
+            {hasApi && data?.placeName ? (
               <p className="text-xs text-bm-muted/80 mt-1">{data.placeName}</p>
             ) : null}
           </div>
@@ -83,9 +84,9 @@ export function GoogleBusinessReviews({ variant = "default", className = "" }: P
           </div>
         </div>
 
-        {hasGoogle ? (
-          <div className="flex gap-4 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-thin">
-            {data!.reviews.map((r, i) => (
+        {hasApi ? (
+          <div className="flex gap-4 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-thin mb-8">
+            {apiReviews.map((r, i) => (
               <article
                 key={`${r.author}-${i}`}
                 className="glass rounded-xl p-5 border border-bm-border/40 min-w-[280px] max-w-[320px] snap-start shrink-0"
@@ -123,25 +124,16 @@ export function GoogleBusinessReviews({ variant = "default", className = "" }: P
                   ))}
                 </div>
                 <p className="text-sm text-bm-silver line-clamp-6">{r.text}</p>
-                <p className="text-[10px] text-bm-muted mt-3 uppercase tracking-wider">
-                  Google
-                </p>
+                <p className="text-[10px] text-bm-muted mt-3 uppercase tracking-wider">Google</p>
               </article>
             ))}
           </div>
-        ) : (
-          <div className="glass rounded-xl p-6 border border-bm-border/40 text-center max-w-lg">
-            <p className="text-sm text-bm-muted">{gr.fallback}</p>
-            <Link
-              href={writeReviewUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn-primary inline-flex items-center gap-2 mt-4 text-sm"
-            >
-              {gr.leaveReview}
-            </Link>
-          </div>
-        )}
+        ) : null}
+
+        <FeaturedGoogleReviewsGrid
+          reviews={FEATURED_GOOGLE_REVIEWS}
+          compact={variant === "compact"}
+        />
       </div>
     </section>
   );

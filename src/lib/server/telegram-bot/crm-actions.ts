@@ -12,6 +12,7 @@ import type {
   WorkOrder,
 } from "@/lib/store";
 import { calcClientTotal } from "@/lib/workorder-calc";
+import { parseFlexibleDateKey } from "@/lib/display-date";
 
 export async function loadCrmFromCloud(): Promise<Database | null> {
   const snap = await cloudGetCrmStore();
@@ -138,10 +139,16 @@ export function parseExpenseInput(
 
   let rest = match[2].trim();
   let date = new Date().toISOString().slice(0, 10);
-  const dateMatch = rest.match(/\s(\d{4}-\d{2}-\d{2})$/);
-  if (dateMatch) {
-    date = dateMatch[1];
-    rest = rest.slice(0, -dateMatch[0].length).trim();
+  const isoDateMatch = rest.match(/\s(\d{4}-\d{2}-\d{2})$/);
+  const euDateMatch = rest.match(/\s(\d{1,2}\.\d{1,2}\.\d{4})$/);
+  if (isoDateMatch) {
+    date = isoDateMatch[1];
+    rest = rest.slice(0, -isoDateMatch[0].length).trim();
+  } else if (euDateMatch) {
+    const parsed = parseFlexibleDateKey(euDateMatch[1]);
+    if (!parsed) return { ok: false };
+    date = parsed;
+    rest = rest.slice(0, -euDateMatch[0].length).trim();
   }
   if (!rest) return { ok: false };
 
@@ -152,7 +159,11 @@ export function parseExpenseInput(
 }
 
 export function isValidDateKey(s: string): boolean {
-  return /^\d{4}-\d{2}-\d{2}$/.test(s) && !Number.isNaN(Date.parse(s));
+  return parseFlexibleDateKey(s) !== null;
+}
+
+export function normalizeDateKey(s: string): string | null {
+  return parseFlexibleDateKey(s);
 }
 
 export type SearchHit =

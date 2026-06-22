@@ -7,6 +7,8 @@ import { useI18n } from "@/lib/i18n/context";
 import { siteConfig } from "@/lib/site";
 import type { ServiceId } from "@/lib/services-catalog";
 import type { GooglePlaceReviewsPayload } from "@/lib/server/google-places-reviews";
+import { FEATURED_GOOGLE_REVIEWS } from "@/lib/featured-google-reviews";
+import { FeaturedGoogleReviewsGrid } from "@/components/reviews/FeaturedGoogleReviewCard";
 
 type ReviewTag = "all" | "chip" | "brakes" | "diagnostic" | "detailing";
 
@@ -94,7 +96,7 @@ export function ServiceLandingReviews({ serviceId }: { serviceId?: ServiceId }) 
         </Link>
       </div>
 
-      {googleReviews.length > 0 && (
+      {googleReviews.length > 0 ? (
         <div className="flex gap-4 overflow-x-auto pb-4 mb-8 snap-x snap-mandatory scrollbar-thin">
           {googleReviews.slice(0, 4).map((r, i) => (
             <article
@@ -116,6 +118,10 @@ export function ServiceLandingReviews({ serviceId }: { serviceId?: ServiceId }) 
               <p className="text-[10px] text-bm-muted uppercase">Google</p>
             </article>
           ))}
+        </div>
+      ) : (
+        <div className="mb-8">
+          <FeaturedGoogleReviewsGrid reviews={FEATURED_GOOGLE_REVIEWS} compact />
         </div>
       )}
 
@@ -141,9 +147,7 @@ export function ServiceLandingReviews({ serviceId }: { serviceId?: ServiceId }) 
             </article>
           ))}
         </div>
-      ) : (
-        <p className="text-sm text-bm-muted text-center py-6">{t.googleReviewsBlock.fallback}</p>
-      )}
+      ) : null}
 
       <p className="text-xs text-bm-muted text-center mt-4">{sl.reviewsServiceHint}</p>
     </section>

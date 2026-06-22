@@ -1,4 +1,6 @@
 import type { InlineKeyboardMarkup, ReplyKeyboardMarkup } from "@/lib/server/telegram-api";
+import { formatWarsawDateKey } from "@/lib/date-key";
+import { formatDisplayDateKey } from "@/lib/display-date";
 import { timeSlots } from "@/lib/data";
 import { siteConfig } from "@/lib/site";
 import {
@@ -186,7 +188,7 @@ export function clientAppointmentsKeyboard(
   slice: ClientPortalSlice
 ): InlineKeyboardMarkup {
   const L = getClientBotLabels(locale);
-  const today = new Date().toISOString().slice(0, 10);
+  const today = formatWarsawDateKey();
   const apts = slice.appointments
     .filter((a) => a.date >= today)
     .sort((a, b) => `${a.date}${a.time}`.localeCompare(`${b.date}${b.time}`))
@@ -195,7 +197,7 @@ export function clientAppointmentsKeyboard(
   for (const a of apts) {
     rows.push([
       {
-        text: `${a.date} ${a.time}`,
+        text: `${formatDisplayDateKey(a.date)} ${a.time}`,
         callback_data: `cl:apt:view:${a.id}`,
       },
     ]);

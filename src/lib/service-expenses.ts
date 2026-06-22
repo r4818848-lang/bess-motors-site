@@ -92,9 +92,10 @@ function formatExpenseRow(
   e: ServiceExpense,
   categoryLabel: (category: ServiceExpense["category"]) => string
 ): string {
-  const [, m, d] = e.date.split("-");
+  const [y, m, d] = e.date.split("-");
+  const dateLabel = y && m && d ? `${d}.${m}.${y}` : e.date;
   return (
-    clipCell(`${d}.${m}`, 8) +
+    clipCell(dateLabel, 10) +
     clipCell(categoryLabel(e.category), 10) +
     clipCell(formatMoneyPln(e.amount), 10) +
     clipCell(e.description, 20)
@@ -103,7 +104,7 @@ function formatExpenseRow(
 
 function tableHeaderLine(): string {
   return (
-    clipCell("Дата", 8) +
+    clipCell("Дата", 10) +
     clipCell("Кат.", 10) +
     clipCell("Сумма", 10) +
     clipCell("Описание", 20) +

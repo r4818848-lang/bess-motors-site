@@ -105,6 +105,32 @@ console.assert(
   "server mutation must keep guest call requests"
 );
 
+const withoutCall = { ...guestCall, callRequests: [] };
+const afterCallDelete = mergeCloudDocuments(guestCall, withoutCall, {
+  lastCloudSyncedAt: "2026-06-04T12:00:00Z",
+});
+console.assert(
+  !afterCallDelete.callRequests?.some((c) => c.id === "call-1"),
+  "browser delete must remove call request from cloud"
+);
+
+const recentGuestCall = {
+  ...guestCall,
+  callRequests: [
+    {
+      ...guestCall.callRequests[0],
+      createdAt: "2026-06-20T10:00:00Z",
+    },
+  ],
+};
+const afterRecentCallDelete = mergeCloudDocuments(recentGuestCall, withoutCall, {
+  lastCloudSyncedAt: "2026-06-04T12:00:00Z",
+});
+console.assert(
+  !afterRecentCallDelete.callRequests?.some((c) => c.id === "call-1"),
+  "browser delete must remove recently created call request"
+);
+
 const pullLocal = {
   ...cloud,
   monthlyParts: [

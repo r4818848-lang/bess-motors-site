@@ -1,9 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Clock, Phone, Calendar } from "lucide-react";
+import { Calendar, Clock, Phone, Download } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import {
   HOURLY_RATE_PLN,
@@ -23,18 +22,47 @@ import { downloadPriceListPdf } from "@/lib/price-list-pdf";
 import { buildBookingUrl } from "@/lib/booking-url";
 import { PriceListCallbackCta } from "@/components/pricing/PriceListCallbackCta";
 import { ServicePackagesSection } from "@/components/pricing/ServicePackagesSection";
-import { Download } from "lucide-react";
 
 function itemLabel(item: PriceListItem, locale: Parameters<typeof pickName>[1]) {
   return pickName(item, locale);
 }
 
+function PriceRow({
+  item,
+  locale,
+  bookLabel,
+}: {
+  item: PriceListItem;
+  locale: Parameters<typeof pickName>[1];
+  bookLabel: string;
+}) {
+  return (
+    <li className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-4 py-3.5 hover:bg-bm-red/5 transition-colors">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 flex-1 min-w-0">
+        <span className="text-sm text-white/95 pr-4">{itemLabel(item, locale)}</span>
+        <span className="text-sm font-mono font-bold text-bm-red shrink-0">
+          {unitPriceHint(item, locale)}
+        </span>
+      </div>
+      <BookingLink
+        href={buildBookingUrl([item.id])}
+        className="btn-primary text-xs shrink-0 inline-flex items-center justify-center gap-1.5 px-3 py-2 self-start sm:self-center"
+        trackSource={`cennik_${item.id}`}
+      >
+        <Calendar size={14} />
+        {bookLabel}
+      </BookingLink>
+    </li>
+  );
+}
+
 export function FullPriceListView() {
   const { locale, t } = useI18n();
   const contentLoc = contentLocale(locale);
-  const [category, setCategory] = useState<PriceCategoryId>("diagnostic");
 
-  const items = useMemo(() => itemsByCategory(category), [category]);
+  const scrollToCategory = (id: PriceCategoryId) => {
+    document.getElementById(`price-cat-${id}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   return (
     <div>
@@ -66,60 +94,52 @@ export function FullPriceListView() {
         </button>
       </div>
 
-      <div className="flex flex-wrap gap-2 mb-8">
+      <p className="text-xs text-bm-muted mb-4">{t.priceList.jumpHint}</p>
+      <div className="flex flex-wrap gap-2 mb-8 sticky top-20 z-30 py-2 bg-bm-black/90 backdrop-blur-sm -mx-1 px-1">
         {priceCategories.map((cat) => (
           <button
             key={cat.id}
             type="button"
-            onClick={() => setCategory(cat.id)}
-            className={`px-3 py-2 rounded-full text-[11px] font-bold uppercase tracking-wide border transition-all ${
-              category === cat.id
-                ? "bg-bm-red/20 border-bm-red text-bm-red shadow-neon-sm"
-                : "border-bm-border text-bm-muted hover:text-white hover:border-bm-red/40"
-            }`}
+            onClick={() => scrollToCategory(cat.id)}
+            className="px-3 py-2 rounded-full text-[11px] font-bold uppercase tracking-wide border border-bm-border text-bm-muted hover:text-white hover:border-bm-red/40 transition-all"
           >
             {contentLoc === "ru" ? cat.nameRu : cat.namePl}
           </button>
         ))}
       </div>
 
-      <motion.div
-        key={category}
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="rounded-2xl border border-bm-border/60 overflow-hidden mb-10"
-      >
-        <div className="bg-bm-card/80 px-4 py-3 border-b border-bm-border/60">
-          <h2 className="font-display text-lg uppercase text-bm-red">
-            {contentLoc === "ru"
-              ? priceCategories.find((c) => c.id === category)?.nameRu
-              : priceCategories.find((c) => c.id === category)?.namePl}
-          </h2>
-        </div>
-        <ul className="divide-y divide-bm-border/40">
-          {items.map((item) => (
-            <li
-              key={item.id}
-              className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-4 py-3.5 hover:bg-bm-red/5 transition-colors"
+      <div className="space-y-10 mb-10">
+        {priceCategories.map((cat) => {
+          const items = itemsByCategory(cat.id);
+          if (!items.length) return null;
+          return (
+            <motion.section
+              key={cat.id}
+              id={`price-cat-${cat.id}`}
+              initial={{ opacity: 0, y: 8 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-40px" }}
+              className="rounded-2xl border border-bm-border/60 overflow-hidden scroll-mt-28"
             >
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 flex-1 min-w-0">
-                <span className="text-sm text-white/95 pr-4">{itemLabel(item, locale)}</span>
-                <span className="text-sm font-mono font-bold text-bm-red shrink-0">
-                  {unitPriceHint(item, locale)}
-                </span>
+              <div className="bg-bm-card/80 px-4 py-3 border-b border-bm-border/60">
+                <h2 className="font-display text-lg uppercase text-bm-red">
+                  {contentLoc === "ru" ? cat.nameRu : cat.namePl}
+                </h2>
               </div>
-              <BookingLink
-                href={buildBookingUrl([item.id])}
-                className="btn-primary text-xs shrink-0 inline-flex items-center justify-center gap-1.5 px-3 py-2 self-start sm:self-center"
-                trackSource={`cennik_${item.id}`}
-              >
-                <Calendar size={14} />
-                {t.priceList.bookItem}
-              </BookingLink>
-            </li>
-          ))}
-        </ul>
-      </motion.div>
+              <ul className="divide-y divide-bm-border/40">
+                {items.map((item) => (
+                  <PriceRow
+                    key={item.id}
+                    item={item}
+                    locale={locale}
+                    bookLabel={t.priceList.bookItem}
+                  />
+                ))}
+              </ul>
+            </motion.section>
+          );
+        })}
+      </div>
 
       <PriceListCallbackCta />
 
@@ -141,7 +161,7 @@ export function FullPriceListView() {
         </ul>
       </div>
 
-      <div className="mt-10 mb-24 md:mb-10 flex flex-col sm:flex-row gap-4 justify-center">
+      <div className="mt-10 mb-8 flex flex-col sm:flex-row gap-4 justify-center">
         <BookingLink className="btn-primary text-center justify-center">
           {t.priceList.bookCta}
         </BookingLink>

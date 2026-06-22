@@ -78,10 +78,11 @@ const pl = {
     subtitle:
       "Aktualny cennik BESS MOTORS — diagnostyka, mechanika, klimatyzacja, chip tuning i więcej. Wybierz usługi i umów wizytę online.",
     hourlyRate: "Norma-godzina",
-    bookCta: "Rezerwacja z cennika",
+    bookCta: "Umów się",
     notesTitle: "Ważne informacje",
     downloadPdf: "Pobierz cennik PDF",
     bookItem: "Umów",
+    jumpHint: "Pełna lista cen poniżej — przewiń lub wybierz kategorię.",
     callback: {
       title: "Zadzwoń lub zamów oddzwonienie",
       subtitle:
@@ -211,8 +212,10 @@ const pl = {
     subtitleGoogle: "Średnia {rating} · {count} opinii w Google Maps",
     subtitleHonest:
       "Opinie z Twojej wizytówki Google — zachęcamy klientów do oceny po naprawie.",
+    subtitleFeatured: "Prawdziwe opinie klientów w Google Maps ({count})",
     viewOnMaps: "Zobacz w Google Maps",
     leaveReview: "Zostaw opinię w Google",
+    readReview: "Zobacz opinię w Google",
     fallback:
       "Opinie z Google pojawią się tutaj po podłączeniu wizytówki (klucz API). Tymczasem zostaw opinię bezpośrednio w Maps.",
   },
@@ -221,6 +224,13 @@ const pl = {
     subtitle:
       "Prawdziwe zdjęcia serwisu BESS MOTORS — wejście, stanowiska naprawcze i wulkanizacja.",
     viewAll: "Cała galeria",
+  },
+  instagramReels: {
+    title: "Nasze prace",
+    subtitle: "Wideo z warsztatu — naprawy, diagnostyka i serwis w BESS MOTORS.",
+    watchReel: "Obejrzyj",
+    openInstagram: "Otwórz w Instagramie",
+    close: "Zamknij",
   },
   workshopPhotos: {
     exterior: {
@@ -1770,6 +1780,7 @@ const ru: TranslationKeys = {
     notesTitle: "Важная информация",
     downloadPdf: "Скачать прайс PDF",
     bookItem: "Записаться",
+    jumpHint: "Полный прайс ниже — прокрутите или выберите категорию.",
     callback: {
       title: "Позвоните или закажите обратный звонок",
       subtitle:
@@ -1899,8 +1910,10 @@ const ru: TranslationKeys = {
     subtitleGoogle: "Средняя оценка {rating} · {count} отзывов в Google Maps",
     subtitleHonest:
       "Отзывы с вашей карточки Google — просим клиентов оставлять оценку после ремонта.",
+    subtitleFeatured: "Реальные отзывы клиентов в Google Maps ({count})",
     viewOnMaps: "Смотреть в Google Maps",
     leaveReview: "Оставить отзыв в Google",
+    readReview: "Читать отзыв в Google",
     fallback:
       "Отзывы Google появятся здесь после подключения карточки (API-ключ). Пока можно оставить отзыв в Maps.",
   },
@@ -1909,6 +1922,13 @@ const ru: TranslationKeys = {
     subtitle:
       "Живые фото BESS MOTORS — вход, ремонтные посты и шиномонтаж.",
     viewAll: "Вся галерея",
+  },
+  instagramReels: {
+    title: "Наши работы",
+    subtitle: "Видео из сервиса — ремонты, диагностика и обслуживание в BESS MOTORS.",
+    watchReel: "Смотреть",
+    openInstagram: "Открыть в Instagram",
+    close: "Закрыть",
   },
   workshopPhotos: {
     exterior: {
@@ -3406,6 +3426,7 @@ const en: TranslationKeys = {
     notesTitle: "Important notes",
     downloadPdf: "Download price list PDF",
     bookItem: "Book",
+    jumpHint: "Full price list below — scroll or pick a category.",
     callback: {
       title: "Call us or request a callback",
       subtitle:
@@ -3754,8 +3775,10 @@ const en: TranslationKeys = {
     subtitleGoogle: "Average {rating} · {count} reviews on Google Maps",
     subtitleHonest:
       "Reviews from your Google Business Profile — we ask customers to rate us after service.",
+    subtitleFeatured: "Real customer reviews on Google Maps ({count})",
     viewOnMaps: "View on Google Maps",
     leaveReview: "Leave a Google review",
+    readReview: "Read review on Google",
     fallback:
       "Google reviews appear here once the business profile API is connected. You can still review us on Maps.",
   },
@@ -3764,6 +3787,13 @@ const en: TranslationKeys = {
     subtitle:
       "Real photos of BESS MOTORS — entrance, repair bays, and tire service.",
     viewAll: "Full gallery",
+  },
+  instagramReels: {
+    title: "Our work",
+    subtitle: "Workshop videos — repairs, diagnostics and service at BESS MOTORS.",
+    watchReel: "Watch",
+    openInstagram: "Open on Instagram",
+    close: "Close",
   },
   workshopPhotos: {
     exterior: {

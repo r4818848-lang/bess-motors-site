@@ -8,6 +8,8 @@ import type { InlineKeyboardMarkup } from "@/lib/server/telegram-api";
 import type { HotOrderRow } from "@/lib/hot-orders";
 import type { SearchHit } from "./crm-actions";
 import { EXPENSE_CATEGORY_RU, PERIOD_RU, REPAIR_STATUS_RU } from "./labels";
+import { formatDisplayDateKey } from "@/lib/display-date";
+import { formatWarsawDateKey } from "@/lib/date-key";
 
 function zl(n: number): string {
   return `${n.toFixed(2)} zł`;
@@ -69,13 +71,13 @@ export function formatFinanceReport(
 
 export function formatTodaySummary(db: Database): string {
   const stats = computeCrmAnalytics(db, "day", "", "");
-  const today = new Date().toISOString().slice(0, 10);
+  const today = formatWarsawDateKey();
   const aptsToday = db.appointments.filter((a) => a.date === today);
   const active = db.workOrders.filter((o) => o.status !== "delivered");
   const hot = db.callRequests.filter((c) => c.status === "needs_call").length;
 
   return [
-    `📈 <b>Сводка за сегодня</b> (${today})`,
+    `📈 <b>Сводка за сегодня</b> (${formatDisplayDateKey(today)})`,
     "",
     `💰 Выручка: <b>${zl(stats.revenue)}</b>`,
     `📈 Прибыль: <b>${zl(stats.profit)}</b>`,
@@ -142,7 +144,7 @@ export function formatWorkOrderDetail(db: Database, orderNumber: string): string
     `Клиент: ${esc(client?.name ?? "—")} · ${esc(client?.phone ?? "—")}`,
     `Механик: ${esc(mech?.name ?? "—")}`,
     `Сумма: <b>${zl(calcClientTotal(o))}</b> · ${o.paymentStatus === "paid" ? "оплачен" : "не оплачен"}`,
-    o.createdAt ? `Создан: ${o.createdAt.slice(0, 10)}` : "",
+    o.createdAt ? `Создан: ${formatDisplayDateKey(o.createdAt.slice(0, 10))}` : "",
     services ? `\n🔧 <b>Работы:</b>\n${services}` : "",
     parts ? `\n🔩 <b>Запчасти:</b>\n${parts}` : "",
     o.clientNotes ? `\n📝 ${esc(o.clientNotes)}` : "",
@@ -162,7 +164,9 @@ export function formatHotOrders(rows: HotOrderRow[], page: number, pageSize = 5)
   const lines = [`🔥 <b>Горячие заказы</b> (${rows.filter((r) => r.isActionRequired).length} требуют действия)`, ""];
   for (const r of slice) {
     const kind = r.kind === "booking" ? "📅 Запись" : "📞 Звонок";
-    const when = r.date ? `${r.date} ${r.time ?? ""}`.trim() : r.createdAt.slice(0, 10);
+    const when = r.date
+      ? `${formatDisplayDateKey(r.date)} ${r.time ?? ""}`.trim()
+      : formatDisplayDateKey(r.createdAt.slice(0, 10));
     lines.push(
       `${kind} · <b>${esc(r.clientName)}</b> ${r.isActionRequired ? "🆕" : ""}`,
       `${esc(r.phone)} · ${esc(r.serviceLabel)}`,
@@ -175,7 +179,7 @@ export function formatHotOrders(rows: HotOrderRow[], page: number, pageSize = 5)
 }
 
 export function formatAppointments(db: Database, page: number, pageSize = 5): { text: string; totalPages: number } {
-  const today = new Date().toISOString().slice(0, 10);
+  const today = formatWarsawDateKey();
   const apts = db.appointments
     .filter((a) => a.date >= today)
     .sort((a, b) => `${a.date}${a.time}`.localeCompare(`${b.date}${b.time}`));
@@ -195,7 +199,7 @@ export function formatAppointments(db: Database, page: number, pageSize = 5): { 
     const name = a.clientName || client?.name || "—";
     const phone = a.clientPhone || client?.phone || "—";
     lines.push(
-      `<b>${a.date} · ${a.time}</b> · ${REPAIR_STATUS_RU[a.repairStatus]}`,
+      `<b>${formatDisplayDateKey(a.date)} · ${a.time}</b> · ${REPAIR_STATUS_RU[a.repairStatus]}`,
       `👤 ${esc(name)} · ${esc(phone)}`,
       vehicle
         ? `🚗 ${esc(vehicle.make)} ${esc(vehicle.model)} · ${esc(vehicle.plate)}`
@@ -421,7 +425,7 @@ export function formatHotBookingDetail(db: Database, aptId: string): string | nu
 
   return [
     "📅 <b>Запись с сайта</b>",
-    `Дата: <b>${apt.date} · ${apt.time}</b>`,
+    `Дата: <b>${formatDisplayDateKey(apt.date)} · ${apt.time}</b>`,
     `Клиент: ${esc(name)} · ${esc(phone)}`,
     vehicle
       ? `Авто: ${esc(vehicle.make)} ${esc(vehicle.model)} · ${esc(vehicle.plate)}`
@@ -445,7 +449,7 @@ export function formatHotCallDetail(db: Database, callId: string): string | null
     `Услуга: ${esc(call.serviceLabel)}`,
     `Статус: ${call.status}`,
     call.comment ? `💬 ${esc(call.comment)}` : "",
-    `Создана: ${call.createdAt.slice(0, 10)}`,
+    `Создана: ${formatDisplayDateKey(call.createdAt.slice(0, 10))}`,
   ]
     .filter(Boolean)
     .join("\n");

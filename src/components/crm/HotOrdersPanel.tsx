@@ -26,6 +26,7 @@ import { createWorkOrderFromAppointment } from "@/lib/create-work-order-from-boo
 import { deleteAppointmentFromCloud } from "@/lib/cloud-appointments";
 import { saveDbAndPushCrm, saveDbAndPushCrmDelete } from "@/lib/cloud-crm-db";
 import { syncAppointmentToCloud } from "@/lib/appointment-cloud-sync";
+import { formatDisplayDateKey, formatDisplayDateTime } from "@/lib/display-date";
 import { Button } from "@/components/ui/Button";
 
 const FILTERS: HotOrderFilter[] = [
@@ -37,15 +38,17 @@ const FILTERS: HotOrderFilter[] = [
   "completed",
 ];
 
-export function HotOrdersPanel({ onUpdate }: { onUpdate?: () => void }) {
+export function HotOrdersPanel({ onUpdate: _onUpdate }: { onUpdate?: () => void }) {
   const { t } = useI18n();
   const c = t.crm;
   const cal = t.calendar;
-  const tick = useDbSync();
+  const dbSync = useDbSync();
   const [filter, setFilter] = useState<HotOrderFilter>("all");
+  const [localTick, setLocalTick] = useState(0);
 
   const db = loadDb();
-  void tick;
+  void dbSync;
+  void localTick;
 
   const serviceLabel = (id: string) =>
     t.serviceItems[id as keyof typeof t.serviceItems] ?? id;
@@ -53,7 +56,7 @@ export function HotOrdersPanel({ onUpdate }: { onUpdate?: () => void }) {
   const allOrders = useMemo(
     () => getWebsiteHotOrders(db, serviceLabel),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [tick, t]
+    [dbSync, localTick, t]
   );
 
   const badgeCount = getHotOrdersBadgeCount(allOrders);
@@ -71,15 +74,11 @@ export function HotOrdersPanel({ onUpdate }: { onUpdate?: () => void }) {
     return map[f];
   };
 
-  const refresh = () => onUpdate?.();
-
   const setCallStatus = async (id: string, status: CallRequest["status"]) => {
     const next = loadDb();
     const r = next.callRequests.find((x) => x.id === id);
     if (r) r.status = status;
-    const ok = await saveDbAndPushCrm(next);
-    if (!ok) return;
-    refresh();
+    await saveDbAndPushCrm(next);
   };
 
   const confirmBooking = async (id: string) => {
@@ -88,9 +87,7 @@ export function HotOrdersPanel({ onUpdate }: { onUpdate?: () => void }) {
     if (!apt) return;
     createWorkOrderFromAppointment(next, apt, serviceLabel);
     saveDb(next, { skipCloudPush: true });
-    const ok = await syncAppointmentToCloud(next, apt);
-    if (!ok) return;
-    refresh();
+    await syncAppointmentToCloud(next, apt);
   };
 
   const setBookingStatus = async (id: string, status: Appointment["appointmentStatus"]) => {
@@ -103,9 +100,7 @@ export function HotOrdersPanel({ onUpdate }: { onUpdate?: () => void }) {
     if (!a) return;
     a.appointmentStatus = status;
     saveDb(next, { skipCloudPush: true });
-    const ok = await syncAppointmentToCloud(next, a);
-    if (!ok) return;
-    refresh();
+    await syncAppointmentToCloud(next, a);
   };
 
   const workOrderIdFor = (row: (typeof orders)[0]) =>
@@ -130,8 +125,11 @@ export function HotOrdersPanel({ onUpdate }: { onUpdate?: () => void }) {
       next.callRequests = next.callRequests.filter((x) => x.id !== row.id);
     }
     const ok = await saveDbAndPushCrmDelete(next);
-    if (!ok) return;
-    refresh();
+    if (!ok) {
+      alert(c.syncFailed);
+      return;
+    }
+    setLocalTick((n) => n + 1);
   };
 
   return (
@@ -228,7 +226,7 @@ export function HotOrdersPanel({ onUpdate }: { onUpdate?: () => void }) {
                           <span className="hot-badge-pulse h-2 w-2 rounded-full bg-bm-red" />
                         )}
                         <span className="text-[10px] text-bm-muted uppercase">
-                          {new Date(row.createdAt).toLocaleString()}
+                          {formatDisplayDateTime(row.createdAt)}
                         </span>
                       </div>
                       <p className="font-semibold text-lg text-white">{row.clientName}</p>
@@ -243,7 +241,7 @@ export function HotOrdersPanel({ onUpdate }: { onUpdate?: () => void }) {
                       {row.kind === "booking" && row.date && (
                         <p className="text-xs text-bm-muted mt-1 flex items-center gap-1">
                           <Calendar size={12} />
-                          {row.date} · {row.time}
+                          {formatDisplayDateKey(row.date)} · {row.time}
                         </p>
                       )}
                       {row.comment && (

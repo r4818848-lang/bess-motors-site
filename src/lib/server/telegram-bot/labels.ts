@@ -1,5 +1,6 @@
 import type { ExpenseCategory, RepairStatus } from "@/lib/store";
 import type { ReportPeriod } from "@/lib/crm-analytics";
+import { formatDisplayDateExample, formatDisplayDateKey } from "@/lib/display-date";
 
 export const REPAIR_STATUS_RU: Record<RepairStatus, string> = {
   received: "Принят",
@@ -65,13 +66,13 @@ export const BOT = {
   help: "ℹ️ Помощь",
   choosePeriod: "Выберите период отчёта:",
   chooseCategory: "Выберите категорию расхода:",
-  expensePrompt:
-    "✏️ Отправьте сообщение в формате:\n<code>450 Описание расхода</code>\n\nИли с датой:\n<code>450 Описание 2026-05-27</code>",
-  customFrom: "📅 Введите дату начала периода (ГГГГ-ММ-ДД):",
-  customTo: "📅 Введите дату окончания (ГГГГ-ММ-ДД):",
-  invalidDate: "❌ Неверный формат даты. Используйте ГГГГ-ММ-ДД.",
-  invalidExpense:
-    "❌ Неверный формат. Пример: <code>450 Аренда помещения</code> или <code>450 Аренда 2026-05-27</code>",
+  expensePrompt: (today = formatDisplayDateExample()) =>
+    `✏️ Отправьте сообщение в формате:\n<code>450 Описание расхода</code>\n\nИли с датой:\n<code>450 Описание ${today}</code>`,
+  customFrom: `📅 Введите дату начала периода (ДД.ММ.ГГГГ), например <code>${formatDisplayDateExample()}</code>:`,
+  customTo: `📅 Введите дату окончания (ДД.ММ.ГГГГ), например <code>${formatDisplayDateExample()}</code>:`,
+  invalidDate: "❌ Неверный формат даты. Используйте ДД.ММ.ГГГГ, например 21.06.2026.",
+  invalidExpense: (today = formatDisplayDateExample()) =>
+    `❌ Неверный формат. Пример: <code>450 Аренда помещения</code> или <code>450 Аренда ${today}</code>`,
   noOrders: "Нет заказ-нарядов.",
   noHot: "Нет горячих заказов.",
   noApts: "Нет предстоящих записей.",
@@ -91,8 +92,8 @@ export const BOT = {
   quickWoIntro:
     "📋 <b>Быстрый заказ-наряд</b>\n\nПошагово: имя, фамилия, телефон, авто, работы.\nНа любом шаге можно нажать «Пропустить».",
   quickWoPhoneRequired: "❌ Для сохранения нужен телефон. Введите номер или вернитесь назад.",
-  quickAptPrompt:
-    "➕ <b>Быстрая запись</b>\n\nОтправьте одной строкой:\n<code>+48123456789 2026-06-01 10:00 комментарий</code>",
+  quickAptPrompt: (today = formatDisplayDateExample()) =>
+    `➕ <b>Быстрая запись</b>\n\nОтправьте одной строкой:\n<code>+48123456789 ${today} 10:00 комментарий</code>`,
   importPrompt:
     "📄 <b>Импорт заказ-наряда</b>\n\nЛучше <b>PDF</b> из программы (текст читается точнее).\nФото: отправьте <b>как файл (документ)</b>, не сжатое «фото» — иначе OCR ошибается.\nЧитаются клиент, авто, работы и запчасти.",
   importParsing: "⏳ Читаю документ… (до 1 минуты)",

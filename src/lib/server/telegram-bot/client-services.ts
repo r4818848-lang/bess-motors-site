@@ -1,4 +1,5 @@
 import { formatLocalDateKey, formatWarsawDateKey, parseDateKey } from "@/lib/date-key";
+import { formatDisplayDateKey } from "@/lib/display-date";
 import { getPriceItem } from "@/lib/price-list";
 import { serviceBasePriceId } from "@/lib/service-price-map";
 import type { ServiceId } from "@/lib/services-catalog";
@@ -103,7 +104,6 @@ const WEEKDAYS: Record<BotLocale, string[]> = {
 export function formatDateShort(dateKey: string, locale: BotLocale = "ru"): string {
   const d = new Date(`${dateKey}T12:00:00`);
   const weekdays = WEEKDAYS[locale];
-  const dd = String(d.getDate()).padStart(2, "0");
-  const mm = String(d.getMonth() + 1).padStart(2, "0");
-  return `${dd}.${mm} ${weekdays[d.getDay()]}`;
+  const display = formatDisplayDateKey(dateKey);
+  return `${display} ${weekdays[d.getDay()]}`;
 }

@@ -119,6 +119,7 @@ function applyPullRemoteDeletions(
   const userIds = ids(remote.users);
   const vehicleIds = ids(remote.vehicles);
   const aptIds = ids(remote.appointments);
+  const callIds = ids(remote.callRequests ?? []);
   const partIds = ids(remote.monthlyParts ?? []);
   const consumableIds = ids(remote.monthlyConsumables ?? []);
   const expenseIds = ids(remote.expenses ?? []);
@@ -148,9 +149,8 @@ function applyPullRemoteDeletions(
         mergeTimestampMs(syncCutoff)
       );
     }),
-    callRequests: (base.callRequests ?? []).filter(
-      (c) => !c.userId || userIds.has(c.userId) || keptUserIds.has(c.userId)
-    ),
+    // Call requests: strict membership — staff delete must not resurrect new website leads
+    callRequests: (base.callRequests ?? []).filter((c) => callIds.has(c.id)),
     vehicleHistory: (base.vehicleHistory ?? []).filter(
       (h) => keptUserIds.has(h.userId) && vehicleIds.has(h.vehicleId)
     ),
@@ -252,15 +252,8 @@ function applySnapshotMembership(
         mergeTimestampMs(syncCutoff)
       );
     }),
-    callRequests: (base.callRequests ?? []).filter((c) => {
-      if (callIds.has(c.id)) return true;
-      if (userIds.has(c.userId)) return true;
-      if (!syncCutoff) return false;
-      return (
-        mergeTimestampMs(normalizeIsoTimestamp(c.createdAt)) >
-        mergeTimestampMs(syncCutoff)
-      );
-    }),
+    // Call requests: strict membership — staff delete must not resurrect new website leads
+    callRequests: (base.callRequests ?? []).filter((c) => callIds.has(c.id)),
     monthlyParts: (base.monthlyParts ?? []).filter((p) => {
       if (partIds.has(p.id)) return true;
       if (!syncCutoff) return false;

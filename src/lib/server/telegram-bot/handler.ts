@@ -21,6 +21,7 @@ import {
   applyWorkOrderStatus,
   confirmHotBooking,
   isValidDateKey,
+  normalizeDateKey,
   loadCrmFromCloud,
   markCallAsCalled,
   markWorkOrderPaid,
@@ -349,7 +350,7 @@ async function handleMessage(msg: TelegramMessage): Promise<void> {
     const parsed = parseQuickAptLine(text);
     await clearTelegramSession(chatKey);
     if (!parsed.ok || !parsed.phone || !parsed.date || !parsed.time) {
-      await sendTelegramMessage(chatId, BOT.quickAptPrompt, mainMenuKeyboard());
+      await sendTelegramMessage(chatId, BOT.quickAptPrompt(), mainMenuKeyboard());
       return;
     }
     const result = await createQuickAppointment({
@@ -383,7 +384,7 @@ async function handleMessage(msg: TelegramMessage): Promise<void> {
   if (session.step === "expense_input" && session.data?.category) {
     const parsed = parseExpenseInput(text, session.data.category as ExpenseCategory);
     if (!parsed.ok) {
-      await sendTelegramMessage(chatId, BOT.invalidExpense, expenseCategoryKeyboard());
+      await sendTelegramMessage(chatId, BOT.invalidExpense(), expenseCategoryKeyboard());
       return;
     }
     const result = await addExpenseToCrm(parsed.expense);
@@ -401,22 +402,23 @@ async function handleMessage(msg: TelegramMessage): Promise<void> {
   }
 
   if (session.step === "report_custom_from") {
-    if (!isValidDateKey(text)) {
+    const from = normalizeDateKey(text);
+    if (!from) {
       await sendTelegramMessage(chatId, BOT.invalidDate);
       return;
     }
-    await setTelegramSession(chatKey, { step: "report_custom_to", data: { from: text } });
+    await setTelegramSession(chatKey, { step: "report_custom_to", data: { from } });
     await sendTelegramMessage(chatId, BOT.customTo);
     return;
   }
 
   if (session.step === "report_custom_to" && session.data?.from) {
-    if (!isValidDateKey(text)) {
+    const to = normalizeDateKey(text);
+    if (!to) {
       await sendTelegramMessage(chatId, BOT.invalidDate);
       return;
     }
-    const from = session.data.from;
-    const to = text;
+    const from = session.data.from as string;
     await clearTelegramSession(chatKey);
 
     const db = await loadCrmFromCloud();
@@ -550,7 +552,7 @@ async function handleCallback(cb: TelegramCallback): Promise<void> {
 
   if (data === "qapt:menu") {
     await setTelegramSession(chatKey, { step: "admin_quick_apt", data: {} });
-    await replyOrEdit(chatId, messageId, BOT.quickAptPrompt, {
+    await replyOrEdit(chatId, messageId, BOT.quickAptPrompt(), {
       inline_keyboard: [[{ text: BOT.cancel, callback_data: "menu" }]],
     });
     return;
@@ -914,7 +916,7 @@ async function handleCallback(cb: TelegramCallback): Promise<void> {
   if (data.startsWith("exp:cat:")) {
     const category = data.slice(8) as ExpenseCategory;
     await setTelegramSession(chatKey, { step: "expense_input", data: { category } });
-    await replyOrEdit(chatId, messageId, BOT.expensePrompt, {
+    await replyOrEdit(chatId, messageId, BOT.expensePrompt(), {
       inline_keyboard: [[{ text: "❌ Отмена", callback_data: "exp:menu" }]],
     });
     return;

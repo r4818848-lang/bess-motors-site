@@ -40,6 +40,7 @@ import { trackMetaCustomizeProduct } from "@/lib/meta-pixel";
 import { useAuth } from "@/lib/auth/session-context";
 import { BookingCalendar } from "@/components/booking/BookingCalendar";
 import { formatDateKey } from "@/lib/appointments";
+import { formatDisplayDateKey } from "@/lib/display-date";
 import { timeSlots } from "@/lib/data";
 import { Button } from "@/components/ui/Button";
 import { siteConfig } from "@/lib/site";
@@ -304,7 +305,6 @@ export function BookingQuoteFlow({ onDone }: Props) {
   const [submitting, setSubmitting] = useState(false);
   const [promoError, setPromoError] = useState("");
   const [activePackageId, setActivePackageId] = useState<string | undefined>();
-  const [mobileCartOpen, setMobileCartOpen] = useState(true);
   const submitLock = useRef(false);
   const { isSlotAvailable, loading: slotsLoading, availabilityError } = useBookingAvailability();
 
@@ -336,10 +336,6 @@ export function BookingQuoteFlow({ onDone }: Props) {
   useEffect(() => {
     prefillFromUrl();
   }, [prefillFromUrl]);
-
-  useEffect(() => {
-    if (cart.length > 0) setMobileCartOpen(true);
-  }, [phase, cart.length]);
 
   useEffect(() => {
     if (!sessionReady || !clientUser) return;
@@ -435,6 +431,9 @@ export function BookingQuoteFlow({ onDone }: Props) {
     const comment = [
       `[KOSZT SZACUNKOWY: ${formatPln(total)}]`,
       promoApplied ? `Promo: ${promoApplied.code} (-${promoApplied.percentOff}%)` : "",
+      packageMatchesCart && activePackage
+        ? `Pakiet: ${contentLoc === "ru" ? activePackage.nameRu : activePackage.namePl} (${formatPln(activePackage.packagePricePln)})`
+        : "",
       vehicleNote.trim() ? `Auto: ${vehicleNote.trim()}` : "",
       breakdown,
       hasFrom ? bq.fromWarningShort : "",
@@ -496,17 +495,6 @@ export function BookingQuoteFlow({ onDone }: Props) {
       <p className="text-center text-xs text-bm-muted/80 mb-6 max-w-xl mx-auto">
         {bq.hourlyNote} <strong className="text-bm-red">{HOURLY_RATE_PLN} zł/h</strong>
       </p>
-
-      <BookingAvailability
-        onPick={(d, tm) => {
-          setDate(new Date(d + "T12:00:00"));
-          setTime(tm);
-        }}
-      />
-
-      <div className="max-w-xl mx-auto px-4 mb-6">
-        <WaitTimeEstimator serviceId={cart[0]?.itemId} />
-      </div>
 
       <AnimatePresence mode="wait">
         {phase === "services" && (
@@ -653,6 +641,15 @@ export function BookingQuoteFlow({ onDone }: Props) {
               }
             />
             </div>
+            <BookingAvailability
+              onPick={(d, tm) => {
+                setDate(new Date(d + "T12:00:00"));
+                setTime(tm);
+              }}
+            />
+            <div className="max-w-xl mx-auto">
+              <WaitTimeEstimator serviceId={cart[0]?.itemId} />
+            </div>
             <h2 className="font-display text-lg uppercase text-center">
               {t.booking.selectDate}
             </h2>
@@ -746,7 +743,7 @@ export function BookingQuoteFlow({ onDone }: Props) {
                   {bq.visitDateTime}
                 </p>
                 <p className="font-display text-lg text-white mt-1">
-                  {date.toLocaleDateString(locale === "pl" ? "pl-PL" : locale === "ru" ? "ru-RU" : "en-GB")}{" "}
+                  {formatDisplayDateKey(formatDateKey(date))}{" "}
                   · {time}
                 </p>
               </div>
@@ -785,7 +782,8 @@ export function BookingQuoteFlow({ onDone }: Props) {
               {packageDiscount > 0 && activePackage && (
                 <p className="text-xs text-green-400 mt-2">
                   {t.servicePackages.packagePrice}: −{formatPln(packageDiscount)} (
-                  {contentLoc === "ru" ? activePackage.nameRu : activePackage.namePl})
+                  {contentLoc === "ru" ? activePackage.nameRu : activePackage.namePl}
+                  )
                 </p>
               )}
               {promoApplied && afterPackage > total && (
@@ -893,8 +891,8 @@ export function BookingQuoteFlow({ onDone }: Props) {
 
       {(phase === "services" || phase === "datetime" || phase === "confirm") && (
         <div className="lg:hidden fixed bottom-0 left-0 right-0 z-[100] glass-red border-t border-bm-red/40 shadow-[0_-8px_32px_rgba(0,0,0,0.85)] safe-area-pb">
-          {mobileCartOpen && cart.length > 0 && (
-            <div className="max-h-40 overflow-y-auto border-b border-bm-border/40 px-3 py-2 space-y-1">
+          {cart.length > 0 && (
+            <div className="max-h-44 overflow-y-auto border-b border-bm-border/40 px-3 py-2 space-y-1">
               {cart.map((line) => (
                 <div key={line.id} className="flex justify-between text-xs gap-2">
                   <span className="text-bm-silver truncate">{line.label}</span>
@@ -906,18 +904,14 @@ export function BookingQuoteFlow({ onDone }: Props) {
             </div>
           )}
           <div className="p-3 flex items-center justify-between gap-3">
-            <button
-              type="button"
-              className="min-w-0 text-left"
-              onClick={() => cart.length > 0 && setMobileCartOpen((o) => !o)}
-            >
+            <div className="min-w-0">
               <p className="text-[10px] uppercase text-bm-muted tracking-wide">
                 {labels.cartTitle} ({cart.length})
               </p>
               <p className="font-display text-xl font-bold text-bm-red font-mono">
                 {formatPln(total)}
               </p>
-            </button>
+            </div>
             {phase === "services" ? (
               <Button
                 className="shrink-0"

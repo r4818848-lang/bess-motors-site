@@ -8,6 +8,7 @@ import { useI18n } from "@/lib/i18n/context";
 import type { PublicGalleryItem } from "@/app/api/gallery/route";
 import { WORKSHOP_PHOTOS } from "@/lib/workshop-photos";
 import { WorkshopPhotosGrid } from "@/components/gallery/WorkshopPhotosGrid";
+import { InstagramReelsSection } from "@/components/gallery/InstagramReelsSection";
 
 export function WorkshopGallerySection() {
   const { t } = useI18n();
@@ -47,6 +48,10 @@ export function WorkshopGallerySection() {
         </div>
 
         <WorkshopPhotosGrid heroFirst />
+
+        <div className="mt-12">
+          <InstagramReelsSection showHeader />
+        </div>
 
         {repairTiles.length > 0 ? (
           <div className="mt-10">
