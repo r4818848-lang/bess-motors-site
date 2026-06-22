@@ -11,13 +11,39 @@ import { Button } from "@/components/ui/Button";
 import Link from "next/link";
 import { LazySmartBookingModal } from "@/components/booking/LazySmartBookingModal";
 import { useMetaViewContent } from "@/hooks/useMetaViewContent";
+import { CallbackRequestCta } from "@/components/callback/CallbackRequestCta";
+import { createCallRequest } from "@/lib/booking-actions";
+import { normalizePhone } from "@/lib/auth";
 
 export default function ServicesPage() {
   const { t } = useI18n();
+  const s = t.services;
   useMetaViewContent("Services Page");
   const [problem, setProblem] = useState("");
+  const [phone, setPhone] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+  const [sending, setSending] = useState(false);
   const [bookingService, setBookingService] = useState<ServiceId | null>(null);
+
+  const submitCustomRequest = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const p = normalizePhone(phone);
+    if (!p || sending) return;
+    setSending(true);
+    setSubmitError("");
+    const result = await createCallRequest({
+      phone: p,
+      clientName: s.customRequest,
+      serviceId: "otherReason",
+      serviceLabel: s.customRequest,
+      comment: problem.trim() || s.callback.commentDefault,
+      source: "services_custom_request",
+    });
+    setSending(false);
+    if (result.ok) setSubmitted(true);
+    else setSubmitError(s.requestError);
+  };
 
   return (
     <>
@@ -25,17 +51,26 @@ export default function ServicesPage() {
         <div className="mx-auto max-w-7xl px-4 lg:px-8">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
             <h1 className="font-display text-4xl md:text-5xl font-bold uppercase text-glow">
-              {t.services.title}
+              {s.title}
             </h1>
-            <p className="mt-4 text-bm-muted text-lg max-w-2xl">{t.services.subtitle}</p>
+            <p className="mt-4 text-bm-muted text-lg max-w-2xl">{s.subtitle}</p>
             <div className="mt-4 h-1 w-24 bg-bm-red shadow-neon-sm" />
             <Link
               href="/cennik"
               className="mt-6 inline-flex items-center gap-2 rounded-xl border border-bm-red/50 bg-bm-red/10 px-5 py-3 text-sm font-bold uppercase tracking-wide text-bm-red hover:bg-bm-red/20 transition-colors"
             >
-              {t.services.viewPriceList} →
+              {s.viewPriceList} →
             </Link>
           </motion.div>
+
+          <div className="mt-12 max-w-3xl">
+            <CallbackRequestCta
+              labels={s.callback}
+              source="services_callback"
+              serviceId="otherReason"
+              serviceLabel={s.callback.title}
+            />
+          </div>
 
           <section className="mt-16">
             <h2 className="font-display text-xl uppercase tracking-wide mb-8 text-bm-red">
@@ -75,28 +110,34 @@ export default function ServicesPage() {
           <section className="mt-20">
             <Card glow className="max-w-2xl mx-auto">
               <h2 className="font-display text-xl uppercase text-bm-red mb-6">
-                {t.services.customRequest}
+                {s.customRequest}
               </h2>
               {submitted ? (
-                <p className="text-center text-bm-red font-semibold py-8">✓</p>
+                <p className="text-center text-bm-red font-semibold py-8">{s.requestDone}</p>
               ) : (
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    setSubmitted(true);
-                  }}
-                  className="space-y-4"
-                >
+                <form onSubmit={submitCustomRequest} className="space-y-4">
+                  <input
+                    type="tel"
+                    className="input-premium"
+                    placeholder={s.phonePlaceholder}
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    autoComplete="tel"
+                    required
+                  />
                   <textarea
                     className="input-premium min-h-[120px] resize-y"
-                    placeholder={t.services.describeProblem}
+                    placeholder={s.describeProblem}
                     value={problem}
                     onChange={(e) => setProblem(e.target.value)}
                     required
                   />
-                  <Button type="submit" className="w-full">
-                    {t.services.submit}
+                  <Button type="submit" className="w-full" disabled={sending}>
+                    {sending ? "…" : s.submit}
                   </Button>
+                  {submitError ? (
+                    <p className="text-xs text-red-400 text-center">{submitError}</p>
+                  ) : null}
                 </form>
               )}
             </Card>
