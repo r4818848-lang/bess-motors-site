@@ -3,7 +3,7 @@ import { createCrmClientWithVehicle } from "@/lib/crm-create-client";
 import type { ImportWorkOrderDraft } from "@/lib/motowarsztat-import-parser";
 import { generateOrderNumber } from "@/lib/workorder-calc";
 import { applyWorkOrderCompletedAt } from "@/lib/work-order-dates";
-import { handleWorkOrderClientNotifications } from "@/lib/client-notifications";
+import { applyWorkOrderClosure } from "@/lib/work-order-lifecycle";
 import { syncWarehouseFromWorkOrder } from "@/lib/warehouse-stock";
 import type {
   AttachedFile,
@@ -68,6 +68,13 @@ function mapImportParts(draft: ImportWorkOrderDraft): PartLine[] {
       sellPrice: Math.max(0, p.sellPrice),
       discount: 0,
     }));
+}
+
+function parseOrderDateFromNumber(orderNumber?: string): string | undefined {
+  const m = orderNumber?.match(/\b(\d{1,2})\/(\d{1,2})\/(\d{4})\b/);
+  if (!m) return undefined;
+  const [, day, month, year] = m;
+  return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
 }
 
 export async function createWorkOrderFromImport(
@@ -152,12 +159,17 @@ export async function createWorkOrderFromImport(
     });
   }
 
-  const order: WorkOrder = applyWorkOrderCompletedAt({
-    id: `wo-${Date.now()}`,
+  const orderDate =
+    parseOrderDateFromNumber(input.orderNumber) ??
+    new Date().toISOString().slice(0, 10);
+
+  const order: WorkOrder = applyWorkOrderCompletedAt(
+    applyWorkOrderClosure({
+    id: `wo-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
     number: input.orderNumber?.trim() || generateOrderNumber(db.workOrders),
     userId,
     vehicleId,
-    status: "received",
+    status: "delivered",
     services: mapImportServices(input, db.mechanics[0]?.id ?? ""),
     parts: mapImportParts(input),
     mechanicId: db.mechanics[0]?.id ?? "",
@@ -167,18 +179,19 @@ export async function createWorkOrderFromImport(
     internalNotes: input.internalNotes ?? "",
     clientNotes: "",
     files,
-    createdAt: new Date().toISOString().slice(0, 10),
-    updatedAt: new Date().toISOString(),
-    confirmationStatus: "awaiting_confirmation",
-    documentStatus: "awaiting_signature",
+    createdAt: orderDate,
+    updatedAt: `${orderDate}T12:00:00.000Z`,
+    confirmationStatus: "confirmed",
+    documentStatus: "delivered",
     vatEnabled: db.settings.vatEnabledByDefault ?? true,
-    paymentStatus: "unpaid",
+    paymentStatus: "paid",
     signatureMode: "electronic",
     receptionChecklist: {},
-  });
+    completedAt: orderDate,
+  })
+  );
 
   db.workOrders.push(order);
-  handleWorkOrderClientNotifications(db, order, null);
   syncWarehouseFromWorkOrder(db, order);
 
   return { ok: true, orderId: order.id, orderNumber: order.number };

@@ -44,9 +44,40 @@ const PARTS_SECTION =
 const LABOR_SECTION = /^(usługi|uslugi|robocizna|prace|robota)\b/i;
 
 const SKIP_LINE =
-  /^(razem|suma|vat|netto|brutto|total|data|zlecenie|telefon|vin|rej|podsumowanie|do zapłaty|wartość|kwota|łącznie|kosztorys|ilość|j\.?\s*m\.?|cena brutto|koszt brutto|nazwa|dane klienta|dane pojazdu|osoba uprawniona|podpis klienta|status|data utworzenia|nip|aleja|krakowska|bessmotors|spółka|spolka|www\.|http)/i;
+  /^(razem|suma|vat|netto|brutto|total|data|zlecenie|telefon|vin|rej|podsumowanie|do zapłaty|wartość|kwota|łącznie|kosztorys|ilość|j\.?\s*m\.?|cena brutto|koszt brutto|nazwa|dane klienta|dane pojazdu|osoba uprawniona|podpis klienta|status|data utworzenia|nip|aleja|krakowska|bessmotors|spółka|spolka|www\.|http|udzielono\s+rabatu)/i;
 
 const SUMMARY_LINE = /\b(łącznie|razem)\b/i;
+
+const TABLE_HEADER_LINE = /^lp\.?\s+nazwa\b/i;
+
+const WORKSHOP_PHONES = new Set(["791257229", "48791257229", "5223374059"]);
+
+function normalizeTableLine(line: string): string {
+  return line.replace(/\t/g, " ").replace(/\s+/g, " ").trim();
+}
+
+function isWorkshopPhone(digits: string): boolean {
+  const d = digits.replace(/\D/g, "");
+  const last9 = d.slice(-9);
+  return WORKSHOP_PHONES.has(d) || WORKSHOP_PHONES.has(last9);
+}
+
+function cleanClientName(raw: string | undefined): string | undefined {
+  if (!raw) return undefined;
+  const t = raw.replace(/\s+/g, " ").trim();
+  if (t.length < 2) return undefined;
+  if (
+    /^(numer\s+telefonu|telefon|adres|nip|e-?mail|imię|imie|imig)\s*:/i.test(t) ||
+    /^firmy\s*:/i.test(t)
+  ) {
+    return undefined;
+  }
+  return t;
+}
+
+function stripRowIndex(name: string): string {
+  return name.replace(/^\d+\s+/, "").trim();
+}
 
 function cleanPlate(raw: string): string {
   return raw.replace(/\s+/g, " ").trim().toUpperCase();
@@ -64,7 +95,7 @@ function isLikelyPlateToken(p: string): boolean {
 
 function parsePlMoney(raw: string): number {
   const n = Number.parseFloat(raw.replace(/\s/g, "").replace(",", "."));
-  return Number.isFinite(n) ? n : 0;
+  return Number.isFinite(n) ? Math.round(n * 100) / 100 : 0;
 }
 
 function normalizeText(text: string): string {
@@ -94,53 +125,77 @@ function sliceBlock(text: string, start: RegExp, end: RegExp): string {
   return (endMatch ? rest.slice(0, endMatch.index) : rest).trim();
 }
 
-/** Motowarsztat table row: Name  qty  oper|szt  unitPrice  lineTotal */
+/** Legacy row without Lp. column (OCR / old exports). */
+const MW_TABLE_ROW_LEGACY =
+  /^(.+?)\s+(\d+(?:[.,]\d+)?)\s+(oper|szt\.?)\s+(\d[\d\s]*[.,]\d{2})\s*(?:zł|zl)?\s+(\d[\d\s]*[.,]\d{2})\s*(?:zł|zl)?\s*$/i;
+
+/** Motowarsztat table row: Lp Name qty oper|szt unitPrice lineTotal */
 const MW_TABLE_ROW =
-  /^(.+?)\s+(\d+(?:[.,]\d+)?)\s+(oper|szt\.?)\s+(\d[\d\s]*[.,]\d{2})\s*(?:zł|zl)?\s*(\d[\d\s]*[.,]\d{2})\s*(?:zł|zl)?\s*$/i;
+  /^\d+\s+(.+?)\s+(\d+(?:[.,]\d+)?)\s+(oper|szt\.?)\s+(\d[\d\s]*[.,]\d{2})\s*(?:zł|zl)?\s+(\d[\d\s]*[.,]\d{2})\s*(?:zł|zl)?\s*$/i;
 
 const MW_TABLE_ROW_ZL_STUCK =
-  /^(.+?)\s+(\d+(?:[.,]\d+)?)\s+(oper|szt\.?)\s+(\d[\d\s]*[.,]\d{2})(?:zł|zl)(\d[\d\s]*[.,]\d{2})(?:zł|zl)?\s*$/i;
+  /^\d+\s+(.+?)\s+(\d+(?:[.,]\d+)?)\s+(oper|szt\.?)\s+(\d[\d\s]*[.,]\d{2})(?:zł|zl)(\d[\d\s]*[.,]\d{2})(?:zł|zl)?\s*$/i;
+
+/** Row with Rabat / Cena po rabacie columns — use final Koszt brutto as line total. */
+const MW_TABLE_ROW_DISCOUNT =
+  /^\d+\s+(.+?)\s+(\d+(?:[.,]\d+)?)\s+(oper|szt\.?)\s+(\d[\d\s]*[.,]\d{2})\s*(?:zł|zl)?\s+\d+\s*%\s+(\d[\d\s]*[.,]\d{2})\s*(?:zł|zl)?\s+(\d[\d\s]*[.,]\d{2})\s*(?:zł|zl)?\s*$/i;
 
 /** OCR misreads «szt» as «aper», «oper», column headers merge into rows. */
 const MW_TABLE_ROW_OCR =
-  /^\d+\s+(.+?)\s+\d+(?:[.,]\d+)?\s+(?:aper|szt\.?|oper|jm\.?)\s+(\d[\d\s]*[.,]\d{2})\s*(?:zł|zl)\s+(\d[\d\s]*[.,]\d{2})\s*(?:zł|zl)?/i;
+  /^\d+\s+(.+?)\s+(\d+(?:[.,]\d+)?)\s+(?:aper|szt\.?|oper|jm\.?)\s+(\d[\d\s]*[.,]\d{2})\s*(?:zł|zl)\s+(\d[\d\s]*[.,]\d{2})\s*(?:zł|zl)?\s*$/i;
 
-const MW_PART_ROW_QTY =
-  /^\d+\s+(.+?)\s+(\d+(?:[.,]\d+)?)\s+szt\.?\s+(\d[\d\s]*[.,]\d{2})\s*(?:zł|zl)\s+(\d[\d\s]*[.,]\d{2})\s*(?:zł|zl)?/i;
+function rowMatchesMotowarsztatTable(line: string): boolean {
+  const n = normalizeTableLine(line);
+  return (
+    MW_TABLE_ROW.test(n) ||
+    MW_TABLE_ROW_ZL_STUCK.test(n) ||
+    MW_TABLE_ROW_DISCOUNT.test(n) ||
+    MW_TABLE_ROW_OCR.test(n) ||
+    MW_TABLE_ROW_LEGACY.test(n)
+  );
+}
 
 function tryMotowarsztatTableRow(
   line: string,
   kind: "labor" | "parts"
 ): ImportServiceDraft | ImportPartDraft | null {
-  const trimmed = line.trim();
+  const trimmed = normalizeTableLine(line);
   if (trimmed.length < 8 || SKIP_LINE.test(trimmed) || SUMMARY_LINE.test(trimmed)) {
     return null;
   }
   if (LABOR_SECTION.test(trimmed) || PARTS_SECTION.test(trimmed)) return null;
-  if (/^(lp\.|nazwa|cenabruto|kosztbrutio)/i.test(trimmed)) return null;
+  if (TABLE_HEADER_LINE.test(trimmed)) return null;
+  if (/udzielono\s+rabatu/i.test(trimmed)) return null;
 
-  const partM = trimmed.match(MW_PART_ROW_QTY);
+  const discountM = trimmed.match(MW_TABLE_ROW_DISCOUNT);
   const ocrM = trimmed.match(MW_TABLE_ROW_OCR);
   const stdM = trimmed.match(MW_TABLE_ROW) ?? trimmed.match(MW_TABLE_ROW_ZL_STUCK);
-  if (!partM && !ocrM && !stdM) return null;
+  const legacyM = !/^\d+\s/.test(trimmed) ? trimmed.match(MW_TABLE_ROW_LEGACY) : null;
+  if (!discountM && !ocrM && !stdM && !legacyM) return null;
 
-  const name = (partM ?? ocrM ?? stdM)![1].replace(/\s*:\s*$/, "").trim();
+  const rawName = (discountM ?? ocrM ?? stdM ?? legacyM)![1].replace(/\s*:\s*$/, "").trim();
+  const name = stripRowIndex(rawName);
   if (name.length < 3 || /^\d+$/.test(name)) return null;
 
   let qty = 1;
   let unitPrice = 0;
   let lineTotal = 0;
-  if (partM) {
-    qty = parsePlMoney(partM[2]) || 1;
-    unitPrice = parsePlMoney(partM[3]);
-    lineTotal = parsePlMoney(partM[4]);
+  if (discountM) {
+    qty = parsePlMoney(discountM[2]) || 1;
+    unitPrice = parsePlMoney(discountM[5]);
+    lineTotal = parsePlMoney(discountM[6]);
   } else if (ocrM) {
-    unitPrice = parsePlMoney(ocrM[2]);
-    lineTotal = parsePlMoney(ocrM[3]);
+    qty = parsePlMoney(ocrM[2]) || 1;
+    unitPrice = parsePlMoney(ocrM[3]);
+    lineTotal = parsePlMoney(ocrM[4]);
   } else if (stdM) {
     qty = parsePlMoney(stdM[2]) || 1;
     unitPrice = parsePlMoney(stdM[4]);
     lineTotal = parsePlMoney(stdM[5]);
+  } else if (legacyM) {
+    qty = parsePlMoney(legacyM[2]) || 1;
+    unitPrice = parsePlMoney(legacyM[4]);
+    lineTotal = parsePlMoney(legacyM[5]);
   }
   if (unitPrice <= 0 && lineTotal <= 0) return null;
 
@@ -190,21 +245,29 @@ function parseMotowarsztatBlocks(text: string): {
     const email = clientBlock.match(EMAIL_RE)?.[0];
     if (email) result.email = email;
 
+    const personName = clientBlock.match(/imię\s+i\s+nazwisko\s*:\s*([^\n]*)/i)?.[1];
+    const cleanedPerson = cleanClientName(personName);
+    if (cleanedPerson) result.clientName = cleanedPerson;
+
+    if (!result.clientName) {
+      const company = clientBlock.match(
+        /nazwa\s+firmy\s*:\s*([\s\S]*?)(?=\n\s*(?:nip|adres|dane\s+pojazd)|$)/i
+      )?.[1];
+      const cleanedCompany = cleanClientName(
+        company?.replace(/\s+/g, " ").trim()
+      );
+      if (cleanedCompany) result.clientName = cleanedCompany;
+    }
+
     for (const line of clientBlock.split(/\n/)) {
       const t = line.trim();
       if (!t) continue;
       const tel = t.match(/(?:numer\s+)?telefon\w*[:\s]+(\d[\d\s-]{8,12})/i);
       if (tel) {
         const digits = tel[1].replace(/\D/g, "");
-        if (digits.length >= 9) {
+        if (digits.length >= 9 && !isWorkshopPhone(digits)) {
           result.phone = `+48${digits.slice(-9)}`;
         }
-      }
-      const nameAfterLabel = t.match(
-        /(?:imię|imig)\s+i\s+nazwisko[:\s]+(.+)/i
-      ) ?? t.match(/(?:nazwa|klient)[:\s]+(.+)/i);
-      if (nameAfterLabel && !result.clientName) {
-        result.clientName = nameAfterLabel[1].split(/\bmarka\b/i)[0]!.trim();
       }
     }
 
@@ -214,9 +277,10 @@ function parseMotowarsztatBlocks(text: string): {
         if (
           t.length >= 4 &&
           /^[A-Za-zÀ-ž][A-Za-zÀ-ž\s.'-]{2,}$/.test(t) &&
-          !/telefon|email|nip|ul\.|ulica|@|\d{5}/i.test(t)
+          !/telefon|email|nip|ul\.|ulica|@|\d{5}/i.test(t) &&
+          cleanClientName(t)
         ) {
-          result.clientName = t;
+          result.clientName = cleanClientName(t);
           break;
         }
       }
@@ -224,7 +288,7 @@ function parseMotowarsztatBlocks(text: string): {
 
     if (!result.phone) {
       const phones = [...clientBlock.matchAll(/\b(\d{9})\b/g)].map((x) => x[1]);
-      const mobile = phones.find((p) => /^[5-9]/.test(p));
+      const mobile = phones.find((p) => /^[5-9]/.test(p) && !isWorkshopPhone(p));
       if (mobile) result.phone = `+48${mobile}`;
     }
   }
@@ -255,18 +319,26 @@ function parseMotowarsztatBlocks(text: string): {
       if (n > 0) result.mileage = n;
     }
 
-    const regLabel = vehicleBlock.match(
-      /(?:nr\s*)?rejestrac[^\n:]*[:\s]+([A-Z0-9][A-Z0-9\s-]{3,8})/i
-    );
-    if (regLabel) {
-      const p = cleanPlate(regLabel[1]);
-      if (isLikelyPlateToken(p)) result.plate = p;
+    const regLine = vehicleBlock.match(
+      /numer\s+rejestracyjny\s*:?\s*\n?\s*([^\n]+)/i
+    )?.[1];
+    if (regLine) {
+      const candidate = regLine.trim();
+      if (
+        candidate &&
+        !/^vin\b/i.test(candidate) &&
+        !VIN_RE.test(candidate) &&
+        candidate.length <= 12
+      ) {
+        const p = cleanPlate(candidate);
+        if (isLikelyPlateToken(p)) result.plate = p;
+      }
     }
 
     if (!result.plate) {
       for (const m of vehicleBlock.matchAll(PLATE_RE)) {
         const p = cleanPlate(m[1]);
-        if (isLikelyPlateToken(p)) {
+        if (isLikelyPlateToken(p) && !/^VIN/i.test(p)) {
           result.plate = p;
           break;
         }
@@ -284,19 +356,30 @@ function parseMotowarsztatBlocks(text: string): {
   }
 
   if (!result.clientName) {
-    const name =
-      text.match(/(?:imię|imig)\s+i\s+nazwisko[:\s]+([^\n]+)/i)?.[1]?.trim() ??
-      text.match(/(?:klient|nazwa klienta)[:\s]+([^\n]+)/i)?.[1]?.trim();
-    if (name && name.length >= 3) {
-      result.clientName = name.split(/\bmarka\b/i)[0]!.trim();
+    const personFallback = cleanClientName(
+      text.match(/imię\s+i\s+nazwisko\s*:\s*([^\n]*)/i)?.[1]
+    );
+    if (personFallback) {
+      result.clientName = personFallback.split(/\bmarka\b/i)[0]!.trim();
     }
   }
 
   if (!result.phone) {
-    const tel =
-      text.match(/(?:numer\s+)?telefon\w*[:\s]+(\d{9})/i)?.[1] ??
-      text.match(/\b([5-9]\d{8})\b/)?.[1];
-    if (tel) result.phone = `+48${tel.replace(/\D/g, "").slice(-9)}`;
+    const labeled =
+      text.match(/numer\s+telefonu\s*:\s*(\d[\d\s-]{8,12})/i)?.[1] ??
+      text.match(/(?:numer\s+)?telefon\w*[:\s]+(\d{9})/i)?.[1];
+    if (labeled) {
+      const digits = labeled.replace(/\D/g, "");
+      if (digits.length >= 9 && !isWorkshopPhone(digits)) {
+        result.phone = `+48${digits.slice(-9)}`;
+      }
+    }
+    if (!result.phone) {
+      const mobile = [...text.matchAll(/\b([5-9]\d{8})\b/g)]
+        .map((m) => m[1])
+        .find((p) => !isWorkshopPhone(p));
+      if (mobile) result.phone = `+48${mobile}`;
+    }
   }
 
   if (!result.email) {
@@ -317,7 +400,7 @@ function extractMotowarsztatLineItems(text: string): {
 
   const lines = text.split(/\n/);
   for (let i = 0; i < lines.length; i++) {
-    let trimmed = lines[i].trim();
+    const trimmed = lines[i].trim();
     if (!trimmed) continue;
 
     if (LABOR_SECTION.test(trimmed)) {
@@ -333,19 +416,17 @@ function extractMotowarsztatLineItems(text: string): {
 
     if (SKIP_LINE.test(trimmed) || SUMMARY_LINE.test(trimmed)) continue;
     if (/^razem\b/i.test(trimmed)) continue;
+    if (TABLE_HEADER_LINE.test(trimmed)) continue;
 
     let combined = trimmed;
-    const rowMatches = (s: string) =>
-      MW_TABLE_ROW.test(s) ||
-      MW_TABLE_ROW_ZL_STUCK.test(s) ||
-      MW_TABLE_ROW_OCR.test(s) ||
-      MW_PART_ROW_QTY.test(s);
-    if (!rowMatches(combined) && i + 1 < lines.length) {
+    if (!rowMatchesMotowarsztatTable(combined) && i + 1 < lines.length) {
       const next = lines[i + 1].trim();
-      const attempt = `${trimmed} ${next}`;
-      if (rowMatches(attempt)) {
-        combined = attempt;
-        i += 1;
+      if (!TABLE_HEADER_LINE.test(trimmed) && !TABLE_HEADER_LINE.test(next)) {
+        const attempt = `${trimmed} ${next}`;
+        if (rowMatchesMotowarsztatTable(attempt)) {
+          combined = attempt;
+          i += 1;
+        }
       }
     }
 

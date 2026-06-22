@@ -12,7 +12,7 @@ import type {
 import { calcPartLineProfit } from "@/lib/workorder-calc";
 import { createWorkOrderFromImport } from "@/lib/create-work-order-from-import";
 import { loadDb } from "@/lib/store";
-import { saveDbAndPushCrm } from "@/lib/cloud-crm-db";
+import { pullCrmFromCloud, saveDbAndPushCrm } from "@/lib/cloud-crm-db";
 import { acquireCrmDraftLock, releaseCrmDraftLock } from "@/lib/crm-draft-lock";
 import { Button } from "@/components/ui/Button";
 
@@ -50,33 +50,103 @@ export function ImportWorkOrderModal({ open, onClose, onCreated }: Props) {
   const imp = c.importOrder;
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
   const [parsing, setParsing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [bulkImporting, setBulkImporting] = useState(false);
   const [error, setError] = useState("");
+  const [bulkSummary, setBulkSummary] = useState("");
   const [draft, setDraft] = useState<ImportWorkOrderDraft | null>(null);
   const [rawPreview, setRawPreview] = useState("");
 
+  const file = files[0] ?? null;
+  const isBulk = files.length > 1;
+
   const reset = () => {
-    setFile(null);
+    setFiles([]);
     setDraft(null);
     setRawPreview("");
+    setBulkSummary("");
     setError("");
     if (fileRef.current) fileRef.current.value = "";
   };
 
   const requestClose = () => {
-    if (parsing || saving) return;
+    if (parsing || saving || bulkImporting) return;
     releaseCrmDraftLock();
     reset();
     onClose();
   };
 
-  const handleFile = (f: File | null) => {
-    setFile(f);
+  const handleFiles = (list: FileList | null) => {
+    const next = list ? Array.from(list) : [];
+    setFiles(next);
     setDraft(null);
     setRawPreview("");
+    setBulkSummary("");
     setError("");
+  };
+
+  const runBulkImport = async () => {
+    if (files.length < 2) return;
+    setBulkImporting(true);
+    setError("");
+    setBulkSummary("");
+    try {
+      const form = new FormData();
+      for (const f of files) form.append("files", f);
+      const res = await staffCrmFetch(
+        "/api/crm/import-work-order/bulk",
+        { method: "POST", body: form },
+        300_000
+      );
+      if (!res?.ok) {
+        const why = staffCrmFetchFailureReason(res);
+        if (why === "unauthorized") {
+          setError(imp.sessionExpired);
+          return;
+        }
+        if (!res) {
+          setError(why === "timeout" ? c.syncTimeout : c.syncNetwork);
+          return;
+        }
+        const data = (await res.json().catch(() => ({}))) as { error?: string };
+        setError(data.error || imp.createFailed);
+        return;
+      }
+      const data = (await res.json()) as {
+        imported: number;
+        skipped: number;
+        failed: number;
+        results: {
+          fileName: string;
+          ok: boolean;
+          orderNumber?: string;
+          error?: string;
+          skipped?: boolean;
+        }[];
+      };
+      setBulkSummary(
+        imp.bulkDone
+          .replace("{imported}", String(data.imported))
+          .replace("{total}", String(files.length))
+          .replace("{skipped}", String(data.skipped))
+          .replace("{failed}", String(data.failed))
+      );
+      await pullCrmFromCloud({ force: true });
+      const lastOk = [...data.results]
+        .reverse()
+        .find((r) => r.ok && r.orderNumber && !r.skipped);
+      if (lastOk?.orderNumber) {
+        const fresh = loadDb();
+        const order = fresh.workOrders.find((o) => o.number === lastOk.orderNumber);
+        if (order) onCreated(order.id);
+      }
+    } catch {
+      setError(imp.createFailed);
+    } finally {
+      setBulkImporting(false);
+    }
   };
 
   const runParse = async () => {
@@ -253,21 +323,43 @@ export function ImportWorkOrderModal({ open, onClose, onCreated }: Props) {
           <input
             ref={fileRef}
             type="file"
+            multiple
             accept="application/pdf,image/jpeg,image/png,image/webp"
             className="hidden"
-            onChange={(e) => handleFile(e.target.files?.[0] ?? null)}
+            onChange={(e) => handleFiles(e.target.files)}
           />
           <Button
             type="button"
             variant="outline"
             className="w-full"
             onClick={() => fileRef.current?.click()}
-            disabled={parsing || saving}
+            disabled={parsing || saving || bulkImporting}
           >
-            {file ? file.name : imp.pickFile}
+            {files.length === 0
+              ? imp.pickFiles
+              : files.length === 1
+                ? files[0]!.name
+                : `${files.length} PDF`}
           </Button>
 
-          {!draft && (
+          {isBulk && !draft && (
+            <Button
+              type="button"
+              className="w-full"
+              disabled={bulkImporting}
+              onClick={() => void runBulkImport()}
+            >
+              {bulkImporting ? (
+                <>
+                  <Loader2 className="animate-spin" size={18} /> {imp.importingAll}
+                </>
+              ) : (
+                imp.importAll
+              )}
+            </Button>
+          )}
+
+          {!draft && !isBulk && (
             <Button
               type="button"
               className="w-full"
@@ -564,6 +656,12 @@ export function ImportWorkOrderModal({ open, onClose, onCreated }: Props) {
                 </pre>
               </details>
             </div>
+          )}
+
+          {bulkSummary && (
+            <p className="text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg p-3">
+              {bulkSummary}
+            </p>
           )}
 
           {error && <p className="text-sm text-red-500">{error}</p>}
