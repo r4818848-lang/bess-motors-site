@@ -10,7 +10,9 @@ import type {
   ImportWorkOrderDraft,
 } from "@/lib/motowarsztat-import-parser";
 import {
+  importDraftErrors,
   importDraftHasBlockingIssues,
+  importDraftInfos,
   issueAffectsRow,
   normalizeImportDraftPrices,
   validateImportDraft,
@@ -79,6 +81,9 @@ export function ImportWorkOrderModal({ open, onClose, onCreated }: Props) {
 
   const issueText = (code: string) =>
     (imp.issues as Record<string, string> | undefined)?.[code] ?? code;
+
+  const draftErrors = useMemo(() => importDraftErrors(draftIssues), [draftIssues]);
+  const draftInfos = useMemo(() => importDraftInfos(draftIssues), [draftIssues]);
 
   const reset = () => {
     setFiles([]);
@@ -254,19 +259,21 @@ export function ImportWorkOrderModal({ open, onClose, onCreated }: Props) {
   };
 
   const partsProfitPreview =
-    draft?.parts.reduce(
-      (sum, p) =>
+    draft?.parts.reduce((sum, p) => {
+      const qty = p.qty || 1;
+      const unitSell = p.sellPrice / qty;
+      return (
         sum +
         calcPartLineProfit({
           id: "",
           name: p.name,
-          qty: p.qty || 1,
+          qty,
           purchasePrice: p.purchasePrice,
-          sellPrice: p.sellPrice,
+          sellPrice: unitSell,
           discount: 0,
-        }),
-      0
-    ) ?? 0;
+        })
+      );
+    }, 0) ?? 0;
 
   const handleCreate = async () => {
     if (!draft || !file) return;
@@ -424,21 +431,20 @@ export function ImportWorkOrderModal({ open, onClose, onCreated }: Props) {
                 {parsedFromImage ? imp.parsedFromImage : imp.parsedFromPdf}
               </p>
 
-              {draftIssues.length > 0 && (
-                <ul className="text-xs space-y-1 rounded-md border border-amber-200 bg-amber-50/80 p-3">
-                  {draftIssues.map((issue, idx) => (
-                    <li
-                      key={`${issue.code}-${issue.row ?? ""}-${idx}`}
-                      className={
-                        issue.severity === "error"
-                          ? "text-red-700"
-                          : issue.severity === "info"
-                            ? "text-bm-muted"
-                            : "text-amber-800"
-                      }
-                    >
+              {draftErrors.length > 0 && (
+                <ul className="text-xs space-y-1 rounded-md border border-red-200 bg-red-50/80 p-3">
+                  {draftErrors.map((issue, idx) => (
+                    <li key={`${issue.code}-${issue.row ?? ""}-${idx}`} className="text-red-700">
                       {issueText(issue.code)}
                     </li>
+                  ))}
+                </ul>
+              )}
+
+              {draftInfos.length > 0 && (
+                <ul className="text-xs space-y-1 text-bm-muted">
+                  {draftInfos.map((issue, idx) => (
+                    <li key={`${issue.code}-${idx}`}>{issueText(issue.code)}</li>
                   ))}
                 </ul>
               )}
@@ -545,7 +551,7 @@ export function ImportWorkOrderModal({ open, onClose, onCreated }: Props) {
                   <table className="w-full text-xs min-w-[480px]">
                     <thead>
                       <ImportTableHeader
-                        cols={[c.name, c.qty, `${c.price} (${c.brutto})`]}
+                        cols={[c.name, c.qty, imp.lineTotalBrutto]}
                       />
                     </thead>
                     <tbody>
@@ -639,7 +645,7 @@ export function ImportWorkOrderModal({ open, onClose, onCreated }: Props) {
                           c.name,
                           c.qty,
                           `${c.purchasePrice} (${c.brutto})`,
-                          `${c.sellPrice} (${c.brutto})`,
+                          imp.lineTotalBrutto,
                         ]}
                       />
                     </thead>

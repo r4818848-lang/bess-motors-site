@@ -99,6 +99,14 @@ function parsePlMoney(raw: string): number {
   return Number.isFinite(n) ? Math.round(n * 100) / 100 : 0;
 }
 
+/** Koszt brutto per line (what the PDF shows in the last money column). */
+function lineTotalPrice(unitPrice: number, lineTotal: number, qty: number): number {
+  const q = qty > 0 ? qty : 1;
+  if (lineTotal > 0) return parsePlMoney(String(lineTotal));
+  if (unitPrice > 0) return parsePlMoney(String(unitPrice * q));
+  return 0;
+}
+
 /** Kosztorys columns (Cena brutto + Koszt brutto) are both sell — last column is line total. */
 function kosztorysSellFromPrices(prices: number[]): number {
   if (!prices.length) return 0;
@@ -213,17 +221,18 @@ function tryMotowarsztatTableRow(
   }
   if (unitPrice <= 0 && lineTotal <= 0) return null;
 
-  const price = lineTotal > 0 ? lineTotal / (qty > 0 ? qty : 1) : unitPrice;
+  const q = qty > 0 ? qty : 1;
+  const bruttoLine = lineTotalPrice(unitPrice, lineTotal, q);
 
   if (kind === "labor") {
-    return { name: name.slice(0, 200), qty: qty > 0 ? qty : 1, price };
+    return { name: name.slice(0, 200), qty: q, price: bruttoLine };
   }
 
   return {
     name: name.slice(0, 200),
-    qty: qty > 0 ? qty : 1,
+    qty: q,
     purchasePrice: 0,
-    sellPrice: price,
+    sellPrice: bruttoLine,
   };
 }
 
@@ -346,6 +355,31 @@ function parseMotowarsztatBlocks(text: string): {
       ) {
         const p = cleanPlate(candidate);
         if (isLikelyPlateToken(p)) result.plate = p;
+      }
+    }
+
+    if (!result.plate && vehicleBlock) {
+      const vLines = vehicleBlock.split(/\n/).map((l) => l.trim()).filter(Boolean);
+      for (let i = 0; i < vLines.length; i++) {
+        if (!/numer\s+rejestracyjny/i.test(vLines[i]!)) continue;
+        const sameLine = vLines[i]!
+          .replace(/numer\s+rejestracyjny\s*:?\s*/i, "")
+          .trim();
+        if (sameLine && isLikelyPlateToken(cleanPlate(sameLine))) {
+          result.plate = cleanPlate(sameLine);
+          break;
+        }
+        for (let j = i + 1; j < Math.min(i + 3, vLines.length); j++) {
+          const cand = vLines[j]!;
+          if (/^vin\b/i.test(cand) || VIN_RE.test(cand)) break;
+          if (/^(marka|poziom|stan)\b/i.test(cand)) continue;
+          const p = cleanPlate(cand);
+          if (isLikelyPlateToken(p)) {
+            result.plate = p;
+            break;
+          }
+        }
+        if (result.plate) break;
       }
     }
 
@@ -485,9 +519,7 @@ function parseMotowarsztatKosztorys(text: string): ImportWorkOrderDraft {
   services = dedupeServices(services);
   parts = dedupeParts(parts);
 
-  if (services.length === 0) warnings.push("no_services_detected");
-  if (parts.length === 0) warnings.push("no_parts_detected");
-  if (parts.some((p) => p.purchasePrice <= 0)) warnings.push("purchase_via_screenshot");
+  if (services.length === 0 && parts.length === 0) warnings.push("no_lines_detected");
   if (!meta.phone && !meta.clientName) warnings.push("no_client_detected");
   if (!meta.plate && !meta.vin) warnings.push("no_vehicle_detected");
 
@@ -736,9 +768,7 @@ function parseGeneric(text: string): ImportWorkOrderDraft {
   services = dedupeServices(services);
   parts = dedupeParts(parts);
 
-  if (services.length === 0) warnings.push("no_services_detected");
-  if (parts.length === 0) warnings.push("no_parts_detected");
-  if (parts.some((p) => p.purchasePrice <= 0)) warnings.push("purchase_via_screenshot");
+  if (services.length === 0 && parts.length === 0) warnings.push("no_lines_detected");
   if (!phone && !clientName) warnings.push("no_client_detected");
   if (!plate && !vin) warnings.push("no_vehicle_detected");
 

@@ -5,12 +5,24 @@ export type ImportDraftIssueSeverity = "error" | "warning" | "info";
 export type ImportDraftIssue = {
   code: string;
   severity: ImportDraftIssueSeverity;
-  /** Row index for service/part tables */
   row?: number;
   kind?: "service" | "part" | "client" | "vehicle";
 };
 
-/** Kosztorys PDF only has sell prices — purchase is filled via CRM screenshot. */
+const INFO_ONLY_CODES = new Set([
+  "pdf_recommended",
+  "purchase_via_screenshot",
+  "no_lines_detected",
+]);
+
+const WARNING_CODES = new Set([
+  "no_client_name",
+  "no_vehicle_detected",
+  "no_client_detected",
+  "purchase_equals_sell",
+  "purchase_above_sell",
+]);
+
 export function validateImportDraft(
   draft: ImportWorkOrderDraft,
   options?: { fromImage?: boolean }
@@ -22,7 +34,7 @@ export function validateImportDraft(
   }
 
   if (!draft.phone?.trim()) {
-    issues.push({ code: "phone_required", severity: "error", kind: "client" });
+    issues.push({ code: "phone_required", severity: "warning", kind: "client" });
   }
   if (!draft.clientName?.trim()) {
     issues.push({ code: "no_client_name", severity: "warning", kind: "client" });
@@ -48,9 +60,12 @@ export function validateImportDraft(
   }
 
   for (const w of draft.warnings) {
-    if (!issues.some((x) => x.code === w)) {
-      issues.push({ code: w, severity: "warning" });
-    }
+    if (INFO_ONLY_CODES.has(w)) continue;
+    if (issues.some((x) => x.code === w)) continue;
+    issues.push({
+      code: w,
+      severity: WARNING_CODES.has(w) ? "warning" : "info",
+    });
   }
 
   return issues;
@@ -87,6 +102,14 @@ export function importDraftHasBlockingIssues(issues: ImportDraftIssue[]): boolea
   return issues.some((i) => i.severity === "error");
 }
 
+export function importDraftErrors(issues: ImportDraftIssue[]): ImportDraftIssue[] {
+  return issues.filter((i) => i.severity === "error");
+}
+
+export function importDraftInfos(issues: ImportDraftIssue[]): ImportDraftIssue[] {
+  return issues.filter((i) => i.severity === "info");
+}
+
 export function normalizeImportDraftPrices(
   draft: ImportWorkOrderDraft
 ): ImportWorkOrderDraft {
@@ -114,9 +137,6 @@ export function issueAffectsRow(
   index: number
 ): boolean {
   return issues.some(
-    (i) =>
-      i.kind === kind &&
-      i.row === index &&
-      (i.severity === "error" || i.severity === "warning")
+    (i) => i.kind === kind && i.row === index && i.severity === "error"
   );
 }

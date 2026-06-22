@@ -52,7 +52,7 @@ function mapImportServices(
       name: s.name.trim(),
       qty: s.qty > 0 ? s.qty : 1,
       price: storeUnitPriceFromDisplay(
-        Math.max(0, s.price),
+        Math.max(0, s.price) / (s.qty > 0 ? s.qty : 1),
         "gross",
         vatRate,
         vatEnabled
@@ -83,7 +83,7 @@ function mapImportParts(
         vatEnabled
       ),
       sellPrice: storeUnitPriceFromDisplay(
-        Math.max(0, p.sellPrice),
+        Math.max(0, p.sellPrice) / (p.qty > 0 ? p.qty : 1),
         "gross",
         vatRate,
         vatEnabled

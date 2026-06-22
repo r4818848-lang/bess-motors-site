@@ -75,7 +75,8 @@ console.log("tab sample: OK");
 
 const disc = parseWorkOrderImportText(discountSample);
 assert(disc.services.length === 2, "discount services count");
-assert(disc.services[0].price === 360, "discount service price");
+assert(disc.services[0].price === 360, "discount service line total");
+assert(disc.services[1].price === 439.99, "discount service qty2 line total");
 assert(!disc.services.some((s) => /rabatu/i.test(s.name)), "no discount summary as service");
 console.log("discount sample: OK");
 
