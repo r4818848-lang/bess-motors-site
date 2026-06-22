@@ -27,6 +27,8 @@ function ocrQualityScore(text: string): number {
   if (lower.includes("dane klienta") || lower.includes("dane kienta")) score += 300;
   if (lower.includes("usługi") || lower.includes("uslugi")) score += 200;
   if (lower.includes("towary")) score += 200;
+  if (lower.includes("задач") || lower.includes("zadach") || lower.includes("товар"))
+    score += 250;
   if (/\bzl\s*\d/i.test(t) || lower.includes("zł")) score += 150;
   if (/\b\d{9}\b/.test(t)) score += 100;
   if (/[A-HJ-NPR-Z0-9]{17}/i.test(t)) score += 100;

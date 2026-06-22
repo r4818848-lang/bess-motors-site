@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
-import { Plus, Trash2, Save, X, Upload, FileText } from "lucide-react";
+import { useState, useMemo, useEffect, useRef } from "react";
+import { Plus, Trash2, Save, X, Upload, FileText, Loader2, ScanLine } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { handleWorkOrderClientNotifications } from "@/lib/client-notifications";
 import {
@@ -21,6 +21,7 @@ import {
 } from "@/lib/store";
 import { PAYMENT_METHODS } from "@/lib/payment";
 import { pullCrmFromCloud, pushCrmDelete, saveDbAndPushCrm } from "@/lib/cloud-crm-db";
+import { staffCrmFetch, staffCrmFetchFailureReason } from "@/lib/crm-staff-fetch";
 import { syncWarehouseFromWorkOrder } from "@/lib/warehouse-stock";
 import {
   applyInviteeDiscountToOrder,
@@ -154,6 +155,9 @@ export function WorkOrderForm({
   const [createStep, setCreateStep] = useState<CreateStep>("client");
   const [editTab, setEditTab] = useState<EditTab>("client");
   const [saveError, setSaveError] = useState("");
+  const [enriching, setEnriching] = useState(false);
+  const [enrichMessage, setEnrichMessage] = useState("");
+  const enrichInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     acquireCrmDraftLock();
@@ -261,6 +265,45 @@ export function WorkOrderForm({
     const parts = [...order.parts];
     parts[i] = { ...parts[i], ...patch };
     setOrder({ ...order, parts });
+  };
+
+  const runEnrichScreenshot = async (file: File) => {
+    if (isNew || !order.id) return;
+    setEnriching(true);
+    setEnrichMessage("");
+    setSaveError("");
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      form.append("orderId", order.id);
+      form.append("apply", "true");
+      const res = await staffCrmFetch(
+        "/api/crm/work-orders/enrich-screenshot",
+        { method: "POST", body: form },
+        120_000
+      );
+      if (!res?.ok) {
+        const why = staffCrmFetchFailureReason(res);
+        if (!res) {
+          setSaveError(why === "timeout" ? c.syncTimeout : c.syncNetwork);
+        } else {
+          setSaveError(w.enrichFailed);
+        }
+        return;
+      }
+      const data = (await res.json()) as {
+        result?: { updates?: { name: string; fields: string[] }[] };
+      };
+      await pullCrmFromCloud({ force: true });
+      const fresh = loadDb().workOrders.find((o) => o.id === order.id);
+      if (fresh) setOrder(fresh);
+      const n = data.result?.updates?.length ?? 0;
+      setEnrichMessage(w.enrichDone.replace("{n}", String(n)));
+    } catch {
+      setSaveError(w.enrichFailed);
+    } finally {
+      setEnriching(false);
+    }
   };
 
   const handleFileUpload = (
@@ -847,6 +890,42 @@ export function WorkOrderForm({
 
       {showWorks && (
       <>
+      {!isNew && (
+        <div className="crm-mw-card rounded-md p-4 space-y-2">
+          <p className="text-sm text-bm-muted">{w.enrichScreenshotHint}</p>
+          <input
+            ref={enrichInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) void runEnrichScreenshot(f);
+              e.target.value = "";
+            }}
+          />
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full sm:w-auto"
+            disabled={enriching}
+            onClick={() => enrichInputRef.current?.click()}
+          >
+            {enriching ? (
+              <>
+                <Loader2 className="animate-spin" size={18} /> {w.enrichingScreenshot}
+              </>
+            ) : (
+              <>
+                <ScanLine size={18} /> {w.enrichScreenshot}
+              </>
+            )}
+          </Button>
+          {enrichMessage && (
+            <p className="text-sm text-emerald-700">{enrichMessage}</p>
+          )}
+        </div>
+      )}
       <div className="crm-mw-card rounded-md overflow-hidden">
         <div className="px-4 py-3 border-b border-bm-border bg-bm-red/10 flex justify-between items-center">
           <h3 className="font-display text-sm uppercase font-bold text-bm-red">{w.worksTable}</h3>
