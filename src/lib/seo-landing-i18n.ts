@@ -29,10 +29,11 @@ const SEO_RU: Partial<Record<string, SeoText>> = {
   },
   klimatyzacja: {
     title: "Автокондиционер",
-    line1: "Заправка и антибактериальная обработка",
-    line2: "Исправный климат круглый год",
-    metaTitle: "Автокондиционер Варшава",
-    metaDescription: "Сервис кондиционера — заправка, чистка. BESS MOTORS Варшава.",
+    line1: "Заправка R134a и R1234yf — летний сезон",
+    line2: "Вакуум, герметичность, антигрибок",
+    metaTitle: "Заправка кондиционера Варшава — R134a, R1234yf",
+    metaDescription:
+      "Летний сезон — сервис кондиционера в BESS MOTORS Варшава. Заправка R134a от 80 zł/100 г, R1234yf, вакуум, проверка герметичности, антигрибок. Онлайн-запись.",
   },
   zawieszenie: {
     title: "Ремонт подвески",
@@ -74,10 +75,11 @@ const SEO_EN: Partial<Record<string, SeoText>> = {
   },
   klimatyzacja: {
     title: "Car A/C Service",
-    line1: "Refrigerant refill and cleaning",
-    line2: "Comfort all year round",
-    metaTitle: "Car air conditioning Warsaw",
-    metaDescription: "A/C service — refill and cleaning. BESS MOTORS Warsaw.",
+    line1: "R134a and R1234yf refill — summer season",
+    line2: "Vacuum, leak check, cleaning",
+    metaTitle: "Car A/C recharge Warsaw — R134a, R1234yf",
+    metaDescription:
+      "Summer season — A/C service at BESS MOTORS Warsaw. R134a from 80 PLN/100g, R1234yf, vacuum, leak check, cleaning. Book online.",
   },
   zawieszenie: {
     title: "Suspension Repair",

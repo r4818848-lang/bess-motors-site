@@ -1,8 +1,8 @@
 /** Internal links for footer — strengthens topical authority */
 export const seoFooterServiceLinks: { href: string; label: string }[] = [
+  { href: "/klimatyzacja", label: "Klimatyzacja — nabijanie" },
   { href: "/wymiana-oleju", label: "Wymiana oleju" },
   { href: "/opony", label: "Wulkanizacja" },
-  { href: "/klimatyzacja", label: "Klimatyzacja" },
   { href: "/hamulce", label: "Hamulce" },
   { href: "/diagnostyka", label: "Diagnostyka" },
   { href: "/chip-tuning-warszawa", label: "Chip tuning" },

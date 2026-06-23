@@ -73,8 +73,8 @@ export const sitePartners = [
 
 /** Service boxes on home page banner section — opens smart booking for serviceId */
 export const bannerServices = [
+  { id: "ac" as const, serviceId: "acRefill" as ServiceId, fast: true, seasonal: true },
   { id: "tires" as const, serviceId: "tires" as ServiceId, fast: true },
-  { id: "ac" as const, serviceId: "acRefill" as ServiceId },
   { id: "oil" as const, serviceId: "oil" as ServiceId, fast: true },
   { id: "tuning" as const, serviceId: "chip" as ServiceId },
   { id: "other" as const, serviceId: "diagnostic" as ServiceId },

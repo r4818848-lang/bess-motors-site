@@ -2,7 +2,7 @@
 
 import { getPriceItem } from "@/lib/price-list";
 
-export type ServicePackageId = "to_standard" | "winter_prep" | "brake_check";
+export type ServicePackageId = "to_standard" | "winter_prep" | "brake_check" | "summer_ac";
 
 export type ServicePackage = {
   id: ServicePackageId;
@@ -38,6 +38,15 @@ export const servicePackages: ServicePackage[] = [
     nameRu: "Зимний пакет — шины + диагностика",
     packagePricePln: 320,
     validUntil: "2026-12-31",
+  },
+  {
+    id: "summer_ac",
+    serviceIds: ["acRefill", "acRepair"],
+    priceItemIds: ["ac_diag", "ac_r134a", "ac_clean"],
+    namePl: "Pakiet letni — klima + odgrzybianie",
+    nameRu: "Летний пакет — кондиционер + антигрибок",
+    packagePricePln: 349,
+    validUntil: "2026-08-31",
   },
   {
     id: "brake_check",

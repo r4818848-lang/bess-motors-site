@@ -21,10 +21,24 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!page) return {};
 
   const cityKw = "Warszawa";
+  const acKeywords =
+    slug === "klimatyzacja"
+      ? [
+          "nabijanie klimatyzacji Warszawa",
+          "serwis klimatyzacji samochodowej",
+          "klimatyzacja samochodowa Włochy",
+          "R134a Warszawa",
+          "R1234yf Warszawa",
+          "odgrzybianie klimatyzacji",
+          "próżniowanie klimatyzacji",
+        ]
+      : [];
+
   return buildPageMetadata({
     title: page.metaTitle,
     description: page.metaDescription,
     path: `/${page.slug}`,
+    ogImage: slug === "klimatyzacja" ? "/images/works/ac-service-cover.png" : undefined,
     keywords: [
       page.metaTitle,
       page.title,
@@ -36,6 +50,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       "warsztat samochodowy Włochy",
       "Aleja Krakowska 48/52",
       page.slug.replace(/-/g, " "),
+      ...acKeywords,
     ],
   });
 }

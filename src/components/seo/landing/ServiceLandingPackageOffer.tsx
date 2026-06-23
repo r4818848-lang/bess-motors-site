@@ -18,6 +18,8 @@ const LANDING_PACKAGES: Partial<Record<ServiceId, ServicePackageId>> = {
   brakePads: "brake_check",
   brakesFull: "brake_check",
   tires: "winter_prep",
+  acRefill: "summer_ac",
+  acRepair: "summer_ac",
 };
 
 export function ServiceLandingPackageOffer({ serviceId }: { serviceId: ServiceId }) {

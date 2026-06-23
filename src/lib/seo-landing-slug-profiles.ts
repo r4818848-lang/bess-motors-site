@@ -145,6 +145,72 @@ export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
   },
   klimatyzacja: {
     faqDuration: L("Serwis klimy: 1–2 godziny.", "Кондиционер: 1–2 часа."),
+    galleryTags: ["klim", "ac"],
+    education: [
+      {
+        title: L("Sezon letni — czas na serwis klimatyzacji", "Летний сезон — пора обслужить кондиционер"),
+        body: L(
+          "Nawet gdy klima jeszcze chłodzi, czynnik naturalnie ubywa. Przed upałami warto zrobić próżnię, kontrolę szczelności i uzupełnienie R134a lub R1234yf — mniejsze obciążenie sprężarki i komfort w aucie.",
+          "Даже если кондиционер ещё холодит, хладагент со временем уходит. Перед жарой — вакуум, проверка герметичности и заправка R134a или R1234yf: меньше нагрузка на компрессор и комфорт в салоне."
+        ),
+      },
+      {
+        title: L("Co robimy w BESS MOTORS", "Что делаем в BESS MOTORS"),
+        body: L(
+          "Diagnostyka układu, napełnianie czynnikiem, ozonowanie i odgrzybianie, naprawa nieszczelności, wymiana sprężarki lub chłodnicy — obsługujemy większość aut osobowych.",
+          "Диагностика, заправка, озонирование и антигрибок, устранение утечек, замена компрессора или радиатора — обслуживаем большинство легковых авто."
+        ),
+      },
+    ],
+    faqExtra: [
+      {
+        q: L("Ile kosztuje nabijanie klimatyzacji?", "Сколько стоит заправка кондиционера?"),
+        a: L(
+          "R134a od 80 zł za 100 g, R1234yf od 100 zł/100 g — dokładna ilość zależy od modelu. Diagnostyka i próżnia według cennika na stronie.",
+          "R134a от 80 zł за 100 г, R1234yf от 100 zł/100 г — объём зависит от модели. Диагностика и вакуум по прайсу на сайте."
+        ),
+      },
+      {
+        q: L("Czy można umówić się tego samego dnia?", "Можно записаться в тот же день?"),
+        a: L(
+          "Tak — w sezonie letnim staramy się przyjąć auto tego samego dnia. Zapis online lub telefon +48 791 257 229.",
+          "Да — в летний сезон стараемся принять авто в тот же день. Онлайн-запись или телефон +48 791 257 229."
+        ),
+      },
+    ],
+    price: {
+      fromZl: 80,
+      priceFrom: true,
+      materialsExtra: true,
+      includes: [
+        L("Diagnostyka i próżniowanie układu", "Диагностика и вакуумирование"),
+        L("Napełnianie R134a lub R1234yf", "Заправка R134a или R1234yf"),
+        L("Kontrola szczelności i ciśnienia", "Проверка герметичности и давления"),
+        L("Odgrzybianie / ozonowanie (opcjonalnie)", "Антигрибок / озонирование (опционально)"),
+      ],
+      priceTable: [
+        {
+          label: L("Napełnianie R134a (za 100 g)", "Заправка R134a (за 100 г)"),
+          priceZl: 80,
+          priceFrom: true,
+        },
+        {
+          label: L("Napełnianie R1234yf (za 100 g)", "Заправка R1234yf (за 100 г)"),
+          priceZl: 100,
+          priceFrom: true,
+        },
+        {
+          label: L("Diagnostyka klimatyzacji", "Диагностика кондиционера"),
+          priceZl: 150,
+          priceFrom: true,
+        },
+        {
+          label: L("Odgrzybianie klimatyzacji", "Антигрибок кондиционера"),
+          priceZl: 150,
+          priceFrom: true,
+        },
+      ],
+    },
   },
   geometria: {
     faqDuration: L("Geometria kół: ok. 1 godziny.", "Развал-схождение: около 1 часа."),

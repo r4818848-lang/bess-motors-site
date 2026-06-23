@@ -32,7 +32,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   for (const slug of seoLandingSlugs) {
     if (sitemapExcludedSlugs.has(slug)) continue;
-    add(`/${slug}`, "weekly", 0.8);
+    const priority = slug === "klimatyzacja" ? 0.95 : 0.8;
+    add(`/${slug}`, "weekly", priority);
   }
 
   add("/blog", "weekly", 0.7);

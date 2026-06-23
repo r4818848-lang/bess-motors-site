@@ -67,9 +67,9 @@ export function blogPostingSchema(post: BlogPost) {
 export function servicesItemListSchema() {
   const siteUrl = getSiteUrl();
   const items = [
+    { name: "Klimatyzacja samochodowa — nabijanie R134a", path: "/klimatyzacja" },
     { name: "Wymiana oleju", path: "/wymiana-oleju" },
     { name: "Wulkanizacja", path: "/opony" },
-    { name: "Klimatyzacja samochodowa", path: "/klimatyzacja" },
     { name: "Serwis hamulców", path: "/hamulce" },
     { name: "Diagnostyka komputerowa", path: "/diagnostyka" },
     { name: "Chip tuning", path: "/chip-tuning-warszawa" },

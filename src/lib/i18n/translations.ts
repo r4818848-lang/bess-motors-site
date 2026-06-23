@@ -27,7 +27,7 @@ const pl = {
     slogan1: "TWÓJ SAMOCHÓD",
     slogan2: "W DOBRYCH RĘKACH!",
     subtitle: "Serwis samochodowy · Warszawa",
-    desc: "Szybko, profesjonalnie, najlepsze ceny — wymiana opon, klimatyzacja, wymiana oleju, chip tuning i pełna mechanika.",
+    desc: "Szybko, profesjonalnie, najlepsze ceny — sezon letni: serwis klimatyzacji R134a/R1234yf, wymiana opon, olej, chip tuning i pełna mechanika.",
     ctaBook: "Umów się online",
     ctaCall: "Zadzwoń i umów się!",
     ctaServices: "Nasze usługi",
@@ -42,7 +42,7 @@ const pl = {
   },
   bannerServices: {
     tires: { title: "WYMIANA OPON", items: ["Montaż", "Wyważanie", "Geometria"] },
-    ac: { title: "SERWIS KLIMATYZACJI", items: ["Diagnostyka", "Odgrzybianie", "Uzupełnianie czynnika"] },
+    ac: { title: "SERWIS KLIMATYZACJI", items: ["Nabijanie R134a / R1234yf", "Próżnia i szczelność", "Odgrzybianie"] },
     oil: { title: "WYMIANA OLEJU", items: ["Wymiana oleju", "Filtr oleju", "Kontrola"] },
     tuning: { title: "TUNING / CHIP TUNING", items: ["Więcej mocy", "Lepsza dynamika", "Niższe spalanie"] },
     other: { title: "POZOSTAŁE PRACE", items: ["Mechanika", "Elektryka", "Diagnostyka i więcej"] },
@@ -241,6 +241,23 @@ const pl = {
     serviceVideoTitle: "Wideo z warsztatu",
     serviceVideoHint: "Zobacz, jak wykonujemy tę usługę w BESS MOTORS.",
     viewAllWorks: "Wszystkie prace",
+  },
+  seasonalAc: {
+    badge: "Sezon letni 2026",
+    title: "Zapraw klimatyzację przed upałami",
+    subtitle:
+      "Lato już trwa — to najlepszy moment na serwis klimy. Nabijanie R134a od 80 zł/100 g, R1234yf, próżnia i kontrola szczelności w BESS MOTORS na Alei Krakowskiej.",
+    bullets: [
+      "Nabijanie R134a i R1234yf",
+      "Próżnia i kontrola szczelności",
+      "Odgrzybianie i ozonowanie",
+      "Często przyjęcie tego samego dnia",
+    ],
+    ctaBook: "Umów nabijanie",
+    ctaLearn: "Strona usługi",
+    ctaCall: "Zadzwoń",
+    imageAlt: "Serwis klimatyzacji BESS MOTORS Warszawa",
+    watchVideo: "Zobacz wideo z warsztatu",
   },
   workshopPhotos: {
     exterior: {
@@ -1815,7 +1832,7 @@ const ru: TranslationKeys = {
     slogan1: "ВАШ АВТОМОБИЛЬ",
     slogan2: "В НАДЁЖНЫХ РУКАХ!",
     subtitle: "Автосервис · Варшава",
-    desc: "Быстро, профессионально, лучшие цены — шиномонтаж, кондиционер, замена масла, чип-тюнинг и полный ремонт.",
+    desc: "Быстро, профессионально, лучшие цены — летний сезон: заправка кондиционера R134a/R1234yf, шиномонтаж, замена масла, чип-тюнинг и полный ремонт.",
     ctaBook: "Онлайн запись",
     ctaCall: "Позвоните и запишитесь!",
     ctaServices: "Наши услуги",
@@ -1830,7 +1847,7 @@ const ru: TranslationKeys = {
   },
   bannerServices: {
     tires: { title: "ШИНОМОНТАЖ", items: ["Монтаж", "Балансировка", "Развал-схождение"] },
-    ac: { title: "КОНДИЦИОНЕР", items: ["Диагностика", "Антигрибок", "Заправка фреоном"] },
+    ac: { title: "КОНДИЦИОНЕР", items: ["Заправка R134a / R1234yf", "Вакуум и герметичность", "Антигрибок"] },
     oil: { title: "ЗАМЕНА МАСЛА", items: ["Замена масла", "Фильтр", "Контроль"] },
     tuning: { title: "TUNING / CHIP TUNING", items: ["Больше мощности", "Динамика", "Меньше расход"] },
     other: { title: "ПРОЧИЕ РАБОТЫ", items: ["Механика", "Электрика", "Диагностика и др."] },
@@ -2028,6 +2045,23 @@ const ru: TranslationKeys = {
     serviceVideoTitle: "Видео с работы",
     serviceVideoHint: "Посмотрите, как мы выполняем эту услугу в BESS MOTORS.",
     viewAllWorks: "Все работы",
+  },
+  seasonalAc: {
+    badge: "Летний сезон 2026",
+    title: "Заправьте кондиционер перед жарой",
+    subtitle:
+      "Лето уже началось — самое время обслужить кондиционер. Заправка R134a от 80 zł/100 г, R1234yf, вакуум и проверка герметичности в BESS MOTORS на Aleja Krakowska.",
+    bullets: [
+      "Заправка R134a и R1234yf",
+      "Вакуум и проверка герметичности",
+      "Антигрибок и озонирование",
+      "Часто приём в тот же день",
+    ],
+    ctaBook: "Записаться на заправку",
+    ctaLearn: "Страница услуги",
+    ctaCall: "Позвонить",
+    imageAlt: "Сервис кондиционера BESS MOTORS Варшава",
+    watchVideo: "Видео с работы",
   },
   workshopPhotos: {
     exterior: {
@@ -3622,7 +3656,7 @@ const en: TranslationKeys = {
     slogan1: "YOUR CAR",
     slogan2: "IN GOOD HANDS!",
     subtitle: "Car service · Warsaw",
-    desc: "Fast, professional, best prices — tires, A/C, oil change, chip tuning and full mechanics.",
+    desc: "Fast, professional, best prices — summer season: A/C recharge R134a/R1234yf, tires, oil change, chip tuning and full mechanics.",
     ctaBook: "Book Online",
     ctaCall: "Call and book now!",
     ctaServices: "Our Services",
@@ -3996,6 +4030,23 @@ const en: TranslationKeys = {
     serviceVideoTitle: "Workshop video",
     serviceVideoHint: "See how we perform this service at BESS MOTORS.",
     viewAllWorks: "All work videos",
+  },
+  seasonalAc: {
+    badge: "Summer 2026",
+    title: "Recharge your A/C before the heat",
+    subtitle:
+      "Summer is here — the best time for A/C service. R134a from 80 PLN/100g, R1234yf, vacuum and leak check at BESS MOTORS on Aleja Krakowska.",
+    bullets: [
+      "R134a and R1234yf refill",
+      "Vacuum and leak check",
+      "Cleaning and ozone treatment",
+      "Same-day appointments often available",
+    ],
+    ctaBook: "Book A/C service",
+    ctaLearn: "Service page",
+    ctaCall: "Call us",
+    imageAlt: "A/C service at BESS MOTORS Warsaw",
+    watchVideo: "Watch workshop video",
   },
   workshopPhotos: {
     exterior: {

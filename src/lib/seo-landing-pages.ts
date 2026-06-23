@@ -61,11 +61,11 @@ export const seoLandingPages: SeoLandingPage[] = [
   {
     slug: "klimatyzacja",
     title: "Klimatyzacja Auto",
-    line1: "Nabijanie i odgrzybianie",
-    line2: "Sprawna klima cały rok",
-    metaTitle: "Klimatyzacja samochodowa Warszawa",
+    line1: "Nabijanie R134a i R1234yf — sezon letni",
+    line2: "Próżnia, szczelność, odgrzybianie",
+    metaTitle: "Nabijanie klimatyzacji Warszawa — R134a, R1234yf",
     metaDescription:
-      "Klimatyzacja samochodowa — nabijanie, odgrzybianie, serwis. Sprawna klima przez cały rok. BESS MOTORS Warszawa.",
+      "Sezon letni — serwis klimatyzacji w BESS MOTORS Warszawa Włochy. Nabijanie R134a od 80 zł/100g, R1234yf, próżnia, kontrola szczelności, odgrzybianie. Zapis online.",
     serviceId: "acRefill",
     icon: "Wind",
   },

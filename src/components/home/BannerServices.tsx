@@ -45,12 +45,19 @@ export function BannerServices() {
                   <button
                     type="button"
                     onClick={() => setBookingService(svc.serviceId)}
-                    className="block w-full h-full text-left rounded-2xl border-2 border-bm-red/60 bg-bm-card/80 p-5 transition-all duration-300 hover:border-bm-red hover:shadow-neon group neon-border cursor-pointer"
+                    className="relative block w-full h-full text-left rounded-2xl border-2 border-bm-red/60 bg-bm-card/80 p-5 transition-all duration-300 hover:border-bm-red hover:shadow-neon group neon-border cursor-pointer"
                     style={{
                       boxShadow:
-                        "0 0 15px rgba(225, 6, 0, 0.15), inset 0 0 20px rgba(225, 6, 0, 0.03)",
+                        svc.id === "ac"
+                          ? "0 0 22px rgba(225, 6, 0, 0.35), inset 0 0 24px rgba(225, 6, 0, 0.06)"
+                          : "0 0 15px rgba(225, 6, 0, 0.15), inset 0 0 20px rgba(225, 6, 0, 0.03)",
                     }}
                   >
+                    {"seasonal" in svc && svc.seasonal ? (
+                      <span className="absolute top-2 right-2 rounded-full bg-bm-red px-2 py-0.5 text-[8px] font-bold uppercase text-white tracking-wide">
+                        {t.seasonalAc.badge}
+                      </span>
+                    ) : null}
                     <div className="flex justify-center mb-4">
                       <div className="rounded-full bg-bm-red/15 p-4 group-hover:bg-bm-red/25 transition-colors">
                         <Icon className="w-10 h-10 text-bm-red" strokeWidth={1.5} />
