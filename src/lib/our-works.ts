@@ -13,6 +13,76 @@ export type OurWorkVideo = {
 
 export const OUR_WORK_VIDEOS: OurWorkVideo[] = [
   {
+    id: "timing-belt-passat",
+    serviceIds: ["timingBelt"],
+    videoSrc: "/videos/works/timing-belt-passat.mov",
+    posterSrc: "/images/works/timing-belt-passat-cover.png",
+    title: {
+      pl: "Wymiana rozrządu",
+      ru: "Замена ГРМ",
+      en: "Timing belt replacement",
+    },
+    description: {
+      pl: `Rozrząd to jeden z najważniejszych elementów silnika. Jego zerwanie może oznaczać kosztowny remont głowicy i układu zaworowego. Terminowa wymiana to inwestycja w niezawodność auta — nie zbędny koszt.
+
+W BESS MOTORS wykonujemy:
+
+✅ Demontaż i montaż rozrządu
+✅ Precyzyjną ustawienie faz silnika
+✅ Wymianę rolek, pomp i elementów zestawu
+✅ Kontrolę pracy silnika po złożeniu
+
+🚗 Volkswagen Passat B7
+⚙️ Silnik CFFB 2.0 TDI
+
+Dziękujemy klientowi za zaufanie!
+
+📍 BESS MOTORS
+Aleja Krakowska 48/52, Warszawa
+📞 +48 791 257 229
+
+Zapisuj i obserwuj — przed nami więcej realnych napraw i praktycznych materiałów z warsztatu.`,
+      ru: `ГРМ — один из важнейших узлов двигателя. Его обрыв может привести к дорогостоящему ремонту головки блока и клапанного механизма. Поэтому своевременная замена — это не расход, а инвестиция в надёжность автомобиля.
+
+В BESS MOTORS выполняем:
+
+✅ Демонтаж и сборку ГРМ
+✅ Точную установку фаз двигателя
+✅ Замену роликов, помпы и комплектующих
+✅ Проверку работы двигателя после сборки
+
+🚗 Volkswagen Passat B7
+⚙️ Двигатель CFFB 2.0 TDI
+
+Спасибо клиенту за доверие!
+
+📍 BESS MOTORS
+Aleja Krakowska 48/52, Warszawa
+📞 +48 791 257 229
+
+Сохраняйте и подписывайтесь — впереди ещё больше реальных ремонтов и полезного контента из жизни автосервиса.`,
+      en: `The timing belt is one of the engine's most critical components. If it snaps, head and valve train repairs can be very expensive. Replacing it on schedule is an investment in reliability — not an optional expense.
+
+At BESS MOTORS we offer:
+
+✅ Timing belt removal and installation
+✅ Precise engine timing setup
+✅ Replacement of tensioners, water pump and kit parts
+✅ Post-assembly engine run check
+
+🚗 Volkswagen Passat B7
+⚙️ Engine CFFB 2.0 TDI
+
+Thank you to our customer for trusting us!
+
+📍 BESS MOTORS
+Aleja Krakowska 48/52, Warsaw
+📞 +48 791 257 229
+
+Save and follow — more real workshop repairs and useful content coming soon.`,
+    },
+  },
+  {
     id: "ac-service",
     serviceIds: ["acRefill", "acRepair"],
     videoSrc: "/videos/works/ac-service.mov",
