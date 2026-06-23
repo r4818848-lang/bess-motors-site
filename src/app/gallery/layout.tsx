@@ -4,7 +4,7 @@ import { buildPageMetadata } from "@/lib/seo-metadata";
 export const metadata: Metadata = buildPageMetadata({
   title: "Galeria — realizacje serwisu",
   description:
-    "Galeria prac BESS MOTORS — naprawy, tuning, wulkanizacja i serwis samochodowy w Warszawie. Zdjęcia przed i po.",
+    "Galeria BESS MOTORS — zdjęcia warsztatu, wideo z prac, naprawy przed i po. Serwis samochodowy Warszawa.",
   path: "/gallery",
 });
 

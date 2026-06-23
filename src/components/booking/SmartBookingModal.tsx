@@ -37,6 +37,8 @@ import {
   itemLabel,
 } from "@/lib/service-price-map";
 import { serviceLandingHref } from "@/lib/service-slug-map";
+import { BookingWorkVideoTeaser } from "@/components/gallery/OurWorksSection";
+import { getOurWorkVideosForService } from "@/lib/our-works";
 
 type Phase = "manager" | "flow" | "date" | "time" | "problem" | "contact";
 type SubmitMode = "call" | "booking";
@@ -136,6 +138,7 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
 
   const clientFullName = `${clientFirstName.trim()} ${clientLastName.trim()}`.trim();
   const servicePageHref = serviceLandingHref(serviceId);
+  const hasWorkVideo = getOurWorkVideosForService(serviceId).length > 0;
 
   const lbl = (key: string) => {
     const flow = bf as Record<string, string>;
@@ -691,6 +694,7 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
               <h2 className="font-display text-xl font-bold uppercase text-glow text-center">
                 {bf.managerTitle}
               </h2>
+              {hasWorkVideo ? <BookingWorkVideoTeaser serviceId={serviceId} /> : null}
               <BookingLink
                 trackSource="booking_modal"
                 onClick={onClose}

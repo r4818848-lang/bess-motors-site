@@ -226,11 +226,21 @@ const pl = {
     viewAll: "Cała galeria",
   },
   instagramReels: {
-    title: "Nasze prace",
-    subtitle: "Wideo z warsztatu — naprawy, diagnostyka i serwis w BESS MOTORS.",
+    title: "Instagram",
+    subtitle: "Krótkie filmy z naszego profilu @bessmotors.pl.",
     watchReel: "Obejrzyj",
     openInstagram: "Otwórz w Instagramie",
     close: "Zamknij",
+  },
+  ourWorks: {
+    title: "Nasze prace",
+    subtitle: "Wideo z warsztatu — realne naprawy i serwis w BESS MOTORS.",
+    watchVideo: "Obejrzyj wideo",
+    openInstagram: "Otwórz w Instagramie",
+    close: "Zamknij",
+    serviceVideoTitle: "Wideo z warsztatu",
+    serviceVideoHint: "Zobacz, jak wykonujemy tę usługę w BESS MOTORS.",
+    viewAllWorks: "Wszystkie prace",
   },
   workshopPhotos: {
     exterior: {
@@ -428,7 +438,10 @@ const pl = {
   },
   galleryPage: {
     title: "Galeria",
-    subtitle: "Zdjęcia warsztatu oraz prac PRZED i PO — oznaczone w CRM do publikacji.",
+    subtitle: "Zdjęcia warsztatu, wideo z prac oraz realizacje PRZED i PO.",
+    tabWorkshop: "Warsztat",
+    tabOurWorks: "Nasze prace",
+    tabRepairs: "Przed / Po",
     repairsTitle: "Realizacje PRZED / PO",
     loading: "Ładowanie galerii…",
     empty: "Galeria w przygotowaniu.",
@@ -2000,11 +2013,21 @@ const ru: TranslationKeys = {
     viewAll: "Вся галерея",
   },
   instagramReels: {
-    title: "Наши работы",
-    subtitle: "Видео из сервиса — ремонты, диагностика и обслуживание в BESS MOTORS.",
+    title: "Instagram",
+    subtitle: "Короткие ролики с нашего профиля @bessmotors.pl.",
     watchReel: "Смотреть",
     openInstagram: "Открыть в Instagram",
     close: "Закрыть",
+  },
+  ourWorks: {
+    title: "Наши работы",
+    subtitle: "Видео из сервиса — реальные ремонты и обслуживание в BESS MOTORS.",
+    watchVideo: "Смотреть видео",
+    openInstagram: "Открыть в Instagram",
+    close: "Закрыть",
+    serviceVideoTitle: "Видео с работы",
+    serviceVideoHint: "Посмотрите, как мы выполняем эту услугу в BESS MOTORS.",
+    viewAllWorks: "Все работы",
   },
   workshopPhotos: {
     exterior: {
@@ -2202,7 +2225,10 @@ const ru: TranslationKeys = {
   },
   galleryPage: {
     title: "Галерея",
-    subtitle: "Фото сервиса и работ ДО / ПО — публикуются из CRM по отметке администратора.",
+    subtitle: "Фото сервиса, видео работ и ремонты ДО / ПО.",
+    tabWorkshop: "Сервис",
+    tabOurWorks: "Наши работы",
+    tabRepairs: "До / После",
     repairsTitle: "Работы ДО / ПО",
     loading: "Загрузка…",
     empty: "Галерея пока пуста.",
@@ -3955,11 +3981,21 @@ const en: TranslationKeys = {
     viewAll: "Full gallery",
   },
   instagramReels: {
-    title: "Our work",
-    subtitle: "Workshop videos — repairs, diagnostics and service at BESS MOTORS.",
+    title: "Instagram",
+    subtitle: "Short clips from our @bessmotors.pl profile.",
     watchReel: "Watch",
     openInstagram: "Open on Instagram",
     close: "Close",
+  },
+  ourWorks: {
+    title: "Our work",
+    subtitle: "Workshop videos — real repairs and service at BESS MOTORS.",
+    watchVideo: "Watch video",
+    openInstagram: "Open on Instagram",
+    close: "Close",
+    serviceVideoTitle: "Workshop video",
+    serviceVideoHint: "See how we perform this service at BESS MOTORS.",
+    viewAllWorks: "All work videos",
   },
   workshopPhotos: {
     exterior: {
@@ -3982,7 +4018,10 @@ const en: TranslationKeys = {
   galleryPage: {
     ...pl.galleryPage,
     title: "Gallery",
-    subtitle: "Workshop photos and before/after jobs published from CRM.",
+    subtitle: "Workshop photos, work videos and before/after jobs.",
+    tabWorkshop: "Workshop",
+    tabOurWorks: "Our work",
+    tabRepairs: "Before / After",
     repairsTitle: "Before / after jobs",
   },
   promoBanner: {

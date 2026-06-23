@@ -21,6 +21,7 @@ import { ServiceLandingPrice } from "@/components/seo/landing/ServiceLandingPric
 import { ServiceLandingSteps } from "@/components/seo/landing/ServiceLandingSteps";
 import { ServiceLandingEducation } from "@/components/seo/landing/ServiceLandingEducation";
 import { ServiceLandingPhotos } from "@/components/seo/landing/ServiceLandingPhotos";
+import { ServiceWorkVideo, BookingWorkVideoTeaser } from "@/components/gallery/OurWorksSection";
 import { ServiceLandingMap } from "@/components/seo/landing/ServiceLandingMap";
 import { ServiceLandingBottomCta } from "@/components/seo/landing/ServiceLandingBottomCta";
 import { ServiceLandingReviews } from "@/components/seo/landing/ServiceLandingReviews";
@@ -183,6 +184,7 @@ export function SeoLandingPageView({ page }: Props) {
                 onBook={bookServiceId ? openBooking : undefined}
               />
               <ServiceLandingEducation serviceId={contentServiceId} slug={page.slug} />
+              <ServiceWorkVideo serviceId={contentServiceId} className="mt-12" />
               <SeoServiceFaq serviceId={contentServiceId} slug={page.slug} />
               <ServiceLandingReviews serviceId={contentServiceId} />
               <ServiceLandingPhotos serviceId={contentServiceId} slug={page.slug} />

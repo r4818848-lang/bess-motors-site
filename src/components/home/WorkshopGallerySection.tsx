@@ -8,7 +8,7 @@ import { useI18n } from "@/lib/i18n/context";
 import type { PublicGalleryItem } from "@/app/api/gallery/route";
 import { WORKSHOP_PHOTOS } from "@/lib/workshop-photos";
 import { WorkshopPhotosGrid } from "@/components/gallery/WorkshopPhotosGrid";
-import { InstagramReelsSection } from "@/components/gallery/InstagramReelsSection";
+import { OurWorksSection } from "@/components/gallery/OurWorksSection";
 
 export function WorkshopGallerySection() {
   const { t } = useI18n();
@@ -41,16 +41,16 @@ export function WorkshopGallerySection() {
             <h2 className="font-display text-2xl uppercase text-glow">{wg.title}</h2>
             <p className="text-sm text-bm-muted mt-2 max-w-2xl">{wg.subtitle}</p>
           </div>
-          <Link href="/gallery" className="btn-outline text-sm inline-flex items-center gap-2">
+          <Link href="/gallery?tab=works" className="btn-outline text-sm inline-flex items-center gap-2">
             <Camera size={16} />
-            {wg.viewAll}
+            {t.ourWorks.viewAllWorks}
           </Link>
         </div>
 
         <WorkshopPhotosGrid heroFirst />
 
         <div className="mt-12">
-          <InstagramReelsSection showHeader />
+          <OurWorksSection showHeader compact />
         </div>
 
         {repairTiles.length > 0 ? (
@@ -62,7 +62,7 @@ export function WorkshopGallerySection() {
               {repairTiles.map((tile) => (
                 <Link
                   key={tile.key}
-                  href="/gallery"
+                  href="/gallery?tab=repairs"
                   className="group relative aspect-[4/3] rounded-xl overflow-hidden border border-bm-border/40 bg-bm-surface/50"
                 >
                   <Image

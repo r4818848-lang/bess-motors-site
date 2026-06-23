@@ -9,6 +9,23 @@ export type InstagramReel = {
 
 export const INSTAGRAM_REELS: InstagramReel[] = [
   {
+    id: "ac-service",
+    shortcode: "DZ8LHh8KZXS",
+    posterSrc: "/images/reels/ac-service.jpg",
+    title: {
+      pl: "Serwis klimatyzacji",
+      ru: "Заправка кондиционера",
+      en: "AC recharge",
+    },
+    caption: {
+      pl: "Napełnianie R134a, próżnia i kontrola szczelności — przygotuj klimatyzację przed letnimi upałami.",
+      ru: "Заправка R134a, вакуумирование и проверка герметичности — подготовьте кондиционер к жарким дням.",
+      en: "R134a refill, vacuum and leak check — get your AC ready before the summer heat.",
+    },
+    instagramUrl:
+      "https://www.instagram.com/reel/DZ8LHh8KZXS/?utm_source=ig_web_copy_link",
+  },
+  {
     id: "valve-adjustment",
     shortcode: "DZpIslgqM7J",
     posterSrc: "/images/reels/valve-adjustment.jpg",
