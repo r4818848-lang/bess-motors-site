@@ -26,6 +26,9 @@ export function SeasonalAcBanner() {
             </p>
             <h2 id="seasonal-ac-heading" className="font-display text-2xl sm:text-3xl font-bold uppercase text-glow leading-tight">
               {s.title}
+              <span className="block sm:inline sm:ml-3 mt-1 sm:mt-0 text-bm-red text-xl sm:text-2xl">
+                {s.priceFrom}
+              </span>
             </h2>
             <p className="mt-3 text-sm sm:text-base text-bm-silver/90 max-w-2xl leading-relaxed">
               {s.subtitle}

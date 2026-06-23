@@ -245,6 +245,7 @@ const pl = {
   seasonalAc: {
     badge: "Sezon letni 2026",
     title: "Zapraw klimatyzację przed upałami",
+    priceFrom: "od 80 zł/100 g",
     subtitle:
       "Lato już trwa — to najlepszy moment na serwis klimy. Nabijanie R134a od 80 zł/100 g, R1234yf, próżnia i kontrola szczelności w BESS MOTORS na Alei Krakowskiej.",
     bullets: [
@@ -2049,6 +2050,7 @@ const ru: TranslationKeys = {
   seasonalAc: {
     badge: "Летний сезон 2026",
     title: "Заправьте кондиционер перед жарой",
+    priceFrom: "от 80 zł/100 г",
     subtitle:
       "Лето уже началось — самое время обслужить кондиционер. Заправка R134a от 80 zł/100 г, R1234yf, вакуум и проверка герметичности в BESS MOTORS на Aleja Krakowska.",
     bullets: [
@@ -4034,6 +4036,7 @@ const en: TranslationKeys = {
   seasonalAc: {
     badge: "Summer 2026",
     title: "Recharge your A/C before the heat",
+    priceFrom: "from 80 PLN/100g",
     subtitle:
       "Summer is here — the best time for A/C service. R134a from 80 PLN/100g, R1234yf, vacuum and leak check at BESS MOTORS on Aleja Krakowska.",
     bullets: [

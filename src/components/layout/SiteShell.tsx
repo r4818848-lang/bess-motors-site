@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import { AcSummerPromoBar } from "@/components/home/AcSummerPromoBar";
 import { StickyContactBar } from "@/components/layout/StickyContactBar";
 import { BookNowSticky } from "@/components/layout/BookNowSticky";
 import { WhatsAppFloatingButton } from "@/components/layout/WhatsAppFloatingButton";
@@ -36,6 +37,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen overflow-x-clip">
       <Header />
+      {pathname === "/" ? <AcSummerPromoBar /> : null}
       <main
         className={
           hideMobileBar ? "min-h-screen" : "min-h-screen pb-[4.5rem] md:pb-0"

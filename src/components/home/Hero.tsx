@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { ChevronRight, Phone, Timer, Shield, Tag } from "lucide-react";
+import { ChevronRight, Phone, Timer, Shield, Tag, Snowflake } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { siteConfig } from "@/lib/site";
 import { PhoneLink } from "@/components/analytics/PhoneLink";
@@ -20,7 +20,7 @@ export function Hero() {
   ];
 
   return (
-    <section className="relative min-h-[100dvh] sm:min-h-screen flex items-center overflow-hidden pt-20">
+    <section className="relative min-h-[88dvh] sm:min-h-[85vh] flex items-center overflow-hidden pt-20">
       {/* Фон: полный баннер на всю секцию */}
       <div className="absolute inset-0 z-0" aria-hidden>
         <Image
@@ -77,6 +77,42 @@ export function Hero() {
             <p className="mt-6 text-bm-silver/95 leading-relaxed max-w-lg drop-shadow-md">
               {t.hero.desc}
             </p>
+
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.35, duration: 0.6 }}
+              className="mt-6 rounded-2xl border-2 border-bm-red/90 bg-gradient-to-br from-bm-red/35 via-bm-black/70 to-bm-red/20 p-4 sm:p-5 shadow-[0_0_32px_rgba(225,6,0,0.35)] backdrop-blur-sm"
+            >
+              <div className="flex flex-wrap items-center gap-2 mb-2">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/30 bg-bm-red/40 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest text-white">
+                  <Snowflake size={11} />
+                  {t.seasonalAc.badge}
+                </span>
+                <span className="text-xs sm:text-sm font-bold text-white bg-black/30 rounded-lg px-2.5 py-1">
+                  {t.seasonalAc.priceFrom}
+                </span>
+              </div>
+              <p className="font-display text-lg sm:text-xl font-bold uppercase text-white leading-tight">
+                {t.seasonalAc.title}
+              </p>
+              <p className="mt-2 text-xs sm:text-sm text-bm-silver/95 leading-relaxed max-w-xl">
+                {t.seasonalAc.subtitle}
+              </p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                <BookingLink
+                  href="/booking"
+                  trackSource="hero_ac_promo"
+                  className="btn-primary text-xs sm:text-sm inline-flex items-center gap-1.5"
+                >
+                  {t.seasonalAc.ctaBook}
+                  <ChevronRight size={14} />
+                </BookingLink>
+                <Link href="/klimatyzacja" className="btn-outline text-xs sm:text-sm">
+                  {t.seasonalAc.ctaLearn}
+                </Link>
+              </div>
+            </motion.div>
 
             <div className="mt-6 flex flex-wrap gap-2">
               {pills.map(({ icon: Icon, label }) => (
