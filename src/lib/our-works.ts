@@ -13,6 +13,73 @@ export type OurWorkVideo = {
 
 export const OUR_WORK_VIDEOS: OurWorkVideo[] = [
   {
+    id: "clutch-citroen",
+    serviceIds: ["clutch"],
+    videoSrc: "/videos/works/clutch-citroen.mov",
+    posterSrc: "/images/works/clutch-citroen-cover.png",
+    title: {
+      pl: "Wymiana sprzęgła",
+      ru: "Замена сцепления",
+      en: "Clutch replacement",
+    },
+    description: {
+      pl: `Klient zgłosił się z awarią — sprzęgło całkowicie odmówiło posłuszeństwa.
+
+Po diagnostyce potwierdziliśmy usterkę kompletu sprzęgła i przystąpiliśmy do naprawy.
+
+✅ Demontaż skrzyni biegów
+✅ Wymiana kompletu sprzęgła
+✅ Kontrola powiązanych elementów
+✅ Montaż i test kontrolny
+
+Terminowa wymiana sprzęgła pozwala uniknąć poważniejszych awarii i dodatkowych kosztów.
+
+Jeśli auto szarpie, są problemy ze zmianą biegów lub sprzęgło ślizga się — nie odkładaj diagnostyki.
+
+📍 BESS MOTORS
+Aleja Krakowska 48/52, Warszawa
+📞 +48 791 257 229
+
+Zaufaj naprawę profesjonalistom! 🔥`,
+      ru: `Клиент приехал с жалобой — сцепление полностью вышло из строя.
+
+После диагностики подтвердили неисправность комплекта сцепления и приступили к ремонту.
+
+✅ Демонтаж коробки передач
+✅ Замена комплекта сцепления
+✅ Проверка сопутствующих узлов
+✅ Сборка и контрольный тест
+
+Своевременная замена сцепления позволяет избежать более серьёзных поломок и дополнительных расходов.
+
+Если автомобиль начал дёргаться, появились проблемы с переключением передач или сцепление пробуксовывает — не откладывайте диагностику.
+
+📍 BESS MOTORS
+Aleja Krakowska 48/52, Warszawa
+📞 +48 791 257 229
+
+Доверяйте ремонт профессионалам! 🔥`,
+      en: `The customer came in with a failed clutch — it had completely stopped working.
+
+After diagnostics we confirmed the clutch kit fault and started the repair.
+
+✅ Gearbox removal
+✅ Clutch kit replacement
+✅ Related components inspection
+✅ Reassembly and test drive
+
+Replacing the clutch in time helps avoid more serious damage and extra costs.
+
+If the car jerks, gears are hard to shift or the clutch slips — don't delay diagnostics.
+
+📍 BESS MOTORS
+Aleja Krakowska 48/52, Warsaw
+📞 +48 791 257 229
+
+Trust the repair to professionals! 🔥`,
+    },
+  },
+  {
     id: "timing-belt-passat",
     serviceIds: ["timingBelt"],
     videoSrc: "/videos/works/timing-belt-passat.mov",
