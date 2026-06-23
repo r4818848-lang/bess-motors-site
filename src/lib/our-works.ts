@@ -13,6 +13,67 @@ export type OurWorkVideo = {
 
 export const OUR_WORK_VIDEOS: OurWorkVideo[] = [
   {
+    id: "valve-adjustment",
+    serviceIds: ["engine"],
+    videoSrc: "/videos/works/valve-adjustment.mov",
+    posterSrc: "/images/works/valve-adjustment-cover.png",
+    title: {
+      pl: "Regulacja zaworów",
+      ru: "Регулировка клапанов",
+      en: "Valve adjustment",
+    },
+    description: {
+      pl: `Regulacja zaworów to jedna z najważniejszych procedur serwisowych silnika.
+
+Nieprawidłowe luz zaworów może powodować utratę mocy, większe zużycie paliwa, nierówną pracę silnika i kosztowny remont w przyszłości.
+
+W tym samochodzie wykonujemy precyzyjną regulację zaworów według parametrów producenta — silnik pracuje cicho, równo i wydajnie.
+
+✅ Pomiar i ustawienie luzów zaworowych
+✅ Kontrola pracy silnika po regulacji
+✅ Serwis według specyfikacji producenta
+
+📍 BESS MOTORS
+Aleja Krakowska 48/52, Warszawa
+📞 +48 791 257 229
+
+Zapisz się wcześniej i dbaj o silnik na lata! 🔧`,
+      ru: `Регулировка клапанов — одна из самых важных процедур обслуживания двигателя.
+
+Неправильные зазоры клапанов могут вызывать потерю мощности, повышенный расход топлива, нестабильную работу двигателя и дорогостоящий ремонт в будущем.
+
+В этом автомобиле выполняем точную регулировку клапанов по заводским параметрам, чтобы двигатель работал тихо, ровно и эффективно.
+
+✅ Измерение и настройка зазоров клапанов
+✅ Контроль работы двигателя после регулировки
+✅ Обслуживание по спецификации производителя
+
+📍 BESS MOTORS
+Aleja Krakowska 48/52, Warszawa
+📞 +48 791 257 229
+
+Запишитесь заранее и берегите двигатель на годы! 🔧`,
+      en: `Valve adjustment is one of the most important engine maintenance procedures.
+
+Incorrect valve clearances can cause power loss, higher fuel consumption, rough running and expensive repairs later.
+
+On this car we perform precise valve adjustment to factory specs so the engine runs quietly, smoothly and efficiently.
+
+✅ Valve clearance measurement and setup
+✅ Engine run check after adjustment
+✅ Service to manufacturer specification
+
+📍 BESS MOTORS
+Aleja Krakowska 48/52, Warsaw
+📞 +48 791 257 229
+
+Book ahead and keep your engine healthy for years! 🔧`,
+    },
+    instagramShortcode: "DZpIslgqM7J",
+    instagramUrl:
+      "https://www.instagram.com/reel/DZpIslgqM7J/?utm_source=ig_web_copy_link",
+  },
+  {
     id: "exhaust-muffler",
     serviceIds: ["exhaust"],
     videoSrc: "/videos/works/exhaust-muffler.mov",
