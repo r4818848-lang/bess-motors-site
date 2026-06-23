@@ -190,6 +190,7 @@ type SectionProps = {
   showHeader?: boolean;
   serviceId?: ServiceId;
   compact?: boolean;
+  limit?: number;
 };
 
 export function OurWorksSection({
@@ -197,6 +198,7 @@ export function OurWorksSection({
   showHeader = true,
   serviceId,
   compact = false,
+  limit,
 }: SectionProps) {
   const { t } = useI18n();
   const ow = t.ourWorks;
@@ -206,8 +208,9 @@ export function OurWorksSection({
   const items = serviceId
     ? OUR_WORK_VIDEOS.filter((work) => work.serviceIds.includes(serviceId))
     : OUR_WORK_VIDEOS;
+  const visible = limit ? items.slice(0, limit) : items;
 
-  if (!items.length) return null;
+  if (!visible.length) return null;
 
   return (
     <section className={className} aria-labelledby="our-works-heading">
@@ -229,14 +232,22 @@ export function OurWorksSection({
       <div
         className={
           compact
-            ? "grid grid-cols-1 gap-5"
+            ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"
             : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"
         }
       >
-        {items.map((work) => (
+        {visible.map((work) => (
           <WorkCard key={work.id} work={work} onPlay={setActive} />
         ))}
       </div>
+
+      {limit && items.length > limit ? (
+        <div className="mt-6 text-center">
+          <Link href="/gallery?tab=works" className="btn-outline text-sm inline-flex items-center gap-2">
+            {ow.viewAllWorks} ({items.length})
+          </Link>
+        </div>
+      ) : null}
 
       {active ? <WorkModal work={active} onClose={close} /> : null}
     </section>

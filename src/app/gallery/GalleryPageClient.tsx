@@ -23,7 +23,7 @@ export default function GalleryPageClient() {
   const [items, setItems] = useState<PublicGalleryItem[]>([]);
   const [makeFilter, setMakeFilter] = useState<string>("all");
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<GalleryTab>("workshop");
+  const [tab, setTab] = useState<GalleryTab>("works");
 
   useEffect(() => {
     const fromUrl = searchParams.get("tab");
@@ -31,6 +31,12 @@ export default function GalleryPageClient() {
       setTab(fromUrl);
     }
   }, [searchParams]);
+
+  const selectTab = (id: GalleryTab) => {
+    setTab(id);
+    const url = id === "works" ? "/gallery?tab=works" : `/gallery?tab=${id}`;
+    window.history.replaceState(null, "", url);
+  };
 
   useEffect(() => {
     fetch("/api/gallery")
@@ -61,7 +67,7 @@ export default function GalleryPageClient() {
               type="button"
               role="tab"
               aria-selected={tab === id}
-              onClick={() => setTab(id)}
+              onClick={() => selectTab(id)}
               className={clsx(
                 "px-4 py-2 rounded-full text-xs font-bold uppercase border transition-colors",
                 tab === id
@@ -75,17 +81,19 @@ export default function GalleryPageClient() {
         </div>
 
         {tab === "workshop" && (
-          <div className="mt-10" role="tabpanel">
-            <h2 className="font-display text-xl uppercase text-glow mb-2">{t.workshopGallery.title}</h2>
-            <p className="text-sm text-bm-muted mb-6 max-w-2xl">{t.workshopGallery.subtitle}</p>
-            <WorkshopPhotosGrid heroFirst />
+          <div className="mt-10 space-y-12" role="tabpanel">
+            <div>
+              <h2 className="font-display text-xl uppercase text-glow mb-2">{t.workshopGallery.title}</h2>
+              <p className="text-sm text-bm-muted mb-6 max-w-2xl">{t.workshopGallery.subtitle}</p>
+              <WorkshopPhotosGrid heroFirst />
+            </div>
+            <InstagramReelsSection showHeader />
           </div>
         )}
 
         {tab === "works" && (
-          <div className="mt-10 space-y-12" role="tabpanel">
+          <div className="mt-10" role="tabpanel">
             <OurWorksSection showHeader />
-            <InstagramReelsSection showHeader />
           </div>
         )}
 

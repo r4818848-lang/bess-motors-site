@@ -191,7 +191,7 @@ export function ServiceLandingPhotos({
           {sl.photosTitle}
         </h2>
         <Link
-          href="/gallery"
+          href="/gallery?tab=works"
           className="text-sm text-bm-red hover:underline inline-flex items-center gap-1"
         >
           <Camera size={14} />

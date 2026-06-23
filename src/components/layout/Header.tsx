@@ -16,7 +16,7 @@ const navPaths = [
   { href: "/", key: "home" as const },
   { href: "/services", key: "services" as const },
   { href: "/cennik", key: "priceList" as const },
-  { href: "/gallery", key: "gallery" as const },
+  { href: "/gallery?tab=works", key: "gallery" as const },
   { href: "/booking", key: "booking" as const },
   { href: "/cabinet", key: "cabinet" as const },
   { href: "/about", key: "about" as const },
@@ -50,9 +50,10 @@ export function Header() {
 
         <nav className="hidden items-center gap-1 xl:flex">
           {navPaths.map(({ href, key }) => {
+            const isGallery = href.startsWith("/gallery");
             const navClass = clsx(
               "rounded-lg px-3 py-2 text-sm transition-all relative",
-              pathname === href
+              (isGallery ? pathname === "/gallery" : pathname === href)
                 ? "bg-bm-red/20 text-bm-red shadow-neon-sm"
                 : "text-bm-muted hover:text-white hover:bg-white/5",
               href === "/cabinet" && isClientLoggedIn && "text-white"
@@ -109,9 +110,12 @@ export function Header() {
         <div className="xl:hidden border-t border-bm-border glass px-4 py-4 max-h-[min(70vh,calc(100dvh-4rem))] overflow-y-auto overscroll-contain">
           <nav className="flex flex-col gap-2">
             {navPaths.map(({ href, key }) => {
+              const isGallery = href.startsWith("/gallery");
               const mobileClass = clsx(
                 "rounded-lg px-4 py-3",
-                pathname === href ? "bg-bm-red/20 text-bm-red" : "text-bm-muted"
+                (isGallery ? pathname === "/gallery" : pathname === href)
+                  ? "bg-bm-red/20 text-bm-red"
+                  : "text-bm-muted"
               );
               if (href === "/booking") {
                 return (

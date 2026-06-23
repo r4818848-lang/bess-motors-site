@@ -36,7 +36,7 @@ export function Footer() {
             <Link href="/about" className="text-bm-muted hover:text-bm-red transition-colors">
               {t.nav.about}
             </Link>
-            <Link href="/gallery" className="text-bm-muted hover:text-bm-red transition-colors">
+            <Link href="/gallery?tab=works" className="text-bm-muted hover:text-bm-red transition-colors">
               {t.nav.gallery}
             </Link>
             <Link href="/faq" className="text-bm-muted hover:text-bm-red transition-colors">
