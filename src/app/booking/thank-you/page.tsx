@@ -7,6 +7,8 @@ import { Check, Phone } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { PhoneLink } from "@/components/analytics/PhoneLink";
 import { trackLead } from "@/lib/gtag";
+import { trackGoogleAdsBookingConversion } from "@/lib/google-ads";
+import { trackMetaLead, trackMetaSchedule } from "@/lib/meta-pixel";
 import { ThankYouExtras } from "@/components/booking/ThankYouExtras";
 import { ThankYouSummary } from "@/components/booking/ThankYouSummary";
 import { PwaInstallHint } from "@/components/pwa/PwaInstallHint";
@@ -25,14 +27,9 @@ function ThankYouContent() {
   useEffect(() => {
     setSnapshot(loadSubmissionSnapshot());
     trackLead("booking", { source: "thank_you_page" });
-
-    if (typeof window !== "undefined" && typeof window.gtag === "function") {
-      window.gtag("event", "conversion", {
-        send_to: "booking_submit",
-        event_category: "booking",
-        event_label: "thank_you_page",
-      });
-    }
+    trackGoogleAdsBookingConversion({ event_label: "thank_you_page" });
+    trackMetaLead("thank_you_page");
+    trackMetaSchedule("thank_you_page");
   }, []);
 
   const title =

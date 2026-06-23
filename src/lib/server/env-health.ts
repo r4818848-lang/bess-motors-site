@@ -5,6 +5,8 @@ import {
 } from "@/lib/server/supabase-config";
 import { getVapidPublicKey } from "@/lib/server/web-push-send";
 import { isWhatsAppConfigured } from "@/lib/server/whatsapp-api";
+import { getPromoRules } from "@/lib/promo-codes";
+import { GOOGLE_ADS_ID, googleAdsBookingConversionSendTo } from "@/lib/google-ads";
 
 export type EnvCheckId =
   | "supabase"
@@ -19,7 +21,10 @@ export type EnvCheckId =
   | "site_url"
   | "jwt_secret"
   | "admin_env"
-  | "google_places";
+  | "google_places"
+  | "marketing_ga4"
+  | "marketing_gads_conversion"
+  | "marketing_promo";
 
 export type EnvCheck = {
   id: EnvCheckId;
@@ -114,6 +119,21 @@ export function getEnvHealth(): { ok: boolean; checks: EnvCheck[] } {
           cleanEnvValue(process.env.GOOGLE_MAPS_API_KEY)
       ),
       hint: "GOOGLE_PLACES_API_KEY + Places API (New) enabled — live Google reviews on site",
+    },
+    {
+      id: "marketing_ga4",
+      ok: Boolean(cleanEnvValue(process.env.NEXT_PUBLIC_GA4_ID)),
+      hint: "NEXT_PUBLIC_GA4_ID (GA4 — optional if GTM loads G-…)",
+    },
+    {
+      id: "marketing_gads_conversion",
+      ok: Boolean(googleAdsBookingConversionSendTo()),
+      hint: `NEXT_PUBLIC_GOOGLE_ADS_CONVERSION_BOOKING=label (send_to ${GOOGLE_ADS_ID}/…)`,
+    },
+    {
+      id: "marketing_promo",
+      ok: getPromoRules().length > 0,
+      hint: "NEXT_PUBLIC_PROMO_CODES=KLIM10:10 (optional summer promo)",
     },
   ];
 

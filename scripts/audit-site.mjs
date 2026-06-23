@@ -31,7 +31,11 @@ function checkNavRoutes() {
   const hrefs = [...layout.matchAll(/href:\s*["'](\/[^"']+)["']/g)].map((m) => m[1]);
   const missing = hrefs.filter((h) => {
     if (h.startsWith("http") || h.startsWith("#")) return false;
-    const path = h === "/" ? join(appDir, "page.tsx") : join(appDir, h.slice(1), "page.tsx");
+    const pathname = h.split("?")[0].split("#")[0];
+    const path =
+      pathname === "/"
+        ? join(appDir, "page.tsx")
+        : join(appDir, pathname.slice(1), "page.tsx");
     return !existsSync(path);
   });
   if (missing.length) {
