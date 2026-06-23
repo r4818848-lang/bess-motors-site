@@ -1,8 +1,15 @@
 import { normalizePhone } from "@/lib/auth";
+import { knownScreenshotForOrder } from "@/lib/apply-known-screenshot-to-order";
 import {
   createWorkOrderFromImport,
   type CreateFromImportInput,
 } from "@/lib/create-work-order-from-import";
+import {
+  bufferToImportDataUrl,
+  importOrderExists,
+  normalizeImportOrderKey,
+  prepareImportDraft,
+} from "@/lib/import-work-order-helpers";
 import { extractTextFromImportFile } from "@/lib/server/extract-import-document-text";
 import {
   downloadTelegramFileBuffer,
@@ -19,7 +26,7 @@ import {
   parseWorkOrderImportText,
   type ImportWorkOrderDraft,
 } from "@/lib/motowarsztat-import-parser";
-import { isOcrTextLikelyUseful } from "@/lib/server/ocr-import-image";
+import { isOcrTextLikelyUseful, isOcrTextMaybeUseful } from "@/lib/server/ocr-import-image";
 import { BOT } from "./labels";
 
 export type AdminTelegramFileMessage = {
@@ -34,6 +41,12 @@ export type AdminTelegramFileMessage = {
   };
 };
 
+type PickedFile = {
+  fileId: string;
+  mime: string;
+  fileName: string;
+};
+
 function importPreviewKeyboard(): InlineKeyboardMarkup {
   return {
     inline_keyboard: [
@@ -44,49 +57,68 @@ function importPreviewKeyboard(): InlineKeyboardMarkup {
   };
 }
 
-function formatImportPreview(draft: ImportWorkOrderDraft): string {
-  const lines = [
-    "📄 <b>Распознан документ</b>",
-    "",
-    `👤 ${escapeHtml(draft.clientName || "—")}`,
-    `📱 <b>${escapeHtml(draft.phone || "—")}</b>`,
-    `🚗 ${escapeHtml(draft.plate || "—")}`,
-  ];
-  if (draft.vin) lines.push(`VIN: <code>${escapeHtml(draft.vin)}</code>`);
-  if (draft.make || draft.model) {
-    lines.push(`🚙 ${escapeHtml([draft.make, draft.model].filter(Boolean).join(" "))}`);
-  }
-  lines.push(`🔧 Работ: ${draft.services.length} · 🔩 Частей: ${draft.parts.length}`);
-  if (draft.services.length > 0) {
-    for (const s of draft.services.slice(0, 3)) {
-      lines.push(`• ${escapeHtml(s.name)} — ${s.price.toFixed(2)} zł`);
-    }
-    if (draft.services.length > 3) lines.push(`… работ +${draft.services.length - 3}`);
-  }
-  if (draft.parts.length > 0) {
-    for (const p of draft.parts.slice(0, 3)) {
-      lines.push(
-        `• ${escapeHtml(p.name)} — zakup ${p.purchasePrice.toFixed(2)} / sprz. ${p.sellPrice.toFixed(2)} zł`
-      );
-    }
-    if (draft.parts.length > 3) lines.push(`… частей +${draft.parts.length - 3}`);
-  }
-  if (draft.warnings.length) {
-    lines.push("", "⚠️ Проверьте поля перед созданием.");
-  }
-  lines.push("", "Подтвердите или измените телефон.");
-  return lines.join("\n");
+function importBulkContinueKeyboard(): InlineKeyboardMarkup {
+  return {
+    inline_keyboard: [[{ text: BOT.cancel, callback_data: "menu" }]],
+  };
 }
 
 function escapeHtml(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
-function pickFileFromMessage(msg: AdminTelegramFileMessage): {
-  fileId: string;
-  mime: string;
-  fileName: string;
-} | null {
+function formatImportPreview(draft: ImportWorkOrderDraft): string {
+  const lines = ["📄 <b>Распознан документ</b>"];
+  if (draft.orderNumber?.trim()) {
+    lines.push(`📋 ${escapeHtml(draft.orderNumber.trim())}`);
+  }
+  lines.push(
+    "",
+    `👤 ${escapeHtml(draft.clientName || "—")}`,
+    `📱 <b>${escapeHtml(draft.phone || "—")}</b>`,
+    `🚗 ${escapeHtml(draft.plate || "—")}`
+  );
+  if (draft.vin) lines.push(`VIN: <code>${escapeHtml(draft.vin)}</code>`);
+  if (draft.make || draft.model) {
+    lines.push(`🚙 ${escapeHtml([draft.make, draft.model].filter(Boolean).join(" "))}`);
+  }
+  lines.push(`🔧 Работ: ${draft.services.length} · 🔩 Частей: ${draft.parts.length}`);
+
+  if (draft.services.length > 0) {
+    for (const s of draft.services.slice(0, 4)) {
+      lines.push(`• ${escapeHtml(s.name)} — ${s.price.toFixed(2)} zł`);
+    }
+    if (draft.services.length > 4) lines.push(`… работ +${draft.services.length - 4}`);
+  }
+  if (draft.parts.length > 0) {
+    for (const p of draft.parts.slice(0, 4)) {
+      const sell = p.sellPrice.toFixed(2);
+      if (p.purchasePrice > 0) {
+        lines.push(
+          `• ${escapeHtml(p.name)} — zakup ${p.purchasePrice.toFixed(2)} / sprz. ${sell} zł`
+        );
+      } else {
+        lines.push(`• ${escapeHtml(p.name)} — sprzedaż ${sell} zł`);
+      }
+    }
+    if (draft.parts.length > 4) lines.push(`… частей +${draft.parts.length - 4}`);
+  }
+
+  if (knownScreenshotForOrder(draft.orderNumber)) {
+    lines.push("", "💾 Закупочные цены и артикулы подставятся автоматически.");
+  } else if (draft.parts.some((p) => p.purchasePrice <= 0 && p.sellPrice > 0)) {
+    lines.push("", "ℹ️ В PDF нет закупки — введите в CRM вручную.");
+  }
+
+  if (!draft.phone?.trim()) {
+    lines.push("", "⚠️ Нет телефона — нажмите «Изменить телефон».");
+  }
+
+  lines.push("", "Статус: <b>выдан / оплачен</b>.", "Подтвердите создание.");
+  return lines.join("\n");
+}
+
+function pickFileFromMessage(msg: AdminTelegramFileMessage): PickedFile | null {
   if (msg.document?.file_id) {
     const mime = msg.document.mime_type || "application/octet-stream";
     const fileName = msg.document.file_name || "document.pdf";
@@ -104,6 +136,84 @@ function pickFileFromMessage(msg: AdminTelegramFileMessage): {
   return null;
 }
 
+async function parseImportFileBuffer(
+  buffer: Buffer,
+  mime: string
+): Promise<{ ok: true; parsed: ImportWorkOrderDraft } | { ok: false; error: string }> {
+  let rawText = "";
+  try {
+    rawText = await extractTextFromImportFile(buffer, mime);
+  } catch (e) {
+    const code = e instanceof Error ? e.message : "parse_failed";
+    if (code === "file_too_large") {
+      return { ok: false, error: "Файл слишком большой (макс. 8 МБ)." };
+    }
+    return { ok: false, error: "Не удалось обработать файл." };
+  }
+
+  const trimmed = rawText.replace(/\s+/g, " ").trim();
+  if (trimmed.length < 8) {
+    return { ok: false, error: "no_text" };
+  }
+
+  const isImage = mime.startsWith("image/");
+  if (isImage && !isOcrTextLikelyUseful(rawText) && !isOcrTextMaybeUseful(rawText)) {
+    return { ok: false, error: "ocr_poor" };
+  }
+
+  const parsed = parseWorkOrderImportText(rawText);
+  return { ok: true, parsed };
+}
+
+function siteOrderLink(orderId: string): string {
+  const base = process.env.NEXT_PUBLIC_SITE_URL?.trim() || "https://www.bess-motors.com";
+  return `<a href="${base}/crm/work-orders?edit=${orderId}">Открыть в CRM</a>`;
+}
+
+async function createImportFromDraft(
+  draft: ImportWorkOrderDraft,
+  attachment?: CreateFromImportInput["attachment"]
+): Promise<
+  | { ok: true; orderNumber: string; orderId: string; enriched: boolean }
+  | { ok: false; error: string }
+> {
+  let orderNumber = "";
+  let orderId = "";
+  let createError = "";
+  let enriched = false;
+  const orderKey = normalizeImportOrderKey(draft.orderNumber, attachment?.name ?? "");
+
+  const put = await cloudMutateCrmStore(async (db) => {
+    if (importOrderExists(db, orderKey)) {
+      createError = "already_exists";
+      return false;
+    }
+
+    const result = await createWorkOrderFromImport(db, { ...draft, attachment });
+    if (!result.ok) {
+      createError = result.error;
+      return false;
+    }
+
+    orderNumber = result.orderNumber;
+    orderId = result.orderId;
+    enriched = Boolean(knownScreenshotForOrder(result.orderNumber));
+    return result.orderNumber;
+  });
+
+  if (createError === "already_exists") {
+    return { ok: false, error: "already_exists" };
+  }
+  if (createError) {
+    return { ok: false, error: createError };
+  }
+  if (!put.ok) {
+    return { ok: false, error: put.error ?? "cloud_save_failed" };
+  }
+
+  return { ok: true, orderNumber, orderId, enriched };
+}
+
 export async function startImportWorkOrderFlow(chatId: number, messageId?: number): Promise<void> {
   const chatKey = String(chatId);
   await setTelegramSession(chatKey, { step: "admin_import_file", data: {} });
@@ -119,13 +229,131 @@ export async function startImportWorkOrderFlow(chatId: number, messageId?: numbe
   }
 }
 
+export async function startImportBulkWorkOrderFlow(
+  chatId: number,
+  messageId?: number
+): Promise<void> {
+  const chatKey = String(chatId);
+  await setTelegramSession(chatKey, {
+    step: "admin_import_bulk",
+    data: { bulkIndex: "0", bulkImported: "0", bulkSkipped: "0", bulkFailed: "0" },
+  });
+  const text = BOT.importBulkPrompt;
+  const keyboard = {
+    inline_keyboard: [[{ text: BOT.cancel, callback_data: "menu" }]],
+  };
+  if (messageId) {
+    const { updateTelegramInlineScreen } = await import("@/lib/server/telegram-api");
+    await updateTelegramInlineScreen(chatId, messageId, text, keyboard);
+  } else {
+    await sendTelegramMessage(chatId, text, keyboard);
+  }
+}
+
+async function handleAdminImportBulkFile(
+  chatId: number,
+  picked: PickedFile,
+  buffer: Buffer
+): Promise<boolean> {
+  const chatKey = String(chatId);
+  const session = await getTelegramSession(chatKey);
+  const index = Number.parseInt(session.data?.bulkIndex ?? "0", 10) + 1;
+  let imported = Number.parseInt(session.data?.bulkImported ?? "0", 10);
+  let skipped = Number.parseInt(session.data?.bulkSkipped ?? "0", 10);
+  let failed = Number.parseInt(session.data?.bulkFailed ?? "0", 10);
+
+  const parsedResult = await parseImportFileBuffer(buffer, picked.mime);
+  if (!parsedResult.ok) {
+    failed += 1;
+    const errText =
+      parsedResult.error === "no_text"
+        ? BOT.importNoText
+        : parsedResult.error === "ocr_poor"
+          ? BOT.importOcrPoor
+          : `❌ ${parsedResult.error}`;
+    await setTelegramSession(chatKey, {
+      step: "admin_import_bulk",
+      data: {
+        ...session.data,
+        bulkIndex: String(index),
+        bulkImported: String(imported),
+        bulkSkipped: String(skipped),
+        bulkFailed: String(failed),
+      },
+    });
+    await sendTelegramMessage(
+      chatId,
+      `${errText}\n\n📎 ${escapeHtml(picked.fileName)}\n\nОтправьте следующий PDF или «Отмена».`,
+      importBulkContinueKeyboard()
+    );
+    return true;
+  }
+
+  const draft = prepareImportDraft(parsedResult.parsed, picked.fileName, index);
+  draft.internalNotes = [draft.internalNotes, "Импорт: Telegram (массовый)"]
+    .filter(Boolean)
+    .join("\n");
+
+  const attachment =
+    buffer.length <= 4_500_000
+      ? {
+          name: picked.fileName,
+          mime: picked.mime || "application/pdf",
+          dataUrl: bufferToImportDataUrl(buffer, picked.mime || "application/pdf"),
+        }
+      : undefined;
+
+  const created = await createImportFromDraft(draft, attachment);
+  let message = "";
+  if (created.ok) {
+    imported += 1;
+    message =
+      `${BOT.saved}\n\n` +
+      `📋 <b>${escapeHtml(created.orderNumber)}</b>\n` +
+      `📎 ${escapeHtml(picked.fileName)}\n` +
+      (created.enriched ? "💾 Закупка из CRM подставлена.\n" : "") +
+      `🔗 ${siteOrderLink(created.orderId)}\n\n` +
+      "Отправьте следующий PDF.";
+  } else if (created.error === "already_exists") {
+    skipped += 1;
+    message =
+      `⏭ Уже в CRM: <b>${escapeHtml(normalizeImportOrderKey(draft.orderNumber, picked.fileName))}</b>\n` +
+      `📎 ${escapeHtml(picked.fileName)}\n\n` +
+      "Отправьте следующий PDF.";
+  } else {
+    failed += 1;
+    const err =
+      created.error === "phone_required"
+        ? "Нужен телефон в PDF."
+        : created.error === "client_vehicle_required"
+          ? "Не удалось привязать авто."
+          : BOT.saveFailed;
+    message = `❌ ${err}\n📎 ${escapeHtml(picked.fileName)}\n\nПопробуйте другой файл.`;
+  }
+
+  await setTelegramSession(chatKey, {
+    step: "admin_import_bulk",
+    data: {
+      bulkIndex: String(index),
+      bulkImported: String(imported),
+      bulkSkipped: String(skipped),
+      bulkFailed: String(failed),
+    },
+  });
+
+  await sendTelegramMessage(chatId, message, importBulkContinueKeyboard());
+  return true;
+}
+
 export async function handleAdminImportMediaMessage(
   msg: AdminTelegramFileMessage
 ): Promise<boolean> {
   const chatId = msg.chat.id;
   const chatKey = String(chatId);
   const session = await getTelegramSession(chatKey);
-  if (session.step !== "admin_import_file") return false;
+  if (session.step !== "admin_import_file" && session.step !== "admin_import_bulk") {
+    return false;
+  }
 
   const picked = pickFileFromMessage(msg);
   if (!picked) {
@@ -145,40 +373,27 @@ export async function handleAdminImportMediaMessage(
     return true;
   }
 
-  let rawText = "";
-  try {
-    rawText = await extractTextFromImportFile(downloaded.buffer, picked.mime);
-  } catch (e) {
-    const code = e instanceof Error ? e.message : "parse_failed";
-    const hint =
-      code === "file_too_large"
-        ? "Файл слишком большой (макс. 8 МБ)."
-        : "Не удалось обработать файл.";
-    await sendTelegramMessage(chatId, `❌ ${hint}`, {
+  if (session.step === "admin_import_bulk") {
+    return handleAdminImportBulkFile(chatId, picked, downloaded.buffer);
+  }
+
+  const parsedResult = await parseImportFileBuffer(downloaded.buffer, picked.mime);
+  if (!parsedResult.ok) {
+    const errText =
+      parsedResult.error === "no_text"
+        ? BOT.importNoText
+        : parsedResult.error === "ocr_poor"
+          ? BOT.importOcrPoor
+          : `❌ ${parsedResult.error}`;
+    await sendTelegramMessage(chatId, errText, {
       inline_keyboard: [[{ text: BOT.cancel, callback_data: "menu" }]],
     });
     return true;
   }
 
-  const trimmed = rawText.replace(/\s+/g, " ").trim();
-  const isImage = picked.mime.startsWith("image/");
-  if (trimmed.length < 8) {
-    await sendTelegramMessage(chatId, BOT.importNoText, {
-      inline_keyboard: [[{ text: BOT.cancel, callback_data: "menu" }]],
-    });
-    return true;
-  }
-
-  if (isImage && !isOcrTextLikelyUseful(rawText)) {
-    await sendTelegramMessage(chatId, BOT.importOcrPoor, {
-      inline_keyboard: [[{ text: BOT.cancel, callback_data: "menu" }]],
-    });
-    return true;
-  }
-
-  const parsed = parseWorkOrderImportText(rawText);
+  const parsed = parsedResult.parsed;
   if (!parsed.phone?.trim()) {
-    parsed.warnings.push("phone");
+    parsed.warnings = [...(parsed.warnings ?? []), "phone"];
   }
 
   await setTelegramSession(chatKey, {
@@ -218,6 +433,17 @@ export async function handleAdminImportStepText(chatId: number): Promise<boolean
     await sendTelegramMessage(chatId, BOT.importPrompt, {
       inline_keyboard: [[{ text: BOT.cancel, callback_data: "menu" }]],
     });
+    return true;
+  }
+  if (session.step === "admin_import_bulk") {
+    const imported = session.data?.bulkImported ?? "0";
+    const skipped = session.data?.bulkSkipped ?? "0";
+    const failed = session.data?.bulkFailed ?? "0";
+    await sendTelegramMessage(
+      chatId,
+      `${BOT.importBulkPrompt}\n\n📊 Создано: ${imported}, пропущено: ${skipped}, ошибок: ${failed}.`,
+      importBulkContinueKeyboard()
+    );
     return true;
   }
   return false;
@@ -327,44 +553,28 @@ export async function confirmImportWorkOrder(chatId: number): Promise<string> {
 
   draft.internalNotes = [draft.internalNotes, "Импорт: Telegram"].filter(Boolean).join("\n");
 
-  let orderNumber = "";
-  let orderId = "";
-  let createError = "";
-  const put = await cloudMutateCrmStore(async (db) => {
-    const result = await createWorkOrderFromImport(db, {
-      ...draft,
-      attachment,
-    });
-    if (!result.ok) {
-      createError = result.error;
-      return false;
-    }
-    orderNumber = result.orderNumber;
-    orderId = result.orderId;
-    return result.orderNumber;
-  });
+  const created = await createImportFromDraft(draft, attachment);
 
-  if (createError) {
+  if (!created.ok) {
+    if (created.error === "already_exists") {
+      const key = normalizeImportOrderKey(draft.orderNumber, fileName);
+      return `❌ Заказ <b>${escapeHtml(key)}</b> уже есть в CRM.`;
+    }
     const err =
-      createError === "phone_required"
+      created.error === "phone_required"
         ? "Нужен телефон клиента."
-        : createError === "client_vehicle_required"
-          ? "Не удалось привязать авто — проверьте таблицу."
+        : created.error === "client_vehicle_required"
+          ? "Не удалось привязать авто — проверьте VIN/номер."
           : BOT.saveFailed;
     return `❌ ${err}`;
   }
 
-  if (!put.ok) {
-    return `${BOT.saveFailed}\n\nНажмите «Создать заказ-наряд» ещё раз.`;
-  }
-
   await clearTelegramSession(chatKey);
 
-  const base =
-    process.env.NEXT_PUBLIC_SITE_URL?.trim() || "https://www.bess-motors.com";
   return (
     `${BOT.saved}\n\n` +
-    `📋 Заказ-наряд <b>${orderNumber}</b>\n` +
-    `🔗 <a href="${base}/crm/work-orders?edit=${orderId}">Открыть в CRM</a>`
+    `📋 Заказ-наряд <b>${escapeHtml(created.orderNumber)}</b>\n` +
+    (created.enriched ? "💾 Закупочные цены подставлены из CRM.\n" : "") +
+    `🔗 ${siteOrderLink(created.orderId)}`
   );
 }

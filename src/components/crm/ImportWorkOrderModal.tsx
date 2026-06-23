@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useRef, useMemo } from "react";
-import { X, FileUp, Loader2, Plus, Trash2, AlertTriangle, Info } from "lucide-react";
+import { useState, useRef, useMemo, useCallback, startTransition, useEffect } from "react";
+import { X, FileUp, Loader2, Plus, Trash2, Info } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { staffCrmFetch, staffCrmFetchFailureReason } from "@/lib/crm-staff-fetch";
 import type {
@@ -9,19 +9,20 @@ import type {
   ImportServiceDraft,
   ImportWorkOrderDraft,
 } from "@/lib/motowarsztat-import-parser";
-import {
-  importDraftErrors,
-  importDraftHasBlockingIssues,
-  importDraftInfos,
-  issueAffectsRow,
-  normalizeImportDraftPrices,
-  validateImportDraft,
-} from "@/lib/import-draft-validate";
+import { parseWorkOrderImportText } from "@/lib/motowarsztat-import-parser";
+import { normalizeImportDraftPrices } from "@/lib/import-draft-validate";
+import { importFileTooLargeLabel, prepareImportUploadFile } from "@/lib/import-file-upload";
+import { extractPdfTextClient, isPdfFile } from "@/lib/import-pdf-client";
 import { calcPartLineProfit } from "@/lib/workorder-calc";
-import { createWorkOrderFromImport } from "@/lib/create-work-order-from-import";
+import { pullCrmFromCloud } from "@/lib/cloud-crm-db";
 import { loadDb } from "@/lib/store";
-import { pullCrmFromCloud, saveDbAndPushCrm } from "@/lib/cloud-crm-db";
 import { acquireCrmDraftLock, releaseCrmDraftLock } from "@/lib/crm-draft-lock";
+import {
+  ImportDraftMetaFields,
+  applyMetaToDraft,
+  metaFromDraft,
+  type Meta,
+} from "@/components/crm/ImportDraftMetaFields";
 import { Button } from "@/components/ui/Button";
 
 type Props = {
@@ -29,15 +30,6 @@ type Props = {
   onClose: () => void;
   onCreated: (orderId: string) => void;
 };
-
-function readFileAsDataUrl(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result));
-    reader.onerror = () => reject(new Error("read_failed"));
-    reader.readAsDataURL(file);
-  });
-}
 
 function ImportTableHeader({ cols }: { cols: string[] }) {
   return (
@@ -52,64 +44,220 @@ function ImportTableHeader({ cols }: { cols: string[] }) {
   );
 }
 
+function applyParsedDraft(parsed: ImportWorkOrderDraft) {
+  const normalized = normalizeImportDraftPrices(parsed);
+  return {
+    core: normalized,
+    meta: metaFromDraft(normalized),
+    services: normalized.services,
+    parts: normalized.parts,
+  };
+}
+
 export function ImportWorkOrderModal({ open, onClose, onCreated }: Props) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const c = t.crm;
   const imp = c.importOrder;
   const fileRef = useRef<HTMLInputElement>(null);
+  const parseAbortRef = useRef<AbortController | null>(null);
+  const metaRef = useRef<Meta>(metaFromDraft({}));
+  const lockHeldRef = useRef(false);
+
+  const lockDraft = useCallback(() => {
+    if (!lockHeldRef.current) {
+      acquireCrmDraftLock();
+      lockHeldRef.current = true;
+    }
+  }, []);
+
+  const unlockDraft = useCallback(() => {
+    if (lockHeldRef.current) {
+      releaseCrmDraftLock();
+      lockHeldRef.current = false;
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!open) {
+      parseAbortRef.current?.abort();
+      unlockDraft();
+    }
+  }, [open, unlockDraft]);
 
   const [files, setFiles] = useState<File[]>([]);
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [parsing, setParsing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [bulkImporting, setBulkImporting] = useState(false);
   const [error, setError] = useState("");
   const [bulkSummary, setBulkSummary] = useState("");
-  const [draft, setDraft] = useState<ImportWorkOrderDraft | null>(null);
+  const [draftCore, setDraftCore] = useState<Omit<
+    ImportWorkOrderDraft,
+    keyof Meta | "services" | "parts"
+  > | null>(null);
+  const [meta, setMeta] = useState<Meta>(metaFromDraft({}));
+  const [services, setServices] = useState<ImportServiceDraft[]>([]);
+  const [parts, setParts] = useState<ImportPartDraft[]>([]);
   const [rawPreview, setRawPreview] = useState("");
   const [parsedFromImage, setParsedFromImage] = useState(false);
+  const [ocrWeak, setOcrWeak] = useState(false);
+  const [showLineEditor, setShowLineEditor] = useState(false);
 
+  metaRef.current = meta;
+
+  const hasDraft = draftCore !== null;
   const file = files[0] ?? null;
   const isBulk = files.length > 1;
   const isImageFile = Boolean(
-    file?.type.startsWith("image/") || /\.(jpe?g|png|webp|heic)$/i.test(file?.name ?? "")
+    file && !isPdfFile(file) &&
+      (file.type.startsWith("image/") || /\.(jpe?g|png|webp|heic)$/i.test(file.name))
   );
-
-  const draftIssues = useMemo(
-    () => (draft ? validateImportDraft(draft, { fromImage: parsedFromImage }) : []),
-    [draft, parsedFromImage]
-  );
-
-  const issueText = (code: string) =>
-    (imp.issues as Record<string, string> | undefined)?.[code] ?? code;
-
-  const draftErrors = useMemo(() => importDraftErrors(draftIssues), [draftIssues]);
-  const draftInfos = useMemo(() => importDraftInfos(draftIssues), [draftIssues]);
 
   const reset = () => {
+    parseAbortRef.current?.abort();
+    parseAbortRef.current = null;
     setFiles([]);
-    setDraft(null);
+    setUploadFile(null);
+    setDraftCore(null);
+    setMeta(metaFromDraft({}));
+    setServices([]);
+    setParts([]);
     setRawPreview("");
     setParsedFromImage(false);
+    setOcrWeak(false);
+    setShowLineEditor(false);
     setBulkSummary("");
     setError("");
     if (fileRef.current) fileRef.current.value = "";
   };
 
+  const loadParsed = useCallback(
+    (
+      parsed: ImportWorkOrderDraft,
+      opts?: { fromImage?: boolean; ocrWeak?: boolean; raw?: string }
+    ) => {
+      const { core, meta: m, services: s, parts: p } = applyParsedDraft(parsed);
+      const { services: _s, parts: _p, ...rest } = core;
+      void _s;
+      void _p;
+      setDraftCore(rest);
+      setMeta(m);
+      setServices(s);
+      setParts(p);
+      setRawPreview(opts?.raw ?? "");
+      setParsedFromImage(Boolean(opts?.fromImage));
+      setOcrWeak(Boolean(opts?.ocrWeak));
+      setShowLineEditor(false);
+      lockDraft();
+    },
+    [lockDraft]
+  );
+
   const requestClose = () => {
-    if (parsing || saving || bulkImporting) return;
-    releaseCrmDraftLock();
+    if (saving || bulkImporting) return;
+    parseAbortRef.current?.abort();
+    unlockDraft();
     reset();
     onClose();
   };
 
+  const runParseForFile = async (target: File) => {
+    parseAbortRef.current?.abort();
+    const ac = new AbortController();
+    parseAbortRef.current = ac;
+
+    setParsing(true);
+    setError("");
+    try {
+      const prepared = await prepareImportUploadFile(target);
+      if (!prepared.ok) {
+        setError(importFileTooLargeLabel(locale === "ru" ? "ru" : "pl"));
+        return;
+      }
+      if (ac.signal.aborted) return;
+      setUploadFile(prepared.file);
+
+      if (isPdfFile(prepared.file)) {
+        const text = await extractPdfTextClient(prepared.file);
+        if (ac.signal.aborted) return;
+        if (text.replace(/\s+/g, " ").trim().length < 8) {
+          setError(imp.parseFailed);
+          return;
+        }
+        const parsed = parseWorkOrderImportText(text);
+        loadParsed(parsed, { raw: text.slice(0, 4000) });
+        return;
+      }
+
+      const form = new FormData();
+      form.append("file", prepared.file);
+      const res = await staffCrmFetch(
+        "/api/crm/import-work-order",
+        { method: "POST", body: form, signal: ac.signal },
+        120_000
+      );
+      if (ac.signal.aborted) return;
+      if (!res?.ok) {
+        const why = staffCrmFetchFailureReason(res);
+        if (why === "unauthorized") {
+          setError(imp.sessionExpired);
+          return;
+        }
+        if (!res) {
+          setError(why === "timeout" ? c.syncTimeout : c.syncNetwork);
+          return;
+        }
+        const data = (await res.json().catch(() => ({}))) as {
+          error?: string;
+          hint?: string;
+        };
+        setError(
+          data.hint ||
+            (data.error === "ocr_low_quality" ? imp.ocrPoorPhoto : data.error) ||
+            imp.parseFailed
+        );
+        return;
+      }
+      const data = (await res.json()) as {
+        parsed: ImportWorkOrderDraft;
+        rawTextPreview?: string;
+        fromImage?: boolean;
+        ocrWeak?: boolean;
+      };
+      loadParsed(data.parsed, {
+        fromImage: data.fromImage,
+        ocrWeak: data.ocrWeak,
+        raw: data.rawTextPreview,
+      });
+    } catch (e) {
+      if (e instanceof Error && e.name === "AbortError") return;
+      setError(imp.parseFailed);
+    } finally {
+      setParsing(false);
+    }
+  };
+
   const handleFiles = (list: FileList | null) => {
+    parseAbortRef.current?.abort();
+    unlockDraft();
     const next = list ? Array.from(list) : [];
     setFiles(next);
-    setDraft(null);
+    setUploadFile(null);
+    setDraftCore(null);
+    setMeta(metaFromDraft({}));
+    setServices([]);
+    setParts([]);
     setRawPreview("");
     setParsedFromImage(false);
+    setOcrWeak(false);
+    setShowLineEditor(false);
     setBulkSummary("");
     setError("");
+
+    const single = next[0];
+    if (next.length === 1 && single && isPdfFile(single)) {
+      void runParseForFile(single);
+    }
   };
 
   const runBulkImport = async () => {
@@ -119,7 +267,14 @@ export function ImportWorkOrderModal({ open, onClose, onCreated }: Props) {
     setBulkSummary("");
     try {
       const form = new FormData();
-      for (const f of files) form.append("files", f);
+      for (const f of files) {
+        const prepared = await prepareImportUploadFile(f);
+        if (!prepared.ok) {
+          setError(importFileTooLargeLabel(locale === "ru" ? "ru" : "pl"));
+          return;
+        }
+        form.append("files", prepared.file);
+      }
       const res = await staffCrmFetch(
         "/api/crm/import-work-order/bulk",
         { method: "POST", body: form },
@@ -174,19 +329,74 @@ export function ImportWorkOrderModal({ open, onClose, onCreated }: Props) {
     }
   };
 
-  const runParse = async () => {
-    if (!file) return;
-    setParsing(true);
+  const updateService = (index: number, patch: Partial<ImportServiceDraft>) => {
+    startTransition(() => {
+      setServices((prev) => prev.map((s, i) => (i === index ? { ...s, ...patch } : s)));
+    });
+  };
+
+  const updatePart = (index: number, patch: Partial<ImportPartDraft>) => {
+    startTransition(() => {
+      setParts((prev) => prev.map((p, i) => (i === index ? { ...p, ...patch } : p)));
+    });
+  };
+
+  const onMetaPatch = useCallback((patch: Partial<Meta>) => {
+    setMeta((prev) => ({ ...prev, ...patch }));
+  }, []);
+
+  const partsProfitPreview = useMemo(
+    () =>
+      parts.reduce((sum, p) => {
+        const qty = p.qty || 1;
+        const unitSell = p.sellPrice / qty;
+        return (
+          sum +
+          calcPartLineProfit({
+            id: "",
+            name: p.name,
+            qty,
+            purchasePrice: p.purchasePrice,
+            sellPrice: unitSell,
+            discount: 0,
+          })
+        );
+      }, 0),
+    [parts]
+  );
+
+  const buildDraftForSave = (): ImportWorkOrderDraft | null => {
+    if (!draftCore) return null;
+    const m = metaRef.current;
+    return applyMetaToDraft(
+      { ...draftCore, services, parts } as ImportWorkOrderDraft,
+      m
+    );
+  };
+
+  const handleCreate = async () => {
+    if (!draftCore || !file) return;
+    const draft = buildDraftForSave();
+    if (!draft?.phone?.trim()) {
+      setError(imp.phoneRequired);
+      return;
+    }
+    setSaving(true);
     setError("");
-    acquireCrmDraftLock();
-    let keepDraftLock = false;
     try {
+      const source = uploadFile ?? file;
+      const prepared = await prepareImportUploadFile(source);
+      if (!prepared.ok) {
+        setError(importFileTooLargeLabel(locale === "ru" ? "ru" : "pl"));
+        return;
+      }
       const form = new FormData();
-      form.append("file", file);
+      form.append("file", prepared.file);
+      form.append("draft", JSON.stringify(draft));
       const res = await staffCrmFetch(
-        "/api/crm/import-work-order",
+        "/api/crm/import-work-order/create",
         { method: "POST", body: form },
-        90_000
+        120_000
       );
       if (!res?.ok) {
         const why = staffCrmFetchFailureReason(res);
@@ -198,123 +408,26 @@ export function ImportWorkOrderModal({ open, onClose, onCreated }: Props) {
           setError(why === "timeout" ? c.syncTimeout : c.syncNetwork);
           return;
         }
-        const data = (await res.json().catch(() => ({}))) as {
-          error?: string;
-          hint?: string;
-        };
+        const data = (await res.json().catch(() => ({}))) as { error?: string };
+        if (data.error === "already_exists") {
+          setError(imp.alreadyExists ?? imp.createFailed);
+          return;
+        }
+        if (data.error === "client_vehicle_required") {
+          setError(imp.vehicleLinkFailed ?? imp.createFailed);
+          return;
+        }
         setError(
-          data.hint ||
-            (data.error === "ocr_low_quality" ? imp.ocrPoorPhoto : data.error) ||
-            imp.parseFailed
+          data.error === "phone_required" ? imp.phoneRequired : imp.createFailed
         );
         return;
       }
-      const data = (await res.json()) as {
-        parsed: ImportWorkOrderDraft;
-        rawTextPreview?: string;
-        fromImage?: boolean;
-      };
-      setDraft(normalizeImportDraftPrices(data.parsed));
-      setRawPreview(data.rawTextPreview ?? "");
-      setParsedFromImage(Boolean(data.fromImage));
-      keepDraftLock = true;
-    } catch {
-      setError(imp.parseFailed);
-    } finally {
-      setParsing(false);
-      if (!keepDraftLock) releaseCrmDraftLock();
-    }
-  };
-
-  const updateService = (index: number, patch: Partial<ImportServiceDraft>) => {
-    if (!draft) return;
-    setDraft({
-      ...draft,
-      services: draft.services.map((s, i) => (i === index ? { ...s, ...patch } : s)),
-    });
-  };
-
-  const updatePart = (index: number, patch: Partial<ImportPartDraft>) => {
-    if (!draft) return;
-    setDraft({
-      ...draft,
-      parts: draft.parts.map((p, i) => (i === index ? { ...p, ...patch } : p)),
-    });
-  };
-
-  const addServiceRow = () => {
-    if (!draft) return;
-    setDraft({
-      ...draft,
-      services: [...draft.services, { name: "", qty: 1, price: 0 }],
-    });
-  };
-
-  const addPartRow = () => {
-    if (!draft) return;
-    setDraft({
-      ...draft,
-      parts: [...draft.parts, { name: "", qty: 1, purchasePrice: 0, sellPrice: 0 }],
-    });
-  };
-
-  const partsProfitPreview =
-    draft?.parts.reduce((sum, p) => {
-      const qty = p.qty || 1;
-      const unitSell = p.sellPrice / qty;
-      return (
-        sum +
-        calcPartLineProfit({
-          id: "",
-          name: p.name,
-          qty,
-          purchasePrice: p.purchasePrice,
-          sellPrice: unitSell,
-          discount: 0,
-        })
-      );
-    }, 0) ?? 0;
-
-  const handleCreate = async () => {
-    if (!draft || !file) return;
-    if (importDraftHasBlockingIssues(draftIssues)) {
-      setError(imp.fixErrorsBeforeSave);
-      return;
-    }
-    if (!draft.phone?.trim()) {
-      setError(imp.phoneRequired);
-      return;
-    }
-    setSaving(true);
-    setError("");
-    try {
-      const dataUrl = await readFileAsDataUrl(file);
-      const fresh = loadDb();
-      const result = await createWorkOrderFromImport(fresh, {
-        ...draft,
-        attachment: {
-          name: file.name,
-          mime: file.type || "application/octet-stream",
-          dataUrl,
-        },
-      });
-      if (!result.ok) {
-        setError(
-          result.error === "phone_required"
-            ? imp.phoneRequired
-            : imp.createFailed
-        );
-        return;
-      }
-      const ok = await saveDbAndPushCrm(fresh);
-      if (!ok) {
-        setError(c.pushSyncFailed);
-        return;
-      }
-      releaseCrmDraftLock();
+      const data = (await res.json()) as { orderId: string };
+      unlockDraft();
       reset();
-      onCreated(result.orderId);
+      onCreated(data.orderId);
       onClose();
+      void pullCrmFromCloud({ force: true });
     } catch {
       setError(imp.createFailed);
     } finally {
@@ -323,6 +436,17 @@ export function ImportWorkOrderModal({ open, onClose, onCreated }: Props) {
   };
 
   if (!open) return null;
+
+  const metaLabels = {
+    sectionClient: imp.sectionClient,
+    sectionVehicle: imp.sectionVehicle,
+    clientName: imp.clientName,
+    phone: imp.phone,
+    plate: imp.plate,
+    makePlaceholder: imp.makePlaceholder,
+    modelLabel: imp.modelLabel,
+    mileage: c.mileage,
+  };
 
   return (
     <div
@@ -375,7 +499,7 @@ export function ImportWorkOrderModal({ open, onClose, onCreated }: Props) {
                 : `${files.length} PDF`}
           </Button>
 
-          {isBulk && !draft && (
+          {isBulk && !hasDraft && (
             <Button
               type="button"
               className="w-full"
@@ -392,23 +516,16 @@ export function ImportWorkOrderModal({ open, onClose, onCreated }: Props) {
             </Button>
           )}
 
-          {!draft && isImageFile && !isBulk && (
-            <p className="text-xs text-amber-700 flex items-start gap-2">
-              <AlertTriangle size={14} className="shrink-0 mt-0.5" />
-              {imp.preferPdf}
-            </p>
-          )}
-
-          {!draft && !isBulk && (
+          {!hasDraft && !isBulk && file && isImageFile && (
             <Button
               type="button"
               className="w-full"
-              disabled={!file || parsing}
-              onClick={() => void runParse()}
+              disabled={parsing}
+              onClick={() => void runParseForFile(file)}
             >
               {parsing ? (
                 <>
-                  <Loader2 className="animate-spin" size={18} /> {imp.parsing}
+                  <Loader2 className="animate-spin" size={18} /> {imp.parsingPhoto}
                 </>
               ) : (
                 imp.analyze
@@ -416,324 +533,248 @@ export function ImportWorkOrderModal({ open, onClose, onCreated }: Props) {
             </Button>
           )}
 
-          {draft && (
+          {parsing && !hasDraft && file && isPdfFile(file) && (
+            <p className="text-sm text-bm-muted flex items-center gap-2">
+              <Loader2 className="animate-spin" size={18} /> {imp.parsing}
+            </p>
+          )}
+
+          {!hasDraft && isImageFile && file && !parsing && (
+            <p className="text-xs text-bm-muted">{imp.preferPdf}</p>
+          )}
+
+          {hasDraft && draftCore && (
             <div className="space-y-4 text-sm">
+              {draftCore.orderNumber && (
+                <p className="text-xs font-medium">{draftCore.orderNumber}</p>
+              )}
+
               <p
-                className={`text-xs flex items-start gap-2 ${
-                  parsedFromImage ? "text-amber-700" : "text-emerald-700"
+                className={`text-xs ${
+                  ocrWeak || parsedFromImage ? "text-amber-700" : "text-emerald-700"
                 }`}
               >
-                {parsedFromImage ? (
-                  <AlertTriangle size={14} className="shrink-0 mt-0.5" />
-                ) : (
-                  <Info size={14} className="shrink-0 mt-0.5" />
-                )}
-                {parsedFromImage ? imp.parsedFromImage : imp.parsedFromPdf}
+                {ocrWeak
+                  ? imp.ocrWeakHint
+                  : parsedFromImage
+                    ? imp.parsedFromImage
+                    : imp.parsedFromPdf}
               </p>
 
-              {draftErrors.length > 0 && (
-                <ul className="text-xs space-y-1 rounded-md border border-red-200 bg-red-50/80 p-3">
-                  {draftErrors.map((issue, idx) => (
-                    <li key={`${issue.code}-${issue.row ?? ""}-${idx}`} className="text-red-700">
-                      {issueText(issue.code)}
-                    </li>
+              {!showLineEditor && (services.length > 0 || parts.length > 0) && (
+                <div className="text-xs space-y-1 rounded-lg border border-bm-border/40 p-3 bg-bm-graphite/20">
+                  {services.slice(0, 6).map((s, i) => (
+                    <div key={`s-${i}`} className="flex justify-between gap-2">
+                      <span className="truncate">{s.name}</span>
+                      <span className="shrink-0 tabular-nums">{s.price.toFixed(2)} zł</span>
+                    </div>
                   ))}
-                </ul>
-              )}
-
-              {draftInfos.length > 0 && (
-                <ul className="text-xs space-y-1 text-bm-muted">
-                  {draftInfos.map((issue, idx) => (
-                    <li key={`${issue.code}-${idx}`}>{issueText(issue.code)}</li>
+                  {parts.slice(0, 4).map((p, i) => (
+                    <div key={`p-${i}`} className="flex justify-between gap-2 text-bm-muted">
+                      <span className="truncate">{p.name}</span>
+                      <span className="shrink-0 tabular-nums">{p.sellPrice.toFixed(2)} zł</span>
+                    </div>
                   ))}
-                </ul>
-              )}
-
-              <section className="space-y-2">
-                <h3 className="text-xs font-semibold uppercase text-bm-red">{imp.sectionClient}</h3>
-                <div className="grid sm:grid-cols-2 gap-3">
-                  <label className="block sm:col-span-2">
-                    <span className="text-xs text-bm-muted uppercase">{imp.clientName}</span>
-                    <input
-                      className="input-premium mt-1"
-                      value={draft.clientName ?? ""}
-                      onChange={(e) => setDraft({ ...draft, clientName: e.target.value })}
-                    />
-                  </label>
-                  <label className="block">
-                    <span className="text-xs text-bm-muted uppercase">{imp.phone} *</span>
-                    <input
-                      className="input-premium mt-1"
-                      value={draft.phone ?? ""}
-                      onChange={(e) => setDraft({ ...draft, phone: e.target.value })}
-                    />
-                  </label>
-                  <label className="block">
-                    <span className="text-xs text-bm-muted uppercase">E-mail</span>
-                    <input
-                      className="input-premium mt-1"
-                      type="email"
-                      value={draft.email ?? ""}
-                      onChange={(e) => setDraft({ ...draft, email: e.target.value })}
-                    />
-                  </label>
-                </div>
-              </section>
-
-              <section className="space-y-2">
-                <h3 className="text-xs font-semibold uppercase text-bm-red">{imp.sectionVehicle}</h3>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  <label className="block">
-                    <span className="text-xs text-bm-muted uppercase">{imp.plate}</span>
-                    <input
-                      className="input-premium mt-1"
-                      value={draft.plate ?? ""}
-                      onChange={(e) => setDraft({ ...draft, plate: e.target.value })}
-                    />
-                  </label>
-                  <label className="block col-span-2 sm:col-span-1">
-                    <span className="text-xs text-bm-muted uppercase">VIN</span>
-                    <input
-                      className="input-premium mt-1 font-mono text-xs"
-                      value={draft.vin ?? ""}
-                      onChange={(e) => setDraft({ ...draft, vin: e.target.value })}
-                    />
-                  </label>
-                  <label className="block">
-                    <span className="text-xs text-bm-muted uppercase">{c.mileage}</span>
-                    <input
-                      type="number"
-                      min={0}
-                      className="input-premium mt-1"
-                      value={draft.mileage ?? ""}
-                      onChange={(e) =>
-                        setDraft({
-                          ...draft,
-                          mileage: e.target.value ? Number(e.target.value) : undefined,
-                        })
-                      }
-                    />
-                  </label>
-                  <label className="block">
-                    <span className="text-xs text-bm-muted uppercase">{imp.makePlaceholder}</span>
-                    <input
-                      className="input-premium mt-1"
-                      placeholder={imp.makePlaceholder}
-                      value={draft.make ?? ""}
-                      onChange={(e) => setDraft({ ...draft, make: e.target.value })}
-                    />
-                  </label>
-                  <label className="block sm:col-span-3">
-                    <span className="text-xs text-bm-muted uppercase">{imp.modelLabel}</span>
-                    <input
-                      className="input-premium mt-1"
-                      value={draft.model ?? ""}
-                      onChange={(e) => setDraft({ ...draft, model: e.target.value })}
-                    />
-                  </label>
-                </div>
-              </section>
-
-              <section className="space-y-2">
-                <div className="flex items-center justify-between gap-2">
-                  <h3 className="text-xs font-semibold uppercase text-bm-red">
-                    {imp.servicesDetected} ({draft.services.length})
-                  </h3>
+                  {(services.length > 6 || parts.length > 4) && <p className="text-bm-muted">…</p>}
                   <button
                     type="button"
-                    className="text-xs text-bm-red flex items-center gap-1"
-                    onClick={addServiceRow}
+                    className="text-bm-red text-xs mt-1"
+                    onClick={() => setShowLineEditor(true)}
                   >
-                    <Plus size={14} /> {imp.addService}
+                    {imp.editLines}
                   </button>
                 </div>
-                <div className="overflow-x-auto border border-bm-border/40 rounded-lg">
-                  <table className="w-full text-xs min-w-[480px]">
-                    <thead>
-                      <ImportTableHeader
-                        cols={[c.name, c.qty, imp.lineTotalBrutto]}
-                      />
-                    </thead>
-                    <tbody>
-                      {draft.services.length === 0 && (
-                        <tr>
-                          <td colSpan={4} className="p-3 text-bm-muted text-center">
-                            {imp.emptyServices}
-                          </td>
-                        </tr>
-                      )}
-                      {draft.services.map((s, i) => (
-                        <tr
-                          key={i}
-                          className={`border-b border-bm-border/20 last:border-0 ${
-                            issueAffectsRow(draftIssues, "service", i)
-                              ? "bg-amber-50/60"
-                              : ""
-                          }`}
-                        >
-                          <td className="p-1">
-                            <input
-                              className="input-premium text-xs w-full min-w-[120px]"
-                              value={s.name}
-                              onChange={(e) => updateService(i, { name: e.target.value })}
-                            />
-                          </td>
-                          <td className="p-1">
-                            <input
-                              type="number"
-                              min={1}
-                              className="input-premium text-xs w-12"
-                              value={s.qty}
-                              onChange={(e) =>
-                                updateService(i, { qty: Number(e.target.value) || 1 })
-                              }
-                            />
-                          </td>
-                          <td className="p-1">
-                            <input
-                              type="number"
-                              min={0}
-                              step={0.01}
-                              className="input-premium text-xs w-20"
-                              value={s.price}
-                              onChange={(e) =>
-                                updateService(i, { price: Number(e.target.value) || 0 })
-                              }
-                            />
-                          </td>
-                          <td className="p-1">
-                            <button
-                              type="button"
-                              className="text-bm-muted hover:text-bm-red"
-                              onClick={() =>
-                                setDraft({
-                                  ...draft,
-                                  services: draft.services.filter((_, j) => j !== i),
-                                })
-                              }
-                              aria-label={t.common.delete}
-                            >
-                              <Trash2 size={14} />
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </section>
+              )}
 
-              <section className="space-y-2">
-                <div className="flex items-center justify-between gap-2">
-                  <h3 className="text-xs font-semibold uppercase text-bm-red">
-                    {imp.partsDetected} ({draft.parts.length})
-                  </h3>
+              <ImportDraftMetaFields meta={meta} labels={metaLabels} onPatch={onMetaPatch} />
+
+              {showLineEditor && (
+                <>
+                  <section className="space-y-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <h3 className="text-xs font-semibold uppercase text-bm-red">
+                        {imp.servicesDetected} ({services.length})
+                      </h3>
+                      <button
+                        type="button"
+                        className="text-xs text-bm-red flex items-center gap-1"
+                        onClick={() =>
+                          setServices((prev) => [...prev, { name: "", qty: 1, price: 0 }])
+                        }
+                      >
+                        <Plus size={14} /> {imp.addService}
+                      </button>
+                    </div>
+                    <div className="overflow-x-auto border border-bm-border/40 rounded-lg max-h-48 overflow-y-auto">
+                      <table className="w-full text-xs min-w-[480px]">
+                        <thead className="sticky top-0 bg-bm-graphite z-10">
+                          <ImportTableHeader cols={[c.name, c.qty, imp.lineTotalBrutto]} />
+                        </thead>
+                        <tbody>
+                          {services.map((s, i) => (
+                            <tr key={i} className="border-b border-bm-border/20 last:border-0">
+                              <td className="p-1">
+                                <input
+                                  className="input-premium text-xs w-full min-w-[120px]"
+                                  defaultValue={s.name}
+                                  key={`sn-${i}-${s.name.slice(0, 8)}`}
+                                  onBlur={(e) => updateService(i, { name: e.target.value })}
+                                />
+                              </td>
+                              <td className="p-1">
+                                <input
+                                  type="number"
+                                  min={1}
+                                  className="input-premium text-xs w-12"
+                                  defaultValue={s.qty}
+                                  key={`sq-${i}-${s.qty}`}
+                                  onBlur={(e) =>
+                                    updateService(i, { qty: Number(e.target.value) || 1 })
+                                  }
+                                />
+                              </td>
+                              <td className="p-1">
+                                <input
+                                  type="number"
+                                  min={0}
+                                  step={0.01}
+                                  className="input-premium text-xs w-20"
+                                  defaultValue={s.price}
+                                  key={`sp-${i}-${s.price}`}
+                                  onBlur={(e) =>
+                                    updateService(i, { price: Number(e.target.value) || 0 })
+                                  }
+                                />
+                              </td>
+                              <td className="p-1">
+                                <button
+                                  type="button"
+                                  className="text-bm-muted hover:text-bm-red"
+                                  onClick={() => setServices((prev) => prev.filter((_, j) => j !== i))}
+                                  aria-label={t.common.delete}
+                                >
+                                  <Trash2 size={14} />
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </section>
+
+                  <section className="space-y-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <h3 className="text-xs font-semibold uppercase text-bm-red">
+                        {imp.partsDetected} ({parts.length})
+                      </h3>
+                      <button
+                        type="button"
+                        className="text-xs text-bm-red flex items-center gap-1"
+                        onClick={() =>
+                          setParts((prev) => [
+                            ...prev,
+                            { name: "", qty: 1, purchasePrice: 0, sellPrice: 0 },
+                          ])
+                        }
+                      >
+                        <Plus size={14} /> {imp.addPart}
+                      </button>
+                    </div>
+                    <div className="overflow-x-auto border border-bm-border/40 rounded-lg max-h-48 overflow-y-auto">
+                      <table className="w-full text-xs min-w-[560px]">
+                        <thead className="sticky top-0 bg-bm-graphite z-10">
+                          <ImportTableHeader
+                            cols={[
+                              c.name,
+                              c.qty,
+                              `${c.purchasePrice} (${c.brutto})`,
+                              imp.lineTotalBrutto,
+                            ]}
+                          />
+                        </thead>
+                        <tbody>
+                          {parts.map((p, i) => (
+                            <tr key={i} className="border-b border-bm-border/20 last:border-0">
+                              <td className="p-1">
+                                <input
+                                  className="input-premium text-xs w-full min-w-[100px]"
+                                  defaultValue={p.name}
+                                  key={`pn-${i}-${p.name.slice(0, 8)}`}
+                                  onBlur={(e) => updatePart(i, { name: e.target.value })}
+                                />
+                              </td>
+                              <td className="p-1">
+                                <input
+                                  type="number"
+                                  min={1}
+                                  className="input-premium text-xs w-12"
+                                  defaultValue={p.qty}
+                                  key={`pq-${i}-${p.qty}`}
+                                  onBlur={(e) =>
+                                    updatePart(i, { qty: Number(e.target.value) || 1 })
+                                  }
+                                />
+                              </td>
+                              <td className="p-1">
+                                <input
+                                  type="number"
+                                  min={0}
+                                  step={0.01}
+                                  className="input-premium text-xs w-16"
+                                  defaultValue={p.purchasePrice}
+                                  key={`pp-${i}-${p.purchasePrice}`}
+                                  onBlur={(e) =>
+                                    updatePart(i, {
+                                      purchasePrice: Number(e.target.value) || 0,
+                                    })
+                                  }
+                                />
+                              </td>
+                              <td className="p-1">
+                                <input
+                                  type="number"
+                                  min={0}
+                                  step={0.01}
+                                  className="input-premium text-xs w-16"
+                                  defaultValue={p.sellPrice}
+                                  key={`ps-${i}-${p.sellPrice}`}
+                                  onBlur={(e) =>
+                                    updatePart(i, { sellPrice: Number(e.target.value) || 0 })
+                                  }
+                                />
+                              </td>
+                              <td className="p-1">
+                                <button
+                                  type="button"
+                                  className="text-bm-muted hover:text-bm-red"
+                                  onClick={() => setParts((prev) => prev.filter((_, j) => j !== i))}
+                                  aria-label={t.common.delete}
+                                >
+                                  <Trash2 size={14} />
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    {parts.length > 0 && (
+                      <p className="text-xs text-green-500">
+                        {imp.estimatedPartsProfit}: +{partsProfitPreview.toFixed(2)} zł
+                      </p>
+                    )}
+                  </section>
+
                   <button
                     type="button"
-                    className="text-xs text-bm-red flex items-center gap-1"
-                    onClick={addPartRow}
+                    className="text-xs text-bm-muted"
+                    onClick={() => setShowLineEditor(false)}
                   >
-                    <Plus size={14} /> {imp.addPart}
+                    {imp.hideLines}
                   </button>
-                </div>
-                <p className="text-xs text-bm-muted">{imp.purchaseHint}</p>
-                <div className="overflow-x-auto border border-bm-border/40 rounded-lg">
-                  <table className="w-full text-xs min-w-[560px]">
-                    <thead>
-                      <ImportTableHeader
-                        cols={[
-                          c.name,
-                          c.qty,
-                          `${c.purchasePrice} (${c.brutto})`,
-                          imp.lineTotalBrutto,
-                        ]}
-                      />
-                    </thead>
-                    <tbody>
-                      {draft.parts.length === 0 && (
-                        <tr>
-                          <td colSpan={5} className="p-3 text-bm-muted text-center">
-                            {imp.emptyParts}
-                          </td>
-                        </tr>
-                      )}
-                      {draft.parts.map((p, i) => (
-                        <tr
-                          key={i}
-                          className={`border-b border-bm-border/20 last:border-0 ${
-                            issueAffectsRow(draftIssues, "part", i) ? "bg-amber-50/60" : ""
-                          }`}
-                        >
-                          <td className="p-1">
-                            <input
-                              className="input-premium text-xs w-full min-w-[100px]"
-                              value={p.name}
-                              onChange={(e) => updatePart(i, { name: e.target.value })}
-                            />
-                          </td>
-                          <td className="p-1">
-                            <input
-                              type="number"
-                              min={1}
-                              className="input-premium text-xs w-12"
-                              value={p.qty}
-                              onChange={(e) =>
-                                updatePart(i, { qty: Number(e.target.value) || 1 })
-                              }
-                            />
-                          </td>
-                          <td className="p-1">
-                            <input
-                              type="number"
-                              min={0}
-                              step={0.01}
-                              className="input-premium text-xs w-16"
-                              value={p.purchasePrice}
-                              onChange={(e) =>
-                                updatePart(i, {
-                                  purchasePrice: Number(e.target.value) || 0,
-                                })
-                              }
-                            />
-                          </td>
-                          <td className="p-1">
-                            <input
-                              type="number"
-                              min={0}
-                              step={0.01}
-                              className="input-premium text-xs w-16"
-                              value={p.sellPrice}
-                              onChange={(e) =>
-                                updatePart(i, { sellPrice: Number(e.target.value) || 0 })
-                              }
-                            />
-                          </td>
-                          <td className="p-1">
-                            <button
-                              type="button"
-                              className="text-bm-muted hover:text-bm-red"
-                              onClick={() =>
-                                setDraft({
-                                  ...draft,
-                                  parts: draft.parts.filter((_, j) => j !== i),
-                                })
-                              }
-                              aria-label={t.common.delete}
-                            >
-                              <Trash2 size={14} />
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-                {draft.parts.length > 0 && (
-                  <p className="text-xs text-green-500">
-                    {imp.estimatedPartsProfit}: +{partsProfitPreview.toFixed(2)} zł
-                  </p>
-                )}
-              </section>
+                </>
+              )}
 
               <p className="text-xs text-bm-muted flex items-start gap-2">
                 <Info size={14} className="shrink-0 mt-0.5" />
@@ -758,15 +799,26 @@ export function ImportWorkOrderModal({ open, onClose, onCreated }: Props) {
           {error && <p className="text-sm text-red-500">{error}</p>}
         </div>
 
-        {draft && (
+        {hasDraft && (
           <div className="crm-mw-modal-footer shrink-0 flex gap-2 p-4 border-t border-bm-border/40">
-            <Button type="button" variant="outline" onClick={reset} disabled={saving}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                unlockDraft();
+                reset();
+              }}
+              disabled={saving}
+            >
               {imp.back}
             </Button>
             <Button
               type="button"
               className="flex-1"
               disabled={saving}
+              onMouseDown={() => {
+                (document.activeElement as HTMLElement | null)?.blur?.();
+              }}
               onClick={() => void handleCreate()}
             >
               {saving ? imp.saving : imp.create}

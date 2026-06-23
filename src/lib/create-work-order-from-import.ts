@@ -5,6 +5,7 @@ import type { ImportWorkOrderDraft } from "@/lib/motowarsztat-import-parser";
 import { generateOrderNumber } from "@/lib/workorder-calc";
 import { applyWorkOrderCompletedAt } from "@/lib/work-order-dates";
 import { applyWorkOrderClosure } from "@/lib/work-order-lifecycle";
+import { applyKnownScreenshotToOrder } from "@/lib/apply-known-screenshot-to-order";
 import { syncWarehouseFromWorkOrder } from "@/lib/warehouse-stock";
 import type {
   AttachedFile,
@@ -29,6 +30,14 @@ export type CreateFromImportResult =
 function findClientByPhone(db: Database, phone: string) {
   const key = normalizePhone(phone);
   return db.users.find((u) => u.role === "client" && normalizePhone(u.phone) === key);
+}
+
+function findVehicleForVin(db: Database, userId: string, vin?: string) {
+  const key = vin?.trim().toUpperCase();
+  if (!key) return undefined;
+  return db.vehicles.find(
+    (v) => v.userId === userId && v.vin?.trim().toUpperCase() === key
+  );
 }
 
 function findVehicleForPlate(db: Database, userId: string, plate: string) {
@@ -150,15 +159,36 @@ export async function createWorkOrderFromImport(
           if (created.ok) vehicleId = created.vehicleId;
         }
       }
-      if (!vehicleId) {
-        const first = db.vehicles.find((v) => v.userId === userId);
-        if (first) {
-          vehicleId = first.id;
-          if (input.vin?.trim()) first.vin = input.vin.trim();
-          if (input.make?.trim()) first.make = input.make.trim();
-          if (input.model?.trim()) first.model = input.model.trim();
-          if (input.mileage != null && input.mileage > 0) first.mileage = input.mileage;
+      if (!vehicleId && input.vin?.trim()) {
+        const byVin = findVehicleForVin(db, userId, input.vin);
+        if (byVin) {
+          vehicleId = byVin.id;
+          if (input.make?.trim()) byVin.make = input.make.trim();
+          if (input.model?.trim()) byVin.model = input.model.trim();
+          if (input.mileage != null && input.mileage > 0) byVin.mileage = input.mileage;
+        } else {
+          const created = await createCrmClientWithVehicle(db, {
+            phone,
+            name: user.name,
+            vin: input.vin,
+            make: input.make,
+            model: input.model,
+            mileage: input.mileage,
+          });
+          if (created.ok) vehicleId = created.vehicleId;
         }
+      }
+      if (!vehicleId) {
+        const created = await createCrmClientWithVehicle(db, {
+          phone,
+          name: user.name,
+          plate: plateRaw !== "—" ? plateRaw : undefined,
+          vin: input.vin,
+          make: input.make,
+          model: input.model,
+          mileage: input.mileage,
+        });
+        if (created.ok) vehicleId = created.vehicleId;
       }
     }
   } else {
@@ -220,6 +250,8 @@ export async function createWorkOrderFromImport(
     completedAt: orderDate,
   })
   );
+
+  applyKnownScreenshotToOrder(order, vatRate);
 
   db.workOrders.push(order);
   syncWarehouseFromWorkOrder(db, order);

@@ -98,6 +98,7 @@ function findPartIndex(
     sellPriceBrutto: number;
     qty: number;
     partNumber?: string;
+    discountPercent?: number;
   },
   vatRate: number,
   vatEnabled: boolean,
@@ -115,6 +116,10 @@ function findPartIndex(
     const unitBrutto = displayUnitPrice(line.sellPrice, "gross", vatRate, vatEnabled);
     if (moneyClose(brutto, snap.sellPriceBrutto)) score += 8;
     else if (moneyClose(unitBrutto, snap.sellPriceBrutto)) score += 6;
+    else if (snap.discountPercent && snap.discountPercent > 0) {
+      const undiscounted = snap.sellPriceBrutto / (1 - snap.discountPercent / 100);
+      if (moneyClose(brutto, undiscounted) || moneyClose(unitBrutto, undiscounted)) score += 5;
+    }
     if (line.qty === snap.qty) score += 2;
     if (score > bestScore) {
       bestScore = score;

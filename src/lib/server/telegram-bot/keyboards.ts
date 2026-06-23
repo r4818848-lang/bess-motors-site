@@ -40,7 +40,10 @@ export function mainMenuKeyboard(): InlineKeyboardMarkup {
         { text: BOT.quickApt, callback_data: "qapt:menu" },
       ],
       [{ text: BOT.quickWo, callback_data: "qwo:menu" }],
-      [{ text: BOT.importWo, callback_data: "imp:menu" }],
+      [
+        { text: BOT.importWo, callback_data: "imp:menu" },
+        { text: BOT.importBulkWo, callback_data: "imp:bulk" },
+      ],
       [{ text: BOT.search, callback_data: "search:menu" }],
       [
         { text: BOT.mechLoad, callback_data: "mech:dash:menu" },

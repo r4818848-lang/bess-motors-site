@@ -2,11 +2,11 @@ import { NextResponse } from "next/server";
 import { verifyToken } from "@/lib/server/verify-session";
 import { extractTextFromImportFile } from "@/lib/server/extract-import-document-text";
 import { parseWorkOrderImportText } from "@/lib/motowarsztat-import-parser";
-import { isOcrTextLikelyUseful, ocrQualityScore } from "@/lib/server/ocr-import-image";
+import { isOcrTextLikelyUseful, isOcrTextMaybeUseful, ocrQualityScore } from "@/lib/server/ocr-import-image";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
-export const maxDuration = 60;
+export const maxDuration = 120;
 
 function bearerToken(req: Request): string | null {
   const h = req.headers.get("authorization");
@@ -68,24 +68,27 @@ export async function POST(req: Request) {
       );
     }
 
-    if (isImage && !isOcrTextLikelyUseful(rawText)) {
+    if (isImage && !isOcrTextLikelyUseful(rawText) && !isOcrTextMaybeUseful(rawText)) {
       return NextResponse.json(
         {
           error: "ocr_low_quality",
           hint: "Zdjęcie jest nieczytelne dla OCR. Wyślij PDF z programu, lub zrób zdjęcie prostopadle, bez rozmycia — w Telegram: jako dokument, nie jako zdjęcie.",
           rawTextPreview: rawText.slice(0, 1500),
+          ocrScore: ocrQualityScore(rawText),
         },
         { status: 422 }
       );
     }
 
     const parsed = parseWorkOrderImportText(rawText);
+    const ocrWeak = isImage && !isOcrTextLikelyUseful(rawText);
 
     return NextResponse.json({
       ok: true,
       fileName: file.name,
       mime,
       fromImage: isImage,
+      ocrWeak,
       ocrScore: isImage ? ocrQualityScore(rawText) : null,
       rawTextPreview: rawText.slice(0, 4000),
       parsed,

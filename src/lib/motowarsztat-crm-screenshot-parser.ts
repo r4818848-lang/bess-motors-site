@@ -103,7 +103,7 @@ export const KNOWN_CRM_SCREENSHOTS: Record<string, CrmScreenshotData> = {
         name: "Zestaw sprzęgła",
         partNumber: "3000 950 090",
         qty: 1,
-        sellPriceBrutto: 616.65,
+        sellPriceBrutto: 554.99,
         purchasePriceBrutto: 388.48,
         discountPercent: 10,
       },

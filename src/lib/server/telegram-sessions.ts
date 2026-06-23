@@ -26,6 +26,7 @@ export type TelegramSessionStep =
   | "admin_import_file"
   | "admin_import_review"
   | "admin_import_phone"
+  | "admin_import_bulk"
   | "admin_quick_wo"
   | "admin_parts_wizard"
   | "admin_cons_wizard";

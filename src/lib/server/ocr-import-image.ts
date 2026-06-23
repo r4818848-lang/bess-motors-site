@@ -1,12 +1,18 @@
 import { createCanvas, loadImage } from "@napi-rs/canvas";
 
-const MIN_USEFUL_OCR_LEN = 120;
+const MIN_USEFUL_OCR_LEN = 80;
+const GOOD_OCR_SCORE = 420;
+const MIN_ACCEPT_OCR_SCORE = 180;
 
-/** Upscale + contrast for phone screenshots / Telegram JPEG. */
+/** Upscale small screenshots / downscale huge photos for faster OCR. */
 export async function preprocessImageForOcr(buffer: Buffer): Promise<Buffer> {
   const img = await loadImage(buffer);
   const maxSide = Math.max(img.width, img.height);
-  const scale = Math.min(3.5, Math.max(2, 2800 / maxSide));
+  let targetMax: number;
+  if (maxSide > 2400) targetMax = 2200;
+  else if (maxSide < 1400) targetMax = 1800;
+  else targetMax = maxSide;
+  const scale = targetMax / maxSide;
   const w = Math.round(img.width * scale);
   const h = Math.round(img.height * scale);
   const canvas = createCanvas(w, h);
@@ -18,7 +24,7 @@ export async function preprocessImageForOcr(buffer: Buffer): Promise<Buffer> {
 
   const imageData = ctx.getImageData(0, 0, w, h);
   const data = imageData.data;
-  const contrast = 1.35;
+  const contrast = 1.28;
   const intercept = 128 * (1 - contrast);
   for (let i = 0; i < data.length; i += 4) {
     data[i] = Math.min(255, Math.max(0, data[i]! * contrast + intercept));
@@ -50,7 +56,7 @@ export function ocrQualityScore(text: string): number {
   return score;
 }
 
-/** Best-effort OCR for workshop estimate screenshots. */
+/** Best-effort OCR for workshop estimate screenshots (2 passes max, early exit). */
 export async function ocrImportImageBuffer(buffer: Buffer): Promise<string> {
   const { createWorker, PSM } = await import("tesseract.js");
   let preprocessed: Buffer;
@@ -65,8 +71,6 @@ export async function ocrImportImageBuffer(buffer: Buffer): Promise<string> {
     const attempts: { buf: Buffer; psm: (typeof PSM)[keyof typeof PSM] }[] = [
       { buf: preprocessed, psm: PSM.AUTO },
       { buf: preprocessed, psm: PSM.SINGLE_BLOCK },
-      { buf: preprocessed, psm: PSM.SPARSE_TEXT },
-      { buf: buffer, psm: PSM.AUTO },
     ];
 
     let best = "";
@@ -80,6 +84,7 @@ export async function ocrImportImageBuffer(buffer: Buffer): Promise<string> {
         bestScore = score;
         best = text;
       }
+      if (bestScore >= GOOD_OCR_SCORE) break;
     }
     return best;
   } finally {
@@ -90,5 +95,12 @@ export async function ocrImportImageBuffer(buffer: Buffer): Promise<string> {
 export function isOcrTextLikelyUseful(text: string): boolean {
   const t = text.trim();
   if (t.length < MIN_USEFUL_OCR_LEN) return false;
-  return ocrQualityScore(t) >= 280;
+  return ocrQualityScore(t) >= 260;
+}
+
+/** Weak OCR — still try to parse; user fixes in preview. */
+export function isOcrTextMaybeUseful(text: string): boolean {
+  const t = text.trim();
+  if (t.length < 40) return false;
+  return ocrQualityScore(t) >= MIN_ACCEPT_OCR_SCORE;
 }

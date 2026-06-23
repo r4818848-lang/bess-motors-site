@@ -33,6 +33,7 @@ import { useCloudAppointmentsSync } from "@/hooks/useCloudAppointmentsSync";
 import { useCloudCrmSync } from "@/hooks/useCloudCrmSync";
 import { useCrmDraftLockActive } from "@/hooks/useCrmDraftLockActive";
 import { DB_STORAGE_QUOTA_EVENT } from "@/lib/db-events";
+import { forceClearCrmDraftLock } from "@/lib/crm-draft-lock";
 
 type NavItem = {
   href: string;
@@ -260,6 +261,21 @@ function DashboardLayoutInner({
         <span className="text-bm-muted">{c.syncing}</span>
       ) : !cloudConfigured ? (
         <span className="text-amber-400">{c.cloudNotConfigured}</span>
+      ) : draftLockActive ? (
+        <span className="text-amber-400" title={c.syncPausedDraft}>
+          {c.syncPausedDraft}
+        </span>
+      ) : syncFailureReason === "draft_locked" ? (
+        <button
+          type="button"
+          className="text-amber-400 hover:text-bm-red"
+          onClick={() => {
+            forceClearCrmDraftLock();
+            void resync({ pull: true });
+          }}
+        >
+          {c.syncPausedDraft} · {c.syncNow}
+        </button>
       ) : syncFailed || pushFailed ? (
         <button
           type="button"

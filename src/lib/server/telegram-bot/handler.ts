@@ -102,6 +102,7 @@ import {
   handleAdminImportPhoneText,
   handleAdminImportStepText,
   promptImportPhoneEdit,
+  startImportBulkWorkOrderFlow,
   startImportWorkOrderFlow,
   type AdminTelegramFileMessage,
 } from "./admin-import-order";
@@ -181,7 +182,7 @@ async function showMainMenu(chatId: number, messageId?: number): Promise<void> {
 
 /** Input wizards that expect the next message as field text — do not clear session on these callbacks */
 function keepsTelegramInputSession(data: string): boolean {
-  if (data === "qapt:menu" || data === "qwo:menu" || data === "imp:menu" || data === "search:menu") {
+  if (data === "qapt:menu" || data === "qwo:menu" || data === "imp:menu" || data === "imp:bulk" || data === "search:menu") {
     return true;
   }
   if (
@@ -247,10 +248,10 @@ export async function handleTelegramUpdate(update: {
   if (update.message.photo?.length || update.message.document) {
     const chatKey = String(chatId);
     const session = await getTelegramSession(chatKey);
-    if (session.step !== "admin_import_file") {
+    if (session.step !== "admin_import_file" && session.step !== "admin_import_bulk") {
       await sendTelegramMessage(
         chatId,
-        "📄 Импорт: меню → <b>Импорт PDF/фото</b>, затем отправьте PDF или файл (не сжатое «фото»).",
+        "📄 Импорт: меню → <b>Импорт PDF/фото</b> или <b>Массовый импорт</b>, затем отправьте PDF как <b>документ</b>.",
         mainMenuKeyboard()
       );
       return;
@@ -580,13 +581,18 @@ async function handleCallback(cb: TelegramCallback): Promise<void> {
     return;
   }
 
+  if (data === "imp:bulk") {
+    await startImportBulkWorkOrderFlow(chatId, messageId);
+    return;
+  }
+
   if (data === "imp:phone") {
     await promptImportPhoneEdit(chatId, messageId);
     return;
   }
 
   if (data === "imp:confirm") {
-    await sendTelegramMessage(chatId, BOT.importParsing);
+    await sendTelegramMessage(chatId, BOT.importCreating);
     const resultText = await confirmImportWorkOrder(chatId);
     await replyOrEdit(chatId, messageId, resultText, mainMenuKeyboard());
     return;

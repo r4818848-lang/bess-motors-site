@@ -369,10 +369,10 @@ function parseMotowarsztatBlocks(text: string): {
           result.plate = cleanPlate(sameLine);
           break;
         }
-        for (let j = i + 1; j < Math.min(i + 3, vLines.length); j++) {
+        for (let j = i + 1; j < Math.min(i + 5, vLines.length); j++) {
           const cand = vLines[j]!;
-          if (/^vin\b/i.test(cand) || VIN_RE.test(cand)) break;
-          if (/^(marka|poziom|stan)\b/i.test(cand)) continue;
+          if (/^(marka|poziom|stan|model)\b/i.test(cand)) continue;
+          if (/^vin\b/i.test(cand) || VIN_RE.test(cand)) continue;
           const p = cleanPlate(cand);
           if (isLikelyPlateToken(p)) {
             result.plate = p;

@@ -33,6 +33,14 @@ export function setCrmDraftLock(active: boolean): void {
   else releaseCrmDraftLock();
 }
 
+/** Force-clear a stuck draft lock (e.g. after crashed import). Use only on explicit user resync. */
+export function forceClearCrmDraftLock(): void {
+  if (typeof window === "undefined") return;
+  sessionStorage.removeItem(COUNT_KEY);
+  notifyDraftLockChange();
+  void import("@/lib/cloud-crm-db").then((m) => m.flushPendingCloudRevert());
+}
+
 export function isCrmDraftLockActive(): boolean {
   if (typeof window === "undefined") return false;
   return Number.parseInt(sessionStorage.getItem(COUNT_KEY) ?? "0", 10) > 0;
