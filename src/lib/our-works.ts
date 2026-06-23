@@ -13,6 +13,70 @@ export type OurWorkVideo = {
 
 export const OUR_WORK_VIDEOS: OurWorkVideo[] = [
   {
+    id: "exhaust-muffler",
+    serviceIds: ["exhaust"],
+    videoSrc: "/videos/works/exhaust-muffler.mov",
+    posterSrc: "/images/works/exhaust-muffler-cover.png",
+    title: {
+      pl: "Spawanie tłumika",
+      ru: "Замена глушителя",
+      en: "Muffler repair",
+    },
+    description: {
+      pl: `Kolejny zadowolony klient wyjechał od nas bez zbędnego hałasu!
+
+Tym razem usunęliśmy problem z układem wydechowym i przespawaliśmy tłumik. Teraz wszystko jest szczelne, niezawodne i działa jak należy.
+
+✅ Spawanie tłumików
+✅ Naprawa układu wydechowego
+✅ Wymiana giętkiej rury (gofry)
+✅ Usunięcie niepożądanych dźwięków
+✅ Szybka naprawa w dniu zgłoszenia
+
+Jeśli auto stało się głośniejsze, pojawił się nieprzyjemny dźwięk lub przepalił się tłumik — nie odkładaj naprawy.
+
+📍 BESS MOTORS
+Aleja Krakowska 48/52, Warszawa
+📞 +48 791 257 229
+
+Przywrócimy ciszę Twojemu samochodowi! 🔧🚗`,
+      ru: `Ещё один довольный клиент уехал от нас без лишнего шума!
+
+В этот раз устранили проблему с выхлопной системой и переварили глушитель. Теперь всё герметично, надёжно и работает как должно.
+
+✅ Сварка глушителей
+✅ Ремонт выхлопной системы
+✅ Замена гофры
+✅ Устранение посторонних шумов
+✅ Быстрый ремонт в день обращения
+
+Если ваш автомобиль стал громче работать, появился неприятный звук или прогорел глушитель — не откладывайте ремонт.
+
+📍 BESS MOTORS
+Aleja Krakowska 48/52, Warszawa
+📞 +48 791 257 229
+
+Вернём тишину вашему автомобилю! 🔧🚗`,
+      en: `Another happy customer left us without extra noise!
+
+This time we fixed the exhaust system and welded the muffler. Everything is sealed, reliable and working as it should.
+
+✅ Muffler welding
+✅ Exhaust system repair
+✅ Flex pipe replacement
+✅ Unwanted noise elimination
+✅ Same-day repair when possible
+
+If your car got louder, you hear an unpleasant sound or the muffler burned through — don't delay the repair.
+
+📍 BESS MOTORS
+Aleja Krakowska 48/52, Warsaw
+📞 +48 791 257 229
+
+We'll bring silence back to your car! 🔧🚗`,
+    },
+  },
+  {
     id: "clutch-citroen",
     serviceIds: ["clutch"],
     videoSrc: "/videos/works/clutch-citroen.mov",
