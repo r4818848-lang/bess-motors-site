@@ -43,7 +43,7 @@ export function SeasonalAcBanner() {
             </ul>
             <div className="mt-6 flex flex-wrap gap-3">
               <BookingLink
-                href="/booking"
+                href="/booking?service=acRefill&quick=1"
                 trackSource="seasonal_ac_banner"
                 className="btn-primary text-sm inline-flex items-center gap-2"
               >

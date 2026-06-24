@@ -35,7 +35,7 @@ export function AcSummerPromoBar() {
             {s.ctaLearn}
           </Link>
           <BookingLink
-            href="/booking"
+            href="/booking?service=acRefill&quick=1"
             trackSource="ac_promo_bar"
             className="inline-flex items-center gap-1 rounded-full bg-white text-bm-red px-3.5 py-1.5 text-[10px] sm:text-xs font-bold uppercase tracking-wide hover:bg-white/95 shadow-md"
           >

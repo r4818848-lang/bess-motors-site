@@ -50,6 +50,13 @@ import { BookingVinLookup } from "@/components/booking/BookingVinLookup";
 import {
   parseBookingParamsFromSearch,
 } from "@/lib/booking-url";
+import { AcQuickBookingForm } from "@/components/booking/AcQuickBookingForm";
+import {
+  isAcBookingService,
+  isPhoneContactValid,
+  isQuickAcBookingUrl,
+  resolveBookingClientName,
+} from "@/lib/booking-form-mode";
 import { saveSubmissionSnapshot, THANK_YOU_PATH } from "@/lib/submission-thank-you";
 import { getServicePackage } from "@/lib/service-packages";
 import { WaitTimeEstimator } from "@/components/booking/WaitTimeEstimator";
@@ -65,8 +72,9 @@ import {
   getPromoRules,
   matchPromoCode,
 } from "@/lib/promo-codes";
+import type { ServiceId } from "@/lib/services-catalog";
 
-type Phase = "services" | "datetime" | "confirm" | "done";
+type Phase = "services" | "datetime" | "confirm" | "done" | "quick";
 
 function ServiceCard({
   item,
@@ -283,12 +291,14 @@ interface Props {
 export function BookingQuoteFlow({ onDone }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const quickAcMode = isQuickAcBookingUrl(searchParams.toString());
+  const quickServiceId = (searchParams.get("service")?.trim() || "acRefill") as ServiceId;
+
+  const [phase, setPhase] = useState<Phase>(quickAcMode ? "quick" : "services");
   const { t, locale } = useI18n();
   const { clientUser, sessionReady } = useAuth();
   const bq = t.bookingQuote;
   const contentLoc = contentLocale(locale);
-
-  const [phase, setPhase] = useState<Phase>("services");
   const [category, setCategory] = useState<PriceCategoryId>("maintenance");
   const [cart, setCart] = useState<CartLine[]>([]);
   const [date, setDate] = useState<Date | null>(null);
@@ -346,7 +356,9 @@ export function BookingQuoteFlow({ onDone }: Props) {
     setClientPhone(clientUser.phone);
   }, [sessionReady, clientUser]);
 
-  const clientFullName = `${clientFirstName.trim()} ${clientLastName.trim()}`.trim();
+  const clientFullName = resolveBookingClientName(clientPhone, clientUser?.name);
+
+  const contactValid = isPhoneContactValid(clientPhone);
 
   const labels: Record<string, string> = {
     addService: bq.addService,
@@ -384,14 +396,9 @@ export function BookingQuoteFlow({ onDone }: Props) {
   const hasFrom = cartHasFromPrices(cart);
   const hasPromos = getPromoRules().length > 0;
 
-  const contactValid =
-    clientFirstName.trim().length >= 2 &&
-    clientLastName.trim().length >= 2 &&
-    clientPhone.trim().length >= 9;
-
   useEffect(() => {
     if (phase === "done" || clientPhone.trim().length < 9) return;
-    const t = setTimeout(() => {
+    const timer = setTimeout(() => {
       void fetch("/api/booking/draft", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -405,7 +412,7 @@ export function BookingQuoteFlow({ onDone }: Props) {
         }),
       });
     }, 2000);
-    return () => clearTimeout(t);
+    return () => clearTimeout(timer);
   }, [phase, clientPhone, clientFullName, cart, date, time]);
 
   const submit = async () => {
@@ -447,11 +454,7 @@ export function BookingQuoteFlow({ onDone }: Props) {
     saveSubmissionSnapshot({
       kind: "booking",
       submittedAt: new Date().toISOString(),
-      clientFirstName: clientFirstName.trim(),
-      clientLastName: clientLastName.trim(),
       clientPhone: clientPhone.trim(),
-      clientEmail: clientEmail.trim() || undefined,
-      clientPlate: clientPlate.trim() || undefined,
       date: formatDateKey(date),
       time,
       serviceLabels: cart.map((l) => l.label).join(", "),
@@ -510,6 +513,28 @@ export function BookingQuoteFlow({ onDone }: Props) {
       </p>
 
       <AnimatePresence mode="wait">
+        {phase === "quick" && isAcBookingService(quickServiceId) && (
+          <motion.div
+            key="quick"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="max-w-lg mx-auto glass-red rounded-2xl p-6 sm:p-8"
+          >
+            <AcQuickBookingForm
+              serviceId={quickServiceId}
+              trackSource="booking_page_quick_ac"
+              onDone={() => onDone?.()}
+            />
+            <button
+              type="button"
+              className="mt-6 w-full text-xs text-bm-muted hover:text-bm-red underline"
+              onClick={() => setPhase("services")}
+            >
+              {t.bookingQuick.fullFormLink}
+            </button>
+          </motion.div>
+        )}
+
         {phase === "services" && (
           <motion.div
             key="svc"
@@ -836,56 +861,17 @@ export function BookingQuoteFlow({ onDone }: Props) {
             )}
 
             <div className="space-y-3">
-              <label className="text-[10px] uppercase text-bm-muted">{bq.firstName}</label>
-              <input
-                type="text"
-                className="input-premium w-full"
-                value={clientFirstName}
-                onChange={(e) => setClientFirstName(e.target.value)}
-                autoComplete="given-name"
-              />
-              <label className="text-[10px] uppercase text-bm-muted">{bq.lastName}</label>
-              <input
-                type="text"
-                className="input-premium w-full"
-                value={clientLastName}
-                onChange={(e) => setClientLastName(e.target.value)}
-                autoComplete="family-name"
-              />
               <label className="text-[10px] uppercase text-bm-muted">{bq.yourPhone}</label>
               <input
                 type="tel"
-                className="input-premium w-full"
+                className="input-premium w-full text-lg"
                 value={clientPhone}
                 onChange={(e) => setClientPhone(e.target.value)}
                 autoComplete="tel"
+                inputMode="tel"
+                placeholder="+48 …"
               />
-              <label className="text-[10px] uppercase text-bm-muted">{bq.emailOptional}</label>
-              <input
-                type="email"
-                className="input-premium w-full"
-                value={clientEmail}
-                onChange={(e) => setClientEmail(e.target.value)}
-                autoComplete="email"
-              />
-              <label className="text-[10px] uppercase text-bm-muted">
-                {t.cabinet.registrationPlate} (opcjonalnie)
-              </label>
-              <input
-                type="text"
-                className="input-premium w-full font-mono uppercase"
-                value={clientPlate}
-                onChange={(e) => setClientPlate(e.target.value)}
-                placeholder="WA 12345"
-              />
-              <p className="text-[10px] text-bm-muted">{t.auth.plateHint}</p>
-              <label className="text-[10px] uppercase text-bm-muted">{bq.note}</label>
-              <textarea
-                className="input-premium w-full min-h-[80px]"
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-                placeholder={bq.notePlaceholder}
-              />
+              <p className="text-[10px] text-bm-muted">{t.bookingQuick.phoneHint}</p>
             </div>
 
             {submitError && (

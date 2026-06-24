@@ -101,7 +101,7 @@ export function Hero() {
               </p>
               <div className="mt-4 flex flex-wrap gap-2">
                 <BookingLink
-                  href="/booking"
+                  href="/booking?service=acRefill&quick=1"
                   trackSource="hero_ac_promo"
                   className="btn-primary text-xs sm:text-sm inline-flex items-center gap-1.5"
                 >

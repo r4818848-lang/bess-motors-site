@@ -39,8 +39,14 @@ import {
 import { serviceLandingHref } from "@/lib/service-slug-map";
 import { BookingWorkVideoTeaser } from "@/components/gallery/OurWorksSection";
 import { getOurWorkVideosForService } from "@/lib/our-works";
+import { AcQuickBookingForm } from "@/components/booking/AcQuickBookingForm";
+import {
+  isAcBookingService,
+  isPhoneContactValid,
+  resolveBookingClientName,
+} from "@/lib/booking-form-mode";
 
-type Phase = "manager" | "flow" | "date" | "time" | "problem" | "contact";
+type Phase = "manager" | "flow" | "date" | "time" | "problem" | "contact" | "quick";
 type SubmitMode = "call" | "booking";
 
 const WORKSHOP_PHONE = "+48 791 257 229";
@@ -136,7 +142,10 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
     setClientPhone(clientUser.phone);
   }, [sessionReady, clientUser]);
 
-  const clientFullName = `${clientFirstName.trim()} ${clientLastName.trim()}`.trim();
+  const clientFullName = resolveBookingClientName(
+    clientPhone,
+    `${clientFirstName.trim()} ${clientLastName.trim()}`.trim() || clientUser?.name
+  );
   const servicePageHref = serviceLandingHref(serviceId);
   const hasWorkVideo = getOurWorkVideosForService(serviceId).length > 0;
 
@@ -169,6 +178,13 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
     const baseId = serviceBasePriceId[serviceId];
     if (baseId) addPriceIdsToCart([baseId]);
   }, [serviceId, addPriceIdsToCart]);
+
+  useEffect(() => {
+    if (!isAcBookingService(serviceId)) return;
+    setSubmitMode("booking");
+    initBaseService();
+    setPhase("quick");
+  }, [serviceId, initBaseService]);
 
   const addOptionsToCart = useCallback(
     (optionIds: string[]) => {
@@ -262,8 +278,14 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
 
   const goBack = () => {
     setPicked([]);
+    if (phase === "quick") {
+      onClose();
+      return;
+    }
     if (phase === "contact") {
-      setPhase(submitMode === "call" ? "manager" : "problem");
+      setPhase(
+        submitMode === "call" ? "manager" : isOtherReason ? "problem" : "time"
+      );
       return;
     }
     if (phase === "problem") {
@@ -298,10 +320,7 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
     setPhase("contact");
   };
 
-  const contactValid =
-    clientFirstName.trim().length >= 2 &&
-    clientLastName.trim().length >= 2 &&
-    clientPhone.trim().length >= 9;
+  const contactValid = isPhoneContactValid(clientPhone);
 
   const problemValid = !isOtherReason || problem.trim().length >= 3;
 
@@ -325,11 +344,7 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
       saveSubmissionSnapshot({
         kind: "call",
         submittedAt: new Date().toISOString(),
-        clientFirstName: clientFirstName.trim(),
-        clientLastName: clientLastName.trim(),
         clientPhone: clientPhone.trim(),
-        clientEmail: clientEmail.trim() || undefined,
-        clientPlate: clientPlate.trim() || undefined,
         serviceLabel,
         comment: problem.trim() || undefined,
       });
@@ -344,7 +359,7 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
   };
 
   const submitBooking = async () => {
-    if (!contactValid || !problemValid || submitting || submitLock.current) return;
+    if (!contactValid || (isOtherReason && !problemValid) || submitting || submitLock.current) return;
     const dateStr = date ? formatDateKey(date) : "";
     if (!dateStr || !time) return;
     if (availabilityError) {
@@ -406,11 +421,7 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
       saveSubmissionSnapshot({
         kind: "booking",
         submittedAt: new Date().toISOString(),
-        clientFirstName: clientFirstName.trim(),
-        clientLastName: clientLastName.trim(),
         clientPhone: clientPhone.trim(),
-        clientEmail: clientEmail.trim() || undefined,
-        clientPlate: clientPlate.trim() || undefined,
         date: dateStr,
         time,
         serviceLabels: cart.length
@@ -590,58 +601,17 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
   const contactFields = (
     <div className="space-y-3">
       <div>
-        <label className="text-[10px] uppercase text-bm-muted tracking-wide">{bq.firstName}</label>
-        <input
-          type="text"
-          className="input-premium w-full mt-1"
-          value={clientFirstName}
-          onChange={(e) => setClientFirstName(e.target.value)}
-          autoComplete="given-name"
-        />
-      </div>
-      <div>
-        <label className="text-[10px] uppercase text-bm-muted tracking-wide">{bq.lastName}</label>
-        <input
-          type="text"
-          className="input-premium w-full mt-1"
-          value={clientLastName}
-          onChange={(e) => setClientLastName(e.target.value)}
-          autoComplete="family-name"
-        />
-      </div>
-      <div>
         <label className="text-[10px] uppercase text-bm-muted tracking-wide">{bf.yourPhone}</label>
         <input
           type="tel"
-          className="input-premium w-full mt-1"
+          className="input-premium w-full mt-1 text-lg"
           value={clientPhone}
           onChange={(e) => setClientPhone(e.target.value)}
           autoComplete="tel"
+          inputMode="tel"
+          placeholder="+48 …"
         />
-      </div>
-      <div>
-        <label className="text-[10px] uppercase text-bm-muted tracking-wide">{bq.emailOptional}</label>
-        <input
-          type="email"
-          className="input-premium w-full mt-1"
-          value={clientEmail}
-          onChange={(e) => setClientEmail(e.target.value)}
-          autoComplete="email"
-        />
-      </div>
-      <div>
-        <label className="text-[10px] uppercase text-bm-muted tracking-wide">
-          {t.cabinet.registrationPlate}
-        </label>
-        <input
-          type="text"
-          className="input-premium w-full mt-1 font-mono uppercase"
-          value={clientPlate}
-          onChange={(e) => setClientPlate(e.target.value)}
-          autoComplete="off"
-          placeholder="WA 12345"
-        />
-        <p className="text-[10px] text-bm-muted mt-1">{t.auth.plateHint}</p>
+        <p className="text-[10px] text-bm-muted mt-1">{t.bookingQuick.phoneHint}</p>
       </div>
     </div>
   );
@@ -679,8 +649,11 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
           {bq.hourlyNote} {HOURLY_RATE_PLN} zł/h
         </p>
 
-        {phase !== "manager" && (
+        {phase !== "manager" && phase !== "quick" && (
           <BookingStepBack label={bq.back} onClick={goBack} className="mt-1" />
+        )}
+        {phase === "quick" && (
+          <BookingStepBack label={bq.back} onClick={onClose} className="mt-1" />
         )}
 
         <AnimatePresence mode="wait">
@@ -806,7 +779,7 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
                   <ChevronLeft className="w-4 h-4" />
                   {bq.back}
                 </Button>
-                <Button className="flex-1" disabled={!time} onClick={() => setPhase("problem")}>
+                <Button className="flex-1" disabled={!time} onClick={() => setPhase(isOtherReason ? "problem" : "contact")}>
                   {bf.next}
                 </Button>
               </div>
@@ -843,6 +816,19 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
             </motion.div>
           )}
 
+          {phase === "quick" && (
+            <motion.div key="quick" className="pt-4">
+              <AcQuickBookingForm
+                serviceId={serviceId}
+                trackSource="smart_booking_modal_quick"
+                onDone={() => {
+                  onSuccess?.("booking");
+                  onClose();
+                }}
+              />
+            </motion.div>
+          )}
+
           {phase === "contact" && (
             <motion.div key="contact" className="space-y-4 pt-4">
               <h2 className="font-display text-lg uppercase text-center">{bf.contactTitle}</h2>
@@ -873,7 +859,7 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
                   disabled={
                     !contactValid ||
                     submitting ||
-                    (submitMode === "booking" && !problemValid)
+                    (submitMode === "booking" && isOtherReason && !problemValid)
                   }
                   onClick={submitMode === "call" ? submitCall : submitBooking}
                 >
