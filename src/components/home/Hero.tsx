@@ -8,6 +8,7 @@ import { useI18n } from "@/lib/i18n/context";
 import { siteConfig } from "@/lib/site";
 import { PhoneLink } from "@/components/analytics/PhoneLink";
 import { BookingLink } from "@/components/analytics/BookingLink";
+import { AcBookCtaButton } from "@/components/booking/AcBookingChoiceFlow";
 import { Logo } from "@/components/brand/Logo";
 
 export function Hero() {
@@ -100,14 +101,13 @@ export function Hero() {
                 {t.seasonalAc.subtitle}
               </p>
               <div className="mt-4 flex flex-wrap gap-2">
-                <BookingLink
-                  href="/booking?service=acRefill&quick=1"
+                <AcBookCtaButton
                   trackSource="hero_ac_promo"
                   className="btn-primary text-xs sm:text-sm inline-flex items-center gap-1.5"
                 >
                   {t.seasonalAc.ctaBook}
                   <ChevronRight size={14} />
-                </BookingLink>
+                </AcBookCtaButton>
                 <Link href="/klimatyzacja" className="btn-outline text-xs sm:text-sm">
                   {t.seasonalAc.ctaLearn}
                 </Link>

@@ -35,13 +35,14 @@ import { serviceLandingHref } from "@/lib/service-slug-map";
 import { BookingWorkVideoTeaser } from "@/components/gallery/OurWorksSection";
 import { getOurWorkVideosForService } from "@/lib/our-works";
 import { PhoneOnlyBookingForm } from "@/components/booking/PhoneOnlyBookingForm";
+import { AcBookingChoiceFlow } from "@/components/booking/AcBookingChoiceFlow";
 import {
   isAcBookingService,
   isPhoneContactValid,
   resolveBookingClientName,
 } from "@/lib/booking-form-mode";
 
-type Phase = "manager" | "flow" | "contact";
+type Phase = "manager" | "flow" | "contact" | "acChoice";
 type SubmitMode = "call" | "booking";
 
 const WORKSHOP_PHONE = "+48 791 257 229";
@@ -104,7 +105,9 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
   const screens = useMemo(() => buildScreens(serviceId), [serviceId]);
   const { clientUser, sessionReady } = useAuth();
 
-  const [phase, setPhase] = useState<Phase>("manager");
+  const [phase, setPhase] = useState<Phase>(() =>
+    isAcBookingService(serviceId) ? "acChoice" : "manager"
+  );
   const [submitMode, setSubmitMode] = useState<SubmitMode>("booking");
   const [screenIdx, setScreenIdx] = useState(0);
   const [oilExtra, setOilExtra] = useState<string | null>(null);
@@ -159,7 +162,7 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
     setSubmitMode("booking");
     setCart([]);
     initBaseService();
-    setPhase("contact");
+    setPhase("acChoice");
   }, [serviceId, initBaseService]);
 
   const addOptionsToCart = useCallback(
@@ -255,9 +258,13 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
 
   const goBack = () => {
     setPicked([]);
+    if (phase === "acChoice") {
+      onClose();
+      return;
+    }
     if (phase === "contact") {
       if (isAcBookingService(serviceId)) {
-        onClose();
+        setPhase("acChoice");
         return;
       }
       if (submitMode === "call") {
@@ -507,7 +514,7 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
           {bq.hourlyNote} {HOURLY_RATE_PLN} zł/h
         </p>
 
-        {phase !== "manager" && (
+        {phase !== "manager" && phase !== "acChoice" && (
           <BookingStepBack label={bq.back} onClick={goBack} className="mt-1" />
         )}
 
@@ -585,7 +592,22 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
             </motion.div>
           )}
 
-          {phase === "contact" && submitMode === "booking" && (
+          {phase === "acChoice" && isAcBookingService(serviceId) && (
+            <motion.div
+              key="ac-choice"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="pt-4"
+            >
+              <AcBookingChoiceFlow
+                onClose={onClose}
+                trackSource="smart_booking_modal_ac"
+                serviceId={serviceId as "acRefill" | "acRepair"}
+              />
+            </motion.div>
+          )}
+
+          {phase === "contact" && submitMode === "booking" && !isAcBookingService(serviceId) && (
             <motion.div key="contact-booking" className="pt-4">
               <PhoneOnlyBookingForm
                 serviceId={serviceId}

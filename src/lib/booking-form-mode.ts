@@ -12,9 +12,11 @@ export function isPhoneOnlyBookingUrl(search: string): boolean {
   return params.get("quick") === "1" || params.get("quick") === "true";
 }
 
-/** @deprecated use isPhoneOnlyBookingUrl */
-export function isQuickAcBookingUrl(search: string): boolean {
-  return isPhoneOnlyBookingUrl(search);
+export function isAcQuickBookingUrl(search: string): boolean {
+  if (!isPhoneOnlyBookingUrl(search)) return false;
+  const params = new URLSearchParams(search.startsWith("?") ? search.slice(1) : search);
+  const service = params.get("service")?.trim();
+  return service === "acRefill" || service === "acRepair";
 }
 
 /** CRM / cabinet display name when client leaves only a phone number */

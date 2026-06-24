@@ -51,7 +51,9 @@ import {
   parseBookingParamsFromSearch,
 } from "@/lib/booking-url";
 import { PhoneOnlyBookingForm } from "@/components/booking/PhoneOnlyBookingForm";
+import { AcBookingChoiceFlow } from "@/components/booking/AcBookingChoiceFlow";
 import {
+  isAcQuickBookingUrl,
   isPhoneContactValid,
   isPhoneOnlyBookingUrl,
   resolveBookingClientName,
@@ -73,7 +75,7 @@ import {
 } from "@/lib/promo-codes";
 import type { ServiceId } from "@/lib/services-catalog";
 
-type Phase = "services" | "phone" | "done";
+type Phase = "services" | "acChoice" | "phone" | "done";
 
 function ServiceCard({
   item,
@@ -347,8 +349,13 @@ export function BookingQuoteFlow({ onDone }: Props) {
   }, [prefillFromUrl]);
 
   useEffect(() => {
-    if (quickFromAds && cart.length > 0) setPhase("phone");
-  }, [quickFromAds, cart.length]);
+    if (!quickFromAds || cart.length === 0) return;
+    if (isAcQuickBookingUrl(searchParams.toString())) {
+      setPhase("acChoice");
+    } else {
+      setPhase("phone");
+    }
+  }, [quickFromAds, cart.length, searchParams]);
 
   useEffect(() => {
     if (!sessionReady || !clientUser) return;
@@ -521,6 +528,21 @@ export function BookingQuoteFlow({ onDone }: Props) {
                 <ChevronRight className="w-4 h-4" />
               </Button>
             </div>
+          </motion.div>
+        )}
+
+        {phase === "acChoice" && (
+          <motion.div
+            key="ac-choice"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="max-w-lg mx-auto glass-red rounded-2xl p-6 sm:p-8"
+          >
+            <AcBookingChoiceFlow
+              trackSource="booking_page_ac"
+              showBackOnChoice
+              onClose={() => setPhase("services")}
+            />
           </motion.div>
         )}
 

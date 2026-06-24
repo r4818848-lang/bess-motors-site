@@ -25,6 +25,7 @@ type Props = {
   estimatedTotal?: number;
   title?: string;
   subtitle?: string;
+  submitLabel?: string;
   trackSource?: string;
   onDone?: () => void;
   className?: string;
@@ -38,6 +39,7 @@ export function PhoneOnlyBookingForm({
   estimatedTotal,
   title,
   subtitle,
+  submitLabel,
   trackSource = "phone_only_booking",
   onDone,
   className = "",
@@ -155,7 +157,7 @@ export function PhoneOnlyBookingForm({
         disabled={!contactValid || submitting}
         onClick={submit}
       >
-        {submitting ? bq.submitting : bq.submit}
+        {submitting ? bq.submitting : submitLabel ?? bq.submit}
         <ChevronRight className="w-4 h-4 ml-1" />
       </Button>
       <p className="text-[10px] text-center text-bm-muted">{bq.successHint}</p>

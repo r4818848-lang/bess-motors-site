@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Snowflake, ChevronRight, Wind } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
-import { BookingLink } from "@/components/analytics/BookingLink";
+import { AcBookCtaButton } from "@/components/booking/AcBookingChoiceFlow";
 import { PhoneLink } from "@/components/analytics/PhoneLink";
 
 export function SeasonalAcBanner() {
@@ -42,14 +42,13 @@ export function SeasonalAcBanner() {
               ))}
             </ul>
             <div className="mt-6 flex flex-wrap gap-3">
-              <BookingLink
-                href="/booking?service=acRefill&quick=1"
+              <AcBookCtaButton
                 trackSource="seasonal_ac_banner"
                 className="btn-primary text-sm inline-flex items-center gap-2"
               >
                 {s.ctaBook}
                 <ChevronRight size={16} />
-              </BookingLink>
+              </AcBookCtaButton>
               <Link href="/klimatyzacja" className="btn-outline text-sm inline-flex items-center gap-2">
                 {s.ctaLearn}
               </Link>

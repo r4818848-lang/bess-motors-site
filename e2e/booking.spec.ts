@@ -5,7 +5,7 @@ test.beforeEach(async ({ page }) => {
   await preparePage(page);
 });
 
-test("booking page — add service to cart and open datetime step", async ({ page }) => {
+test("booking page — add service to cart and open phone step", async ({ page }) => {
   await page.goto("/booking");
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
 
@@ -16,7 +16,7 @@ test("booking page — add service to cart and open datetime step", async ({ pag
   await expect(page.getByText(/W koszyku/i).first()).toBeVisible({ timeout: 5000 });
 
   await page.getByRole("button", { name: /^Dalej$/i }).click();
-  await expect(page.getByText(/termin|godzin|kalendarz/i).first()).toBeVisible({
+  await expect(page.getByText(/Zostaw numer|telefon/i).first()).toBeVisible({
     timeout: 10_000,
   });
 });

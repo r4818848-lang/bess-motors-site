@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Snowflake, ChevronRight } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
-import { BookingLink } from "@/components/analytics/BookingLink";
+import { AcBookCtaButton } from "@/components/booking/AcBookingChoiceFlow";
 
 /** Sticky summer A/C promo — homepage only, below header */
 export function AcSummerPromoBar() {
@@ -34,14 +34,13 @@ export function AcSummerPromoBar() {
           >
             {s.ctaLearn}
           </Link>
-          <BookingLink
-            href="/booking?service=acRefill&quick=1"
+          <AcBookCtaButton
             trackSource="ac_promo_bar"
             className="inline-flex items-center gap-1 rounded-full bg-white text-bm-red px-3.5 py-1.5 text-[10px] sm:text-xs font-bold uppercase tracking-wide hover:bg-white/95 shadow-md"
           >
             {s.ctaBook}
             <ChevronRight size={14} />
-          </BookingLink>
+          </AcBookCtaButton>
         </div>
       </div>
     </div>
