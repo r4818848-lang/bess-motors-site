@@ -9,16 +9,11 @@ import { BookingStepBack } from "@/components/booking/BookingStepBack";
 import { useI18n } from "@/lib/i18n/context";
 import { contentLocale } from "@/lib/i18n/locale-utils";
 import { serviceFlows, type ServiceId, type FlowOption } from "@/lib/services-catalog";
-import { formatDateKey } from "@/lib/appointments";
-import { timeSlots } from "@/lib/data";
-import { createCallRequest, createBookingAppointment } from "@/lib/booking-actions";
+import { createCallRequest } from "@/lib/booking-actions";
 import { BookingLink } from "@/components/analytics/BookingLink";
 import { useAuth } from "@/lib/auth/session-context";
-import { BookingCalendar } from "@/components/booking/BookingCalendar";
 import { Button } from "@/components/ui/Button";
-import { BookingTotalSummary } from "@/components/booking/BookingTotalSummary";
 import { trackLead } from "@/lib/gtag";
-import { useBookingAvailability } from "@/hooks/useBookingAvailability";
 import { saveSubmissionSnapshot, THANK_YOU_PATH } from "@/lib/submission-thank-you";
 import {
   buildCartLine,
@@ -39,14 +34,14 @@ import {
 import { serviceLandingHref } from "@/lib/service-slug-map";
 import { BookingWorkVideoTeaser } from "@/components/gallery/OurWorksSection";
 import { getOurWorkVideosForService } from "@/lib/our-works";
-import { AcQuickBookingForm } from "@/components/booking/AcQuickBookingForm";
+import { PhoneOnlyBookingForm } from "@/components/booking/PhoneOnlyBookingForm";
 import {
   isAcBookingService,
   isPhoneContactValid,
   resolveBookingClientName,
 } from "@/lib/booking-form-mode";
 
-type Phase = "manager" | "flow" | "date" | "time" | "problem" | "contact" | "quick";
+type Phase = "manager" | "flow" | "contact";
 type SubmitMode = "call" | "booking";
 
 const WORKSHOP_PHONE = "+48 791 257 229";
@@ -107,7 +102,6 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
   const serviceLabel =
     t.serviceItems[serviceId as keyof typeof t.serviceItems] ?? serviceId;
   const screens = useMemo(() => buildScreens(serviceId), [serviceId]);
-  const isOtherReason = serviceId === "otherReason";
   const { clientUser, sessionReady } = useAuth();
 
   const [phase, setPhase] = useState<Phase>("manager");
@@ -116,36 +110,17 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
   const [oilExtra, setOilExtra] = useState<string | null>(null);
   const [picked, setPicked] = useState<string[]>([]);
   const [cart, setCart] = useState<CartLine[]>([]);
-  const [date, setDate] = useState<Date | null>(null);
-  const [time, setTime] = useState("");
-  const [problem, setProblem] = useState("");
-  const [clientFirstName, setClientFirstName] = useState("");
-  const [clientLastName, setClientLastName] = useState("");
   const [clientPhone, setClientPhone] = useState("");
-  const [clientEmail, setClientEmail] = useState("");
-  const [clientPlate, setClientPlate] = useState("");
   const [submitError, setSubmitError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const submitLock = useRef(false);
-  const { isSlotAvailable, loading: slotsLoading, availabilityError } = useBookingAvailability();
-
-  const onSelectDate = useCallback((d: Date | null) => {
-    setDate(d);
-    setTime("");
-  }, []);
 
   useEffect(() => {
     if (!sessionReady || !clientUser) return;
-    const parts = clientUser.name.trim().split(/\s+/);
-    setClientFirstName(parts[0] ?? "");
-    setClientLastName(parts.slice(1).join(" "));
     setClientPhone(clientUser.phone);
   }, [sessionReady, clientUser]);
 
-  const clientFullName = resolveBookingClientName(
-    clientPhone,
-    `${clientFirstName.trim()} ${clientLastName.trim()}`.trim() || clientUser?.name
-  );
+  const clientFullName = resolveBookingClientName(clientPhone, clientUser?.name);
   const servicePageHref = serviceLandingHref(serviceId);
   const hasWorkVideo = getOurWorkVideosForService(serviceId).length > 0;
 
@@ -182,8 +157,9 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
   useEffect(() => {
     if (!isAcBookingService(serviceId)) return;
     setSubmitMode("booking");
+    setCart([]);
     initBaseService();
-    setPhase("quick");
+    setPhase("contact");
   }, [serviceId, initBaseService]);
 
   const addOptionsToCart = useCallback(
@@ -253,6 +229,7 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
 
   const screen = phase === "flow" ? currentScreen() : null;
   const oilFlowSteps = serviceId === "oil" ? (oilExtra === "yes" ? 4 : 3) : screens.length;
+  const hasFlowSteps = screens.length > 0 || serviceId === "oil";
 
   const startSelfBooking = () => {
     setScreenIdx(0);
@@ -263,7 +240,7 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
     } else {
       initBaseService();
     }
-    setPhase(screens.length || serviceId === "oil" ? "flow" : "date");
+    setPhase(hasFlowSteps ? "flow" : "contact");
   };
 
   const nextFlow = () => {
@@ -273,30 +250,20 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
       setPicked([]);
       return;
     }
-    setPhase("date");
+    setPhase("contact");
   };
 
   const goBack = () => {
     setPicked([]);
-    if (phase === "quick") {
-      onClose();
-      return;
-    }
     if (phase === "contact") {
-      setPhase(
-        submitMode === "call" ? "manager" : isOtherReason ? "problem" : "time"
-      );
-      return;
-    }
-    if (phase === "problem") {
-      setPhase("time");
-      return;
-    }
-    if (phase === "time") {
-      setPhase("date");
-      return;
-    }
-    if (phase === "date") {
+      if (isAcBookingService(serviceId)) {
+        onClose();
+        return;
+      }
+      if (submitMode === "call") {
+        setPhase("manager");
+        return;
+      }
       const max = serviceId === "oil" ? oilFlowSteps : screens.length;
       if (max > 0) {
         setScreenIdx(max - 1);
@@ -322,8 +289,6 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
 
   const contactValid = isPhoneContactValid(clientPhone);
 
-  const problemValid = !isOtherReason || problem.trim().length >= 3;
-
   const submitCall = async () => {
     if (!contactValid || submitting || submitLock.current) return;
     submitLock.current = true;
@@ -335,7 +300,7 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
         clientName: clientFullName,
         serviceId,
         serviceLabel,
-        comment: problem,
+        comment: t.bookingQuick.phoneOnlyNote,
       });
       if (!result.ok) {
         setSubmitError(withPhone(bq.callFailed));
@@ -346,98 +311,9 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
         submittedAt: new Date().toISOString(),
         clientPhone: clientPhone.trim(),
         serviceLabel,
-        comment: problem.trim() || undefined,
       });
       trackLead("call_request", { source: "smart_booking_modal", serviceId });
       onSuccess?.("call");
-      onClose();
-      router.push(THANK_YOU_PATH);
-    } finally {
-      setSubmitting(false);
-      submitLock.current = false;
-    }
-  };
-
-  const submitBooking = async () => {
-    if (!contactValid || (isOtherReason && !problemValid) || submitting || submitLock.current) return;
-    const dateStr = date ? formatDateKey(date) : "";
-    if (!dateStr || !time) return;
-    if (availabilityError) {
-      setSubmitError(bq.availabilityError);
-      return;
-    }
-    if (slotsLoading) {
-      setSubmitError(bq.slotsLoading);
-      return;
-    }
-    if (!isSlotAvailable(dateStr, time)) {
-      setSubmitError(bq.slotTaken);
-      return;
-    }
-    const breakdown = cart
-      .map((l) => `${l.label}: ${l.isFree ? bq.free : formatPln(l.lineTotal)}`)
-      .join("; ");
-    const comment = [
-      cart.length ? `[${bq.grandTotal}: ${formatPln(total)}]` : "",
-      breakdown,
-      hasFrom ? bq.fromWarningShort : "",
-      problem.trim() ? `${bf.describeProblem}: ${problem.trim()}` : "",
-      `${bq.hourlyNote} ${HOURLY_RATE_PLN} zł/h`,
-    ]
-      .filter(Boolean)
-      .join(" | ");
-
-    setSubmitting(true);
-    setSubmitError("");
-    submitLock.current = true;
-    try {
-      const result = await createBookingAppointment({
-        serviceId,
-        serviceIds: cart.length
-          ? cart.map((l) => l.itemId)
-          : [serviceId],
-        date: date ? formatDateKey(date) : "",
-        time,
-        comment,
-        clientName: clientFullName,
-        clientPhone: clientPhone.trim(),
-        clientPlate: clientPlate.trim(),
-        estimatedTotal: total,
-        cartLines: cart.map((l) => ({
-          itemId: l.itemId,
-          label: l.label,
-          lineTotal: l.lineTotal,
-          priceFrom: l.priceFrom,
-        })),
-      });
-      if (!result.ok) {
-        if (result.error === "slot_taken") {
-          setSubmitError(bq.slotTaken);
-        } else {
-          setSubmitError(withPhone(bq.cloudSyncFailed));
-        }
-        return;
-      }
-      saveSubmissionSnapshot({
-        kind: "booking",
-        submittedAt: new Date().toISOString(),
-        clientPhone: clientPhone.trim(),
-        date: dateStr,
-        time,
-        serviceLabels: cart.length
-          ? cart.map((l) => l.label).join(", ")
-          : serviceLabel,
-        cartLines: cart.map((l) => ({
-          label: l.label,
-          lineTotal: l.lineTotal,
-          priceFrom: l.priceFrom,
-          isFree: l.isFree,
-        })),
-        estimatedTotal: total,
-        comment: problem.trim() || undefined,
-      });
-      trackLead("booking", { source: "smart_booking_modal", serviceId });
-      onSuccess?.("booking");
       onClose();
       router.push(THANK_YOU_PATH);
     } finally {
@@ -598,24 +474,6 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
       </div>
     ) : null;
 
-  const contactFields = (
-    <div className="space-y-3">
-      <div>
-        <label className="text-[10px] uppercase text-bm-muted tracking-wide">{bf.yourPhone}</label>
-        <input
-          type="tel"
-          className="input-premium w-full mt-1 text-lg"
-          value={clientPhone}
-          onChange={(e) => setClientPhone(e.target.value)}
-          autoComplete="tel"
-          inputMode="tel"
-          placeholder="+48 …"
-        />
-        <p className="text-[10px] text-bm-muted mt-1">{t.bookingQuick.phoneHint}</p>
-      </div>
-    </div>
-  );
-
   return (
     <div
       data-testid="booking-modal"
@@ -649,11 +507,8 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
           {bq.hourlyNote} {HOURLY_RATE_PLN} zł/h
         </p>
 
-        {phase !== "manager" && phase !== "quick" && (
+        {phase !== "manager" && (
           <BookingStepBack label={bq.back} onClick={goBack} className="mt-1" />
-        )}
-        {phase === "quick" && (
-          <BookingStepBack label={bq.back} onClick={onClose} className="mt-1" />
         )}
 
         <AnimatePresence mode="wait">
@@ -723,104 +578,25 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
                   <ChevronLeft className="w-4 h-4" />
                   {bq.back}
                 </Button>
-                <Button className="flex-1" onClick={() => setPhase("date")}>
+                <Button className="flex-1" onClick={() => setPhase("contact")}>
                   {bf.next}
                 </Button>
               </motion.div>
             </motion.div>
           )}
 
-          {phase === "date" && (
-            <motion.div key="date" className="space-y-4 pt-4">
-              <h2 className="font-display text-lg uppercase text-center">{t.booking.selectDate}</h2>
-              {runningTotalBar}
-              <BookingCalendar selected={date} onSelect={onSelectDate} locale={locale} />
-              <div className="flex gap-2">
-                <Button variant="outline" className="flex-1" onClick={goBack}>
-                  <ChevronLeft className="w-4 h-4" />
-                  {bq.back}
-                </Button>
-                <Button className="flex-1" disabled={!date} onClick={() => setPhase("time")}>
-                  {bf.next}
-                </Button>
-              </div>
-            </motion.div>
-          )}
-
-          {phase === "time" && (
-            <motion.div key="time" className="space-y-4 pt-4">
-              <h2 className="font-display text-lg uppercase text-center">{t.booking.selectTime}</h2>
-              {runningTotalBar}
-              <div className="flex flex-wrap gap-2 justify-center">
-                {timeSlots.map((slot) => {
-                  const dateStr = date ? formatDateKey(date) : "";
-                  const available = dateStr ? isSlotAvailable(dateStr, slot) : true;
-                  return (
-                    <button
-                      key={slot}
-                      type="button"
-                      disabled={!available}
-                      onClick={() => available && setTime(slot)}
-                      className={`px-3 py-2 rounded-lg text-sm font-mono ${
-                        !available
-                          ? "opacity-30 cursor-not-allowed line-through"
-                          : time === slot
-                            ? "bg-bm-red shadow-neon-sm"
-                            : "glass"
-                      }`}
-                    >
-                      {slot}
-                    </button>
-                  );
-                })}
-              </div>
-              <div className="flex gap-2">
-                <Button variant="outline" className="flex-1" onClick={goBack}>
-                  <ChevronLeft className="w-4 h-4" />
-                  {bq.back}
-                </Button>
-                <Button className="flex-1" disabled={!time} onClick={() => setPhase(isOtherReason ? "problem" : "contact")}>
-                  {bf.next}
-                </Button>
-              </div>
-            </motion.div>
-          )}
-
-          {phase === "problem" && (
-            <motion.div key="prob" className="space-y-4 pt-4">
-              <h2 className="font-display text-lg uppercase text-center">
-                {isOtherReason ? bf.otherReasonDescribe : bf.describeProblem}
-              </h2>
-              {runningTotalBar}
-              <textarea
-                className="input-premium w-full min-h-[100px]"
-                placeholder={
-                  isOtherReason ? bf.otherReasonPlaceholder : bf.problemPlaceholder
-                }
-                value={problem}
-                onChange={(e) => setProblem(e.target.value)}
-              />
-              <div className="flex gap-2">
-                <Button variant="outline" className="flex-1" onClick={goBack}>
-                  <ChevronLeft className="w-4 h-4" />
-                  {bq.back}
-                </Button>
-                <Button
-                  className="flex-1"
-                  disabled={!problemValid}
-                  onClick={() => goContact("booking")}
-                >
-                  {bf.next}
-                </Button>
-              </div>
-            </motion.div>
-          )}
-
-          {phase === "quick" && (
-            <motion.div key="quick" className="pt-4">
-              <AcQuickBookingForm
+          {phase === "contact" && submitMode === "booking" && (
+            <motion.div key="contact-booking" className="pt-4">
+              <PhoneOnlyBookingForm
                 serviceId={serviceId}
-                trackSource="smart_booking_modal_quick"
+                serviceLabel={
+                  cart.length > 0
+                    ? cart.map((l) => l.label).join(", ")
+                    : serviceLabel
+                }
+                cartLines={cart}
+                estimatedTotal={total}
+                trackSource="smart_booking_modal"
                 onDone={() => {
                   onSuccess?.("booking");
                   onClose();
@@ -829,22 +605,22 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
             </motion.div>
           )}
 
-          {phase === "contact" && (
-            <motion.div key="contact" className="space-y-4 pt-4">
-              <h2 className="font-display text-lg uppercase text-center">{bf.contactTitle}</h2>
-              <BookingTotalSummary
-                lines={cart}
-                title={bq.finalTotalTitle}
-                grandLabel={bq.grandTotal}
-                fromWarning={bq.fromWarning}
-                visitLabel={bq.visitDateTime}
-                visitValue={
-                  date && time
-                    ? `${date.toLocaleDateString(locale === "pl" ? "pl-PL" : locale === "ru" ? "ru-RU" : "en-GB")} · ${time}`
-                    : undefined
-                }
-              />
-              {contactFields}
+          {phase === "contact" && submitMode === "call" && (
+            <motion.div key="contact-call" className="space-y-4 pt-4">
+              <h2 className="font-display text-lg uppercase text-center">{bf.orderCall}</h2>
+              <p className="text-sm text-bm-muted text-center">{t.bookingQuick.phoneOnlySubtitle}</p>
+              <div>
+                <label className="text-[10px] uppercase text-bm-muted tracking-wide">{bf.yourPhone}</label>
+                <input
+                  type="tel"
+                  className="input-premium w-full mt-1 text-lg"
+                  value={clientPhone}
+                  onChange={(e) => setClientPhone(e.target.value)}
+                  autoComplete="tel"
+                  inputMode="tel"
+                  placeholder="+48 …"
+                />
+              </div>
               {submitError && (
                 <p className="text-sm text-red-400 text-center">{submitError}</p>
               )}
@@ -855,19 +631,11 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
                 </Button>
                 <Button
                   className="flex-1"
-                  data-fbq-track={submitMode === "call" ? "Contact" : "Lead"}
-                  disabled={
-                    !contactValid ||
-                    submitting ||
-                    (submitMode === "booking" && isOtherReason && !problemValid)
-                  }
-                  onClick={submitMode === "call" ? submitCall : submitBooking}
+                  data-fbq-track="Contact"
+                  disabled={!contactValid || submitting}
+                  onClick={submitCall}
                 >
-                  {submitting
-                    ? bq.submitting
-                    : submitMode === "call"
-                      ? bf.orderCall
-                      : bq.submit}
+                  {submitting ? bq.submitting : bf.orderCall}
                 </Button>
               </div>
             </motion.div>

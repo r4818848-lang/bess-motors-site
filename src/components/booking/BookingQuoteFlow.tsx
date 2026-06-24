@@ -50,11 +50,10 @@ import { BookingVinLookup } from "@/components/booking/BookingVinLookup";
 import {
   parseBookingParamsFromSearch,
 } from "@/lib/booking-url";
-import { AcQuickBookingForm } from "@/components/booking/AcQuickBookingForm";
+import { PhoneOnlyBookingForm } from "@/components/booking/PhoneOnlyBookingForm";
 import {
-  isAcBookingService,
   isPhoneContactValid,
-  isQuickAcBookingUrl,
+  isPhoneOnlyBookingUrl,
   resolveBookingClientName,
 } from "@/lib/booking-form-mode";
 import { saveSubmissionSnapshot, THANK_YOU_PATH } from "@/lib/submission-thank-you";
@@ -74,7 +73,7 @@ import {
 } from "@/lib/promo-codes";
 import type { ServiceId } from "@/lib/services-catalog";
 
-type Phase = "services" | "datetime" | "confirm" | "done" | "quick";
+type Phase = "services" | "phone" | "done";
 
 function ServiceCard({
   item,
@@ -291,10 +290,9 @@ interface Props {
 export function BookingQuoteFlow({ onDone }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const quickAcMode = isQuickAcBookingUrl(searchParams.toString());
-  const quickServiceId = (searchParams.get("service")?.trim() || "acRefill") as ServiceId;
+  const quickFromAds = isPhoneOnlyBookingUrl(searchParams.toString());
 
-  const [phase, setPhase] = useState<Phase>(quickAcMode ? "quick" : "services");
+  const [phase, setPhase] = useState<Phase>("services");
   const { t, locale } = useI18n();
   const { clientUser, sessionReady } = useAuth();
   const bq = t.bookingQuote;
@@ -349,6 +347,10 @@ export function BookingQuoteFlow({ onDone }: Props) {
   }, [prefillFromUrl]);
 
   useEffect(() => {
+    if (quickFromAds && cart.length > 0) setPhase("phone");
+  }, [quickFromAds, cart.length]);
+
+  useEffect(() => {
     if (!sessionReady || !clientUser) return;
     const parts = clientUser.name.trim().split(/\s+/);
     setClientFirstName(parts[0] ?? "");
@@ -396,115 +398,6 @@ export function BookingQuoteFlow({ onDone }: Props) {
   const hasFrom = cartHasFromPrices(cart);
   const hasPromos = getPromoRules().length > 0;
 
-  useEffect(() => {
-    if (phase === "done" || clientPhone.trim().length < 9) return;
-    const timer = setTimeout(() => {
-      void fetch("/api/booking/draft", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          phone: clientPhone.trim(),
-          name: clientFullName,
-          step: phase,
-          serviceSummary: cart.map((l) => l.label).join(", ").slice(0, 200),
-          date: date ? formatDateKey(date) : undefined,
-          time,
-        }),
-      });
-    }, 2000);
-    return () => clearTimeout(timer);
-  }, [phase, clientPhone, clientFullName, cart, date, time]);
-
-  const submit = async () => {
-    if (!contactValid || cart.length === 0 || !date || !time || submitting || submitLock.current) return;
-    const dateStr = formatDateKey(date);
-    if (availabilityError) {
-      setSubmitError(bq.availabilityError);
-      return;
-    }
-    if (slotsLoading) {
-      setSubmitError(bq.slotsLoading);
-      return;
-    }
-    if (!isSlotAvailable(dateStr, time)) {
-      setSubmitError(bq.slotTaken);
-      return;
-    }
-    const breakdown = cart
-      .map(
-        (l) =>
-          `${l.label}: ${l.isFree ? labels.free : formatPln(l.lineTotal)}`
-      )
-      .join("; ");
-    const comment = [
-      `[KOSZT SZACUNKOWY: ${formatPln(total)}]`,
-      promoApplied ? `Promo: ${promoApplied.code} (-${promoApplied.percentOff}%)` : "",
-      packageMatchesCart && activePackage
-        ? `Pakiet: ${contentLoc === "ru" ? activePackage.nameRu : activePackage.namePl} (${formatPln(activePackage.packagePricePln)})`
-        : "",
-      vehicleNote.trim() ? `Auto: ${vehicleNote.trim()}` : "",
-      breakdown,
-      hasFrom ? bq.fromWarningShort : "",
-      note.trim() ? `Uwagi: ${note.trim()}` : "",
-      `${bq.hourlyNote} ${HOURLY_RATE_PLN} zł/h`,
-    ]
-      .filter(Boolean)
-      .join(" | ");
-
-    saveSubmissionSnapshot({
-      kind: "booking",
-      submittedAt: new Date().toISOString(),
-      clientPhone: clientPhone.trim(),
-      date: formatDateKey(date),
-      time,
-      serviceLabels: cart.map((l) => l.label).join(", "),
-      cartLines: cart.map((l) => ({
-        label: l.label,
-        lineTotal: l.lineTotal,
-        priceFrom: l.priceFrom,
-        isFree: l.isFree,
-      })),
-      estimatedTotal: total,
-      comment: note.trim() || undefined,
-    });
-
-    setSubmitting(true);
-    setSubmitError("");
-    submitLock.current = true;
-    try {
-      const result = await createBookingAppointment({
-        serviceId: "booking-quote",
-        serviceIds: cart.map((l) => l.itemId),
-        date: formatDateKey(date),
-        time,
-        comment,
-        clientName: clientFullName,
-        clientPhone: clientPhone.trim(),
-        clientPlate: clientPlate.trim(),
-        estimatedTotal: total,
-        cartLines: cart.map((l) => ({
-          itemId: l.itemId,
-          label: l.label,
-          lineTotal: l.lineTotal,
-          priceFrom: l.priceFrom,
-        })),
-      });
-      if (!result.ok) {
-        if (result.error === "slot_taken") {
-          setSubmitError(bq.slotTaken);
-        } else {
-          setSubmitError(withPhone(bq.cloudSyncFailed));
-        }
-        return;
-      }
-      onDone?.();
-      router.replace(THANK_YOU_PATH);
-    } finally {
-      setSubmitting(false);
-      submitLock.current = false;
-    }
-  };
-
   return (
     <div className="pb-52 lg:pb-8">
       <p className="text-center text-sm text-bm-muted mb-2">{siteConfig.workingHours}</p>
@@ -513,28 +406,6 @@ export function BookingQuoteFlow({ onDone }: Props) {
       </p>
 
       <AnimatePresence mode="wait">
-        {phase === "quick" && isAcBookingService(quickServiceId) && (
-          <motion.div
-            key="quick"
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="max-w-lg mx-auto glass-red rounded-2xl p-6 sm:p-8"
-          >
-            <AcQuickBookingForm
-              serviceId={quickServiceId}
-              trackSource="booking_page_quick_ac"
-              onDone={() => onDone?.()}
-            />
-            <button
-              type="button"
-              className="mt-6 w-full text-xs text-bm-muted hover:text-bm-red underline"
-              onClick={() => setPhase("services")}
-            >
-              {t.bookingQuick.fullFormLink}
-            </button>
-          </motion.div>
-        )}
-
         {phase === "services" && (
           <motion.div
             key="svc"
@@ -644,7 +515,7 @@ export function BookingQuoteFlow({ onDone }: Props) {
                 className="w-full mt-4"
                 data-fbq-track="InitiateCheckout"
                 disabled={cart.length === 0}
-                onClick={() => setPhase("datetime")}
+                onClick={() => setPhase("phone")}
               >
                 {bq.continue}
                 <ChevronRight className="w-4 h-4" />
@@ -653,250 +524,27 @@ export function BookingQuoteFlow({ onDone }: Props) {
           </motion.div>
         )}
 
-        {phase === "datetime" && (
+        {phase === "phone" && cart.length > 0 && (
           <motion.div
-            key="dt"
-            initial={{ opacity: 0, x: 12 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="max-w-lg mx-auto space-y-6"
+            key="phone"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="max-w-lg mx-auto glass-red rounded-2xl p-6 sm:p-8"
           >
             <BookingStepBack label={bq.back} onClick={() => setPhase("services")} />
-            <div className="lg:sticky lg:top-24">
-              <CartPanel
-              lines={cart}
-              locale={locale}
-              labels={labels}
-              onRemove={(id) => setCart((c) => c.filter((l) => l.id !== id))}
-              onQtyChange={(id, qty) =>
-                setCart((c) =>
-                  c.map((l) => {
-                    if (l.id !== id) return l;
-                    const item = priceListItems.find((i) => i.id === l.itemId);
-                    if (!item) return l;
-                    return buildCartLine(item, l.label.split(" (")[0], qty);
-                  })
-                )
-              }
+            <PhoneOnlyBookingForm
+              serviceId="booking-quote"
+              serviceLabel={cart.map((l) => l.label).join(", ")}
+              cartLines={cart}
+              estimatedTotal={total}
+              trackSource="booking_page"
+              onDone={() => onDone?.()}
             />
-            </div>
-            <BookingAvailability
-              onPick={(d, tm) => {
-                setDate(new Date(d + "T12:00:00"));
-                setTime(tm);
-              }}
-            />
-            <div className="max-w-xl mx-auto">
-              <WaitTimeEstimator serviceId={cart[0]?.itemId} />
-            </div>
-            <h2 className="font-display text-lg uppercase text-center">
-              {t.booking.selectDate}
-            </h2>
-            <BookingCalendar
-              selected={date}
-              onSelect={onSelectDate}
-              locale={locale}
-            />
-            {date && (
-              <>
-                <h2 className="font-display text-lg uppercase text-center">
-                  {t.booking.selectTime}
-                </h2>
-                <div className="flex flex-wrap gap-2 justify-center">
-                  {timeSlots.map((slot) => {
-                    const dateStr = formatDateKey(date);
-                    const available = isSlotAvailable(dateStr, slot);
-                    return (
-                      <button
-                        key={slot}
-                        type="button"
-                        disabled={!available}
-                        onClick={() => {
-                          if (!available) return;
-                          setTime(slot);
-                          trackMetaCustomizeProduct("booking_time");
-                        }}
-                        className={`px-3 py-2 rounded-lg text-sm font-mono ${
-                          !available
-                            ? "opacity-30 cursor-not-allowed line-through"
-                            : time === slot
-                              ? "bg-bm-red shadow-neon-sm"
-                              : "glass"
-                        }`}
-                      >
-                        {slot}
-                      </button>
-                    );
-                  })}
-                </div>
-              </>
-            )}
-            <div className="flex gap-3">
-              <Button variant="outline" className="flex-1" onClick={() => setPhase("services")}>
-                <ChevronLeft className="w-4 h-4" />
-                {bq.back}
-              </Button>
-              <Button
-                className="flex-1"
-                disabled={!date || !time}
-                onClick={() => setPhase("confirm")}
-              >
-                {bq.continue}
-                <ChevronRight className="w-4 h-4" />
-              </Button>
-            </div>
-          </motion.div>
-        )}
-
-        {phase === "confirm" && (
-          <motion.div
-            key="cf"
-            initial={{ opacity: 0, x: 12 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="max-w-xl mx-auto space-y-6"
-          >
-            <BookingStepBack label={bq.back} onClick={() => setPhase("datetime")} />
-            {cart.length > 0 && (
-              <div className="lg:hidden">
-                <CartPanel
-                  lines={cart}
-                  locale={locale}
-                  labels={labels}
-                  onRemove={(id) => setCart((c) => c.filter((l) => l.id !== id))}
-                  onQtyChange={(id, qty) =>
-                    setCart((c) =>
-                      c.map((l) => {
-                        if (l.id !== id) return l;
-                        const item = priceListItems.find((i) => i.id === l.itemId);
-                        if (!item) return l;
-                        return buildCartLine(item, l.label.split(" (")[0], qty);
-                      })
-                    )
-                  }
-                />
-              </div>
-            )}
-            {date && time && (
-              <div className="rounded-xl border border-bm-red/30 bg-bm-red/10 px-4 py-3 text-center">
-                <p className="text-[10px] uppercase text-bm-muted tracking-wide">
-                  {bq.visitDateTime}
-                </p>
-                <p className="font-display text-lg text-white mt-1">
-                  {formatDisplayDateKey(formatDateKey(date))}{" "}
-                  · {time}
-                </p>
-              </div>
-            )}
-            <div className="glass-red rounded-2xl p-6 neon-border border-2 border-bm-red/40">
-              <h2 className="font-display text-xl uppercase text-center text-glow mb-4">
-                {bq.finalTotalTitle}
-              </h2>
-              <ul className="space-y-2 mb-4">
-                {cart.map((line) => (
-                  <li
-                    key={line.id}
-                    className="flex justify-between text-sm border-b border-bm-border/30 pb-2"
-                  >
-                    <span className="text-bm-silver pr-4">{line.label}</span>
-                    <span className="font-mono text-bm-red font-semibold shrink-0">
-                      {line.isFree ? labels.free : formatPln(line.lineTotal)}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-              <div className="flex justify-between items-baseline pt-2">
-                <span className="font-display uppercase tracking-widest text-sm">
-                  {bq.grandTotal}
-                </span>
-                <span className="font-display text-3xl font-black text-bm-red font-mono">
-                  {formatPln(total)}
-                </span>
-              </div>
-              {hasFrom && (
-                <p className="text-xs text-amber-400/90 mt-4 flex gap-2">
-                  <AlertTriangle className="w-4 h-4 shrink-0" />
-                  {labels.fromWarning}
-                </p>
-              )}
-              {packageDiscount > 0 && activePackage && (
-                <p className="text-xs text-green-400 mt-2">
-                  {t.servicePackages.packagePrice}: −{formatPln(packageDiscount)} (
-                  {contentLoc === "ru" ? activePackage.nameRu : activePackage.namePl}
-                  )
-                </p>
-              )}
-              {promoApplied && afterPackage > total && (
-                <p className="text-xs text-green-400 mt-2">
-                  {t.bookingPromo.applied}: −{promoApplied.percentOff}% (
-                  {formatPln(afterPackage - total)})
-                </p>
-              )}
-            </div>
-
-            {hasPromos && (
-              <div className="flex flex-col sm:flex-row gap-2">
-                <input
-                  className="input-premium flex-1 uppercase"
-                  placeholder={t.bookingPromo.placeholder}
-                  value={promoInput}
-                  onChange={(e) => setPromoInput(e.target.value.toUpperCase())}
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => {
-                    const matched = matchPromoCode(promoInput);
-                    if (!matched) {
-                      setPromoError(t.bookingPromo.invalid);
-                      setPromoApplied(null);
-                      return;
-                    }
-                    setPromoError("");
-                    setPromoApplied(matched);
-                  }}
-                >
-                  {t.bookingPromo.apply}
-                </Button>
-                {promoError && <p className="text-xs text-red-400">{promoError}</p>}
-              </div>
-            )}
-
-            <div className="space-y-3">
-              <label className="text-[10px] uppercase text-bm-muted">{bq.yourPhone}</label>
-              <input
-                type="tel"
-                className="input-premium w-full text-lg"
-                value={clientPhone}
-                onChange={(e) => setClientPhone(e.target.value)}
-                autoComplete="tel"
-                inputMode="tel"
-                placeholder="+48 …"
-              />
-              <p className="text-[10px] text-bm-muted">{t.bookingQuick.phoneHint}</p>
-            </div>
-
-            {submitError && (
-              <p className="text-sm text-red-400 text-center">{submitError}</p>
-            )}
-
-            <div className="flex gap-3">
-              <Button variant="outline" className="flex-1" onClick={() => setPhase("datetime")}>
-                <ChevronLeft className="w-4 h-4" />
-                {bq.back}
-              </Button>
-              <Button
-                className="flex-1 hidden lg:flex"
-                data-fbq-track="Lead"
-                disabled={!contactValid || submitting}
-                onClick={submit}
-              >
-                {submitting ? bq.submitting : bq.submit}
-              </Button>
-            </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {(phase === "services" || phase === "datetime" || phase === "confirm") && (
+      {(phase === "services" || phase === "phone") && (
         <div className="lg:hidden fixed bottom-0 left-0 right-0 z-[100] glass-red border-t border-bm-red/40 shadow-[0_-8px_32px_rgba(0,0,0,0.85)] safe-area-pb">
           {cart.length > 0 && (
             <div className="max-h-44 overflow-y-auto border-b border-bm-border/40 px-3 py-2 space-y-1">
@@ -924,30 +572,12 @@ export function BookingQuoteFlow({ onDone }: Props) {
                 className="shrink-0"
                 data-fbq-track="InitiateCheckout"
                 disabled={cart.length === 0}
-                onClick={() => setPhase("datetime")}
+                onClick={() => setPhase("phone")}
               >
                 {bq.continue}
                 <ChevronRight className="w-4 h-4" />
               </Button>
-            ) : phase === "datetime" ? (
-              <Button
-                className="shrink-0"
-                disabled={!date || !time}
-                onClick={() => setPhase("confirm")}
-              >
-                {bq.continue}
-                <ChevronRight className="w-4 h-4" />
-              </Button>
-            ) : (
-              <Button
-                className="shrink-0"
-                data-fbq-track="Lead"
-                disabled={!contactValid || submitting}
-                onClick={submit}
-              >
-                {submitting ? bq.submitting : bq.submit}
-              </Button>
-            )}
+            ) : null}
           </div>
         </div>
       )}

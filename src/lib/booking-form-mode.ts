@@ -7,11 +7,14 @@ export function isAcBookingService(serviceId: ServiceId | string): boolean {
   return (AC_BOOKING_SERVICE_IDS as readonly string[]).includes(serviceId);
 }
 
-export function isQuickAcBookingUrl(search: string): boolean {
+export function isPhoneOnlyBookingUrl(search: string): boolean {
   const params = new URLSearchParams(search.startsWith("?") ? search.slice(1) : search);
-  if (params.get("quick") === "1" || params.get("quick") === "true") return true;
-  const service = params.get("service")?.trim();
-  return !!service && isAcBookingService(service);
+  return params.get("quick") === "1" || params.get("quick") === "true";
+}
+
+/** @deprecated use isPhoneOnlyBookingUrl */
+export function isQuickAcBookingUrl(search: string): boolean {
+  return isPhoneOnlyBookingUrl(search);
 }
 
 /** CRM / cabinet display name when client leaves only a phone number */
