@@ -18,9 +18,9 @@ export const INSTAGRAM_REELS: InstagramReel[] = [
       en: "AC recharge",
     },
     caption: {
-      pl: "Podłączenie 50 zł, R134a 60 zł/100 g — przygotuj klimatyzację przed letnimi upałami.",
-      ru: "Подключение 50 zł, R134a 60 zł/100 г — подготовьте кондиционер к жарким дням.",
-      en: "Connection 50 PLN, R134a 60 PLN/100g — get your AC ready before the summer heat.",
+      pl: "Podłączenie od 50 zł, R134a 65 zł/100 g — przygotuj klimatyzację przed letnimi upałami.",
+      ru: "Подключение от 50 zł, R134a 65 zł/100 г — подготовьте кондиционер к жарким дням.",
+      en: "Connection from 50 PLN, R134a 65 PLN/100g — get your AC ready before the summer heat.",
     },
     instagramUrl:
       "https://www.instagram.com/reel/DZ8LHh8KZXS/?utm_source=ig_web_copy_link",

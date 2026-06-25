@@ -167,15 +167,15 @@ export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
       {
         q: L("Ile kosztuje nabijanie klimatyzacji?", "Сколько стоит заправка кондиционера?"),
         a: L(
-          `Podłączenie układu ${acHookupPricePln()} zł, freon R134a ${acR134aPer100gPln()} zł/100 g — dokładna ilość czynnika zależy od modelu. R1234yf według cennika.`,
-          `Подключение ${acHookupPricePln()} zł, фреон R134a ${acR134aPer100gPln()} zł/100 г — объём зависит от модели. R1234yf по прайсу.`
+          `Podłączenie układu od ${acHookupPricePln()} zł, freon R134a ${acR134aPer100gPln()} zł/100 g — dokładna ilość czynnika zależy od modelu. R1234yf według cennika.`,
+          `Подключение от ${acHookupPricePln()} zł, фреон R134a ${acR134aPer100gPln()} zł/100 г — объём зависит от модели. R1234yf по прайсу.`
         ),
       },
       {
         q: L("Od ile zł kosztuje pełna zaprawa klimy?", "От какой суммы заправка кондиционера?"),
         a: L(
-          `Minimum to podłączenie (${acHookupPricePln()} zł) plus 100 g czynnika (${acR134aPer100gPln()} zł) — od ${acRechargeFromPln()} zł. Większość aut wymaga więcej niż 100 g.`,
-          `Минимум: подключение (${acHookupPricePln()} zł) + 100 г фреона (${acR134aPer100gPln()} zł) — от ${acRechargeFromPln()} zł. Большинству авто нужно больше 100 г.`
+          `Minimum to podłączenie od ${acHookupPricePln()} zł plus 100 g czynnika (${acR134aPer100gPln()} zł) — od ${acRechargeFromPln()} zł. Większość aut wymaga więcej niż 100 g.`,
+          `Минимум: подключение от ${acHookupPricePln()} zł + 100 г фреона (${acR134aPer100gPln()} zł) — от ${acRechargeFromPln()} zł. Большинству авто нужно больше 100 г.`
         ),
       },
       {
@@ -188,7 +188,7 @@ export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
     ],
     price: {
       fromZl: acRechargeFromPln(),
-      priceFrom: false,
+      priceFrom: true,
       materialsExtra: true,
       includes: [
         L("Podłączenie układu i próżniowanie", "Подключение и вакуумирование"),
@@ -200,7 +200,7 @@ export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
         {
           label: L("Podłączenie układu klimatyzacji", "Подключение системы кондиционера"),
           priceZl: acHookupPricePln(),
-          priceFrom: false,
+          priceFrom: true,
         },
         {
           label: L("Napełnianie R134a (za 100 g)", "Заправка R134a (за 100 г)"),

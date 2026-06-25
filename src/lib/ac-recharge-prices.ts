@@ -11,7 +11,7 @@ export function acHookupPricePln(): number {
 }
 
 export function acR134aPer100gPln(): number {
-  return getPriceItem(AC_R134A_PRICE_ID)?.basePrice ?? 60;
+  return getPriceItem(AC_R134A_PRICE_ID)?.basePrice ?? 65;
 }
 
 /** Minimum estimate: connection + 100 g R134a */

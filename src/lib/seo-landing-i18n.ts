@@ -29,11 +29,11 @@ const SEO_RU: Partial<Record<string, SeoText>> = {
   },
   klimatyzacja: {
     title: "Автокондиционер",
-    line1: "Подключение 50 zł · фреон 60 zł/100 г",
+    line1: "Подключение от 50 zł · фреон 65 zł/100 г",
     line2: "Вакуум, герметичность, антигрибок",
-    metaTitle: "Заправка кондиционера Варшава — подключение 50 zł, R134a 60 zł/100 г",
+    metaTitle: "Заправка кондиционера Варшава — подключение от 50 zł, R134a 65 zł/100 г",
     metaDescription:
-      "Заправка кондиционера в BESS MOTORS Варшава: подключение 50 zł, фреон R134a 60 zł/100 г, вакуум, проверка герметичности, антигрибок. Онлайн-запись.",
+      "Заправка кондиционера в BESS MOTORS Варшава: подключение от 50 zł, фреон R134a 65 zł/100 г, вакуум, проверка герметичности, антигрибок. Онлайн-запись.",
   },
   zawieszenie: {
     title: "Ремонт подвески",
@@ -75,11 +75,11 @@ const SEO_EN: Partial<Record<string, SeoText>> = {
   },
   klimatyzacja: {
     title: "Car A/C Service",
-    line1: "Connection 50 PLN · refrigerant 60 PLN/100g",
+    line1: "Connection from 50 PLN · refrigerant 65 PLN/100g",
     line2: "Vacuum, leak check, cleaning — summer season",
-    metaTitle: "Car A/C recharge Warsaw — connection 50 PLN, R134a 60 PLN/100g",
+    metaTitle: "Car A/C recharge Warsaw — connection from 50 PLN, R134a 65 PLN/100g",
     metaDescription:
-      "A/C recharge at BESS MOTORS Warsaw: system hook-up 50 PLN, R134a 60 PLN/100g, vacuum, leak check, cleaning. Book online.",
+      "A/C recharge at BESS MOTORS Warsaw: hook-up from 50 PLN, R134a 65 PLN/100g, vacuum, leak check, cleaning. Book online.",
   },
   zawieszenie: {
     title: "Suspension Repair",
