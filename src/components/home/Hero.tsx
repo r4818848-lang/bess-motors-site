@@ -9,6 +9,7 @@ import { siteConfig } from "@/lib/site";
 import { PhoneLink } from "@/components/analytics/PhoneLink";
 import { BookingLink } from "@/components/analytics/BookingLink";
 import { AcBookCtaButton } from "@/components/booking/AcBookingChoiceFlow";
+import { AcPromoPriceBadges } from "@/components/home/AcPromoPriceBadges";
 import { Logo } from "@/components/brand/Logo";
 
 export function Hero() {
@@ -90,12 +91,7 @@ export function Hero() {
                   <Snowflake size={11} />
                   {t.seasonalAc.badge}
                 </span>
-                <span className="text-xs sm:text-sm font-bold text-white bg-black/30 rounded-lg px-2.5 py-1">
-                  {t.seasonalAc.priceHookup}
-                </span>
-                <span className="text-xs sm:text-sm font-bold text-white bg-black/30 rounded-lg px-2.5 py-1">
-                  {t.seasonalAc.priceGas}
-                </span>
+                <AcPromoPriceBadges variant="hero" className="mb-0" />
               </div>
               <p className="font-display text-lg sm:text-xl font-bold uppercase text-white leading-tight">
                 {t.seasonalAc.title}

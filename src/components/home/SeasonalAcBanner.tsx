@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Snowflake, ChevronRight, Wind } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { AcBookCtaButton } from "@/components/booking/AcBookingChoiceFlow";
+import { AcPromoPriceBadges } from "@/components/home/AcPromoPriceBadges";
 import { PhoneLink } from "@/components/analytics/PhoneLink";
 
 export function SeasonalAcBanner() {
@@ -27,14 +28,7 @@ export function SeasonalAcBanner() {
             <h2 id="seasonal-ac-heading" className="font-display text-2xl sm:text-3xl font-bold uppercase text-glow leading-tight">
               {s.title}
             </h2>
-            <div className="mt-2 flex flex-wrap gap-2">
-              <span className="inline-flex rounded-lg border border-bm-red/50 bg-bm-red/15 px-3 py-1 text-sm font-bold text-bm-red">
-                {s.priceHookup}
-              </span>
-              <span className="inline-flex rounded-lg border border-bm-red/50 bg-bm-red/15 px-3 py-1 text-sm font-bold text-bm-red">
-                {s.priceGas}
-              </span>
-            </div>
+            <AcPromoPriceBadges variant="banner" className="mt-2" />
             <p className="mt-3 text-sm sm:text-base text-bm-silver/90 max-w-2xl leading-relaxed">
               {s.subtitle}
             </p>
