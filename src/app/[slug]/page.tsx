@@ -8,6 +8,7 @@ import {
 } from "@/lib/seo-landing-pages";
 import { buildPageMetadata } from "@/lib/seo-metadata";
 import { autoRepairServiceSchema } from "@/lib/seo-structured-data";
+import { acPromoSeoKeywords } from "@/lib/ac-recharge-promo-seo";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -24,15 +25,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const acKeywords =
     slug === "klimatyzacja"
       ? [
+          ...acPromoSeoKeywords,
           "nabijanie klimatyzacji Warszawa",
           "serwis klimatyzacji samochodowej",
           "klimatyzacja samochodowa Włochy",
-          "podłączenie klimatyzacji 80 zł",
-          "freon R134a 60 zł",
           "R134a Warszawa",
           "R1234yf Warszawa",
-          "заправка кондиционера Варшава",
-          "заправка автокондиционера",
           "odgrzybianie klimatyzacji",
           "próżniowanie klimatyzacji",
         ]

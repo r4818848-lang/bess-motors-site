@@ -1,6 +1,10 @@
 import type { ServiceId } from "@/lib/services-catalog";
 import { getPriceItem } from "@/lib/price-list";
 import { acHookupPricePln, acR134aPer100gPln, acRechargeFromPln } from "@/lib/ac-recharge-prices";
+import {
+  AC_HOOKUP_PROMO_OLD_PLN,
+  AC_R134A_PROMO_OLD_PLN,
+} from "@/lib/ac-recharge-promo-seo";
 import type {
   LocalizedText,
   ServiceLandingEducationItem,
@@ -149,6 +153,13 @@ export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
     galleryTags: ["klim", "ac"],
     education: [
       {
+        title: L("Promocja letnia na nabijanie klimatyzacji", "Летняя акция на заправку кондиционера"),
+        body: L(
+          `Podłączenie układu ${acHookupPricePln()} zł zamiast ${AC_HOOKUP_PROMO_OLD_PLN} zł oraz freon R134a ${acR134aPer100gPln()} zł/100 g zamiast ${AC_R134A_PROMO_OLD_PLN} zł — pełna zaprawa od ${acRechargeFromPln()} zł. Oferta sezonowa w BESS MOTORS na Alei Krakowskiej.`,
+          `Подключение ${acHookupPricePln()} zł вместо ${AC_HOOKUP_PROMO_OLD_PLN} zł и фреон R134a ${acR134aPer100gPln()} zł/100 г вместо ${AC_R134A_PROMO_OLD_PLN} zł — полная заправка от ${acRechargeFromPln()} zł. Сезонная акция в BESS MOTORS на Aleja Krakowska.`
+        ),
+      },
+      {
         title: L("Sezon letni — czas na serwis klimatyzacji", "Летний сезон — пора обслужить кондиционер"),
         body: L(
           "Nawet gdy klima jeszcze chłodzi, czynnik naturalnie ubywa. Przed upałami warto zrobić próżnię, kontrolę szczelności i uzupełnienie R134a lub R1234yf — mniejsze obciążenie sprężarki i komfort w aucie.",
@@ -164,6 +175,13 @@ export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
       },
     ],
     faqExtra: [
+      {
+        q: L("Czy jest promocja na nabijanie klimatyzacji?", "Есть ли скидка на заправку кондиционера?"),
+        a: L(
+          `Tak — promocja sezonowa: podłączenie ${acHookupPricePln()} zł zamiast ${AC_HOOKUP_PROMO_OLD_PLN} zł, freon R134a ${acR134aPer100gPln()} zł/100 g zamiast ${AC_R134A_PROMO_OLD_PLN} zł. Minimum od ${acRechargeFromPln()} zł. Umów wizytę online lub zadzwoń +48 791 257 229.`,
+          `Да — сезонная акция: подключение ${acHookupPricePln()} zł вместо ${AC_HOOKUP_PROMO_OLD_PLN} zł, фреон R134a ${acR134aPer100gPln()} zł/100 г вместо ${AC_R134A_PROMO_OLD_PLN} zł. Минимум от ${acRechargeFromPln()} zł. Онлайн-запись или телефон +48 791 257 229.`
+        ),
+      },
       {
         q: L("Ile kosztuje nabijanie klimatyzacji?", "Сколько стоит заправка кондиционера?"),
         a: L(
@@ -190,6 +208,10 @@ export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
       fromZl: acRechargeFromPln(),
       priceFrom: true,
       materialsExtra: true,
+      note: {
+        pl: `Promocja sezonowa: podłączenie ${acHookupPricePln()} zł (było ${AC_HOOKUP_PROMO_OLD_PLN} zł), freon ${acR134aPer100gPln()} zł/100 g (było ${AC_R134A_PROMO_OLD_PLN} zł).`,
+        ru: `Сезонная акция: подключение ${acHookupPricePln()} zł (было ${AC_HOOKUP_PROMO_OLD_PLN} zł), фреон ${acR134aPer100gPln()} zł/100 г (было ${AC_R134A_PROMO_OLD_PLN} zł).`,
+      },
       includes: [
         L("Podłączenie układu i próżniowanie", "Подключение и вакуумирование"),
         L("Napełnianie R134a lub R1234yf", "Заправка R134a или R1234yf"),
@@ -200,11 +222,13 @@ export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
         {
           label: L("Podłączenie układu klimatyzacji", "Подключение системы кондиционера"),
           priceZl: acHookupPricePln(),
+          compareAtZl: AC_HOOKUP_PROMO_OLD_PLN,
           priceFrom: false,
         },
         {
           label: L("Napełnianie R134a (za 100 g)", "Заправка R134a (за 100 г)"),
           priceZl: acR134aPer100gPln(),
+          compareAtZl: AC_R134A_PROMO_OLD_PLN,
           priceFrom: false,
         },
         {

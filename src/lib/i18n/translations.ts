@@ -27,7 +27,7 @@ const pl = {
     slogan1: "TWÓJ SAMOCHÓD",
     slogan2: "W DOBRYCH RĘKACH!",
     subtitle: "Serwis samochodowy · Warszawa",
-    desc: "Szybko, profesjonalnie, najlepsze ceny — sezon letni: nabijanie klimatyzacji (podłączenie 80 zł, R134a 60 zł/100 g), wymiana opon, olej, chip tuning i pełna mechanika.",
+    desc: "Szybko, profesjonalnie, najlepsze ceny — PROMOCJA na nabijanie klimatyzacji: podłączenie 80 zł zamiast 150 zł, freon 60 zł/100 g zamiast 80 zł. Opony, olej, chip tuning i pełna mechanika.",
     ctaBook: "Umów się online",
     ctaCall: "Zadzwoń i umów się!",
     ctaServices: "Nasze usługi",
@@ -255,7 +255,7 @@ const pl = {
     priceGasNew: "60 zł/100 g",
     priceFrom: "podłączenie 80 zł · freon 60 zł/100 g",
     subtitle:
-      "Lato już trwa — serwis klimy w BESS MOTORS: podłączenie 80 zł, freon R134a 60 zł/100 g, próżnia i kontrola szczelności na Alei Krakowskiej.",
+      "PROMOCJA sezonowa — podłączenie 80 zł zamiast 150 zł, freon R134a 60 zł/100 g zamiast 80 zł. Próżnia i kontrola szczelności w BESS MOTORS na Alei Krakowskiej.",
     bullets: [
       "Nabijanie R134a i R1234yf",
       "Próżnia i kontrola szczelności",
@@ -1861,7 +1861,7 @@ const ru: TranslationKeys = {
     slogan1: "ВАШ АВТОМОБИЛЬ",
     slogan2: "В НАДЁЖНЫХ РУКАХ!",
     subtitle: "Автосервис · Варшава",
-    desc: "Быстро, профессионально, лучшие цены — летний сезон: заправка кондиционера (подключение 80 zł, фреон 60 zł/100 г), шиномонтаж, замена масла, чип-тюнинг и полный ремонт.",
+    desc: "Быстро, профессионально, лучшие цены — АКЦИЯ на заправку кондиционера: подключение 80 zł вместо 150 zł, фреон 60 zł/100 г вместо 80 zł. Шиномонтаж, масло, чип-тюнинг и полный ремонт.",
     ctaBook: "Онлайн запись",
     ctaCall: "Позвоните и запишитесь!",
     ctaServices: "Наши услуги",
@@ -2088,7 +2088,7 @@ const ru: TranslationKeys = {
     priceGasNew: "60 zł/100 г",
     priceFrom: "подключение 80 zł · фреон 60 zł/100 г",
     subtitle:
-      "Лето уже началось — сервис кондиционера в BESS MOTORS: подключение 80 zł, фреон R134a 60 zł/100 г, вакуум и проверка герметичности на Aleja Krakowska.",
+      "Сезонная АКЦИЯ — подключение 80 zł вместо 150 zł, фреон R134a 60 zł/100 г вместо 80 zł. Вакуум и проверка герметичности в BESS MOTORS на Aleja Krakowska.",
     bullets: [
       "Заправка R134a и R1234yf",
       "Вакуум и проверка герметичности",
@@ -4122,7 +4122,7 @@ const en: TranslationKeys = {
     priceGasNew: "60 PLN/100g",
     priceFrom: "connection 80 PLN · refrigerant 60 PLN/100g",
     subtitle:
-      "Summer is here — A/C service at BESS MOTORS: hook-up 80 PLN, R134a refrigerant 60 PLN/100g, vacuum and leak check on Aleja Krakowska.",
+      "Summer PROMO — hook-up 80 PLN instead of 150 PLN, R134a 60 PLN/100g instead of 80 PLN. Vacuum and leak check at BESS MOTORS on Aleja Krakowska.",
     bullets: [
       "R134a and R1234yf refill",
       "Vacuum and leak check",

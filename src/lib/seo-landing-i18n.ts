@@ -1,6 +1,14 @@
 import type { Locale } from "@/lib/i18n/types";
 import { contentLocale } from "@/lib/i18n/locale-utils";
 import type { SeoLandingPage } from "@/lib/seo-landing-pages";
+import {
+  acPromoHeroLineEn,
+  acPromoHeroLineRu,
+  acPromoMetaDescriptionEn,
+  acPromoMetaDescriptionRu,
+  acPromoMetaTitleEn,
+  acPromoMetaTitleRu,
+} from "@/lib/ac-recharge-promo-seo";
 
 type SeoText = Pick<SeoLandingPage, "title" | "line1" | "line2" | "metaTitle" | "metaDescription">;
 
@@ -29,11 +37,10 @@ const SEO_RU: Partial<Record<string, SeoText>> = {
   },
   klimatyzacja: {
     title: "Автокондиционер",
-    line1: "Подключение 80 zł · фреон 60 zł/100 г",
-    line2: "Вакуум, герметичность, антигрибок",
-    metaTitle: "Заправка кондиционера Варшава — подключение 80 zł, R134a 60 zł/100 г",
-    metaDescription:
-      "Заправка кондиционера в BESS MOTORS Варшава: подключение 80 zł, фреон R134a 60 zł/100 г, вакуум, проверка герметичности, антигрибок. Онлайн-запись.",
+    line1: acPromoHeroLineRu(),
+    line2: "Вакуум, герметичность — сезонная акция",
+    metaTitle: acPromoMetaTitleRu(),
+    metaDescription: acPromoMetaDescriptionRu(),
   },
   zawieszenie: {
     title: "Ремонт подвески",
@@ -75,11 +82,10 @@ const SEO_EN: Partial<Record<string, SeoText>> = {
   },
   klimatyzacja: {
     title: "Car A/C Service",
-    line1: "Connection 80 PLN · refrigerant 60 PLN/100g",
-    line2: "Vacuum, leak check, cleaning — summer season",
-    metaTitle: "Car A/C recharge Warsaw — connection 80 PLN, R134a 60 PLN/100g",
-    metaDescription:
-      "A/C recharge at BESS MOTORS Warsaw: hook-up 80 PLN, R134a 60 PLN/100g, vacuum, leak check, cleaning. Book online.",
+    line1: acPromoHeroLineEn(),
+    line2: "Vacuum, leak check — summer promo",
+    metaTitle: acPromoMetaTitleEn(),
+    metaDescription: acPromoMetaDescriptionEn(),
   },
   zawieszenie: {
     title: "Suspension Repair",

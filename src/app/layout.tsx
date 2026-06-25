@@ -26,6 +26,7 @@ import {
   googleSiteVerification,
 } from "@/lib/seo";
 import { buildPageMetadata, DEFAULT_OG_IMAGE } from "@/lib/seo-metadata";
+import { acPromoMetaDescriptionPl } from "@/lib/ac-recharge-promo-seo";
 
 
 
@@ -40,8 +41,7 @@ const siteUrl = getSiteUrl();
 const homeSeo = buildPageMetadata({
   title: "BESS MOTORS — Serwis samochodowy Warszawa",
   absoluteTitle: true,
-  description:
-    "BESS MOTORS Warszawa Włochy — nabijanie klimatyzacji: podłączenie 80 zł, freon R134a 60 zł/100 g, próżnia, odgrzybianie. Wulkanizacja, olej, hamulce, diagnostyka. Aleja Krakowska 48/52. Rezerwacja online 24/7.",
+  description: acPromoMetaDescriptionPl(),
   path: "/",
   keywords: defaultSeoKeywords,
 });
@@ -55,8 +55,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     ...homeSeo.openGraph,
-    description:
-      "Szybko, profesjonalnie, najlepsze ceny — serwis i tuning w Warszawie. Umów wizytę online.",
+    description: acPromoMetaDescriptionPl(),
     images: [
       {
         url: DEFAULT_OG_IMAGE,

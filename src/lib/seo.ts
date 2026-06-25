@@ -1,4 +1,5 @@
 import { localSeoKeywords } from "@/lib/seo-local";
+import { acPromoSeoKeywords } from "@/lib/ac-recharge-promo-seo";
 
 /** Canonical site URL for sitemap, robots, Open Graph (set in Vercel: NEXT_PUBLIC_SITE_URL) */
 /** Must match the URL verified in Google Search Console */
@@ -35,6 +36,7 @@ export const defaultSeoKeywords = [
   "serwis klimatyzacji R134a",
   "serwis klimatyzacji R1234yf",
   "klimatyzacja Włochy Warszawa",
+  ...acPromoSeoKeywords,
   "wymiana oleju Warszawa",
   "chip tuning Warszawa",
   "diagnostyka komputerowa",

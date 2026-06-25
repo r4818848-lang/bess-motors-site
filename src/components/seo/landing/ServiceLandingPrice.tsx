@@ -51,6 +51,11 @@ export function ServiceLandingPrice({
                   <tr key={row.label.pl} className="border-t border-bm-border/30">
                     <td className="p-2">{pickLocalized(row.label, locale)}</td>
                     <td className="p-2 text-right text-bm-red font-semibold whitespace-nowrap">
+                      {row.compareAtZl != null ? (
+                        <span className="line-through text-bm-muted font-normal text-xs mr-2">
+                          {row.compareAtZl} zł
+                        </span>
+                      ) : null}
                       {row.priceFrom ? `${sl.from} ` : ""}
                       {row.priceZl} zł
                     </td>

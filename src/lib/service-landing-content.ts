@@ -19,6 +19,8 @@ export type ServiceLandingPriceRow = {
   label: LocalizedText;
   priceZl: number;
   priceFrom?: boolean;
+  /** Promo “was” price — shown crossed out in price table */
+  compareAtZl?: number;
 };
 
 export type ServiceLandingPrice = {

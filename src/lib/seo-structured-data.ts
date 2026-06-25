@@ -5,6 +5,16 @@ import { siteConfig } from "@/lib/site";
 import { getServiceFaqForSchema } from "@/lib/seo-service-faq";
 import { resolveLandingContentServiceId } from "@/lib/seo-landing-slug-profiles";
 import { schemaAreaServed } from "@/lib/seo-local";
+import {
+  acHookupPricePln,
+  acR134aPer100gPln,
+  acRechargeFromPln,
+} from "@/lib/ac-recharge-prices";
+import {
+  AC_HOOKUP_PROMO_OLD_PLN,
+  AC_R134A_PROMO_OLD_PLN,
+  acPromoMetaDescriptionPl,
+} from "@/lib/ac-recharge-promo-seo";
 
 export function faqPageSchema(items: { q: string; a: string }[]) {
   if (!items.length) return null;
@@ -67,7 +77,7 @@ export function blogPostingSchema(post: BlogPost) {
 export function servicesItemListSchema() {
   const siteUrl = getSiteUrl();
   const items = [
-    { name: "Klimatyzacja — nabijanie R134a od 140 zł (podłączenie + 100 g)", path: "/klimatyzacja" },
+    { name: "PROMOCJA — nabijanie klimatyzacji R134a od 140 zł", path: "/klimatyzacja" },
     { name: "Wymiana oleju", path: "/wymiana-oleju" },
     { name: "Wulkanizacja", path: "/opony" },
     { name: "Serwis hamulców", path: "/hamulce" },
@@ -98,17 +108,31 @@ export function autoRepairServiceSchema(page: SeoLandingPage) {
   const url = `${siteUrl}/${page.slug}`;
   const contentId = resolveLandingContentServiceId(page.slug, page.serviceId);
   const faq = getServiceFaqForSchema(contentId, page.slug);
-  const graph: Record<string, unknown>[] = [
-    {
-      "@type": "Service",
-      "@id": `${url}#service`,
-      name: page.metaTitle,
-      description: page.metaDescription,
-      provider: { "@id": `${siteUrl}/#business` },
-      areaServed: schemaAreaServed(),
-      serviceArea: schemaAreaServed(),
+  const isAcPromo = page.slug === "klimatyzacja";
+  const serviceNode: Record<string, unknown> = {
+    "@type": "Service",
+    "@id": `${url}#service`,
+    name: page.metaTitle,
+    description: isAcPromo ? acPromoMetaDescriptionPl() : page.metaDescription,
+    provider: { "@id": `${siteUrl}/#business` },
+    areaServed: schemaAreaServed(),
+    serviceArea: schemaAreaServed(),
+    url,
+  };
+  if (isAcPromo) {
+    serviceNode.offers = {
+      "@type": "Offer",
+      name: "Promocja nabijania klimatyzacji R134a",
+      description: `Podłączenie ${acHookupPricePln()} zł (było ${AC_HOOKUP_PROMO_OLD_PLN} zł), freon ${acR134aPer100gPln()} zł/100 g (było ${AC_R134A_PROMO_OLD_PLN} zł)`,
+      price: acRechargeFromPln(),
+      priceCurrency: "PLN",
+      availability: "https://schema.org/InStock",
       url,
-    },
+      priceValidUntil: "2026-09-30",
+    };
+  }
+  const graph: Record<string, unknown>[] = [
+    serviceNode,
     breadcrumbSchema([
       { name: "Strona główna", path: "/" },
       { name: "Usługi", path: "/services" },
