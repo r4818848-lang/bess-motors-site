@@ -799,13 +799,22 @@ export const priceListItems: PriceListItem[] = [
 
   // —— Klimatyzacja ——
   {
+    id: "ac_hookup",
+    categoryId: "ac",
+    namePl: "Podłączenie układu klimatyzacji (próżnia)",
+    nameRu: "Подключение системы кондиционера (вакуум)",
+    basePrice: 50,
+    unit: "fixed",
+    priceFrom: false,
+  },
+  {
     id: "ac_r134a",
     categoryId: "ac",
     namePl: "Napełnianie klimatyzacji R134a",
-    nameRu: "Заправка кондиционера R134a",
-    basePrice: 80,
+    nameRu: "Заправка кондиционера R134a (фреон)",
+    basePrice: 60,
     unit: "per_100g",
-    priceFrom: true,
+    priceFrom: false,
     minQty: 1,
     maxQty: 30,
   },

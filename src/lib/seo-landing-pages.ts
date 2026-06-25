@@ -61,11 +61,11 @@ export const seoLandingPages: SeoLandingPage[] = [
   {
     slug: "klimatyzacja",
     title: "Klimatyzacja Auto",
-    line1: "Nabijanie R134a i R1234yf — sezon letni",
-    line2: "Próżnia, szczelność, odgrzybianie",
-    metaTitle: "Nabijanie klimatyzacji Warszawa — R134a, R1234yf",
+    line1: "Podłączenie 50 zł · R134a 60 zł/100 g",
+    line2: "Próżnia, szczelność, odgrzybianie — sezon letni",
+    metaTitle: "Nabijanie klimatyzacji Warszawa — podłączenie 50 zł, R134a 60 zł/100g",
     metaDescription:
-      "Sezon letni — serwis klimatyzacji w BESS MOTORS Warszawa Włochy. Nabijanie R134a od 80 zł/100g, R1234yf, próżnia, kontrola szczelności, odgrzybianie. Zapis online.",
+      "Nabijanie klimatyzacji w BESS MOTORS Warszawa Włochy: podłączenie układu 50 zł, freon R134a 60 zł/100 g, R1234yf, próżnia, kontrola szczelności, odgrzybianie. Zapis online i telefon.",
     serviceId: "acRefill",
     icon: "Wind",
   },
@@ -301,10 +301,11 @@ export const seoLandingPages: SeoLandingPage[] = [
   {
     slug: "serwis-klimatyzacji",
     title: "Serwis klimatyzacji",
-    line1: "Słaba chłodziwość lub zapach?",
-    line2: "Napełnianie i odgrzybianie",
-    metaTitle: "Serwis klimatyzacji samochodowej Warszawa",
-    metaDescription: "Serwis klimatyzacji — diagnostyka, napełnianie, odgrzybianie. BESS MOTORS.",
+    line1: "Podłączenie 50 zł · freon 60 zł/100 g",
+    line2: "Napełnianie R134a i odgrzybianie",
+    metaTitle: "Serwis klimatyzacji samochodowej Warszawa — od 110 zł",
+    metaDescription:
+      "Serwis klimatyzacji BESS MOTORS: podłączenie 50 zł, R134a 60 zł/100 g, diagnostyka, odgrzybianie. Warszawa Włochy, Aleja Krakowska.",
     serviceId: "acRefill",
     icon: "Settings",
   },

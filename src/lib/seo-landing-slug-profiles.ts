@@ -1,5 +1,6 @@
 import type { ServiceId } from "@/lib/services-catalog";
 import { getPriceItem } from "@/lib/price-list";
+import { acHookupPricePln, acR134aPer100gPln, acRechargeFromPln } from "@/lib/ac-recharge-prices";
 import type {
   LocalizedText,
   ServiceLandingEducationItem,
@@ -166,8 +167,15 @@ export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
       {
         q: L("Ile kosztuje nabijanie klimatyzacji?", "Сколько стоит заправка кондиционера?"),
         a: L(
-          "R134a od 80 zł za 100 g, R1234yf od 100 zł/100 g — dokładna ilość zależy od modelu. Diagnostyka i próżnia według cennika na stronie.",
-          "R134a от 80 zł за 100 г, R1234yf от 100 zł/100 г — объём зависит от модели. Диагностика и вакуум по прайсу на сайте."
+          `Podłączenie układu ${acHookupPricePln()} zł, freon R134a ${acR134aPer100gPln()} zł/100 g — dokładna ilość czynnika zależy od modelu. R1234yf według cennika.`,
+          `Подключение ${acHookupPricePln()} zł, фреон R134a ${acR134aPer100gPln()} zł/100 г — объём зависит от модели. R1234yf по прайсу.`
+        ),
+      },
+      {
+        q: L("Od ile zł kosztuje pełna zaprawa klimy?", "От какой суммы заправка кондиционера?"),
+        a: L(
+          `Minimum to podłączenie (${acHookupPricePln()} zł) plus 100 g czynnika (${acR134aPer100gPln()} zł) — od ${acRechargeFromPln()} zł. Większość aut wymaga więcej niż 100 g.`,
+          `Минимум: подключение (${acHookupPricePln()} zł) + 100 г фреона (${acR134aPer100gPln()} zł) — от ${acRechargeFromPln()} zł. Большинству авто нужно больше 100 г.`
         ),
       },
       {
@@ -179,34 +187,39 @@ export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
       },
     ],
     price: {
-      fromZl: 80,
-      priceFrom: true,
+      fromZl: acRechargeFromPln(),
+      priceFrom: false,
       materialsExtra: true,
       includes: [
-        L("Diagnostyka i próżniowanie układu", "Диагностика и вакуумирование"),
+        L("Podłączenie układu i próżniowanie", "Подключение и вакуумирование"),
         L("Napełnianie R134a lub R1234yf", "Заправка R134a или R1234yf"),
         L("Kontrola szczelności i ciśnienia", "Проверка герметичности и давления"),
         L("Odgrzybianie / ozonowanie (opcjonalnie)", "Антигрибок / озонирование (опционально)"),
       ],
       priceTable: [
         {
+          label: L("Podłączenie układu klimatyzacji", "Подключение системы кондиционера"),
+          priceZl: acHookupPricePln(),
+          priceFrom: false,
+        },
+        {
           label: L("Napełnianie R134a (za 100 g)", "Заправка R134a (за 100 г)"),
-          priceZl: 80,
-          priceFrom: true,
+          priceZl: acR134aPer100gPln(),
+          priceFrom: false,
         },
         {
           label: L("Napełnianie R1234yf (za 100 g)", "Заправка R1234yf (за 100 г)"),
-          priceZl: 100,
+          priceZl: getPriceItem("ac_r1234yf")?.basePrice ?? 100,
           priceFrom: true,
         },
         {
           label: L("Diagnostyka klimatyzacji", "Диагностика кондиционера"),
-          priceZl: 150,
+          priceZl: getPriceItem("ac_diag")?.basePrice ?? 150,
           priceFrom: true,
         },
         {
           label: L("Odgrzybianie klimatyzacji", "Антигрибок кондиционера"),
-          priceZl: 150,
+          priceZl: getPriceItem("ac_clean")?.basePrice ?? 150,
           priceFrom: true,
         },
       ],

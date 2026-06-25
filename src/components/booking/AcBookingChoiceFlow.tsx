@@ -7,9 +7,8 @@ import { useI18n } from "@/lib/i18n/context";
 import { PhoneLink } from "@/components/analytics/PhoneLink";
 import { PhoneOnlyBookingForm } from "@/components/booking/PhoneOnlyBookingForm";
 import { siteConfig } from "@/lib/site";
-import { buildCartLine, cartSubtotal, defaultQuantity } from "@/lib/booking-cart";
-import { getPriceItem } from "@/lib/price-list";
-import { itemLabel } from "@/lib/service-price-map";
+import { defaultAcRechargeCartLines } from "@/lib/ac-recharge-prices";
+import { cartSubtotal } from "@/lib/booking-cart";
 import { BookingStepBack } from "@/components/booking/BookingStepBack";
 
 type Phase = "choice" | "callback";
@@ -35,13 +34,9 @@ export function AcBookingChoiceFlow({
   const s = t.seasonalAc;
   const [phase, setPhase] = useState<Phase>("choice");
 
-  const baseItem = getPriceItem("ac_r134a");
-  const cartLine = baseItem
-    ? buildCartLine(baseItem, itemLabel(baseItem, locale), defaultQuantity(baseItem))
-    : null;
-  const serviceLabel =
-    t.serviceItems[serviceId] ?? s.title;
-  const estimatedTotal = cartLine ? cartSubtotal([cartLine]) : undefined;
+  const cartLines = defaultAcRechargeCartLines(locale);
+  const serviceLabel = t.serviceItems[serviceId] ?? s.title;
+  const estimatedTotal = cartLines.length ? cartSubtotal(cartLines) : undefined;
 
   return (
     <div className={className}>
@@ -104,7 +99,7 @@ export function AcBookingChoiceFlow({
             <PhoneOnlyBookingForm
               serviceId={serviceId}
               serviceLabel={serviceLabel}
-              cartLines={cartLine ? [cartLine] : []}
+              cartLines={cartLines}
               estimatedTotal={estimatedTotal}
               title={c.acCallbackTitle}
               subtitle={c.acCallbackSubtitle}

@@ -27,8 +27,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
           "nabijanie klimatyzacji Warszawa",
           "serwis klimatyzacji samochodowej",
           "klimatyzacja samochodowa Włochy",
+          "podłączenie klimatyzacji 50 zł",
+          "freon R134a 60 zł",
           "R134a Warszawa",
           "R1234yf Warszawa",
+          "заправка кондиционера Варшава",
+          "заправка автокондиционера",
           "odgrzybianie klimatyzacji",
           "próżniowanie klimatyzacji",
         ]

@@ -27,7 +27,7 @@ const pl = {
     slogan1: "TWÓJ SAMOCHÓD",
     slogan2: "W DOBRYCH RĘKACH!",
     subtitle: "Serwis samochodowy · Warszawa",
-    desc: "Szybko, profesjonalnie, najlepsze ceny — sezon letni: serwis klimatyzacji R134a/R1234yf, wymiana opon, olej, chip tuning i pełna mechanika.",
+    desc: "Szybko, profesjonalnie, najlepsze ceny — sezon letni: nabijanie klimatyzacji (podłączenie 50 zł, R134a 60 zł/100 g), wymiana opon, olej, chip tuning i pełna mechanika.",
     ctaBook: "Umów się online",
     ctaCall: "Zadzwoń i umów się!",
     ctaServices: "Nasze usługi",
@@ -245,9 +245,11 @@ const pl = {
   seasonalAc: {
     badge: "Sezon letni 2026",
     title: "Zapraw klimatyzację przed upałami",
-    priceFrom: "od 80 zł/100 g",
+    priceHookup: "podłączenie 50 zł",
+    priceGas: "czynnik 60 zł/100 g",
+    priceFrom: "podłączenie 50 zł · czynnik 60 zł/100 g",
     subtitle:
-      "Lato już trwa — to najlepszy moment na serwis klimy. Nabijanie R134a od 80 zł/100 g, R1234yf, próżnia i kontrola szczelności w BESS MOTORS na Alei Krakowskiej.",
+      "Lato już trwa — serwis klimy w BESS MOTORS: podłączenie układu 50 zł, freon R134a 60 zł/100 g, próżnia i kontrola szczelności na Alei Krakowskiej.",
     bullets: [
       "Nabijanie R134a i R1234yf",
       "Próżnia i kontrola szczelności",
@@ -673,7 +675,7 @@ const pl = {
     submitAc: "Umów nabijanie klimy",
     flexibleTimeNote: "Klient wybrał tylko datę — dopasować godzinę przy potwierdzeniu",
     noSlotsOnDate: "Brak wolnych terminów w tym dniu — wybierz inny dzień.",
-    priceFromNote: "Cena orientacyjna (od) — R134a od 80 zł/100 g",
+    priceFromNote: "Orientacyjnie: podłączenie 50 zł + R134a 60 zł/100 g",
     fullFormLink: "Pełny formularz z wyborem usług i godziny →",
     acChoiceTitle: "Jak umówić nabijanie klimy?",
     acChoiceSubtitle: "Zadzwoń teraz lub zostaw numer — oddzwonimy i potwierdzimy termin.",
@@ -1853,7 +1855,7 @@ const ru: TranslationKeys = {
     slogan1: "ВАШ АВТОМОБИЛЬ",
     slogan2: "В НАДЁЖНЫХ РУКАХ!",
     subtitle: "Автосервис · Варшава",
-    desc: "Быстро, профессионально, лучшие цены — летний сезон: заправка кондиционера R134a/R1234yf, шиномонтаж, замена масла, чип-тюнинг и полный ремонт.",
+    desc: "Быстро, профессионально, лучшие цены — летний сезон: заправка кондиционера (подключение 50 zł, фреон 60 zł/100 г), шиномонтаж, замена масла, чип-тюнинг и полный ремонт.",
     ctaBook: "Онлайн запись",
     ctaCall: "Позвоните и запишитесь!",
     ctaServices: "Наши услуги",
@@ -2070,9 +2072,11 @@ const ru: TranslationKeys = {
   seasonalAc: {
     badge: "Летний сезон 2026",
     title: "Заправьте кондиционер перед жарой",
-    priceFrom: "от 80 zł/100 г",
+    priceHookup: "подключение 50 zł",
+    priceGas: "фреон 60 zł/100 г",
+    priceFrom: "подключение 50 zł · фреон 60 zł/100 г",
     subtitle:
-      "Лето уже началось — самое время обслужить кондиционер. Заправка R134a от 80 zł/100 г, R1234yf, вакуум и проверка герметичности в BESS MOTORS на Aleja Krakowska.",
+      "Лето уже началось — сервис кондиционера в BESS MOTORS: подключение 50 zł, фреон R134a 60 zł/100 г, вакуум и проверка герметичности на Aleja Krakowska.",
     bullets: [
       "Заправка R134a и R1234yf",
       "Вакуум и проверка герметичности",
@@ -2498,7 +2502,7 @@ const ru: TranslationKeys = {
     submitAc: "Записаться на заправку",
     flexibleTimeNote: "Клиент выбрал только дату — время согласовать при подтверждении",
     noSlotsOnDate: "Нет свободных слотов в этот день — выберите другую дату.",
-    priceFromNote: "Ориентировочная цена (от) — R134a от 80 zł/100 г",
+    priceFromNote: "Ориентировочно: подключение 50 zł + R134a 60 zł/100 г",
     fullFormLink: "Полная форма с выбором услуг и времени →",
     acChoiceTitle: "Как записаться на заправку?",
     acChoiceSubtitle: "Позвоните сейчас или оставьте номер — перезвоним и подтвердим время.",
@@ -3817,7 +3821,7 @@ const en: TranslationKeys = {
     submitAc: "Book A/C service",
     flexibleTimeNote: "Client picked date only — confirm time by phone",
     noSlotsOnDate: "No free slots on this day — pick another date.",
-    priceFromNote: "Indicative price (from) — R134a from 80 PLN/100g",
+    priceFromNote: "Indicative: connection 50 PLN + R134a 60 PLN/100g",
     fullFormLink: "Full form with service picker and time →",
     acChoiceTitle: "How would you like to book A/C recharge?",
     acChoiceSubtitle: "Call now or leave your number — we will call back to confirm.",
@@ -4096,9 +4100,11 @@ const en: TranslationKeys = {
   seasonalAc: {
     badge: "Summer 2026",
     title: "Recharge your A/C before the heat",
-    priceFrom: "from 80 PLN/100g",
+    priceHookup: "connection 50 PLN",
+    priceGas: "refrigerant 60 PLN/100g",
+    priceFrom: "connection 50 PLN · refrigerant 60 PLN/100g",
     subtitle:
-      "Summer is here — the best time for A/C service. R134a from 80 PLN/100g, R1234yf, vacuum and leak check at BESS MOTORS on Aleja Krakowska.",
+      "Summer is here — A/C service at BESS MOTORS: system hook-up 50 PLN, R134a refrigerant 60 PLN/100g, vacuum and leak check on Aleja Krakowska.",
     bullets: [
       "R134a and R1234yf refill",
       "Vacuum and leak check",

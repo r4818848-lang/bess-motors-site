@@ -287,6 +287,8 @@ Save and follow — more real workshop repairs and useful content coming soon.`,
     description: {
       pl: `Lato już się zaczęło — to najlepszy moment, żeby sprawdzić klimatyzację i uzupełnić czynnik przed upałami.
 
+💰 Podłączenie układu 50 zł · freon R134a 60 zł/100 g
+
 W BESS MOTORS wykonujemy:
 
 ✅ Nabijanie klimatyzacji R134a
@@ -305,6 +307,8 @@ Aleja Krakowska 48/52, Warszawa
 
 Zapisz się wcześniej i wita lato w komforcie! ❄️☀️`,
       ru: `Лето уже началось, а значит самое время проверить систему кондиционирования и заправить её перед жаркими днями.
+
+💰 Подключение 50 zł · фреон R134a 60 zł/100 г
 
 В BESS MOTORS выполняем:
 

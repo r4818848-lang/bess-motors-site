@@ -67,7 +67,7 @@ export function blogPostingSchema(post: BlogPost) {
 export function servicesItemListSchema() {
   const siteUrl = getSiteUrl();
   const items = [
-    { name: "Klimatyzacja samochodowa — nabijanie R134a", path: "/klimatyzacja" },
+    { name: "Klimatyzacja — nabijanie R134a od 110 zł (podłączenie + 100 g)", path: "/klimatyzacja" },
     { name: "Wymiana oleju", path: "/wymiana-oleju" },
     { name: "Wulkanizacja", path: "/opony" },
     { name: "Serwis hamulców", path: "/hamulce" },

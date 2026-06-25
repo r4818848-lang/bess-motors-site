@@ -91,7 +91,10 @@ export function Hero() {
                   {t.seasonalAc.badge}
                 </span>
                 <span className="text-xs sm:text-sm font-bold text-white bg-black/30 rounded-lg px-2.5 py-1">
-                  {t.seasonalAc.priceFrom}
+                  {t.seasonalAc.priceHookup}
+                </span>
+                <span className="text-xs sm:text-sm font-bold text-white bg-black/30 rounded-lg px-2.5 py-1">
+                  {t.seasonalAc.priceGas}
                 </span>
               </div>
               <p className="font-display text-lg sm:text-xl font-bold uppercase text-white leading-tight">

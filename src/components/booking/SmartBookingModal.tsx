@@ -41,6 +41,7 @@ import {
   isPhoneContactValid,
   resolveBookingClientName,
 } from "@/lib/booking-form-mode";
+import { AC_RECHARGE_PRICE_ITEM_IDS } from "@/lib/ac-recharge-prices";
 
 type Phase = "manager" | "flow" | "contact" | "acChoice";
 type SubmitMode = "call" | "booking";
@@ -153,6 +154,10 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
   );
 
   const initBaseService = useCallback(() => {
+    if (isAcBookingService(serviceId)) {
+      addPriceIdsToCart([...AC_RECHARGE_PRICE_ITEM_IDS]);
+      return;
+    }
     const baseId = serviceBasePriceId[serviceId];
     if (baseId) addPriceIdsToCart([baseId]);
   }, [serviceId, addPriceIdsToCart]);

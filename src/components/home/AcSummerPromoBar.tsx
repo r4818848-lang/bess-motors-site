@@ -25,7 +25,10 @@ export function AcSummerPromoBar() {
           {s.title}
         </span>
         <span className="text-xs sm:text-sm font-semibold text-white/95 bg-black/20 rounded-lg px-2.5 py-1">
-          {s.priceFrom}
+          {s.priceHookup}
+        </span>
+        <span className="text-xs sm:text-sm font-semibold text-white/95 bg-black/20 rounded-lg px-2.5 py-1">
+          {s.priceGas}
         </span>
         <div className="flex items-center gap-2 w-full sm:w-auto justify-center">
           <Link
