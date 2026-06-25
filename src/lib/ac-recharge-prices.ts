@@ -7,11 +7,11 @@ export const AC_HOOKUP_PRICE_ID = "ac_hookup";
 export const AC_R134A_PRICE_ID = "ac_r134a";
 
 export function acHookupPricePln(): number {
-  return getPriceItem(AC_HOOKUP_PRICE_ID)?.basePrice ?? 50;
+  return getPriceItem(AC_HOOKUP_PRICE_ID)?.basePrice ?? 80;
 }
 
 export function acR134aPer100gPln(): number {
-  return getPriceItem(AC_R134A_PRICE_ID)?.basePrice ?? 65;
+  return getPriceItem(AC_R134A_PRICE_ID)?.basePrice ?? 60;
 }
 
 /** Minimum estimate: connection + 100 g R134a */

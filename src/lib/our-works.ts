@@ -287,7 +287,7 @@ Save and follow — more real workshop repairs and useful content coming soon.`,
     description: {
       pl: `Lato już się zaczęło — to najlepszy moment, żeby sprawdzić klimatyzację i uzupełnić czynnik przed upałami.
 
-💰 Podłączenie od 50 zł · freon R134a 65 zł/100 g
+💰 Podłączenie 80 zł · freon R134a 60 zł/100 g
 
 W BESS MOTORS wykonujemy:
 
@@ -308,7 +308,7 @@ Aleja Krakowska 48/52, Warszawa
 Zapisz się wcześniej i wita lato w komforcie! ❄️☀️`,
       ru: `Лето уже началось, а значит самое время проверить систему кондиционирования и заправить её перед жаркими днями.
 
-💰 Подключение от 50 zł · фреон R134a 65 zł/100 г
+💰 Подключение 80 zł · фреон R134a 60 zł/100 г
 
 В BESS MOTORS выполняем:
 
