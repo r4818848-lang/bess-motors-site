@@ -168,6 +168,11 @@ export async function pullCrmFromCloud(options?: { force?: boolean }): Promise<P
     const partsChanged =
       [...remotePartIds].some((id) => !localPartIds.has(id)) ||
       [...localPartIds].some((id) => !remotePartIds.has(id));
+    const localInvoicePartIds = new Set((local.monthlyInvoiceParts ?? []).map((p) => p.id));
+    const remoteInvoicePartIds = new Set((remote.monthlyInvoiceParts ?? []).map((p) => p.id));
+    const invoicePartsChanged =
+      [...remoteInvoicePartIds].some((id) => !localInvoicePartIds.has(id)) ||
+      [...localInvoicePartIds].some((id) => !remoteInvoicePartIds.has(id));
     const localConsIds = new Set((local.monthlyConsumables ?? []).map((p) => p.id));
     const remoteConsIds = new Set((remote.monthlyConsumables ?? []).map((p) => p.id));
     const consumablesChanged =
@@ -180,6 +185,7 @@ export async function pullCrmFromCloud(options?: { force?: boolean }): Promise<P
       !timestampChanged &&
       !hasNewRemoteOrders &&
       !partsChanged &&
+      !invoicePartsChanged &&
       !consumablesChanged
     ) {
       await syncAppointmentsFromCloud();

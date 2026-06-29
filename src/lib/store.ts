@@ -737,6 +737,7 @@ export interface Database {
   vehicleHistory: VehicleHistoryEntry[];
   warehouse: WarehouseItem[];
   monthlyParts: MonthlyPartEntry[];
+  monthlyInvoiceParts: MonthlyPartEntry[];
   monthlyConsumables: MonthlyConsumableEntry[];
   expenses: ServiceExpense[];
   mechanics: MechanicProfile[];
@@ -783,6 +784,7 @@ const defaultDb: Database = {
     { id: "wh2", name: "Klocki hamulcowe Brembo", sku: "P85020", qty: 12, purchasePrice: 120, sellPrice: 220, supplier: "Auto Partner", qrCode: "BM-WH-002" },
   ],
   monthlyParts: [],
+  monthlyInvoiceParts: [],
   monthlyConsumables: [],
   currentUserId: null,
   notifications: [],
@@ -923,6 +925,7 @@ export function mergeStoredDb(parsed: Partial<Database>): Database {
     clientRatings: parsed.clientRatings ?? defaultDb.clientRatings,
     warehouse: (parsed.warehouse ?? defaultDb.warehouse).map(migrateWarehouseItem),
     monthlyParts: parsed.monthlyParts ?? defaultDb.monthlyParts,
+    monthlyInvoiceParts: parsed.monthlyInvoiceParts ?? defaultDb.monthlyInvoiceParts,
     monthlyConsumables: parsed.monthlyConsumables ?? defaultDb.monthlyConsumables,
   };
 }

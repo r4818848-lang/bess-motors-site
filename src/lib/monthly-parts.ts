@@ -19,7 +19,7 @@ export type MonthlyPartEntry = {
   sellPrice?: number;
   qty: number;
   createdAt: string;
-  source?: "telegram" | "crm";
+  source?: "telegram" | "telegram-invoice" | "crm";
 };
 
 export type NormalizedPartPrices = {
@@ -167,18 +167,26 @@ export function computeMonthlyPartsTotals(rows: MonthlyPartEntry[]): MonthlyPart
   };
 }
 
+export type FormatMonthlyPartsTableOpts = {
+  icon?: string;
+  listName?: string;
+};
+
 export function formatMonthlyPartsTable(
   items: MonthlyPartEntry[],
-  month: string
+  month: string,
+  opts?: FormatMonthlyPartsTableOpts
 ): string {
+  const icon = opts?.icon ?? "📦";
+  const listName = opts?.listName ?? "Запчасти";
   const rows = filterMonthlyParts(items, month);
   if (!rows.length) {
-    return `📦 <b>Запчасти — ${formatMonthLabel(month)}</b>\n\nПока пусто. Нажмите «Добавить».`;
+    return `${icon} <b>${listName} — ${formatMonthLabel(month)}</b>\n\nПока пусто. Нажмите «Добавить».`;
   }
 
   const totals = computeMonthlyPartsTotals(rows);
   const header =
-    `📦 <b>Запчасти — ${formatMonthLabel(month)}</b>\n` +
+    `${icon} <b>${listName} — ${formatMonthLabel(month)}</b>\n` +
     `Позиций: <b>${totals.count}</b>\n\n`;
 
   const buildBody = (rowLimit: number): string => {
@@ -241,6 +249,16 @@ export function formatMonthlyPartsList(
   return formatMonthlyPartsTable(items, month);
 }
 
+export function formatMonthlyInvoicePartsTable(
+  items: MonthlyPartEntry[],
+  month: string
+): string {
+  return formatMonthlyPartsTable(items, month, {
+    icon: "🧾",
+    listName: "На фактуру",
+  });
+}
+
 export function createMonthlyPartEntry(
   month: string,
   fields: {
@@ -249,12 +267,13 @@ export function createMonthlyPartEntry(
     purchaseBrutto: number;
     sellBrutto: number;
     qty?: number;
-  }
+  },
+  opts?: { idPrefix?: string; source?: MonthlyPartEntry["source"] }
 ): MonthlyPartEntry {
   const purchaseNetto = bruttoToNetto(fields.purchaseBrutto);
   const sellNetto = bruttoToNetto(fields.sellBrutto);
   return {
-    id: `mp-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+    id: `${opts?.idPrefix ?? "mp"}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
     month,
     name: fields.name.trim(),
     partNumber: fields.partNumber.trim(),
@@ -266,6 +285,22 @@ export function createMonthlyPartEntry(
     sellPrice: sellNetto,
     qty: fields.qty ?? 1,
     createdAt: new Date().toISOString(),
-    source: "telegram",
+    source: opts?.source ?? "telegram",
   };
+}
+
+export function createMonthlyInvoicePartEntry(
+  month: string,
+  fields: {
+    name: string;
+    partNumber: string;
+    purchaseBrutto: number;
+    sellBrutto: number;
+    qty?: number;
+  }
+): MonthlyPartEntry {
+  return createMonthlyPartEntry(month, fields, {
+    idPrefix: "mip",
+    source: "telegram-invoice",
+  });
 }

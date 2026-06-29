@@ -33,6 +33,7 @@ const cloud = {
       createdAt: "2026-06-01T10:00:00Z",
     },
   ],
+  monthlyInvoiceParts: [],
   settings: {},
 };
 
@@ -190,12 +191,16 @@ console.assert(
 
 const browserWipe = mergeCloudDocuments(
   cloud,
-  { ...cloud, monthlyParts: [], monthlyConsumables: [] },
+  { ...cloud, monthlyParts: [], monthlyInvoiceParts: [], monthlyConsumables: [] },
   { lastCloudSyncedAt: "2026-06-04T12:00:00Z" }
 );
 console.assert(
   browserWipe.monthlyParts?.some((p) => p.id === "mp-old"),
   "browser push with empty parts must not wipe cloud monthly parts"
+);
+console.assert(
+  browserWipe.monthlyInvoiceParts?.length === 0,
+  "browser push must preserve cloud monthly invoice parts list shape"
 );
 
 const firstPull = mergeCloudPullIntoLocal(pullLocal, pullRemote, {

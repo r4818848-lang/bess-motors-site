@@ -50,6 +50,11 @@ function mergeCloudRecords(local: Database, remote: Database): Database {
     monthlyParts: mergeById(local.monthlyParts ?? [], remote.monthlyParts ?? [], (e) =>
       normalizeIsoTimestamp(e.createdAt)
     ),
+    monthlyInvoiceParts: mergeById(
+      local.monthlyInvoiceParts ?? [],
+      remote.monthlyInvoiceParts ?? [],
+      (e) => normalizeIsoTimestamp(e.createdAt)
+    ),
     monthlyConsumables: mergeById(
       local.monthlyConsumables ?? [],
       remote.monthlyConsumables ?? [],
@@ -81,10 +86,14 @@ function applyTelegramManagedRemoteMembership(
   remote: Database
 ): Database {
   const partIds = ids(remote.monthlyParts ?? []);
+  const invoicePartIds = ids(remote.monthlyInvoiceParts ?? []);
   const consumableIds = ids(remote.monthlyConsumables ?? []);
   return {
     ...base,
     monthlyParts: (base.monthlyParts ?? []).filter((p) => partIds.has(p.id)),
+    monthlyInvoiceParts: (base.monthlyInvoiceParts ?? []).filter((p) =>
+      invoicePartIds.has(p.id)
+    ),
     monthlyConsumables: (base.monthlyConsumables ?? []).filter((p) =>
       consumableIds.has(p.id)
     ),
@@ -121,6 +130,7 @@ function applyPullRemoteDeletions(
   const aptIds = ids(remote.appointments);
   const callIds = ids(remote.callRequests ?? []);
   const partIds = ids(remote.monthlyParts ?? []);
+  const invoicePartIds = ids(remote.monthlyInvoiceParts ?? []);
   const consumableIds = ids(remote.monthlyConsumables ?? []);
   const expenseIds = ids(remote.expenses ?? []);
   const warehouseIds = ids(remote.warehouse ?? []);
@@ -160,6 +170,13 @@ function applyPullRemoteDeletions(
     ),
     monthlyParts: (base.monthlyParts ?? []).filter((p) => {
       if (partIds.has(p.id)) return true;
+      return (
+        mergeTimestampMs(normalizeIsoTimestamp(p.createdAt)) >
+        mergeTimestampMs(syncCutoff)
+      );
+    }),
+    monthlyInvoiceParts: (base.monthlyInvoiceParts ?? []).filter((p) => {
+      if (invoicePartIds.has(p.id)) return true;
       return (
         mergeTimestampMs(normalizeIsoTimestamp(p.createdAt)) >
         mergeTimestampMs(syncCutoff)
@@ -217,6 +234,7 @@ function applySnapshotMembership(
   const aptIds = ids(incoming.appointments);
   const callIds = ids(incoming.callRequests ?? []);
   const partIds = ids(incoming.monthlyParts ?? []);
+  const invoicePartIds = ids(incoming.monthlyInvoiceParts ?? []);
   const consumableIds = ids(incoming.monthlyConsumables ?? []);
   const expenseIds = ids(incoming.expenses ?? []);
   const warehouseIds = ids(incoming.warehouse ?? []);
@@ -256,6 +274,14 @@ function applySnapshotMembership(
     callRequests: (base.callRequests ?? []).filter((c) => callIds.has(c.id)),
     monthlyParts: (base.monthlyParts ?? []).filter((p) => {
       if (partIds.has(p.id)) return true;
+      if (!syncCutoff) return false;
+      return (
+        mergeTimestampMs(normalizeIsoTimestamp(p.createdAt)) >
+        mergeTimestampMs(syncCutoff)
+      );
+    }),
+    monthlyInvoiceParts: (base.monthlyInvoiceParts ?? []).filter((p) => {
+      if (invoicePartIds.has(p.id)) return true;
       if (!syncCutoff) return false;
       return (
         mergeTimestampMs(normalizeIsoTimestamp(p.createdAt)) >
@@ -326,6 +352,7 @@ export function mergeCloudDocuments(
   return {
     ...withMembership,
     monthlyParts: merged.monthlyParts,
+    monthlyInvoiceParts: merged.monthlyInvoiceParts,
     monthlyConsumables: merged.monthlyConsumables,
   };
 }

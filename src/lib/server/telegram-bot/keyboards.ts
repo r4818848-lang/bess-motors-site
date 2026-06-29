@@ -57,6 +57,7 @@ export function mainMenuKeyboard(): InlineKeyboardMarkup {
         { text: BOT.warehouse, callback_data: "wh:0" },
         { text: BOT.monthlyParts, callback_data: "parts:menu" },
       ],
+      [{ text: BOT.monthlyInvoiceParts, callback_data: "fpart:menu" }],
       [{ text: BOT.monthlyConsumables, callback_data: "cons:menu" }],
       [
         { text: "🌐 CRM на сайте", url: `${siteBase()}/crm` },

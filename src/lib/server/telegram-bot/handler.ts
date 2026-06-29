@@ -136,6 +136,16 @@ import {
   shiftMonthlyPartsMonth,
   startMonthlyPartsAdd,
 } from "./admin-monthly-parts";
+import {
+  deleteMonthlyInvoicePart,
+  handleMonthlyInvoicePartsWizardCallback,
+  handleMonthlyInvoicePartsWizardText,
+  showMonthlyInvoicePartsDeleteMenu,
+  showMonthlyInvoicePartsList,
+  showMonthlyInvoicePartsMenu,
+  shiftMonthlyInvoicePartsMonth,
+  startMonthlyInvoicePartsAdd,
+} from "./admin-monthly-invoice-parts";
 
 type TelegramMessage = AdminTelegramFileMessage & {
   text?: string;
@@ -189,6 +199,7 @@ function keepsTelegramInputSession(data: string): boolean {
     data.startsWith("qwo:") ||
     data.startsWith("imp:") ||
     data.startsWith("parts:") ||
+    data.startsWith("fpart:") ||
     data.startsWith("cons:") ||
     data.startsWith("exp:cat:") ||
     data.startsWith("wo:extra:") ||
@@ -340,6 +351,10 @@ async function handleMessage(msg: TelegramMessage): Promise<void> {
   }
 
   if (await handleMonthlyPartsWizardText(chatId, text)) {
+    return;
+  }
+
+  if (await handleMonthlyInvoicePartsWizardText(chatId, text)) {
     return;
   }
 
@@ -989,6 +1004,55 @@ async function handleCallback(cb: TelegramCallback): Promise<void> {
     const action = data === "parts:skip" ? "skip" : "back";
     if (await handleMonthlyPartsWizardCallback(chatId, messageId, action)) return;
     await showMonthlyPartsMenu(chatId, messageId);
+    return;
+  }
+
+  if (data === "fpart:menu") {
+    await showMonthlyInvoicePartsMenu(chatId, messageId);
+    return;
+  }
+
+  if (data === "fpart:add") {
+    await startMonthlyInvoicePartsAdd(chatId, messageId);
+    return;
+  }
+
+  if (data === "fpart:list") {
+    const session = await getTelegramSession(chatKey);
+    const month = session.data?.fpartMonth ?? currentMonthKey();
+    await showMonthlyInvoicePartsList(chatId, messageId, db, month);
+    return;
+  }
+
+  if (data === "fpart:prev" || data === "fpart:next") {
+    await shiftMonthlyInvoicePartsMonth(chatId, messageId, data === "fpart:prev" ? -1 : 1, db);
+    return;
+  }
+
+  if (data === "fpart:del") {
+    const session = await getTelegramSession(chatKey);
+    const month = session.data?.fpartMonth ?? currentMonthKey();
+    await showMonthlyInvoicePartsDeleteMenu(chatId, messageId, db, month, 0);
+    return;
+  }
+
+  if (data.startsWith("fpart:delp:")) {
+    const page = callbackPage(data, "fpart:delp:");
+    const session = await getTelegramSession(chatKey);
+    const month = session.data?.fpartMonth ?? currentMonthKey();
+    await showMonthlyInvoicePartsDeleteMenu(chatId, messageId, db, month, page);
+    return;
+  }
+
+  if (data.startsWith("fpart:rm:")) {
+    await deleteMonthlyInvoicePart(chatId, messageId, callbackSuffix(data, "fpart:rm:"));
+    return;
+  }
+
+  if (data === "fpart:skip" || data === "fpart:back") {
+    const action = data === "fpart:skip" ? "skip" : "back";
+    if (await handleMonthlyInvoicePartsWizardCallback(chatId, messageId, action)) return;
+    await showMonthlyInvoicePartsMenu(chatId, messageId);
     return;
   }
 
