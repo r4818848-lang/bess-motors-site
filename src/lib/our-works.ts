@@ -40,7 +40,8 @@ export type OurWorkVideo = {
   instagramUrl?: string;
 };
 
-export const OUR_WORK_VIDEOS: OurWorkVideo[] = [
+/** Append new entries at the end; UI shows newest first. */
+const OUR_WORK_VIDEOS_SOURCE: OurWorkVideo[] = [
   {
     id: "valve-adjustment",
     serviceIds: ["engine"],
@@ -1054,6 +1055,8 @@ Restore your A/C — book online! ❄️`,
     },
   },
 ];
+
+export const OUR_WORK_VIDEOS: OurWorkVideo[] = [...OUR_WORK_VIDEOS_SOURCE].reverse();
 
 export function getOurWorkVideosForService(serviceId: ServiceId): OurWorkVideo[] {
   return OUR_WORK_VIDEOS.filter((work) => work.serviceIds.includes(serviceId));

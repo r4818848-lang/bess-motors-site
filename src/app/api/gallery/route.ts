@@ -23,7 +23,9 @@ export async function GET() {
   const items: PublicGalleryItem[] = [];
 
   const cloud = await cloudGetCrmStore();
-  const orders = cloud?.doc.workOrders ?? [];
+  const orders = [...(cloud?.doc.workOrders ?? [])].sort(
+    (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+  );
 
   for (const order of orders) {
     if (!order.showInGallery) continue;
