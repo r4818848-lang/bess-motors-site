@@ -31,6 +31,11 @@ export function ServiceLandingPrice({
         ) : (
           <p className="font-display text-3xl text-bm-red">
             {price.priceFrom ? sl.from : ""}{" "}
+            {price.compareAtZl != null ? (
+              <span className="line-through text-bm-muted text-xl mr-2">
+                {price.compareAtZl} zł
+              </span>
+            ) : null}
             <span className="text-white">{price.fromZl}</span> zł
           </p>
         )}

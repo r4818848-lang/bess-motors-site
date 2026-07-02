@@ -6,6 +6,11 @@ import {
   priceListItems,
   priceListFooterNotes,
 } from "@/lib/price-list";
+import {
+  getCompareAtUnitPrice,
+  getEffectiveUnitPrice,
+} from "@/lib/site-promo-pricing";
+import { SITE_PROMO_PERCENT } from "@/lib/promo-codes";
 
 function buildPriceListHtml(locale: "pl" | "ru"): string {
   const isRu = locale === "ru";
@@ -13,6 +18,10 @@ function buildPriceListHtml(locale: "pl" | "ru"): string {
   const hourly = (isRu ? "Норма-час: " : "Norma-godzina: ") + `${HOURLY_RATE_PLN} zł/h`;
   const serviceCol = isRu ? "Услуга" : "Usługa";
   const priceCol = isRu ? "Цена" : "Cena";
+
+  const promoNote = isRu
+    ? `−${SITE_PROMO_PERCENT}% на все услуги, кроме кондиционера. Цены со скидкой.`
+    : `−${SITE_PROMO_PERCENT}% na wszystkie usługi oprócz klimatyzacji. Ceny z rabatem.`;
 
   let body = "";
   for (const cat of priceCategories) {
@@ -24,14 +33,19 @@ function buildPriceListHtml(locale: "pl" | "ru"): string {
     for (const item of items) {
       const name = isRu ? item.nameRu : item.namePl;
       const from = item.priceFrom && item.unit !== "free" ? (isRu ? "от " : "od ") : "";
+      const effective = getEffectiveUnitPrice(item);
+      const compareAt = getCompareAtUnitPrice(item);
       let price = "";
       if (item.unit === "free") price = isRu ? "бесплатно" : "bezpłatnie";
       else if (item.unit === "per_cylinder")
-        price = `${from}${item.basePrice} zł / ${isRu ? "цил." : "cyl."}`;
+        price = `${from}${effective} zł / ${isRu ? "цил." : "cyl."}`;
       else if (item.unit === "per_wheel")
-        price = `${from}${item.basePrice} zł / ${isRu ? "кол." : "koło"}`;
-      else if (item.unit === "per_100g") price = `${from}${item.basePrice} zł / 100g`;
-      else price = `${from}${item.basePrice} zł`;
+        price = `${from}${effective} zł / ${isRu ? "кол." : "koło"}`;
+      else if (item.unit === "per_100g") price = `${from}${effective} zł / 100g`;
+      else price = `${from}${effective} zł`;
+      if (compareAt != null) {
+        price = `<s style="color:#888;font-weight:normal;">${from}${compareAt} zł</s> ${price}`;
+      }
       body += `<tr style="border-bottom:1px solid #333;"><td style="padding:5px;">${name}</td><td style="padding:5px;text-align:right;color:#e10600;font-weight:bold;">${price}</td></tr>`;
     }
     body += `</tbody></table>`;
@@ -44,7 +58,8 @@ function buildPriceListHtml(locale: "pl" | "ru"): string {
   return `<style>@import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700&subset=latin,latin-ext&display=swap');</style>
   <div style="font-family:'Noto Sans','Segoe UI',Arial,sans-serif;background:#111;color:#fff;padding:24px;width:794px;">
     <h1 style="font-size:20px;margin:0 0 8px;color:#e10600;">${title}</h1>
-    <p style="font-size:12px;margin:0 0 16px;color:#ccc;">${hourly}</p>
+    <p style="font-size:12px;margin:0 0 8px;color:#ccc;">${hourly}</p>
+    <p style="font-size:11px;margin:0 0 16px;color:#7dffb0;">${promoNote}</p>
     ${body}
   </div>`;
 }

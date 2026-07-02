@@ -6,6 +6,10 @@ import {
 import { getTranslations } from "./i18n/translations";
 import type { Locale } from "./i18n/types";
 import { fillTemplate } from "./i18n/locale-utils";
+import {
+  getCompareAtUnitPrice,
+  getEffectiveUnitPrice,
+} from "./site-promo-pricing";
 
 export interface CartLineParams {
   cylinders?: number;
@@ -39,7 +43,7 @@ export function calcLineTotal(
 ): number {
   if (item.unit === "free") return 0;
   const q = Math.max(item.minQty ?? 1, quantity);
-  return item.basePrice * q;
+  return getEffectiveUnitPrice(item) * q;
 }
 
 export function buildCartLine(
@@ -55,7 +59,7 @@ export function buildCartLine(
     label,
     unit: item.unit,
     quantity: q,
-    unitPrice: item.basePrice,
+    unitPrice: getEffectiveUnitPrice(item),
     lineTotal,
     priceFrom: !!item.priceFrom && item.unit !== "free",
     isFree: item.unit === "free",
@@ -106,16 +110,26 @@ export function unitPriceHint(item: PriceListItem, locale: Locale): string {
     return c.free;
   }
   const from = item.priceFrom ? c.fromPrefix : "";
+  const price = getEffectiveUnitPrice(item);
   if (item.unit === "per_cylinder") {
-    return `${from}${item.basePrice} zł / ${c.perCylinder}`;
+    return `${from}${price} zł / ${c.perCylinder}`;
   }
   if (item.unit === "per_wheel") {
-    return `${from}${item.basePrice} zł / ${c.perWheel}`;
+    return `${from}${price} zł / ${c.perWheel}`;
   }
   if (item.unit === "per_100g") {
-    return `${from}${item.basePrice} zł / ${c.per100g}`;
+    return `${from}${price} zł / ${c.per100g}`;
   }
-  return `${from}${item.basePrice} zł`;
+  return `${from}${price} zł`;
+}
+
+export function compareAtUnitPriceHint(item: PriceListItem): string | null {
+  const compareAt = getCompareAtUnitPrice(item);
+  if (compareAt == null) return null;
+  if (item.unit === "per_cylinder") return `${compareAt} zł`;
+  if (item.unit === "per_wheel") return `${compareAt} zł`;
+  if (item.unit === "per_100g") return `${compareAt} zł`;
+  return `${compareAt} zł`;
 }
 
 export function mergeCartLine(

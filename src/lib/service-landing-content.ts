@@ -1,7 +1,8 @@
 import type { ServiceId } from "@/lib/services-catalog";
-import { getPriceItem } from "@/lib/price-list";
+import { getPriceItem, type PriceCategoryId } from "@/lib/price-list";
 import { serviceBasePriceId } from "@/lib/service-price-map";
 import { getSlugLandingProfile } from "@/lib/seo-landing-slug-profiles";
+import { withSitePromoPriceZl } from "@/lib/site-promo-pricing";
 
 export type LocalizedText = { pl: string; ru: string };
 
@@ -26,6 +27,8 @@ export type ServiceLandingPriceRow = {
 export type ServiceLandingPrice = {
   fromZl: number;
   priceFrom: boolean;
+  /** Promo “was” price for main heading */
+  compareAtZl?: number;
   includes: LocalizedText[];
   note?: LocalizedText;
   materialsExtra?: boolean;
@@ -839,6 +842,52 @@ const ESTIMATE_STEP: ServiceLandingStep = {
   },
 };
 
+const SERVICE_LANDING_CATEGORY: Partial<Record<ServiceId, PriceCategoryId>> = {
+  oil: "maintenance",
+  filters: "maintenance",
+  diagnostic: "diagnostic",
+  brakePads: "brakes",
+  brakesFull: "brakes",
+  tires: "tires",
+  alignment: "tires",
+  suspension: "suspension",
+  chip: "chip",
+  stage1: "chip",
+  engine: "engine",
+  timingBelt: "timing",
+  transmission: "transmission",
+  clutch: "transmission",
+  turbo: "turbo",
+  electric: "electrical",
+  starterGen: "electrical",
+  radiators: "cooling",
+  exhaust: "exhaust",
+  fuel: "fuel",
+};
+
+function applySitePromoToLandingPrice(
+  price: ServiceLandingPrice,
+  serviceId: ServiceId
+): ServiceLandingPrice {
+  if (serviceId === "acRefill" || serviceId === "acRepair") return price;
+  const categoryId = SERVICE_LANDING_CATEGORY[serviceId] ?? "extra";
+  const from = withSitePromoPriceZl(price.fromZl, categoryId);
+  return {
+    ...price,
+    fromZl: from.priceZl,
+    compareAtZl: from.compareAtZl,
+    priceTable: price.priceTable?.map((row) => {
+      if (row.compareAtZl != null) return row;
+      const rowPrice = withSitePromoPriceZl(row.priceZl, categoryId);
+      return {
+        ...row,
+        priceZl: rowPrice.priceZl,
+        compareAtZl: rowPrice.compareAtZl,
+      };
+    }),
+  };
+}
+
 export function getServiceLandingSteps(
   serviceId: ServiceId,
   slug?: string
@@ -861,11 +910,13 @@ export function getServiceLandingPrice(
 ): ServiceLandingPrice | null {
   const slugProfile = slug ? getSlugLandingProfile(slug) : undefined;
   if (slugProfile && "price" in slugProfile) {
-    return slugProfile.price ?? null;
+    const price = slugProfile.price ?? null;
+    return price ? applySitePromoToLandingPrice(price, serviceId) : null;
   }
 
   if (serviceId === "chip") {
-    return {
+    return applySitePromoToLandingPrice(
+      {
       fromZl: getPriceItem("stage1")?.basePrice ?? 1200,
       priceFrom: true,
       materialsExtra: false,
@@ -882,13 +933,16 @@ export function getServiceLandingPrice(
           priceFrom: true,
         },
       ],
-    };
+      },
+      serviceId
+    );
   }
 
   const priceId = serviceBasePriceId[serviceId];
   if (!priceId) {
     if (serviceId === "brakePads") {
-      return {
+      return applySitePromoToLandingPrice(
+        {
         fromZl: 120,
         priceFrom: false,
         materialsExtra: true,
@@ -915,10 +969,13 @@ export function getServiceLandingPrice(
           pl: "Materiały (klocki, tarcze) według wyboru — wycena przed montażem.",
           ru: "Материалы (колодки, диски) по выбору — смета до монтажа.",
         },
-      };
+        },
+        serviceId
+      );
     }
     if (serviceId === "tires") {
-      return {
+      return applySitePromoToLandingPrice(
+        {
         fromZl: 160,
         priceFrom: true,
         materialsExtra: false,
@@ -953,7 +1010,9 @@ export function getServiceLandingPrice(
           pl: "Ceny za kompleksową wymianę 4 kół — szczegóły na stronie Cennik.",
           ru: "Цены за комплексную замену 4 колёс — подробности в прайсе.",
         },
-      };
+        },
+        serviceId
+      );
     }
     return null;
   }
@@ -961,7 +1020,8 @@ export function getServiceLandingPrice(
   const item = getPriceItem(priceId);
   if (!item) return null;
 
-  return {
+  return applySitePromoToLandingPrice(
+    {
     fromZl: item.basePrice,
     priceFrom: item.priceFrom ?? true,
     materialsExtra: serviceId === "oil" || serviceId === "acRefill",
@@ -1010,7 +1070,9 @@ export function getServiceLandingPrice(
             ru: "от 150 zł работа + стоимость масла и фильтров по VIN.",
           }
         : undefined,
-  };
+    },
+    serviceId
+  );
 }
 
 function getDefaultIncludes(serviceId: ServiceId): LocalizedText[] {

@@ -13,7 +13,7 @@ import {
   type PriceListItem,
 } from "@/lib/price-list";
 import { contentLocale, pickName } from "@/lib/i18n/locale-utils";
-import { unitPriceHint } from "@/lib/booking-cart";
+import { compareAtUnitPriceHint, unitPriceHint } from "@/lib/booking-cart";
 import { BookingLink } from "@/components/analytics/BookingLink";
 import { PhoneLink } from "@/components/analytics/PhoneLink";
 import { siteConfig } from "@/lib/site";
@@ -21,6 +21,7 @@ import { PriceListCalculator } from "@/components/pricing/PriceListCalculator";
 import { downloadPriceListPdf } from "@/lib/price-list-pdf";
 import { buildBookingUrl } from "@/lib/booking-url";
 import { PriceListCallbackCta } from "@/components/pricing/PriceListCallbackCta";
+import { SITE_PROMO_PERCENT } from "@/lib/promo-codes";
 import { ServicePackagesSection } from "@/components/pricing/ServicePackagesSection";
 
 function itemLabel(item: PriceListItem, locale: Parameters<typeof pickName>[1]) {
@@ -36,11 +37,18 @@ function PriceRow({
   locale: Parameters<typeof pickName>[1];
   bookLabel: string;
 }) {
+  const compareAt = compareAtUnitPriceHint(item);
+
   return (
     <li className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-4 py-3.5 hover:bg-bm-red/5 transition-colors">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 flex-1 min-w-0">
         <span className="text-sm text-white/95 pr-4">{itemLabel(item, locale)}</span>
         <span className="text-sm font-mono font-bold text-bm-red shrink-0">
+          {compareAt ? (
+            <span className="line-through text-bm-muted font-normal text-xs mr-2">
+              {compareAt}
+            </span>
+          ) : null}
           {unitPriceHint(item, locale)}
         </span>
       </div>
@@ -74,6 +82,11 @@ export function FullPriceListView() {
           {t.priceList.title}
         </h1>
         <p className="mt-3 text-bm-muted max-w-2xl">{t.priceList.subtitle}</p>
+        <p className="mt-2 text-sm text-emerald-400/90 max-w-2xl">
+          {contentLoc === "ru"
+            ? `−${SITE_PROMO_PERCENT}% на все услуги, кроме кондиционера. Цены в прайсе уже со скидкой.`
+            : `−${SITE_PROMO_PERCENT}% na wszystkie usługi oprócz klimatyzacji. Ceny w cenniku już z rabatem.`}
+        </p>
         <div className="mt-5 flex flex-wrap items-center gap-4 text-sm">
           <span className="inline-flex items-center gap-2 rounded-full border border-bm-red/50 bg-bm-red/10 px-4 py-2 text-bm-red font-semibold">
             <Clock size={16} />

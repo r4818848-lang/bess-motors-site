@@ -743,8 +743,8 @@ export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
       {
         title: L("Sprawdź aktualne promocje", "Актуальные акции"),
         description: L(
-          "−15% na robociznę i części przy każdej naprawie — podaj menedżerowi kod BessMotors. Osobna promocja −50% na nabijanie klimatyzacji.",
-          "−15% на работы и запчасти — промокод BessMotors менеджеру. Отдельная акция −50% на заправку кондиционера."
+          "−15% na wszystkie usługi oprócz klimatyzacji — ceny w cenniku już z rabatem. Kod BessMotors dla menedżera. Osobna promocja −50% na nabijanie klimatyzacji.",
+          "−15% на все услуги, кроме кондиционера — цены в прайсе уже со скидкой. Код BessMotors менеджеру. Отдельная акция −50% на заправку кондиционера."
         ),
       },
       {

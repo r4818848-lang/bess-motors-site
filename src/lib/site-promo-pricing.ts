@@ -1,0 +1,37 @@
+import type { PriceCategoryId, PriceListItem } from "@/lib/price-list";
+import { SITE_PROMO_PERCENT } from "@/lib/promo-codes";
+
+export function isSitePromoExcluded(
+  item: Pick<PriceListItem, "categoryId">
+): boolean {
+  return item.categoryId === "ac";
+}
+
+export function applySitePromoPrice(
+  basePrice: number,
+  categoryId: PriceCategoryId
+): number {
+  if (basePrice <= 0 || categoryId === "ac") return basePrice;
+  return Math.round((basePrice * (100 - SITE_PROMO_PERCENT)) / 100);
+}
+
+export function getEffectiveUnitPrice(item: PriceListItem): number {
+  if (item.unit === "free") return 0;
+  return applySitePromoPrice(item.basePrice, item.categoryId);
+}
+
+export function getCompareAtUnitPrice(item: PriceListItem): number | null {
+  if (item.unit === "free" || isSitePromoExcluded(item)) return null;
+  const effective = getEffectiveUnitPrice(item);
+  return effective < item.basePrice ? item.basePrice : null;
+}
+
+export function withSitePromoPriceZl(
+  priceZl: number,
+  categoryId: PriceCategoryId
+): { priceZl: number; compareAtZl?: number } {
+  if (priceZl <= 0 || categoryId === "ac") return { priceZl };
+  const discounted = applySitePromoPrice(priceZl, categoryId);
+  if (discounted >= priceZl) return { priceZl };
+  return { priceZl: discounted, compareAtZl: priceZl };
+}

@@ -19,6 +19,7 @@ import {
   buildCartLine,
   cartSubtotal,
   cartHasFromPrices,
+  calcLineTotal,
   formatPln,
   unitPriceHint,
   defaultQuantity,
@@ -433,7 +434,7 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
                   sum +
                   ids.reduce((s, pid) => {
                     const it = getPriceItem(pid);
-                    return s + (it ? it.basePrice * defaultQuantity(it) : 0);
+                    return s + (it ? calcLineTotal(it, defaultQuantity(it)) : 0);
                   }, 0)
                 );
               }, 0)

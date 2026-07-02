@@ -29,6 +29,8 @@ import {
   buildCartLine,
   cartSubtotal,
   cartHasFromPrices,
+  calcLineTotal,
+  compareAtUnitPriceHint,
   defaultQuantity,
   formatPln,
   quantityLabel,
@@ -68,11 +70,6 @@ const WORKSHOP_PHONE = "+48 791 257 229";
 function withPhone(template: string): string {
   return template.replace("{phone}", WORKSHOP_PHONE);
 }
-import {
-  applyPromoDiscount,
-  getPromoRules,
-  matchPromoCode,
-} from "@/lib/promo-codes";
 import type { ServiceId } from "@/lib/services-catalog";
 
 type Phase = "services" | "acChoice" | "phone" | "done";
@@ -110,6 +107,11 @@ function ServiceCard({
             {pickName(item, locale)}
           </p>
           <p className="text-bm-red font-mono text-sm mt-1 font-bold">
+            {compareAtUnitPriceHint(item) ? (
+              <span className="line-through text-bm-muted font-normal text-xs mr-2">
+                {compareAtUnitPriceHint(item)}
+              </span>
+            ) : null}
             {unitPriceHint(item, locale)}
           </p>
         </div>
@@ -148,7 +150,7 @@ function ServiceCard({
             <Plus size={14} />
           </button>
           <span className="text-xs text-bm-muted">
-            = {formatPln(item.basePrice * qty)}
+            = {formatPln(calcLineTotal(item, qty))}
           </span>
         </div>
       )}
@@ -310,11 +312,8 @@ export function BookingQuoteFlow({ onDone }: Props) {
   const [clientEmail, setClientEmail] = useState("");
   const [vehicleNote, setVehicleNote] = useState("");
   const [clientPlate, setClientPlate] = useState("");
-  const [promoInput, setPromoInput] = useState("");
-  const [promoApplied, setPromoApplied] = useState<ReturnType<typeof matchPromoCode>>(null);
   const [submitError, setSubmitError] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [promoError, setPromoError] = useState("");
   const [activePackageId, setActivePackageId] = useState<string | undefined>();
   const submitLock = useRef(false);
   const { isSlotAvailable, loading: slotsLoading, availabilityError } = useBookingAvailability();
@@ -401,9 +400,8 @@ export function BookingQuoteFlow({ onDone }: Props) {
       ? Math.max(0, subtotal - activePackage.packagePricePln)
       : 0;
   const afterPackage = subtotal - packageDiscount;
-  const total = promoApplied ? applyPromoDiscount(afterPackage, promoApplied) : afterPackage;
+  const total = afterPackage;
   const hasFrom = cartHasFromPrices(cart);
-  const hasPromos = getPromoRules().length > 0;
 
   return (
     <div className="pb-52 lg:pb-8">

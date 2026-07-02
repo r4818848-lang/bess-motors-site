@@ -296,7 +296,7 @@ const pl = {
     },
   },
   promoBanner: {
-    text: "−{percent}% na robociznę i części — podaj menedżerowi kod {code}",
+    text: "−{percent}% na wszystkie usługi oprócz klimatyzacji — ceny w cenniku już z rabatem. Kod {code} dla menedżera.",
     cta: "Promocje",
   },
   telegramOpen: {
@@ -2138,7 +2138,7 @@ const ru: TranslationKeys = {
     },
   },
   promoBanner: {
-    text: "−{percent}% на работы и запчасти — назовите менеджеру промокод {code}",
+    text: "−{percent}% на все услуги, кроме кондиционера — цены в прайсе уже со скидкой. Код {code} менеджеру.",
     cta: "Акции",
   },
   telegramOpen: {
@@ -4190,7 +4190,7 @@ const en: TranslationKeys = {
     repairsTitle: "Before / after jobs",
   },
   promoBanner: {
-    text: "−{percent}% off labor and parts — tell the manager code {code}",
+    text: "−{percent}% on all services except A/C — prices already discounted. Code {code} for the manager.",
     cta: "Promos",
   },
   telegramOpen: {

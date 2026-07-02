@@ -1,6 +1,7 @@
 /** Fixed service bundles for bot / booking (no external APIs) */
 
 import { getPriceItem } from "@/lib/price-list";
+import { getEffectiveUnitPrice } from "@/lib/site-promo-pricing";
 
 export type ServicePackageId = "to_standard" | "winter_prep" | "brake_check" | "summer_ac";
 
@@ -17,7 +18,10 @@ export type ServicePackage = {
 };
 
 function sumItemPrices(ids: string[]): number {
-  return ids.reduce((sum, id) => sum + (getPriceItem(id)?.basePrice ?? 0), 0);
+  return ids.reduce((sum, id) => {
+    const item = getPriceItem(id);
+    return sum + (item ? getEffectiveUnitPrice(item) * 1 : 0);
+  }, 0);
 }
 
 export const servicePackages: ServicePackage[] = [
