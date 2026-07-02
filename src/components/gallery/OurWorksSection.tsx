@@ -69,7 +69,7 @@ function WorkMedia({
       className={`w-full aspect-[9/16] max-h-[70vh] bg-black object-contain ${className}`}
       controls
       playsInline
-      preload="metadata"
+      preload={autoPlay ? "auto" : "none"}
       poster={work.posterSrc}
       autoPlay={autoPlay}
     >
@@ -339,10 +339,12 @@ export function ServiceWorkVideo({ serviceId, className = "" }: InlineProps) {
   const lang = contentLocale(locale);
   const ow = t.ourWorks;
   const works = OUR_WORK_VIDEOS.filter((work) => work.serviceIds.includes(serviceId));
+  const [playing, setPlaying] = useState(false);
 
   if (!works.length) return null;
 
   const featured = works.find((w) => !w.imageOnly && w.videoSrc) ?? works[0];
+  const canPlayVideo = !featured.imageOnly && Boolean(featured.videoSrc);
 
   return (
     <section className={className} aria-labelledby="service-work-video-heading">
@@ -355,8 +357,35 @@ export function ServiceWorkVideo({ serviceId, className = "" }: InlineProps) {
       <p className="text-sm text-bm-muted mb-4">{ow.serviceVideoHint}</p>
       <div className="rounded-2xl overflow-hidden border border-bm-border/50 bg-bm-card/40">
         <div className="grid md:grid-cols-2 gap-0">
-          <div className="bg-black">
-            <WorkMedia work={featured} />
+          <div className="bg-black flex items-center justify-center">
+            {playing && canPlayVideo ? (
+              <WorkMedia work={featured} autoPlay />
+            ) : (
+              <button
+                type="button"
+                onClick={() => canPlayVideo && setPlaying(true)}
+                className="relative block w-full aspect-[9/16] max-h-[70vh] text-left"
+                aria-label={`${canPlayVideo ? ow.watchVideo : ow.viewPhoto}: ${featured.title[lang]}`}
+              >
+                <Image
+                  src={featured.posterSrc}
+                  alt={featured.title[lang]}
+                  fill
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  className="object-contain"
+                />
+                {canPlayVideo ? (
+                  <>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/15 to-black/25" />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="flex h-14 w-14 items-center justify-center rounded-full bg-bm-red/90 text-white shadow-neon-sm ring-4 ring-white/20 transition-transform hover:scale-110">
+                        <Play size={28} className="ml-1" fill="currentColor" />
+                      </span>
+                    </div>
+                  </>
+                ) : null}
+              </button>
+            )}
           </div>
           <div className="p-5 sm:p-6">
             <h3 className="font-display text-sm uppercase text-white mb-3">
@@ -397,7 +426,7 @@ export function ServiceWorkVideo({ serviceId, className = "" }: InlineProps) {
                   alt={work.title[lang]}
                   fill
                   sizes="(max-width: 640px) 50vw, 200px"
-                  className="object-cover"
+                  className="object-contain bg-black"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
                 <span className="absolute bottom-2 left-2 right-2 text-[10px] font-bold uppercase text-white line-clamp-2">
