@@ -7,11 +7,13 @@ import { resolveLandingContentServiceId } from "@/lib/seo-landing-slug-profiles"
 import { schemaAreaServed } from "@/lib/seo-local";
 import {
   acHookupPricePln,
+  acR1234yfPer100gPln,
   acR134aPer100gPln,
   acRechargeFromPln,
 } from "@/lib/ac-recharge-prices";
 import {
   AC_HOOKUP_PROMO_OLD_PLN,
+  AC_R1234YF_PROMO_OLD_PLN,
   AC_R134A_PROMO_OLD_PLN,
   acPromoMetaDescriptionPl,
 } from "@/lib/ac-recharge-promo-seo";
@@ -77,7 +79,7 @@ export function blogPostingSchema(post: BlogPost) {
 export function servicesItemListSchema() {
   const siteUrl = getSiteUrl();
   const items = [
-    { name: "PROMOCJA — nabijanie klimatyzacji R134a od 140 zł", path: "/klimatyzacja" },
+    { name: "PROMOCJA −50% — nabijanie klimatyzacji R134a / R1234yf od 140 zł", path: "/klimatyzacja" },
     { name: "Wymiana oleju", path: "/wymiana-oleju" },
     { name: "Wulkanizacja", path: "/opony" },
     { name: "Serwis hamulców", path: "/hamulce" },
@@ -122,8 +124,8 @@ export function autoRepairServiceSchema(page: SeoLandingPage) {
   if (isAcPromo) {
     serviceNode.offers = {
       "@type": "Offer",
-      name: "Promocja nabijania klimatyzacji R134a",
-      description: `Podłączenie ${acHookupPricePln()} zł (było ${AC_HOOKUP_PROMO_OLD_PLN} zł), freon ${acR134aPer100gPln()} zł/100 g (było ${AC_R134A_PROMO_OLD_PLN} zł)`,
+      name: "Promocja −50% nabijania klimatyzacji R134a / R1234yf",
+      description: `Podłączenie ${acHookupPricePln()} zł (było ${AC_HOOKUP_PROMO_OLD_PLN} zł), R134a ${acR134aPer100gPln()} zł/100 g (było ${AC_R134A_PROMO_OLD_PLN} zł), R1234yf ${acR1234yfPer100gPln()} zł/100 g (było ${AC_R1234YF_PROMO_OLD_PLN} zł)`,
       price: acRechargeFromPln(),
       priceCurrency: "PLN",
       availability: "https://schema.org/InStock",

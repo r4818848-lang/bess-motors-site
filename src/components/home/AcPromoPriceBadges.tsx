@@ -58,9 +58,15 @@ export function AcPromoPriceBadges({ variant = "hero", className = "" }: Props) 
         variant={variant}
       />
       <AcPriceBadge
-        label={s.priceGasLabel}
-        oldPrice={s.priceGasOld}
-        newPrice={s.priceGasNew}
+        label={s.priceR134aLabel}
+        oldPrice={s.priceR134aOld}
+        newPrice={s.priceR134aNew}
+        variant={variant}
+      />
+      <AcPriceBadge
+        label={s.priceR1234Label}
+        oldPrice={s.priceR1234Old}
+        newPrice={s.priceR1234New}
         variant={variant}
       />
     </div>

@@ -5,6 +5,7 @@ import type { Locale } from "@/lib/i18n/types";
 
 export const AC_HOOKUP_PRICE_ID = "ac_hookup";
 export const AC_R134A_PRICE_ID = "ac_r134a";
+export const AC_R1234YF_PRICE_ID = "ac_r1234yf";
 
 export function acHookupPricePln(): number {
   return getPriceItem(AC_HOOKUP_PRICE_ID)?.basePrice ?? 80;
@@ -12,6 +13,10 @@ export function acHookupPricePln(): number {
 
 export function acR134aPer100gPln(): number {
   return getPriceItem(AC_R134A_PRICE_ID)?.basePrice ?? 60;
+}
+
+export function acR1234yfPer100gPln(): number {
+  return getPriceItem(AC_R1234YF_PRICE_ID)?.basePrice ?? 80;
 }
 
 /** Minimum estimate: connection + 100 g R134a */
@@ -32,4 +37,8 @@ export function defaultAcRechargeCartLines(locale: Locale): CartLine[] {
   return lines;
 }
 
-export const AC_RECHARGE_PRICE_ITEM_IDS = [AC_HOOKUP_PRICE_ID, AC_R134A_PRICE_ID] as const;
+export const AC_RECHARGE_PRICE_ITEM_IDS = [
+  AC_HOOKUP_PRICE_ID,
+  AC_R134A_PRICE_ID,
+  AC_R1234YF_PRICE_ID,
+] as const;

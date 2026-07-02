@@ -9,6 +9,11 @@ import {
 import { buildPageMetadata } from "@/lib/seo-metadata";
 import { autoRepairServiceSchema } from "@/lib/seo-structured-data";
 import { acPromoSeoKeywords } from "@/lib/ac-recharge-promo-seo";
+import { AC_PROMO_HERO_SRC } from "@/lib/ac-media";
+import { OIL_CHANGE_DRAIN_POSTER_SRC } from "@/lib/oil-media";
+import { ALTERNATOR_INSTALL_PHOTO_SRC } from "@/lib/alternator-media";
+import { BRAKE_PADS_CHANGE_PHOTO_SRC } from "@/lib/brake-media";
+import { TIRE_SERVICE_POSTER_SRC } from "@/lib/tire-media";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -40,7 +45,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: page.metaTitle,
     description: page.metaDescription,
     path: `/${page.slug}`,
-    ogImage: slug === "klimatyzacja" ? "/images/works/ac-service-cover.png" : undefined,
+    ogImage:
+      slug === "klimatyzacja"
+        ? AC_PROMO_HERO_SRC
+        : slug === "wymiana-oleju"
+          ? OIL_CHANGE_DRAIN_POSTER_SRC
+          : slug === "opony" || slug === "geometria"
+            ? TIRE_SERVICE_POSTER_SRC
+            : slug === "hamulce" || slug === "klocki-hamulcowe"
+              ? BRAKE_PADS_CHANGE_PHOTO_SRC
+              : slug === "elektryka"
+                ? ALTERNATOR_INSTALL_PHOTO_SRC
+                : undefined,
     keywords: [
       page.metaTitle,
       page.title,

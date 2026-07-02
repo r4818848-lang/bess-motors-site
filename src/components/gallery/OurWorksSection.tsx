@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Play, X, ExternalLink, Instagram } from "lucide-react";
+import { Play, X, ExternalLink, Instagram, ZoomIn } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { contentLocale } from "@/lib/i18n/locale-utils";
 import type { ServiceId } from "@/lib/services-catalog";
@@ -40,7 +40,7 @@ function WorkDescription({ text }: { text: string }) {
   );
 }
 
-function WorkVideoPlayer({
+function WorkMedia({
   work,
   autoPlay = false,
   className = "",
@@ -49,6 +49,20 @@ function WorkVideoPlayer({
   autoPlay?: boolean;
   className?: string;
 }) {
+  if (work.imageOnly || !work.videoSrc) {
+    return (
+      <div className={`relative w-full aspect-[9/16] max-h-[70vh] bg-black ${className}`}>
+        <Image
+          src={work.posterSrc}
+          alt={work.title.pl}
+          fill
+          sizes="(max-width: 768px) 100vw, 50vw"
+          className="object-contain"
+        />
+      </div>
+    );
+  }
+
   return (
     <video
       key={work.id}
@@ -82,7 +96,7 @@ function WorkCard({
         type="button"
         onClick={() => onPlay(work)}
         className="relative block w-full aspect-[9/16] max-h-[420px] text-left"
-        aria-label={`${ow.watchVideo}: ${work.title[lang]}`}
+        aria-label={`${work.imageOnly ? ow.viewPhoto : ow.watchVideo}: ${work.title[lang]}`}
       >
         <Image
           src={work.posterSrc}
@@ -94,7 +108,11 @@ function WorkCard({
         <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-black/30" />
         <div className="absolute inset-0 flex items-center justify-center">
           <span className="flex h-14 w-14 items-center justify-center rounded-full bg-bm-red/90 text-white shadow-neon-sm ring-4 ring-white/20 transition-transform group-hover:scale-110">
-            <Play size={28} className="ml-1" fill="currentColor" />
+            {work.imageOnly ? (
+              <ZoomIn size={26} />
+            ) : (
+              <Play size={28} className="ml-1" fill="currentColor" />
+            )}
           </span>
         </div>
         {work.instagramUrl ? (
@@ -159,7 +177,7 @@ function WorkModal({
         <div className="rounded-2xl overflow-hidden border border-bm-border/60 bg-bm-card/90 shadow-2xl">
           <div className="grid md:grid-cols-2 gap-0">
             <div className="bg-black flex items-center justify-center">
-              <WorkVideoPlayer work={work} autoPlay />
+              <WorkMedia work={work} autoPlay />
             </div>
             <div className="p-5 sm:p-6 max-h-[70vh] overflow-y-auto">
               <h3 className="font-display text-lg uppercase text-bm-red mb-4">
@@ -265,20 +283,21 @@ export function BookingWorkVideoTeaser({ serviceId }: { serviceId: ServiceId }) 
   const lang = contentLocale(locale);
   const ow = t.ourWorks;
   const works = OUR_WORK_VIDEOS.filter((work) => work.serviceIds.includes(serviceId));
+  const work = works.find((w) => !w.imageOnly && w.videoSrc) ?? works[0];
   const [playing, setPlaying] = useState(false);
 
-  if (!works.length) return null;
+  if (!works.length || !work) return null;
 
-  const work = works[0];
+  const canPlayVideo = !work.imageOnly && Boolean(work.videoSrc);
 
   return (
     <div className="rounded-xl border border-bm-border/50 bg-black/30 overflow-hidden">
-      {playing ? (
-        <WorkVideoPlayer work={work} autoPlay className="max-h-[320px] mx-auto" />
+      {playing && canPlayVideo ? (
+        <WorkMedia work={work} autoPlay className="max-h-[320px] mx-auto" />
       ) : (
         <button
           type="button"
-          onClick={() => setPlaying(true)}
+          onClick={() => (canPlayVideo ? setPlaying(true) : undefined)}
           className="relative flex w-full items-center gap-3 p-3 text-left"
         >
           <span className="relative h-20 w-14 shrink-0 overflow-hidden rounded-lg">
@@ -290,7 +309,11 @@ export function BookingWorkVideoTeaser({ serviceId }: { serviceId: ServiceId }) 
               className="object-cover"
             />
             <span className="absolute inset-0 flex items-center justify-center bg-black/40">
-              <Play size={18} className="text-white ml-0.5" fill="currentColor" />
+              {canPlayVideo ? (
+                <Play size={18} className="text-white ml-0.5" fill="currentColor" />
+              ) : (
+                <ZoomIn size={18} className="text-white" />
+              )}
             </span>
           </span>
           <span>
@@ -300,7 +323,9 @@ export function BookingWorkVideoTeaser({ serviceId }: { serviceId: ServiceId }) 
             <span className="block text-sm font-semibold text-white mt-0.5">
               {work.title[lang]}
             </span>
-            <span className="block text-[10px] text-bm-muted mt-1">{ow.watchVideo}</span>
+            <span className="block text-[10px] text-bm-muted mt-1">
+              {canPlayVideo ? ow.watchVideo : ow.viewPhoto}
+            </span>
           </span>
         </button>
       )}
@@ -317,7 +342,7 @@ export function ServiceWorkVideo({ serviceId, className = "" }: InlineProps) {
 
   if (!works.length) return null;
 
-  const work = works[0];
+  const featured = works.find((w) => !w.imageOnly && w.videoSrc) ?? works[0];
 
   return (
     <section className={className} aria-labelledby="service-work-video-heading">
@@ -331,20 +356,20 @@ export function ServiceWorkVideo({ serviceId, className = "" }: InlineProps) {
       <div className="rounded-2xl overflow-hidden border border-bm-border/50 bg-bm-card/40">
         <div className="grid md:grid-cols-2 gap-0">
           <div className="bg-black">
-            <WorkVideoPlayer work={work} />
+            <WorkMedia work={featured} />
           </div>
           <div className="p-5 sm:p-6">
             <h3 className="font-display text-sm uppercase text-white mb-3">
-              {work.title[lang]}
+              {featured.title[lang]}
             </h3>
-            <WorkDescription text={work.description[lang]} />
+            <WorkDescription text={featured.description[lang]} />
             <div className="mt-4 flex flex-wrap gap-3">
               <Link href="/gallery?tab=works" className="btn-outline text-xs">
                 {ow.viewAllWorks}
               </Link>
-              {work.instagramUrl ? (
+              {featured.instagramUrl ? (
                 <Link
-                  href={work.instagramUrl}
+                  href={featured.instagramUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="btn-outline text-xs inline-flex items-center gap-1.5"
@@ -357,6 +382,31 @@ export function ServiceWorkVideo({ serviceId, className = "" }: InlineProps) {
           </div>
         </div>
       </div>
+      {works.length > 1 ? (
+        <div className="mt-5 grid grid-cols-2 sm:grid-cols-3 gap-3">
+          {works
+            .filter((w) => w.id !== featured.id)
+            .map((work) => (
+              <Link
+                key={work.id}
+                href="/gallery?tab=works"
+                className="relative aspect-[4/5] rounded-xl overflow-hidden border border-bm-border/40 hover:border-bm-red/40 transition-colors"
+              >
+                <Image
+                  src={work.posterSrc}
+                  alt={work.title[lang]}
+                  fill
+                  sizes="(max-width: 640px) 50vw, 200px"
+                  className="object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                <span className="absolute bottom-2 left-2 right-2 text-[10px] font-bold uppercase text-white line-clamp-2">
+                  {work.title[lang]}
+                </span>
+              </Link>
+            ))}
+        </div>
+      ) : null}
     </section>
   );
 }

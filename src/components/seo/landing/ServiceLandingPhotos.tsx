@@ -7,6 +7,41 @@ import { contentLocale } from "@/lib/i18n/locale-utils";
 import type { ServiceId } from "@/lib/services-catalog";
 import { getServiceLandingGalleryTags } from "@/lib/service-landing-content";
 import type { PublicGalleryItem } from "@/app/api/gallery/route";
+import {
+  AC_PROMO_HERO_SRC,
+  AC_PROMO_IMAGE_ALT,
+  AC_RECHARGE_BMW_POSTER_SRC,
+  AC_RECHARGE_LEXUS_ALT,
+  AC_RECHARGE_LEXUS_PHOTO_SRC,
+  AC_RECHARGE_STATION_ALT,
+  AC_REPAIR_WELD_PROMO_SRC,
+  AC_SERVICE_VIDEO_POSTER_SRC,
+} from "@/lib/ac-media";
+import {
+  ALTERNATOR_INSTALL_IMAGE_ALT,
+  ALTERNATOR_INSTALL_PHOTO_SRC,
+  ALTERNATOR_PARTS_IMAGE_ALT,
+  ALTERNATOR_PARTS_PHOTO_SRC,
+} from "@/lib/alternator-media";
+import {
+  BRAKE_PADS_CHANGE_IMAGE_ALT,
+  BRAKE_PADS_CHANGE_PHOTO_SRC,
+} from "@/lib/brake-media";
+import {
+  OIL_CHANGE_DRAIN_PHOTO_SRC,
+  OIL_CHANGE_DRAIN_POSTER_SRC,
+  OIL_CHANGE_IMAGE_ALT,
+} from "@/lib/oil-media";
+import {
+  RADIATOR_REPLACEMENT_IMAGE_ALT,
+  RADIATOR_REPLACEMENT_POSTER_SRC,
+  RADIATOR_WASH_IMAGE_ALT,
+  RADIATOR_WASH_POSTER_SRC,
+} from "@/lib/radiator-media";
+import {
+  TIRE_SERVICE_IMAGE_ALT,
+  TIRE_SERVICE_POSTER_SRC,
+} from "@/lib/tire-media";
 import { WORKSHOP_PHOTOS } from "@/lib/workshop-photos";
 import { Wrench, Camera } from "lucide-react";
 
@@ -40,30 +75,64 @@ const SERVICE_FALLBACK: Partial<
 > = {
   oil: [
     {
-      src: "/images/workshop/lift-bay.png",
+      src: OIL_CHANGE_DRAIN_POSTER_SRC,
+      alt: OIL_CHANGE_IMAGE_ALT,
+    },
+    {
+      src: OIL_CHANGE_DRAIN_PHOTO_SRC,
       alt: {
-        pl: "Wymiana oleju na podnośniku",
-        ru: "Замена масла на подъёмнике",
-        en: "Oil change on lift",
+        pl: "Wymiana oleju — spuszczanie na podnośniku BESS MOTORS",
+        ru: "Замена масла — слив на подъёмнике BESS MOTORS",
+        en: "Oil change — drain on lift at BESS MOTORS",
       },
     },
     {
-      src: "/images/workshop/workshop-hall.png",
+      src: "/images/workshop/lift-bay.png",
       alt: {
-        pl: "Serwis olejowy — warsztat BESS MOTORS",
-        ru: "Масляный сервис BESS MOTORS",
-        en: "Oil service workshop",
+        pl: "Stanowisko serwisowe na podnośniku",
+        ru: "Сервисная зона на подъёмнике",
+        en: "Lift bay service station",
       },
     },
   ],
   brakePads: [
     {
+      src: BRAKE_PADS_CHANGE_PHOTO_SRC,
+      alt: BRAKE_PADS_CHANGE_IMAGE_ALT,
+    },
+    {
       src: "/images/workshop/lift-bay.png",
       alt: {
-        pl: "Wymiana klocków i tarcz hamulcowych",
-        ru: "Замена тормозных колодок и дисков",
-        en: "Brake pads and discs service",
+        pl: "Stanowisko serwisowe — wymiana hamulców",
+        ru: "Сервисная зона — ремонт тормозов",
+        en: "Service bay — brake work",
       },
+    },
+  ],
+  brakesFull: [
+    {
+      src: BRAKE_PADS_CHANGE_PHOTO_SRC,
+      alt: BRAKE_PADS_CHANGE_IMAGE_ALT,
+    },
+  ],
+  starterGen: [
+    {
+      src: ALTERNATOR_INSTALL_PHOTO_SRC,
+      alt: ALTERNATOR_INSTALL_IMAGE_ALT,
+    },
+    {
+      src: ALTERNATOR_PARTS_PHOTO_SRC,
+      alt: ALTERNATOR_PARTS_IMAGE_ALT,
+    },
+  ],
+  electric: [
+    {
+      src: ALTERNATOR_INSTALL_PHOTO_SRC,
+      alt: ALTERNATOR_INSTALL_IMAGE_ALT,
+    },
+    {
+      src: ALTERNATOR_PARTS_PHOTO_SRC,
+      alt: ALTERNATOR_PARTS_IMAGE_ALT,
     },
   ],
   diagnostic: [
@@ -74,6 +143,100 @@ const SERVICE_FALLBACK: Partial<
         ru: "Компьютерная диагностика",
         en: "Computer diagnostics",
       },
+    },
+  ],
+  acRefill: [
+    {
+      src: RADIATOR_WASH_POSTER_SRC,
+      alt: RADIATOR_WASH_IMAGE_ALT,
+    },
+    {
+      src: RADIATOR_REPLACEMENT_POSTER_SRC,
+      alt: RADIATOR_REPLACEMENT_IMAGE_ALT,
+    },
+    {
+      src: AC_RECHARGE_BMW_POSTER_SRC,
+      alt: AC_RECHARGE_STATION_ALT,
+    },
+    {
+      src: AC_RECHARGE_LEXUS_PHOTO_SRC,
+      alt: AC_RECHARGE_LEXUS_ALT,
+    },
+    {
+      src: AC_REPAIR_WELD_PROMO_SRC,
+      alt: AC_PROMO_IMAGE_ALT,
+    },
+    {
+      src: AC_SERVICE_VIDEO_POSTER_SRC,
+      alt: {
+        pl: "Nabijanie klimatyzacji R134a i R1234yf — BESS MOTORS",
+        ru: "Заправка кондиционера R134a и R1234yf — BESS MOTORS",
+        en: "A/C recharge R134a and R1234yf — BESS MOTORS",
+      },
+    },
+  ],
+  acRepair: [
+    {
+      src: RADIATOR_WASH_POSTER_SRC,
+      alt: RADIATOR_WASH_IMAGE_ALT,
+    },
+    {
+      src: RADIATOR_REPLACEMENT_POSTER_SRC,
+      alt: RADIATOR_REPLACEMENT_IMAGE_ALT,
+    },
+    {
+      src: AC_RECHARGE_BMW_POSTER_SRC,
+      alt: AC_RECHARGE_STATION_ALT,
+    },
+    {
+      src: AC_RECHARGE_LEXUS_PHOTO_SRC,
+      alt: AC_RECHARGE_LEXUS_ALT,
+    },
+    {
+      src: AC_REPAIR_WELD_PROMO_SRC,
+      alt: AC_PROMO_IMAGE_ALT,
+    },
+    {
+      src: AC_SERVICE_VIDEO_POSTER_SRC,
+      alt: {
+        pl: "Serwis i naprawa klimatyzacji — BESS MOTORS",
+        ru: "Сервис и ремонт кондиционера — BESS MOTORS",
+        en: "A/C service and repair — BESS MOTORS",
+      },
+    },
+  ],
+  tires: [
+    {
+      src: TIRE_SERVICE_POSTER_SRC,
+      alt: TIRE_SERVICE_IMAGE_ALT,
+    },
+    {
+      src: "/images/workshop/lift-bay.png",
+      alt: {
+        pl: "Wymiana kół na podnośniku — BESS MOTORS",
+        ru: "Замена колёс на подъёмнике — BESS MOTORS",
+        en: "Wheel change on lift — BESS MOTORS",
+      },
+    },
+  ],
+  alignment: [
+    {
+      src: TIRE_SERVICE_POSTER_SRC,
+      alt: {
+        pl: "Geometria kół i wulkanizacja — BESS MOTORS",
+        ru: "Развал-схождение и шиномонтаж — BESS MOTORS",
+        en: "Wheel alignment and tire service — BESS MOTORS",
+      },
+    },
+  ],
+  radiators: [
+    {
+      src: RADIATOR_WASH_POSTER_SRC,
+      alt: RADIATOR_WASH_IMAGE_ALT,
+    },
+    {
+      src: RADIATOR_REPLACEMENT_POSTER_SRC,
+      alt: RADIATOR_REPLACEMENT_IMAGE_ALT,
     },
   ],
 };

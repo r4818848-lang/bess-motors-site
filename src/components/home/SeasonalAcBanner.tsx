@@ -4,13 +4,16 @@ import Link from "next/link";
 import Image from "next/image";
 import { Snowflake, ChevronRight, Wind } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
+import { AC_PROMO_HERO_SRC, AC_RECHARGE_STATION_ALT } from "@/lib/ac-media";
+import { contentLocale } from "@/lib/i18n/locale-utils";
 import { AcBookCtaButton } from "@/components/booking/AcBookingChoiceFlow";
 import { AcPromoPriceBadges } from "@/components/home/AcPromoPriceBadges";
 import { PhoneLink } from "@/components/analytics/PhoneLink";
 
 export function SeasonalAcBanner() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const s = t.seasonalAc;
+  const promoAlt = AC_RECHARGE_STATION_ALT[contentLocale(locale)];
 
   return (
     <section
@@ -61,8 +64,8 @@ export function SeasonalAcBanner() {
             className="hidden lg:block relative w-44 xl:w-52 aspect-[9/16] rounded-2xl overflow-hidden border border-bm-red/40 shadow-neon-sm hover:scale-[1.02] transition-transform"
           >
             <Image
-              src="/images/works/ac-service-cover.png"
-              alt={s.imageAlt}
+              src={AC_PROMO_HERO_SRC}
+              alt={promoAlt}
               fill
               sizes="208px"
               className="object-cover"

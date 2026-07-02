@@ -133,7 +133,7 @@ export function getEnvHealth(): { ok: boolean; checks: EnvCheck[] } {
     {
       id: "marketing_promo",
       ok: getPromoRules().length > 0,
-      hint: "NEXT_PUBLIC_PROMO_CODES=KLIM10:10 (optional summer promo)",
+      hint: "NEXT_PUBLIC_PROMO_CODES=BESSMOTORS:15 (default −15% labor+parts in code)",
     },
   ];
 

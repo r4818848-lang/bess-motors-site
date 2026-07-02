@@ -34,7 +34,20 @@ export async function sendPromoList(chatId: number, locale: BotLocale): Promise<
     await sendTelegramMessage(chatId, L.promoEmpty, { inline_keyboard: [clientBackMenuRow(locale)] });
     return;
   }
-  const lines = [L.promoTitle, "", ...rules.map((r) => `• <code>${r.code}</code> — −${r.percentOff}%`)];
+  const lines = [
+    L.promoTitle,
+    "",
+    ...rules.map((r) => {
+      const label = r.code === "BESSMOTORS" ? "BessMotors" : r.code;
+      return `• <code>${label}</code> — −${r.percentOff}%`;
+    }),
+    "",
+    locale === "ru"
+      ? "На работы и запчасти. Назовите код менеджеру. Кондиционер — отдельная акция −50%."
+      : locale === "en"
+        ? "Labor and parts. Tell the manager. A/C has a separate −50% promo."
+        : "Na robociznę i części. Podaj kod menedżerowi. Klima — osobna promocja −50%.",
+  ];
   await sendTelegramMessage(chatId, lines.join("\n"), { inline_keyboard: [clientBackMenuRow(locale)] });
 }
 

@@ -1146,7 +1146,11 @@ export const SERVICE_LANDING_GALLERY_TAGS: Partial<Record<ServiceId, string[]>> 
   suspension: ["zawies", "susp"],
   alignment: ["geomet", "zbież"],
   engine: ["silnik", "engine"],
-  acRefill: ["klim", "ac"],
+  acRefill: ["klim", "ac", "chłodnic", "radiator", "радиатор"],
+  acRepair: ["klim", "ac", "chłodnic", "radiator", "радиатор"],
+  radiators: ["chłodnic", "radiator", "klim", "радиатор"],
+  starterGen: ["alternator", "rozrusznik", "generat", "генератор"],
+  electric: ["elektr", "alternator", "rozrusznik", "генератор"],
 };
 
 export function getServiceLandingGalleryTags(

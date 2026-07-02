@@ -1,9 +1,37 @@
 import type { ServiceId } from "@/lib/services-catalog";
+import {
+  AC_RECHARGE_BMW_POSTER_SRC,
+  AC_RECHARGE_LEXUS_PHOTO_SRC,
+  AC_RECHARGE_VIDEO_SRC,
+  AC_REPAIR_WELD_PROMO_SRC,
+} from "@/lib/ac-media";
+import {
+  TIRE_SERVICE_POSTER_SRC,
+  TIRE_SERVICE_VIDEO_SRC,
+} from "@/lib/tire-media";
+import { BRAKE_PADS_CHANGE_PHOTO_SRC } from "@/lib/brake-media";
+import {
+  OIL_CHANGE_DRAIN_PHOTO_SRC,
+  OIL_CHANGE_DRAIN_POSTER_SRC,
+  OIL_CHANGE_VIDEO_SRC,
+} from "@/lib/oil-media";
+import {
+  ALTERNATOR_INSTALL_PHOTO_SRC,
+  ALTERNATOR_PARTS_PHOTO_SRC,
+} from "@/lib/alternator-media";
+import {
+  RADIATOR_REPLACEMENT_POSTER_SRC,
+  RADIATOR_REPLACEMENT_VIDEO_SRC,
+  RADIATOR_WASH_POSTER_SRC,
+  RADIATOR_WASH_VIDEO_SRC,
+} from "@/lib/radiator-media";
 
 export type OurWorkVideo = {
   id: string;
   serviceIds: ServiceId[];
-  videoSrc: string;
+  /** Photo-only case study (no video file) */
+  imageOnly?: boolean;
+  videoSrc?: string;
   posterSrc: string;
   title: { pl: string; ru: string; en: string };
   description: { pl: string; ru: string; en: string };
@@ -275,6 +303,220 @@ Save and follow — more real workshop repairs and useful content coming soon.`,
     },
   },
   {
+    id: "ac-repair-weld",
+    serviceIds: ["acRefill", "acRepair"],
+    imageOnly: true,
+    posterSrc: AC_REPAIR_WELD_PROMO_SRC,
+    title: {
+      pl: "Naprawa klimatyzacji — spawanie przewodu",
+      ru: "Ремонт кондиционера — сварка трубки",
+      en: "A/C repair — pipe welding",
+    },
+    description: {
+      pl: `NAPRAWA KLIMATYZACJI — zaspawaliśmy przewód z dziurą!
+
+W BESS MOTORS naprawiamy nie tylko nieszczelności — przywracamy pełną sprawność układu klimatyzacji bez kosztownej wymiany całego przewodu.
+
+✅ Spawanie przewodów klimatyzacji
+✅ Pełna szczelność układu
+✅ Skuteczne chłodzenie po naprawie
+✅ Kontrola ciśnienia i próżnia
+✅ Nabijanie R134a i R1234yf
+
+Klimatyzacja działa jak nowa — gwarancja na usługę, doświadczenie i uczciwe ceny.
+
+📍 BESS MOTORS
+Aleja Krakowska 48/52, Warszawa
+📞 +48 791 257 229
+
+Umów diagnostykę lub naprawę klimatyzacji online! ❄️`,
+      ru: `РЕМОНТ КОНДИЦИОНЕРА — заварили трубку с дырой!
+
+В BESS MOTORS мы не только заправляем кондиционер — устраняем утечки и восстанавливаем герметичность без дорогой замены всей трубки.
+
+✅ Сварка трубок кондиционера
+✅ Полная герметичность системы
+✅ Эффективное охлаждение после ремонта
+✅ Контроль давления и вакуум
+✅ Заправка R134a и R1234yf
+
+Кондиционер работает как новый — гарантия на работу, опыт и честные цены.
+
+📍 BESS MOTORS
+Aleja Krakowska 48/52, Warszawa
+📞 +48 791 257 229
+
+Запишитесь на диагностику или ремонт кондиционера онлайн! ❄️`,
+      en: `A/C REPAIR — we welded a pipe with a hole!
+
+At BESS MOTORS we fix leaks and restore full system tightness without replacing the entire line.
+
+✅ A/C line welding
+✅ Full system leak-tightness
+✅ Effective cooling after repair
+✅ Pressure check and vacuum
+✅ R134a and R1234yf recharge
+
+Your A/C works like new — service guarantee, experience and fair pricing.
+
+📍 BESS MOTORS
+Aleja Krakowska 48/52, Warsaw
+📞 +48 791 257 229
+
+Book A/C diagnostics or repair online! ❄️`,
+    },
+  },
+  {
+    id: "ac-recharge-viaken",
+    serviceIds: ["acRefill", "acRepair"],
+    videoSrc: AC_RECHARGE_VIDEO_SRC,
+    posterSrc: AC_RECHARGE_BMW_POSTER_SRC,
+    title: {
+      pl: "Nabijanie klimatyzacji — stacja Viaken",
+      ru: "Заправка кондиционера — станция Viaken",
+      en: "A/C recharge — Viaken station",
+    },
+    description: {
+      pl: `Profesjonalne nabijanie klimatyzacji na nowoczesnej stacji Viaken.
+
+W BESS MOTORS podłączamy układ klimatyzacji do automatycznej stacji serwisowej — próżnia, kontrola szczelności i precyzyjne dozowanie czynnika R134a lub R1234yf.
+
+✅ Podłączenie i próżniowanie układu
+✅ Nabijanie R134a i R1234yf
+✅ Kontrola ciśnienia i szczelności
+✅ Uzupełnienie oleju i barwnika UV
+✅ Diagnostyka przed i po serwisie
+
+🔥 PROMOCJA −50%: podłączenie 80 zł, R134a 60 zł/100 g, R1234yf 80 zł/100 g
+
+📍 BESS MOTORS
+Aleja Krakowska 48/52, Warszawa
+📞 +48 791 257 229
+
+Umów nabijanie klimatyzacji online! ❄️`,
+      ru: `Профессиональная заправка кондиционера на современной станции Viaken.
+
+В BESS MOTORS подключаем систему к автоматической сервисной станции — вакуум, проверка герметичности и точная дозировка фреона R134a или R1234yf.
+
+✅ Подключение и вакуумирование
+✅ Заправка R134a и R1234yf
+✅ Контроль давления и герметичности
+✅ Долив масла и UV-красителя
+✅ Диагностика до и после сервиса
+
+🔥 АКЦИЯ −50%: подключение 80 zł, R134a 60 zł/100 г, R1234yf 80 zł/100 г
+
+📍 BESS MOTORS
+Aleja Krakowska 48/52, Warszawa
+📞 +48 791 257 229
+
+Запишитесь на заправку кондиционера онлайн! ❄️`,
+      en: `Professional A/C recharge on a modern Viaken service station.
+
+At BESS MOTORS we connect the system to an automated station — vacuum, leak check and precise R134a or R1234yf dosing.
+
+✅ Hook-up and vacuum
+✅ R134a and R1234yf refill
+✅ Pressure and leak check
+✅ Oil and UV dye top-up
+✅ Diagnostics before and after service
+
+🔥 −50% PROMO: hook-up 80 PLN, R134a 60 PLN/100g, R1234yf 80 PLN/100g
+
+📍 BESS MOTORS
+Aleja Krakowska 48/52, Warsaw
+📞 +48 791 257 229
+
+Book your A/C recharge online! ❄️`,
+    },
+  },
+  {
+    id: "ac-recharge-bmw",
+    serviceIds: ["acRefill", "acRepair"],
+    imageOnly: true,
+    posterSrc: AC_RECHARGE_BMW_POSTER_SRC,
+    title: {
+      pl: "Nabijanie klimy — BMW na stacji Viaken",
+      ru: "Заправка кондиционера BMW — Viaken",
+      en: "BMW A/C recharge — Viaken",
+    },
+    description: {
+      pl: `Kolejna klimatyzacja zrobiona na naszej stacji Viaken.
+
+Pod maską BMW — pełny serwis układu: podłączenie, próżnia i nabijanie czynnikiem. Stacja robi pomiary automatycznie, a my kontrolujemy szczelność i skuteczność chłodzenia.
+
+✅ Obsługa aut osobowych i SUV
+✅ R134a i R1234yf
+✅ Olej i barwnik UV w razie potrzeby
+
+📍 BESS MOTORS · Aleja Krakowska 48/52, Warszawa
+📞 +48 791 257 229`,
+      ru: `Ещё одна заправка кондиционера на нашей станции Viaken.
+
+BMW на подъёмнике — полный сервис: подключение, вакуум и заправка фреоном. Станция считает объём автоматически, мы проверяем герметичность и эффективность охлаждения.
+
+✅ Легковые и SUV
+✅ R134a и R1234yf
+✅ Масло и UV-краситель при необходимости
+
+📍 BESS MOTORS · Aleja Krakowska 48/52, Warszawa
+📞 +48 791 257 229`,
+      en: `Another A/C job on our Viaken station.
+
+BMW in the bay — full service: hook-up, vacuum and refrigerant refill. The station measures automatically; we verify leaks and cooling performance.
+
+✅ Passenger cars and SUVs
+✅ R134a and R1234yf
+✅ Oil and UV dye when needed
+
+📍 BESS MOTORS · Aleja Krakowska 48/52, Warsaw
+📞 +48 791 257 229`,
+    },
+  },
+  {
+    id: "ac-recharge-lexus",
+    serviceIds: ["acRefill", "acRepair"],
+    imageOnly: true,
+    posterSrc: AC_RECHARGE_LEXUS_PHOTO_SRC,
+    title: {
+      pl: "Serwis klimatyzacji Lexus",
+      ru: "Сервис кондиционера Lexus",
+      en: "Lexus A/C service",
+    },
+    description: {
+      pl: `Lexus na stacji Viaken — nabijanie i diagnostyka klimatyzacji.
+
+Nowoczesne auta wymagają precyzyjnego serwisu: prawidłowa ilość czynnika, kontrola szczelności i sprawna sprężarka. W BESS MOTORS robimy to zgodnie ze specyfikacją producenta.
+
+✅ Stacja Viaken — automatyczne dawkowanie
+✅ R1234yf i R134a
+✅ Kontrola po serwisie
+
+📍 BESS MOTORS · Aleja Krakowska 48/52, Warszawa
+📞 +48 791 257 229`,
+      ru: `Lexus на станции Viaken — заправка и диагностика кондиционера.
+
+Современным авто нужен точный сервис: правильный объём фреона, герметичность и исправный компрессор. В BESS MOTORS работаем по спецификации производителя.
+
+✅ Станция Viaken — автоматическая дозировка
+✅ R1234yf и R134a
+✅ Контроль после сервиса
+
+📍 BESS MOTORS · Aleja Krakowska 48/52, Warszawa
+📞 +48 791 257 229`,
+      en: `Lexus on the Viaken station — A/C refill and diagnostics.
+
+Modern cars need precise service: correct refrigerant amount, leak-tightness and a healthy compressor. At BESS MOTORS we follow manufacturer specs.
+
+✅ Viaken station — automatic dosing
+✅ R1234yf and R134a
+✅ Post-service check
+
+📍 BESS MOTORS · Aleja Krakowska 48/52, Warsaw
+📞 +48 791 257 229`,
+    },
+  },
+  {
     id: "ac-service",
     serviceIds: ["acRefill", "acRepair"],
     videoSrc: "/videos/works/ac-service.mov",
@@ -285,13 +527,15 @@ Save and follow — more real workshop repairs and useful content coming soon.`,
       en: "AC recharge",
     },
     description: {
-      pl: `Lato już się zaczęło — to najlepszy moment, żeby sprawdzić klimatyzację i uzupełnić czynnik przed upałami.
+      pl: `🔥 LETNIA PROMOCJA −50% NA KLIMATYZACJĘ!
 
-💰 Podłączenie 80 zł · freon R134a 60 zł/100 g
+💰 Podłączenie układu (próżnia) — 80 zł zamiast 160 zł
+💰 Freon R134a — 60 zł/100 g zamiast 120 zł
+💰 Nowy freon R1234yf — 80 zł/100 g zamiast 160 zł
 
 W BESS MOTORS wykonujemy:
 
-✅ Nabijanie klimatyzacji R134a
+✅ Nabijanie klimatyzacji R134a i R1234yf
 ✅ Próżniowanie układu
 ✅ Kontrolę szczelności
 ✅ Uzupełnienie oleju i barwnika w razie potrzeby
@@ -306,13 +550,16 @@ Aleja Krakowska 48/52, Warszawa
 📞 +48 791 257 229
 
 Zapisz się wcześniej i wita lato w komforcie! ❄️☀️`,
-      ru: `Лето уже началось, а значит самое время проверить систему кондиционирования и заправить её перед жаркими днями.
+      ru: `🔥 ЛЕТНЯЯ АКЦИЯ −50% НА ЗАПРАВКУ КОНДИЦИОНЕРА!
 
-💰 Подключение 80 zł · фреон R134a 60 zł/100 г
+Вместо полной цены — скидка −50%:
+💰 Подключение системы (вакуум) — 80 zł вместо 160 zł
+💰 Фреон R134a — 60 zł/100 г вместо 120 zł
+💰 Новый фреон R1234yf — 80 zł/100 г вместо 160 zł
 
 В BESS MOTORS выполняем:
 
-✅ Заправку кондиционеров R134a
+✅ Заправку кондиционеров R134a и R1234yf
 ✅ Вакуумирование системы
 ✅ Проверку герметичности
 ✅ Долив масла и красителя при необходимости
@@ -327,11 +574,16 @@ Aleja Krakowska 48/52, Warszawa
 📞 +48 791 257 229
 
 Запишитесь заранее и встречайте лето с комфортом! ❄️☀️`,
-      en: `Summer is here — the right time to check your A/C and recharge before the heat.
+      en: `🔥 SUMMER −50% A/C PROMO!
+
+−50% off full price:
+💰 System hook-up (vacuum) — 80 PLN instead of 160
+💰 R134a refrigerant — 60 PLN/100g instead of 120
+💰 New R1234yf refrigerant — 80 PLN/100g instead of 160
 
 At BESS MOTORS we offer:
 
-✅ R134a refrigerant recharge
+✅ R134a and R1234yf refrigerant recharge
 ✅ System vacuum
 ✅ Leak check
 ✅ Oil and dye top-up when needed
@@ -350,6 +602,455 @@ Book ahead and enjoy summer in comfort! ❄️☀️`,
     instagramShortcode: "DZ8LHh8KZXS",
     instagramUrl:
       "https://www.instagram.com/reel/DZ8LHh8KZXS/?utm_source=ig_web_copy_link",
+  },
+  {
+    id: "oil-change",
+    serviceIds: ["oil", "filters"],
+    videoSrc: OIL_CHANGE_VIDEO_SRC,
+    posterSrc: OIL_CHANGE_DRAIN_POSTER_SRC,
+    title: {
+      pl: "Wymiana oleju silnikowego",
+      ru: "Замена моторного масла",
+      en: "Engine oil change",
+    },
+    description: {
+      pl: `Wymiana oleju to podstawa długiej żywotności silnika.
+
+W BESS MOTORS wykonujemy pełny serwis olejowy — nie tylko wlewanie nowego oleju:
+
+✅ Spuszczenie starego oleju z podnośnika
+✅ Wymiana filtra oleju
+✅ Zalanie olejem według specyfikacji producenta (VIN)
+✅ Kontrola poziomu i szczelności
+✅ Naklejka serwisowa z datą i przebiegiem
+
+Oleje Castrol, Motul, Shell, Liqui Moly — dobieramy normę pod Twój silnik.
+
+📍 BESS MOTORS
+Aleja Krakowska 48/52, Warszawa
+📞 +48 791 257 229
+
+Umów wymianę oleju online — zwykle gotowe w ok. 1 godzinę! 🛢️`,
+      ru: `Замена масла — основа долгой жизни двигателя.
+
+В BESS MOTORS делаем полный масляный сервис, а не просто заливку:
+
+✅ Слив старого масла на подъёмнике
+✅ Замена масляного фильтра
+✅ Залив масла по спецификации производителя (VIN)
+✅ Контроль уровня и герметичности
+✅ Наклейка о прохождении ТО с датой и пробегом
+
+Масла Castrol, Motul, Shell, Liqui Moly — подбираем норму под ваш двигатель.
+
+📍 BESS MOTORS
+Aleja Krakowska 48/52, Warszawa
+📞 +48 791 257 229
+
+Запишитесь на замену масла онлайн — обычно готово за ~1 час! 🛢️`,
+      en: `Oil change is the foundation of a long-lasting engine.
+
+At BESS MOTORS we do a full oil service — not just topping up:
+
+✅ Draining old oil on the lift
+✅ New oil filter
+✅ Refill to manufacturer spec (VIN)
+✅ Level and leak check
+✅ Service sticker with date and mileage
+
+Castrol, Motul, Shell, Liqui Moly — we match the right spec for your engine.
+
+📍 BESS MOTORS
+Aleja Krakowska 48/52, Warsaw
+📞 +48 791 257 229
+
+Book your oil change online — usually done in about 1 hour! 🛢️`,
+    },
+  },
+  {
+    id: "oil-drain-photo",
+    serviceIds: ["oil", "filters"],
+    imageOnly: true,
+    posterSrc: OIL_CHANGE_DRAIN_PHOTO_SRC,
+    title: {
+      pl: "Spuszczanie oleju — warsztat BESS MOTORS",
+      ru: "Слив масла — сервис BESS MOTORS",
+      en: "Oil drain — BESS MOTORS workshop",
+    },
+    description: {
+      pl: `Zobacz, jak wygląda profesjonalna wymiana oleju w naszym warsztacie.
+
+Auto na podnośniku, pełne spuszczenie starego oleju, czysta praca i sprawdzone procedury — tak dbamy o silnik każdego klienta.
+
+✅ Podnośnik i bezpieczny dostęp do miski olejowej
+✅ Kompletny zlew starego oleju
+✅ Wymiana filtra i zalanie świeżym olejem
+✅ Kontrola po serwisie
+
+📍 BESS MOTORS · Aleja Krakowska 48/52, Warszawa
+📞 +48 791 257 229`,
+      ru: `Посмотрите, как проходит профессиональная замена масла в нашем сервисе.
+
+Авто на подъёмнике, полный слив старого масла, аккуратная работа и проверенные процедуры — так мы заботимся о двигателе каждого клиента.
+
+✅ Подъёмник и безопасный доступ к поддону
+✅ Полный слив отработки
+✅ Замена фильтра и залив свежего масла
+✅ Контроль после обслуживания
+
+📍 BESS MOTORS · Aleja Krakowska 48/52, Warszawa
+📞 +48 791 257 229`,
+      en: `See how a professional oil change looks in our workshop.
+
+Car on the lift, full drain of old oil, clean work and proven procedures — that's how we care for every customer's engine.
+
+✅ Lift access to the oil pan
+✅ Complete old oil drain
+✅ Filter replacement and fresh oil refill
+✅ Post-service check
+
+📍 BESS MOTORS · Aleja Krakowska 48/52, Warsaw
+📞 +48 791 257 229`,
+    },
+  },
+  {
+    id: "tire-service",
+    serviceIds: ["tires", "alignment"],
+    videoSrc: TIRE_SERVICE_VIDEO_SRC,
+    posterSrc: TIRE_SERVICE_POSTER_SRC,
+    title: {
+      pl: "Wulkanizacja i wyważanie opon",
+      ru: "Шиномонтаж и балансировка",
+      en: "Tire mounting and balancing",
+    },
+    description: {
+      pl: `Sezonowa wymiana opon w BESS MOTORS — szybko i bez kolejek.
+
+Profesjonalny montaż, wyważanie kół i kontrola ciśnienia. Obsługujemy auta osobowe i SUV, w tym opony RunFlat.
+
+✅ Wymiana kół / montaż opon
+✅ Wyważanie na nowoczesnej maszynie
+✅ Naprawa opony (wkręt, przebicie)
+✅ Sezonowe przechowanie opon
+✅ Geometria kół (zbieżność)
+
+Zimówka czy lato — umów termin online i przyjedź bez czekania.
+
+📍 BESS MOTORS
+Aleja Krakowska 48/52, Warszawa
+📞 +48 791 257 229
+
+Zadbaj o bezpieczeństwo na drodze! 🛞`,
+      ru: `Сезонная замена шин в BESS MOTORS — быстро и без очередей.
+
+Профессиональный монтаж, балансировка колёс и проверка давления. Обслуживаем легковые авто и SUV, в том числе RunFlat.
+
+✅ Замена колёс / монтаж шин
+✅ Балансировка на современном станке
+✅ Ремонт шины (гвоздь, прокол)
+✅ Сезонное хранение шин
+✅ Развал-схождение
+
+Зима или лето — запишитесь онлайн и приезжайте без ожидания.
+
+📍 BESS MOTORS
+Aleja Krakowska 48/52, Warszawa
+📞 +48 791 257 229
+
+Безопасность на дороге начинается с шин! 🛞`,
+      en: `Seasonal tire change at BESS MOTORS — fast, no long queues.
+
+Professional mounting, wheel balancing and pressure check. We service passenger cars and SUVs, including RunFlat tires.
+
+✅ Wheel / tire change
+✅ Balancing on modern equipment
+✅ Tire repair (nail, puncture)
+✅ Seasonal tire storage
+✅ Wheel alignment
+
+Winter or summer — book online and skip the wait.
+
+📍 BESS MOTORS
+Aleja Krakowska 48/52, Warsaw
+📞 +48 791 257 229
+
+Stay safe on the road! 🛞`,
+    },
+  },
+  {
+    id: "brake-pads-change",
+    serviceIds: ["brakePads", "brakesFull"],
+    imageOnly: true,
+    posterSrc: BRAKE_PADS_CHANGE_PHOTO_SRC,
+    title: {
+      pl: "Wymiana klocków hamulcowych",
+      ru: "Замена тормозных колодок",
+      en: "Brake pad replacement",
+    },
+    description: {
+      pl: `Bezpieczne hamowanie zaczyna się od sprawnych klocków.
+
+W BESS MOTORS wymieniamy klocki hamulcowe na jakościowe części (m.in. Delphi) — z pomiarem tarcz, kontrolą zacisków i jazdą testową po serwisie.
+
+✅ Wymiana klocków przód / tył
+✅ Pomiar grubości tarcz
+✅ Kontrola zacisków i przewodów
+✅ Jazda testowa po naprawie
+✅ Przejrzysta wycena przed montażem
+
+Klocki na jedną oś od 120 zł — umów wizytę online.
+
+📍 BESS MOTORS
+Aleja Krakowska 48/52, Warszawa
+📞 +48 791 257 229
+
+Hamuj pewnie — zadbaj o bezpieczeństwo! 🛑`,
+      ru: `Безопасное торможение начинается с исправных колодок.
+
+В BESS MOTORS меняем тормозные колодки на качественные детали (в т.ч. Delphi) — с замером дисков, проверкой суппортов и тест-драйвом после работ.
+
+✅ Замена колодок перед / зад
+✅ Замер толщины дисков
+✅ Проверка суппортов и шлангов
+✅ Тест-драйв после ремонта
+✅ Прозрачная смета до начала работ
+
+Колодки на одну ось от 120 zł — запишитесь онлайн.
+
+📍 BESS MOTORS
+Aleja Krakowska 48/52, Warszawa
+📞 +48 791 257 229
+
+Тормозите уверенно — заботьтесь о безопасности! 🛑`,
+      en: `Safe braking starts with healthy brake pads.
+
+At BESS MOTORS we fit quality pads (including Delphi) — measure discs, check calipers and take a test drive after service.
+
+✅ Front / rear pad replacement
+✅ Disc thickness measurement
+✅ Caliper and hose inspection
+✅ Post-service test drive
+✅ Clear quote before work starts
+
+Pads per axle from 120 zł — book online.
+
+📍 BESS MOTORS
+Aleja Krakowska 48/52, Warsaw
+📞 +48 791 257 229
+
+Brake with confidence! 🛑`,
+    },
+  },
+  {
+    id: "alternator-replacement",
+    serviceIds: ["starterGen", "electric"],
+    imageOnly: true,
+    posterSrc: ALTERNATOR_INSTALL_PHOTO_SRC,
+    title: {
+      pl: "Wymiana alternatora",
+      ru: "Замена генератора",
+      en: "Alternator replacement",
+    },
+    description: {
+      pl: `Słaba ładowanie, kontrolka akumulatora lub światła gasnące przy niskich obrotach? Często winny jest alternator.
+
+W BESS MOTORS diagnozujemy układ ładowania i wymieniamy alternator na sprawdzone części (m.in. Bosch) — z montażem pasów, kontrolą napięcia i testem po naprawie.
+
+✅ Diagnostyka ładowania i akumulatora
+✅ Wymiana alternatora
+✅ Montaż i regulacja pasa napędowego
+✅ Kontrola napięcia po serwisie
+✅ Naprawa od 450 zł — wycena po diagnozie
+
+📍 BESS MOTORS
+Aleja Krakowska 48/52, Warszawa
+📞 +48 791 257 229
+
+Przywróć pewne ładowanie — umów wizytę online! ⚡`,
+      ru: `Слабая зарядка, лампочка АКБ или меркнущий свет на холостых? Часто виноват генератор.
+
+В BESS MOTORS диагностируем систему зарядки и меняем генератор на проверенные детали (в т.ч. Bosch) — с установкой ремней, контролем напряжения и тестом после ремонта.
+
+✅ Диагностика зарядки и аккумулятора
+✅ Замена генератора
+✅ Установка и регулировка приводного ремня
+✅ Контроль напряжения после сервиса
+✅ Ремонт от 450 zł — смета после диагностики
+
+📍 BESS MOTORS
+Aleja Krakowska 48/52, Warszawa
+📞 +48 791 257 229
+
+Верните уверенную зарядку — запишитесь онлайн! ⚡`,
+      en: `Weak charging, battery warning light or dim lights at idle? Often the alternator is at fault.
+
+At BESS MOTORS we diagnose the charging system and fit quality alternators (including Bosch) — belt setup, voltage check and post-repair test.
+
+✅ Charging and battery diagnostics
+✅ Alternator replacement
+✅ Drive belt installation and tension
+✅ Voltage check after service
+✅ Repair from 450 zł — quote after diagnosis
+
+📍 BESS MOTORS
+Aleja Krakowska 48/52, Warsaw
+📞 +48 791 257 229
+
+Restore reliable charging — book online! ⚡`,
+    },
+  },
+  {
+    id: "alternator-parts",
+    serviceIds: ["starterGen", "electric"],
+    imageOnly: true,
+    posterSrc: ALTERNATOR_PARTS_PHOTO_SRC,
+    title: {
+      pl: "Alternator Bosch — części do montażu",
+      ru: "Генератор Bosch — детали для установки",
+      en: "Bosch alternator — parts ready to fit",
+    },
+    description: {
+      pl: `Przed montażem pokazujemy nowy alternator i komplet elementów montażowych — przejrzyście i bez niespodzianek.
+
+✅ Sprawdzone części OEM/OES
+✅ Komplet śrub i węży do montażu
+✅ Wycena przed rozpoczęciem pracy
+
+📍 BESS MOTORS · Aleja Krakowska 48/52, Warszawa
+📞 +48 791 257 229`,
+      ru: `Перед установкой показываем новый генератор и комплект крепежа — прозрачно и без сюрпризов.
+
+✅ Проверенные детали OEM/OES
+✅ Комплект болтов и шлангов
+✅ Смета до начала работ
+
+📍 BESS MOTORS · Aleja Krakowska 48/52, Warszawa
+📞 +48 791 257 229`,
+      en: `Before fitting we show the new alternator and mounting hardware — clear and no surprises.
+
+✅ Proven OEM/OES parts
+✅ Full bolt and hose kit
+✅ Quote before work starts
+
+📍 BESS MOTORS · Aleja Krakowska 48/52, Warsaw
+📞 +48 791 257 229`,
+    },
+  },
+  {
+    id: "radiator-wash",
+    serviceIds: ["radiators", "acRefill", "acRepair"],
+    videoSrc: RADIATOR_WASH_VIDEO_SRC,
+    posterSrc: RADIATOR_WASH_POSTER_SRC,
+    title: {
+      pl: "Mycie chłodnicy klimatyzacji",
+      ru: "Мойка радиатора кондиционера",
+      en: "A/C condenser cleaning",
+    },
+    description: {
+      pl: `Zanieczyszczona chłodnica to słabsze chłodzenie i większe obciążenie sprężarki.
+
+W BESS MOTORS myjemy chłodnicę klimatyzacji i układu chłodzenia — usuwamy kurz, owady i osady, żeby układ znów pracował wydajnie.
+
+✅ Mycie chłodnicy klimatyzacji
+✅ Czyszczenie wnęki pod maską
+✅ Kontrola przepływu powietrza
+✅ Diagnostyka przed i po serwisie
+✅ Nabijanie R134a i R1234yf po naprawie
+
+📍 BESS MOTORS
+Aleja Krakowska 48/52, Warszawa
+📞 +48 791 257 229
+
+Umów mycie chłodnicy i serwis klimatyzacji online! ❄️`,
+      ru: `Загрязнённый радиатор — слабое охлаждение и лишняя нагрузка на компрессор.
+
+В BESS MOTORS моем радиатор кондиционера и системы охлаждения — убираем пыль, насекомых и отложения, чтобы система снова работала эффективно.
+
+✅ Мойка радиатора кондиционера
+✅ Очистка подкапотного пространства
+✅ Контроль обдува
+✅ Диагностика до и после сервиса
+✅ Заправка R134a и R1234yf после ремонта
+
+📍 BESS MOTORS
+Aleja Krakowska 48/52, Warszawa
+📞 +48 791 257 229
+
+Запишитесь на мойку радиатора и сервис кондиционера онлайн! ❄️`,
+      en: `A clogged condenser means weaker cooling and extra load on the compressor.
+
+At BESS MOTORS we clean the A/C condenser and cooling radiator — removing dust, insects and debris so the system works efficiently again.
+
+✅ A/C condenser cleaning
+✅ Engine bay cleanup
+✅ Airflow check
+✅ Diagnostics before and after service
+✅ R134a and R1234yf recharge after repair
+
+📍 BESS MOTORS
+Aleja Krakowska 48/52, Warsaw
+📞 +48 791 257 229
+
+Book condenser cleaning and A/C service online! ❄️`,
+    },
+  },
+  {
+    id: "radiator-replacement",
+    serviceIds: ["radiators", "acRefill", "acRepair"],
+    videoSrc: RADIATOR_REPLACEMENT_VIDEO_SRC,
+    posterSrc: RADIATOR_REPLACEMENT_POSTER_SRC,
+    title: {
+      pl: "Wymiana chłodnicy klimatyzacji",
+      ru: "Замена радиатора кондиционера",
+      en: "A/C condenser replacement",
+    },
+    description: {
+      pl: `Przebita lub nieszczelna chłodnica? Wymiana to szybki powrót do skutecznego chłodzenia.
+
+W BESS MOTORS wymieniamy chłodnicę klimatyzacji — od demontażu starej części, przez próżniowanie układu, po nabijanie czynnikiem i kontrolę szczelności.
+
+✅ Wymiana chłodnicy klimatyzacji
+✅ Próżnia i kontrola szczelności
+✅ Nabijanie R134a i R1234yf
+✅ Test skuteczności chłodzenia
+✅ Wymiana od 350 zł — wycena po diagnozie
+
+📍 BESS MOTORS
+Aleja Krakowska 48/52, Warszawa
+📞 +48 791 257 229
+
+Przywróć moc klimatyzacji — umów wizytę online! ❄️`,
+      ru: `Пробитый или негерметичный радиатор? Замена — быстрый возврат эффективного охлаждения.
+
+В BESS MOTORS меняем радиатор кондиционера — от демонтажа старой детали до вакуумирования, заправки фреоном и проверки герметичности.
+
+✅ Замена радиатора кондиционера
+✅ Вакуум и контроль герметичности
+✅ Заправка R134a и R1234yf
+✅ Тест эффективности охлаждения
+✅ Замена от 350 zł — смета после диагностики
+
+📍 BESS MOTORS
+Aleja Krakowska 48/52, Warszawa
+📞 +48 791 257 229
+
+Верните мощность кондиционера — запишитесь онлайн! ❄️`,
+      en: `A punctured or leaking condenser? Replacement restores effective cooling quickly.
+
+At BESS MOTORS we replace A/C condensers — from removing the old unit through vacuum, refrigerant recharge and leak testing.
+
+✅ A/C condenser replacement
+✅ Vacuum and leak check
+✅ R134a and R1234yf recharge
+✅ Cooling performance test
+✅ Replacement from 350 zł — quote after diagnosis
+
+📍 BESS MOTORS
+Aleja Krakowska 48/52, Warsaw
+📞 +48 791 257 229
+
+Restore your A/C — book online! ❄️`,
+    },
   },
 ];
 

@@ -1,6 +1,15 @@
-/** Promocodes from env only — no JSON files. NEXT_PUBLIC_PROMO_CODES=WIOSNA10:10,OLEJ5:5 */
+/** Site-wide promo — labor + parts. AC −50% promo is separate (ac-recharge-promo-seo). */
 
 export type PromoRule = { code: string; percentOff: number };
+
+export const SITE_PROMO_CODE = "BESSMOTORS";
+export const SITE_PROMO_DISPLAY = "BessMotors";
+export const SITE_PROMO_PERCENT = 15;
+
+const DEFAULT_SITE_PROMO: PromoRule = {
+  code: SITE_PROMO_CODE,
+  percentOff: SITE_PROMO_PERCENT,
+};
 
 function parsePromos(): PromoRule[] {
   const raw =
@@ -20,7 +29,9 @@ function parsePromos(): PromoRule[] {
 }
 
 export function getPromoRules(): PromoRule[] {
-  return parsePromos();
+  const fromEnv = parsePromos();
+  if (fromEnv.length) return fromEnv;
+  return [DEFAULT_SITE_PROMO];
 }
 
 export function matchPromoCode(input: string): PromoRule | null {
