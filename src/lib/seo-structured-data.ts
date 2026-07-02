@@ -79,7 +79,7 @@ export function blogPostingSchema(post: BlogPost) {
 export function servicesItemListSchema() {
   const siteUrl = getSiteUrl();
   const items = [
-    { name: "PROMOCJA −50% — nabijanie klimatyzacji R134a / R1234yf od 140 zł", path: "/klimatyzacja" },
+    { name: "PROMOCJA −50% — nabijanie klimatyzacji R134a / R1234yf od 130 zł", path: "/klimatyzacja" },
     { name: "Wymiana oleju", path: "/wymiana-oleju" },
     { name: "Wulkanizacja", path: "/opony" },
     { name: "Serwis hamulców", path: "/hamulce" },

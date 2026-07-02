@@ -8,8 +8,8 @@ import {
 /** Strikethrough “was” prices — summer promo −50% */
 export const AC_PROMO_DISCOUNT_PERCENT = 50;
 export const AC_HOOKUP_PROMO_OLD_PLN = 160;
-export const AC_R134A_PROMO_OLD_PLN = 120;
-export const AC_R1234YF_PROMO_OLD_PLN = 160;
+export const AC_R134A_PROMO_OLD_PLN = 100;
+export const AC_R1234YF_PROMO_OLD_PLN = 100;
 
 function acRefrigerantPromoLinePl(): string {
   return `R134a ${acR134aPer100gPln()} zł/100 g (było ${AC_R134A_PROMO_OLD_PLN} zł) · R1234yf ${acR1234yfPer100gPln()} zł/100 g (było ${AC_R1234YF_PROMO_OLD_PLN} zł)`;

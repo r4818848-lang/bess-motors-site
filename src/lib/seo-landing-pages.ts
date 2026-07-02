@@ -307,7 +307,7 @@ export const seoLandingPages: SeoLandingPage[] = [
     title: "Serwis klimatyzacji",
     line1: acPromoHeroLinePl(),
     line2: "Napełnianie R134a, R1234yf i odgrzybianie — promocja −50%",
-    metaTitle: "Promocja −50% serwisu klimatyzacji Warszawa — od 140 zł",
+    metaTitle: "Promocja −50% serwisu klimatyzacji Warszawa — od 130 zł",
     metaDescription: acPromoMetaDescriptionPl(),
     serviceId: "acRefill",
     icon: "Settings",

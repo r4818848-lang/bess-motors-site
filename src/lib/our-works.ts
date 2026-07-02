@@ -387,7 +387,7 @@ W BESS MOTORS podłączamy układ klimatyzacji do automatycznej stacji serwisowe
 ✅ Uzupełnienie oleju i barwnika UV
 ✅ Diagnostyka przed i po serwisie
 
-🔥 PROMOCJA −50%: podłączenie 80 zł, R134a 60 zł/100 g, R1234yf 80 zł/100 g
+🔥 PROMOCJA −50%: podłączenie 80 zł, gaz certyfikowany 50 zł/100 g (R134a i R1234yf)
 
 📍 BESS MOTORS
 Aleja Krakowska 48/52, Warszawa
@@ -404,7 +404,7 @@ Umów nabijanie klimatyzacji online! ❄️`,
 ✅ Долив масла и UV-красителя
 ✅ Диагностика до и после сервиса
 
-🔥 АКЦИЯ −50%: подключение 80 zł, R134a 60 zł/100 г, R1234yf 80 zł/100 г
+🔥 АКЦИЯ −50%: подключение 80 zł, сертифицированный газ 50 zł/100 г (R134a и R1234yf)
 
 📍 BESS MOTORS
 Aleja Krakowska 48/52, Warszawa
@@ -421,7 +421,7 @@ At BESS MOTORS we connect the system to an automated station — vacuum, leak ch
 ✅ Oil and UV dye top-up
 ✅ Diagnostics before and after service
 
-🔥 −50% PROMO: hook-up 80 PLN, R134a 60 PLN/100g, R1234yf 80 PLN/100g
+🔥 −50% PROMO: hook-up 80 PLN, certified gas 50 PLN/100g (R134a and R1234yf)
 
 📍 BESS MOTORS
 Aleja Krakowska 48/52, Warsaw
@@ -530,8 +530,8 @@ Modern cars need precise service: correct refrigerant amount, leak-tightness and
       pl: `🔥 LETNIA PROMOCJA −50% NA KLIMATYZACJĘ!
 
 💰 Podłączenie układu (próżnia) — 80 zł zamiast 160 zł
-💰 Freon R134a — 60 zł/100 g zamiast 120 zł
-💰 Nowy freon R1234yf — 80 zł/100 g zamiast 160 zł
+💰 Freon R134a — 50 zł/100 g zamiast 100 zł
+💰 Freon R1234yf — 50 zł/100 g zamiast 100 zł
 
 W BESS MOTORS wykonujemy:
 
@@ -554,8 +554,8 @@ Zapisz się wcześniej i wita lato w komforcie! ❄️☀️`,
 
 Вместо полной цены — скидка −50%:
 💰 Подключение системы (вакуум) — 80 zł вместо 160 zł
-💰 Фреон R134a — 60 zł/100 г вместо 120 zł
-💰 Новый фреон R1234yf — 80 zł/100 г вместо 160 zł
+💰 Фреон R134a — 50 zł/100 г вместо 100 zł
+💰 Фреон R1234yf — 50 zł/100 г вместо 100 zł
 
 В BESS MOTORS выполняем:
 
@@ -578,8 +578,8 @@ Aleja Krakowska 48/52, Warszawa
 
 −50% off full price:
 💰 System hook-up (vacuum) — 80 PLN instead of 160
-💰 R134a refrigerant — 60 PLN/100g instead of 120
-💰 New R1234yf refrigerant — 80 PLN/100g instead of 160
+💰 R134a refrigerant — 50 PLN/100g instead of 100
+💰 R1234yf refrigerant — 50 PLN/100g instead of 100
 
 At BESS MOTORS we offer:
 

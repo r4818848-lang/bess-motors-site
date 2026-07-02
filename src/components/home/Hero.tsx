@@ -91,11 +91,11 @@ export function Hero() {
                   <Snowflake size={11} />
                   {t.seasonalAc.badge}
                 </span>
-                <AcPromoPriceBadges variant="hero" className="mb-0" />
               </div>
               <p className="font-display text-lg sm:text-xl font-bold uppercase text-white leading-tight">
                 {t.seasonalAc.title}
               </p>
+              <AcPromoPriceBadges variant="hero" className="mt-3 mb-0" />
               <p className="mt-2 text-xs sm:text-sm text-bm-silver/95 leading-relaxed max-w-xl">
                 {t.seasonalAc.subtitle}
               </p>
