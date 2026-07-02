@@ -372,6 +372,8 @@ Book A/C diagnostics or repair online! ❄️`,
     serviceIds: ["acRefill", "acRepair"],
     videoSrc: AC_RECHARGE_VIDEO_SRC,
     posterSrc: AC_RECHARGE_VIAKEN_POSTER_SRC,
+    title: {
+      pl: "Nabijanie klimatyzacji — stacja Viaken",
       ru: "Заправка кондиционера — станция Viaken",
       en: "A/C recharge — Viaken station",
     },
