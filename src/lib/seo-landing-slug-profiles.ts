@@ -42,7 +42,8 @@ const BRAND_INDEPENDENT_FAQ = {
 };
 
 const chipPriceTable: ServiceLandingPrice = {
-  fromZl: getPriceItem("stage1")?.basePrice ?? 1200,
+  fromZl: getPriceItem("stage1")?.basePrice ?? 1020,
+  compareAtZl: getPriceItem("stage1")?.listPrice,
   priceFrom: true,
   materialsExtra: false,
   includes: [
@@ -51,9 +52,24 @@ const chipPriceTable: ServiceLandingPrice = {
     L("Jazda testowa i kontrola parametrów", "Тест-драйв и проверка"),
   ],
   priceTable: [
-    { label: L("Stage 1", "Stage 1"), priceZl: getPriceItem("stage1")?.basePrice ?? 1200, priceFrom: true },
-    { label: L("Stage 2", "Stage 2"), priceZl: getPriceItem("stage2")?.basePrice ?? 2500, priceFrom: true },
-    { label: L("Pops & Bangs", "Pops & Bangs"), priceZl: getPriceItem("pops_bangs")?.basePrice ?? 600, priceFrom: true },
+    {
+      label: L("Stage 1", "Stage 1"),
+      priceZl: getPriceItem("stage1")?.basePrice ?? 1020,
+      compareAtZl: getPriceItem("stage1")?.listPrice,
+      priceFrom: true,
+    },
+    {
+      label: L("Stage 2", "Stage 2"),
+      priceZl: getPriceItem("stage2")?.basePrice ?? 2125,
+      compareAtZl: getPriceItem("stage2")?.listPrice,
+      priceFrom: true,
+    },
+    {
+      label: L("Pops & Bangs", "Pops & Bangs"),
+      priceZl: getPriceItem("pops_bangs")?.basePrice ?? 510,
+      compareAtZl: getPriceItem("pops_bangs")?.listPrice,
+      priceFrom: true,
+    },
   ],
 };
 
@@ -130,7 +146,8 @@ export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
       },
     ],
     price: {
-      fromZl: 120,
+      fromZl: getPriceItem("brake_pads_front")?.basePrice ?? 102,
+      compareAtZl: getPriceItem("brake_pads_front")?.listPrice,
       priceFrom: false,
       materialsExtra: true,
         includes: [
@@ -142,11 +159,13 @@ export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
       priceTable: [
         {
           label: L("Wymiana klocków (jedna oś)", "Замена колодок (одна ось)"),
-          priceZl: 120,
+          priceZl: getPriceItem("brake_pads_front")?.basePrice ?? 102,
+          compareAtZl: getPriceItem("brake_pads_front")?.listPrice,
         },
         {
           label: L("Tarcze + klocki (jedna oś)", "Диски + колодки (одна ось)"),
-          priceZl: 220,
+          priceZl: getPriceItem("brake_disc_front")?.basePrice ?? 187,
+          compareAtZl: getPriceItem("brake_disc_front")?.listPrice,
         },
       ],
     },

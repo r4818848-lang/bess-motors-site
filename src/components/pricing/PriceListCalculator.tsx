@@ -5,7 +5,7 @@ import { Calculator } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { pickName } from "@/lib/i18n/locale-utils";
 import { getPriceItem, priceListItems } from "@/lib/price-list";
-import { buildCartLine, cartSubtotal, formatPln, unitPriceHint } from "@/lib/booking-cart";
+import { buildCartLine, cartSubtotal, compareAtUnitPriceHint, formatPln, unitPriceHint } from "@/lib/booking-cart";
 import { BookingLink } from "@/components/analytics/BookingLink";
 import { buildBookingUrl } from "@/lib/booking-url";
 
@@ -71,7 +71,14 @@ export function PriceListCalculator() {
               }`}
             >
               <p className="text-sm font-medium text-white">{pickName(item, locale)}</p>
-              <p className="text-xs text-bm-red font-mono mt-1">{unitPriceHint(item, locale)}</p>
+              <p className="text-xs text-bm-red font-mono mt-1">
+                {compareAtUnitPriceHint(item) ? (
+                  <span className="line-through text-bm-muted font-normal mr-2">
+                    {compareAtUnitPriceHint(item)}
+                  </span>
+                ) : null}
+                {unitPriceHint(item, locale)}
+              </p>
             </button>
           );
         })}

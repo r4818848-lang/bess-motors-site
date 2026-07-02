@@ -1,5 +1,7 @@
 /** BESS MOTORS — официальный прайс (плакат + онлайн-запись) */
 
+import { SITE_PROMO_PERCENT } from "@/lib/promo-codes";
+
 export type PriceCategoryId =
   | "diagnostic"
   | "maintenance"
@@ -34,6 +36,8 @@ export interface PriceListItem {
   namePl: string;
   nameRu: string;
   basePrice: number;
+  /** Original list price before site promo (−15%, not used for AC) */
+  listPrice?: number;
   unit: PriceUnit;
   priceFrom?: boolean;
   minQty?: number;
@@ -65,6 +69,10 @@ export const priceCategories: { id: PriceCategoryId; namePl: string; nameRu: str
 /** Примечания внизу прайса (не в корзине) */
 export const priceListFooterNotes: { pl: string; ru: string }[] = [
   {
+    pl: "Ceny w cenniku zawierają rabat −15% (oprócz klimatyzacji). Przekreślona cena to cennik przed rabatem.",
+    ru: "Цены в прайсе уже со скидкой −15% (кроме кондиционера). Зачёркнутая — прайс до скидки.",
+  },
+  {
     pl: "Norma-godzina mechanika: 250 zł/h (prace rozliczane godzinowo według wyceny).",
     ru: "Норма-час механика: 250 zł/ч (работы по часам по смете).",
   },
@@ -82,7 +90,7 @@ export const priceListFooterNotes: { pl: string; ru: string }[] = [
   },
 ];
 
-export const priceListItems: PriceListItem[] = [
+const priceListItemsCatalog: PriceListItem[] = [
   // —— Diagnostyka ——
   {
     id: "computer_diag",
@@ -1282,6 +1290,19 @@ export const priceListItems: PriceListItem[] = [
     unit: "free",
   },
 ];
+
+function withSitePromoCatalogItem(item: PriceListItem): PriceListItem {
+  if (item.categoryId === "ac" || item.unit === "free" || item.basePrice <= 0) {
+    return item;
+  }
+  const basePrice = Math.round((item.basePrice * (100 - SITE_PROMO_PERCENT)) / 100);
+  if (basePrice === item.basePrice) return item;
+  return { ...item, listPrice: item.basePrice, basePrice };
+}
+
+/** Public price list — basePrice is the promo price; listPrice is the crossed-out “was” price. */
+export const priceListItems: PriceListItem[] =
+  priceListItemsCatalog.map(withSitePromoCatalogItem);
 
 export function getPriceItem(id: string): PriceListItem | undefined {
   return priceListItems.find((i) => i.id === id);

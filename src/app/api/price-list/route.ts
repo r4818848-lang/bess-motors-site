@@ -13,6 +13,7 @@ export async function GET() {
       namePl: i.namePl,
       nameRu: i.nameRu,
       basePrice: i.basePrice,
+      listPrice: i.listPrice,
       unit: i.unit,
       priceFrom: i.priceFrom ?? false,
     })),

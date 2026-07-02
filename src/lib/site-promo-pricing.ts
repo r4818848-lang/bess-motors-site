@@ -15,17 +15,18 @@ export function applySitePromoPrice(
   return Math.round((basePrice * (100 - SITE_PROMO_PERCENT)) / 100);
 }
 
+/** Display / cart unit price (already stored in priceListItems.basePrice). */
 export function getEffectiveUnitPrice(item: PriceListItem): number {
   if (item.unit === "free") return 0;
-  return applySitePromoPrice(item.basePrice, item.categoryId);
+  return item.basePrice;
 }
 
 export function getCompareAtUnitPrice(item: PriceListItem): number | null {
   if (item.unit === "free" || isSitePromoExcluded(item)) return null;
-  const effective = getEffectiveUnitPrice(item);
-  return effective < item.basePrice ? item.basePrice : null;
+  return item.listPrice ?? null;
 }
 
+/** For hardcoded landing-page amounts not yet in the price list. */
 export function withSitePromoPriceZl(
   priceZl: number,
   categoryId: PriceCategoryId

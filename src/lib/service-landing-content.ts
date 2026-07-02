@@ -1,8 +1,7 @@
 import type { ServiceId } from "@/lib/services-catalog";
-import { getPriceItem, type PriceCategoryId } from "@/lib/price-list";
+import { getPriceItem } from "@/lib/price-list";
 import { serviceBasePriceId } from "@/lib/service-price-map";
 import { getSlugLandingProfile } from "@/lib/seo-landing-slug-profiles";
-import { withSitePromoPriceZl } from "@/lib/site-promo-pricing";
 
 export type LocalizedText = { pl: string; ru: string };
 
@@ -842,52 +841,6 @@ const ESTIMATE_STEP: ServiceLandingStep = {
   },
 };
 
-const SERVICE_LANDING_CATEGORY: Partial<Record<ServiceId, PriceCategoryId>> = {
-  oil: "maintenance",
-  filters: "maintenance",
-  diagnostic: "diagnostic",
-  brakePads: "brakes",
-  brakesFull: "brakes",
-  tires: "tires",
-  alignment: "tires",
-  suspension: "suspension",
-  chip: "chip",
-  stage1: "chip",
-  engine: "engine",
-  timingBelt: "timing",
-  transmission: "transmission",
-  clutch: "transmission",
-  turbo: "turbo",
-  electric: "electrical",
-  starterGen: "electrical",
-  radiators: "cooling",
-  exhaust: "exhaust",
-  fuel: "fuel",
-};
-
-function applySitePromoToLandingPrice(
-  price: ServiceLandingPrice,
-  serviceId: ServiceId
-): ServiceLandingPrice {
-  if (serviceId === "acRefill" || serviceId === "acRepair") return price;
-  const categoryId = SERVICE_LANDING_CATEGORY[serviceId] ?? "extra";
-  const from = withSitePromoPriceZl(price.fromZl, categoryId);
-  return {
-    ...price,
-    fromZl: from.priceZl,
-    compareAtZl: from.compareAtZl,
-    priceTable: price.priceTable?.map((row) => {
-      if (row.compareAtZl != null) return row;
-      const rowPrice = withSitePromoPriceZl(row.priceZl, categoryId);
-      return {
-        ...row,
-        priceZl: rowPrice.priceZl,
-        compareAtZl: rowPrice.compareAtZl,
-      };
-    }),
-  };
-}
-
 export function getServiceLandingSteps(
   serviceId: ServiceId,
   slug?: string
@@ -910,40 +863,43 @@ export function getServiceLandingPrice(
 ): ServiceLandingPrice | null {
   const slugProfile = slug ? getSlugLandingProfile(slug) : undefined;
   if (slugProfile && "price" in slugProfile) {
-    const price = slugProfile.price ?? null;
-    return price ? applySitePromoToLandingPrice(price, serviceId) : null;
+    return slugProfile.price ?? null;
   }
 
   if (serviceId === "chip") {
-    return applySitePromoToLandingPrice(
-      {
-      fromZl: getPriceItem("stage1")?.basePrice ?? 1200,
+    const stage1 = getPriceItem("stage1");
+    const stage2 = getPriceItem("stage2");
+    return {
+      fromZl: stage1?.basePrice ?? 1020,
+      compareAtZl: stage1?.listPrice,
       priceFrom: true,
       materialsExtra: false,
       includes: getDefaultIncludes("chip"),
       priceTable: [
         {
           label: { pl: "Stage 1", ru: "Stage 1" },
-          priceZl: getPriceItem("stage1")?.basePrice ?? 1200,
+          priceZl: stage1?.basePrice ?? 1020,
+          compareAtZl: stage1?.listPrice,
           priceFrom: true,
         },
         {
           label: { pl: "Stage 2", ru: "Stage 2" },
-          priceZl: getPriceItem("stage2")?.basePrice ?? 2500,
+          priceZl: stage2?.basePrice ?? 2125,
+          compareAtZl: stage2?.listPrice,
           priceFrom: true,
         },
       ],
-      },
-      serviceId
-    );
+    };
   }
 
   const priceId = serviceBasePriceId[serviceId];
   if (!priceId) {
     if (serviceId === "brakePads") {
-      return applySitePromoToLandingPrice(
-        {
-        fromZl: 120,
+      const pads = getPriceItem("brake_pads_front");
+      const discs = getPriceItem("brake_disc_front");
+      return {
+        fromZl: pads?.basePrice ?? 102,
+        compareAtZl: pads?.listPrice,
         priceFrom: false,
         materialsExtra: true,
         includes: [
@@ -958,25 +914,29 @@ export function getServiceLandingPrice(
         priceTable: [
           {
             label: { pl: "Wymiana klocków (jedna oś)", ru: "Замена колодок (одна ось)" },
-            priceZl: 120,
+            priceZl: pads?.basePrice ?? 102,
+            compareAtZl: pads?.listPrice,
           },
           {
             label: { pl: "Tarcze + klocki (jedna oś)", ru: "Диски + колодки (одна ось)" },
-            priceZl: 220,
+            priceZl: discs?.basePrice ?? 187,
+            compareAtZl: discs?.listPrice,
           },
         ],
         note: {
           pl: "Materiały (klocki, tarcze) według wyboru — wycena przed montażem.",
           ru: "Материалы (колодки, диски) по выбору — смета до монтажа.",
         },
-        },
-        serviceId
-      );
+      };
     }
     if (serviceId === "tires") {
-      return applySitePromoToLandingPrice(
-        {
-        fromZl: 160,
+      const steel1517 = getPriceItem("tire_change_steel_15_17");
+      const steel1820 = getPriceItem("tire_change_steel_18_20");
+      const cast1517 = getPriceItem("tire_change_cast_15_17");
+      const cast1820 = getPriceItem("tire_change_cast_18_20");
+      return {
+        fromZl: steel1517?.basePrice ?? 136,
+        compareAtZl: steel1517?.listPrice,
         priceFrom: true,
         materialsExtra: false,
         includes: [
@@ -987,22 +947,26 @@ export function getServiceLandingPrice(
         priceTable: [
           {
             label: { pl: "Felgi stalowe R15–R17", ru: "Сталь R15–R17" },
-            priceZl: getPriceItem("tire_change_steel_15_17")?.basePrice ?? 160,
+            priceZl: steel1517?.basePrice ?? 136,
+            compareAtZl: steel1517?.listPrice,
             priceFrom: true,
           },
           {
             label: { pl: "Felgi stalowe R18–R20", ru: "Сталь R18–R20" },
-            priceZl: getPriceItem("tire_change_steel_18_20")?.basePrice ?? 200,
+            priceZl: steel1820?.basePrice ?? 170,
+            compareAtZl: steel1820?.listPrice,
             priceFrom: true,
           },
           {
             label: { pl: "Felgi aluminiowe R15–R17", ru: "Литые R15–R17" },
-            priceZl: getPriceItem("tire_change_cast_15_17")?.basePrice ?? 200,
+            priceZl: cast1517?.basePrice ?? 170,
+            compareAtZl: cast1517?.listPrice,
             priceFrom: true,
           },
           {
             label: { pl: "Felgi aluminiowe R18–R20", ru: "Литые R18–R20" },
-            priceZl: getPriceItem("tire_change_cast_18_20")?.basePrice ?? 250,
+            priceZl: cast1820?.basePrice ?? 213,
+            compareAtZl: cast1820?.listPrice,
             priceFrom: true,
           },
         ],
@@ -1010,9 +974,7 @@ export function getServiceLandingPrice(
           pl: "Ceny za kompleksową wymianę 4 kół — szczegóły na stronie Cennik.",
           ru: "Цены за комплексную замену 4 колёс — подробности в прайсе.",
         },
-        },
-        serviceId
-      );
+      };
     }
     return null;
   }
@@ -1020,9 +982,9 @@ export function getServiceLandingPrice(
   const item = getPriceItem(priceId);
   if (!item) return null;
 
-  return applySitePromoToLandingPrice(
-    {
+  return {
     fromZl: item.basePrice,
+    compareAtZl: item.listPrice,
     priceFrom: item.priceFrom ?? true,
     materialsExtra: serviceId === "oil" || serviceId === "acRefill",
     includes: getDefaultIncludes(serviceId),
@@ -1031,17 +993,20 @@ export function getServiceLandingPrice(
         ? [
             {
               label: { pl: "Wymiana oleju + filtr oleju", ru: "Масло + масляный фильтр" },
-              priceZl: getPriceItem("oil_filter")?.basePrice ?? 150,
+              priceZl: getPriceItem("oil_filter")?.basePrice ?? 128,
+              compareAtZl: getPriceItem("oil_filter")?.listPrice,
               priceFrom: true,
             },
             {
               label: { pl: "Filtr powietrza", ru: "Воздушный фильтр" },
-              priceZl: getPriceItem("air_filter")?.basePrice ?? 30,
+              priceZl: getPriceItem("air_filter")?.basePrice ?? 26,
+              compareAtZl: getPriceItem("air_filter")?.listPrice,
               priceFrom: true,
             },
             {
               label: { pl: "Filtr kabinowy", ru: "Салонный фильтр" },
-              priceZl: getPriceItem("cabin_filter")?.basePrice ?? 50,
+              priceZl: getPriceItem("cabin_filter")?.basePrice ?? 43,
+              compareAtZl: getPriceItem("cabin_filter")?.listPrice,
               priceFrom: true,
             },
           ]
@@ -1049,12 +1014,14 @@ export function getServiceLandingPrice(
           ? [
               {
                 label: { pl: "Diagnostyka komputerowa", ru: "Компьютерная диагностика" },
-                priceZl: getPriceItem("computer_diag")?.basePrice ?? 100,
+                priceZl: getPriceItem("computer_diag")?.basePrice ?? 128,
+                compareAtZl: getPriceItem("computer_diag")?.listPrice,
                 priceFrom: true,
               },
               {
                 label: { pl: "Diagnostyka premium", ru: "Премиум диагностика" },
-                priceZl: getPriceItem("premium_diag")?.basePrice ?? 250,
+                priceZl: getPriceItem("premium_diag")?.basePrice ?? 213,
+                compareAtZl: getPriceItem("premium_diag")?.listPrice,
                 priceFrom: true,
               },
               {
@@ -1066,13 +1033,11 @@ export function getServiceLandingPrice(
     note:
       serviceId === "oil"
         ? {
-            pl: "od 150 zł robocizna + koszt oleju i filtrów dobrane pod VIN.",
-            ru: "от 150 zł работа + стоимость масла и фильтров по VIN.",
+            pl: "od 128 zł robocizna + koszt oleju i filtrów dobrane pod VIN.",
+            ru: "от 128 zł работа + стоимость масла и фильтров по VIN.",
           }
         : undefined,
-    },
-    serviceId
-  );
+  };
 }
 
 function getDefaultIncludes(serviceId: ServiceId): LocalizedText[] {
