@@ -3,6 +3,7 @@ import {
   AC_RECHARGE_BMW_POSTER_SRC,
   AC_RECHARGE_LEXUS_PHOTO_SRC,
   AC_RECHARGE_VIDEO_SRC,
+  AC_RECHARGE_VIAKEN_POSTER_SRC,
   AC_REPAIR_WELD_PROMO_SRC,
 } from "@/lib/ac-media";
 import {
@@ -370,9 +371,7 @@ Book A/C diagnostics or repair online! ❄️`,
     id: "ac-recharge-viaken",
     serviceIds: ["acRefill", "acRepair"],
     videoSrc: AC_RECHARGE_VIDEO_SRC,
-    posterSrc: AC_RECHARGE_BMW_POSTER_SRC,
-    title: {
-      pl: "Nabijanie klimatyzacji — stacja Viaken",
+    posterSrc: AC_RECHARGE_VIAKEN_POSTER_SRC,
       ru: "Заправка кондиционера — станция Viaken",
       en: "A/C recharge — Viaken station",
     },
