@@ -55,10 +55,9 @@ const pl = {
     fast: { title: "Szybkie terminy", desc: "Wiele usług od ręki — bez czekania" },
   },
   stats: {
-    clients: "Zadowolonych klientów",
     repairs: "Wykonanych napraw",
-    years: "Lat doświadczenia",
-    rating: "Średnia ocena",
+    years: "Ponad 12 lat doświadczenia",
+    rating: "Średnia ocena w Google",
   },
   sections: {
     popularServices: "Popularne usługi",
@@ -1904,10 +1903,9 @@ const ru: TranslationKeys = {
     fast: { title: "Быстрые сроки", desc: "Многие услуги на месте — без ожидания" },
   },
   stats: {
-    clients: "Довольных клиентов",
-    repairs: "Выполненных ремонтов",
-    years: "Лет опыта",
-    rating: "Средняя оценка",
+    repairs: "Более 1000 выполненных ремонтов",
+    years: "Более 12 лет опыта",
+    rating: "Средняя оценка в Google",
   },
   sections: {
     popularServices: "Популярные услуги",
@@ -3767,10 +3765,9 @@ const en: TranslationKeys = {
     servicesTitle: "Our services",
   },
   stats: {
-    clients: "Happy Clients",
-    repairs: "Repairs Completed",
-    years: "Years Experience",
-    rating: "Average Rating",
+    repairs: "Repairs completed",
+    years: "Over 12 years of experience",
+    rating: "Average Google rating",
   },
   sections: {
     popularServices: "Popular Services",
@@ -4931,10 +4928,9 @@ const uk: TranslationKeys = {
     pillPrices: "НАЙКРАЩІ ЦІНИ",
   },
   stats: {
-    clients: "Задоволених клієнтів",
     repairs: "Виконаних ремонтів",
-    years: "Років досвіду",
-    rating: "Середня оцінка",
+    years: "Понад 12 років досвіду",
+    rating: "Середня оцінка в Google",
   },
   cabinet: {
     ...ru.cabinet,

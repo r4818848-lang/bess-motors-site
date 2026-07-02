@@ -23,8 +23,7 @@ export const reviews = [
 ];
 
 export const stats = [
-  { value: "2,500+", key: "clients" as const },
-  { value: "8,000+", key: "repairs" as const },
+  { value: "5", key: "rating" as const },
+  { value: "1,000+", key: "repairs" as const },
   { value: "12+", key: "years" as const },
-  { value: "4.9", key: "rating" as const },
 ];
