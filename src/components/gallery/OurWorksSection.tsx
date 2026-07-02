@@ -103,7 +103,7 @@ function WorkCard({
           alt={work.title[lang]}
           fill
           sizes="(max-width: 768px) 100vw, 33vw"
-          className="object-cover transition-transform duration-500 group-hover:scale-105"
+          className="object-contain bg-black transition-transform duration-500 group-hover:scale-[1.02]"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-black/30" />
         <div className="absolute inset-0 flex items-center justify-center">
