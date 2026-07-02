@@ -35,18 +35,34 @@ function buildPriceListHtml(locale: "pl" | "ru"): string {
       const from = item.priceFrom && item.unit !== "free" ? (isRu ? "от " : "od ") : "";
       const effective = getEffectiveUnitPrice(item);
       const compareAt = getCompareAtUnitPrice(item);
-      let price = "";
-      if (item.unit === "free") price = isRu ? "бесплатно" : "bezpłatnie";
+      let priceCell = "";
+      if (item.unit === "free") priceCell = isRu ? "бесплатно" : "bezpłatnie";
       else if (item.unit === "per_cylinder")
-        price = `${from}${effective} zł / ${isRu ? "цил." : "cyl."}`;
+        priceCell = `${from}${effective} zł / ${isRu ? "цил." : "cyl."}`;
       else if (item.unit === "per_wheel")
-        price = `${from}${effective} zł / ${isRu ? "кол." : "koło"}`;
-      else if (item.unit === "per_100g") price = `${from}${effective} zł / 100g`;
-      else price = `${from}${effective} zł`;
+        priceCell = `${from}${effective} zł / ${isRu ? "кол." : "koło"}`;
+      else if (item.unit === "per_100g") priceCell = `${from}${effective} zł / 100g`;
+      else priceCell = `${from}${effective} zł`;
+
+      const wasLabel = isRu ? "было" : "było";
+      const nowLabel = isRu ? "стало" : "teraz";
+      const discount =
+        compareAt != null && compareAt > effective
+          ? Math.round((1 - effective / compareAt) * 100)
+          : null;
+
       if (compareAt != null) {
-        price = `<s style="color:#888;font-weight:normal;">${from}${compareAt} zł</s> ${price}`;
+        const oldPart =
+          item.unit === "per_100g"
+            ? `${from}${compareAt} zł/100g`
+            : `${from}${compareAt} zł`;
+        priceCell = `<span style="color:#7dffb0;font-size:9px;">−${discount}%</span> `;
+        priceCell += `<span style="color:#888;font-size:9px;">${wasLabel}</span> `;
+        priceCell += `<s style="color:#888;">${oldPart}</s> `;
+        priceCell += `<span style="color:#888;font-size:9px;">→ ${nowLabel}</span> `;
+        priceCell += `<span style="color:#e10600;">${item.unit === "per_100g" ? `${from}${effective} zł/100g` : `${from}${effective} zł`}</span>`;
       }
-      body += `<tr style="border-bottom:1px solid #333;"><td style="padding:5px;">${name}</td><td style="padding:5px;text-align:right;color:#e10600;font-weight:bold;">${price}</td></tr>`;
+      body += `<tr style="border-bottom:1px solid #333;"><td style="padding:5px;">${name}</td><td style="padding:5px;text-align:right;font-weight:bold;">${priceCell}</td></tr>`;
     }
     body += `</tbody></table>`;
   }

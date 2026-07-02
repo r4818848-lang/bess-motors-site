@@ -26,6 +26,11 @@ export function getCompareAtUnitPrice(item: PriceListItem): number | null {
   return item.listPrice ?? null;
 }
 
+export function getDiscountPercent(compareAt: number, price: number): number | null {
+  if (compareAt <= 0 || price <= 0 || compareAt <= price) return null;
+  return Math.round((1 - price / compareAt) * 100);
+}
+
 /** For hardcoded landing-page amounts not yet in the price list. */
 export function withSitePromoPriceZl(
   priceZl: number,

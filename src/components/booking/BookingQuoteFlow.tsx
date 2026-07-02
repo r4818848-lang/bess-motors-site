@@ -30,13 +30,12 @@ import {
   cartSubtotal,
   cartHasFromPrices,
   calcLineTotal,
-  compareAtUnitPriceHint,
   defaultQuantity,
   formatPln,
   quantityLabel,
-  unitPriceHint,
   type CartLine,
 } from "@/lib/booking-cart";
+import { PromoPriceDisplay } from "@/components/pricing/PromoPriceDisplay";
 import { createBookingAppointment } from "@/lib/booking-actions";
 import { trackMetaCustomizeProduct } from "@/lib/meta-pixel";
 import { useAuth } from "@/lib/auth/session-context";
@@ -106,14 +105,9 @@ function ServiceCard({
           <p className="text-sm font-semibold text-white leading-snug">
             {pickName(item, locale)}
           </p>
-          <p className="text-bm-red font-mono text-sm mt-1 font-bold">
-            {compareAtUnitPriceHint(item) ? (
-              <span className="line-through text-bm-muted font-normal text-xs mr-2">
-                {compareAtUnitPriceHint(item)}
-              </span>
-            ) : null}
-            {unitPriceHint(item, locale)}
-          </p>
+          <div className="mt-1">
+            <PromoPriceDisplay item={item} size="xs" />
+          </div>
         </div>
         <button
           type="button"

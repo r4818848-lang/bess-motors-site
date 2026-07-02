@@ -7,6 +7,8 @@ import { getServiceLandingPrice } from "@/lib/service-landing-content";
 import { pickLocalized } from "@/lib/service-landing-locale";
 import { Card } from "@/components/ui/Card";
 import { Check } from "lucide-react";
+import { PromoPriceDisplay } from "@/components/pricing/PromoPriceDisplay";
+import { getDiscountPercent } from "@/lib/site-promo-pricing";
 
 export function ServiceLandingPrice({
   serviceId,
@@ -17,8 +19,11 @@ export function ServiceLandingPrice({
 }) {
   const { t, locale } = useI18n();
   const sl = t.serviceLanding;
+  const pp = t.promoPrice;
   const price = getServiceLandingPrice(serviceId, slug);
   if (!price) return null;
+
+  const isAc = serviceId === "acRefill" || serviceId === "acRepair";
 
   return (
     <section className="mt-12" aria-labelledby="landing-price-heading">
@@ -26,18 +31,23 @@ export function ServiceLandingPrice({
         {sl.priceTitle}
       </h2>
       <Card glow className="p-6">
+        {!isAc && price.compareAtZl != null ? (
+          <p className="text-xs text-emerald-400/90 mb-3">{pp.legend}</p>
+        ) : null}
         {price.fromZl <= 0 && !price.priceFrom ? (
           <p className="font-display text-2xl text-bm-red">{sl.priceOnRequest}</p>
         ) : (
-          <p className="font-display text-3xl text-bm-red">
-            {price.priceFrom ? sl.from : ""}{" "}
-            {price.compareAtZl != null ? (
-              <span className="line-through text-bm-muted text-xl mr-2">
-                {price.compareAtZl} zł
-              </span>
-            ) : null}
-            <span className="text-white">{price.fromZl}</span> zł
-          </p>
+          <PromoPriceDisplay
+            compareAtZl={price.compareAtZl}
+            priceZl={price.fromZl}
+            priceFrom={price.priceFrom}
+            discountPercent={
+              isAc && price.compareAtZl
+                ? getDiscountPercent(price.compareAtZl, price.fromZl) ?? undefined
+                : undefined
+            }
+            size="lg"
+          />
         )}
         {price.note && (
           <p className="text-sm text-bm-muted mt-2">{pickLocalized(price.note, locale)}</p>
@@ -55,14 +65,19 @@ export function ServiceLandingPrice({
                 {price.priceTable.map((row) => (
                   <tr key={row.label.pl} className="border-t border-bm-border/30">
                     <td className="p-2">{pickLocalized(row.label, locale)}</td>
-                    <td className="p-2 text-right text-bm-red font-semibold whitespace-nowrap">
-                      {row.compareAtZl != null ? (
-                        <span className="line-through text-bm-muted font-normal text-xs mr-2">
-                          {row.compareAtZl} zł
-                        </span>
-                      ) : null}
-                      {row.priceFrom ? `${sl.from} ` : ""}
-                      {row.priceZl} zł
+                    <td className="p-2 text-right">
+                      <PromoPriceDisplay
+                        compareAtZl={row.compareAtZl}
+                        priceZl={row.priceZl}
+                        priceFrom={row.priceFrom}
+                        discountPercent={
+                          isAc && row.compareAtZl
+                            ? getDiscountPercent(row.compareAtZl, row.priceZl) ?? undefined
+                            : undefined
+                        }
+                        size="sm"
+                        className="justify-end"
+                      />
                     </td>
                   </tr>
                 ))}

@@ -5,7 +5,8 @@ import { Calculator } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { pickName } from "@/lib/i18n/locale-utils";
 import { getPriceItem, priceListItems } from "@/lib/price-list";
-import { buildCartLine, cartSubtotal, compareAtUnitPriceHint, formatPln, unitPriceHint } from "@/lib/booking-cart";
+import { buildCartLine, cartSubtotal, formatPln } from "@/lib/booking-cart";
+import { PromoPriceDisplay } from "@/components/pricing/PromoPriceDisplay";
 import { BookingLink } from "@/components/analytics/BookingLink";
 import { buildBookingUrl } from "@/lib/booking-url";
 
@@ -55,6 +56,7 @@ export function PriceListCalculator() {
         <h2 className="font-display text-sm uppercase text-bm-red">{c.title}</h2>
       </div>
       <p className="text-sm text-bm-muted mb-4">{c.subtitle}</p>
+      <p className="text-xs text-emerald-400/90 mb-4">{t.promoPrice.legend}</p>
       <div className="grid sm:grid-cols-2 gap-2 mb-4">
         {popular.map((item) => {
           if (!item) return null;
@@ -71,14 +73,9 @@ export function PriceListCalculator() {
               }`}
             >
               <p className="text-sm font-medium text-white">{pickName(item, locale)}</p>
-              <p className="text-xs text-bm-red font-mono mt-1">
-                {compareAtUnitPriceHint(item) ? (
-                  <span className="line-through text-bm-muted font-normal mr-2">
-                    {compareAtUnitPriceHint(item)}
-                  </span>
-                ) : null}
-                {unitPriceHint(item, locale)}
-              </p>
+              <div className="mt-1">
+                <PromoPriceDisplay item={item} size="xs" />
+              </div>
             </button>
           );
         })}

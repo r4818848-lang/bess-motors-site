@@ -102,6 +102,12 @@ const pl = {
     moreHint: "Pełna lista w zakładkach poniżej.",
     positions: "pozycji",
   },
+  promoPrice: {
+    was: "było",
+    now: "teraz",
+    discount: "rabat",
+    legend: "Przekreślona cena — cennik przed rabatem −15%. Klimatyzacja bez tej zniżki.",
+  },
   carWizard: {
     title: "Co się dzieje z autem?",
     subtitle: "Zaznacz objawy — podpowiemy usługi z cennika.",
@@ -1943,6 +1949,12 @@ const ru: TranslationKeys = {
     book: "Записаться",
     moreHint: "Полный список в категориях ниже.",
     positions: "позиций",
+  },
+  promoPrice: {
+    was: "было",
+    now: "стало",
+    discount: "скидка",
+    legend: "Зачёркнутая цена — прайс до скидки −15%. Кондиционер без этой скидки.",
   },
   carWizard: {
     title: "Что случилось с авто?",
@@ -4192,6 +4204,12 @@ const en: TranslationKeys = {
   promoBanner: {
     text: "−{percent}% on all services except A/C — prices already discounted. Code {code} for the manager.",
     cta: "Promos",
+  },
+  promoPrice: {
+    was: "was",
+    now: "now",
+    discount: "off",
+    legend: "Crossed-out price is before −15% discount. A/C excluded.",
   },
   telegramOpen: {
     label: "Open in Telegram",

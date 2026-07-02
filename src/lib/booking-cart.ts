@@ -123,13 +123,21 @@ export function unitPriceHint(item: PriceListItem, locale: Locale): string {
   return `${from}${price} zł`;
 }
 
-export function compareAtUnitPriceHint(item: PriceListItem): string | null {
+export function compareAtUnitPriceHint(item: PriceListItem, locale: Locale): string | null {
   const compareAt = getCompareAtUnitPrice(item);
   if (compareAt == null) return null;
-  if (item.unit === "per_cylinder") return `${compareAt} zł`;
-  if (item.unit === "per_wheel") return `${compareAt} zł`;
-  if (item.unit === "per_100g") return `${compareAt} zł`;
-  return `${compareAt} zł`;
+  const c = getTranslations(locale).priceCart;
+  const from = item.priceFrom ? c.fromPrefix : "";
+  if (item.unit === "per_cylinder") {
+    return `${from}${compareAt} zł / ${c.perCylinder}`;
+  }
+  if (item.unit === "per_wheel") {
+    return `${from}${compareAt} zł / ${c.perWheel}`;
+  }
+  if (item.unit === "per_100g") {
+    return `${from}${compareAt} zł / ${c.per100g}`;
+  }
+  return `${from}${compareAt} zł`;
 }
 
 export function mergeCartLine(
