@@ -10,6 +10,7 @@ import { PhoneLink } from "@/components/analytics/PhoneLink";
 import { BookingLink } from "@/components/analytics/BookingLink";
 import { AcBookCtaButton } from "@/components/booking/AcBookingChoiceFlow";
 import { AcPromoPriceBadges } from "@/components/home/AcPromoPriceBadges";
+import { AcPromoAccentPills } from "@/components/home/AcPromoAccentPills";
 import { Logo } from "@/components/brand/Logo";
 
 export function Hero() {
@@ -95,6 +96,7 @@ export function Hero() {
               <p className="font-display text-lg sm:text-xl font-bold uppercase text-white leading-tight">
                 {t.seasonalAc.title}
               </p>
+              <AcPromoAccentPills variant="hero" className="mt-2" />
               <AcPromoPriceBadges variant="hero" className="mt-3 mb-0" />
               <p className="mt-2 text-xs sm:text-sm text-bm-silver/95 leading-relaxed max-w-xl">
                 {t.seasonalAc.subtitle}

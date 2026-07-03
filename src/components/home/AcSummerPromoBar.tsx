@@ -5,6 +5,7 @@ import { Snowflake, ChevronRight } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { AcBookCtaButton } from "@/components/booking/AcBookingChoiceFlow";
 import { AcPromoPriceBadges } from "@/components/home/AcPromoPriceBadges";
+import { AcPromoAccentPills } from "@/components/home/AcPromoAccentPills";
 
 /** Sticky summer A/C promo — homepage only, below header */
 export function AcSummerPromoBar() {
@@ -25,6 +26,7 @@ export function AcSummerPromoBar() {
         <span className="text-sm sm:text-base font-display font-bold uppercase tracking-wide">
           {s.title}
         </span>
+        <AcPromoAccentPills variant="bar" />
         <AcPromoPriceBadges variant="bar" />
         <div className="flex items-center gap-2 w-full sm:w-auto justify-center">
           <Link

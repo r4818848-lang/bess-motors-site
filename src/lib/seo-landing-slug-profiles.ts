@@ -177,8 +177,8 @@ export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
       {
         title: L("Promocja letnia na nabijanie klimatyzacji", "Летняя акция на заправку кондиционера"),
         body: L(
-          `Promocja −50%: podłączenie układu ${acHookupPricePln()} zł zamiast ${AC_HOOKUP_PROMO_OLD_PLN} zł, freon R134a ${acR134aPer100gPln()} zł/100 g zamiast ${AC_R134A_PROMO_OLD_PLN} zł, R1234yf ${acR1234yfPer100gPln()} zł/100 g zamiast ${AC_R1234YF_PROMO_OLD_PLN} zł — pełna zaprawa od ${acRechargeFromPln()} zł. Oferta sezonowa w BESS MOTORS na Alei Krakowskiej.`,
-          `Акция −50%: подключение ${acHookupPricePln()} zł вместо ${AC_HOOKUP_PROMO_OLD_PLN} zł, фреон R134a ${acR134aPer100gPln()} zł/100 г вместо ${AC_R134A_PROMO_OLD_PLN} zł, R1234yf ${acR1234yfPer100gPln()} zł/100 г вместо ${AC_R1234YF_PROMO_OLD_PLN} zł — полная заправка от ${acRechargeFromPln()} zł. Сезонная акция в BESS MOTORS на Aleja Krakowska.`
+          `Promocja −50%: podłączenie układu ${acHookupPricePln()} zł zamiast ${AC_HOOKUP_PROMO_OLD_PLN} zł, freon R134a ${acR134aPer100gPln()} zł/100 g zamiast ${AC_R134A_PROMO_OLD_PLN} zł, R1234yf ${acR1234yfPer100gPln()} zł/100 g zamiast ${AC_R1234YF_PROMO_OLD_PLN} zł — pełna zaprawa od ${acRechargeFromPln()} zł. Nabijamy wszystkie marki aut — bez kolejki, od razu na miejscu.`,
+          `Акция −50%: подключение ${acHookupPricePln()} zł вместо ${AC_HOOKUP_PROMO_OLD_PLN} zł, фреон R134a ${acR134aPer100gPln()} zł/100 г вместо ${AC_R134A_PROMO_OLD_PLN} zł, R1234yf ${acR1234yfPer100gPln()} zł/100 г вместо ${AC_R1234YF_PROMO_OLD_PLN} zł — полная заправка от ${acRechargeFromPln()} zł. Заправляем все марки — без очереди, сразу на месте.`
         ),
       },
       {
@@ -195,8 +195,29 @@ export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
           "Диагностика, заправка, озонирование и антигрибок, устранение утечек, замена компрессора или радиатора — обслуживаем большинство легковых авто."
         ),
       },
+      {
+        title: L("Naprawa klimatyzacji samochodowej", "Ремонт автокондиционера"),
+        body: L(
+          "Lokalizujemy wycieki, spawamy przewody, wymieniamy uszczelki, chłodnicę, osuszacz i sprężarkę. Po naprawie — próżnia i nabijanie R134a lub R1234yf.",
+          "Находим утечки, варим трубки, меняем уплотнения, радиатор, осушитель и компрессор. После ремонта — вакуум и заправка R134a или R1234yf."
+        ),
+      },
     ],
     faqExtra: [
+      {
+        q: L("Czy nabijacie klimatyzację we wszystkich autach?", "Заправляете кондиционер на всех авто?"),
+        a: L(
+          "Tak — obsługujemy wszystkie marki i modele aut osobowych z układem R134a lub R1234yf. Przyjeżdżasz, podłączamy stację Viaken i napełniamy układ na miejscu.",
+          "Да — обслуживаем все марки легковых авто с R134a или R1234yf. Подключаем станцию Viaken и заправляем на месте."
+        ),
+      },
+      {
+        q: L("Czy trzeba czekać w kolejce na nabijanie?", "Нужно ждать в очереди на заправку?"),
+        a: L(
+          "Nie — staramy się przyjąć auto od razu, bez długiego oczekiwania. Nabijanie klimatyzacji wykonujemy na miejscu, często w ciągu 1–2 godzin.",
+          "Нет — стараемся принять авто сразу, без долгого ожидания. Заправка на месте, обычно за 1–2 часа."
+        ),
+      },
       {
         q: L("Czy jest promocja na nabijanie klimatyzacji?", "Есть ли скидка на заправку кондиционера?"),
         a: L(
@@ -267,6 +288,113 @@ export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
         {
           label: L("Odgrzybianie klimatyzacji", "Антигрибок кондиционера"),
           priceZl: getPriceItem("ac_clean")?.basePrice ?? 150,
+          priceFrom: true,
+        },
+        {
+          label: L("Sprawdzenie szczelności układu", "Проверка герметичности"),
+          priceZl: getPriceItem("ac_leak")?.basePrice ?? 150,
+          priceFrom: true,
+        },
+        {
+          label: L("Wymiana sprężarki klimatyzacji", "Замена компрессора"),
+          priceZl: getPriceItem("ac_compressor")?.basePrice ?? 400,
+          priceFrom: true,
+        },
+        {
+          label: L("Wymiana chłodnicy klimatyzacji", "Замена радиатора кондиционера"),
+          priceZl: getPriceItem("ac_radiator")?.basePrice ?? 350,
+          priceFrom: true,
+        },
+      ],
+    },
+  },
+  "naprawa-klimatyzacji": {
+    bookServiceId: "acRepair",
+    contentServiceId: "acRepair",
+    faqDuration: L("Naprawa klimatyzacji: zwykle 1 dzień — zależy od zakresu.", "Ремонт кондиционера: обычно 1 день — зависит от объёма."),
+    galleryTags: ["klim", "ac", "chłodnic", "radiator", "spawan", "радиатор"],
+    education: [
+      {
+        title: L("Naprawa klimatyzacji samochodowej w Warszawie", "Ремонт автокондиционера в Варшаве"),
+        body: L(
+          "BESS MOTORS na Alei Krakowskiej 48/52 (Włochy) — niezależny warsztat z pełną obsługą układów klimatyzacji: od diagnostyki po wymianę sprężarki i chłodnicy.",
+          "BESS MOTORS на Aleja Krakowska 48/52 (Włochy) — независимый сервис с полным обслуживанием кондиционеров: от диагностики до замены компрессора и радиатора."
+        ),
+      },
+      {
+        title: L("Typowe usterki klimatyzacji", "Типичные неисправности"),
+        body: L(
+          "Nieszczelność przewodów lub chłodnicy, zużyta sprężarka, zatkany osuszacz, uszkodzone uszczelki — objawy to słabe chłodzenie, syczenie, wyciek czynnika lub nieprzyjemny zapach z nawiewów.",
+          "Утечки в трубках или радиаторе, износ компрессора, засоренный осушитель — слабое охлаждение, шипение, утечка фреона или запах из дефлекторов."
+        ),
+      },
+      {
+        title: L("Spawanie przewodów i wymiana elementów", "Сварка трубок и замена узлов"),
+        body: L(
+          "Naprawiamy pęknięte przewody klimatyzacji metodą spawania, wymieniamy chłodnicę, osuszacz i sprężarkę. Po każdej naprawie — próżniowanie i nabijanie R134a lub R1234yf (promocja −50% na nabijanie).",
+          "Ремонтируем трещины в трубках сваркой, меняем радиатор, осушитель и компрессор. После ремонта — вакуум и заправка R134a или R1234yf (акция −50% на заправку)."
+        ),
+      },
+    ],
+    faqExtra: [
+      {
+        q: L("Ile trwa naprawa klimatyzacji samochodowej?", "Сколько длится ремонт кондиционера?"),
+        a: L(
+          "Prosta naprawa nieszczelności lub wymiana uszczelki — często ten sam dzień. Wymiana sprężarki lub chłodnicy — zwykle 1 dzień roboczy, w zależności od dostępności części.",
+          "Простая утечка — часто в тот же день. Замена компрессора или радиатора — обычно 1 рабочий день, в зависимости от запчастей."
+        ),
+      },
+      {
+        q: L("Czy naprawiacie klimatyzację w aucie z R1234yf?", "Ремонтируете системы с R1234yf?"),
+        a: L(
+          "Tak — obsługujemy układy R134a i R1234yf. Po naprawie napełniamy właściwym czynnikiem na stacji serwisowej.",
+          "Да — обслуживаем R134a и R1234yf. После ремонта заправляем нужным хладагентом на сервисной станции."
+        ),
+      },
+    ],
+    price: {
+      fromZl: getPriceItem("ac_leak")?.basePrice ?? 150,
+      priceFrom: true,
+      materialsExtra: true,
+      note: {
+        pl: "Robocizna według cennika — części i ilość czynnika wyceniamy po diagnostyce. Nabijanie po naprawie: promocja −50%.",
+        ru: "Работа по прайсу — запчасти и фреон после диагностики. Заправка после ремонта: акция −50%.",
+      },
+      includes: [
+        L("Diagnostyka i test szczelności", "Диагностика и проверка герметичности"),
+        L("Naprawa nieszczelności / spawanie przewodów", "Устранение утечек / сварка трубок"),
+        L("Wymiana sprężarki, chłodnicy, osuszacza", "Замена компрессора, радиатора, осушителя"),
+        L("Próżnia i nabijanie po naprawie", "Вакуум и заправка после ремонта"),
+      ],
+      priceTable: [
+        {
+          label: L("Diagnostyka klimatyzacji", "Диагностика кондиционера"),
+          priceZl: getPriceItem("ac_diag")?.basePrice ?? 150,
+          priceFrom: true,
+        },
+        {
+          label: L("Sprawdzenie szczelności układu", "Проверка герметичности"),
+          priceZl: getPriceItem("ac_leak")?.basePrice ?? 150,
+          priceFrom: true,
+        },
+        {
+          label: L("Wymiana przewodów klimatyzacji", "Замена трубок кондиционера"),
+          priceZl: getPriceItem("ac_lines")?.basePrice ?? 250,
+          priceFrom: true,
+        },
+        {
+          label: L("Wymiana osuszacza klimatyzacji", "Замена осушителя"),
+          priceZl: getPriceItem("ac_dryer")?.basePrice ?? 200,
+          priceFrom: true,
+        },
+        {
+          label: L("Wymiana chłodnicy klimatyzacji", "Замена радиатора кондиционера"),
+          priceZl: getPriceItem("ac_radiator")?.basePrice ?? 350,
+          priceFrom: true,
+        },
+        {
+          label: L("Wymiana sprężarki klimatyzacji", "Замена компрессора"),
+          priceZl: getPriceItem("ac_compressor")?.basePrice ?? 400,
           priceFrom: true,
         },
       ],

@@ -1,5 +1,6 @@
 import { localSeoKeywords } from "@/lib/seo-local";
-import { acPromoSeoKeywords } from "@/lib/ac-recharge-promo-seo";
+import { acPromoSeoKeywords, acRepairSeoKeywords } from "@/lib/ac-recharge-promo-seo";
+import { acSeoKeywordsAll } from "@/lib/ac-seo-keywords";
 
 /** Canonical site URL for sitemap, robots, Open Graph (set in Vercel: NEXT_PUBLIC_SITE_URL) */
 /** Must match the URL verified in Google Search Console */
@@ -23,20 +24,9 @@ export const defaultSeoKeywords = [
   "mechanik Warszawa Włochy",
   "wymiana opon Warszawa",
   "wulkanizacja Warszawa",
-  "serwis klimatyzacji samochodowej",
-  "nabijanie klimatyzacji Warszawa",
-  "nabijanie klimatyzacji cena",
-  "podłączenie klimatyzacji Warszawa",
-  "freon R134a Warszawa",
-  "заправка кондиционера Варшава",
-  "заправка автокондиционера",
-  "nabijanie klimatyzacji Włochy",
-  "klimatyzacja samochodowa Warszawa",
-  "odgrzybianie klimatyzacji Warszawa",
-  "serwis klimatyzacji R134a",
-  "serwis klimatyzacji R1234yf",
-  "klimatyzacja Włochy Warszawa",
+  ...acSeoKeywordsAll,
   ...acPromoSeoKeywords,
+  ...acRepairSeoKeywords,
   "wymiana oleju Warszawa",
   "chip tuning Warszawa",
   "diagnostyka komputerowa",
@@ -58,6 +48,7 @@ export const publicSitemapPaths: {
   { path: "/contacts", changeFrequency: "monthly", priority: 0.85 },
   { path: "/about", changeFrequency: "monthly", priority: 0.7 },
   { path: "/klimatyzacja", changeFrequency: "weekly", priority: 0.95 },
+  { path: "/naprawa-klimatyzacji", changeFrequency: "weekly", priority: 0.9 },
   { path: "/gallery", changeFrequency: "weekly", priority: 0.65 },
   { path: "/status", changeFrequency: "monthly", priority: 0.65 },
   { path: "/faq", changeFrequency: "monthly", priority: 0.75 },

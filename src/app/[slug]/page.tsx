@@ -8,7 +8,11 @@ import {
 } from "@/lib/seo-landing-pages";
 import { buildPageMetadata } from "@/lib/seo-metadata";
 import { autoRepairServiceSchema } from "@/lib/seo-structured-data";
-import { acPromoSeoKeywords } from "@/lib/ac-recharge-promo-seo";
+import {
+  acSeoKeywordsForRechargeLanding,
+  acSeoKeywordsForRepairLanding,
+} from "@/lib/ac-seo-keywords";
+import { acPromoSeoKeywords, acRepairSeoKeywords } from "@/lib/ac-recharge-promo-seo";
 import { AC_PROMO_HERO_SRC } from "@/lib/ac-media";
 import { OIL_CHANGE_DRAIN_POSTER_SRC } from "@/lib/oil-media";
 import { ALTERNATOR_INSTALL_PHOTO_SRC } from "@/lib/alternator-media";
@@ -29,24 +33,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const cityKw = "Warszawa";
   const acKeywords =
     slug === "klimatyzacja"
-      ? [
-          ...acPromoSeoKeywords,
-          "nabijanie klimatyzacji Warszawa",
-          "serwis klimatyzacji samochodowej",
-          "klimatyzacja samochodowa Włochy",
-          "R134a Warszawa",
-          "R1234yf Warszawa",
-          "odgrzybianie klimatyzacji",
-          "próżniowanie klimatyzacji",
-        ]
-      : [];
+      ? [...new Set([...acSeoKeywordsForRechargeLanding(), ...acPromoSeoKeywords])]
+      : slug === "naprawa-klimatyzacji"
+        ? [...new Set([...acSeoKeywordsForRepairLanding(), ...acRepairSeoKeywords])]
+        : [];
 
   return buildPageMetadata({
     title: page.metaTitle,
     description: page.metaDescription,
     path: `/${page.slug}`,
     ogImage:
-      slug === "klimatyzacja"
+      slug === "klimatyzacja" || slug === "naprawa-klimatyzacji"
         ? AC_PROMO_HERO_SRC
         : slug === "wymiana-oleju"
           ? OIL_CHANGE_DRAIN_POSTER_SRC

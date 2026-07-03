@@ -27,6 +27,7 @@ import { ServiceLandingBottomCta } from "@/components/seo/landing/ServiceLanding
 import { ServiceLandingReviews } from "@/components/seo/landing/ServiceLandingReviews";
 import { ServiceLandingPackageOffer } from "@/components/seo/landing/ServiceLandingPackageOffer";
 import { SeoLandingRelatedLinks } from "@/components/seo/landing/SeoLandingRelatedLinks";
+import { AcPromoAccentPills } from "@/components/home/AcPromoAccentPills";
 import {
   resolveLandingBookServiceId,
   resolveLandingContentServiceId,
@@ -97,6 +98,9 @@ export function SeoLandingPageView({ page }: Props) {
               {pageLoc.line1}
             </p>
             <p className="mt-2 text-lg text-bm-muted">{pageLoc.line2}</p>
+            {page.slug === "klimatyzacja" ? (
+              <AcPromoAccentPills variant="landing" className="mt-5 justify-center" />
+            ) : null}
             {isBrandSeoLandingSlug(page.slug) ? (
               <p className="mt-4 mx-auto max-w-2xl text-sm text-bm-muted/90 border border-bm-border/60 rounded-lg px-4 py-3 bg-bm-card/40">
                 {sl.brandNotice}

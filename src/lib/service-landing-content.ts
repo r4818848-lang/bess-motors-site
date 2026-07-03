@@ -252,6 +252,36 @@ export const SERVICE_LANDING_STEPS: Partial<Record<ServiceId, ServiceLandingStep
       },
     },
   ],
+  acRepair: [
+    {
+      title: { pl: "Rezerwacja i opis usterki", ru: "Запись и описание неисправности" },
+      description: {
+        pl: "Brak chłodzenia, syczenie, zapach, wyciek — opisujesz objawy, ustalamy termin diagnostyki.",
+        ru: "Нет холода, шипение, запах, утечка — описываете симптомы, назначаем диагностику.",
+      },
+    },
+    {
+      title: { pl: "Diagnostyka i lokalizacja usterki", ru: "Диагностика и поиск неисправности" },
+      description: {
+        pl: "Test szczelności obiegu, pomiar ciśnienia, oględziny przewodów, chłodnicy i sprężarki.",
+        ru: "Проверка герметичности, давление, осмотр трубок, радиатора и компрессора.",
+      },
+    },
+    {
+      title: { pl: "Naprawa lub wymiana elementów", ru: "Ремонт или замена узлов" },
+      description: {
+        pl: "Spawanie przewodów, wymiana uszczelek, chłodnicy, osuszacza lub sprężarki — według wyceny.",
+        ru: "Сварка трубок, замена уплотнений, радиатора, осушителя или компрессора — по смете.",
+      },
+    },
+    {
+      title: { pl: "Próżnia, nabijanie i test", ru: "Вакуум, заправка и проверка" },
+      description: {
+        pl: "Po naprawie odpowietrzamy układ, napełniamy R134a lub R1234yf i sprawdzamy chłodzenie.",
+        ru: "После ремонта — вакуум, заправка R134a или R1234yf и проверка охлаждения.",
+      },
+    },
+  ],
   suspension: [
     {
       title: { pl: "Rezerwacja i opis objawów", ru: "Запись и симптомы" },
@@ -749,6 +779,48 @@ export const SERVICE_LANDING_FAQ_EXTRA: Partial<
       },
     },
   ],
+  acRepair: [
+    {
+      q: {
+        pl: "Jak rozpoznać awarię klimatyzacji?",
+        ru: "Как понять, что кондиционер неисправен?",
+      },
+      a: {
+        pl: "Słabe lub brak chłodzenia, syczenie pod maską, zapach pleśni, wyciek pod autem, kontrolka klimatyzacji — warto zrobić diagnostykę i test szczelności.",
+        ru: "Слабое охлаждение, шипение, запах плесени, подтек под машиной — нужна диагностика и проверка герметичности.",
+      },
+    },
+    {
+      q: {
+        pl: "Ile kosztuje naprawa nieszczelności klimatyzacji?",
+        ru: "Сколько стоит устранение утечки?",
+      },
+      a: {
+        pl: "Test szczelności od 150 zł. Koszt naprawy zależy od miejsca wycieku — uszczelka, przewód (spawanie od ok. 250 zł) lub wymiana chłodnicy/osuszacza. Wycena po diagnostyce.",
+        ru: "Проверка герметичности от 150 zł. Стоимость зависит от места утечки — смета после диагностики.",
+      },
+    },
+    {
+      q: {
+        pl: "Czy wymieniacie sprężarkę i chłodnicę klimatyzacji?",
+        ru: "Меняете компрессор и радиатор кондиционера?",
+      },
+      a: {
+        pl: "Tak — wymiana sprężarki od ok. 400 zł robocizny, chłodnicy od ok. 350 zł plus części. Po wymianie — próżnia i nabijanie R134a lub R1234yf.",
+        ru: "Да — замена компрессора от ~400 zł, радиатора от ~350 zł плюс запчасти. После — вакуум и заправка.",
+      },
+    },
+    {
+      q: {
+        pl: "Czy po naprawie robicie nabijanie klimatyzacji?",
+        ru: "Делаете заправку после ремонта?",
+      },
+      a: {
+        pl: "Tak — po każdej naprawie obiegu odpowietrzamy układ, robimy próżnię i uzupełniamy czynnik. Na nabijanie obowiązuje osobna promocja −50%.",
+        ru: "Да — после ремонта вакуум и заправка. На заправку действует отдельная акция −50%.",
+      },
+    },
+  ],
   suspension: [
     {
       q: { pl: "Skąd stuki w zawieszeniu?", ru: "Откуда стуки?" },
@@ -1160,7 +1232,7 @@ export function getServiceLandingFaq(
       },
     });
   }
-  return items.slice(0, 5);
+  return items.slice(0, slug === "klimatyzacja" || slug === "naprawa-klimatyzacji" ? 8 : 5);
 }
 
 /** Gallery filter hints for landing photo strip */

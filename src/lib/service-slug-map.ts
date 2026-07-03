@@ -8,7 +8,7 @@ export const SERVICE_LANDING_SLUG: Partial<Record<ServiceId, string>> = {
   diagnostic: "diagnostyka",
   suspension: "zawieszenie",
   acRefill: "klimatyzacja",
-  acRepair: "klimatyzacja",
+  acRepair: "naprawa-klimatyzacji",
   alignment: "geometria",
   engine: "silnik",
   electric: "elektryka",

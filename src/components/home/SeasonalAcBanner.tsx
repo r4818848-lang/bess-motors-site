@@ -8,6 +8,7 @@ import { AC_PROMO_HERO_SRC, AC_RECHARGE_STATION_ALT } from "@/lib/ac-media";
 import { contentLocale } from "@/lib/i18n/locale-utils";
 import { AcBookCtaButton } from "@/components/booking/AcBookingChoiceFlow";
 import { AcPromoPriceBadges } from "@/components/home/AcPromoPriceBadges";
+import { AcPromoAccentPills } from "@/components/home/AcPromoAccentPills";
 import { PhoneLink } from "@/components/analytics/PhoneLink";
 
 export function SeasonalAcBanner() {
@@ -31,6 +32,7 @@ export function SeasonalAcBanner() {
             <h2 id="seasonal-ac-heading" className="font-display text-2xl sm:text-3xl font-bold uppercase text-glow leading-tight">
               {s.title}
             </h2>
+            <AcPromoAccentPills variant="banner" className="mt-3" />
             <AcPromoPriceBadges variant="banner" className="mt-2" />
             <p className="mt-3 text-sm sm:text-base text-bm-silver/90 max-w-2xl leading-relaxed">
               {s.subtitle}

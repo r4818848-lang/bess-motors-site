@@ -2,12 +2,18 @@ import type { Locale } from "@/lib/i18n/types";
 import { contentLocale } from "@/lib/i18n/locale-utils";
 import type { SeoLandingPage } from "@/lib/seo-landing-pages";
 import {
+  acPromoAccentLineEn,
+  acPromoAccentLineRu,
+  acPromoAccentLineUk,
   acPromoHeroLineEn,
   acPromoHeroLineRu,
+  acPromoHeroLineUk,
   acPromoMetaDescriptionEn,
   acPromoMetaDescriptionRu,
+  acPromoMetaDescriptionUk,
   acPromoMetaTitleEn,
   acPromoMetaTitleRu,
+  acPromoMetaTitleUk,
 } from "@/lib/ac-recharge-promo-seo";
 
 type SeoText = Pick<SeoLandingPage, "title" | "line1" | "line2" | "metaTitle" | "metaDescription">;
@@ -36,9 +42,9 @@ const SEO_RU: Partial<Record<string, SeoText>> = {
     metaDescription: "Ремонт тормозов — колодки, диски. BESS MOTORS Варшава.",
   },
   klimatyzacja: {
-    title: "Автокондиционер",
+    title: "Заправка кондиционера без очереди",
     line1: acPromoHeroLineRu(),
-    line2: "Вакуум, герметичность — сезонная акция",
+    line2: acPromoAccentLineRu(),
     metaTitle: acPromoMetaTitleRu(),
     metaDescription: acPromoMetaDescriptionRu(),
   },
@@ -55,6 +61,16 @@ const SEO_RU: Partial<Record<string, SeoText>> = {
     line2: "Компьютерная диагностика",
     metaTitle: "Check Engine Варшава — BESS MOTORS",
     metaDescription: "Диагностика Check Engine — считывание ошибок, ремонт. BESS MOTORS.",
+  },
+};
+
+const SEO_UK: Partial<Record<string, SeoText>> = {
+  klimatyzacja: {
+    title: "Заправка кондиціонера без черги",
+    line1: acPromoHeroLineUk(),
+    line2: acPromoAccentLineUk(),
+    metaTitle: acPromoMetaTitleUk(),
+    metaDescription: acPromoMetaDescriptionUk(),
   },
 };
 
@@ -81,9 +97,9 @@ const SEO_EN: Partial<Record<string, SeoText>> = {
     metaDescription: "Brake repair — pads and discs. BESS MOTORS Warsaw.",
   },
   klimatyzacja: {
-    title: "Car A/C Service",
+    title: "A/C recharge — no queue",
     line1: acPromoHeroLineEn(),
-    line2: "Vacuum, leak check — summer promo",
+    line2: acPromoAccentLineEn(),
     metaTitle: acPromoMetaTitleEn(),
     metaDescription: acPromoMetaDescriptionEn(),
   },
@@ -104,6 +120,10 @@ const SEO_EN: Partial<Record<string, SeoText>> = {
 };
 
 export function localizeSeoLandingPage(page: SeoLandingPage, locale: Locale): SeoLandingPage {
+  if (locale === "uk") {
+    const uk = SEO_UK[page.slug];
+    if (uk) return { ...page, ...uk };
+  }
   if (locale === "en") {
     const en = SEO_EN[page.slug];
     if (en) return { ...page, ...en };

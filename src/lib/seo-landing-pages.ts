@@ -2,8 +2,11 @@ import type { ServiceId } from "@/lib/services-catalog";
 import { getSiteUrl } from "@/lib/seo";
 import {
   acPromoHeroLinePl,
+  acPromoAccentLinePl,
   acPromoMetaDescriptionPl,
   acPromoMetaTitlePl,
+  acRepairMetaDescriptionPl,
+  acRepairMetaTitlePl,
 } from "@/lib/ac-recharge-promo-seo";
 
 export type SeoLandingPage = {
@@ -65,12 +68,22 @@ export const seoLandingPages: SeoLandingPage[] = [
   },
   {
     slug: "klimatyzacja",
-    title: "Klimatyzacja Auto",
+    title: "Nabijanie klimatyzacji bez kolejki",
     line1: acPromoHeroLinePl(),
-    line2: "Próżnia, szczelność, odgrzybianie — promocja sezonowa",
+    line2: acPromoAccentLinePl(),
     metaTitle: acPromoMetaTitlePl(),
     metaDescription: acPromoMetaDescriptionPl(),
     serviceId: "acRefill",
+    icon: "Wind",
+  },
+  {
+    slug: "naprawa-klimatyzacji",
+    title: "Naprawa klimatyzacji samochodowej",
+    line1: "Nieszczelności, sprężarka, chłodnica, przewody",
+    line2: "Diagnostyka, spawanie i wymiana elementów układu",
+    metaTitle: acRepairMetaTitlePl(),
+    metaDescription: acRepairMetaDescriptionPl(),
+    serviceId: "acRepair",
     icon: "Wind",
   },
   {

@@ -79,7 +79,8 @@ export function blogPostingSchema(post: BlogPost) {
 export function servicesItemListSchema() {
   const siteUrl = getSiteUrl();
   const items = [
-    { name: "PROMOCJA −50% — nabijanie klimatyzacji R134a / R1234yf od 130 zł", path: "/klimatyzacja" },
+    { name: "PROMOCJA −50% — nabijanie klimatyzacji bez kolejki R134a / R1234yf od 130 zł", path: "/klimatyzacja" },
+    { name: "Naprawa klimatyzacji samochodowej", path: "/naprawa-klimatyzacji" },
     { name: "Wymiana oleju", path: "/wymiana-oleju" },
     { name: "Wulkanizacja", path: "/opony" },
     { name: "Serwis hamulców", path: "/hamulce" },
@@ -111,6 +112,7 @@ export function autoRepairServiceSchema(page: SeoLandingPage) {
   const contentId = resolveLandingContentServiceId(page.slug, page.serviceId);
   const faq = getServiceFaqForSchema(contentId, page.slug);
   const isAcPromo = page.slug === "klimatyzacja";
+  const isAcRepair = page.slug === "naprawa-klimatyzacji";
   const serviceNode: Record<string, unknown> = {
     "@type": "Service",
     "@id": `${url}#service`,
@@ -131,6 +133,16 @@ export function autoRepairServiceSchema(page: SeoLandingPage) {
       availability: "https://schema.org/InStock",
       url,
       priceValidUntil: "2026-09-30",
+    };
+  } else if (isAcRepair) {
+    serviceNode.offers = {
+      "@type": "Offer",
+      name: "Naprawa klimatyzacji samochodowej — diagnostyka i wymiana elementów",
+      description: page.metaDescription,
+      price: 150,
+      priceCurrency: "PLN",
+      availability: "https://schema.org/InStock",
+      url,
     };
   }
   const graph: Record<string, unknown>[] = [
