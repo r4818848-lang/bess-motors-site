@@ -3,6 +3,7 @@ import { formatDisplayDateKey } from "@/lib/display-date";
 import { getPriceItem } from "@/lib/price-list";
 import { serviceBasePriceId } from "@/lib/service-price-map";
 import type { ServiceId } from "@/lib/services-catalog";
+import { bookingGridServiceIds } from "@/lib/services-catalog";
 import type { BotLocale } from "./client-i18n";
 import { botContentLocale } from "./client-i18n";
 
@@ -36,15 +37,8 @@ export function getClientServiceLabel(
   return FALLBACK_RU[serviceId] ?? serviceId;
 }
 
-/** Top services for Telegram bot (short menu) */
-export const telegramBookableServiceIds = [
-  "oil",
-  "diagnostic",
-  "brakePads",
-  "suspension",
-  "acRefill",
-  "otherReason",
-] as const satisfies readonly ServiceId[];
+/** Categories shown in Telegram bot service picker */
+export const telegramBookableServiceIds = bookingGridServiceIds;
 
 export function clientBookableServices(locale: BotLocale) {
   return telegramBookableServiceIds.map((id) => ({

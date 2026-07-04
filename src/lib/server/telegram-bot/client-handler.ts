@@ -50,7 +50,7 @@ import {
   clientMenuForUser,
   clientOrderDetailKeyboard,
   clientOrdersKeyboard,
-  clientServiceKeyboard,
+  clientServiceCategoryKeyboard,
   clientSkipCommentKeyboard,
   clientStartReplyKeyboard,
   clientTimeKeyboard,
@@ -69,12 +69,17 @@ import {
   advanceBookingFlow,
   continueBookAfterTime,
   continueCallAfterService,
+  continueWithServiceSelection,
+  finalizeCustomService,
+  handleServiceCategoryPick,
   linkedProfileData,
   promptComment,
+  promptCustomService,
   promptName,
   promptPhone,
   replyOrEdit,
   showConfirm,
+  showCustomServiceConfirm,
 } from "./client-booking-flow";
 import {
   getClientPortalByChat,
@@ -267,7 +272,7 @@ async function handleStartDeepLinks(
   if (startParam === "booking") {
     const L = getClientBotLabels(locale);
     await clearTelegramSessionKeepLocale(chatKey);
-    await sendTelegramMessage(chatId, L.chooseService, clientServiceKeyboard(locale, "book"));
+    await sendTelegramMessage(chatId, L.chooseCategory, clientServiceCategoryKeyboard(locale, "book"));
     return;
   }
 
@@ -661,6 +666,29 @@ async function handleClientMessageInner(msg: TelegramMessage): Promise<void> {
 
   if (session.step === "client_link_confirm") {
     await sendTelegramMessage(chatId, L.linkConfirmHint, linkConfirmKeyboard(locale));
+    return;
+  }
+
+  if (session.step === "client_custom_service") {
+    const trimmed = text.trim();
+    if (trimmed.length < 5) {
+      await sendTelegramMessage(chatId, L.invalidCustomService, {
+        inline_keyboard: [[{ text: L.cancel, callback_data: "cl:menu" }]],
+      });
+      return;
+    }
+    const data = { ...(session.data ?? {}), customServiceText: trimmed };
+    await showCustomServiceConfirm(chatId, undefined, chatKey, locale, data);
+    return;
+  }
+
+  if (session.step === "client_custom_confirm") {
+    await sendTelegramMessage(chatId, L.linkConfirmHint, {
+      inline_keyboard: [
+        [{ text: L.customServiceYes, callback_data: "cl:cust:ok" }],
+        [{ text: L.customServiceEdit, callback_data: "cl:cust:edit" }],
+      ],
+    });
     return;
   }
 
@@ -1589,13 +1617,77 @@ async function handleClientCallbackInner(cb: TelegramCallback): Promise<void> {
       return;
     }
     await clearTelegramSessionKeepLocale(chatKey);
-    await replyOrEdit(chatId, messageId, locale, L.chooseService, clientServiceKeyboard(locale, "book"));
+    await replyOrEdit(chatId, messageId, locale, L.chooseCategory, clientServiceCategoryKeyboard(locale, "book"));
     return;
   }
 
   if (data === "cl:call") {
     await clearTelegramSessionKeepLocale(chatKey);
-    await replyOrEdit(chatId, messageId, locale, L.chooseService, clientServiceKeyboard(locale, "call"));
+    await replyOrEdit(chatId, messageId, locale, L.chooseCategory, clientServiceCategoryKeyboard(locale, "call"));
+    return;
+  }
+
+  if (data.startsWith("cl:cat:")) {
+    const rest = data.slice(7);
+    const colon = rest.indexOf(":");
+    const intent = rest.slice(0, colon) as "book" | "call";
+    const categoryId = rest.slice(colon + 1);
+    await handleServiceCategoryPick(chatId, messageId, chatKey, locale, intent, categoryId, slice);
+    return;
+  }
+
+  if (data.startsWith("cl:opt:")) {
+    const rest = data.slice(7);
+    const parts = rest.split(":");
+    const intent = parts[0] as "book" | "call";
+    const categoryId = parts[1] ?? "";
+    const optionId = parts.slice(2).join(":") || "_default";
+    await continueWithServiceSelection(
+      chatId,
+      messageId,
+      chatKey,
+      locale,
+      intent,
+      categoryId,
+      optionId,
+      slice
+    );
+    return;
+  }
+
+  if (data.startsWith("cl:cu:")) {
+    const intent = data.slice(6) as "book" | "call";
+    await promptCustomService(chatId, messageId, chatKey, locale, intent);
+    return;
+  }
+
+  if (data === "cl:cust:ok") {
+    const fresh = await getTelegramSession(chatKey);
+    const d = fresh.data ?? sessionData;
+    if (!d.customServiceText?.trim()) {
+      await promptCustomService(
+        chatId,
+        messageId,
+        chatKey,
+        locale,
+        d.intent === "call" ? "call" : "book"
+      );
+      return;
+    }
+    await finalizeCustomService(chatId, messageId, chatKey, locale, d, slice);
+    return;
+  }
+
+  if (data === "cl:cust:edit") {
+    const fresh = await getTelegramSession(chatKey);
+    const d = fresh.data ?? sessionData;
+    await promptCustomService(
+      chatId,
+      messageId,
+      chatKey,
+      locale,
+      d.intent === "call" ? "call" : "book"
+    );
     return;
   }
 

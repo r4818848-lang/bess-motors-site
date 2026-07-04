@@ -52,6 +52,14 @@ export type ClientBotLabels = {
   site: string;
   cabinetSite: string;
   chooseService: string;
+  chooseCategory: string;
+  chooseSubService: string;
+  customServiceBtn: string;
+  enterCustomService: string;
+  confirmCustomService: (text: string) => string;
+  customServiceYes: string;
+  customServiceEdit: string;
+  invalidCustomService: string;
   chooseDate: string;
   chooseTime: string;
   enterName: string;
@@ -268,6 +276,15 @@ const LABELS: Record<BotLocale, ClientBotLabels> = {
     site: "🌐 Strona",
     cabinetSite: "🌐 Konto na stronie",
     chooseService: "Wybierz usługę:",
+    chooseCategory: "Wybierz kategorię usługi:",
+    chooseSubService: "Wybierz usługę w kategorii:",
+    customServiceBtn: "✏️ Opisz pracę samodzielnie",
+    enterCustomService: "✏️ Opisz, jaką pracę wykonać (np. wymiana amortyzatora):",
+    confirmCustomService: (text) =>
+      `📝 <b>Twoja praca:</b>\n\n${text}\n\nCzy wszystko się zgadza?`,
+    customServiceYes: "✅ Tak, poprawnie",
+    customServiceEdit: "✏️ Zmienić opis",
+    invalidCustomService: "❌ Opisz pracę dokładniej (min. 5 znaków).",
     chooseDate: "Wybierz datę wizyty:",
     chooseTime: "Wybierz godzinę:",
     enterName: "✏️ Podaj imię i nazwisko:",
@@ -506,6 +523,15 @@ const LABELS: Record<BotLocale, ClientBotLabels> = {
     site: "🌐 Сайт",
     cabinetSite: "🌐 Кабинет на сайте",
     chooseService: "Выберите услугу:",
+    chooseCategory: "Выберите категорию услуг:",
+    chooseSubService: "Выберите услугу:",
+    customServiceBtn: "✏️ Описать работу самому",
+    enterCustomService: "✏️ Опишите, какую работу нужно выполнить (например, замена амортизатора):",
+    confirmCustomService: (text) =>
+      `📝 <b>Вы написали:</b>\n\n${text}\n\nВсё верно?`,
+    customServiceYes: "✅ Да, верно",
+    customServiceEdit: "✏️ Изменить",
+    invalidCustomService: "❌ Опишите подробнее (минимум 5 символов).",
     chooseDate: "Выберите дату визита:",
     chooseTime: "Выберите время:",
     enterName: "✏️ Введите ваше имя:",
@@ -745,6 +771,15 @@ const LABELS: Record<BotLocale, ClientBotLabels> = {
     site: "🌐 Сайт",
     cabinetSite: "🌐 Кабінет на сайті",
     chooseService: "Оберіть послугу:",
+    chooseCategory: "Оберіть категорію послуг:",
+    chooseSubService: "Оберіть послугу:",
+    customServiceBtn: "✏️ Описати роботу самостійно",
+    enterCustomService: "✏️ Опишіть, яку роботу потрібно виконати:",
+    confirmCustomService: (text) =>
+      `📝 <b>Ви написали:</b>\n\n${text}\n\nУсе правильно?`,
+    customServiceYes: "✅ Так, правильно",
+    customServiceEdit: "✏️ Змінити",
+    invalidCustomService: "❌ Опишіть детальніше (мінімум 5 символів).",
     chooseDate: "Оберіть дату візиту:",
     chooseTime: "Оберіть час:",
     enterName: "✏️ Введіть ім'я:",
@@ -978,6 +1013,15 @@ const LABELS: Record<BotLocale, ClientBotLabels> = {
     site: "🌐 Website",
     cabinetSite: "🌐 Web account",
     chooseService: "Choose a service:",
+    chooseCategory: "Choose a service category:",
+    chooseSubService: "Choose a service:",
+    customServiceBtn: "✏️ Describe the work yourself",
+    enterCustomService: "✏️ Describe the work you need (e.g. shock absorber replacement):",
+    confirmCustomService: (text) =>
+      `📝 <b>You wrote:</b>\n\n${text}\n\nIs this correct?`,
+    customServiceYes: "✅ Yes, correct",
+    customServiceEdit: "✏️ Edit",
+    invalidCustomService: "❌ Please describe in more detail (min. 5 characters).",
     chooseDate: "Choose visit date:",
     chooseTime: "Choose time:",
     enterName: "✏️ Enter your name:",

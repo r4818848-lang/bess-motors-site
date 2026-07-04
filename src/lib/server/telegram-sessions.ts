@@ -10,6 +10,8 @@ export type TelegramSessionStep =
   | "client_name"
   | "client_phone"
   | "client_comment"
+  | "client_custom_service"
+  | "client_custom_confirm"
   | "client_my_phone"
   | "client_link_phone"
   | "client_link_plate"

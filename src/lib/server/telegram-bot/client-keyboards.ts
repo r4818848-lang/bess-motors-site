@@ -11,7 +11,10 @@ import {
   type ClientBotLabels,
 } from "./client-i18n";
 import {
-  clientBookableServices,
+  getCategorySubOptions,
+  telegramServiceCategoryIds,
+} from "./client-service-menu";
+import {
   decodeTimeSlot,
   encodeTimeSlot,
   formatDateShort,
@@ -244,23 +247,67 @@ export function linkEditPickKeyboard(locale: BotLocale): InlineKeyboardMarkup {
   };
 }
 
+export function clientServiceCategoryKeyboard(
+  locale: BotLocale,
+  intent: "book" | "call"
+): InlineKeyboardMarkup {
+  const L = getClientBotLabels(locale);
+  const categories = telegramServiceCategoryIds();
+  const rows: InlineKeyboardMarkup["inline_keyboard"] = [];
+  for (let i = 0; i < categories.length; i += 2) {
+    const chunk = categories.slice(i, i + 2);
+    rows.push(
+      chunk.map((id) => ({
+        text: getClientServiceLabel(id, locale).slice(0, 28),
+        callback_data: `cl:cat:${intent}:${id}`,
+      }))
+    );
+  }
+  rows.push([{ text: L.customServiceBtn, callback_data: `cl:cu:${intent}` }]);
+  rows.push(clientBackMenuRow(locale));
+  return { inline_keyboard: rows };
+}
+
+export function clientServiceOptionsKeyboard(
+  locale: BotLocale,
+  intent: "book" | "call",
+  categoryId: string
+): InlineKeyboardMarkup {
+  const L = getClientBotLabels(locale);
+  const options = getCategorySubOptions(categoryId as Parameters<typeof getCategorySubOptions>[0], locale);
+  const rows: InlineKeyboardMarkup["inline_keyboard"] = options.map((opt) => [
+    {
+      text: opt.label.slice(0, 36),
+      callback_data: `cl:opt:${intent}:${categoryId}:${opt.id}`,
+    },
+  ]);
+  rows.push([
+    {
+      text: L.back,
+      callback_data: intent === "call" ? "cl:call" : "cl:book",
+    },
+  ]);
+  rows.push(clientBackMenuRow(locale));
+  return { inline_keyboard: rows };
+}
+
+export function clientCustomServiceConfirmKeyboard(locale: BotLocale): InlineKeyboardMarkup {
+  const L = getClientBotLabels(locale);
+  return {
+    inline_keyboard: [
+      [{ text: L.customServiceYes, callback_data: "cl:cust:ok" }],
+      [{ text: L.customServiceEdit, callback_data: "cl:cust:edit" }],
+      [{ text: L.cancel, callback_data: "cl:menu" }],
+    ],
+  };
+}
+
+/** @deprecated use clientServiceCategoryKeyboard */
 export function clientServiceKeyboard(
   locale: BotLocale,
   intent: "book" | "call"
 ): InlineKeyboardMarkup {
-  const services = clientBookableServices(locale);
-  const rows: InlineKeyboardMarkup["inline_keyboard"] = [];
-  for (let i = 0; i < services.length; i += 2) {
-    const chunk = services.slice(i, i + 2);
-    rows.push(
-      chunk.map((s) => ({
-        text: s.label.slice(0, 28),
-        callback_data: `cl:svc:${intent}:${s.id}`,
-      }))
-    );
-  }
-  rows.push(clientBackMenuRow(locale));
-  return { inline_keyboard: rows };
+  return clientServiceCategoryKeyboard(locale, intent);
 }
 
 export function clientDateKeyboard(locale: BotLocale): InlineKeyboardMarkup {

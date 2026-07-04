@@ -172,6 +172,7 @@ export const serviceFlows: Partial<Record<ServiceId, ServiceFlow[]>> = {
         { id: "shocks", labelKey: "suspShocks" },
         { id: "bushings", labelKey: "suspBushings" },
         { id: "arms", labelKey: "suspArms" },
+        { id: "ballJoint", labelKey: "suspBallJoint" },
         { id: "springs", labelKey: "suspSprings" },
       ],
     },
