@@ -131,7 +131,8 @@ export function createMonthlyConsumableEntry(
     partNumber: string;
     purchaseBrutto: number;
     qty?: number;
-  }
+  },
+  opts?: { source?: MonthlyConsumableEntry["source"] }
 ): MonthlyConsumableEntry {
   const purchaseNetto = bruttoToNetto(fields.purchaseBrutto);
   return {
@@ -143,6 +144,32 @@ export function createMonthlyConsumableEntry(
     purchaseNetto,
     qty: fields.qty ?? 1,
     createdAt: new Date().toISOString(),
-    source: "telegram",
+    source: opts?.source ?? "telegram",
   };
+}
+
+/** Plain-text list for clipboard (CRM / Telegram). */
+export function formatConsumablesPlainText(
+  items: MonthlyConsumableEntry[],
+  month: string
+): string {
+  const rows = filterMonthlyConsumables(items, month);
+  if (!rows.length) return `${formatMonthLabel(month)} — пусто`;
+
+  const totals = computeMonthlyConsumablesTotals(rows);
+  const lines = [
+    `Расходники — ${formatMonthLabel(month)}`,
+    `Позиций: ${totals.count}`,
+    "",
+  ];
+  for (const r of rows) {
+    const p = normalizeConsumablePrices(r);
+    const num = r.partNumber ? ` · ${r.partNumber}` : "";
+    lines.push(`• ${r.name}${num} — ${formatMoneyPln(p.purchaseBrutto)} zł (brutto)`);
+  }
+  lines.push(
+    "",
+    `Итого: ${formatMoneyPln(totals.purchaseBrutto)} zł brutto / ${formatMoneyPln(totals.purchaseNetto)} zł netto`
+  );
+  return lines.join("\n");
 }
