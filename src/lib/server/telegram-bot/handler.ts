@@ -146,6 +146,13 @@ import {
   shiftMonthlyInvoicePartsMonth,
   startMonthlyInvoicePartsAdd,
 } from "./admin-monthly-invoice-parts";
+import {
+  cancelPartsPhotoImport,
+  confirmPartsPhotoImport,
+  handlePartsPhotoMediaMessage,
+  isPartsPhotoSessionStep,
+  startPartsPhotoImport,
+} from "./admin-parts-photo";
 
 type TelegramMessage = AdminTelegramFileMessage & {
   text?: string;
@@ -259,6 +266,17 @@ export async function handleTelegramUpdate(update: {
   if (update.message.photo?.length || update.message.document) {
     const chatKey = String(chatId);
     const session = await getTelegramSession(chatKey);
+    if (isPartsPhotoSessionStep(session.step)) {
+      const handled = await handlePartsPhotoMediaMessage(chatId, update.message);
+      if (!handled) {
+        await sendTelegramMessage(
+          chatId,
+          "📷 Отправьте фото заказа запчастей (PNG/JPG).",
+          mainMenuKeyboard()
+        );
+      }
+      return;
+    }
     if (session.step !== "admin_import_file" && session.step !== "admin_import_bulk") {
       await sendTelegramMessage(
         chatId,
@@ -963,6 +981,21 @@ async function handleCallback(cb: TelegramCallback): Promise<void> {
     return;
   }
 
+  if (data === "parts:photo") {
+    await startPartsPhotoImport(chatId, messageId, "parts");
+    return;
+  }
+
+  if (data === "parts:photo:ok") {
+    await confirmPartsPhotoImport(chatId, "parts");
+    return;
+  }
+
+  if (data === "parts:photo:cancel") {
+    await cancelPartsPhotoImport(chatId, messageId, "parts");
+    return;
+  }
+
   if (data === "parts:list") {
     const session = await getTelegramSession(chatKey);
     const month = session.data?.partsMonth ?? currentMonthKey();
@@ -1014,6 +1047,21 @@ async function handleCallback(cb: TelegramCallback): Promise<void> {
 
   if (data === "fpart:add") {
     await startMonthlyInvoicePartsAdd(chatId, messageId);
+    return;
+  }
+
+  if (data === "fpart:photo") {
+    await startPartsPhotoImport(chatId, messageId, "fpart");
+    return;
+  }
+
+  if (data === "fpart:photo:ok") {
+    await confirmPartsPhotoImport(chatId, "fpart");
+    return;
+  }
+
+  if (data === "fpart:photo:cancel") {
+    await cancelPartsPhotoImport(chatId, messageId, "fpart");
     return;
   }
 

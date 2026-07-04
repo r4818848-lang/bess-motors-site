@@ -29,7 +29,11 @@ export type TelegramSessionStep =
   | "admin_import_bulk"
   | "admin_quick_wo"
   | "admin_parts_wizard"
+  | "admin_parts_photo"
+  | "admin_parts_photo_review"
   | "admin_fpart_wizard"
+  | "admin_fpart_photo"
+  | "admin_fpart_photo_review"
   | "admin_cons_wizard";
 
 export type TelegramSession = {

@@ -94,6 +94,7 @@ export function monthlyInvoicePartsMenuKeyboard(month: string): InlineKeyboardMa
   return {
     inline_keyboard: [
       [{ text: "➕ Добавить", callback_data: "fpart:add" }],
+      [{ text: "📷 Добавить с фото", callback_data: "fpart:photo" }],
       [{ text: "📋 Показать полный список", callback_data: "fpart:list" }],
       [{ text: "🗑 Удалить позицию", callback_data: "fpart:del" }],
       [
@@ -145,7 +146,8 @@ export async function showMonthlyInvoicePartsMenu(
     `Месяц: <b>${formatMonthLabel(m)}</b>\n\n` +
     `Отдельный список для позиций, которые идут на фактуру.\n` +
     `Пошагово: название → номер → закуп (брутто) → продажа (брутто).\n` +
-    `«Показать полный список» — все позиции целиком, с полными названиями.`;
+    `«Показать полный список» — все позиции целиком, с полными названиями.\n` +
+    `«Добавить с фото» — скрин заказа поставщика (номер, название, цена).`;
 
   if (messageId) {
     await updateTelegramInlineScreen(chatId, messageId, text, monthlyInvoicePartsMenuKeyboard(m));

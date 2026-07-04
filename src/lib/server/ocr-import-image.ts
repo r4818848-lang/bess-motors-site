@@ -56,6 +56,26 @@ export function ocrQualityScore(text: string): number {
   return score;
 }
 
+/** OCR for supplier order screenshots (Russian UI + PLN prices). */
+export async function ocrPartsOrderImageBuffer(buffer: Buffer): Promise<string> {
+  const { createWorker, PSM } = await import("tesseract.js");
+  let preprocessed: Buffer;
+  try {
+    preprocessed = await preprocessImageForOcr(buffer);
+  } catch {
+    preprocessed = buffer;
+  }
+
+  const worker = await createWorker("rus+pol+eng", undefined, { logger: () => {} });
+  try {
+    await worker.setParameters({ tessedit_pageseg_mode: PSM.AUTO });
+    const result = await worker.recognize(preprocessed);
+    return result.data.text ?? "";
+  } finally {
+    await worker.terminate();
+  }
+}
+
 /** Best-effort OCR for workshop estimate screenshots (2 passes max, early exit). */
 export async function ocrImportImageBuffer(buffer: Buffer): Promise<string> {
   const { createWorker, PSM } = await import("tesseract.js");
