@@ -1,9 +1,9 @@
 import {
+  buildMonthlyPartsListMessages,
   createMonthlyInvoicePartEntry,
   currentMonthKey,
   formatMoneyPln,
   formatMonthLabel,
-  formatMonthlyInvoicePartsTable,
   MONTHLY_PARTS_VAT_RATE,
   normalizePartPrices,
   parsePartMoneyInput,
@@ -84,7 +84,7 @@ function afterSaveKeyboard(): InlineKeyboardMarkup {
   return {
     inline_keyboard: [
       [{ text: "➕ Ещё одна позиция", callback_data: "fpart:add" }],
-      [{ text: "📋 Список месяца", callback_data: "fpart:list" }],
+      [{ text: "📋 Полный список", callback_data: "fpart:list" }],
       [{ text: BOT.menu, callback_data: "fpart:menu" }],
     ],
   };
@@ -94,7 +94,7 @@ export function monthlyInvoicePartsMenuKeyboard(month: string): InlineKeyboardMa
   return {
     inline_keyboard: [
       [{ text: "➕ Добавить", callback_data: "fpart:add" }],
-      [{ text: "📋 Показать список", callback_data: "fpart:list" }],
+      [{ text: "📋 Показать полный список", callback_data: "fpart:list" }],
       [{ text: "🗑 Удалить позицию", callback_data: "fpart:del" }],
       [
         { text: "◀️", callback_data: "fpart:prev" },
@@ -145,7 +145,7 @@ export async function showMonthlyInvoicePartsMenu(
     `Месяц: <b>${formatMonthLabel(m)}</b>\n\n` +
     `Отдельный список для позиций, которые идут на фактуру.\n` +
     `Пошагово: название → номер → закуп (брутто) → продажа (брутто).\n` +
-    `Нетто с VAT ${Math.round(MONTHLY_PARTS_VAT_RATE * 100)}% считается автоматически.`;
+    `«Показать полный список» — все позиции целиком, с полными названиями.`;
 
   if (messageId) {
     await updateTelegramInlineScreen(chatId, messageId, text, monthlyInvoicePartsMenuKeyboard(m));
@@ -164,6 +164,35 @@ export async function startMonthlyInvoicePartsAdd(
   await persistWizardStep(chatId, messageId, { fpartMonth: month }, "name");
 }
 
+async function sendMonthlyPartsListMessages(
+  chatId: number,
+  messageId: number | undefined,
+  messages: string[],
+  keyboard: InlineKeyboardMarkup
+): Promise<void> {
+  if (!messages.length) return;
+
+  if (messages.length === 1) {
+    if (messageId) {
+      await updateTelegramInlineScreen(chatId, messageId, messages[0], keyboard);
+    } else {
+      await sendTelegramMessage(chatId, messages[0], keyboard);
+    }
+    return;
+  }
+
+  const lastIdx = messages.length - 1;
+  if (messageId) {
+    await updateTelegramInlineScreen(chatId, messageId, messages[0]);
+  } else {
+    await sendTelegramMessage(chatId, messages[0]);
+  }
+  for (let i = 1; i < lastIdx; i++) {
+    await sendTelegramMessage(chatId, messages[i]);
+  }
+  await sendTelegramMessage(chatId, messages[lastIdx], keyboard);
+}
+
 export async function showMonthlyInvoicePartsList(
   chatId: number,
   messageId: number | undefined,
@@ -175,13 +204,16 @@ export async function showMonthlyInvoicePartsList(
     step: undefined,
     data: { fpartMonth: month, fpartView: "list" },
   });
-  const text = formatMonthlyInvoicePartsTable(db.monthlyInvoiceParts ?? [], month);
-  const keyboard = monthlyInvoicePartsMenuKeyboard(month);
-  if (messageId) {
-    await updateTelegramInlineScreen(chatId, messageId, text, keyboard);
-  } else {
-    await sendTelegramMessage(chatId, text, keyboard);
-  }
+  const messages = buildMonthlyPartsListMessages(db.monthlyInvoiceParts ?? [], month, {
+    icon: "🧾",
+    listName: "На фактуру",
+  });
+  await sendMonthlyPartsListMessages(
+    chatId,
+    messageId,
+    messages,
+    monthlyInvoicePartsMenuKeyboard(month)
+  );
 }
 
 export async function shiftMonthlyInvoicePartsMonth(

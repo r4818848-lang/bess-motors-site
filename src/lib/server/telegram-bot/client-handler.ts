@@ -1,5 +1,4 @@
 import { normalizePhone, normalizePlateKey } from "@/lib/auth";
-import { orderNeedsClientSignature } from "@/lib/order-signature";
 import type { InlineKeyboardMarkup } from "@/lib/server/telegram-api";
 import {
   answerCallbackQuery,
@@ -9,8 +8,6 @@ import {
 } from "@/lib/server/telegram-api";
 import { getTelegramSession } from "@/lib/server/telegram-sessions";
 import {
-  countPendingSign,
-  countUnread,
   formatAppointmentsSlice,
   formatCarsSlice,
   formatFleetFinanceReport,
@@ -18,7 +15,8 @@ import {
   formatLinkedWelcome,
   formatNotifications,
   formatWorkOrderDetail,
-  formatWorkOrdersList,
+  formatClientHistoryList,
+  historyKeyboardLabels,
 } from "./client-cabinet-format";
 import {
   createTelegramBooking,
@@ -288,42 +286,13 @@ async function handleStartDeepLinks(
     await handleAptStartParam(chatId, locale, startParam.slice(4));
     return;
   }
-  if (startParam.startsWith("sign_")) {
-    const orderId = startParam.slice(5);
-    const slice = await getClientPortalByChat(chatKey);
-    if (!slice) {
-      await startLinkFlow(
-        chatId,
-        undefined,
-        chatKey,
-        locale,
-        minimalTelegramProfile(chatId),
-        orderId
-      );
-      return;
-    }
-    const detail = formatWorkOrderDetail(locale, slice, orderId);
-    if (detail) {
-      const order = slice.workOrders.find((o) => o.id === orderId);
-      const needsSign = order ? orderNeedsClientSignature(order) : false;
-      const L = getClientBotLabels(locale);
-      await sendTelegramMessage(
-        chatId,
-        needsSign ? `${L.signIntro}\n\n${detail}` : detail,
-        clientOrderDetailKeyboard(locale, orderId, needsSign)
-      );
-    }
-  }
 }
 
 function clientUserMenu(
   locale: BotLocale,
   slice: ClientPortalSlice | null | undefined
 ): ReturnType<typeof clientMenuForUser> {
-  if (slice) {
-    return clientMenuForUser(locale, slice, countPendingSign(slice), countUnread(slice));
-  }
-  return clientMainKeyboard(locale);
+  return clientMenuForUser(locale, slice);
 }
 
 async function markInboxRead(userId: string): Promise<void> {
@@ -345,33 +314,13 @@ async function showClientMenu(
   const slice = await getClientPortalByChat(chatKey);
 
   if (slice) {
-    const pending = countPendingSign(slice);
-    const unread = countUnread(slice);
-    const text = `${formatLinkedWelcome(locale, slice.user.name)}\n\n${L.smartBookHint}`;
-    const kb = clientMenuForUser(locale, slice, pending, unread);
+    const text = formatLinkedWelcome(locale, slice.user.name);
+    const kb = clientUserMenu(locale, slice);
     await replyOrEdit(chatId, messageId, locale, text, kb);
-
-    if (startParam?.startsWith("sign_")) {
-      const orderId = startParam.slice(5);
-      const detail = formatWorkOrderDetail(locale, slice, orderId);
-      if (detail) {
-        const order = slice.workOrders.find((o) => o.id === orderId);
-        const needsSign = order ? orderNeedsClientSignature(order) : false;
-        await sendTelegramMessage(
-          chatId,
-          needsSign ? `${L.signIntro}\n\n${detail}` : detail,
-          clientOrderDetailKeyboard(locale, orderId, needsSign)
-        );
-      }
-    }
     return;
   }
 
-  let text = `${L.welcome}\n\n${L.smartBookHint}`;
-  if (startParam?.startsWith("sign_")) {
-    text = `${L.signIntro}\n\n${L.welcome}\n\n${L.smartBookHint}`;
-  }
-  await replyOrEdit(chatId, messageId, locale, text, clientMainKeyboard(locale, false));
+  await replyOrEdit(chatId, messageId, locale, L.welcome, clientMainKeyboard(locale, false));
 }
 
 async function startLinkFlow(
@@ -379,14 +328,10 @@ async function startLinkFlow(
   messageId: number | undefined,
   chatKey: string,
   locale: BotLocale,
-  _profile: TelegramProfile,
-  orderId?: string
+  _profile: TelegramProfile
 ): Promise<void> {
   const L = getClientBotLabels(locale);
-  const data: Record<string, string> = orderId
-    ? { orderId, linkIntent: "sign" }
-    : { linkIntent: "cabinet" };
-  await promptLinkPhone(chatId, chatKey, locale, data);
+  await promptLinkPhone(chatId, chatKey, locale, { linkIntent: "cabinet" });
   if (messageId) {
     await editTelegramMessage(
       chatId,
@@ -537,19 +482,6 @@ async function completeLink(
   const kb = clientUserMenu(locale, slice);
 
   await sendTelegramMessage(chatId, L.linkSuccess, kb);
-
-  if (sessionData.orderId && slice) {
-    const detail = formatWorkOrderDetail(locale, slice, sessionData.orderId);
-    if (detail) {
-      const order = slice.workOrders.find((o) => o.id === sessionData.orderId);
-      const needsSign = order ? orderNeedsClientSignature(order) : false;
-      await sendTelegramMessage(
-        chatId,
-        detail,
-        clientOrderDetailKeyboard(locale, sessionData.orderId, needsSign)
-      );
-    }
-  }
 
   const pendingRef = await consumePendingRefCode(chatKey);
   if (pendingRef) {
@@ -963,7 +895,7 @@ async function handleClientCallbackInner(cb: TelegramCallback): Promise<void> {
       chatId,
       messageId,
       locale,
-      text ?? L.signIntro,
+      text ?? L.linkIntro,
       clientUserMenu(locale, slice)
     );
     return;
@@ -1032,7 +964,7 @@ async function handleClientCallbackInner(cb: TelegramCallback): Promise<void> {
       await replyOrEdit(chatId, messageId, locale, line, clientUserMenu(locale, slice));
       return;
     }
-    await replyOrEdit(chatId, messageId, locale, L.signIntro, {
+    await replyOrEdit(chatId, messageId, locale, L.linkIntro, {
       inline_keyboard: [
         [{ text: L.activate, callback_data: "cl:link" }],
         clientBackMenuRow(locale),
@@ -1047,7 +979,7 @@ async function handleClientCallbackInner(cb: TelegramCallback): Promise<void> {
       chatId,
       messageId,
       locale,
-      text ?? L.signIntro,
+      text ?? L.linkIntro,
       clientUserMenu(locale, slice)
     );
     return;
@@ -1085,7 +1017,7 @@ async function handleClientCallbackInner(cb: TelegramCallback): Promise<void> {
       chatId,
       messageId,
       locale,
-      text ?? L.signIntro,
+      text ?? L.linkIntro,
       clientUserMenu(locale, slice)
     );
     return;
@@ -1455,7 +1387,7 @@ async function handleClientCallbackInner(cb: TelegramCallback): Promise<void> {
         res.error === "duplicate"
           ? L.vinDuplicate
           : res.error === "not_linked"
-            ? L.signIntro
+            ? L.linkIntro
             : L.vinNotFound;
       await replyOrEdit(
         chatId,
@@ -1473,7 +1405,7 @@ async function handleClientCallbackInner(cb: TelegramCallback): Promise<void> {
   }
 
   if (data === "cl:link") {
-    await startLinkFlow(chatId, messageId, chatKey, locale, profile, sessionData.orderId);
+    await startLinkFlow(chatId, messageId, chatKey, locale, profile);
     return;
   }
 
@@ -1513,7 +1445,7 @@ async function handleClientCallbackInner(cb: TelegramCallback): Promise<void> {
   }
 
   if (data === "cl:lk:restart") {
-    await startLinkFlow(chatId, messageId, chatKey, locale, profile, sessionData.orderId);
+    await startLinkFlow(chatId, messageId, chatKey, locale, profile);
     return;
   }
 
@@ -1528,21 +1460,13 @@ async function handleClientCallbackInner(cb: TelegramCallback): Promise<void> {
       return;
     }
     const page = Number(data.slice(10)) || 0;
-    const { text, totalPages } = formatWorkOrdersList(locale, slice, page);
-    const orders = [...slice.workOrders]
-      .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-      .slice(page * 4, page * 4 + 4)
-      .map((o) => ({
-        id: o.id,
-        number: o.number,
-        needsSign: orderNeedsClientSignature(o),
-      }));
+    const { text, totalPages, items } = formatClientHistoryList(locale, slice, page);
     await replyOrEdit(
       chatId,
       messageId,
       locale,
       text,
-      clientOrdersKeyboard(locale, orders, page, totalPages)
+      clientOrdersKeyboard(locale, historyKeyboardLabels(slice, items), page, totalPages)
     );
     return;
   }
@@ -1564,17 +1488,12 @@ async function handleClientCallbackInner(cb: TelegramCallback): Promise<void> {
       );
       return;
     }
-    const order = slice.workOrders.find((o) => o.id === orderId);
     await replyOrEdit(
       chatId,
       messageId,
       locale,
       detail,
-      clientOrderDetailKeyboard(
-        locale,
-        orderId,
-        order ? orderNeedsClientSignature(order) : false
-      )
+      clientOrderDetailKeyboard(locale, orderId)
     );
     return;
   }

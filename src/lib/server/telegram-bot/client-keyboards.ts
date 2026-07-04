@@ -19,7 +19,6 @@ import {
   nextBookableDates,
 } from "./client-services";
 import type { ClientPortalSlice } from "@/lib/client-sign";
-import { isFleetPortalClient } from "@/lib/client-fleet-access";
 
 function siteBase(): string {
   return process.env.NEXT_PUBLIC_SITE_URL || "https://www.bess-motors.com";
@@ -50,106 +49,53 @@ export function clientStartReplyKeyboard(L: ClientBotLabels): ReplyKeyboardMarku
   };
 }
 
-/** Guest menu — 4 rows */
+/** Guest menu */
 export function clientMainKeyboard(locale: BotLocale, linked = false): InlineKeyboardMarkup {
   void linked;
   const L = getClientBotLabels(locale);
   return {
     inline_keyboard: [
-      [{ text: L.activate, callback_data: "cl:link" }],
       [
         { text: L.book, callback_data: "cl:book" },
         { text: L.call, callback_data: "cl:call" },
       ],
+      [{ text: L.activate, callback_data: "cl:link" }],
       [
-        { text: L.myStatus, callback_data: "cl:status" },
         { text: L.contacts, callback_data: "cl:contacts" },
-      ],
-      [
-        { text: L.symptomQuiz, callback_data: "cl:sym:start" },
-        { text: "❓ FAQ", callback_data: "cl:more" },
-      ],
-      [
-        { text: L.site, url: `${siteBase()}/cabinet` },
         { text: L.changeLanguage, callback_data: "cl:lang:pick" },
       ],
     ],
   };
 }
 
-/** Linked client — 6 compact rows */
+/** Linked client — book, history, callback */
 export function clientLinkedMenuKeyboard(
   locale: BotLocale,
-  slice: ClientPortalSlice,
-  pendingSign: number,
-  unread: number
+  _slice: ClientPortalSlice
 ): InlineKeyboardMarkup {
+  void _slice;
   const L = getClientBotLabels(locale);
-  const fleet = isFleetPortalClient(slice);
-  const ordersLabel =
-    pendingSign > 0 ? `${L.myOrders} (✍️${pendingSign})` : L.myOrders;
-  const notifLabel = unread > 0 ? `${L.notifications} (${unread})` : L.notifications;
-
-  const carsRow: InlineKeyboardMarkup["inline_keyboard"][0] = fleet
-    ? [
-        { text: L.fleetFinance, callback_data: "cl:finance" },
-        { text: L.myCars, callback_data: "cl:cars" },
-      ]
-    : [
-        { text: L.myCars, callback_data: "cl:cars" },
-        { text: L.referralShare, callback_data: "cl:referral" },
-      ];
-
-  const rows: InlineKeyboardMarkup["inline_keyboard"] = [
-      [
-        { text: ordersLabel, callback_data: "cl:orders:0" },
-        { text: L.myStatus, callback_data: "cl:status" },
-      ],
+  return {
+    inline_keyboard: [
       [
         { text: L.book, callback_data: "cl:book" },
         { text: L.call, callback_data: "cl:call" },
       ],
+      [{ text: L.myOrders, callback_data: "cl:orders:0" }],
       [
-        { text: L.myAppointments, callback_data: "cl:apts" },
-        { text: notifLabel, callback_data: "cl:notif" },
+        { text: L.contacts, callback_data: "cl:contacts" },
+        { text: L.changeLanguage, callback_data: "cl:lang:pick" },
       ],
-      carsRow,
-  ];
-
-  if (fleet) {
-    rows.push([{ text: L.referralShare, callback_data: "cl:referral" }]);
-  }
-
-  rows.push(
-    [
-      { text: L.contacts, callback_data: "cl:contacts" },
-      { text: L.cabinetSite, url: `${siteBase()}/cabinet` },
     ],
-    [
-      { text: L.serviceHistory, callback_data: "cl:history" },
-      { text: L.warrantyBtn, callback_data: "cl:warranty" },
-    ],
-    [
-      { text: L.notifySettings, callback_data: "cl:notify" },
-      { text: L.sendPhoto, callback_data: "cl:photo" },
-    ],
-    [
-      { text: "❓ FAQ", callback_data: "cl:more" },
-      { text: L.changeLanguage, callback_data: "cl:lang:pick" },
-    ]
-  );
-
-  return { inline_keyboard: rows };
+  };
 }
 
 export function clientMenuForUser(
   locale: BotLocale,
-  slice: ClientPortalSlice | null | undefined,
-  pendingSign = 0,
-  unread = 0
+  slice: ClientPortalSlice | null | undefined
 ): InlineKeyboardMarkup {
   if (slice) {
-    return clientLinkedMenuKeyboard(locale, slice, pendingSign, unread);
+    return clientLinkedMenuKeyboard(locale, slice);
   }
   return clientMainKeyboard(locale);
 }
@@ -235,7 +181,7 @@ export function clientAppointmentDetailKeyboard(
         },
         { text: L.plusSevenDays, callback_data: `cl:apt:+7:${aptId}` },
       ],
-      [{ text: L.back, callback_data: "cl:apts" }],
+      [{ text: L.backToList, callback_data: "cl:orders:0" }],
       clientBackMenuRow(locale),
     ],
   };
@@ -395,16 +341,22 @@ export function clientContactsKeyboard(locale: BotLocale): InlineKeyboardMarkup 
   };
 }
 
+export type ClientHistoryKeyboardItem = {
+  kind: "apt" | "wo";
+  id: string;
+  label: string;
+};
+
 export function clientOrdersKeyboard(
   locale: BotLocale,
-  orders: { id: string; number: string; needsSign: boolean }[],
+  items: ClientHistoryKeyboardItem[],
   page: number,
   totalPages: number
 ): InlineKeyboardMarkup {
-  const kb: InlineKeyboardMarkup["inline_keyboard"] = orders.map((o) => [
+  const kb: InlineKeyboardMarkup["inline_keyboard"] = items.map((item) => [
     {
-      text: `${o.needsSign ? "✍️ " : ""}${o.number}`,
-      callback_data: `cl:wo:${o.id}`,
+      text: item.label.slice(0, 40),
+      callback_data: item.kind === "apt" ? `cl:apt:view:${item.id}` : `cl:wo:${item.id}`,
     },
   ]);
 
@@ -419,30 +371,16 @@ export function clientOrdersKeyboard(
 
 export function clientOrderDetailKeyboard(
   locale: BotLocale,
-  orderId: string,
-  needsSign: boolean
+  orderId: string
 ): InlineKeyboardMarkup {
   const L = getClientBotLabels(locale);
-  const rows: InlineKeyboardMarkup["inline_keyboard"] = [];
-  if (needsSign) {
-    rows.push([
-      {
-        text: L.signOnSite,
-        url: `${siteBase()}/sign/${orderId}`,
-      },
-    ]);
-  }
-  rows.push([
-    {
-      text: L.repeatBtn,
-      callback_data: `cl:repeat:${orderId}`,
-    },
-  ]);
-  rows.push(
-    [{ text: L.backToList, callback_data: "cl:orders:0" }],
-    clientBackMenuRow(locale)
-  );
-  return { inline_keyboard: rows };
+  return {
+    inline_keyboard: [
+      [{ text: L.repeatBtn, callback_data: `cl:repeat:${orderId}` }],
+      [{ text: L.backToList, callback_data: "cl:orders:0" }],
+      clientBackMenuRow(locale),
+    ],
+  };
 }
 
 export function formatClientBookingSummary(

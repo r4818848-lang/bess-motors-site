@@ -172,6 +172,92 @@ export type FormatMonthlyPartsTableOpts = {
   listName?: string;
 };
 
+function formatMonthlyPartsFullRow(r: MonthlyPartEntry): string {
+  const q = r.qty || 1;
+  const p = normalizePartPrices(r);
+  const date = formatRowDate(r.createdAt);
+  const name = r.name.trim();
+  const num = r.partNumber.trim();
+  const numPart = num ? ` · № ${num}` : "";
+  const qtyPart = q > 1 ? ` × ${q}` : "";
+  return (
+    `${date} · ${name}${numPart}${qtyPart}\n` +
+    `  закуп ${formatMoneyPln(p.purchaseNetto * q)}/${formatMoneyPln(p.purchaseBrutto * q)} · ` +
+    `продажа ${formatMoneyPln(p.sellNetto * q)}/${formatMoneyPln(p.sellBrutto * q)} zł (нет/брут)`
+  );
+}
+
+function monthlyPartsFooter(totals: MonthlyPartsTotals): string {
+  return [
+    "─".repeat(40),
+    `Итого закуп (нет/брут): ${formatMoneyPln(totals.purchaseNetto)} / ${formatMoneyPln(totals.purchaseBrutto)} zł`,
+    `Итого продажа (нет/брут): ${formatMoneyPln(totals.sellNetto)} / ${formatMoneyPln(totals.sellBrutto)} zł`,
+    `Прибыль (нет/брут): ${formatMoneyPln(totals.profitNetto)} / ${formatMoneyPln(totals.profitBrutto)} zł`,
+    `VAT ${Math.round(MONTHLY_PARTS_VAT_RATE * 100)}% — ввод брутто, нетто авто`,
+  ].join("\n");
+}
+
+function wrapPreBlock(inner: string): string {
+  return `<pre>${escapePreText(inner)}</pre>`;
+}
+
+/** Full parts list for Telegram — all rows, full names, split across messages if needed. */
+export function buildMonthlyPartsListMessages(
+  items: MonthlyPartEntry[],
+  month: string,
+  opts?: FormatMonthlyPartsTableOpts
+): string[] {
+  const icon = opts?.icon ?? "📦";
+  const listName = opts?.listName ?? "Запчасти";
+  const rows = filterMonthlyParts(items, month);
+
+  if (!rows.length) {
+    return [`${icon} <b>${listName} — ${formatMonthLabel(month)}</b>\n\nПока пусто. Нажмите «Добавить».`];
+  }
+
+  const totals = computeMonthlyPartsTotals(rows);
+  const titleBlock =
+    `${icon} <b>${listName} — ${formatMonthLabel(month)}</b>\n` +
+    `Позиций: <b>${totals.count}</b>\n` +
+    `Полный текст — скопируйте из блока ниже.\n\n`;
+
+  const footer = monthlyPartsFooter(totals);
+  const rowBlocks = rows.map((r, i) => `${i + 1}. ${formatMonthlyPartsFullRow(r)}`);
+
+  const messages: string[] = [];
+  let chunkLines: string[] = [];
+
+  const flushChunk = (isLast: boolean) => {
+    if (!chunkLines.length) return;
+    const part = messages.length === 0 ? titleBlock : `${icon} <b>${listName}</b> (продолжение)\n\n`;
+    const body = chunkLines.join("\n\n") + (isLast ? `\n\n${footer}` : "");
+    messages.push(part + wrapPreBlock(body));
+    chunkLines = [];
+  };
+
+  for (let i = 0; i < rowBlocks.length; i++) {
+    const isLast = i === rowBlocks.length - 1;
+    const trial = [...chunkLines, rowBlocks[i]];
+    const trialBody = trial.join("\n\n") + (isLast ? `\n\n${footer}` : "");
+    const trialMsg =
+      (messages.length === 0 ? titleBlock : `${icon} <b>${listName}</b> (продолжение)\n\n`) +
+      wrapPreBlock(trialBody);
+
+    if (trialMsg.length > TELEGRAM_SAFE_HTML_LIMIT && chunkLines.length > 0) {
+      flushChunk(false);
+      chunkLines.push(rowBlocks[i]);
+      if (isLast) flushChunk(true);
+    } else {
+      chunkLines.push(rowBlocks[i]);
+      if (isLast) flushChunk(true);
+    }
+  }
+
+  return messages.length
+    ? messages
+    : [titleBlock + wrapPreBlock(footer)];
+}
+
 export function formatMonthlyPartsTable(
   items: MonthlyPartEntry[],
   month: string,
@@ -246,17 +332,17 @@ export function formatMonthlyPartsList(
   items: MonthlyPartEntry[],
   month: string
 ): string {
-  return formatMonthlyPartsTable(items, month);
+  return buildMonthlyPartsListMessages(items, month)[0];
 }
 
 export function formatMonthlyInvoicePartsTable(
   items: MonthlyPartEntry[],
   month: string
 ): string {
-  return formatMonthlyPartsTable(items, month, {
+  return buildMonthlyPartsListMessages(items, month, {
     icon: "🧾",
     listName: "На фактуру",
-  });
+  })[0];
 }
 
 export function createMonthlyPartEntry(

@@ -220,7 +220,7 @@ export async function handleClientTextCommands(
     const { getClientPortalByChat } = await import("./client-telegram-link");
     const slice = await getClientPortalByChat(chatKey);
     if (!slice?.workOrders.length) {
-      await sendTelegramMessage(chatId, getClientBotLabels(locale).signIntro);
+      await sendTelegramMessage(chatId, getClientBotLabels(locale).linkIntro);
       return true;
     }
     const last = [...slice.workOrders].sort((a, b) =>
@@ -233,7 +233,7 @@ export async function handleClientTextCommands(
   if (cmd === "/status" || cmd === "/cars" || cmd === "/queue") {
     const { formatRepairStatusLine } = await import("./client-extras");
     const line = await formatRepairStatusLine(locale, chatKey);
-    await sendTelegramMessage(chatId, line ?? getClientBotLabels(locale).signIntro);
+    await sendTelegramMessage(chatId, line ?? getClientBotLabels(locale).linkIntro);
     return true;
   }
   if (
@@ -246,7 +246,7 @@ export async function handleClientTextCommands(
     const slice = await getClientPortalByChat(chatKey);
     const L = getClientBotLabels(locale);
     if (!slice) {
-      await sendTelegramMessage(chatId, L.signIntro);
+      await sendTelegramMessage(chatId, L.linkIntro);
       return true;
     }
     const { isFleetPortalClient } = await import("@/lib/client-fleet-access");
@@ -270,17 +270,6 @@ export async function handleClientTextCommands(
     await sendTelegramMessage(chatId, L.chooseService, clientServiceKeyboard(locale, "book"));
     return true;
   }
-  if (cmd === "/sign") {
-    const slice = await (await import("./client-telegram-link")).getClientPortalByChat(chatKey);
-    const order = slice?.workOrders.find((o) => o.status !== "delivered");
-    if (order) {
-      const base = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.bess-motors.com";
-      await sendTelegramMessage(chatId, `${base}/sign/${order.id}`);
-      return true;
-    }
-    await sendTelegramMessage(chatId, "—");
-    return true;
-  }
   if (cmd === "/loyalty") {
     const slice = await (await import("./client-telegram-link")).getClientPortalByChat(chatKey);
     if (slice) {
@@ -288,7 +277,7 @@ export async function handleClientTextCommands(
       await sendTelegramMessage(chatId, formatLoyaltyProgress(slice.user, locale));
       return true;
     }
-    await sendTelegramMessage(chatId, getClientBotLabels(locale).signIntro);
+    await sendTelegramMessage(chatId, getClientBotLabels(locale).linkIntro);
     return true;
   }
   if (cmd === "/myrefs") {
@@ -297,7 +286,7 @@ export async function handleClientTextCommands(
     const { formatMyRefsCommand } = await import("./client-referral-cmd");
     const slice = await getClientPortalByChat(chatKey);
     if (!slice) {
-      await sendTelegramMessage(chatId, getClientBotLabels(locale).signIntro);
+      await sendTelegramMessage(chatId, getClientBotLabels(locale).linkIntro);
       return true;
     }
     const cloudDb = await loadCrmFromCloud();

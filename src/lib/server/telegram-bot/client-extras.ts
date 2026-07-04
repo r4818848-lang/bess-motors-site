@@ -1,7 +1,6 @@
 import { cloudGetCrmStore, cloudPutCrmStore } from "@/lib/server/crm-cloud";
 import { sendTelegramMessage } from "@/lib/server/telegram-api";
 import { repairProgressPercent } from "@/lib/repair-progress";
-import { orderNeedsClientSignature } from "@/lib/order-signature";
 import type { BotLocale } from "./client-i18n";
 import { getClientBotLabels } from "./client-i18n";
 import type { ClientRating, Database, User, WorkOrder } from "@/lib/store";
@@ -139,7 +138,6 @@ export async function formatRepairStatusLine(
     `📋 <b>${active.number}</b>`,
     `📌 ${status} · <b>${pct}%</b>`,
     queue,
-    orderNeedsClientSignature(active) ? L.needsSignature : "",
   ]
     .filter(Boolean)
     .join("\n");
@@ -178,7 +176,7 @@ export async function startRebookPlus7(
   const slice = await getClientPortalByChat(chatKey);
   const L = getClientBotLabels(locale);
   if (!slice) {
-    await sendTelegramMessage(chatId, L.signIntro, clientMainKeyboard(locale, false));
+    await sendTelegramMessage(chatId, L.linkIntro, clientMainKeyboard(locale, false));
     return;
   }
 
@@ -311,7 +309,7 @@ export async function handleAptStartParam(
   const slice = await getClientPortalByChat(String(chatId));
   const L = getClientBotLabels(locale);
   if (!slice) {
-    await sendTelegramMessage(chatId, L.signIntro, {
+    await sendTelegramMessage(chatId, L.linkIntro, {
       inline_keyboard: [
         [{ text: L.activate, callback_data: "cl:link" }],
         [{ text: L.book, callback_data: "cl:book" }],

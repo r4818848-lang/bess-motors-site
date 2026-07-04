@@ -1,5 +1,4 @@
 import { cleanEnvValue } from "@/lib/server/supabase-config";
-import { orderNeedsClientSignature as orderNeedsSignature } from "@/lib/order-signature";
 import { sendTelegramMessage } from "@/lib/server/telegram-api";
 import type { Database, User, WorkOrder } from "@/lib/store";
 import { calcClientTotal } from "@/lib/workorder-calc";
@@ -9,7 +8,7 @@ import { mutateCrm } from "./crm-actions";
 import { canSendBotNotify } from "./bot-notify-guard";
 import { isQuietHours } from "@/lib/quiet-hours";
 import { isWorkOrderClosed } from "@/lib/work-order-lifecycle";
-import { repairStatusLabel, signKeyboardLocalized, woNotifyCopy } from "./client-wo-notify-text";
+import { repairStatusLabel, woNotifyCopy } from "./client-wo-notify-text";
 
 function siteUrl(): string {
   return cleanEnvValue(process.env.NEXT_PUBLIC_SITE_URL) || "https://www.bess-motors.com";
@@ -28,16 +27,8 @@ function vehicleLabel(db: Database, order: WorkOrder): string {
   return `${vehicle.make} ${vehicle.model} · ${vehicle.plate}`.trim() || order.number;
 }
 
-function signUrl(orderId: string): string {
-  return `${siteUrl()}/sign/${orderId}`;
-}
-
 function cabinetUrl(): string {
   return `${siteUrl()}/cabinet`;
-}
-
-function signKeyboard(orderId: string, locale: BotLocale) {
-  return signKeyboardLocalized(orderId, siteUrl(), locale);
 }
 
 async function sendToClient(
@@ -63,30 +54,6 @@ export async function notifyTelegramWorkOrderChange(
   const loc: BotLocale = user.telegramLocale ?? "ru";
   const copy = woNotifyCopy(loc);
   const car = esc(vehicleLabel(db, order));
-  const total = calcClientTotal(order);
-
-  const signJustRequired =
-    orderNeedsSignature(order) &&
-    (!previous || !orderNeedsSignature(previous));
-
-  if (signJustRequired) {
-    await sendToClient(
-      user,
-      [
-        copy.signRequiredTitle,
-        "",
-        copy.signRequiredBody
-          .replace("{number}", esc(order.number))
-          .replace("{car}", car)
-          .replace("{total}", total.toFixed(2)),
-        "",
-        copy.signRequiredHint,
-      ].join("\n"),
-      signKeyboard(order.id, loc),
-      { critical: true }
-    );
-    return;
-  }
 
   const statusChanged = previous?.status !== order.status;
   const closedNow =
@@ -164,7 +131,7 @@ export async function dispatchTelegramFromCrmSave(
   for (const order of next.workOrders) {
     const old = previous.workOrders.find((o) => o.id === order.id);
     if (!old) {
-      if (orderNeedsSignature(order) || order.status !== "received") {
+      if (order.status !== "received") {
         await notifyTelegramWorkOrderChange(next, order, null);
       }
       continue;
@@ -212,26 +179,8 @@ export async function dispatchTelegramFromCrmSave(
 }
 
 export async function notifyTelegramSignByPhone(
-  db: Database,
-  order: WorkOrder
+  _db: Database,
+  _order: WorkOrder
 ): Promise<void> {
-  const user = db.users.find((u) => u.id === order.userId && u.role === "client");
-  if (!user?.telegramChatId) return;
-  if (!orderNeedsSignature(order)) return;
-
-  const loc: BotLocale = user.telegramLocale ?? "ru";
-  const copy = woNotifyCopy(loc);
-  const car = esc(vehicleLabel(db, order));
-  await sendToClient(
-    user,
-    [
-      copy.signDocTitle,
-      "",
-      copy.signDocBody.replace("{number}", esc(order.number)).replace("{car}", car),
-      "",
-      copy.signDocHint,
-    ].join("\n"),
-    signKeyboard(order.id, loc),
-    { critical: true }
-  );
+  // Client Telegram bot no longer prompts for document signing.
 }

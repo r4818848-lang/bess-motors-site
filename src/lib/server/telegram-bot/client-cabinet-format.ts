@@ -5,7 +5,6 @@ import {
   type FleetFinanceSummary,
   type VehicleFinanceRow,
 } from "@/lib/client-fleet-finance";
-import { orderNeedsClientSignature } from "@/lib/order-signature";
 import type { WorkOrder } from "@/lib/store";
 import { calcClientTotal } from "@/lib/workorder-calc";
 import { type BotLocale, getClientBotLabels } from "./client-i18n";
@@ -29,6 +28,86 @@ function repairLabel(locale: BotLocale, status: string): string {
 
 export function formatLinkedWelcome(locale: BotLocale, name: string): string {
   return getClientBotLabels(locale).linkedWelcome(name);
+}
+
+export type ClientHistoryItem =
+  | { kind: "apt"; id: string; sortKey: string }
+  | { kind: "wo"; id: string; sortKey: string };
+
+export function buildClientHistoryItems(slice: ClientPortalSlice): ClientHistoryItem[] {
+  const apts: ClientHistoryItem[] = slice.appointments.map((a) => ({
+    kind: "apt",
+    id: a.id,
+    sortKey: `${a.date}T${a.time}`,
+  }));
+  const orders: ClientHistoryItem[] = slice.workOrders.map((o) => ({
+    kind: "wo",
+    id: o.id,
+    sortKey: o.createdAt,
+  }));
+  return [...apts, ...orders].sort((a, b) => b.sortKey.localeCompare(a.sortKey));
+}
+
+function formatAppointmentLine(
+  locale: BotLocale,
+  slice: ClientPortalSlice,
+  aptId: string
+): string {
+  const L = getClientBotLabels(locale);
+  const apt = slice.appointments.find((a) => a.id === aptId);
+  if (!apt) return "";
+  const service = apt.serviceIds.map((id) => getClientServiceLabel(id, locale)).join(", ");
+  return [
+    `📅 <b>${apt.date} · ${apt.time}</b>`,
+    `🔧 ${esc(service)}`,
+    `📌 ${L.appointmentStatus[apt.appointmentStatus] ?? apt.appointmentStatus}`,
+  ].join("\n");
+}
+
+export function formatClientHistoryList(
+  locale: BotLocale,
+  slice: ClientPortalSlice,
+  page = 0,
+  pageSize = 4
+): { text: string; totalPages: number; items: ClientHistoryItem[] } {
+  const L = getClientBotLabels(locale);
+  const all = buildClientHistoryItems(slice);
+  const totalPages = Math.max(1, Math.ceil(all.length / pageSize));
+  const chunk = all.slice(page * pageSize, page * pageSize + pageSize);
+
+  if (chunk.length === 0) {
+    return { text: L.ordersEmpty, totalPages: 1, items: [] };
+  }
+
+  const lines = [L.ordersTitle(page + 1, totalPages), ""];
+  for (const item of chunk) {
+    if (item.kind === "apt") {
+      lines.push(formatAppointmentLine(locale, slice, item.id));
+    } else {
+      const o = slice.workOrders.find((x) => x.id === item.id);
+      if (o) lines.push(formatOrderLine(locale, slice, o));
+    }
+    lines.push("");
+  }
+  return { text: lines.join("\n"), totalPages, items: chunk };
+}
+
+export function historyKeyboardLabels(
+  slice: ClientPortalSlice,
+  items: ClientHistoryItem[]
+): { kind: "apt" | "wo"; id: string; label: string }[] {
+  return items.map((item) => {
+    if (item.kind === "apt") {
+      const apt = slice.appointments.find((a) => a.id === item.id);
+      return {
+        kind: "apt" as const,
+        id: item.id,
+        label: apt ? `📅 ${apt.date} ${apt.time}` : "📅",
+      };
+    }
+    const o = slice.workOrders.find((x) => x.id === item.id);
+    return { kind: "wo" as const, id: item.id, label: o?.number ?? "—" };
+  });
 }
 
 export function formatWorkOrdersList(
@@ -66,10 +145,9 @@ function formatOrderLine(
     ? `${vehicle.make} ${vehicle.model} · ${vehicle.plate}`.trim()
     : "—";
   const pay = o.paymentStatus === "paid" ? L.paid : L.unpaid;
-  const sign = orderNeedsClientSignature(o) ? L.needsSignBadge : "";
   return [
     `<b>${esc(o.number)}</b>`,
-    `${repairLabel(locale, o.status)}${sign}`,
+    repairLabel(locale, o.status),
     `🚗 ${esc(car)}`,
     `💰 ${zl(calcClientTotal(o))} · ${pay}`,
   ].join("\n");
@@ -96,7 +174,6 @@ export function formatWorkOrderDetail(
       ? `🚗 ${esc(vehicle.make)} ${esc(vehicle.model)} · ${esc(vehicle.plate)}`
       : "",
     `💰 <b>${zl(calcClientTotal(o))}</b> · ${o.paymentStatus === "paid" ? L.paid : L.unpaid}`,
-    orderNeedsClientSignature(o) ? L.needsSignature : L.signed,
     services ? `\n🔧 <b>${L.works}:</b>\n${services}` : "",
     o.clientNotes ? `\n📝 ${esc(o.clientNotes)}` : "",
   ]
@@ -337,10 +414,6 @@ function formatVehicleFinanceBlock(
 }
 
 export { buildFleetFinance, type FleetFinanceSummary };
-
-export function countPendingSign(slice: ClientPortalSlice): number {
-  return slice.workOrders.filter((o) => orderNeedsClientSignature(o)).length;
-}
 
 export function countUnread(slice: ClientPortalSlice): number {
   return slice.notifications.filter((n) => !n.read).length;
