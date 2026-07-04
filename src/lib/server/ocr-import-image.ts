@@ -56,8 +56,12 @@ export function ocrQualityScore(text: string): number {
   return score;
 }
 
-/** OCR for supplier order screenshots (Russian UI + PLN prices). */
-export async function ocrPartsOrderImageBuffer(buffer: Buffer): Promise<string> {
+/** Single-language OCR pass with timeout (parts order screenshots). */
+export async function runPartsOcr(
+  buffer: Buffer,
+  lang: string,
+  timeoutMs: number
+): Promise<string> {
   const { createWorker, PSM } = await import("tesseract.js");
   let preprocessed: Buffer;
   try {
@@ -66,14 +70,39 @@ export async function ocrPartsOrderImageBuffer(buffer: Buffer): Promise<string> 
     preprocessed = buffer;
   }
 
-  const worker = await createWorker("rus+pol+eng", undefined, { logger: () => {} });
+  const worker = await createWorker(lang, undefined, { logger: () => {} });
   try {
     await worker.setParameters({ tessedit_pageseg_mode: PSM.AUTO });
-    const result = await worker.recognize(preprocessed);
-    return result.data.text ?? "";
+    const recognize = worker.recognize(preprocessed).then((r) => r.data.text ?? "");
+    return await withOcrTimeout(recognize, timeoutMs);
   } finally {
     await worker.terminate();
   }
+}
+
+/** OCR for supplier order screenshots — prefers pol+eng, caller may retry with rus. */
+export async function ocrPartsOrderImageBuffer(buffer: Buffer): Promise<string> {
+  try {
+    return await runPartsOcr(buffer, "pol+eng", 14_000);
+  } catch (e) {
+    console.warn("[ocr parts] pol+eng failed", e);
+    return runPartsOcr(buffer, "rus+pol+eng", 38_000);
+  }
+}
+
+function withOcrTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error("ocr_timeout")), ms);
+    promise
+      .then((v) => {
+        clearTimeout(timer);
+        resolve(v);
+      })
+      .catch((e) => {
+        clearTimeout(timer);
+        reject(e);
+      });
+  });
 }
 
 /** Best-effort OCR for workshop estimate screenshots (2 passes max, early exit). */

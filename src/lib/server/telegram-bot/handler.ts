@@ -149,8 +149,12 @@ import {
 import {
   cancelPartsPhotoImport,
   confirmPartsPhotoImport,
+  handlePartsPhotoEscapeText,
   handlePartsPhotoMediaMessage,
+  handlePartsPhotoReviewHint,
   isPartsPhotoSessionStep,
+  isPartsPhotoWaitingStep,
+  partsPhotoTargetFromSession,
   startPartsPhotoImport,
 } from "./admin-parts-photo";
 
@@ -267,13 +271,11 @@ export async function handleTelegramUpdate(update: {
     const chatKey = String(chatId);
     const session = await getTelegramSession(chatKey);
     if (isPartsPhotoSessionStep(session.step)) {
-      const handled = await handlePartsPhotoMediaMessage(chatId, update.message);
-      if (!handled) {
-        await sendTelegramMessage(
-          chatId,
-          "📷 Отправьте фото заказа запчастей (PNG/JPG).",
-          mainMenuKeyboard()
-        );
+      if (isPartsPhotoWaitingStep(session.step)) {
+        await handlePartsPhotoMediaMessage(chatId, update.message);
+      } else {
+        const target = partsPhotoTargetFromSession(session.data, session.step);
+        await handlePartsPhotoReviewHint(chatId, target);
       }
       return;
     }
@@ -303,6 +305,10 @@ async function handleMessage(msg: TelegramMessage): Promise<void> {
 
   if (text === "/start" || text === "/menu") {
     await showMainMenu(chatId);
+    return;
+  }
+
+  if (await handlePartsPhotoEscapeText(chatId, text)) {
     return;
   }
 
@@ -512,6 +518,26 @@ async function handleCallback(cb: TelegramCallback): Promise<void> {
 
   if (data === "menu") {
     await showMainMenu(chatId, messageId);
+    return;
+  }
+
+  if (data === "parts:photo:cancel") {
+    await cancelPartsPhotoImport(chatId, messageId, "parts");
+    return;
+  }
+
+  if (data === "fpart:photo:cancel") {
+    await cancelPartsPhotoImport(chatId, messageId, "fpart");
+    return;
+  }
+
+  if (data === "parts:photo:ok") {
+    await confirmPartsPhotoImport(chatId, "parts");
+    return;
+  }
+
+  if (data === "fpart:photo:ok") {
+    await confirmPartsPhotoImport(chatId, "fpart");
     return;
   }
 
@@ -986,16 +1012,6 @@ async function handleCallback(cb: TelegramCallback): Promise<void> {
     return;
   }
 
-  if (data === "parts:photo:ok") {
-    await confirmPartsPhotoImport(chatId, "parts");
-    return;
-  }
-
-  if (data === "parts:photo:cancel") {
-    await cancelPartsPhotoImport(chatId, messageId, "parts");
-    return;
-  }
-
   if (data === "parts:list") {
     const session = await getTelegramSession(chatKey);
     const month = session.data?.partsMonth ?? currentMonthKey();
@@ -1052,16 +1068,6 @@ async function handleCallback(cb: TelegramCallback): Promise<void> {
 
   if (data === "fpart:photo") {
     await startPartsPhotoImport(chatId, messageId, "fpart");
-    return;
-  }
-
-  if (data === "fpart:photo:ok") {
-    await confirmPartsPhotoImport(chatId, "fpart");
-    return;
-  }
-
-  if (data === "fpart:photo:cancel") {
-    await cancelPartsPhotoImport(chatId, messageId, "fpart");
     return;
   }
 

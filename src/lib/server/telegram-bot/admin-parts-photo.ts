@@ -9,7 +9,7 @@ import {
   type ParsedPartsOrderRow,
 } from "@/lib/parts-order-photo-parser";
 import { cloudMutateCrmStore } from "@/lib/server/crm-cloud-mutate";
-import { ocrPartsOrderImageBuffer } from "@/lib/server/ocr-import-image";
+import { runPartsOcr } from "@/lib/server/ocr-import-image";
 import {
   downloadTelegramFileBuffer,
   sendTelegramMessage,
@@ -23,6 +23,7 @@ import {
 import { BOT } from "./labels";
 import { monthlyInvoicePartsMenuKeyboard } from "./admin-monthly-invoice-parts";
 import { monthlyPartsMenuKeyboard } from "./admin-monthly-parts";
+import { mainMenuKeyboard } from "./keyboards";
 
 export type AdminPartsPhotoMessage = {
   photo?: { file_id: string }[];
@@ -51,10 +52,35 @@ function sessionMonth(data: Record<string, string> | undefined, target: PartsPho
   return target === "fpart" ? fpartSessionMonth(data) : partsSessionMonth(data);
 }
 
+function monthDataKey(target: PartsPhotoTarget): "fpartMonth" | "partsMonth" {
+  return target === "fpart" ? "fpartMonth" : "partsMonth";
+}
+
 function menuKeyboard(month: string, target: PartsPhotoTarget): InlineKeyboardMarkup {
   return target === "fpart"
     ? monthlyInvoicePartsMenuKeyboard(month)
     : monthlyPartsMenuKeyboard(month);
+}
+
+function escapeKeyboard(target: PartsPhotoTarget): InlineKeyboardMarkup {
+  const prefix = target === "fpart" ? "fpart" : "parts";
+  return {
+    inline_keyboard: [
+      [{ text: BOT.cancel, callback_data: `${prefix}:photo:cancel` }],
+      [{ text: BOT.menu, callback_data: "menu" }],
+    ],
+  };
+}
+
+async function clearPartsPhotoSession(
+  chatKeyStr: string,
+  target: PartsPhotoTarget,
+  month: string
+): Promise<void> {
+  await setTelegramSession(chatKeyStr, {
+    step: undefined,
+    data: { [monthDataKey(target)]: month },
+  });
 }
 
 function pickImageFromMessage(msg: AdminPartsPhotoMessage): {
@@ -111,6 +137,7 @@ function previewKeyboard(count: number, target: PartsPhotoTarget): InlineKeyboar
     inline_keyboard: [
       [{ text: `✅ Добавить все (${count})`, callback_data: `${prefix}:photo:ok` }],
       [{ text: BOT.cancel, callback_data: `${prefix}:photo:cancel` }],
+      [{ text: BOT.menu, callback_data: "menu" }],
     ],
   };
 }
@@ -124,30 +151,24 @@ export async function startPartsPhotoImport(
   const session = await getTelegramSession(chatKeyStr);
   const month = sessionMonth(session.data, target);
   const step = target === "fpart" ? "admin_fpart_photo" : "admin_parts_photo";
-  const monthKey = target === "fpart" ? "fpartMonth" : "partsMonth";
 
   await setTelegramSession(chatKeyStr, {
     step,
-    data: { [monthKey]: month, partsPhotoTarget: target },
+    data: { [monthDataKey(target)]: month, partsPhotoTarget: target },
   });
 
   const text =
     "📷 <b>Добавление запчастей с фото</b>\n\n" +
     "Отправьте скрин заказа поставщика (как <b>фото</b> или картинку <b>файлом</b>).\n\n" +
-    "Распознаем:\n" +
-    "• номер запчасти\n" +
-    "• название\n" +
-    "• цену (брутто) — и закуп, и продажа будут одинаковыми.\n\n" +
-    `Месяц: <b>${formatMonthLabel(month)}</b>`;
-
-  const keyboard: InlineKeyboardMarkup = {
-    inline_keyboard: [[{ text: BOT.cancel, callback_data: `${target === "fpart" ? "fpart" : "parts"}:photo:cancel` }]],
-  };
+    "Распознаем номер, название и цену PLN.\n" +
+    "Закуп = продажа (одна цена с фото).\n\n" +
+    `Месяц: <b>${formatMonthLabel(month)}</b>\n\n` +
+    "Чтобы выйти: <b>❌ Отмена</b>, кнопка «Меню» или команда /menu";
 
   if (messageId) {
-    await updateTelegramInlineScreen(chatId, messageId, text, keyboard);
+    await updateTelegramInlineScreen(chatId, messageId, text, escapeKeyboard(target));
   } else {
-    await sendTelegramMessage(chatId, text, keyboard);
+    await sendTelegramMessage(chatId, text, escapeKeyboard(target));
   }
 }
 
@@ -185,6 +206,34 @@ async function saveParsedParts(
   return { ok: true, count: entries.length };
 }
 
+export async function handlePartsPhotoReviewHint(
+  chatId: number,
+  target: PartsPhotoTarget
+): Promise<void> {
+  const chatKeyStr = chatKey(chatId);
+  const session = await getTelegramSession(chatKeyStr);
+  const month = sessionMonth(session.data, target);
+  const json = session.data?.partsPhotoJson;
+  let rows: ParsedPartsOrderRow[] = [];
+  try {
+    if (json) rows = JSON.parse(json) as ParsedPartsOrderRow[];
+  } catch {
+    rows = [];
+  }
+
+  if (!rows.length) {
+    await clearPartsPhotoSession(chatKeyStr, target, month);
+    await sendTelegramMessage(chatId, "Сессия сброшена.", menuKeyboard(month, target));
+    return;
+  }
+
+  await sendTelegramMessage(
+    chatId,
+    formatPartsPhotoPreview(rows, month, target),
+    previewKeyboard(rows.length, target)
+  );
+}
+
 export async function handlePartsPhotoMediaMessage(
   chatId: number,
   msg: AdminPartsPhotoMessage
@@ -205,56 +254,82 @@ export async function handlePartsPhotoMediaMessage(
     await sendTelegramMessage(
       chatId,
       "❌ Отправьте <b>фото</b> или изображение как <b>файл</b> (PNG/JPG).",
-      menuKeyboard(month, target)
+      escapeKeyboard(target)
     );
     return true;
   }
 
-  await sendTelegramMessage(chatId, "⏳ Распознаю фото…");
+  await sendTelegramMessage(chatId, "⏳ Распознаю фото (до 1 мин)…", escapeKeyboard(target));
 
-  const downloaded = await downloadTelegramFileBuffer(picked.fileId);
-  if (!downloaded) {
-    await sendTelegramMessage(chatId, BOT.importDownloadFailed, menuKeyboard(month, target));
-    return true;
-  }
-
-  let rawText = "";
   try {
-    rawText = await ocrPartsOrderImageBuffer(downloaded.buffer);
-  } catch {
-    await sendTelegramMessage(chatId, "❌ Не удалось распознать фото.", menuKeyboard(month, target));
-    await setTelegramSession(chatKeyStr, { step: undefined, data: { [`${target === "fpart" ? "fpart" : "parts"}Month`]: month } });
-    return true;
-  }
+    const downloaded = await downloadTelegramFileBuffer(picked.fileId);
+    if (!downloaded) {
+      await clearPartsPhotoSession(chatKeyStr, target, month);
+      await sendTelegramMessage(chatId, BOT.importDownloadFailed, menuKeyboard(month, target));
+      return true;
+    }
 
-  const rows = parsePartsOrderPhotoText(rawText);
-  if (!rows.length) {
+    let rawText = "";
+    try {
+      try {
+        const pol = await runPartsOcr(downloaded.buffer, "pol+eng", 14_000);
+        if (parsePartsOrderPhotoText(pol).length >= 2) {
+          rawText = pol;
+        }
+      } catch {
+        /* try rus below */
+      }
+      if (!rawText) {
+        rawText = await runPartsOcr(downloaded.buffer, "rus+pol+eng", 38_000);
+      }
+    } catch (e) {
+      const timeout = e instanceof Error && e.message === "ocr_timeout";
+      await clearPartsPhotoSession(chatKeyStr, target, month);
+      await sendTelegramMessage(
+        chatId,
+        timeout
+          ? "❌ Распознавание заняло слишком долго. Попробуйте позже или добавьте вручную.\n\n/menu — главное меню"
+          : "❌ Не удалось распознать фото.",
+        mainMenuKeyboard()
+      );
+      return true;
+    }
+
+    const rows = parsePartsOrderPhotoText(rawText);
+    if (!rows.length) {
+      await clearPartsPhotoSession(chatKeyStr, target, month);
+      await sendTelegramMessage(
+        chatId,
+        "❌ Не нашёл позиции на фото.\n\nСделайте скрин крупнее, с видимыми ценами PLN.\n\n/menu — главное меню",
+        mainMenuKeyboard()
+      );
+      return true;
+    }
+
+    await setTelegramSession(chatKeyStr, {
+      step: target === "fpart" ? "admin_fpart_photo_review" : "admin_parts_photo_review",
+      data: {
+        [monthDataKey(target)]: month,
+        partsPhotoTarget: target,
+        partsPhotoJson: JSON.stringify(rows),
+      },
+    });
+
     await sendTelegramMessage(
       chatId,
-      "❌ Не нашёл позиции на фото.\n\nСделайте скрин крупнее, без бликов, с видимыми ценами PLN.",
-      menuKeyboard(month, target)
+      formatPartsPhotoPreview(rows, month, target),
+      previewKeyboard(rows.length, target)
     );
-    await setTelegramSession(chatKeyStr, {
-      step: undefined,
-      data: { [target === "fpart" ? "fpartMonth" : "partsMonth"]: month },
-    });
-    return true;
+  } catch (e) {
+    console.error("[parts photo]", e);
+    await clearPartsPhotoSession(chatKeyStr, target, month);
+    await sendTelegramMessage(
+      chatId,
+      "❌ Ошибка обработки фото. Сессия сброшена.\n\nОтправьте /menu",
+      mainMenuKeyboard()
+    );
   }
 
-  await setTelegramSession(chatKeyStr, {
-    step: target === "fpart" ? "admin_fpart_photo_review" : "admin_parts_photo_review",
-    data: {
-      [target === "fpart" ? "fpartMonth" : "partsMonth"]: month,
-      partsPhotoTarget: target,
-      partsPhotoJson: JSON.stringify(rows),
-    },
-  });
-
-  await sendTelegramMessage(
-    chatId,
-    formatPartsPhotoPreview(rows, month, target),
-    previewKeyboard(rows.length, target)
-  );
   return true;
 }
 
@@ -265,6 +340,7 @@ export async function confirmPartsPhotoImport(chatId: number, target: PartsPhoto
   const json = session.data?.partsPhotoJson;
 
   if (!json) {
+    await clearPartsPhotoSession(chatKeyStr, target, month);
     await sendTelegramMessage(chatId, BOT.saveFailed, menuKeyboard(month, target));
     return;
   }
@@ -273,15 +349,13 @@ export async function confirmPartsPhotoImport(chatId: number, target: PartsPhoto
   try {
     rows = JSON.parse(json) as ParsedPartsOrderRow[];
   } catch {
+    await clearPartsPhotoSession(chatKeyStr, target, month);
     await sendTelegramMessage(chatId, BOT.saveFailed, menuKeyboard(month, target));
     return;
   }
 
   const saved = await saveParsedParts(month, rows, target);
-  await setTelegramSession(chatKeyStr, {
-    step: undefined,
-    data: { [target === "fpart" ? "fpartMonth" : "partsMonth"]: month },
-  });
+  await clearPartsPhotoSession(chatKeyStr, target, month);
 
   if (!saved.ok) {
     await sendTelegramMessage(chatId, BOT.saveFailed, menuKeyboard(month, target));
@@ -303,12 +377,11 @@ export async function cancelPartsPhotoImport(
   const chatKeyStr = chatKey(chatId);
   const session = await getTelegramSession(chatKeyStr);
   const month = sessionMonth(session.data, target) || currentMonthKey();
-  await setTelegramSession(chatKeyStr, {
-    step: undefined,
-    data: { [target === "fpart" ? "fpartMonth" : "partsMonth"]: month },
-  });
+  await clearPartsPhotoSession(chatKeyStr, target, month);
 
-  const text = `📦 Месяц: <b>${formatMonthLabel(month)}</b>`;
+  const text =
+    `✅ Распознавание отменено.\n\n` +
+    `📦 Месяц: <b>${formatMonthLabel(month)}</b>`;
   const kb = menuKeyboard(month, target);
   if (messageId) {
     await updateTelegramInlineScreen(chatId, messageId, text, kb);
@@ -324,4 +397,44 @@ export function isPartsPhotoSessionStep(step: string | undefined): boolean {
     step === "admin_parts_photo_review" ||
     step === "admin_fpart_photo_review"
   );
+}
+
+export function isPartsPhotoWaitingStep(step: string | undefined): boolean {
+  return step === "admin_parts_photo" || step === "admin_fpart_photo";
+}
+
+export function partsPhotoTargetFromSession(
+  data: Record<string, string> | undefined,
+  step?: string
+): PartsPhotoTarget {
+  if (data?.partsPhotoTarget === "fpart" || step === "admin_fpart_photo" || step === "admin_fpart_photo_review") {
+    return "fpart";
+  }
+  return "parts";
+}
+
+export async function handlePartsPhotoEscapeText(chatId: number, text: string): Promise<boolean> {
+  const chatKeyStr = chatKey(chatId);
+  const session = await getTelegramSession(chatKeyStr);
+  if (!isPartsPhotoSessionStep(session.step)) return false;
+
+  const target = partsPhotoTargetFromSession(session.data, session.step);
+  const lower = text.toLowerCase();
+
+  if (lower === "отмена" || lower === "cancel" || lower === "стоп" || lower === "stop") {
+    await cancelPartsPhotoImport(chatId, undefined, target);
+    return true;
+  }
+
+  if (isPartsPhotoWaitingStep(session.step)) {
+    await sendTelegramMessage(
+      chatId,
+      "📷 Жду фото заказа.\n\n❌ Отмена — кнопкой ниже или команда /menu",
+      escapeKeyboard(target)
+    );
+    return true;
+  }
+
+  await handlePartsPhotoReviewHint(chatId, target);
+  return true;
 }

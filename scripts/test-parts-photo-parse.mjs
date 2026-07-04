@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { parsePartsOrderPhotoText } from "../src/lib/parts-order-photo-parser.ts";
-import { ocrPartsOrderImageBuffer } from "../src/lib/server/ocr-import-image.ts";
+import { runPartsOcr } from "../src/lib/server/ocr-import-image.ts";
 
 const sampleImage =
   process.argv[2] ||
@@ -50,7 +50,7 @@ assert(4, parsePartsOrderPhotoText(columnOcr), "column OCR");
 
 if (sampleImage) {
   const buf = readFileSync(sampleImage);
-  const text = await ocrPartsOrderImageBuffer(buf);
+  const text = await runPartsOcr(buf, "rus+pol+eng", 38_000);
   const rows = parsePartsOrderPhotoText(text);
   if (rows.length !== 4) {
     console.log("--- OCR text ---\n" + text);
