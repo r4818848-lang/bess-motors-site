@@ -77,6 +77,10 @@ export function Hero() {
               </span>
             </h1>
 
+            <p className="mt-3 text-sm sm:text-base text-white/90 font-semibold tracking-wide drop-shadow-md">
+              {t.hero.subtitle}
+            </p>
+
             <p className="mt-6 text-bm-silver/95 leading-relaxed max-w-lg drop-shadow-md">
               {t.hero.desc}
             </p>

@@ -21,6 +21,11 @@ export async function generateMetadata({
     title: post.title,
     description: post.excerpt,
     path: `/blog/${post.slug}`,
+    absoluteTitle: true,
+    openGraphType: "article",
+    publishedTime: post.date,
+    modifiedTime: post.date,
+    ogImageAlt: `${post.title} — BESS MOTORS`,
     keywords: [post.title, "BESS MOTORS", "serwis samochodowy Warszawa", "porady"],
   });
 }

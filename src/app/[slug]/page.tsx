@@ -8,12 +8,13 @@ import {
 } from "@/lib/seo-landing-pages";
 import { buildPageMetadata } from "@/lib/seo-metadata";
 import { autoRepairServiceSchema } from "@/lib/seo-structured-data";
+import { withLocalMetaSuffix } from "@/lib/seo-local";
 import {
   acSeoKeywordsForRechargeLanding,
   acSeoKeywordsForRepairLanding,
 } from "@/lib/ac-seo-keywords";
 import { acPromoSeoKeywords, acRepairSeoKeywords } from "@/lib/ac-recharge-promo-seo";
-import { AC_PROMO_HERO_SRC } from "@/lib/ac-media";
+import { AC_PROMO_HERO_SRC, AC_RECHARGE_BMW_POSTER_SRC } from "@/lib/ac-media";
 import { OIL_CHANGE_DRAIN_POSTER_SRC } from "@/lib/oil-media";
 import { ALTERNATOR_INSTALL_PHOTO_SRC } from "@/lib/alternator-media";
 import { BRAKE_PADS_CHANGE_PHOTO_SRC } from "@/lib/brake-media";
@@ -38,10 +39,26 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         ? [...new Set([...acSeoKeywordsForRepairLanding(), ...acRepairSeoKeywords])]
         : [];
 
+  const isDistrict = slug.startsWith("warszawa-");
+  const description = isDistrict
+    ? withLocalMetaSuffix(page.metaDescription)
+    : page.metaDescription;
+
+  const brandOgSlugs = new Set(["bmw", "mercedes", "vag", "serwis-audi", "serwis-toyota"]);
+  const diagOgSlugs = new Set([
+    "diagnostyka",
+    "check-engine",
+    "silnik",
+    "elektryka",
+    "zawieszenie",
+    "przeglad",
+  ]);
+
   return buildPageMetadata({
     title: page.metaTitle,
-    description: page.metaDescription,
+    description,
     path: `/${page.slug}`,
+    ogImageAlt: `${page.title} — serwis samochodowy Warszawa`,
     ogImage:
       slug === "klimatyzacja" || slug === "naprawa-klimatyzacji"
         ? AC_PROMO_HERO_SRC
@@ -53,7 +70,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
               ? BRAKE_PADS_CHANGE_PHOTO_SRC
               : slug === "elektryka"
                 ? ALTERNATOR_INSTALL_PHOTO_SRC
-                : undefined,
+                : brandOgSlugs.has(slug)
+                  ? AC_RECHARGE_BMW_POSTER_SRC
+                  : diagOgSlugs.has(slug)
+                    ? ALTERNATOR_INSTALL_PHOTO_SRC
+                    : undefined,
     keywords: [
       page.metaTitle,
       page.title,

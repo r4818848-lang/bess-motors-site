@@ -14,7 +14,11 @@ export type PageSeoInput = {
   noIndex?: boolean;
   /** Use when title already includes brand (blog posts) */
   absoluteTitle?: boolean;
+  openGraphType?: "website" | "article";
+  publishedTime?: string;
+  modifiedTime?: string;
   ogImage?: string;
+  ogImageAlt?: string;
 };
 
 export function pageCanonical(path: string): string {
@@ -32,6 +36,8 @@ export function buildPageMetadata(input: PageSeoInput): Metadata {
       ? input.title
       : `${input.title} | ${BRAND}`;
   const image = input.ogImage ?? DEFAULT_OG_IMAGE;
+  const ogType = input.openGraphType ?? "website";
+  const imageAlt = input.ogImageAlt ?? `${BRAND} — serwis samochodowy Warszawa`;
 
   return {
     title: input.absoluteTitle ? { absolute: input.title } : input.title,
@@ -39,18 +45,24 @@ export function buildPageMetadata(input: PageSeoInput): Metadata {
     ...(input.keywords?.length ? { keywords: input.keywords } : {}),
     alternates: { canonical },
     openGraph: {
-      type: "website",
+      type: ogType,
       locale: "pl_PL",
       url: canonical,
       siteName: BRAND,
       title: ogTitle,
       description: input.description,
+      ...(ogType === "article" && input.publishedTime
+        ? {
+            publishedTime: input.publishedTime,
+            modifiedTime: input.modifiedTime ?? input.publishedTime,
+          }
+        : {}),
       images: [
         {
           url: image,
           width: 1200,
           height: 630,
-          alt: `${BRAND} — serwis samochodowy Warszawa`,
+          alt: imageAlt,
         },
       ],
     },

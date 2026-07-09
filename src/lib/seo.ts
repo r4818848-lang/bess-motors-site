@@ -13,6 +13,7 @@ export function getSiteUrl(): string {
 /** Public pages for Google (no cabinet, CRM, admin) */
 /** Landing slugs that 301 to another URL — exclude from sitemap */
 export const sitemapExcludedSlugs = new Set([
+  "kontakt",
   "klocki-hamulcowe",
   "serwis-klimatyzacji",
 ]);
@@ -54,7 +55,6 @@ export const publicSitemapPaths: {
   { path: "/faq", changeFrequency: "monthly", priority: 0.75 },
   { path: "/blog", changeFrequency: "weekly", priority: 0.7 },
   { path: "/referral", changeFrequency: "monthly", priority: 0.7 },
-  { path: "/privacy", changeFrequency: "monthly", priority: 0.3 },
 ];
 
 export const googleSiteVerification =

@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { Star, ExternalLink } from "lucide-react";
 import type { FeaturedGoogleReview } from "@/lib/featured-google-reviews";
+import { reviewPhotoDisplayUrl } from "@/lib/featured-google-reviews";
 import { useI18n } from "@/lib/i18n/context";
 
 function GoogleMark() {
@@ -74,6 +76,33 @@ export function FeaturedGoogleReviewCard({
         >
           “{review.text}”
         </p>
+      ) : (
+        <p className="text-sm text-bm-muted flex-1">★★★★★</p>
+      )}
+
+      {review.photos && review.photos.length > 0 ? (
+        <div
+          className={`mt-3 grid gap-2 ${review.photos.length > 1 ? "grid-cols-2" : "grid-cols-1"}`}
+        >
+          {review.photos.slice(0, 4).map((photo, idx) => (
+            <a
+              key={`${review.id}-photo-${idx}`}
+              href={review.mapsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="relative block overflow-hidden rounded-lg border border-bm-border/40 aspect-[4/3] bg-bm-graphite"
+            >
+              <Image
+                src={reviewPhotoDisplayUrl(photo)}
+                alt=""
+                fill
+                className="object-cover hover:scale-105 transition-transform duration-300"
+                sizes="(max-width: 640px) 140px, 200px"
+                unoptimized
+              />
+            </a>
+          ))}
+        </div>
       ) : null}
 
       <Link

@@ -52,27 +52,52 @@ export function blogPostingSchema(post: BlogPost) {
   const url = `${siteUrl}/blog/${post.slug}`;
   return {
     "@context": "https://schema.org",
-    "@type": "BlogPosting",
-    headline: post.title,
-    description: post.excerpt,
-    datePublished: post.date,
-    dateModified: post.date,
-    author: {
-      "@type": "Organization",
-      name: siteConfig.name,
-      url: siteUrl,
-    },
-    publisher: {
-      "@type": "Organization",
-      name: siteConfig.name,
-      logo: {
-        "@type": "ImageObject",
-        url: `${siteUrl}${siteConfig.logoImage}`,
+    "@graph": [
+      {
+        "@type": "BlogPosting",
+        headline: post.title,
+        description: post.excerpt,
+        datePublished: post.date,
+        dateModified: post.date,
+        author: {
+          "@type": "Organization",
+          name: siteConfig.name,
+          url: siteUrl,
+        },
+        publisher: {
+          "@type": "Organization",
+          name: siteConfig.name,
+          logo: {
+            "@type": "ImageObject",
+            url: `${siteUrl}${siteConfig.logoImage}`,
+          },
+        },
+        mainEntityOfPage: { "@type": "WebPage", "@id": url },
+        url,
+        inLanguage: "pl",
       },
-    },
-    mainEntityOfPage: { "@type": "WebPage", "@id": url },
-    url,
+      breadcrumbSchema([
+        { name: "Strona główna", path: "/" },
+        { name: "Blog", path: "/blog" },
+        { name: post.title, path: `/blog/${post.slug}` },
+      ]),
+    ],
+  };
+}
+
+export function contactPageSchema() {
+  const siteUrl = getSiteUrl();
+  return {
+    "@context": "https://schema.org",
+    "@type": "ContactPage",
+    "@id": `${siteUrl}/contacts#contactpage`,
+    url: `${siteUrl}/contacts`,
+    name: "Kontakt — BESS MOTORS",
+    description:
+      "Adres warsztatu BESS MOTORS: Aleja Krakowska 48/52, Warszawa Włochy. Telefon, godziny otwarcia, mapa dojazdu.",
     inLanguage: "pl",
+    mainEntity: { "@id": `${siteUrl}/#business` },
+    isPartOf: { "@id": `${siteUrl}/#website` },
   };
 }
 

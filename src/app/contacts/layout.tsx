@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { StructuredData } from "@/components/seo/StructuredData";
 import { buildPageMetadata } from "@/lib/seo-metadata";
+import { contactPageSchema } from "@/lib/seo-structured-data";
 import { localSeoKeywords } from "@/lib/seo-local";
 
 export const metadata: Metadata = buildPageMetadata({
@@ -17,5 +19,10 @@ export const metadata: Metadata = buildPageMetadata({
 });
 
 export default function ContactsLayout({ children }: { children: React.ReactNode }) {
-  return children;
+  return (
+    <>
+      <StructuredData data={contactPageSchema()} />
+      {children}
+    </>
+  );
 }
