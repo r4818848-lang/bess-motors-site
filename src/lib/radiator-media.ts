@@ -13,7 +13,7 @@ export const RADIATOR_WASH_IMAGE_ALT = {
 } as const;
 
 export const RADIATOR_REPLACEMENT_IMAGE_ALT = {
-  pl: "Wymiana chłodnicy klimatyzacji — BESS MOTORS Warszawa",
-  ru: "Замена радиатора кондиционера — BESS MOTORS Варшава",
-  en: "A/C condenser replacement — BESS MOTORS Warsaw",
+  pl: "Mycie chłodnicy klimatyzacji pod maską — BESS MOTORS Warszawa",
+  ru: "Мойка радиатора кондиционера под капотом — BESS MOTORS Варшава",
+  en: "A/C condenser cleaning under the hood — BESS MOTORS Warsaw",
 } as const;

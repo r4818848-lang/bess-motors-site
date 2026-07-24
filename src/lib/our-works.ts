@@ -1002,56 +1002,56 @@ Book condenser cleaning and A/C service online! ❄️`,
     videoSrc: RADIATOR_REPLACEMENT_VIDEO_SRC,
     posterSrc: RADIATOR_REPLACEMENT_POSTER_SRC,
     title: {
-      pl: "Wymiana chłodnicy klimatyzacji",
-      ru: "Замена радиатора кондиционера",
-      en: "A/C condenser replacement",
+      pl: "Mycie chłodnicy klimatyzacji",
+      ru: "Мойка радиатора кондиционера",
+      en: "A/C condenser cleaning",
     },
     description: {
-      pl: `Przebita lub nieszczelna chłodnica? Wymiana to szybki powrót do skutecznego chłodzenia.
+      pl: `Zabrudzona chłodnica pod maską? Mycie przywraca przepływ powietrza i skuteczne chłodzenie.
 
-W BESS MOTORS wymieniamy chłodnicę klimatyzacji — od demontażu starej części, przez próżniowanie układu, po nabijanie czynnikiem i kontrolę szczelności.
+W BESS MOTORS myjemy chłodnicę klimatyzacji i układu chłodzenia bezpośrednio w aucie — usuwamy kurz, owady i osady bez zbędnego demontażu.
 
-✅ Wymiana chłodnicy klimatyzacji
-✅ Próżnia i kontrola szczelności
-✅ Nabijanie R134a i R1234yf
-✅ Test skuteczności chłodzenia
-✅ Wymiana od 350 zł — wycena po diagnozie
-
-📍 BESS MOTORS
-Aleja Krakowska 48/52, Warszawa
-📞 +48 791 257 229
-
-Przywróć moc klimatyzacji — umów wizytę online! ❄️`,
-      ru: `Пробитый или негерметичный радиатор? Замена — быстрый возврат эффективного охлаждения.
-
-В BESS MOTORS меняем радиатор кондиционера — от демонтажа старой детали до вакуумирования, заправки фреоном и проверки герметичности.
-
-✅ Замена радиатора кондиционера
-✅ Вакуум и контроль герметичности
-✅ Заправка R134a и R1234yf
-✅ Тест эффективности охлаждения
-✅ Замена от 350 zł — смета после диагностики
+✅ Mycie chłodnicy klimatyzacji
+✅ Czyszczenie wnęki pod maską
+✅ Kontrola przepływu powietrza
+✅ Diagnostyka przed i po serwisie
+✅ Nabijanie R134a i R1234yf po naprawie
 
 📍 BESS MOTORS
 Aleja Krakowska 48/52, Warszawa
 📞 +48 791 257 229
 
-Верните мощность кондиционера — запишитесь онлайн! ❄️`,
-      en: `A punctured or leaking condenser? Replacement restores effective cooling quickly.
+Umów mycie chłodnicy i serwis klimatyzacji online! ❄️`,
+      ru: `Загрязнённый радиатор под капотом? Мойка возвращает обдув и эффективное охлаждение.
 
-At BESS MOTORS we replace A/C condensers — from removing the old unit through vacuum, refrigerant recharge and leak testing.
+В BESS MOTORS моем радиатор кондиционера и системы охлаждения прямо на автомобиле — убираем пыль, насекомых и отложения без лишнего демонтажа.
 
-✅ A/C condenser replacement
-✅ Vacuum and leak check
-✅ R134a and R1234yf recharge
-✅ Cooling performance test
-✅ Replacement from 350 zł — quote after diagnosis
+✅ Мойка радиатора кондиционера
+✅ Очистка подкапотного пространства
+✅ Контроль обдува
+✅ Диагностика до и после сервиса
+✅ Заправка R134a и R1234yf после ремонта
+
+📍 BESS MOTORS
+Aleja Krakowska 48/52, Warszawa
+📞 +48 791 257 229
+
+Запишитесь на мойку радиатора и сервис кондиционера онлайн! ❄️`,
+      en: `A clogged condenser under the hood? Cleaning restores airflow and effective cooling.
+
+At BESS MOTORS we clean the A/C condenser and cooling radiator on the car — removing dust, insects and debris without unnecessary dismantling.
+
+✅ A/C condenser cleaning
+✅ Engine bay cleanup
+✅ Airflow check
+✅ Diagnostics before and after service
+✅ R134a and R1234yf recharge after repair
 
 📍 BESS MOTORS
 Aleja Krakowska 48/52, Warsaw
 📞 +48 791 257 229
 
-Restore your A/C — book online! ❄️`,
+Book condenser cleaning and A/C service online! ❄️`,
     },
   },
 ];
