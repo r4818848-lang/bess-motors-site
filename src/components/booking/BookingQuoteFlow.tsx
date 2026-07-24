@@ -397,6 +397,16 @@ export function BookingQuoteFlow({ onDone }: Props) {
   const total = afterPackage;
   const hasFrom = cartHasFromPrices(cart);
 
+  const goToPhone = () => {
+    if (cart.length === 0) return;
+    setPhase("phone");
+    if (typeof window !== "undefined") {
+      window.requestAnimationFrame(() => {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+    }
+  };
+
   return (
     <div className="pb-52 lg:pb-8">
       <p className="text-center text-sm text-bm-muted mb-2">{siteConfig.workingHours}</p>
@@ -511,10 +521,11 @@ export function BookingQuoteFlow({ onDone }: Props) {
                 }
               />
               <Button
+                type="button"
                 className="w-full mt-4"
                 data-fbq-track="InitiateCheckout"
                 disabled={cart.length === 0}
-                onClick={() => setPhase("phone")}
+                onClick={goToPhone}
               >
                 {bq.continue}
                 <ChevronRight className="w-4 h-4" />
@@ -583,10 +594,11 @@ export function BookingQuoteFlow({ onDone }: Props) {
             </div>
             {phase === "services" ? (
               <Button
+                type="button"
                 className="shrink-0"
                 data-fbq-track="InitiateCheckout"
                 disabled={cart.length === 0}
-                onClick={() => setPhase("phone")}
+                onClick={goToPhone}
               >
                 {bq.continue}
                 <ChevronRight className="w-4 h-4" />

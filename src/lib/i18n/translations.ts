@@ -654,7 +654,7 @@ const pl = {
   },
   bookingQuote: {
     subtitle:
-      "Wybierz usługi z cennika BESS MOTORS — cena każdej usługi i suma liczą się automatycznie.",
+      "1) Wybierz usługi z cennika  2) Zostaw telefon — oddzwonimy i potwierdzimy wizytę. Bez konta i logowania.",
     addService: "Dodaj usługę",
     quantity: "Ilość",
     inCart: "W koszyku",
@@ -666,7 +666,7 @@ const pl = {
       "Ceny „od” — ostateczny koszt może się zmienić po diagnostyce.",
     fromWarningShort: "Ceny orientacyjne (od)",
     hourlyNote: "Norma-godzina mechanika:",
-    continue: "Dalej",
+    continue: "Dalej — telefon",
     back: "Wstecz",
     finalTotalTitle: "Szacunkowy koszt usług",
     grandTotal: "RAZEM",
@@ -2520,7 +2520,7 @@ const ru: TranslationKeys = {
   },
   bookingQuote: {
     subtitle:
-      "Выберите услуги из прайса BESS MOTORS — цена каждой услуги и итог считаются автоматически.",
+      "1) Выберите услуги из прайса  2) Оставьте телефон — мы перезвоним и подтвердим визит. Без кабинета и входа.",
     addService: "Добавить услугу",
     quantity: "Количество",
     inCart: "В корзине",
@@ -2532,7 +2532,7 @@ const ru: TranslationKeys = {
       "Итоговая стоимость может измениться после диагностики (цены «от»).",
     fromWarningShort: "Ориентировочные цены (от)",
     hourlyNote: "Норма-час мастера:",
-    continue: "Далее",
+    continue: "Далее — телефон",
     back: "Назад",
     finalTotalTitle: "Итоговая стоимость",
     grandTotal: "ИТОГО",
@@ -3855,7 +3855,7 @@ const en: TranslationKeys = {
   },
   bookingQuote: {
     subtitle:
-      "Pick services from the BESS MOTORS price list — each line and the total update automatically.",
+      "1) Pick services from the price list  2) Leave your phone — we call back to confirm. No account or login.",
     addService: "Add service",
     quantity: "Quantity",
     inCart: "In cart",
@@ -3866,7 +3866,7 @@ const en: TranslationKeys = {
     fromWarning: "Final cost may change after diagnostics (prices marked “from”).",
     fromWarningShort: "Indicative prices (from)",
     hourlyNote: "Labour rate:",
-    continue: "Continue",
+    continue: "Next — phone",
     back: "Back",
     finalTotalTitle: "Estimated service cost",
     grandTotal: "TOTAL",
