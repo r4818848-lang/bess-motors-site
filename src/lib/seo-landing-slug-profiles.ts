@@ -111,6 +111,16 @@ export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
     galleryTags: ["olej", "oil", "масл"],
     education: [
       {
+        title: L(
+          `Promocja kod BessMotors — wymiana oleju 100 zł`,
+          `Акция код BessMotors — замена масла 100 zł`
+        ),
+        body: L(
+          "Szukasz gdzie wymienić olej w Warszawie? W BESS MOTORS robocizna wymiany oleju i filtra kosztuje 100 zł zamiast 150 zł — przy zapisie podaj kod BessMotors. Olej i filtr dobieramy pod VIN (koszt materiałów osobno).",
+          "Где поменять масло в Варшаве? В BESS MOTORS работа по замене масла и фильтра — 100 zł вместо 150 zł по коду BessMotors при записи. Масло и фильтр под VIN (материалы отдельно)."
+        ),
+      },
+      {
         title: L("Pełny serwis olejowy — nie tylko wlewanie", "Полный масляный сервис"),
         body: L(
           "Spuszczamy stary olej, wymieniamy filtr oleju, uzupełniamy specyfikacją pod VIN. Kontrolujemy poziom i szczelność — auto gotowe z naklejką serwisową.",
@@ -125,11 +135,44 @@ export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
         ),
       },
     ],
+    price: {
+      fromZl: getPriceItem("oil_filter")?.basePrice ?? 100,
+      compareAtZl: getPriceItem("oil_filter")?.listPrice ?? 150,
+      priceFrom: false,
+      materialsExtra: true,
+      includes: [
+        L("Wymiana oleju silnikowego", "Замена моторного масла"),
+        L("Wymiana filtra oleju", "Замена масляного фильтра"),
+        L("Kontrola poziomu i szczelności", "Проверка уровня и утечек"),
+        L("Kod promocji BessMotors przy zapisie", "Код акции BessMotors при записи"),
+      ],
+      priceTable: [
+        {
+          label: L("Wymiana oleju + filtr (robocizna)", "Масло + фильтр (работа)"),
+          priceZl: getPriceItem("oil_filter")?.basePrice ?? 100,
+          compareAtZl: getPriceItem("oil_filter")?.listPrice ?? 150,
+        },
+      ],
+      note: L(
+        "Promocja kod BessMotors: 100 zł zamiast 150 zł (robocizna). Olej i filtr — osobno po doborze VIN.",
+        "Акция код BessMotors: 100 zł вместо 150 zł (работа). Масло и фильтр — отдельно по VIN."
+      ),
+    },
   },
   hamulce: {
     faqDuration: L("Wymiana klocków: 1–2 godziny; z tarczami dłużej.", "Колодки: 1–2 часа; с дисками дольше."),
     galleryTags: ["hamulc", "brake", "klock", "колод"],
     education: [
+      {
+        title: L(
+          "Promocja kod BessMotors — klocki i tarcze",
+          "Акция код BessMotors — колодки и диски"
+        ),
+        body: L(
+          "Klocki przednie 100 zł (było 120), tarcze+klocki przód 150 zł (było 220), klocki tył 120 zł (było 150), tarcze+klocki tył 180 zł (było 280). Przy zapisie online lub telefonicznie podaj kod BessMotors.",
+          "Передние колодки 100 zł (было 120), диски+колодки спереди 150 zł (было 220), задние колодки 120 zł (было 150), диски+колодки сзади 180 zł (было 280). При записи назовите код BessMotors."
+        ),
+      },
       {
         title: L("Klocki, tarcze i pełny układ hamulcowy", "Колодки, диски и вся тормозная система"),
         body: L(
@@ -140,34 +183,48 @@ export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
       {
         title: L("Przejrzyste ceny — bez niespodzianek", "Прозрачные цены"),
         body: L(
-          "Klocki na jedną oś od 120 zł, tarcze z klockami od 220 zł za oś. Przed montażem pokazujemy zużyte części i akceptujesz zakres.",
-          "Колодки на ось от 120 zł, диски с колодками от 220 zł за ось. Перед работой показываем изношенные детали."
+          "Przed montażem pokazujemy zużyte części i akceptujesz zakres. Części hamulcowe wyceniamy osobno — w promocji podane są ceny robocizny z kodem BessMotors.",
+          "Перед работой показываем изношенные детали. Запчасти отдельно — в акции указана работа по коду BessMotors."
         ),
       },
     ],
     price: {
-      fromZl: getPriceItem("brake_pads_front")?.basePrice ?? 102,
-      compareAtZl: getPriceItem("brake_pads_front")?.listPrice,
+      fromZl: getPriceItem("brake_pads_front")?.basePrice ?? 100,
+      compareAtZl: getPriceItem("brake_pads_front")?.listPrice ?? 120,
       priceFrom: false,
       materialsExtra: true,
-        includes: [
+      includes: [
         L("Wymiana klocków hamulcowych", "Замена тормозных колодок"),
         L("Wymiana tarcz hamulcowych (gdy zużyte)", "Замена тормозных дисков при износе"),
         L("Kontrola zacisków, przewodów i płynu", "Проверка суппортов, шлангов и жидкости"),
-        L("Jazda testowa po naprawie", "Тест-драйв после ремонта"),
+        L("Kod promocji BessMotors przy zapisie", "Код акции BessMotors при записи"),
       ],
       priceTable: [
         {
-          label: L("Wymiana klocków (jedna oś)", "Замена колодок (одна ось)"),
-          priceZl: getPriceItem("brake_pads_front")?.basePrice ?? 102,
-          compareAtZl: getPriceItem("brake_pads_front")?.listPrice,
+          label: L("Klocki przednie", "Передние колодки"),
+          priceZl: getPriceItem("brake_pads_front")?.basePrice ?? 100,
+          compareAtZl: getPriceItem("brake_pads_front")?.listPrice ?? 120,
         },
         {
-          label: L("Tarcze + klocki (jedna oś)", "Диски + колодки (одна ось)"),
-          priceZl: getPriceItem("brake_disc_front")?.basePrice ?? 187,
-          compareAtZl: getPriceItem("brake_disc_front")?.listPrice,
+          label: L("Tarcze + klocki przód", "Диски + колодки спереди"),
+          priceZl: getPriceItem("brake_disc_front")?.basePrice ?? 150,
+          compareAtZl: getPriceItem("brake_disc_front")?.listPrice ?? 220,
+        },
+        {
+          label: L("Klocki tylne", "Задние колодки"),
+          priceZl: getPriceItem("brake_pads_rear")?.basePrice ?? 120,
+          compareAtZl: getPriceItem("brake_pads_rear")?.listPrice ?? 150,
+        },
+        {
+          label: L("Tarcze + klocki tył", "Диски + колодки сзади"),
+          priceZl: getPriceItem("brake_disc_rear")?.basePrice ?? 180,
+          compareAtZl: getPriceItem("brake_disc_rear")?.listPrice ?? 280,
         },
       ],
+      note: L(
+        "Promocja kod BessMotors — ceny robocizny. Części osobno po akceptacji.",
+        "Акция код BessMotors — цены работы. Запчасти отдельно после согласования."
+      ),
     },
   },
   klimatyzacja: {

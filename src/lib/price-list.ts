@@ -1,6 +1,7 @@
 /** BESS MOTORS — официальный прайс (плакат + онлайн-запись) */
 
 import { SITE_PROMO_PERCENT } from "@/lib/promo-codes";
+import { getOilBrakePromoOffer } from "@/lib/oil-brake-promo";
 
 export type PriceCategoryId =
   | "diagnostic"
@@ -479,7 +480,7 @@ const priceListItemsCatalog: PriceListItem[] = [
     categoryId: "brakes",
     namePl: "Wymiana klocków tylnych",
     nameRu: "Замена задних колодок",
-    basePrice: 120,
+    basePrice: 150,
     unit: "fixed",
     priceFrom: true,
   },
@@ -1292,6 +1293,15 @@ const priceListItemsCatalog: PriceListItem[] = [
 ];
 
 function withSitePromoCatalogItem(item: PriceListItem): PriceListItem {
+  const special = getOilBrakePromoOffer(item.id);
+  if (special) {
+    return {
+      ...item,
+      basePrice: special.nowZl,
+      listPrice: special.wasZl,
+      priceFrom: false,
+    };
+  }
   if (item.categoryId === "ac" || item.unit === "free" || item.basePrice <= 0) {
     return item;
   }

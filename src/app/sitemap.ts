@@ -41,6 +41,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     add(`/blog/${post.slug}`, "monthly", 0.65);
   }
 
+  add("/promocje", "weekly", 0.9);
   add("/privacy", "yearly", 0.3);
 
   return entries;

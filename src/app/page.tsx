@@ -1,6 +1,7 @@
 "use client";
 
 import { Hero } from "@/components/home/Hero";
+import { OilBrakePromoBanner } from "@/components/home/OilBrakePromoBanner";
 import { SeasonalAcBanner } from "@/components/home/SeasonalAcBanner";
 import { BannerServices } from "@/components/home/BannerServices";
 import { StatsSection } from "@/components/home/StatsSection";
@@ -20,6 +21,7 @@ export default function HomePage() {
   return (
     <>
       <Hero />
+      <OilBrakePromoBanner />
       <SeasonalAcBanner />
       <LiveQueueBanner />
       <PriceMatchBanner />

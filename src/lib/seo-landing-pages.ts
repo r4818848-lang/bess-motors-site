@@ -8,6 +8,12 @@ import {
   acRepairMetaDescriptionPl,
   acRepairMetaTitlePl,
 } from "@/lib/ac-recharge-promo-seo";
+import {
+  oilPromoMetaTitlePl,
+  oilPromoMetaDescriptionPl,
+  brakesPromoMetaTitlePl,
+  brakesPromoMetaDescriptionPl,
+} from "@/lib/oil-brake-promo";
 
 export type SeoLandingPage = {
   slug: string;
@@ -47,22 +53,20 @@ export const seoLandingPages: SeoLandingPage[] = [
   {
     slug: "wymiana-oleju",
     title: "Wymiana Oleju",
-    line1: "Olej i filtry w 1 godzinę",
-    line2: "Oleje i filtry OEM/OES",
-    metaTitle: "Wymiana oleju Warszawa",
-    metaDescription:
-      "Wymiana oleju i filtrów w BESS MOTORS — szybko, części OEM/OES od sprawdzonych dostawców. Serwis Warszawa Aleja Krakowska.",
+    line1: "Promocja 100 zł — kod BessMotors",
+    line2: "Było 150 zł · olej i filtr pod VIN",
+    metaTitle: oilPromoMetaTitlePl(),
+    metaDescription: oilPromoMetaDescriptionPl(),
     serviceId: "oil",
     icon: "Droplets",
   },
   {
     slug: "hamulce",
     title: "Serwis Hamulców",
-    line1: "Klocki, tarcze, zaciski",
-    line2: "Bezpieczeństwo na drodze",
-    metaTitle: "Serwis hamulców Warszawa",
-    metaDescription:
-      "Serwis hamulców — klocki, tarcze, zaciski. Bezpieczeństwo na drodze. BESS MOTORS Warszawa.",
+    line1: "Klocki od 100 zł — kod BessMotors",
+    line2: "Tarcze + klocki od 150 zł",
+    metaTitle: brakesPromoMetaTitlePl(),
+    metaDescription: brakesPromoMetaDescriptionPl(),
     serviceId: "brakePads",
     icon: "Disc",
   },

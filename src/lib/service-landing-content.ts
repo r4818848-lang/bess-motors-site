@@ -1102,11 +1102,11 @@ export function getServiceLandingPrice(
               },
             ]
           : undefined,
-    note:
+      note:
       serviceId === "oil"
         ? {
-            pl: "od 128 zł robocizna + koszt oleju i filtrów dobrane pod VIN.",
-            ru: "от 128 zł работа + стоимость масла и фильтров по VIN.",
+            pl: "Promocja kod BessMotors: 100 zł zamiast 150 zł (robocizna) + olej i filtry pod VIN.",
+            ru: "Акция код BessMotors: 100 zł вместо 150 zł (работа) + масло и фильтры по VIN.",
           }
         : undefined,
   };

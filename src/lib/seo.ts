@@ -29,6 +29,9 @@ export const defaultSeoKeywords = [
   ...acPromoSeoKeywords,
   ...acRepairSeoKeywords,
   "wymiana oleju Warszawa",
+  "wymiana oleju 100 zł",
+  "klocki hamulcowe promocja Warszawa",
+  "kod BessMotors",
   "chip tuning Warszawa",
   "diagnostyka komputerowa",
   "serwis BMW Warszawa",
@@ -53,6 +56,7 @@ export const publicSitemapPaths: {
   { path: "/gallery", changeFrequency: "weekly", priority: 0.65 },
   { path: "/faq", changeFrequency: "monthly", priority: 0.75 },
   { path: "/blog", changeFrequency: "weekly", priority: 0.7 },
+  { path: "/promocje", changeFrequency: "weekly", priority: 0.9 },
 ];
 
 export const googleSiteVerification =

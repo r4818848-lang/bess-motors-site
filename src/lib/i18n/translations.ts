@@ -306,6 +306,23 @@ const pl = {
     text: "−{percent}% na wszystkie usługi oprócz klimatyzacji — ceny w cenniku już z rabatem. Kod {code} dla menedżera.",
     cta: "Promocje",
   },
+  oilBrakePromo: {
+    badge: "Promocja · kod BessMotors",
+    title: "Olej i hamulce w promocji",
+    subtitle:
+      "Przy zapisie podaj kod {code} — robocizna w specjalnych cenach. Olej i filtry / części osobno po wycenie.",
+    codeLabel: "Kod",
+    oil: "Wymiana oleju i filtra",
+    padsFront: "Klocki przednie",
+    discFront: "Tarcze + klocki przód",
+    padsRear: "Klocki tylne",
+    discRear: "Tarcze + klocki tył",
+    bookItem: "Umów",
+    ctaBook: "Zapisz się z kodem",
+    ctaOil: "Wymiana oleju",
+    ctaBrakes: "Hamulce",
+    note: "Ceny promocji dotyczą robocizny. Przy rezerwacji online kod BessMotors jest dopisywany automatycznie — potwierdzimy go przy oddzwonieniu.",
+  },
   telegramOpen: {
     label: "Otwórz w Telegramie",
   },
@@ -2171,6 +2188,23 @@ const ru: TranslationKeys = {
   promoBanner: {
     text: "−{percent}% на все услуги, кроме кондиционера — цены в прайсе уже со скидкой. Код {code} менеджеру.",
     cta: "Акции",
+  },
+  oilBrakePromo: {
+    badge: "Акция · код BessMotors",
+    title: "Масло и тормоза по акции",
+    subtitle:
+      "При записи назовите код {code} — работа по спецценам. Масло и фильтры / запчасти отдельно после оценки.",
+    codeLabel: "Код",
+    oil: "Замена масла и фильтра",
+    padsFront: "Передние колодки",
+    discFront: "Диски + колодки спереди",
+    padsRear: "Задние колодки",
+    discRear: "Диски + колодки сзади",
+    bookItem: "Записаться",
+    ctaBook: "Записаться с кодом",
+    ctaOil: "Замена масла",
+    ctaBrakes: "Тормоза",
+    note: "Цены акции — за работу. При онлайн-записи код BessMotors добавляется автоматически — подтвердим при звонке.",
   },
   telegramOpen: {
     label: "Открыть в Telegram",
@@ -4242,6 +4276,23 @@ const en: TranslationKeys = {
   promoBanner: {
     text: "−{percent}% on all services except A/C — prices already discounted. Code {code} for the manager.",
     cta: "Promos",
+  },
+  oilBrakePromo: {
+    badge: "Promo · code BessMotors",
+    title: "Oil & brakes on promotion",
+    subtitle:
+      "When booking, give code {code} — labour at special prices. Oil/filters and parts quoted separately.",
+    codeLabel: "Code",
+    oil: "Oil and filter change",
+    padsFront: "Front brake pads",
+    discFront: "Front discs + pads",
+    padsRear: "Rear brake pads",
+    discRear: "Rear discs + pads",
+    bookItem: "Book",
+    ctaBook: "Book with code",
+    ctaOil: "Oil change",
+    ctaBrakes: "Brakes",
+    note: "Promo prices are for labour. Online booking adds BessMotors automatically — we confirm when we call back.",
   },
   promoPrice: {
     was: "was",

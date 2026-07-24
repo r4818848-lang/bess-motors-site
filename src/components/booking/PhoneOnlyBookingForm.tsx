@@ -10,6 +10,7 @@ import { useAuth } from "@/lib/auth/session-context";
 import { trackLead } from "@/lib/gtag";
 import { saveSubmissionSnapshot, THANK_YOU_PATH } from "@/lib/submission-thank-you";
 import { isPhoneContactValid, resolveBookingClientName } from "@/lib/booking-form-mode";
+import { oilBrakePromoBookingNote, OIL_BRAKE_PROMO_CODE, isOilBrakePromoItem } from "@/lib/oil-brake-promo";
 import { formatPln, type CartLine } from "@/lib/booking-cart";
 
 const WORKSHOP_PHONE = "+48 791 257 229";
@@ -61,14 +62,17 @@ export function PhoneOnlyBookingForm({
 
   const contactValid = isPhoneContactValid(clientPhone);
   const clientName = resolveBookingClientName(clientPhone, clientUser?.name);
+  const hasOilBrakePromo = cartLines.some((l) => isOilBrakePromoItem(l.itemId));
 
   const submit = async () => {
     if (!contactValid || submitting || submitLock.current) return;
     const breakdown = cartLines
       .map((l) => `${l.label}: ${l.isFree ? bq.free : formatPln(l.lineTotal)}`)
       .join("; ");
+    const promoNote = oilBrakePromoBookingNote(cartLines.map((l) => l.itemId));
     const comment = [
       q.phoneOnlyNote,
+      promoNote,
       cartLines.length ? `[${bq.grandTotal}: ${formatPln(estimatedTotal ?? 0)}]` : "",
       breakdown,
     ]
@@ -130,6 +134,12 @@ export function PhoneOnlyBookingForm({
           <p className="text-xs text-bm-muted mt-1">
             {bq.total}:{" "}
             <span className="font-mono font-bold text-bm-red">{formatPln(estimatedTotal)}</span>
+          </p>
+        ) : null}
+        {hasOilBrakePromo ? (
+          <p className="mt-3 text-xs sm:text-sm rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-emerald-300">
+            {t.oilBrakePromo.note}{" "}
+            <strong className="text-white">{OIL_BRAKE_PROMO_CODE}</strong>
           </p>
         ) : null}
       </div>
