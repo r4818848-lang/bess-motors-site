@@ -88,6 +88,67 @@ export function Hero() {
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.25, duration: 0.6 }}
+              className="mt-6 rounded-2xl border-2 border-emerald-400/70 bg-gradient-to-br from-emerald-900/50 via-bm-black/70 to-bm-red/25 p-4 sm:p-5 shadow-[0_0_28px_rgba(16,185,129,0.3)] backdrop-blur-sm"
+            >
+              <div className="flex flex-wrap items-center gap-2 mb-2">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-300/40 bg-emerald-500/30 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest text-emerald-100">
+                  <Tag size={11} />
+                  {t.oilBrakePromo.badge}
+                </span>
+                <span className="text-[10px] font-bold uppercase tracking-wide text-white/90">
+                  {t.oilBrakePromo.codeLabel}:{" "}
+                  <span className="text-bm-red">BessMotors</span>
+                </span>
+              </div>
+              <p className="font-display text-lg sm:text-xl font-bold uppercase text-white leading-tight">
+                {t.oilBrakePromo.title}
+              </p>
+              <ul className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-xs text-bm-silver/95">
+                <li>
+                  {t.oilBrakePromo.oil}:{" "}
+                  <span className="line-through opacity-60">150</span>{" "}
+                  <strong className="text-emerald-300">100 zł</strong>
+                </li>
+                <li>
+                  {t.oilBrakePromo.padsFront}:{" "}
+                  <span className="line-through opacity-60">120</span>{" "}
+                  <strong className="text-emerald-300">100 zł</strong>
+                </li>
+                <li>
+                  {t.oilBrakePromo.discFront}:{" "}
+                  <span className="line-through opacity-60">220</span>{" "}
+                  <strong className="text-emerald-300">150 zł</strong>
+                </li>
+                <li>
+                  {t.oilBrakePromo.padsRear}:{" "}
+                  <span className="line-through opacity-60">150</span>{" "}
+                  <strong className="text-emerald-300">120 zł</strong>
+                </li>
+                <li className="sm:col-span-2">
+                  {t.oilBrakePromo.discRear}:{" "}
+                  <span className="line-through opacity-60">280</span>{" "}
+                  <strong className="text-emerald-300">180 zł</strong>
+                </li>
+              </ul>
+              <div className="mt-4 flex flex-wrap gap-2">
+                <BookingLink
+                  href="/booking?items=oil_filter"
+                  trackSource="hero_oil_brake_promo"
+                  className="btn-primary text-xs sm:text-sm inline-flex items-center gap-1.5"
+                >
+                  {t.oilBrakePromo.ctaBook}
+                  <ChevronRight size={14} />
+                </BookingLink>
+                <Link href="/promocje" className="btn-outline text-xs sm:text-sm">
+                  {t.promoBanner.cta}
+                </Link>
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.35, duration: 0.6 }}
               className="mt-6 rounded-2xl border-2 border-bm-red/90 bg-gradient-to-br from-bm-red/35 via-bm-black/70 to-bm-red/20 p-4 sm:p-5 shadow-[0_0_32px_rgba(225,6,0,0.35)] backdrop-blur-sm"
             >
