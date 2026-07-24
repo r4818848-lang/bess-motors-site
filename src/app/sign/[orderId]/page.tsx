@@ -1,265 +1,54 @@
 "use client";
 
-import { use, useEffect, useState, Suspense } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { CheckCircle2 } from "lucide-react";
+import { Phone } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
-import { loadDb, type Database, type User, type Vehicle, type WorkOrder } from "@/lib/store";
-import type { ClientPortalSlice } from "@/lib/client-sign";
-import { restoreSessionFromToken } from "@/lib/auth";
-import { hasSignOrderAccess, setSignOrderAccess } from "@/lib/sign-order-access";
-import { SignOrderGuestForm } from "@/components/sign/SignOrderGuestForm";
-import { WorkOrderSignatureFlow } from "@/components/cabinet/WorkOrderSignatureFlow";
-import { ClientWorkOrderDetail } from "@/components/cabinet/ClientWorkOrderDetail";
-import { TelegramOpenButton } from "@/components/shared/TelegramOpenButton";
-import { DocumentLocalePicker } from "@/components/work-order/DocumentLocalePicker";
-import {
-  resolveOrderDocumentLocale,
-  type DocLocale,
-} from "@/lib/work-order-locale";
-import { isElectronicSignature } from "@/lib/work-order-signature";
+import { siteConfig } from "@/lib/site";
+import { PhoneLink } from "@/components/analytics/PhoneLink";
+import { BookingLink } from "@/components/analytics/BookingLink";
 
-type SignMode = "local" | "cloud" | null;
-
-type CloudSignState = {
-  order: WorkOrder;
-  client: User;
-  vehicle: Vehicle | null;
-  phone: string;
-  plate: string;
-  portal?: ClientPortalSlice;
-};
-
-export default function SignWorkOrderPage({
-  params,
-}: {
-  params: Promise<{ orderId: string }>;
-}) {
-  return (
-    <Suspense
-      fallback={
-        <div className="pt-28 pb-20 min-h-[70vh] flex items-center justify-center">
-          <p className="text-bm-muted">…</p>
-        </div>
-      }
-    >
-      <SignWorkOrderContent params={params} />
-    </Suspense>
-  );
-}
-
-function SignWorkOrderContent({
-  params,
-}: {
-  params: Promise<{ orderId: string }>;
-}) {
-  const { orderId } = use(params);
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const urlLang = searchParams.get("lang");
+/** Electronic signature for clients is disabled — contact the workshop. */
+export default function SignWorkOrderRetiredPage() {
   const { t, locale } = useI18n();
-  const [viewLang, setViewLang] = useState<DocLocale | null>(null);
-  const [ready, setReady] = useState(false);
-  const [db, setDb] = useState(loadDb());
-  const [showSign, setShowSign] = useState(false);
-  const [signMode, setSignMode] = useState<SignMode>(null);
-  const [cloudSign, setCloudSign] = useState<CloudSignState | null>(null);
-  const [signed, setSigned] = useState(false);
-  const [resolvedOrder, setResolvedOrder] = useState<WorkOrder | null>(null);
-  const [guestVerified, setGuestVerified] = useState(() => hasSignOrderAccess(orderId));
-
-  useEffect(() => {
-    restoreSessionFromToken()
-      .catch(() => null)
-      .finally(() => {
-        setDb(loadDb());
-        setReady(true);
-      });
-  }, []);
-
-  useEffect(() => {
-    const script = document.createElement("script");
-    script.src = "https://telegram.org/js/telegram-web-app.js";
-    script.async = true;
-    script.onload = () => {
-      const tg = (
-        window as unknown as {
-          Telegram?: { WebApp?: { ready: () => void; expand: () => void } };
+  const copy =
+    locale === "ru"
+      ? {
+          title: "Электронная подпись отключена",
+          body: "Мы свяжемся с вами по телефону. Запишитесь онлайн или позвоните в сервис.",
         }
-      ).Telegram?.WebApp;
-      tg?.ready();
-      tg?.expand();
-    };
-    document.head.appendChild(script);
-    return () => {
-      script.remove();
-    };
-  }, []);
+      : locale === "uk"
+        ? {
+            title: "Електронний підпис вимкнено",
+            body: "Ми зв’яжемося з вами телефоном. Запишіться онлайн або зателефонуйте в сервіс.",
+          }
+        : locale === "en"
+          ? {
+              title: "E-signature is disabled",
+              body: "We will contact you by phone. Book online or call the workshop.",
+            }
+          : {
+              title: "Podpis elektroniczny wyłączony",
+              body: "Skontaktujemy się telefonicznie. Umów wizytę online lub zadzwoń do serwisu.",
+            };
 
-  const localOrder = db.workOrders.find((o) => o.id === orderId);
-  const user = db.currentUserId
-    ? db.users.find((u) => u.id === db.currentUserId && u.role === "client")
-    : null;
-  const isOwner = Boolean(user && localOrder && localOrder.userId === user.id);
-
-  const order = cloudSign?.order ?? resolvedOrder ?? localOrder;
-  const docLocale =
-    viewLang ?? resolveOrderDocumentLocale(order ?? {}, locale, urlLang);
-
-  const signDb: Database = db;
-
-  const canAccess =
-    Boolean(order) &&
-    (isOwner || guestVerified || (order ? hasSignOrderAccess(order.id) : false));
-
-  const handleGuestVerified = (
-    verifiedOrder: WorkOrder,
-    mode: "local" | "cloud",
-    cloud?: {
-      client: User;
-      vehicle: Vehicle | null;
-      phone: string;
-      plate: string;
-      portal?: ClientPortalSlice;
-    }
-  ) => {
-    setSignMode(mode);
-    setGuestVerified(true);
-    setResolvedOrder(verifiedOrder);
-    setSignOrderAccess(verifiedOrder.id);
-    setDb(loadDb());
-    if (mode === "cloud" && cloud) {
-      setCloudSign({
-        order: verifiedOrder,
-        client: cloud.client,
-        vehicle: cloud.vehicle,
-        phone: cloud.phone,
-        plate: cloud.plate,
-        portal: cloud.portal,
-      });
-    }
-    if (
-      verifiedOrder.confirmationStatus !== "confirmed" &&
-      isElectronicSignature(verifiedOrder)
-    ) {
-      setShowSign(true);
-    }
-  };
-
-  if (!ready) {
-    return (
-      <div className="pt-28 pb-20 min-h-[70vh] flex items-center justify-center">
-        <p className="text-bm-muted">{t.common.loading}</p>
-      </div>
-    );
-  }
-
-  if (signed || order?.confirmationStatus === "confirmed") {
-    return (
-      <div className="pt-28 pb-20 px-4 text-center max-w-lg mx-auto">
-        <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto mb-4" />
-        <h1 className="font-display text-xl uppercase text-glow">{t.document.signDoneTitle}</h1>
-        <p className="text-bm-muted mt-2">{t.document.signDoneHint}</p>
-        {order && (
-          <p className="text-sm font-mono text-bm-muted mt-4">{order.number}</p>
-        )}
-        <Link href="/" className="btn-primary mt-8 inline-block">
-          {t.nav.home}
+  return (
+    <div className="pt-28 pb-24 min-h-[70vh] flex items-center justify-center px-4">
+      <div className="max-w-md text-center space-y-6">
+        <h1 className="font-display text-2xl font-bold uppercase text-white">{copy.title}</h1>
+        <p className="text-bm-muted leading-relaxed">{copy.body}</p>
+        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          <BookingLink trackSource="sign_retired" className="btn-primary inline-flex justify-center">
+            {t.nav.booking}
+          </BookingLink>
+          <PhoneLink trackSource="sign_retired" className="btn-outline inline-flex justify-center gap-2">
+            <Phone size={16} />
+            {siteConfig.phone}
+          </PhoneLink>
+        </div>
+        <Link href="/contacts" className="block text-sm text-bm-muted hover:text-bm-red">
+          {t.nav.contacts}
         </Link>
       </div>
-    );
-  }
-
-  if (!order) {
-    return (
-      <div className="pt-28 pb-20 px-4">
-        <SignOrderGuestForm
-          orderId={orderId}
-          orderNumber={orderId}
-          onVerified={handleGuestVerified}
-        />
-      </div>
-    );
-  }
-
-  if (!canAccess) {
-    return (
-      <div className="pt-28 pb-20 px-4">
-        <SignOrderGuestForm
-          orderId={orderId}
-          orderNumber={order.number}
-          onVerified={handleGuestVerified}
-        />
-      </div>
-    );
-  }
-
-  if (showSign && order && isElectronicSignature(order)) {
-    return (
-      <WorkOrderSignatureFlow
-        order={order}
-        db={signDb}
-        documentLocale={docLocale}
-        urlLang={urlLang}
-        cloudSign={
-          signMode === "cloud" && cloudSign
-            ? { phone: cloudSign.phone, plate: cloudSign.plate }
-            : undefined
-        }
-        onDone={() => {
-          setSigned(true);
-          setShowSign(false);
-          setDb(loadDb());
-          const fresh = loadDb().workOrders.find((o) => o.id === orderId);
-          if (fresh) {
-            setResolvedOrder(fresh);
-            if (cloudSign) {
-              setCloudSign((prev) =>
-                prev ? { ...prev, order: fresh } : prev
-              );
-            }
-          }
-        }}
-        onCancel={() => setShowSign(false)}
-      />
-    );
-  }
-
-  const electronicSign = isElectronicSignature(order);
-
-  return (
-    <div className="pt-28 pb-20 px-4 max-w-3xl mx-auto">
-      <div className="flex flex-col sm:flex-row gap-3 mb-4 items-stretch sm:items-center">
-        <DocumentLocalePicker
-          value={docLocale}
-          onChange={setViewLang}
-          className="sm:mr-auto"
-        />
-        {electronicSign ? (
-          <button
-            type="button"
-            className="btn-primary flex-1"
-            onClick={() => setShowSign(true)}
-          >
-            {t.signature.signNow}
-          </button>
-        ) : (
-          <p className="flex-1 text-sm text-amber-200/90 bg-amber-500/10 border border-amber-500/30 rounded-lg px-4 py-3">
-            {t.document.physicalSignInfo}
-          </p>
-        )}
-        <TelegramOpenButton startParam={`sign_${orderId}`} />
-      </div>
-      {!isOwner && (
-        <p className="text-xs text-bm-muted text-center mb-4">{t.document.signGuestHint}</p>
-      )}
-      <ClientWorkOrderDetail
-        order={order}
-        db={signDb}
-        documentLocale={docLocale}
-        onBack={() => router.push(`/cabinet?tab=orders&order=${encodeURIComponent(orderId)}`)}
-      />
     </div>
   );
 }

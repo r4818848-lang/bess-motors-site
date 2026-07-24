@@ -110,7 +110,7 @@ function emptyOrder(db: Database): WorkOrder {
     documentStatus: "awaiting_signature",
     vatEnabled: db.settings.vatEnabledByDefault ?? true,
     paymentStatus: "unpaid",
-    signatureMode: "electronic",
+    signatureMode: "physical",
   };
 }
 
@@ -1369,7 +1369,7 @@ export function WorkOrderForm({
               <button
                 type="button"
                 className={`px-4 py-2 rounded-lg text-xs font-bold uppercase border transition-all ${
-                  (order.signatureMode ?? "electronic") === "electronic"
+                  (order.signatureMode ?? "physical") === "electronic"
                     ? "bg-bm-red/25 border-bm-red text-bm-red"
                     : "border-bm-border text-bm-muted hover:text-white"
                 }`}
@@ -1397,7 +1397,7 @@ export function WorkOrderForm({
             vehicle={vehicle}
             onDocumentLocaleChange={setDocumentLocale}
           />
-          {order.signature && (order.signatureMode ?? "electronic") === "electronic" && (
+          {order.signature && (order.signatureMode ?? "physical") === "electronic" && (
             <div className="mt-4 pt-4 border-t border-bm-border text-xs text-bm-muted">
               <p className="text-green-400">{t.signature.confirmed}</p>
               <p>{new Date(order.signature.signedAt).toLocaleString()}</p>

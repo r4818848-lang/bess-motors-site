@@ -17,6 +17,12 @@ export function CrmGuard({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let cancelled = false;
 
+    // Staff login page must be reachable without a session
+    if (pathname === "/crm/login") {
+      setAllowed(true);
+      return;
+    }
+
     const deny = () => {
       if (cancelled) return;
       if (isMechanicAuthenticated()) {
@@ -25,7 +31,7 @@ export function CrmGuard({ children }: { children: React.ReactNode }) {
         );
         return;
       }
-      router.replace("/cabinet?crm=1");
+      router.replace("/crm/login");
     };
 
     const allow = () => {

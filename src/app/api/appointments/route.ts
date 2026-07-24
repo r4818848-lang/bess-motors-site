@@ -116,7 +116,7 @@ export async function POST(req: Request) {
       await sendWebPushToUser(user, {
         title: "BESS MOTORS",
         body: `Zapisano wizytę: ${apt.date} ${apt.time}`,
-        url: "/cabinet",
+        url: "/booking",
       });
     }
   } catch (e) {

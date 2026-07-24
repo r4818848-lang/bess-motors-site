@@ -140,10 +140,6 @@ export function Hero() {
                 {t.hero.ctaBook}
                 <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </BookingLink>
-              <Link href="/cabinet" className="btn-outline group">
-                {t.nav.cabinet}
-                <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </Link>
             </div>
 
             <PhoneLink

@@ -28,7 +28,7 @@ function vehicleLabel(db: Database, order: WorkOrder): string {
 }
 
 function cabinetUrl(): string {
-  return `${siteUrl()}/cabinet`;
+  return `${siteUrl()}/booking`;
 }
 
 async function sendToClient(

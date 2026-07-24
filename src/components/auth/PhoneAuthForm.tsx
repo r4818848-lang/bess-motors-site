@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Phone, Car, LogIn, ChevronRight } from "lucide-react";
-import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useI18n } from "@/lib/i18n/context";
 import { useAuth } from "@/lib/auth/session-context";
 import { loginWithPhonePassword, type AuthResult } from "@/lib/auth";
@@ -11,9 +10,7 @@ import {
   clearClientCredentials,
   loadClientCredentials,
 } from "@/lib/client-credentials";
-import { pullClientPortalFromCloud } from "@/lib/client-portal";
 import { Button } from "@/components/ui/Button";
-import { TelegramLoginButton } from "@/components/auth/TelegramLoginButton";
 
 interface PhoneAuthFormProps {
   onSuccess?: () => void;
@@ -23,7 +20,6 @@ interface PhoneAuthFormProps {
 
 export function PhoneAuthForm({ onSuccess, staffCrm: staffCrmProp }: PhoneAuthFormProps) {
   const { t } = useI18n();
-  const router = useRouter();
   const searchParams = useSearchParams();
   const staffCrm = staffCrmProp ?? searchParams.get("crm") === "1";
   const { refreshAuth } = useAuth();
@@ -80,11 +76,10 @@ export function PhoneAuthForm({ onSuccess, staffCrm: staffCrmProp }: PhoneAuthFo
         return;
       }
 
-      await pullClientPortalFromCloud().catch(() => null);
-
+      // Client personal cabinet removed — staff-only login remains.
       refreshAuth();
       onSuccess?.();
-      window.location.assign("/cabinet");
+      window.location.assign("/booking");
       return;
     } catch {
       setError(t.auth.invalidCredentials);
@@ -199,14 +194,6 @@ export function PhoneAuthForm({ onSuccess, staffCrm: staffCrmProp }: PhoneAuthFo
               </>
             )}
           </Button>
-
-          <TelegramLoginButton />
-          <Link
-            href="/cabinet/forgot-password"
-            className="block text-center text-xs text-bm-muted hover:text-bm-red mt-4"
-          >
-            {t.passwordReset.forgotLink}
-          </Link>
         </form>
       </div>
     </div>

@@ -16,7 +16,7 @@ export function MechanicGuard({ children }: { children: React.ReactNode }) {
         if (isMechanicAuthenticated()) {
           setAllowed(true);
         } else {
-          router.replace("/cabinet");
+          router.replace("/crm/login");
         }
       });
   }, [router]);

@@ -58,8 +58,8 @@ function ThankYouContent() {
           <PhoneLink trackSource="thank_you" className="btn-primary inline-flex justify-center">
             <Phone size={18} /> {ty.call}
           </PhoneLink>
-          <Link href="/cabinet" className="btn-outline inline-flex justify-center">
-            {ty.cabinet}
+          <Link href="/contacts" className="btn-outline inline-flex justify-center">
+            {t.nav.contacts}
           </Link>
         </div>
         <ThankYouExtras snapshot={snapshot} />

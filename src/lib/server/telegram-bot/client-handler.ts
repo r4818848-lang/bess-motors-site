@@ -893,11 +893,6 @@ async function handleClientCallbackInner(cb: TelegramCallback): Promise<void> {
     return;
   }
 
-  if (data === "cl:rebook7") {
-    await startRebookPlus7(chatId, chatKey, locale);
-    return;
-  }
-
   if (data === "cl:promo") {
     await sendPromoList(chatId, locale);
     return;
@@ -913,701 +908,56 @@ async function handleClientCallbackInner(cb: TelegramCallback): Promise<void> {
     return;
   }
 
-  if (data === "cl:concierge") {
-    if (!slice) {
-      await startLinkFlow(chatId, messageId, chatKey, locale, profile);
-      return;
-    }
-    const text = await formatConciergeMessage(locale, chatKey);
-    await replyOrEdit(
-      chatId,
-      messageId,
-      locale,
-      text ?? L.linkIntro,
-      clientUserMenu(locale, slice)
-    );
-    return;
-  }
-
-  if (data === "cl:quiet") {
-    const on = await toggleQuietHours(chatKey);
-    await replyOrEdit(
-      chatId,
-      messageId,
-      locale,
-      on ? L.quietHoursOn : L.quietHoursOff,
-      clientUserMenu(locale, slice)
-    );
-    return;
-  }
-
-  if (data === "cl:veh:pick") {
-    if (!slice) {
-      await startLinkFlow(chatId, messageId, chatKey, locale, profile);
-      return;
-    }
-    const kb = vehiclePickKeyboard(locale, slice);
-    if (kb) {
-      await replyOrEdit(chatId, messageId, locale, L.vehiclePick, kb);
-    } else {
-      const msg = L.singleVehicleHint;
-      await replyOrEdit(chatId, messageId, locale, msg, clientUserMenu(locale, slice));
-    }
-    return;
-  }
-
-  if (data.startsWith("cl:veh:") && data !== "cl:veh:pick") {
-    if (!slice) {
-      await startLinkFlow(chatId, messageId, chatKey, locale, profile);
-      return;
-    }
-    const vehicleId = data.slice(7);
-    if (!slice.vehicles.some((v) => v.id === vehicleId)) {
-      await replyOrEdit(chatId, messageId, locale, L.saveFailed, clientUserMenu(locale, slice));
-      return;
-    }
-    const ok = await setActiveVehicle(chatKey, vehicleId);
-    const vehicle = slice.vehicles.find((v) => v.id === vehicleId);
-    const msg = ok && vehicle
-      ? `✅ ${vehicle.plate} · ${vehicle.make} ${vehicle.model}`
-      : L.saveFailed;
-    await replyOrEdit(
-      chatId,
-      messageId,
-      locale,
-      msg,
-      clientUserMenu(locale, slice)
-    );
-    return;
-  }
-
   if (data === "cl:book:draft") {
     await advanceBookingFlow(chatId, messageId, chatKey, locale, sessionData, slice);
     return;
   }
 
-  if (data === "cl:status") {
-    const line = await formatRepairStatusLine(locale, chatKey);
-    if (line) {
-      await replyOrEdit(chatId, messageId, locale, line, clientUserMenu(locale, slice));
-      return;
-    }
-    await replyOrEdit(chatId, messageId, locale, L.linkIntro, {
-      inline_keyboard: [
-        [{ text: L.activate, callback_data: "cl:link" }],
-        clientBackMenuRow(locale),
-      ],
-    });
-    return;
-  }
-
-  if (data === "cl:history") {
-    const text = await formatServiceHistory(locale, chatKey);
+  if (
+    data === "cl:status" ||
+    data === "cl:history" ||
+    data === "cl:referral" ||
+    data === "cl:photo" ||
+    data === "cl:warranty" ||
+    data === "cl:rebook7" ||
+    data === "cl:concierge" ||
+    data === "cl:quiet" ||
+    data === "cl:veh:pick" ||
+    data.startsWith("cl:veh:") ||
+    data.startsWith("cl:apt:") ||
+    data === "cl:rebook" ||
+    data.startsWith("cl:rebook:") ||
+    data === "cl:notify" ||
+    data.startsWith("cl:np:") ||
+    data.startsWith("cl:share:apt:") ||
+    data.startsWith("cl:extra:") ||
+    data.startsWith("cl:repeat:") ||
+    data.startsWith("cl:fu:") ||
+    data.startsWith("cl:rate:") ||
+    data === "cl:vin" ||
+    data.startsWith("cl:vin:") ||
+    data === "cl:link" ||
+    data.startsWith("cl:lk:") ||
+    data.startsWith("cl:orders:") ||
+    data.startsWith("cl:wo:") ||
+    data === "cl:notif" ||
+    data === "cl:apts" ||
+    data === "cl:finance" ||
+    data.startsWith("cl:fin:") ||
+    data === "cl:cars"
+  ) {
     await replyOrEdit(
       chatId,
       messageId,
       locale,
-      text ?? L.linkIntro,
-      clientUserMenu(locale, slice)
+      L.chooseCategory,
+      clientServiceCategoryKeyboard(locale, "book")
     );
-    return;
-  }
-
-  if (data === "cl:photo") {
-    if (!slice) {
-      await startLinkFlow(chatId, messageId, chatKey, locale, profile);
-      return;
-    }
-    const active = [...slice.workOrders]
-      .filter((o) => o.status !== "delivered")
-      .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))[0];
-    if (!active) {
-      await replyOrEdit(chatId, messageId, locale, L.noActiveOrderForPhoto, clientUserMenu(locale, slice));
-      return;
-    }
-    await setClientTelegramSession(chatKey, {
-      step: "client_photo_upload",
-      data: { orderId: active.id },
-    });
-    await replyOrEdit(
-      chatId,
-      messageId,
-      locale,
-      L.photoAttachHint,
-      clientUserMenu(locale, slice)
-    );
-    return;
-  }
-
-  if (data === "cl:warranty") {
-    const text = await formatWarrantyList(locale, chatKey);
-    await replyOrEdit(
-      chatId,
-      messageId,
-      locale,
-      text ?? L.linkIntro,
-      clientUserMenu(locale, slice)
-    );
-    return;
-  }
-
-  if (data.startsWith("cl:apt:view:")) {
-    if (!slice) {
-      await startLinkFlow(chatId, messageId, chatKey, locale, profile);
-      return;
-    }
-    const aptId = data.slice(12);
-    const apt = slice.appointments.find((a) => a.id === aptId);
-    if (!apt) {
-      await replyOrEdit(chatId, messageId, locale, L.noAppointments, clientUserMenu(locale, slice));
-      return;
-    }
-    const services = apt.serviceIds.map((id) => getClientServiceLabel(id, locale)).join(", ");
-    const text = [
-      `📅 <b>${apt.date} · ${apt.time}</b>`,
-      `🔧 ${services}`,
-      `📌 ${L.appointmentStatus[apt.appointmentStatus] ?? apt.appointmentStatus}`,
-    ].join("\n");
-    await replyOrEdit(chatId, messageId, locale, text, clientAppointmentDetailKeyboard(locale, aptId));
-    return;
-  }
-
-  if (data === "cl:rebook") {
-    await rebookLastAppointment(chatId, chatKey, locale);
-    return;
-  }
-
-  if (data.startsWith("cl:rebook:go:")) {
-    const serviceId = data.slice(13);
-    await clearTelegramSessionKeepLocale(chatKey);
-    await advanceBookingFlow(
-      chatId,
-      messageId,
-      chatKey,
-      locale,
-      {
-        intent: "book",
-        serviceId,
-        serviceLabel: getClientServiceLabel(serviceId, locale),
-      },
-      slice
-    );
-    return;
-  }
-
-  if (data === "cl:referral") {
-    if (!slice) {
-      await startLinkFlow(chatId, messageId, chatKey, locale, profile);
-      return;
-    }
-    await mutateCrm((db) => {
-      const u = db.users.find((x) => x.id === slice.user.id && x.role === "client");
-      if (u) ensureReferralCode(u);
-    });
-    const freshSlice = (await getClientPortalByChat(chatKey)) ?? slice;
-    const code = ensureReferralCode(freshSlice.user);
-    const link = telegramBotDeepLink(`ref_${code}`);
-    let text = L.referralText(link);
-    const { loadCrmFromCloud } = await import("./crm-actions");
-    const cloudDb = await loadCrmFromCloud();
-    if (cloudDb) {
-      const { formatReferralTelegramMessage } = await import("@/lib/server/referral-telegram-notify");
-      text = formatReferralTelegramMessage(cloudDb, freshSlice.user, locale, link);
-    }
-    await replyOrEdit(chatId, messageId, locale, text, {
-      inline_keyboard: [[{ text: "📤 Share", url: `https://t.me/share/url?url=${encodeURIComponent(link)}` }], clientBackMenuRow(locale)],
-    });
-    return;
-  }
-
-  if (data === "cl:notify") {
-    if (!slice) {
-      await startLinkFlow(chatId, messageId, chatKey, locale, profile);
-      return;
-    }
-    await replyOrEdit(chatId, messageId, locale, formatNotifyPrefsIntro(locale), notifyPrefsKeyboard(locale, slice.user));
-    return;
-  }
-
-  if (data.startsWith("cl:np:")) {
-    if (!slice) {
-      await startLinkFlow(chatId, messageId, chatKey, locale, profile);
-      return;
-    }
-    const key = data.slice(6);
-    if (key === "mute24") {
-      const muted = await toggleMute24h(chatKey);
-      const fresh = await getClientPortalByChat(chatKey);
-      if (fresh) {
-        await replyOrEdit(
-          chatId,
-          messageId,
-          locale,
-          formatNotifyPrefsIntro(locale),
-          notifyPrefsKeyboard(locale, fresh.user)
-        );
-      }
-      return;
-    }
-    if (key === "mute7") {
-      const muted = await toggleMuteWeek(chatKey);
-      const fresh = await getClientPortalByChat(chatKey);
-      if (fresh) {
-        await replyOrEdit(
-          chatId,
-          messageId,
-          locale,
-          formatNotifyPrefsIntro(locale),
-          notifyPrefsKeyboard(locale, fresh.user)
-        );
-      }
-      return;
-    }
-    if (key === "booking" || key === "status" || key === "promo") {
-      await toggleNotifyCategory(chatKey, key);
-      const fresh = await getClientPortalByChat(chatKey);
-      if (fresh) {
-        await replyOrEdit(chatId, messageId, locale, formatNotifyPrefsIntro(locale), notifyPrefsKeyboard(locale, fresh.user));
-      }
-    }
-    return;
-  }
-
-  if (data.startsWith("cl:share:apt:")) {
-    const aptId = data.slice(13);
-    if (!slice) {
-      await startLinkFlow(chatId, messageId, chatKey, locale, profile);
-      return;
-    }
-    const apt = slice.appointments.find((a) => a.id === aptId && a.userId === slice.user.id);
-    if (!apt) {
-      await sendTelegramMessage(chatId, L.noAppointments);
-      return;
-    }
-    await sendShareAppointment(chatId, locale, apt);
-    return;
-  }
-
-  if (data.startsWith("cl:apt:+1:") || data.startsWith("cl:apt:+7:")) {
-    const days = data.includes("+7:") ? 7 : 1;
-    const aptId = data.split(":").pop()!;
-    if (!slice?.appointments.some((a) => a.id === aptId && a.userId === slice.user.id)) {
-      await sendTelegramMessage(chatId, L.saveFailed);
-      return;
-    }
-    const res = await rescheduleAppointment(aptId, days, slice.user.id);
-    if (!res.ok) {
-      await sendTelegramMessage(chatId, L.saveFailed);
-      return;
-    }
-    const msg = L.aptMoved(days, res.apt?.date ?? "", res.apt?.time ?? "");
-    const fresh = await getClientPortalByChat(chatKey);
-    if (fresh) {
-      await replyOrEdit(
-        chatId,
-        messageId,
-        locale,
-        `${msg}\n\n${formatAppointmentsSlice(locale, fresh)}`,
-        clientAppointmentsKeyboard(locale, fresh)
-      );
-    } else {
-      await sendTelegramMessage(chatId, msg);
-    }
-    return;
-  }
-
-  if (data.startsWith("cl:apt:shift:")) {
-    const aptId = data.slice(13);
-    if (!slice?.appointments.some((a) => a.id === aptId && a.userId === slice.user.id)) {
-      await sendTelegramMessage(chatId, L.saveFailed);
-      return;
-    }
-    await sendTelegramMessage(chatId, L.chooseDate, aptRescheduleKeyboard(locale, aptId));
-    return;
-  }
-
-  if (data.startsWith("cl:extra:ok:") || data.startsWith("cl:extra:no:")) {
-    const orderId = data.replace(/^cl:extra:(ok|no):/, "");
-    const order = slice?.workOrders.find((o) => o.id === orderId);
-    if (!slice || !order || order.userId !== slice.user.id) {
-      await sendTelegramMessage(chatId, L.saveFailed);
-      return;
-    }
-    const approved = data.startsWith("cl:extra:ok:");
-    const result = await resolveExtraWorkApproval(orderId, approved);
-    await sendTelegramMessage(
-      chatId,
-      result.ok ? (approved ? L.saved : L.cancel) : L.saveFailed,
-      clientUserMenu(locale, slice)
-    );
-    return;
-  }
-
-  if (data.startsWith("cl:repeat:")) {
-    const orderId = data.slice(10);
-    if (!slice) {
-      await startLinkFlow(chatId, messageId, chatKey, locale, profile);
-      return;
-    }
-    const order = slice.workOrders.find((o) => o.id === orderId && o.userId === slice.user.id);
-    if (order) {
-      await startRepeatOrder(chatId, chatKey, locale, order);
-    } else {
-      await replyOrEdit(chatId, messageId, locale, L.orderNotFound, clientUserMenu(locale, slice));
-    }
-    return;
-  }
-
-  if (data.startsWith("cl:fu:issue:")) {
-    const orderId = data.slice(12);
-    if (!slice) {
-      await startLinkFlow(chatId, messageId, chatKey, locale, profile);
-      return;
-    }
-    const order = slice.workOrders.find((o) => o.id === orderId && o.userId === slice.user.id);
-    if (!order) {
-      await sendTelegramMessage(chatId, L.saveFailed);
-      return;
-    }
-    if (slice.user.phone) {
-      void mutateCrm((db) => {
-        const row = db.workOrders.find(
-          (o) => o.id === orderId && o.userId === slice.user.id
-        );
-        if (row) {
-          const stamp = new Date().toISOString().slice(0, 10);
-          const note = `[Telegram ${stamp}] Post-service: ISSUE`;
-          row.clientNotes = row.clientNotes ? `${row.clientNotes}\n${note}` : note;
-        }
-      });
-      await createTelegramCallRequest({
-        serviceId: "diagnostic",
-        clientName: slice.user.name,
-        clientPhone: slice.user.phone,
-        comment: `[URGENT post-service] ${order.number}`,
-        telegramProfile: profile,
-        locale,
-      });
-      await sendTelegramMessage(chatId, L.callRequestSent);
-    } else {
-      await startLinkFlow(chatId, messageId, chatKey, locale, profile);
-    }
-    return;
-  }
-
-  if (data.startsWith("cl:fu:ok:")) {
-    const orderId = data.split(":")[4];
-    if (
-      orderId &&
-      slice &&
-      !slice.workOrders.some((o) => o.id === orderId && o.userId === slice.user.id)
-    ) {
-      await sendTelegramMessage(chatId, L.saveFailed);
-      return;
-    }
-    if (orderId && slice) {
-      void mutateCrm((db) => {
-        const order = db.workOrders.find(
-          (o) => o.id === orderId && o.userId === slice.user.id
-        );
-        if (!order) return false;
-        const stamp = new Date().toISOString().slice(0, 10);
-        const note = `[Telegram ${stamp}] Post-service: OK`;
-        order.clientNotes = order.clientNotes ? `${order.clientNotes}\n${note}` : note;
-      });
-    }
-    await replyOrEdit(
-      chatId,
-      messageId,
-      locale,
-      L.postFollowupThanks,
-      clientUserMenu(locale, slice)
-    );
-    return;
-  }
-
-  if (data.startsWith("cl:rate:")) {
-    const parts = data.split(":");
-    const orderId = parts[2];
-    const stars = Number(parts[3]);
-    if (orderId && stars >= 1 && stars <= 5 && slice?.workOrders.some((o) => o.id === orderId && o.userId === slice.user.id)) {
-      await saveTelegramRating({ chatKey, orderId, stars });
-      await replyOrEdit(
-        chatId,
-        messageId,
-        locale,
-        L.feedbackThanks,
-        clientUserMenu(locale, slice)
-      );
-    }
-    return;
-  }
-
-  if (data === "cl:vin") {
-    if (!slice) {
-      await startLinkFlow(chatId, messageId, chatKey, locale, profile);
-      return;
-    }
-    await clearTelegramSessionKeepLocale(chatKey);
-    await setClientTelegramSession(chatKey, { step: "client_vin_input", data: {} });
-    await replyOrEdit(chatId, messageId, locale, L.vinEnter, {
-      inline_keyboard: [[{ text: L.cancel, callback_data: "cl:menu" }]],
-    });
-    return;
-  }
-
-  if (data === "cl:vin:plate:skip") {
-    const d = session.data ?? sessionData;
-    const vin = d.vin ?? "";
-    if (!vin) {
-      await showClientMenu(chatId, messageId, locale);
-      return;
-    }
-    const next = { ...d, plate: "" };
-    await setClientTelegramSession(chatKey, { step: "client_vin_confirm", data: next });
-    const decoded = await decodeVinForClient(vin);
-    const preview =
-      decoded.found && decoded.vehicle
-        ? formatVinPreview(decoded.vehicle)
-        : `VIN: <code>${vin}</code>`;
-    await replyOrEdit(
-      chatId,
-      messageId,
-      locale,
-      `${preview}\n\n${L.vinConfirmTitle}`,
-      vinConfirmKeyboard(locale)
-    );
-    return;
-  }
-
-  if (data === "cl:vin:edit:plate") {
-    const d = session.data ?? sessionData;
-    if (!d.vin) {
-      await showClientMenu(chatId, messageId, locale);
-      return;
-    }
-    await setClientTelegramSession(chatKey, { step: "client_vin_plate", data: d });
-    await replyOrEdit(chatId, messageId, locale, L.vinPlateAsk, vinAskPlateKeyboard(locale));
-    return;
-  }
-
-  if (data === "cl:vin:edit:vin") {
-    await clearTelegramSessionKeepLocale(chatKey);
-    await setClientTelegramSession(chatKey, { step: "client_vin_input", data: {} });
-    await replyOrEdit(chatId, messageId, locale, L.vinEnter, {
-      inline_keyboard: [[{ text: L.cancel, callback_data: "cl:menu" }]],
-    });
-    return;
-  }
-
-  if (data === "cl:vin:add") {
-    const d = session.data ?? sessionData;
-    const vin = d.vin ?? "";
-    if (!vin) {
-      await showClientMenu(chatId, messageId, locale);
-      return;
-    }
-    const plate = (d.plate ?? "").trim();
-    const res = await addVehicleByVinToLinkedClient({ chatId: chatKey, vin, plate });
-    await clearTelegramSessionKeepLocale(chatKey);
-    if (!res.ok) {
-      const msg =
-        res.error === "duplicate"
-          ? L.vinDuplicate
-          : res.error === "not_linked"
-            ? L.linkIntro
-            : L.vinNotFound;
-      await replyOrEdit(
-        chatId,
-        messageId,
-        locale,
-        msg,
-        clientUserMenu(locale, slice)
-      );
-      return;
-    }
-    const fresh = await getClientPortalByChat(chatKey);
-    const kb = clientUserMenu(locale, fresh);
-    await replyOrEdit(chatId, messageId, locale, L.vinAdded, kb);
-    return;
-  }
-
-  if (data === "cl:link") {
-    await startLinkFlow(chatId, messageId, chatKey, locale, profile);
-    return;
-  }
-
-  if (data === "cl:lk:ok") {
-    const d = session.data ?? sessionData;
-    if (!d.phone || !d.plate) {
-      await showClientMenu(chatId, messageId, locale);
-      return;
-    }
-    await completeLink(chatId, chatKey, locale, d.plate, d);
-    return;
-  }
-
-  if (data === "cl:lk:no") {
-    await replyOrEdit(chatId, messageId, locale, L.linkWhatToFix, linkEditPickKeyboard(locale));
-    return;
-  }
-
-  if (data === "cl:lk:edit:phone") {
-    const keep = { ...(session.data ?? sessionData) };
-    delete keep.phone;
-    delete keep.plate;
-    await promptLinkPhone(chatId, chatKey, locale, keep);
-    return;
-  }
-
-  if (data === "cl:lk:edit:plate") {
-    const d = session.data ?? sessionData;
-    if (!d.phone) {
-      await promptLinkPhone(chatId, chatKey, locale, d);
-      return;
-    }
-    const keep = { ...d };
-    delete keep.plate;
-    await promptLinkPlate(chatId, chatKey, locale, keep);
-    return;
-  }
-
-  if (data === "cl:lk:restart") {
-    await startLinkFlow(chatId, messageId, chatKey, locale, profile);
     return;
   }
 
   if (data === "cl:contacts") {
     await replyOrEdit(chatId, messageId, locale, L.contactsText, clientContactsKeyboard(locale));
-    return;
-  }
-
-  if (data.startsWith("cl:orders:")) {
-    if (!slice) {
-      await startLinkFlow(chatId, messageId, chatKey, locale, profile);
-      return;
-    }
-    const page = Number(data.slice(10)) || 0;
-    const { text, totalPages, items } = formatClientHistoryList(locale, slice, page);
-    await replyOrEdit(
-      chatId,
-      messageId,
-      locale,
-      text,
-      clientOrdersKeyboard(locale, historyKeyboardLabels(slice, items), page, totalPages)
-    );
-    return;
-  }
-
-  if (data.startsWith("cl:wo:")) {
-    if (!slice) {
-      await startLinkFlow(chatId, messageId, chatKey, locale, profile);
-      return;
-    }
-    const orderId = data.slice(6);
-    const detail = formatWorkOrderDetail(locale, slice, orderId);
-    if (!detail) {
-      await replyOrEdit(
-        chatId,
-        messageId,
-        locale,
-        L.orderNotFound,
-        clientUserMenu(locale, slice)
-      );
-      return;
-    }
-    await replyOrEdit(
-      chatId,
-      messageId,
-      locale,
-      detail,
-      clientOrderDetailKeyboard(locale, orderId)
-    );
-    return;
-  }
-
-  if (data === "cl:notif") {
-    if (!slice) {
-      await startLinkFlow(chatId, messageId, chatKey, locale, profile);
-      return;
-    }
-    await markInboxRead(slice.user.id);
-    const fresh = await getClientPortalByChat(chatKey);
-    const view = fresh ?? slice;
-    await replyOrEdit(chatId, messageId, locale, formatNotifications(locale, view), {
-      inline_keyboard: [clientBackMenuRow(locale)],
-    });
-    return;
-  }
-
-  if (data === "cl:apts") {
-    if (!slice) {
-      await startLinkFlow(chatId, messageId, chatKey, locale, profile);
-      return;
-    }
-    await replyOrEdit(chatId, messageId, locale, formatAppointmentsSlice(locale, slice), clientAppointmentsKeyboard(locale, slice));
-    return;
-  }
-
-  if (data === "cl:finance") {
-    if (!slice) {
-      await startLinkFlow(chatId, messageId, chatKey, locale, profile);
-      return;
-    }
-    if (!isFleetPortalClient(slice)) {
-      await replyOrEdit(chatId, messageId, locale, L.fleetNotAvailable, {
-        inline_keyboard: [clientBackMenuRow(locale)],
-      });
-      return;
-    }
-    await replyOrEdit(
-      chatId,
-      messageId,
-      locale,
-      formatFleetFinanceReport(locale, slice),
-      clientFleetFinanceKeyboard(locale, slice)
-    );
-    return;
-  }
-
-  if (data.startsWith("cl:fin:")) {
-    if (!slice) {
-      await startLinkFlow(chatId, messageId, chatKey, locale, profile);
-      return;
-    }
-    if (!isFleetPortalClient(slice)) {
-      await replyOrEdit(chatId, messageId, locale, L.fleetNotAvailable, {
-        inline_keyboard: [clientBackMenuRow(locale)],
-      });
-      return;
-    }
-    const vehicleId = data.slice(7);
-    const text = formatVehicleFinanceDetail(locale, slice, vehicleId);
-    if (!text) {
-      await sendTelegramMessage(chatId, L.orderNotFound);
-      return;
-    }
-    await replyOrEdit(chatId, messageId, locale, text, clientFleetCarKeyboard(locale));
-    return;
-  }
-
-  if (data === "cl:cars") {
-    if (!slice) {
-      await startLinkFlow(chatId, messageId, chatKey, locale, profile);
-      return;
-    }
-    const inlineRows: InlineKeyboardMarkup["inline_keyboard"] = [];
-    if (isFleetPortalClient(slice)) {
-      inlineRows.push([{ text: L.fleetFinance, callback_data: "cl:finance" }]);
-    }
-    inlineRows.push([{ text: L.addVin, callback_data: "cl:vin" }]);
-    if (vehiclePickKeyboard(locale, slice)) {
-      inlineRows.unshift([{ text: L.vehiclePick, callback_data: "cl:veh:pick" }]);
-    }
-    inlineRows.push(clientBackMenuRow(locale));
-    await replyOrEdit(chatId, messageId, locale, formatCarsSlice(locale, slice), {
-      inline_keyboard: inlineRows,
-    });
     return;
   }
 
@@ -1752,15 +1102,12 @@ async function handleClientCallbackInner(cb: TelegramCallback): Promise<void> {
   if (data === "cl:cf:book") {
     const freshSession = await getTelegramSession(chatKey);
     const d = freshSession.data ?? sessionData;
-    if (!d.serviceId || !d.date || !d.time || !d.name || !d.phone) {
+    if (!d.serviceId || !d.name || !d.phone) {
       await advanceBookingFlow(chatId, messageId, chatKey, locale, d, slice);
       return;
     }
-    const serviceId = normalizeTelegramServiceId(d.serviceId);
-    const result = await createTelegramBooking({
-      serviceId,
-      date: d.date,
-      time: decodeTimeSlot(d.time),
+    const result = await createTelegramCallRequest({
+      serviceId: d.serviceId,
       clientName: d.name,
       clientPhone: d.phone,
       comment: d.comment,
@@ -1768,27 +1115,15 @@ async function handleClientCallbackInner(cb: TelegramCallback): Promise<void> {
       locale,
     });
     await clearTelegramSessionKeepLocale(chatKey);
-    const freshSlice = await getClientPortalByChat(chatKey);
-    if (result.ok) {
-      const checklist = serviceId
-        ? formatPreVisitChecklistText(serviceId, locale)
-        : "";
-      await replyOrEdit(
-        chatId,
-        messageId,
-        locale,
-        `${L.saved}\n\n📅 ${formatDateShort(d.date, locale)} · ${decodeTimeSlot(d.time)}\n🔧 ${esc(d.serviceLabel ?? getClientServiceLabel(serviceId, locale))}${checklist ? `\n\n${checklist}` : ""}`,
-        clientUserMenu(locale, freshSlice ?? slice)
-      );
-    } else {
-      await replyOrEdit(
-        chatId,
-        messageId,
-        locale,
-        formatTelegramSaveError(locale, result.error),
-        clientMainKeyboard(locale)
-      );
-    }
+    await replyOrEdit(
+      chatId,
+      messageId,
+      locale,
+      result.ok
+        ? `${L.callSaved}\n\n🔧 ${esc(d.serviceLabel ?? "")}`
+        : formatTelegramSaveError(locale, result.error),
+      clientUserMenu(locale, slice)
+    );
     return;
   }
 

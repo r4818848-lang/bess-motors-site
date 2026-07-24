@@ -5,7 +5,7 @@ export type { SignatureMode };
 export function resolveSignatureMode(
   order: Pick<WorkOrder, "signatureMode">
 ): SignatureMode {
-  return order.signatureMode === "physical" ? "physical" : "electronic";
+  return order.signatureMode === "electronic" ? "electronic" : "physical";
 }
 
 export function isElectronicSignature(

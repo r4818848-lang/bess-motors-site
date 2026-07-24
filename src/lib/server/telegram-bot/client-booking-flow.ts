@@ -5,12 +5,10 @@ import {
   clientConfirmBookingKeyboard,
   clientConfirmCallKeyboard,
   clientCustomServiceConfirmKeyboard,
-  clientDateKeyboard,
   clientMainKeyboard,
   clientServiceCategoryKeyboard,
   clientServiceOptionsKeyboard,
   clientSkipCommentKeyboard,
-  clientTimeKeyboard,
   formatClientBookingSummary,
 } from "./client-keyboards";
 import { setClientTelegramSession, clearTelegramSessionKeepLocale } from "./client-locale";
@@ -19,7 +17,7 @@ import {
   getCategorySubOptions,
   hasMultipleSubOptions,
 } from "./client-service-menu";
-import { formatDateShort, getClientServiceLabel, normalizeTelegramServiceId } from "./client-services";
+import { getClientServiceLabel, normalizeTelegramServiceId } from "./client-services";
 
 type ReplyKeyboard = Parameters<typeof sendTelegramMessage>[2];
 
@@ -257,7 +255,8 @@ export async function continueCallAfterService(
   data: Record<string, string>,
   slice: ClientPortalSlice | null | undefined
 ): Promise<void> {
-  const filled = linkedProfileData(slice, { ...data, intent: "call" });
+  const intent = data.intent === "book" ? "book" : "call";
+  const filled = linkedProfileData(slice, { ...data, intent });
   if (filled.name && filled.phone) {
     if (filled.comment?.trim() || filled.customServiceText?.trim()) {
       await showConfirm(chatId, messageId, chatKey, locale, filled);
@@ -266,7 +265,7 @@ export async function continueCallAfterService(
     await promptComment(chatId, messageId, chatKey, locale, filled);
     return;
   }
-  await promptName(chatId, messageId, chatKey, locale, "call", filled);
+  await promptName(chatId, messageId, chatKey, locale, intent, filled);
 }
 
 export async function advanceBookingFlow(
@@ -278,9 +277,7 @@ export async function advanceBookingFlow(
   slice: ClientPortalSlice | null | undefined
 ): Promise<void> {
   const L = getClientBotLabels(locale);
-  const data: Record<string, string> = { ...draft, intent: "book" };
-
-  if (!data.serviceId) {
+  if (!draft.serviceId) {
     await clearTelegramSessionKeepLocale(chatKey);
     await replyOrEdit(
       chatId,
@@ -291,31 +288,13 @@ export async function advanceBookingFlow(
     );
     return;
   }
-
-  const filled = linkedProfileData(slice, data);
-
-  if (filled.date && filled.time && filled.name && filled.phone) {
-    await showConfirm(chatId, messageId, chatKey, locale, filled);
-    return;
-  }
-
-  if (filled.date && filled.time) {
-    await continueBookAfterTime(chatId, messageId, chatKey, locale, filled, slice);
-    return;
-  }
-
-  if (filled.date) {
-    await setClientTelegramSession(chatKey, { data: filled });
-    await replyOrEdit(
-      chatId,
-      messageId,
-      locale,
-      `${L.chooseTime}\n📅 ${formatDateShort(filled.date, locale)}`,
-      clientTimeKeyboard(locale)
-    );
-    return;
-  }
-
-  await setClientTelegramSession(chatKey, { data: filled });
-  await replyOrEdit(chatId, messageId, locale, L.chooseDate, clientDateKeyboard(locale));
+  // Booking = service + phone (callback). No date/time — admin contacts the client.
+  await continueCallAfterService(
+    chatId,
+    messageId,
+    chatKey,
+    locale,
+    { ...draft, intent: "book" },
+    slice
+  );
 }

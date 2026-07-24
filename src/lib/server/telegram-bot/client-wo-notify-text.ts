@@ -118,11 +118,11 @@ export function woNotifyCopy(locale: BotLocale): WoNotifyCopy {
 }
 
 export function signKeyboardLocalized(orderId: string, siteUrl: string, locale: BotLocale) {
+  void orderId;
   const c = woNotifyCopy(locale);
   return {
     inline_keyboard: [
-      [{ text: c.signBtn, url: `${siteUrl}/sign/${orderId}` }],
-      [{ text: c.cabinetBtn, url: `${siteUrl}/cabinet` }],
+      [{ text: c.cabinetBtn, url: `${siteUrl}/booking` }],
     ],
   };
 }

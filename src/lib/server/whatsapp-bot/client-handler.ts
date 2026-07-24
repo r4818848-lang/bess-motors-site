@@ -47,90 +47,30 @@ function siteUrl(): string {
 
 function detectLocale(text: string): BotLocale {
   const t = text.toLowerCase();
-  if (/cześć|witaj|menu|podpis|zlecenie/i.test(t)) return "pl";
-  if (/hello|sign|order/i.test(t)) return "en";
-  if (/привіт|меню/i.test(t)) return "uk";
+  if (/cześć|witaj|menu|wizyta|zapis/i.test(t)) return "pl";
+  if (/hello|book|menu/i.test(t)) return "en";
+  if (/привіт|меню|запис/i.test(t)) return "uk";
   return "ru";
 }
 
 function menuText(loc: BotLocale, name?: string): string {
   const greet = name ? `${name}, ` : "";
   if (loc === "pl") {
-    return `${greet}witamy w BESS MOTORS 🚗\n\n• status — Twoje zlecenia\n• podpis — link do podpisu\n• kabinet — panel klienta\n\nNapisz też: menu`;
+    return `${greet}witamy w BESS MOTORS 🚗\n\nUmów wizytę online — wybierz usługę i zostaw telefon. Oddzwonimy.`;
   }
   if (loc === "en") {
-    return `${greet}welcome to BESS MOTORS 🚗\n\n• status — your work orders\n• sign — signing link\n• cabinet — client portal\n\nOr send: menu`;
+    return `${greet}welcome to BESS MOTORS 🚗\n\nBook online — pick a service and leave your phone. We will call you back.`;
   }
-  return `${greet}добро пожаловать в BESS MOTORS 🚗\n\n• статус — ваши заказ-наряды\n• подпись — ссылка на подпись\n• кабинет — личный кабинет\n\nИли напишите: меню`;
+  return `${greet}добро пожаловать в BESS MOTORS 🚗\n\nЗапишитесь онлайн — выберите услугу и оставьте телефон. Мы перезвоним.`;
 }
 
 async function sendMenu(to: string, loc: BotLocale, name?: string): Promise<void> {
   const text = menuText(loc, name);
-  await sendWhatsAppCtaUrl(to, text, loc === "pl" ? "Kabinet" : loc === "en" ? "Portal" : "Кабинет", `${siteUrl()}/cabinet`);
-}
-
-async function sendStatus(to: string, userId: string, loc: BotLocale): Promise<void> {
-  const db = await loadCrmFromCloud();
-  if (!db) {
-    await sendWhatsAppText(to, loc === "pl" ? "Brak danych CRM." : "Нет данных CRM.");
-    return;
-  }
-
-  const orders = db.workOrders
-    .filter((o) => o.userId === userId && o.status !== "delivered")
-    .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
-    .slice(0, 5);
-
-  if (!orders.length) {
-    await sendWhatsAppText(
-      to,
-      loc === "pl" ? "Brak aktywnych zleceń." : "Нет активных заказ-нарядов."
-    );
-    return;
-  }
-
-  const lines = orders.map((o) => {
-    const v = db.vehicles.find((x) => x.id === o.vehicleId);
-    const car = v ? `${v.make} ${v.model} · ${v.plate}` : o.number;
-    return `📋 ${o.number}\n🚗 ${car}\n📌 ${o.status}`;
-  });
-
-  await sendWhatsAppText(
-    to,
-    (loc === "pl" ? "Twoje zlecenia:\n\n" : "Ваши заказы:\n\n") + lines.join("\n\n")
-  );
-}
-
-async function sendSignHint(to: string, userId: string, loc: BotLocale): Promise<void> {
-  const db = await loadCrmFromCloud();
-  if (!db) return;
-
-  const pending = db.workOrders
-    .filter(
-      (o) =>
-        o.userId === userId &&
-        o.confirmationStatus !== "confirmed" &&
-        (o.documentStatus === "awaiting_signature" ||
-          o.confirmationStatus === "awaiting_confirmation")
-    )
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
-
-  if (!pending) {
-    await sendWhatsAppText(
-      to,
-      loc === "pl" ? "Brak dokumentów do podpisu." : "Нет документов на подпись."
-    );
-    return;
-  }
-
-  const label = loc === "pl" ? "Podpisz" : loc === "en" ? "Sign" : "Подписать";
   await sendWhatsAppCtaUrl(
     to,
-    loc === "pl"
-      ? `Zlecenie ${pending.number} czeka na podpis.`
-      : `Заказ-наряд ${pending.number} ожидает подпись.`,
-    label,
-    `${siteUrl()}/sign/${pending.id}`
+    text,
+    loc === "pl" ? "Umów wizytę" : loc === "en" ? "Book" : "Запись",
+    `${siteUrl()}/booking`
   );
 }
 
@@ -158,75 +98,7 @@ export async function handleWhatsAppClientMessage(
         : msg.interactive.button_reply.title.trim();
 
   const loc = user?.telegramLocale ?? detectLocale(body);
-  const lower = body.toLowerCase();
+  void body;
 
-  if (
-    !user &&
-    (lower === "start" ||
-      lower === "меню" ||
-      lower === "menu" ||
-      lower.startsWith("/start"))
-  ) {
-    await sendWhatsAppText(
-      waId,
-      loc === "pl"
-        ? "Witamy! Podaj numer telefonu z umowy (np. +48…) i numer rejestracyjny auta, aby połączyć konto.\n\nLub zaloguj się w kabinecie na stronie."
-        : "Добро пожаловать! Напишите телефон из договора (+48…) и госномер авто для привязки.\n\nИли войдите в кабинет на сайте."
-    );
-    await sendWhatsAppCtaUrl(
-      waId,
-      siteUrl(),
-      loc === "pl" ? "Strona" : "Сайт",
-      siteUrl()
-    );
-    return;
-  }
-
-  if (!user) {
-    await sendWhatsAppText(
-      waId,
-      loc === "pl"
-        ? "Nie znaleziono konta po tym numerze WhatsApp. Użyj telefonu z CRM lub napisz do warsztatu."
-        : "Аккаунт не найден. Используйте телефон из CRM или свяжитесь с сервисом."
-    );
-    return;
-  }
-
-  if (
-    lower === "menu" ||
-    lower === "меню" ||
-    lower === "start" ||
-    lower.startsWith("/start") ||
-    lower === "pomoc" ||
-    lower === "help"
-  ) {
-    await sendMenu(waId, loc, user.name);
-    return;
-  }
-
-  if (lower.includes("status") || lower.includes("статус") || lower === "zlecenia") {
-    await sendStatus(waId, user.id, loc);
-    return;
-  }
-
-  if (
-    lower.includes("podpis") ||
-    lower.includes("подпис") ||
-    lower.includes("sign")
-  ) {
-    await sendSignHint(waId, user.id, loc);
-    return;
-  }
-
-  if (lower.includes("kabinet") || lower.includes("кабинет") || lower.includes("cabinet")) {
-    await sendWhatsAppCtaUrl(
-      waId,
-      loc === "pl" ? "Panel klienta BESS MOTORS" : "Личный кабинет BESS MOTORS",
-      loc === "pl" ? "Otwórz" : "Открыть",
-      `${siteUrl()}/cabinet`
-    );
-    return;
-  }
-
-  await sendMenu(waId, loc, user.name);
+  await sendMenu(waId, loc, user?.name);
 }

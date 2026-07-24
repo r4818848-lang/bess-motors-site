@@ -51,10 +51,8 @@ export const publicSitemapPaths: {
   { path: "/klimatyzacja", changeFrequency: "weekly", priority: 0.95 },
   { path: "/naprawa-klimatyzacji", changeFrequency: "weekly", priority: 0.9 },
   { path: "/gallery", changeFrequency: "weekly", priority: 0.65 },
-  { path: "/status", changeFrequency: "monthly", priority: 0.65 },
   { path: "/faq", changeFrequency: "monthly", priority: 0.75 },
   { path: "/blog", changeFrequency: "weekly", priority: 0.7 },
-  { path: "/referral", changeFrequency: "monthly", priority: 0.7 },
 ];
 
 export const googleSiteVerification =

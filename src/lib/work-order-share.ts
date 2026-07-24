@@ -20,19 +20,21 @@ export function getSignUrl(orderId: string, lang?: "pl" | "ru" | "en"): string {
 }
 
 export function getCabinetOrderUrl(orderId: string): string {
-  if (typeof window === "undefined") return `/cabinet?order=${orderId}`;
-  return `${window.location.origin}/cabinet?order=${orderId}`;
+  void orderId;
+  if (typeof window === "undefined") return `/booking`;
+  return `${window.location.origin}/booking`;
 }
 
 export function buildShareMessage(order: WorkOrder, client: User, lang: "pl" | "ru" | "en" = "ru"): string {
-  const link = getSignUrl(order.id, lang);
+  void client;
+  const phone = siteConfig.phone;
   if (lang === "pl") {
-    return `BESS MOTORS — zlecenie ${order.number}\n${client.name}, prosimy o zapoznanie i podpis:\n${link}`;
+    return `BESS MOTORS — zlecenie ${order.number}\nKontakt: ${phone}`;
   }
   if (lang === "en") {
-    return `BESS MOTORS — work order ${order.number}\n${client.name}, please review and sign:\n${link}`;
+    return `BESS MOTORS — work order ${order.number}\nContact: ${phone}`;
   }
-  return `BESS MOTORS — заказ-наряд ${order.number}\n${client.name}, ознакомьтесь и подпишите:\n${link}`;
+  return `BESS MOTORS — заказ-наряд ${order.number}\nКонтакт: ${phone}`;
 }
 
 export function whatsappShareUrl(text: string): string {

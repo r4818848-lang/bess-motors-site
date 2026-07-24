@@ -18,10 +18,10 @@ export function ThankYouExtras({ snapshot: snapshotProp }: { snapshot?: Submissi
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
   const booking = snapshotProp ?? loadSubmissionSnapshot();
 
-  const tgLink = telegramBotUrl("rebook");
+  const tgLink = telegramBotUrl("booking");
 
   useEffect(() => {
-    const url = `${getSiteUrl()}/cabinet`;
+    const url = `${getSiteUrl()}/booking`;
     QRCode.toDataURL(url, { width: 160, margin: 1, color: { dark: "#111111" } })
       .then(setQrDataUrl)
       .catch(() => setQrDataUrl(null));
@@ -49,13 +49,6 @@ export function ThankYouExtras({ snapshot: snapshotProp }: { snapshot?: Submissi
 
   return (
     <div className="mt-10 space-y-6">
-      <p className="text-sm text-center text-bm-muted glass rounded-xl p-4">
-        {e.cabinetHint}{" "}
-        <Link href="/cabinet" className="text-bm-red hover:underline">
-          {e.cabinetLink}
-        </Link>
-      </p>
-
       {booking?.kind === "booking" && booking?.date && booking?.time && (
         <>
           <button

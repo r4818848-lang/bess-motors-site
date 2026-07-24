@@ -52,7 +52,7 @@ export async function pushForOrderChange(
       await sendWebPushToUser(user, {
         title: "BESS MOTORS",
         body: msg[loc],
-        url: "/cabinet",
+        url: "/booking",
       });
     }
   }
@@ -68,7 +68,7 @@ export async function pushForOrderChange(
         : loc === "en"
           ? `Payment received for ${order.number}`
           : `Płatność za ${order.number} przyjęta`;
-    await sendWebPushToUser(user, { title: "BESS MOTORS", body, url: "/cabinet" });
+    await sendWebPushToUser(user, { title: "BESS MOTORS", body, url: "/booking" });
   }
 
   if (
@@ -98,7 +98,7 @@ export async function pushForOrderChange(
       await sendWebPushToUser(user, {
         title: "BESS MOTORS",
         body: msg[loc],
-        url: "/cabinet",
+        url: "/booking",
       });
     }
   }
@@ -121,7 +121,7 @@ export async function pushForOrderChange(
     await sendWebPushToUser(user, {
       title: "BESS MOTORS",
       body,
-      url: `/sign/${order.id}`,
+      url: "/booking",
     });
   }
 }

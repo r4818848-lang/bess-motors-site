@@ -26,7 +26,6 @@ import { WorkOrderPrintView } from "./WorkOrderPrintView";
 import { DocumentLocalePicker } from "./DocumentLocalePicker";
 import { buildShareMessage, telegramShareUrl } from "@/lib/work-order-share";
 import { whatsappToClientUrl } from "@/lib/whatsapp-messages";
-import { SignLinkShareBlock } from "./SignLinkShareBlock";
 import { openWorkOrderPreview } from "@/lib/work-order-preview";
 
 interface Props {
@@ -177,24 +176,8 @@ export function WorkOrderDocumentActions({
 
   return (
     <>
-      {!compact && (
-        <SignLinkShareBlock
-          order={order}
-          client={client}
-          onDocumentLocaleChange={onDocumentLocaleChange}
-        />
-      )}
-
       <div className={`flex flex-wrap items-center gap-3 ${compact ? "" : "mt-4"}`}>
         {docIcons}
-        {compact && (
-          <SignLinkShareBlock
-            order={order}
-            client={client}
-            inline
-            onDocumentLocaleChange={onDocumentLocaleChange}
-          />
-        )}
         {clientWhatsAppHref && (
         <a
           href={clientWhatsAppHref}

@@ -49,8 +49,11 @@ const nextConfig: NextConfig = {
       { source: "/serwis-okecie", destination: "/warszawa-wlochy", permanent: true },
       { source: "/cennik-uslug", destination: "/cennik", permanent: true },
       { source: "/zapis-online", destination: "/booking", permanent: true },
-      { source: "/login", destination: "/cabinet", permanent: false },
-      { source: "/logowanie", destination: "/cabinet", permanent: false },
+      { source: "/login", destination: "/crm/login", permanent: false },
+      { source: "/logowanie", destination: "/crm/login", permanent: false },
+      { source: "/status", destination: "/booking", permanent: false },
+      { source: "/referral", destination: "/booking", permanent: false },
+      { source: "/cabinet/forgot-password", destination: "/crm/login", permanent: false },
     ];
   },
 };

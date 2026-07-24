@@ -9,7 +9,6 @@ import { Advantages } from "@/components/home/Advantages";
 import { PartnersSection } from "@/components/home/PartnersSection";
 import { PromoBanner } from "@/components/home/PromoBanner";
 import { SymptomFaq } from "@/components/home/SymptomFaq";
-import { HomeGarageTeaser } from "@/components/home/HomeGarageTeaser";
 import { LiveQueueBanner } from "@/components/home/LiveQueueBanner";
 import { PriceMatchBanner } from "@/components/home/PriceMatchBanner";
 import { MiniQuoteWidget } from "@/components/home/MiniQuoteWidget";
@@ -24,7 +23,6 @@ export default function HomePage() {
       <SeasonalAcBanner />
       <LiveQueueBanner />
       <PriceMatchBanner />
-      <HomeGarageTeaser />
       <MiniQuoteWidget />
       <PromoBanner />
       <BannerServices />

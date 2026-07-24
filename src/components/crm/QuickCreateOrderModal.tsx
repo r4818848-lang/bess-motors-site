@@ -61,7 +61,7 @@ function emptyOrder(db: Database): WorkOrder {
     documentStatus: "awaiting_signature",
     vatEnabled: db.settings.vatEnabledByDefault ?? true,
     paymentStatus: "unpaid",
-    signatureMode: "electronic",
+    signatureMode: "physical",
     receptionChecklist: {},
   };
 }

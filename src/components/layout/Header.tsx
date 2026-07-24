@@ -6,7 +6,6 @@ import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
 import { clsx } from "clsx";
 import { useI18n } from "@/lib/i18n/context";
-import { useAuth } from "@/lib/auth/session-context";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { Logo } from "@/components/brand/Logo";
 import { PhoneLink } from "@/components/analytics/PhoneLink";
@@ -18,7 +17,6 @@ const navPaths = [
   { href: "/cennik", key: "priceList" as const },
   { href: "/gallery?tab=works", key: "gallery" as const },
   { href: "/booking", key: "booking" as const },
-  { href: "/cabinet", key: "cabinet" as const },
   { href: "/about", key: "about" as const },
   { href: "/contacts", key: "contacts" as const },
   { href: "/faq", key: "faq" as const },
@@ -26,7 +24,6 @@ const navPaths = [
 
 export function Header() {
   const { t } = useI18n();
-  const { isClientLoggedIn, clientUser } = useAuth();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
@@ -55,29 +52,18 @@ export function Header() {
               "rounded-lg px-3 py-2 text-sm transition-all relative",
               (isGallery ? pathname === "/gallery" : pathname === href)
                 ? "bg-bm-red/20 text-bm-red shadow-neon-sm"
-                : "text-bm-muted hover:text-white hover:bg-white/5",
-              href === "/cabinet" && isClientLoggedIn && "text-white"
+                : "text-bm-muted hover:text-white hover:bg-white/5"
             );
-            const label =
-              key === "cabinet" && isClientLoggedIn && clientUser
-                ? clientUser.name.split(" ")[0] || t.nav.cabinet
-                : t.nav[key];
-            const badge =
-              href === "/cabinet" && isClientLoggedIn ? (
-                <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.8)]" />
-              ) : null;
             if (href === "/booking") {
               return (
                 <BookingLink key={href} href={href} trackSource="nav" className={navClass}>
-                  {label}
-                  {badge}
+                  {t.nav[key]}
                 </BookingLink>
               );
             }
             return (
               <Link key={href} href={href} className={navClass}>
-                {label}
-                {badge}
+                {t.nav[key]}
               </Link>
             );
           })}

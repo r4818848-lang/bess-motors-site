@@ -52,7 +52,7 @@ export function clientStartReplyKeyboard(L: ClientBotLabels): ReplyKeyboardMarku
   };
 }
 
-/** Guest menu */
+/** Guest + linked menu — booking / call only (no client cabinet) */
 export function clientMainKeyboard(locale: BotLocale, linked = false): InlineKeyboardMarkup {
   void linked;
   const L = getClientBotLabels(locale);
@@ -62,7 +62,6 @@ export function clientMainKeyboard(locale: BotLocale, linked = false): InlineKey
         { text: L.book, callback_data: "cl:book" },
         { text: L.call, callback_data: "cl:call" },
       ],
-      [{ text: L.activate, callback_data: "cl:link" }],
       [
         { text: L.contacts, callback_data: "cl:contacts" },
         { text: L.changeLanguage, callback_data: "cl:lang:pick" },
@@ -71,26 +70,13 @@ export function clientMainKeyboard(locale: BotLocale, linked = false): InlineKey
   };
 }
 
-/** Linked client — book, history, callback */
+/** Linked client — same as guest (cabinet/history removed) */
 export function clientLinkedMenuKeyboard(
   locale: BotLocale,
   _slice: ClientPortalSlice
 ): InlineKeyboardMarkup {
   void _slice;
-  const L = getClientBotLabels(locale);
-  return {
-    inline_keyboard: [
-      [
-        { text: L.book, callback_data: "cl:book" },
-        { text: L.call, callback_data: "cl:call" },
-      ],
-      [{ text: L.myOrders, callback_data: "cl:orders:0" }],
-      [
-        { text: L.contacts, callback_data: "cl:contacts" },
-        { text: L.changeLanguage, callback_data: "cl:lang:pick" },
-      ],
-    ],
-  };
+  return clientMainKeyboard(locale);
 }
 
 export function clientMenuForUser(

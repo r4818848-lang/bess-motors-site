@@ -206,7 +206,7 @@ export async function notifyWhatsAppWorkOrderChange(
           copy.carReadyBody.replace("{car}", car).replace("{number}", esc(order.number)),
           "",
           copy.carReadyHint,
-          `🌐 ${siteUrl()}/cabinet`,
+          `🌐 ${siteUrl()}/booking`,
         ].join("\n"),
         undefined,
         {
