@@ -40,7 +40,7 @@ export const WORK_BEFORE_AFTER_CASES: WorkBeforeAfterCase[] = [
     laborPriceZl: 150,
     laborFrom: true,
     before: seq(`${brakes}/before`, 9),
-    after: seq(`${brakes}/after`, 4),
+    after: seq(`${brakes}/after`, 6),
   },
   {
     id: "audi-a6-suspension",
