@@ -2,11 +2,15 @@
 export const siteFaqSchemaItems: { q: string; a: string }[] = [
   {
     q: "Ile kosztuje wymiana oleju?",
-    a: "Od 150 zł (olej + filtr oleju). Dodatkowe filtry: kabinowy od 50 zł, powietrza od 30 zł. Pełny cennik w rezerwacji online.",
+    a: "Promocja kod BessMotors: wymiana oleju i filtra oleju 100 zł robocizny (było 150 zł). Olej i filtr dobieramy pod VIN — koszt materiałów osobno. Zapis online na /wymiana-oleju lub /booking.",
   },
   {
     q: "Czy robicie chip tuning?",
     a: "Tak — Stage 1 od 1200 zł, Stage 2 od 2500 zł. Diagnostyka przed tuningiem jest obowiązkowa.",
+  },
+  {
+    q: "Ile kosztuje wymiana klocków hamulcowych?",
+    a: "Promocja kod BessMotors (robocizna): klocki przednie 100 zł (było 120), tarcze+klocki przód 150 zł, klocki tył 120 zł, tarcze+klocki tył 180 zł. Części osobno po akceptacji. Szczegóły: /hamulce.",
   },
   {
     q: "Jak umówić wizytę?",

@@ -6,6 +6,7 @@ import {
   schemaGeoCoordinates,
 } from "@/lib/seo-local";
 import { businessAggregateRatingSchema } from "@/lib/seo-business-rating";
+import { oilBrakePromoCatalogSchema } from "@/lib/oil-brake-promo";
 
 /** Global Schema.org — local business + website (FAQ only on /faq and landing pages) */
 export function JsonLd() {
@@ -18,7 +19,7 @@ export function JsonLd() {
     name: siteConfig.name,
     legalName: siteConfig.legalName,
     description:
-      `Niezależny serwis samochodowy Warszawa Włochy (Aleja Krakowska 48/52) — obszar do ok. ${LOCAL_SERVICE_RADIUS_KM} km: Włochy, Ursynów, Mokotów, Ochota, Okęcie. Wulkanizacja, klimatyzacja, olej, hamulce, diagnostyka. Rezerwacja online.`,
+      `Niezależny serwis samochodowy Warszawa Włochy (Aleja Krakowska 48/52) — obszar do ok. ${LOCAL_SERVICE_RADIUS_KM} km: Włochy, Ursynów, Mokotów, Ochota, Okęcie. Wymiana oleju, hamulce, nabijanie klimatyzacji, diagnostyka, wulkanizacja. Rezerwacja online.`,
     url: siteUrl,
     telephone: siteConfig.phone,
     email: siteConfig.email,
@@ -66,6 +67,8 @@ export function JsonLd() {
     business.aggregateRating = aggregateRating;
   }
 
+  business.hasOfferCatalog = oilBrakePromoCatalogSchema(siteUrl);
+
   const data = {
     "@context": "https://schema.org",
     "@graph": [
@@ -88,6 +91,17 @@ export function JsonLd() {
             ],
           },
         },
+      },
+      {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          {
+            "@type": "ListItem",
+            position: 1,
+            name: "Strona główna",
+            item: siteUrl,
+          },
+        ],
       },
     ],
   };

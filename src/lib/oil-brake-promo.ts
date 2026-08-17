@@ -94,3 +94,38 @@ export function oilPromoMetaTitlePl(): string {
 export function oilPromoMetaDescriptionPl(): string {
   return `Gdzie wymienić olej w Warszawie? Promocja kod ${OIL_BRAKE_PROMO_CODE}: wymiana oleju i filtra 100 zł zamiast 150 zł + olej pod VIN. BESS MOTORS Aleja Krakowska 48/52.`;
 }
+
+export const OIL_BRAKE_PROMO_VALID_UNTIL = "2026-12-31";
+
+const OFFER_NAMES_PL: Record<OilBrakePromoId, string> = {
+  oil_filter: "Wymiana oleju i filtra oleju",
+  brake_pads_front: "Wymiana klocków przednich",
+  brake_disc_front: "Wymiana tarcz i klocków przednich",
+  brake_pads_rear: "Wymiana klocków tylnych",
+  brake_disc_rear: "Wymiana tarcz i klocków tylnych",
+};
+
+export function oilBrakePromoOfferSchema(siteUrl: string, offer: OilBrakePromoOffer) {
+  return {
+    "@type": "Offer" as const,
+    name: OFFER_NAMES_PL[offer.id],
+    description: `Promocja kod ${OIL_BRAKE_PROMO_CODE}: ${offer.nowZl} zł (było ${offer.wasZl} zł) — robocizna`,
+    price: offer.nowZl,
+    priceCurrency: "PLN",
+    availability: "https://schema.org/InStock",
+    url: `${siteUrl}/booking?items=${offer.bookingItems}`,
+    priceValidUntil: OIL_BRAKE_PROMO_VALID_UNTIL,
+  };
+}
+
+export function oilBrakePromoCatalogSchema(siteUrl: string) {
+  return {
+    "@type": "OfferCatalog" as const,
+    name: `Promocja olej i hamulce — kod ${OIL_BRAKE_PROMO_CODE}`,
+    itemListElement: OIL_BRAKE_PROMO_OFFERS.map((offer, i) => ({
+      "@type": "ListItem" as const,
+      position: i + 1,
+      item: oilBrakePromoOfferSchema(siteUrl, offer),
+    })),
+  };
+}

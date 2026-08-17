@@ -4,14 +4,14 @@ import { buildPageMetadata } from "@/lib/seo-metadata";
 import { servicesItemListSchema } from "@/lib/seo-structured-data";
 
 export const metadata: Metadata = buildPageMetadata({
-  title: "Usługi — wulkanizacja, klimatyzacja, tuning",
+  title: "Usługi — olej, hamulce, klima, diagnostyka",
   description:
-    "Usługi BESS MOTORS Warszawa: wymiana opon, klimatyzacja, wymiana oleju, hamulce, chip tuning, diagnostyka komputerowa. Cennik i zapis online.",
+    "Usługi BESS MOTORS Warszawa Włochy: wymiana oleju 100 zł, klocki od 100 zł (kod BessMotors), nabijanie klimatyzacji −50%, opony, diagnostyka, chip tuning. Cennik i zapis online.",
   path: "/services",
   keywords: [
-    "usługi serwis samochodowy",
+    "usługi serwis samochodowy Warszawa",
+    "wymiana oleju Warszawa",
     "wulkanizacja Warszawa",
-    "chip tuning",
     "diagnostyka komputerowa",
   ],
 });

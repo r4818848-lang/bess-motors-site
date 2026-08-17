@@ -4,9 +4,9 @@ import { buildPageMetadata } from "@/lib/seo-metadata";
 export const metadata: Metadata = buildPageMetadata({
   title: "Status naprawy online",
   description:
-    "Sprawdź status naprawy auta w BESS MOTORS Warszawa — postęp prac, gotowość odbioru. Panel klienta i powiadomienia.",
+    "Sprawdź status naprawy auta w BESS MOTORS Warszawa — postęp prac, gotowość odbioru.",
   path: "/status",
-  keywords: ["status naprawy", "BESS MOTORS", "serwis Warszawa"],
+  noIndex: true,
 });
 
 export default function StatusLayout({ children }: { children: React.ReactNode }) {

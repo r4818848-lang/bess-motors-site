@@ -2,11 +2,16 @@ import type { Metadata } from "next";
 import { buildPageMetadata } from "@/lib/seo-metadata";
 
 export const metadata: Metadata = buildPageMetadata({
-  title: "Cennik — pełny cennik serwisu",
+  title: "Cennik — olej 100 zł, hamulce od 100 zł",
   description:
-    "Aktualny cennik BESS MOTORS Warszawa: diagnostyka, olej, hamulce, zawieszenie, silnik, DSG, klimatyzacja, chip tuning. Norma-godzina 250 zł. Niezależny serwis — nie jesteśmy dealerem marek.",
+    "Cennik BESS MOTORS Warszawa: wymiana oleju 100 zł (kod BessMotors), klocki od 100 zł, nabijanie klimy −50%. Diagnostyka, zawieszenie, DSG, chip tuning. Norma-godzina 250 zł. Aleja Krakowska 48/52.",
   path: "/cennik",
-  keywords: ["cennik serwis samochodowy Warszawa", "ceny wymiana oleju", "chip tuning cena"],
+  keywords: [
+    "cennik serwis samochodowy Warszawa",
+    "wymiana oleju 100 zł",
+    "klocki hamulcowe cena Warszawa",
+    "chip tuning cena",
+  ],
 });
 
 export default function CennikLayout({ children }: { children: React.ReactNode }) {

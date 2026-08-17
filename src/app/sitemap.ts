@@ -32,16 +32,23 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   for (const slug of seoLandingSlugs) {
     if (sitemapExcludedSlugs.has(slug)) continue;
-    const priority = slug === "klimatyzacja" ? 0.95 : 0.8;
+    const priority =
+      slug === "klimatyzacja"
+        ? 0.95
+        : slug === "wymiana-oleju" ||
+            slug === "hamulce" ||
+            slug === "naprawa-klimatyzacji"
+          ? 0.9
+          : slug.startsWith("warszawa-")
+            ? 0.75
+            : 0.8;
     add(`/${slug}`, "weekly", priority);
   }
 
-  add("/blog", "weekly", 0.7);
   for (const post of blogPosts) {
     add(`/blog/${post.slug}`, "monthly", 0.65);
   }
 
-  add("/promocje", "weekly", 0.9);
   add("/privacy", "yearly", 0.3);
 
   return entries;

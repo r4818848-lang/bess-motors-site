@@ -6,6 +6,7 @@ import {
   getSeoLandingPage,
   seoLandingSlugs,
 } from "@/lib/seo-landing-pages";
+import { sitemapExcludedSlugs } from "@/lib/seo";
 import { buildPageMetadata } from "@/lib/seo-metadata";
 import { autoRepairServiceSchema } from "@/lib/seo-structured-data";
 import { withLocalMetaSuffix } from "@/lib/seo-local";
@@ -23,7 +24,9 @@ import { TIRE_SERVICE_POSTER_SRC } from "@/lib/tire-media";
 type Props = { params: Promise<{ slug: string }> };
 
 export function generateStaticParams() {
-  return seoLandingSlugs.map((slug) => ({ slug }));
+  return seoLandingSlugs
+    .filter((slug) => !sitemapExcludedSlugs.has(slug))
+    .map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -86,6 +89,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       "warsztat samochodowy Włochy",
       "Aleja Krakowska 48/52",
       page.slug.replace(/-/g, " "),
+      ...(slug === "wymiana-oleju"
+        ? ["wymiana oleju Warszawa", "wymiana oleju 100 zł", "kod BessMotors"]
+        : []),
+      ...(slug === "hamulce"
+        ? ["klocki hamulcowe Warszawa", "wymiana tarcz hamulcowych", "kod BessMotors"]
+        : []),
       ...acKeywords,
     ],
   });

@@ -24,9 +24,10 @@ import {
   facebookDomainVerification,
   getSiteUrl,
   googleSiteVerification,
+  HOME_SEO_DESCRIPTION,
+  HOME_SEO_TITLE,
 } from "@/lib/seo";
 import { buildPageMetadata, DEFAULT_OG_IMAGE } from "@/lib/seo-metadata";
-import { acPromoMetaDescriptionPl } from "@/lib/ac-recharge-promo-seo";
 
 
 
@@ -39,9 +40,9 @@ const orbitron = Orbitron({ subsets: ["latin"], variable: "--font-orbitron" });
 const siteUrl = getSiteUrl();
 
 const homeSeo = buildPageMetadata({
-  title: "BESS MOTORS — Serwis samochodowy Warszawa",
+  title: HOME_SEO_TITLE,
   absoluteTitle: true,
-  description: acPromoMetaDescriptionPl(),
+  description: HOME_SEO_DESCRIPTION,
   path: "/",
   keywords: defaultSeoKeywords,
 });
@@ -50,18 +51,18 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   ...homeSeo,
   title: {
-    default: "BESS MOTORS — Serwis samochodowy Warszawa",
+    default: HOME_SEO_TITLE,
     template: "%s | BESS MOTORS",
   },
   openGraph: {
     ...homeSeo.openGraph,
-    description: acPromoMetaDescriptionPl(),
+    description: HOME_SEO_DESCRIPTION,
     images: [
       {
         url: DEFAULT_OG_IMAGE,
         width: 1200,
         height: 630,
-        alt: "BESS MOTORS — serwis samochodowy Warszawa",
+        alt: "BESS MOTORS — serwis samochodowy Warszawa Włochy",
       },
     ],
   },

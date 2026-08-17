@@ -4,9 +4,9 @@ import { buildPageMetadata } from "@/lib/seo-metadata";
 export const metadata: Metadata = buildPageMetadata({
   title: "Program poleceń — rabaty",
   description:
-    "Poleć znajomego do BESS MOTORS i odbierz rabat. Program poleceń warsztatu samochodowego w Warszawie — szczegóły i warunki.",
+    "Poleć znajomego do BESS MOTORS i odbierz rabat. Program poleceń warsztatu samochodowego w Warszawie.",
   path: "/referral",
-  keywords: ["program poleceń", "rabat serwis", "BESS MOTORS Warszawa"],
+  noIndex: true,
 });
 
 export default function ReferralLayout({ children }: { children: React.ReactNode }) {

@@ -17,6 +17,11 @@ import {
   AC_R134A_PROMO_OLD_PLN,
   acPromoMetaDescriptionPl,
 } from "@/lib/ac-recharge-promo-seo";
+import {
+  getOilBrakePromoOffer,
+  OIL_BRAKE_PROMO_CODE,
+  oilBrakePromoOfferSchema,
+} from "@/lib/oil-brake-promo";
 
 export function faqPageSchema(items: { q: string; a: string }[]) {
   if (!items.length) return null;
@@ -106,9 +111,9 @@ export function servicesItemListSchema() {
   const items = [
     { name: "PROMOCJA −50% — nabijanie klimatyzacji bez kolejki R134a / R1234yf od 130 zł", path: "/klimatyzacja" },
     { name: "Naprawa klimatyzacji samochodowej", path: "/naprawa-klimatyzacji" },
-    { name: "Wymiana oleju", path: "/wymiana-oleju" },
+    { name: "Wymiana oleju 100 zł — kod BessMotors", path: "/wymiana-oleju" },
     { name: "Wulkanizacja", path: "/opony" },
-    { name: "Serwis hamulców", path: "/hamulce" },
+    { name: "Hamulce — klocki od 100 zł, kod BessMotors", path: "/hamulce" },
     { name: "Diagnostyka komputerowa", path: "/diagnostyka" },
     { name: "Chip tuning", path: "/chip-tuning-warszawa" },
     { name: "Geometria kół", path: "/geometria" },
@@ -157,7 +162,7 @@ export function autoRepairServiceSchema(page: SeoLandingPage) {
       priceCurrency: "PLN",
       availability: "https://schema.org/InStock",
       url,
-      priceValidUntil: "2026-09-30",
+      priceValidUntil: "2026-12-31",
     };
   } else if (isAcRepair) {
     serviceNode.offers = {
@@ -169,6 +174,18 @@ export function autoRepairServiceSchema(page: SeoLandingPage) {
       availability: "https://schema.org/InStock",
       url,
     };
+  } else if (page.slug === "wymiana-oleju") {
+    const oil = getOilBrakePromoOffer("oil_filter");
+    if (oil) serviceNode.offers = oilBrakePromoOfferSchema(siteUrl, oil);
+  } else if (page.slug === "hamulce") {
+    const pads = getOilBrakePromoOffer("brake_pads_front");
+    if (pads) {
+      serviceNode.offers = {
+        ...oilBrakePromoOfferSchema(siteUrl, pads),
+        name: `Serwis hamulców — promocja kod ${OIL_BRAKE_PROMO_CODE}`,
+        description: page.metaDescription,
+      };
+    }
   }
   const graph: Record<string, unknown>[] = [
     serviceNode,
