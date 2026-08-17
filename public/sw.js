@@ -1,5 +1,5 @@
-const CACHE = "bess-motors-v3";
-const PRECACHE = ["/", "/cennik", "/booking", "/contacts", "/status", "/offline.html", "/api/price-list", "/offline-contacts.json"];
+const CACHE = "bess-motors-v4";
+const PRECACHE = ["/", "/cennik", "/booking", "/contacts", "/offline.html", "/offline-contacts.json"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -18,7 +18,7 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("push", (event) => {
-  let data = { title: "BESS MOTORS", body: "", url: "/cabinet" };
+  let data = { title: "BESS MOTORS", body: "", url: "/booking" };
   try {
     if (event.data) data = { ...data, ...event.data.json() };
   } catch {
@@ -28,42 +28,41 @@ self.addEventListener("push", (event) => {
     self.registration.showNotification(data.title, {
       body: data.body,
       icon: "/images/logo.png",
-      data: { url: data.url || "/cabinet" },
+      data: { url: data.url || "/booking" },
     })
   );
 });
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  const url = event.notification.data?.url || "/cabinet";
+  const url = event.notification.data?.url || "/booking";
   event.waitUntil(clients.openWindow(url));
 });
 
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
-  /* Never cache API — auth/session must not be served from stale cache */
   if (url.pathname.startsWith("/api/")) return;
+  if (url.pathname.startsWith("/_next/")) return;
   if (event.request.method !== "GET") return;
+
+  if (event.request.mode === "navigate") {
+    event.respondWith(
+      fetch(event.request).catch(() =>
+        caches.match(event.request).then((cached) => cached || caches.match("/offline.html"))
+      )
+    );
+    return;
+  }
+
   event.respondWith(
-    caches.match(event.request).then((cached) => {
-      const network = fetch(event.request)
-        .then((res) => {
-          if (res.ok && event.request.url.startsWith(self.location.origin)) {
-            const clone = res.clone();
-            caches.open(CACHE).then((c) => c.put(event.request, clone));
-          }
-          return res;
-        })
-        .catch(() => cached);
-      return (
-        cached ||
-        network.catch(() => {
-          if (event.request.mode === "navigate") {
-            return caches.match("/offline.html");
-          }
-          return undefined;
-        })
-      );
-    })
+    fetch(event.request)
+      .then((res) => {
+        if (res.ok && event.request.url.startsWith(self.location.origin)) {
+          const clone = res.clone();
+          caches.open(CACHE).then((c) => c.put(event.request, clone));
+        }
+        return res;
+      })
+      .catch(() => caches.match(event.request))
   );
 });

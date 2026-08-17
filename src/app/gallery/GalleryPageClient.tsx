@@ -23,7 +23,6 @@ export default function GalleryPageClient() {
   useMetaViewContent("Gallery");
   const [items, setItems] = useState<PublicGalleryItem[]>([]);
   const [makeFilter, setMakeFilter] = useState<string>("all");
-  const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<GalleryTab>("works");
 
   useEffect(() => {
@@ -43,7 +42,7 @@ export default function GalleryPageClient() {
     fetch("/api/gallery")
       .then((r) => r.json())
       .then((data: { items?: PublicGalleryItem[] }) => setItems(data.items ?? []))
-      .finally(() => setLoading(false));
+      .catch(() => setItems([]));
   }, []);
 
   const tabs: { id: GalleryTab; label: string }[] = [
@@ -51,6 +50,9 @@ export default function GalleryPageClient() {
     { id: "works", label: g.tabOurWorks },
     { id: "repairs", label: g.tabRepairs },
   ];
+
+  const extraRepairs =
+    makeFilter === "all" ? items : items.filter((item) => item.make === makeFilter);
 
   return (
     <div className="pt-28 pb-20">
@@ -98,16 +100,12 @@ export default function GalleryPageClient() {
           </div>
         )}
 
-          {tab === "repairs" && (
+        {tab === "repairs" && (
           <div className="mt-10" role="tabpanel">
             <WorkBeforeAfterList cases={WORK_BEFORE_AFTER_CASES} />
 
-            {loading && (
-              <p className="text-center text-bm-muted animate-pulse mt-8">{g.loading}</p>
-            )}
-
-            {!loading && items.length > 0 && (
-              <>
+            {items.length > 0 ? (
+              <div className="mt-12">
                 <h2 className="font-display text-xl uppercase text-glow mb-6">{g.repairsTitle}</h2>
                 <GalleryBeforeAfter items={items} />
 
@@ -140,57 +138,55 @@ export default function GalleryPageClient() {
                 </div>
 
                 <div className="mt-12 grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                  {items
-                    .filter((item) => makeFilter === "all" || item.make === makeFilter)
-                    .map((item, i) => (
-                      <motion.article
-                        key={item.id}
-                        initial={{ opacity: 0, y: 12 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: i * 0.05 }}
-                        className="rounded-2xl overflow-hidden border border-bm-border/60 bg-bm-card/50"
-                      >
-                        <h2 className="px-4 py-3 font-display text-sm uppercase text-bm-red border-b border-bm-border/40">
-                          {item.title}
-                        </h2>
-                        <div className="grid grid-cols-2 gap-0.5 bg-bm-border/30">
-                          {item.beforeUrl && (
-                            <div className="relative aspect-[4/3]">
-                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img
-                                src={item.beforeUrl}
-                                alt={`${item.title} — ${g.before}`}
-                                className="object-cover w-full h-full"
-                              />
-                              <span className="absolute top-2 left-2 text-[10px] uppercase bg-black/70 px-2 py-0.5 rounded">
-                                {g.before}
-                              </span>
-                            </div>
-                          )}
-                          {item.afterUrl && (
-                            <div className="relative aspect-[4/3]">
-                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img
-                                src={item.afterUrl}
-                                alt={`${item.title} — ${g.after}`}
-                                className="object-cover w-full h-full"
-                              />
-                              <span className="absolute top-2 left-2 text-[10px] uppercase bg-bm-red/90 px-2 py-0.5 rounded">
-                                {g.after}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                        {item.caption ? (
-                          <p className="px-4 py-2 text-xs text-bm-muted border-t border-bm-border/40">
-                            {item.caption}
-                          </p>
-                        ) : null}
-                      </motion.article>
-                    ))}
+                  {extraRepairs.map((item, i) => (
+                    <motion.article
+                      key={item.id}
+                      initial={{ opacity: 0, y: 12 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.05 }}
+                      className="rounded-2xl overflow-hidden border border-bm-border/60 bg-bm-card/50"
+                    >
+                      <h2 className="px-4 py-3 font-display text-sm uppercase text-bm-red border-b border-bm-border/40">
+                        {item.title}
+                      </h2>
+                      <div className="grid grid-cols-2 gap-0.5 bg-bm-border/30">
+                        {item.beforeUrl && (
+                          <div className="relative aspect-[4/3]">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={item.beforeUrl}
+                              alt={`${item.title} — ${g.before}`}
+                              className="object-cover w-full h-full"
+                            />
+                            <span className="absolute top-2 left-2 text-[10px] uppercase bg-black/70 px-2 py-0.5 rounded">
+                              {g.before}
+                            </span>
+                          </div>
+                        )}
+                        {item.afterUrl && (
+                          <div className="relative aspect-[4/3]">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={item.afterUrl}
+                              alt={`${item.title} — ${g.after}`}
+                              className="object-cover w-full h-full"
+                            />
+                            <span className="absolute top-2 left-2 text-[10px] uppercase bg-bm-red/90 px-2 py-0.5 rounded">
+                              {g.after}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      {item.caption ? (
+                        <p className="px-4 py-2 text-xs text-bm-muted border-t border-bm-border/40">
+                          {item.caption}
+                        </p>
+                      ) : null}
+                    </motion.article>
+                  ))}
                 </div>
-              </>
-            )}
+              </div>
+            ) : null}
           </div>
         )}
       </div>

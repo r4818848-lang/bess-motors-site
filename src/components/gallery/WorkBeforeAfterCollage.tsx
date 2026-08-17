@@ -40,6 +40,7 @@ function PhotoMosaic({
             src={src}
             alt={alts[i] ?? ""}
             fill
+            unoptimized
             sizes="(max-width: 768px) 50vw, 25vw"
             className="object-cover hover:scale-105 transition-transform duration-300"
           />
@@ -118,7 +119,7 @@ export function WorkBeforeAfterCollage({
         >
           <X className="absolute top-4 right-4 text-white" size={28} />
           <span className="relative w-full max-w-3xl h-[80vh]">
-            <Image src={open.src} alt={open.alt} fill className="object-contain" sizes="100vw" />
+            <Image src={open.src} alt={open.alt} fill unoptimized className="object-contain" sizes="100vw" />
           </span>
         </button>
       ) : null}
