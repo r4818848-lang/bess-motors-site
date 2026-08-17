@@ -89,9 +89,9 @@ const criticalCss = `
 
   header>div{max-width:80rem;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.75rem 1rem}
 
-  header nav{display:none;flex-wrap:wrap;gap:.25rem}
+  header nav{display:none!important;flex-wrap:nowrap;white-space:nowrap;gap:.25rem}
 
-  @media(min-width:1280px){header nav{display:flex}}
+  @media(min-width:1536px){header nav{display:flex!important}}
 
   header a,nav a{color:#888;text-decoration:none;font-size:.875rem;padding:.5rem .75rem;border-radius:.5rem}
 

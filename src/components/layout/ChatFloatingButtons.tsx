@@ -23,7 +23,7 @@ export function ChatFloatingButtons() {
   const h = t.homeLead;
 
   return (
-    <div className="fixed z-[85] flex flex-col gap-2 bottom-20 left-4 md:bottom-6 md:left-auto md:right-6">
+    <div className="fixed z-[85] hidden md:flex flex-col gap-2 md:bottom-6 md:right-6">
       <SocialContactLink
         kind="telegram"
         href={workshopTelegramChatUrl()}

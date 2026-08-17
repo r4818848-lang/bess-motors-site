@@ -1,16 +1,12 @@
 "use client";
 
-import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { ChevronRight, Phone, Timer, Shield, Tag, Snowflake } from "lucide-react";
+import { ChevronRight, Phone, Timer, Shield, Tag } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { siteConfig } from "@/lib/site";
 import { PhoneLink } from "@/components/analytics/PhoneLink";
 import { BookingLink } from "@/components/analytics/BookingLink";
-import { AcBookCtaButton } from "@/components/booking/AcBookingChoiceFlow";
-import { AcPromoPriceBadges } from "@/components/home/AcPromoPriceBadges";
-import { AcPromoAccentPills } from "@/components/home/AcPromoAccentPills";
 import { Logo } from "@/components/brand/Logo";
 
 export function Hero() {
@@ -23,12 +19,11 @@ export function Hero() {
   ];
 
   return (
-    <section className="relative min-h-[88dvh] sm:min-h-[85vh] flex items-center overflow-hidden pt-20">
-      {/* Фон: полный баннер на всю секцию */}
+    <section className="relative min-h-[68dvh] sm:min-h-[72vh] flex items-center overflow-hidden pt-6 sm:pt-8">
       <div className="absolute inset-0 z-0" aria-hidden>
         <Image
           src={siteConfig.bannerImage}
-          alt="BESS MOTORS — serwis klimatyzacji i mechanika Warszawa"
+          alt="BESS MOTORS — serwis samochodowy Warszawa Włochy"
           fill
           priority
           className="object-cover object-[72%_42%] sm:object-[75%_40%]"
@@ -49,12 +44,12 @@ export function Hero() {
         <div className="absolute left-0 right-0 top-24 h-px bg-gradient-to-r from-transparent via-bm-red/50 to-transparent animate-scan-line" />
       </div>
 
-      <div className="relative z-10 mx-auto max-w-7xl px-4 lg:px-8 w-full py-12">
+      <div className="relative z-10 mx-auto max-w-7xl px-4 lg:px-8 w-full py-10 sm:py-12">
         <div className="max-w-2xl">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-8"
+            className="mb-6"
           >
             <Logo size="lg" />
           </motion.div>
@@ -81,104 +76,9 @@ export function Hero() {
               {t.hero.subtitle}
             </p>
 
-            <p className="mt-6 text-bm-silver/95 leading-relaxed max-w-lg drop-shadow-md">
+            <p className="mt-5 text-bm-silver/95 leading-relaxed max-w-lg drop-shadow-md">
               {t.hero.desc}
             </p>
-
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.25, duration: 0.6 }}
-              className="mt-6 rounded-2xl border-2 border-emerald-400/70 bg-gradient-to-br from-emerald-900/50 via-bm-black/70 to-bm-red/25 p-4 sm:p-5 shadow-[0_0_28px_rgba(16,185,129,0.3)] backdrop-blur-sm"
-            >
-              <div className="flex flex-wrap items-center gap-2 mb-2">
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-300/40 bg-emerald-500/30 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest text-emerald-100">
-                  <Tag size={11} />
-                  {t.oilBrakePromo.badge}
-                </span>
-                <span className="text-[10px] font-bold uppercase tracking-wide text-white/90">
-                  {t.oilBrakePromo.codeLabel}:{" "}
-                  <span className="text-bm-red">BessMotors</span>
-                </span>
-              </div>
-              <p className="font-display text-lg sm:text-xl font-bold uppercase text-white leading-tight">
-                {t.oilBrakePromo.title}
-              </p>
-              <ul className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-xs text-bm-silver/95">
-                <li>
-                  {t.oilBrakePromo.oil}:{" "}
-                  <span className="line-through opacity-60">150</span>{" "}
-                  <strong className="text-emerald-300">100 zł</strong>
-                </li>
-                <li>
-                  {t.oilBrakePromo.padsFront}:{" "}
-                  <span className="line-through opacity-60">120</span>{" "}
-                  <strong className="text-emerald-300">100 zł</strong>
-                </li>
-                <li>
-                  {t.oilBrakePromo.discFront}:{" "}
-                  <span className="line-through opacity-60">220</span>{" "}
-                  <strong className="text-emerald-300">150 zł</strong>
-                </li>
-                <li>
-                  {t.oilBrakePromo.padsRear}:{" "}
-                  <span className="line-through opacity-60">150</span>{" "}
-                  <strong className="text-emerald-300">120 zł</strong>
-                </li>
-                <li className="sm:col-span-2">
-                  {t.oilBrakePromo.discRear}:{" "}
-                  <span className="line-through opacity-60">280</span>{" "}
-                  <strong className="text-emerald-300">180 zł</strong>
-                </li>
-              </ul>
-              <div className="mt-4 flex flex-wrap gap-2">
-                <BookingLink
-                  href="/booking?items=oil_filter"
-                  trackSource="hero_oil_brake_promo"
-                  className="btn-primary text-xs sm:text-sm inline-flex items-center gap-1.5"
-                >
-                  {t.oilBrakePromo.ctaBook}
-                  <ChevronRight size={14} />
-                </BookingLink>
-                <Link href="/promocje" className="btn-outline text-xs sm:text-sm">
-                  {t.promoBanner.cta}
-                </Link>
-              </div>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.35, duration: 0.6 }}
-              className="mt-6 rounded-2xl border-2 border-bm-red/90 bg-gradient-to-br from-bm-red/35 via-bm-black/70 to-bm-red/20 p-4 sm:p-5 shadow-[0_0_32px_rgba(225,6,0,0.35)] backdrop-blur-sm"
-            >
-              <div className="flex flex-wrap items-center gap-2 mb-2">
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/30 bg-bm-red/40 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest text-white">
-                  <Snowflake size={11} />
-                  {t.seasonalAc.badge}
-                </span>
-              </div>
-              <p className="font-display text-lg sm:text-xl font-bold uppercase text-white leading-tight">
-                {t.seasonalAc.title}
-              </p>
-              <AcPromoAccentPills variant="hero" className="mt-2" />
-              <AcPromoPriceBadges variant="hero" className="mt-3 mb-0" />
-              <p className="mt-2 text-xs sm:text-sm text-bm-silver/95 leading-relaxed max-w-xl">
-                {t.seasonalAc.subtitle}
-              </p>
-              <div className="mt-4 flex flex-wrap gap-2">
-                <AcBookCtaButton
-                  trackSource="hero_ac_promo"
-                  className="btn-primary text-xs sm:text-sm inline-flex items-center gap-1.5"
-                >
-                  {t.seasonalAc.ctaBook}
-                  <ChevronRight size={14} />
-                </AcBookCtaButton>
-                <Link href="/klimatyzacja" className="btn-outline text-xs sm:text-sm">
-                  {t.seasonalAc.ctaLearn}
-                </Link>
-              </div>
-            </motion.div>
 
             <div className="mt-6 flex flex-wrap gap-2">
               {pills.map(({ icon: Icon, label }) => (
@@ -192,7 +92,7 @@ export function Hero() {
               ))}
             </div>
 
-            <div className="mt-10 flex flex-wrap gap-4">
+            <div className="mt-8 flex flex-wrap gap-4">
               <PhoneLink trackSource="hero_cta" className="btn-primary group">
                 <Phone className="w-4 h-4" />
                 {t.hero.ctaCall}

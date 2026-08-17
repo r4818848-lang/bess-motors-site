@@ -46,11 +46,11 @@ export function Header() {
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-3 py-2.5 sm:px-4 sm:py-3 lg:px-8">
         <Logo size="sm" showTagline={false} />
 
-        <nav className="hidden items-center gap-1 xl:flex">
+        <nav className="hidden items-center gap-0.5 whitespace-nowrap 2xl:flex 2xl:flex-nowrap">
           {navPaths.map(({ href, key }) => {
             const isGallery = href.startsWith("/gallery");
             const navClass = clsx(
-              "rounded-lg px-3 py-2 text-sm transition-all relative",
+              "rounded-lg px-2 py-2 text-[13px] transition-all relative",
               (isGallery ? pathname === "/gallery" : pathname === href)
                 ? "bg-bm-red/20 text-bm-red shadow-neon-sm"
                 : "text-bm-muted hover:text-white hover:bg-white/5"
@@ -77,7 +77,7 @@ export function Header() {
           </PhoneLink>
         </div>
 
-        <div className="flex items-center gap-1 sm:gap-2 xl:hidden">
+        <div className="flex items-center gap-1 sm:gap-2 2xl:hidden">
           <div className="md:hidden">
             <LanguageSwitcher compact />
           </div>
@@ -94,7 +94,7 @@ export function Header() {
       </div>
 
       {open && (
-        <div className="xl:hidden border-t border-bm-border glass px-4 py-4 max-h-[min(70vh,calc(100dvh-4rem))] overflow-y-auto overscroll-contain">
+        <div className="2xl:hidden border-t border-bm-border glass px-4 py-4 max-h-[min(70vh,calc(100dvh-4rem))] overflow-y-auto overscroll-contain">
           <nav className="flex flex-col gap-2">
             {navPaths.map(({ href, key }) => {
               const isGallery = href.startsWith("/gallery");

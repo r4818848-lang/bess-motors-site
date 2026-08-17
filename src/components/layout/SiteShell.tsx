@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { StickyContactBar } from "@/components/layout/StickyContactBar";
-import { BookNowSticky } from "@/components/layout/BookNowSticky";
 import { ChatFloatingButtons } from "@/components/layout/ChatFloatingButtons";
 
 const MINIMAL_CHROME_PREFIXES = ["/crm", "/admin", "/mechanic", "/sign"];
@@ -45,7 +44,6 @@ export function SiteShell({ children }: { children: ReactNode }) {
       </main>
       <Footer />
       <StickyContactBar />
-      <BookNowSticky />
       <ChatFloatingButtons />
     </div>
   );
