@@ -32,21 +32,29 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   for (const slug of seoLandingSlugs) {
     if (sitemapExcludedSlugs.has(slug)) continue;
-    const priority =
-      slug === "klimatyzacja"
-        ? 0.95
-        : slug === "wymiana-oleju" ||
-            slug === "hamulce" ||
-            slug === "naprawa-klimatyzacji"
-          ? 0.9
-          : slug.startsWith("warszawa-")
-            ? 0.75
-            : 0.8;
+                const priority =
+                  slug === "klimatyzacja"
+                    ? 0.95
+                    : slug === "wymiana-oleju" ||
+                        slug === "hamulce" ||
+                        slug === "naprawa-klimatyzacji"
+                      ? 0.9
+                      : slug.startsWith("serwis-")
+                        ? 0.82
+                        : slug.startsWith("warszawa-")
+                          ? 0.75
+                          : 0.8;
     add(`/${slug}`, "weekly", priority);
   }
 
   for (const post of blogPosts) {
-    add(`/blog/${post.slug}`, "monthly", 0.65);
+    const priority =
+      post.slug === "ile-kosztuje-wymiana-oleju" ||
+      post.slug === "kiedy-zmieniac-klocki" ||
+      post.slug === "nabijanie-klimatyzacji-cena-warszawa"
+        ? 0.75
+        : 0.65;
+    add(`/blog/${post.slug}`, "monthly", priority);
   }
 
   add("/privacy", "yearly", 0.3);

@@ -13,10 +13,10 @@ export function whatsappContactUrl(message?: string): string {
 }
 
 const DEFAULT_MESSAGE: Record<"pl" | "ru" | "en" | "uk", string> = {
-  pl: "Dzień dobry, chcę umówić wizytę w BESS MOTORS. Proszę o kontakt.",
-  ru: "Здравствуйте, хочу записаться в BESS MOTORS. Прошу связаться.",
-  en: "Hello, I would like to book a visit at BESS MOTORS. Please contact me.",
-  uk: "Добрий день, хочу записатися в BESS MOTORS. Прошу зв'язатися.",
+  pl: "Dzień dobry, BESS MOTORS.\nPotrzebuję: (usługa)\nTelefon: ",
+  ru: "Здравствуйте, BESS MOTORS.\nНужно: (услуга)\nТелефон: ",
+  en: "Hello, BESS MOTORS.\nI need: (service)\nPhone: ",
+  uk: "Добрий день, BESS MOTORS.\nПотрібно: (послуга)\nТелефон: ",
 };
 
 export function whatsappDefaultMessage(locale: string): string {

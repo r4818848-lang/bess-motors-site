@@ -205,3 +205,11 @@ export function isValidClientPhone(text: string): boolean {
 export function isValidClientName(text: string): boolean {
   return text.trim().length >= 2;
 }
+
+/** Pull a phone from free-text “service + phone” messages */
+export function extractPhoneFromText(text: string): string | null {
+  const match = text.match(/(?:\+|00)?[\d][\d\s().-]{7,}\d/);
+  if (!match) return null;
+  if (!isValidClientPhone(match[0])) return null;
+  return normalizePhone(match[0]);
+}

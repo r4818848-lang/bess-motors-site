@@ -5,12 +5,7 @@ import { useI18n } from "@/lib/i18n/context";
 import { siteConfig } from "@/lib/site";
 import { PhoneLink } from "@/components/analytics/PhoneLink";
 import { Card } from "@/components/ui/Card";
-
-const MAP_EMBED =
-  "https://maps.google.com/maps?q=Aleja+Krakowska+48%2F52,+02-284+Warszawa&hl=pl&z=15&output=embed";
-
-const DIRECTIONS_URL =
-  "https://www.google.com/maps/dir/?api=1&destination=Aleja+Krakowska+48%2F52,+02-284+Warszawa";
+import { WORKSHOP_DIRECTIONS_URL, WORKSHOP_MAP_EMBED } from "@/lib/maps";
 
 export function ServiceLandingMap({ slug }: { slug: string }) {
   const { t } = useI18n();
@@ -48,7 +43,7 @@ export function ServiceLandingMap({ slug }: { slug: string }) {
             </div>
           </div>
           <a
-            href={DIRECTIONS_URL}
+            href={WORKSHOP_DIRECTIONS_URL}
             target="_blank"
             rel="noopener noreferrer"
             className="btn-primary inline-flex items-center gap-2 text-sm"
@@ -60,7 +55,7 @@ export function ServiceLandingMap({ slug }: { slug: string }) {
         <div className="rounded-xl overflow-hidden border border-bm-border/50 min-h-[280px]">
           <iframe
             title="BESS MOTORS — mapa"
-            src={MAP_EMBED}
+            src={WORKSHOP_MAP_EMBED}
             className="w-full h-full min-h-[280px] border-0"
             loading="lazy"
             referrerPolicy="no-referrer-when-downgrade"

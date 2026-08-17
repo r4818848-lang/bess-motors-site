@@ -44,6 +44,8 @@ import {
 } from "@/lib/tire-media";
 import { WORKSHOP_PHOTOS } from "@/lib/workshop-photos";
 import { Wrench, Camera } from "lucide-react";
+import { WorkBeforeAfterList } from "@/components/gallery/WorkBeforeAfterCollage";
+import { workCasesForLanding } from "@/lib/work-before-after";
 
 type PhotoTile = { key: string; src: string; alt: string };
 
@@ -97,6 +99,14 @@ const SERVICE_FALLBACK: Partial<
   ],
   brakePads: [
     {
+      src: "/images/works/before-after/brakes-discs-pads/after/01.jpg",
+      alt: {
+        pl: "Nowa tarcza hamulcowa po wymianie — BESS MOTORS",
+        ru: "Новый тормозной диск после замены — BESS MOTORS",
+        en: "New brake disc after replacement — BESS MOTORS",
+      },
+    },
+    {
       src: BRAKE_PADS_CHANGE_PHOTO_SRC,
       alt: BRAKE_PADS_CHANGE_IMAGE_ALT,
     },
@@ -111,8 +121,34 @@ const SERVICE_FALLBACK: Partial<
   ],
   brakesFull: [
     {
+      src: "/images/works/before-after/brakes-discs-pads/after/01.jpg",
+      alt: {
+        pl: "Nowa tarcza hamulcowa po wymianie — BESS MOTORS",
+        ru: "Новый тормозной диск после замены — BESS MOTORS",
+        en: "New brake disc after replacement — BESS MOTORS",
+      },
+    },
+    {
       src: BRAKE_PADS_CHANGE_PHOTO_SRC,
       alt: BRAKE_PADS_CHANGE_IMAGE_ALT,
+    },
+  ],
+  suspension: [
+    {
+      src: "/images/works/before-after/audi-a6-suspension/after/01.jpg",
+      alt: {
+        pl: "Audi A6 — nowe wahacze po wymianie, BESS MOTORS",
+        ru: "Audi A6 — новые рычаги после замены, BESS MOTORS",
+        en: "Audi A6 — new control arms after replacement, BESS MOTORS",
+      },
+    },
+    {
+      src: "/images/works/before-after/audi-a6-suspension/before/01.jpg",
+      alt: {
+        pl: "Audi A6 — zużyte wahacze przed wymianą",
+        ru: "Audi A6 — изношенные рычаги до замены",
+        en: "Audi A6 — worn control arms before replacement",
+      },
     },
   ],
   starterGen: [
@@ -146,6 +182,14 @@ const SERVICE_FALLBACK: Partial<
     },
   ],
   acRefill: [
+    {
+      src: "/images/works/before-after/ac-recharge/01.jpg",
+      alt: {
+        pl: "Nabijanie klimatyzacji RAM — stacja Launch AC519, BESS MOTORS",
+        ru: "Заправка кондиционера RAM — станция Launch AC519, BESS MOTORS",
+        en: "RAM A/C recharge — Launch AC519 station at BESS MOTORS",
+      },
+    },
     {
       src: RADIATOR_WASH_POSTER_SRC,
       alt: RADIATOR_WASH_IMAGE_ALT,
@@ -339,6 +383,11 @@ export function ServiceLandingPhotos({
       .catch(() => setGalleryItems([]));
   }, [serviceId, slug]);
 
+  const cases = useMemo(
+    () => workCasesForLanding(slug, serviceId),
+    [slug, serviceId]
+  );
+
   const { workshop, serviceRelated } = useMemo(() => {
     const workshopList = workshopTiles(lang);
     const fromGallery = galleryTiles(galleryItems);
@@ -362,6 +411,12 @@ export function ServiceLandingPhotos({
         </Link>
       </div>
       <p className="text-sm text-bm-muted mb-6">{sl.photosHint}</p>
+
+      {cases.length ? (
+        <div className="mb-10">
+          <WorkBeforeAfterList cases={cases} heading="" hint="" />
+        </div>
+      ) : null}
 
       <div className="space-y-8">
         <div>

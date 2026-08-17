@@ -300,6 +300,39 @@ export const seoLandingPages: SeoLandingPage[] = [
     icon: "Settings",
   },
   {
+    slug: "serwis-volvo",
+    title: "Serwis Volvo",
+    line1: "Niezależny serwis Volvo — Warszawa",
+    line2: "XC60, V60, S60 — diagnostyka i olej",
+    metaTitle: "Niezależny serwis Volvo Warszawa — BESS MOTORS",
+    metaDescription:
+      "Niezależny warsztat obsługujący Volvo — diagnostyka, olej, hamulce, klima. Nie jesteśmy dealerem Volvo. BESS MOTORS, Aleja Krakowska 48/52.",
+    serviceId: "diagnostic",
+    icon: "Settings",
+  },
+  {
+    slug: "serwis-hyundai",
+    title: "Serwis Hyundai",
+    line1: "Niezależny serwis Hyundai — Warszawa",
+    line2: "i30, Tucson, Kona — serwis okresowy",
+    metaTitle: "Niezależny serwis Hyundai Warszawa — BESS MOTORS",
+    metaDescription:
+      "Niezależny warsztat obsługujący Hyundai — olej, hamulce, klimatyzacja, diagnostyka. Nie jesteśmy dealerem Hyundai. BESS MOTORS Włochy.",
+    serviceId: "diagnostic",
+    icon: "Settings",
+  },
+  {
+    slug: "serwis-kia",
+    title: "Serwis Kia",
+    line1: "Niezależny serwis Kia — Warszawa",
+    line2: "Ceed, Sportage, Stonic — hamulce i olej",
+    metaTitle: "Niezależny serwis Kia Warszawa — BESS MOTORS",
+    metaDescription:
+      "Niezależny warsztat obsługujący Kia — diagnostyka, hamulce, olej, klima. Nie jesteśmy dealerem Kia. BESS MOTORS Aleja Krakowska.",
+    serviceId: "diagnostic",
+    icon: "Settings",
+  },
+  {
     slug: "check-engine",
     title: "Check Engine — diagnostyka",
     line1: "Świeci się kontrolka silnika?",

@@ -7,8 +7,9 @@ import { clsx } from "clsx";
 import { useI18n } from "@/lib/i18n/context";
 import { useMetaViewContent } from "@/hooks/useMetaViewContent";
 import type { PublicGalleryItem } from "@/app/api/gallery/route";
-import Link from "next/link";
 import { GalleryBeforeAfter } from "@/components/gallery/GalleryBeforeAfter";
+import { WorkBeforeAfterList } from "@/components/gallery/WorkBeforeAfterCollage";
+import { WORK_BEFORE_AFTER_CASES } from "@/lib/work-before-after";
 import { WorkshopPhotosGrid } from "@/components/gallery/WorkshopPhotosGrid";
 import { InstagramReelsSection } from "@/components/gallery/InstagramReelsSection";
 import { OurWorksSection } from "@/components/gallery/OurWorksSection";
@@ -97,10 +98,12 @@ export default function GalleryPageClient() {
           </div>
         )}
 
-        {tab === "repairs" && (
+          {tab === "repairs" && (
           <div className="mt-10" role="tabpanel">
+            <WorkBeforeAfterList cases={WORK_BEFORE_AFTER_CASES} />
+
             {loading && (
-              <p className="text-center text-bm-muted animate-pulse">{g.loading}</p>
+              <p className="text-center text-bm-muted animate-pulse mt-8">{g.loading}</p>
             )}
 
             {!loading && items.length > 0 && (
@@ -178,20 +181,15 @@ export default function GalleryPageClient() {
                             </div>
                           )}
                         </div>
+                        {item.caption ? (
+                          <p className="px-4 py-2 text-xs text-bm-muted border-t border-bm-border/40">
+                            {item.caption}
+                          </p>
+                        ) : null}
                       </motion.article>
                     ))}
                 </div>
               </>
-            )}
-
-            {!loading && items.length === 0 && (
-              <div className="text-center glass-red rounded-2xl p-10 neon-border max-w-xl mx-auto">
-                <p className="text-bm-muted">{g.empty}</p>
-                <p className="text-sm text-bm-muted/80 mt-3">{g.emptyHint}</p>
-                <Link href="/booking" className="btn-primary inline-block mt-6 text-sm">
-                  {g.book}
-                </Link>
-              </div>
             )}
           </div>
         )}

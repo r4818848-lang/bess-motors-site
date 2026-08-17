@@ -9,6 +9,8 @@ import type { PublicGalleryItem } from "@/app/api/gallery/route";
 import { WORKSHOP_PHOTOS } from "@/lib/workshop-photos";
 import { WorkshopPhotosGrid } from "@/components/gallery/WorkshopPhotosGrid";
 import { OurWorksSection } from "@/components/gallery/OurWorksSection";
+import { WorkBeforeAfterList } from "@/components/gallery/WorkBeforeAfterCollage";
+import { WORK_BEFORE_AFTER_CASES } from "@/lib/work-before-after";
 
 export function WorkshopGallerySection() {
   const { t } = useI18n();
@@ -31,7 +33,7 @@ export function WorkshopGallerySection() {
       key: item.id,
       src: item.afterUrl || item.beforeUrl || "",
       alt: item.title || "BESS MOTORS",
-      caption: item.make,
+      caption: item.caption || item.make,
     }));
 
   return (
@@ -50,6 +52,16 @@ export function WorkshopGallerySection() {
           </div>
 
           <WorkshopPhotosGrid heroFirst />
+
+          <div className="mt-12">
+            <WorkBeforeAfterList cases={WORK_BEFORE_AFTER_CASES} />
+            <Link
+              href="/gallery?tab=repairs"
+              className="btn-outline text-sm inline-flex items-center gap-2 mt-6"
+            >
+              {t.workCases.viewAll}
+            </Link>
+          </div>
 
           {repairTiles.length > 0 ? (
             <div className="mt-10">
@@ -73,7 +85,7 @@ export function WorkshopGallerySection() {
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-80" />
                     {tile.caption ? (
-                      <p className="absolute bottom-2 left-2 right-2 text-xs font-semibold text-white truncate">
+                      <p className="absolute bottom-2 left-2 right-2 text-xs font-semibold text-white line-clamp-2">
                         {tile.caption}
                       </p>
                     ) : null}

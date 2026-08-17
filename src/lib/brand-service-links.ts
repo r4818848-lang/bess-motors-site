@@ -19,6 +19,21 @@ export const brandLandingExtras: Record<string, { titlePl: string; titleRu: stri
     titleRu: "Типичные услуги VAG",
     serviceIds: ["diagnostic", "oil", "timingBelt", "brakesFull"],
   },
+  "serwis-volvo": {
+    titlePl: "Typowe usługi Volvo",
+    titleRu: "Типичные услуги Volvo",
+    serviceIds: ["diagnostic", "oil", "brakePads", "acRefill"],
+  },
+  "serwis-hyundai": {
+    titlePl: "Typowe usługi Hyundai",
+    titleRu: "Типичные услуги Hyundai",
+    serviceIds: ["oil", "brakePads", "acRefill", "diagnostic"],
+  },
+  "serwis-kia": {
+    titlePl: "Typowe usługi Kia",
+    titleRu: "Типичные услуги Kia",
+    serviceIds: ["oil", "brakePads", "acRefill", "diagnostic"],
+  },
 };
 
 export function bookingUrlForService(serviceId: ServiceId): string {

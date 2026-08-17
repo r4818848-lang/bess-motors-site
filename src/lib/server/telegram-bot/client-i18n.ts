@@ -15,6 +15,9 @@ export type ClientBotLabels = {
   languageSaved: (name: string) => string;
   welcome: string;
   welcomeLinked: string;
+  writeNeedHint: string;
+  writeNeedNeedPhone: string;
+  writeNeedSaved: string;
   linkedWelcome: (name: string) => string;
   book: string;
   call: string;
@@ -234,10 +237,15 @@ const LABELS: Record<BotLocale, ClientBotLabels> = {
     chooseLanguage: "🌐 <b>Wybierz język / Choose language</b>\n\nWybierz język obsługi w bocie:",
     languageSaved: (name) => `✅ Język: <b>${name}</b>`,
     welcome:
-      "🛠 <b>BESS MOTORS</b> — serwis Warszawa\n\n📅 Umów wizytę · 📞 oddzwonienie · 🔐 konto klienta",
-    welcomeLinked: "Konto aktywne.",
+      "🛠 <b>BESS MOTORS</b> — serwis Warszawa\n\nNapisz <b>usługę + numer telefonu</b> — to zwykły czat, bez konta.\n📅 Umów wizytę · 📞 oddzwonienie",
+    welcomeLinked: "Jesteś w czacie serwisu — napisz, co potrzebujesz.",
     linkedWelcome: (name) =>
-      `👋 <b>Witaj, ${name}!</b>\n\n📋 Zlecenia · 📅 Wizyty · 🔔 Powiadomienia`,
+      `👋 <b>Witaj, ${name}!</b>\n\n📅 Umów wizytę · 📞 oddzwonienie · napisz usługę i telefon`,
+    writeNeedHint:
+      "✍️ Napisz, czego potrzebujesz: <b>usługa + numer telefonu</b>.\nTo zwykły czat — bez kabinetu. Oddzwonimy.",
+    writeNeedNeedPhone:
+      "Dodaj jeszcze <b>numer telefonu</b> (np. +48 …), żebyśmy mogli oddzwonić.",
+    writeNeedSaved: "Dziękujemy. Oddzwonimy w kilka minut.",
     book: "📅 Umów wizytę",
     call: "📞 Zamów telefon",
     myAppointments: "📅 Moje wizyty",
@@ -480,10 +488,15 @@ const LABELS: Record<BotLocale, ClientBotLabels> = {
     chooseLanguage: "🌐 <b>Выберите язык</b>\n\nНа каком языке вести диалог?",
     languageSaved: (name) => `✅ Язык: <b>${name}</b>`,
     welcome:
-      "🛠 <b>BESS MOTORS</b> — сервис Warszawa\n\n📅 Запись · 📞 Звонок · 🔐 Личный кабинет",
-    welcomeLinked: "Кабинет подключён.",
+      "🛠 <b>BESS MOTORS</b> — сервис Warszawa\n\nНапишите <b>услугу + номер телефона</b> — обычный чат, без кабинета.\n📅 Запись · 📞 Звонок",
+    welcomeLinked: "Это чат сервиса — напишите, что нужно.",
     linkedWelcome: (name) =>
-      `👋 <b>Здравствуйте, ${name}!</b>\n\n📋 Заказ-наряды · 📅 Записи · 🔔 Уведомления`,
+      `👋 <b>Здравствуйте, ${name}!</b>\n\n📅 Запись · 📞 Звонок · напишите услугу и телефон`,
+    writeNeedHint:
+      "✍️ Напишите, что нужно: <b>услуга + номер телефона</b>.\nОбычный чат — без кабинета. Перезвоним.",
+    writeNeedNeedPhone:
+      "Добавьте ещё <b>номер телефона</b> (например +48 …), чтобы мы перезвонили.",
+    writeNeedSaved: "Спасибо. Перезвоним через несколько минут.",
     book: "📅 Записаться",
     call: "📞 Заказать звонок",
     myAppointments: "📅 Мои записи",
@@ -728,10 +741,15 @@ const LABELS: Record<BotLocale, ClientBotLabels> = {
     chooseLanguage: "🌐 <b>Оберіть мову</b>\n\nМовою спілкування в боті:",
     languageSaved: (name) => `✅ Мова: <b>${name}</b>`,
     welcome:
-      "🛠 <b>BESS MOTORS</b> — сервіс Warszawa\n\n📅 Запис · 📞 Дзвінок · 🔐 Кабінет",
-    welcomeLinked: "Кабінет підключено.",
+      "🛠 <b>BESS MOTORS</b> — сервіс Warszawa\n\nНапишіть <b>послугу + номер телефону</b> — звичайний чат, без кабінету.\n📅 Запис · 📞 Дзвінок",
+    welcomeLinked: "Це чат сервісу — напишіть, що потрібно.",
     linkedWelcome: (name) =>
-      `👋 <b>Вітаємо, ${name}!</b>\n\n📋 Замовлення · 📅 Записи · 🔔 Сповіщення`,
+      `👋 <b>Вітаємо, ${name}!</b>\n\n📅 Запис · 📞 Дзвінок · напишіть послугу і телефон`,
+    writeNeedHint:
+      "✍️ Напишіть, що потрібно: <b>послуга + номер телефону</b>.\nЗвичайний чат — без кабінету. Передзвонимо.",
+    writeNeedNeedPhone:
+      "Додайте ще <b>номер телефону</b> (наприклад +48 …), щоб ми передзвонили.",
+    writeNeedSaved: "Дякуємо. Передзвонимо за кілька хвилин.",
     book: "📅 Записатися",
     call: "📞 Замовити дзвінок",
     myAppointments: "📅 Мої записи",
@@ -970,10 +988,15 @@ const LABELS: Record<BotLocale, ClientBotLabels> = {
     chooseLanguage: "🌐 <b>Choose your language</b>\n\nSelect bot language:",
     languageSaved: (name) => `✅ Language: <b>${name}</b>`,
     welcome:
-      "🛠 <b>BESS MOTORS</b> — car service Warsaw\n\n📅 Book · 📞 Call back · 🔐 Client account",
-    welcomeLinked: "Account linked.",
+      "🛠 <b>BESS MOTORS</b> — car service Warsaw\n\nWrite <b>service + phone number</b> — just a chat, no account.\n📅 Book · 📞 Call back",
+    welcomeLinked: "This is the workshop chat — write what you need.",
     linkedWelcome: (name) =>
-      `👋 <b>Hello, ${name}!</b>\n\n📋 Work orders · 📅 Appointments · 🔔 Notifications`,
+      `👋 <b>Hello, ${name}!</b>\n\n📅 Book · 📞 Call back · write service and phone`,
+    writeNeedHint:
+      "✍️ Write what you need: <b>service + phone number</b>.\nPlain chat — no client cabinet. We will call back.",
+    writeNeedNeedPhone:
+      "Please add a <b>phone number</b> (e.g. +48 …) so we can call you back.",
+    writeNeedSaved: "Thanks. We will call back in a few minutes.",
     book: "📅 Book visit",
     call: "📞 Request call",
     myAppointments: "📅 My appointments",

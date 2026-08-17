@@ -4,11 +4,9 @@ import type { ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
-import { AcSummerPromoBar } from "@/components/home/AcSummerPromoBar";
-import { OilBrakePromoBar } from "@/components/home/OilBrakePromoBar";
 import { StickyContactBar } from "@/components/layout/StickyContactBar";
 import { BookNowSticky } from "@/components/layout/BookNowSticky";
-import { WhatsAppFloatingButton } from "@/components/layout/WhatsAppFloatingButton";
+import { ChatFloatingButtons } from "@/components/layout/ChatFloatingButtons";
 
 const MINIMAL_CHROME_PREFIXES = ["/crm", "/admin", "/mechanic", "/sign"];
 
@@ -38,12 +36,6 @@ export function SiteShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen overflow-x-clip">
       <Header />
-      {pathname === "/" ? (
-        <>
-          <OilBrakePromoBar />
-          <AcSummerPromoBar />
-        </>
-      ) : null}
       <main
         className={
           hideMobileBar ? "min-h-screen" : "min-h-screen pb-[4.5rem] md:pb-0"
@@ -54,7 +46,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
       <Footer />
       <StickyContactBar />
       <BookNowSticky />
-      <WhatsAppFloatingButton />
+      <ChatFloatingButtons />
     </div>
   );
 }

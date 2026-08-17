@@ -9,9 +9,10 @@ import { BookingLink } from "@/components/analytics/BookingLink";
 import { SocialContactLink } from "@/components/analytics/SocialContactLink";
 import { Logo } from "@/components/brand/Logo";
 import { seoFooterServiceLinks } from "@/lib/seo-footer-links";
+import { workshopWhatsAppChatUrl } from "@/lib/chat-cta";
 
 export function Footer() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const year = new Date().getFullYear();
 
   return (
@@ -29,6 +30,9 @@ export function Footer() {
             </Link>
             <Link href="/cennik" className="text-bm-muted hover:text-bm-red transition-colors">
               {t.nav.priceList}
+            </Link>
+            <Link href="/promocje" className="text-bm-muted hover:text-bm-red transition-colors">
+              {t.nav.promos}
             </Link>
             <BookingLink trackSource="footer" className="text-bm-muted hover:text-bm-red transition-colors">
               {t.nav.booking}
@@ -79,6 +83,7 @@ export function Footer() {
               </SocialContactLink>
               <SocialContactLink
                 kind="whatsapp"
+                href={workshopWhatsAppChatUrl(locale)}
                 trackSource="footer"
                 className="text-bm-muted hover:text-bm-red text-xs uppercase"
               >

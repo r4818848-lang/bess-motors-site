@@ -33,6 +33,8 @@ import {
   resolveLandingContentServiceId,
 } from "@/lib/seo-landing-slug-profiles";
 import { isBrandSeoLandingSlug } from "@/lib/seo-brand-slugs";
+import { CallbackRequestCta } from "@/components/callback/CallbackRequestCta";
+import { isCallbackLandingSlug } from "@/lib/callback-landing-slugs";
 
 type Props = {
   page: SeoLandingPage;
@@ -175,6 +177,24 @@ export function SeoLandingPageView({ page }: Props) {
               {t.stickyBar.call}
             </PhoneLink>
           </div>
+
+          {isCallbackLandingSlug(page.slug) ? (
+            <CallbackRequestCta
+              className="mt-8"
+              source={`landing_5min_${page.slug}`}
+              serviceId={bookServiceId ?? contentServiceId ?? "otherReason"}
+              serviceLabel={pageLoc.title}
+              labels={{
+                title: t.homeLead.callbackTitle,
+                subtitle: t.homeLead.callbackSubtitle,
+                phonePlaceholder: t.cabinet.phone,
+                submit: t.homeLead.callbackSubmit,
+                done: t.homeLead.callbackDone,
+                error: t.homeLead.callbackError,
+                commentDefault: t.homeLead.callbackComment.replace("{page}", page.slug),
+              }}
+            />
+          ) : null}
 
           <BrandServiceBlock slug={page.slug} />
 

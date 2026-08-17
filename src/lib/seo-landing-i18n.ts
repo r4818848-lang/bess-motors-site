@@ -62,6 +62,30 @@ const SEO_RU: Partial<Record<string, SeoText>> = {
     metaTitle: "Check Engine Варшава — BESS MOTORS",
     metaDescription: "Диагностика Check Engine — считывание ошибок, ремонт. BESS MOTORS.",
   },
+  "serwis-volvo": {
+    title: "Сервис Volvo",
+    line1: "Независимый сервис Volvo — Warszawa",
+    line2: "XC60, V60, S60 — диагностика и масло",
+    metaTitle: "Независимый сервис Volvo Варшава — BESS MOTORS",
+    metaDescription:
+      "Независимый сервис Volvo: диагностика, масло, тормоза, кондиционер. Мы не дилер Volvo. BESS MOTORS, Aleja Krakowska.",
+  },
+  "serwis-hyundai": {
+    title: "Сервис Hyundai",
+    line1: "Независимый сервис Hyundai — Warszawa",
+    line2: "i30, Tucson, Kona — ТО и тормоза",
+    metaTitle: "Независимый сервис Hyundai Варшава — BESS MOTORS",
+    metaDescription:
+      "Независимый сервис Hyundai: масло, тормоза, кондиционер. Мы не дилер Hyundai. BESS MOTORS Włochy.",
+  },
+  "serwis-kia": {
+    title: "Сервис Kia",
+    line1: "Независимый сервис Kia — Warszawa",
+    line2: "Ceed, Sportage, Stonic — масло и тормоза",
+    metaTitle: "Независимый сервис Kia Варшава — BESS MOTORS",
+    metaDescription:
+      "Независимый сервис Kia: диагностика, тормоза, масло. Мы не дилер Kia. BESS MOTORS Aleja Krakowska.",
+  },
 };
 
 const SEO_UK: Partial<Record<string, SeoText>> = {

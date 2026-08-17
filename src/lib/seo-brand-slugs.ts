@@ -9,6 +9,9 @@ export const BRAND_SEO_LANDING_SLUGS = new Set([
   "serwis-ford",
   "serwis-renault",
   "serwis-peugeot",
+  "serwis-volvo",
+  "serwis-hyundai",
+  "serwis-kia",
 ]);
 
 export function isBrandSeoLandingSlug(slug: string): boolean {

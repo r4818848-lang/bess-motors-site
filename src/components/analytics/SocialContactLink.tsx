@@ -2,12 +2,13 @@
 
 import type { ComponentProps } from "react";
 import { siteConfig } from "@/lib/site";
+import { workshopTelegramChatUrl } from "@/lib/chat-cta";
 
 type SocialKind = "whatsapp" | "telegram";
 
 const hrefByKind: Record<SocialKind, string> = {
   whatsapp: siteConfig.whatsapp,
-  telegram: siteConfig.telegram,
+  telegram: workshopTelegramChatUrl(),
 };
 
 type SocialContactLinkProps = ComponentProps<"a"> & {

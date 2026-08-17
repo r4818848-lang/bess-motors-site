@@ -21,6 +21,7 @@ import {
 import {
   createTelegramBooking,
   createTelegramCallRequest,
+  extractPhoneFromText,
   isValidClientName,
   isValidClientPhone,
 } from "./client-booking";
@@ -241,7 +242,9 @@ async function onLocaleChosen(
     await sendTelegramMessage(chatId, savedText);
   }
   await attachStartKeyboard(chatId, locale);
-  await showClientMenu(chatId, undefined, locale, pending);
+  if (pending !== "chat") {
+    await showClientMenu(chatId, undefined, locale, pending);
+  }
   await handleStartDeepLinks(chatId, locale, pending);
 }
 
@@ -273,6 +276,13 @@ async function handleStartDeepLinks(
     const L = getClientBotLabels(locale);
     await clearTelegramSessionKeepLocale(chatKey);
     await sendTelegramMessage(chatId, L.chooseCategory, clientServiceCategoryKeyboard(locale, "book"));
+    return;
+  }
+
+  if (startParam === "chat") {
+    const L = getClientBotLabels(locale);
+    await setClientTelegramSession(chatKey, { step: "client_need_chat", data: {} });
+    await sendTelegramMessage(chatId, L.writeNeedHint, clientMainKeyboard(locale, false));
     return;
   }
 
@@ -519,7 +529,9 @@ async function handleClientMessageInner(msg: TelegramMessage): Promise<void> {
       return;
     }
     const startParam = parseStartParam(text);
-    await showClientMenu(chatId, undefined, locale, startParam);
+    if (startParam !== "chat") {
+      await showClientMenu(chatId, undefined, locale, startParam);
+    }
     await handleStartDeepLinks(chatId, locale, startParam);
     return;
   }
@@ -576,6 +588,36 @@ async function handleClientMessageInner(msg: TelegramMessage): Promise<void> {
   }
 
   const session = await getTelegramSession(chatKey);
+
+  if (session.step === "client_need_chat" || session.step === "client_need_phone") {
+    const prior = session.data?.needText ?? "";
+    const combined = session.step === "client_need_phone" && prior ? `${prior}\n${text}` : text;
+    const phone = extractPhoneFromText(combined) ?? (isValidClientPhone(text) ? normalizePhone(text) : null);
+    if (!phone) {
+      await setClientTelegramSession(chatKey, {
+        step: "client_need_phone",
+        data: { needText: combined.slice(0, 500) },
+      });
+      await sendTelegramMessage(chatId, L.writeNeedNeedPhone, clientMainKeyboard(locale, false));
+      return;
+    }
+    const name = [msg.from?.first_name, msg.from?.last_name].filter(Boolean).join(" ").trim() || "Telegram";
+    const result = await createTelegramCallRequest({
+      serviceId: "otherReason",
+      clientName: name,
+      clientPhone: phone,
+      comment: `[czat] ${combined.slice(0, 500)}`,
+      telegramProfile: minimalTelegramProfile(chatId),
+      locale,
+    });
+    await clearTelegramSessionKeepLocale(chatKey);
+    await sendTelegramMessage(
+      chatId,
+      result.ok ? L.writeNeedSaved : formatTelegramSaveError(locale, result.error),
+      clientUserMenu(locale, await getClientPortalByChat(chatKey))
+    );
+    return;
+  }
 
   if (session.step === "client_symptom") {
     const selected = parseSelectedSymptoms(session.data ?? {});

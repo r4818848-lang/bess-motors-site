@@ -7,6 +7,7 @@ import {
 } from "@/lib/seo-local";
 import { businessAggregateRatingSchema } from "@/lib/seo-business-rating";
 import { oilBrakePromoCatalogSchema } from "@/lib/oil-brake-promo";
+import { gbpPhotoUrls } from "@/lib/google-business-facts";
 
 /** Global Schema.org — local business + website (FAQ only on /faq and landing pages) */
 export function JsonLd() {
@@ -23,7 +24,7 @@ export function JsonLd() {
     url: siteUrl,
     telephone: siteConfig.phone,
     email: siteConfig.email,
-    image: `${siteUrl}${siteConfig.logoImage}`,
+    image: gbpPhotoUrls(siteUrl),
     logo: `${siteUrl}${siteConfig.logoImage}`,
     address: {
       "@type": "PostalAddress",

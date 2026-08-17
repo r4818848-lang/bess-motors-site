@@ -6,7 +6,7 @@ import { useI18n } from "@/lib/i18n/context";
 import { PhoneLink } from "@/components/analytics/PhoneLink";
 import { BookingLink } from "@/components/analytics/BookingLink";
 import { SocialContactLink } from "@/components/analytics/SocialContactLink";
-import { whatsappContactUrl, whatsappDefaultMessage } from "@/lib/whatsapp";
+import { workshopWhatsAppChatUrl } from "@/lib/chat-cta";
 
 const hiddenPaths = [
   "/crm",
@@ -36,7 +36,7 @@ export function StickyContactBar() {
         </PhoneLink>
         <SocialContactLink
           kind="whatsapp"
-          href={whatsappContactUrl(whatsappDefaultMessage(locale))}
+          href={workshopWhatsAppChatUrl(locale)}
           trackSource="sticky_bar_whatsapp"
           className="flex items-center justify-center gap-1.5 py-3.5 text-[11px] font-bold uppercase bg-[#25D366] text-white border-x border-white/10"
         >

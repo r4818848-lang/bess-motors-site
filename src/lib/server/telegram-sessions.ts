@@ -22,6 +22,8 @@ export type TelegramSessionStep =
   | "client_vin_confirm"
   | "client_photo_upload"
   | "client_symptom"
+  | "client_need_chat"
+  | "client_need_phone"
   | "admin_quick_apt"
   | "admin_custom_msg"
   | "admin_extra_work"

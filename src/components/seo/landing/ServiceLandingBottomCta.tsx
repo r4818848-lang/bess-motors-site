@@ -7,6 +7,7 @@ import { siteConfig } from "@/lib/site";
 import type { ServiceId } from "@/lib/services-catalog";
 import { PhoneLink } from "@/components/analytics/PhoneLink";
 import { SocialContactLink } from "@/components/analytics/SocialContactLink";
+import { workshopTelegramChatUrl, workshopWhatsAppChatUrl } from "@/lib/chat-cta";
 
 type Props = {
   slug: string;
@@ -15,7 +16,7 @@ type Props = {
 };
 
 export function ServiceLandingBottomCta({ slug, serviceId, onBook }: Props) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const sl = t.serviceLanding;
 
   return (
@@ -48,12 +49,22 @@ export function ServiceLandingBottomCta({ slug, serviceId, onBook }: Props) {
         </PhoneLink>
       </div>
       <div className="mt-4 flex flex-wrap justify-center gap-3">
-        <SocialContactLink kind="whatsapp" trackSource={`landing_bottom_${slug}`} className="btn-outline text-xs">
+        <SocialContactLink
+          kind="whatsapp"
+          href={workshopWhatsAppChatUrl(locale)}
+          trackSource={`landing_bottom_${slug}`}
+          className="btn-outline text-xs"
+        >
           <MessageCircle size={14} />
-          WhatsApp
+          {t.homeLead.chatWhatsapp}
         </SocialContactLink>
-        <SocialContactLink kind="telegram" trackSource={`landing_bottom_${slug}`} className="btn-outline text-xs">
-          Telegram
+        <SocialContactLink
+          kind="telegram"
+          href={workshopTelegramChatUrl()}
+          trackSource={`landing_bottom_${slug}`}
+          className="btn-outline text-xs"
+        >
+          {t.homeLead.chatTelegram}
         </SocialContactLink>
         <a href={siteConfig.viber} className="btn-outline text-xs">
           Viber

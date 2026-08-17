@@ -16,15 +16,18 @@ export function GalleryBeforeAfter({ items }: { items: PublicGalleryItem[] }) {
       <div className="grid md:grid-cols-2 gap-4">
         <div className="relative aspect-video rounded-xl overflow-hidden border border-bm-border/50">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={item.beforeUrl} alt="Before" className="object-cover w-full h-full" />
+          <img src={item.beforeUrl} alt={item.caption || "Before"} className="object-cover w-full h-full" />
           <span className="absolute top-2 left-2 text-xs bg-black/70 px-2 py-1 rounded">Before</span>
         </div>
         <div className="relative aspect-video rounded-xl overflow-hidden border border-bm-border/50">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={item.afterUrl} alt="After" className="object-cover w-full h-full" />
+          <img src={item.afterUrl} alt={item.caption || "After"} className="object-cover w-full h-full" />
           <span className="absolute top-2 left-2 text-xs bg-black/70 px-2 py-1 rounded">After</span>
         </div>
       </div>
+      {item.caption ? (
+        <p className="mt-3 text-sm text-center text-bm-muted">{item.caption}</p>
+      ) : null}
       {pairs.length > 1 ? (
         <div className="flex gap-2 mt-4 justify-center">
           <button type="button" className="btn-outline text-sm" onClick={() => setIdx((i) => (i - 1 + pairs.length) % pairs.length)}>

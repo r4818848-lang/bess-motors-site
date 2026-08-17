@@ -105,6 +105,7 @@ export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
   },
   zawieszenie: {
     faqDuration: L("Diagnostyka i naprawa zawieszenia: od 1 do 4 godzin.", "Подвеска: от 1 до 4 часов."),
+    galleryTags: ["zawies", "wahacz", "audi", "подвеск", "рычаг"],
   },
   "wymiana-oleju": {
     faqDuration: L("Wymiana oleju i filtra: ok. 1 godziny.", "Замена масла: около 1 часа."),
@@ -873,6 +874,92 @@ export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
       },
     ],
     faqDuration: L("Peugeot / Citroën: od 1 godziny.", "Peugeot: от 1 часа."),
+  },
+  "serwis-volvo": {
+    bookServiceId: "diagnostic",
+    education: [
+      {
+        title: L("Niezależny serwis Volvo Warszawa", "Независимый сервис Volvo"),
+        body: L(
+          "XC60, V60, S60, XC90 — diagnostyka VIDA-style, olej ACEA A5/C5, hamulce, klima. Niezależny warsztat — nie jesteśmy salonem Volvo.",
+          "XC60, V60, S60 — диагностика, масло, тормоза. Независимый сервис, не салон Volvo."
+        ),
+      },
+      {
+        title: L("Hybrydy i Drive-E", "Гибриды и Drive-E"),
+        body: L(
+          "Serwis okresowy hybryd i silników Drive-E według specyfikacji — olej, filtry, diagnostyka Check Engine.",
+          "ТО гибридов и Drive-E — масло, фильтры, Check Engine."
+        ),
+      },
+    ],
+    faqExtra: [
+      BRAND_INDEPENDENT_FAQ,
+      {
+        q: L("Czy serwisujecie Volvo XC60 / V60?", "XC60 / V60?"),
+        a: L("Tak — popularne modele Volvo z południowej Warszawy.", "Да — популярные модели Volvo."),
+      },
+    ],
+    faqDuration: L("Volvo: zwykle 1–3 godziny.", "Volvo: 1–3 часа."),
+    galleryTags: ["volvo"],
+  },
+  "serwis-hyundai": {
+    bookServiceId: "oil",
+    contentServiceId: "diagnostic",
+    education: [
+      {
+        title: L("Niezależny serwis Hyundai Warszawa", "Независимый сервис Hyundai"),
+        body: L(
+          "i30, Tucson, Kona, i20 — olej, hamulce, klima, diagnostyka. Nie jesteśmy dealerem Hyundai.",
+          "i30, Tucson, Kona — масло, тормоза, кондиционер. Мы не дилер Hyundai."
+        ),
+      },
+      {
+        title: L("Kia / Hyundai — te same grupy", "Kia / Hyundai"),
+        body: L(
+          "Wiele procedur serwisowych pokrywa się z Kia — dobieramy olej i klocki pod VIN.",
+          "Многие процедуры как у Kia — масло и колодки по VIN."
+        ),
+      },
+    ],
+    faqExtra: [
+      BRAND_INDEPENDENT_FAQ,
+      {
+        q: L("Czy obsługujecie Tucson / i30?", "Tucson / i30?"),
+        a: L("Tak — serwis okresowy i naprawy mechaniczne.", "Да — ТО и механика."),
+      },
+    ],
+    faqDuration: L("Hyundai: od 1 godziny.", "Hyundai: от 1 часа."),
+    galleryTags: ["hyundai"],
+  },
+  "serwis-kia": {
+    bookServiceId: "oil",
+    contentServiceId: "diagnostic",
+    education: [
+      {
+        title: L("Niezależny serwis Kia Warszawa", "Независимый сервис Kia"),
+        body: L(
+          "Ceed, Sportage, Stonic, Rio — olej, hamulce, klima, diagnostyka. Nie jesteśmy dealerem Kia.",
+          "Ceed, Sportage, Stonic — масло, тормоза, кондиционер. Мы не дилер Kia."
+        ),
+      },
+      {
+        title: L("Gwarancja a niezależny serwis", "Гарантия и независимый сервис"),
+        body: L(
+          "Serwis niezależny z częściami jakości OE nie odbiera gwarancji ustawowej — prowadzimy historię wizyt.",
+          "Независимый сервис с OE-качеством не снимает законную гарантию."
+        ),
+      },
+    ],
+    faqExtra: [
+      BRAND_INDEPENDENT_FAQ,
+      {
+        q: L("Czy serwisujecie Kia Sportage / Ceed?", "Sportage / Ceed?"),
+        a: L("Tak — to jedne z najczęstszych aut u nas na Alei Krakowskiej.", "Да — частые авто у нас."),
+      },
+    ],
+    faqDuration: L("Kia: od 1 godziny.", "Kia: от 1 часа."),
+    galleryTags: ["kia"],
   },
   "check-engine": {
     bookServiceId: "diagnostic",
