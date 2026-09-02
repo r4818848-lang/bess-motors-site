@@ -2,7 +2,10 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  serverExternalPackages: ["pdf-parse", "pdfjs-dist", "@napi-rs/canvas", "tesseract.js"],
+  serverExternalPackages: ["pdf-parse", "pdfjs-dist", "@napi-rs/canvas", "tesseract.js", "xlsx"],
+  outputFileTracingIncludes: {
+    "/api/crm/import-inter-cars": ["./imports/**/*"],
+  },
   images: {
     qualities: [75, 85],
     formats: ["image/avif", "image/webp"],

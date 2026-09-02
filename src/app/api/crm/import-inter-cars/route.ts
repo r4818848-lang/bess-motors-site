@@ -1,37 +1,21 @@
-import fs from "fs";
-import path from "path";
 import { NextResponse } from "next/server";
-import * as XLSX from "xlsx";
 import {
   INTER_CARS_AUGUST_2026_CONTROLS,
   INTER_CARS_IMPORT_MONTH,
-  INTER_CARS_SOURCE_SHEET,
   applyInterCarsImportToDatabase,
   compareInterCarsTotals,
   parseInterCarsAllPositionsSheet,
   summarizeInterCarsImportForDisplay,
   verifyInterCarsSellEqualsPurchase,
+  type InterCarsRawRow,
 } from "@/lib/inter-cars-import";
 import { cloudMutateCrmStore } from "@/lib/server/crm-cloud-mutate";
 import { isSupabaseConfigured } from "@/lib/server/crm-cloud";
 import { cleanEnvValue } from "@/lib/server/supabase-config";
+import interCarsAugustRows from "@/data/inter-cars-august-2026.json";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
-
-const DEFAULT_FILE = "Inter_Cars_svodnyj_otchet_avgust_2026.xlsx";
-
-function readAllPositionsRows(fileName: string): Record<string, unknown>[] {
-  const filePath = path.join(process.cwd(), "imports", fileName);
-  if (!fs.existsSync(filePath)) {
-    throw new Error(`File not found: ${filePath}`);
-  }
-  const wb = XLSX.readFile(filePath, { cellDates: false });
-  if (!wb.SheetNames.includes(INTER_CARS_SOURCE_SHEET)) {
-    throw new Error(`Sheet "${INTER_CARS_SOURCE_SHEET}" not found`);
-  }
-  return XLSX.utils.sheet_to_json(wb.Sheets[INTER_CARS_SOURCE_SHEET], { defval: "" });
-}
 
 /** One-time: GET /api/crm/import-inter-cars?key=TELEGRAM_SETUP_KEY [&dry=1] */
 export async function GET(req: Request) {
@@ -40,7 +24,6 @@ export async function GET(req: Request) {
   const key = url.searchParams.get("key");
   const dryRun = url.searchParams.get("dry") === "1";
   const month = url.searchParams.get("month")?.trim() || INTER_CARS_IMPORT_MONTH;
-  const file = url.searchParams.get("file")?.trim() || DEFAULT_FILE;
 
   if (!setupKey || key !== setupKey) {
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
@@ -51,7 +34,7 @@ export async function GET(req: Request) {
   }
 
   try {
-    const rawRows = readAllPositionsRows(file);
+    const rawRows = interCarsAugustRows as InterCarsRawRow[];
     const parsed = parseInterCarsAllPositionsSheet(rawRows, month);
     const mismatches = compareInterCarsTotals(parsed.totals, INTER_CARS_AUGUST_2026_CONTROLS);
     const sellErrors = verifyInterCarsSellEqualsPurchase(parsed.parts);
