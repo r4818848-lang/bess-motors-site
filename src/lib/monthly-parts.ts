@@ -1,5 +1,7 @@
 /** Monthly parts log — purchase & sell (Telegram admin / CRM). Prices entered as brutto. */
 
+import type { InterCarsImportMeta } from "./inter-cars-import-meta";
+
 export const MONTHLY_PARTS_VAT_RATE = 0.23;
 
 export type MonthlyPartEntry = {
@@ -19,7 +21,9 @@ export type MonthlyPartEntry = {
   sellPrice?: number;
   qty: number;
   createdAt: string;
-  source?: "telegram" | "telegram-invoice" | "crm";
+  source?: "telegram" | "telegram-invoice" | "crm" | "inter-cars-import";
+  /** Metadata when imported from Inter Cars monthly report */
+  interCars?: InterCarsImportMeta;
 };
 
 export type NormalizedPartPrices = {
@@ -148,6 +152,13 @@ export function computeMonthlyPartsTotals(rows: MonthlyPartEntry[]): MonthlyPart
   let sellBrutto = 0;
 
   for (const r of rows) {
+    if (r.interCars) {
+      purchaseNetto += r.interCars.sumNetto;
+      purchaseBrutto += r.interCars.sumBrutto;
+      sellNetto += r.interCars.sumNetto;
+      sellBrutto += r.interCars.sumBrutto;
+      continue;
+    }
     const q = r.qty || 1;
     const p = normalizePartPrices(r);
     purchaseNetto += p.purchaseNetto * q;

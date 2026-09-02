@@ -1,5 +1,6 @@
 /** Monthly consumables — purchase only (no sale). Prices entered as brutto. */
 
+import type { InterCarsImportMeta } from "./inter-cars-import-meta";
 import {
   TELEGRAM_SAFE_HTML_LIMIT,
   bruttoToNetto,
@@ -18,7 +19,9 @@ export type MonthlyConsumableEntry = {
   purchaseNetto: number;
   qty: number;
   createdAt: string;
-  source?: "telegram" | "crm";
+  source?: "telegram" | "crm" | "inter-cars-import";
+  /** Metadata when imported from Inter Cars monthly report */
+  interCars?: InterCarsImportMeta;
 };
 
 export function filterMonthlyConsumables(
@@ -54,6 +57,11 @@ export function computeMonthlyConsumablesTotals(
   let purchaseNetto = 0;
   let purchaseBrutto = 0;
   for (const r of rows) {
+    if (r.interCars) {
+      purchaseNetto += r.interCars.sumNetto;
+      purchaseBrutto += r.interCars.sumBrutto;
+      continue;
+    }
     const q = r.qty || 1;
     const p = normalizeConsumablePrices(r);
     purchaseNetto += p.purchaseNetto * q;
