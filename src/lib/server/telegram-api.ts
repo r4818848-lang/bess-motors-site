@@ -13,6 +13,7 @@ export type InlineKeyboardMarkup = {
 export type ReplyKeyboardButton = {
   text: string;
   request_contact?: boolean;
+  web_app?: { url: string };
 };
 
 export type ReplyKeyboardMarkup = {

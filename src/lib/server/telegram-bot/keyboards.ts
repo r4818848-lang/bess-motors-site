@@ -1,4 +1,4 @@
-import type { InlineKeyboardMarkup } from "@/lib/server/telegram-api";
+import type { InlineKeyboardMarkup, ReplyKeyboardMarkup } from "@/lib/server/telegram-api";
 import type { ReportPeriod } from "@/lib/crm-analytics";
 import { cleanEnvValue } from "@/lib/server/supabase-config";
 import type { ExpenseCategory, RepairStatus } from "@/lib/store";
@@ -46,10 +46,6 @@ export function mainMenuKeyboard(): InlineKeyboardMarkup {
       ],
       [{ text: BOT.search, callback_data: "search:menu" }],
       [
-        { text: BOT.mechLoad, callback_data: "mech:dash:menu" },
-        { text: BOT.mechanics, callback_data: "mech:menu" },
-      ],
-      [
         { text: BOT.expenses, callback_data: "exp:menu" },
         { text: BOT.analytics, callback_data: "an:menu" },
       ],
@@ -59,10 +55,7 @@ export function mainMenuKeyboard(): InlineKeyboardMarkup {
       ],
       [{ text: BOT.monthlyInvoiceParts, callback_data: "fpart:menu" }],
       [{ text: BOT.monthlyConsumables, callback_data: "cons:menu" }],
-      [
-        { text: "🌐 CRM на сайте", url: `${siteBase()}/crm` },
-        { text: "📱 Сайт", url: siteBase() },
-      ],
+      [{ text: "📱 Сайт", url: siteBase() }],
       [{ text: BOT.help, callback_data: "help" }],
     ],
   };
@@ -70,6 +63,23 @@ export function mainMenuKeyboard(): InlineKeyboardMarkup {
 
 export function backMenuRow(): InlineKeyboardMarkup["inline_keyboard"][number] {
   return [{ text: BOT.menu, callback_data: "menu" }];
+}
+
+/** Persistent bottom keyboard for admin — menu + direct CRM link */
+export function adminReplyKeyboard(): ReplyKeyboardMarkup {
+  return {
+    keyboard: [
+      [
+        { text: BOT.menu },
+        {
+          text: BOT.adminConsole,
+          web_app: { url: `${siteBase()}/crm` },
+        },
+      ],
+    ],
+    resize_keyboard: true,
+    is_persistent: true,
+  };
 }
 
 export function financePeriodKeyboard(): InlineKeyboardMarkup {

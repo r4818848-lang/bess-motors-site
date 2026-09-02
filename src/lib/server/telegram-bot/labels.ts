@@ -46,7 +46,7 @@ export const BOT = {
   workOrders: "📋 Заказ-наряды",
   hotOrders: "🔥 Горячие заказы",
   appointments: "📅 Записи",
-  mechanics: "👷 Механики",
+  adminConsole: "🖥 Админ-консоль",
   expenses: "💸 Расходы",
   warehouse: "🏭 Склад",
   monthlyParts: "📦 Запчасти (месяц)",

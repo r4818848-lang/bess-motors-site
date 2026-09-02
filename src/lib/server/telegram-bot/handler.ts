@@ -60,6 +60,7 @@ import {
   hotBookingDetailKeyboard,
   hotCallDetailKeyboard,
   hotOrdersListKeyboard,
+  adminReplyKeyboard,
   mainMenuKeyboard,
   mechanicPeriodKeyboard,
   searchResultsKeyboard,
@@ -196,9 +197,16 @@ async function replyOrEdit(
   await updateTelegramInlineScreen(chatId, messageId, text, keyboard);
 }
 
+async function attachAdminReplyKeyboard(chatId: number): Promise<void> {
+  await sendTelegramMessage(chatId, "·", adminReplyKeyboard());
+}
+
 async function showMainMenu(chatId: number, messageId?: number): Promise<void> {
   await clearTelegramSession(String(chatId));
   await replyOrEdit(chatId, messageId, BOT.welcome, mainMenuKeyboard());
+  if (messageId === undefined) {
+    await attachAdminReplyKeyboard(chatId);
+  }
 }
 
 /** Input wizards that expect the next message as field text — do not clear session on these callbacks */
@@ -303,7 +311,7 @@ async function handleMessage(msg: TelegramMessage): Promise<void> {
   const text = msg.text?.trim() ?? "";
   const chatKey = String(chatId);
 
-  if (text === "/start" || text === "/menu") {
+  if (text === "/start" || text === "/menu" || text === BOT.menu) {
     await showMainMenu(chatId);
     return;
   }
