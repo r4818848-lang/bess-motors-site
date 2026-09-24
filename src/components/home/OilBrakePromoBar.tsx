@@ -29,7 +29,7 @@ export function OilBrakePromoBar() {
         </span>
         <span className="hidden md:inline text-xs sm:text-sm font-semibold">
           {p.oil} <span className="line-through opacity-70">150</span>{" "}
-          <span className="text-yellow-200">100 zł</span>
+          <span className="text-yellow-200">80 zł</span>
           <span className="mx-1.5 opacity-50">·</span>
           {p.padsFront} <span className="line-through opacity-70">120</span>{" "}
           <span className="text-yellow-200">100 zł</span>

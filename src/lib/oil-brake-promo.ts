@@ -23,7 +23,7 @@ export const OIL_BRAKE_PROMO_OFFERS: OilBrakePromoOffer[] = [
   {
     id: "oil_filter",
     wasZl: 150,
-    nowZl: 100,
+    nowZl: 80,
     bookingItems: "oil_filter",
   },
   {
@@ -64,19 +64,29 @@ export function getOilBrakePromoOffer(id: string): OilBrakePromoOffer | undefine
   return isOilBrakePromoItem(id) ? BY_ID[id] : undefined;
 }
 
+/** Seasonal / homepage highlight — free suspension check */
+export const FREE_SUSPENSION_DIAG = {
+  id: "suspension_diag" as const,
+  wasZl: 150,
+  nowZl: 0,
+  bookingItems: "suspension_diag",
+};
+
 /** Comment line for CRM / Telegram when client books promo services */
 export function oilBrakePromoBookingNote(itemIds: string[]): string | null {
-  const hit = itemIds.some((id) => isOilBrakePromoItem(id));
+  const hit =
+    itemIds.some((id) => isOilBrakePromoItem(id)) ||
+    itemIds.includes(FREE_SUSPENSION_DIAG.id);
   if (!hit) return null;
-  return `PROMO ${OIL_BRAKE_PROMO_CODE}: olej/hamulce — klient prosi o ceny promocji (olej 100 / klocki przód 100 / tarcze+klocki przód 150 / klocki tył 120 / tarcze+klocki tył 180 zł robocizna)`;
+  return `PROMO ${OIL_BRAKE_PROMO_CODE}: olej/hamulce — klient prosi o ceny promocji (olej 80 / klocki przód 100 / tarcze+klocki przód 150 / klocki tył 120 / tarcze+klocki tył 180 zł robocizna). Diagnostyka zawieszenia — BEZPŁATNIE.`;
 }
 
 export function oilBrakePromoMetaTitlePl(): string {
-  return `Wymiana oleju 100 zł · klocki od 100 zł — kod ${OIL_BRAKE_PROMO_CODE} Warszawa`;
+  return `Wymiana oleju 80 zł · diagnostyka zawieszenia gratis — kod ${OIL_BRAKE_PROMO_CODE} Warszawa`;
 }
 
 export function oilBrakePromoMetaDescriptionPl(): string {
-  return `Promocja kod ${OIL_BRAKE_PROMO_CODE}: wymiana oleju 100 zł (było 150), klocki przód 100 zł (było 120), tarcze+klocki przód 150 zł (było 220), klocki tył 120 zł (było 150), tarcze+klocki tył 180 zł (było 280). BESS MOTORS Warszawa Włochy.`;
+  return `Promocja kod ${OIL_BRAKE_PROMO_CODE}: wymiana oleju 80 zł (było 150), diagnostyka zawieszenia gratis, klocki przód 100 zł (było 120), tarcze+klocki przód 150 zł (było 220). BESS MOTORS Warszawa Włochy.`;
 }
 
 export function brakesPromoMetaTitlePl(): string {
@@ -88,11 +98,11 @@ export function brakesPromoMetaDescriptionPl(): string {
 }
 
 export function oilPromoMetaTitlePl(): string {
-  return `Wymiana oleju Warszawa 100 zł — kod ${OIL_BRAKE_PROMO_CODE}`;
+  return `Wymiana oleju Warszawa 80 zł — kod ${OIL_BRAKE_PROMO_CODE}`;
 }
 
 export function oilPromoMetaDescriptionPl(): string {
-  return `Gdzie wymienić olej w Warszawie? Promocja kod ${OIL_BRAKE_PROMO_CODE}: wymiana oleju i filtra 100 zł zamiast 150 zł + olej pod VIN. BESS MOTORS Aleja Krakowska 48/52.`;
+  return `Gdzie wymienić olej w Warszawie? Promocja kod ${OIL_BRAKE_PROMO_CODE}: wymiana oleju i filtra 80 zł zamiast 150 zł + olej pod VIN. BESS MOTORS Aleja Krakowska 48/52.`;
 }
 
 export const OIL_BRAKE_PROMO_VALID_UNTIL = "2026-12-31";

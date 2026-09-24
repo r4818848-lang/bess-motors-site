@@ -1,7 +1,7 @@
 /** BESS MOTORS — официальный прайс (плакат + онлайн-запись) */
 
 import { SITE_PROMO_PERCENT } from "@/lib/promo-codes";
-import { getOilBrakePromoOffer } from "@/lib/oil-brake-promo";
+import { FREE_SUSPENSION_DIAG, getOilBrakePromoOffer } from "@/lib/oil-brake-promo";
 
 export type PriceCategoryId =
   | "diagnostic"
@@ -1299,6 +1299,15 @@ function withSitePromoCatalogItem(item: PriceListItem): PriceListItem {
       ...item,
       basePrice: special.nowZl,
       listPrice: special.wasZl,
+      priceFrom: false,
+    };
+  }
+  if (item.id === FREE_SUSPENSION_DIAG.id) {
+    return {
+      ...item,
+      basePrice: 0,
+      listPrice: FREE_SUSPENSION_DIAG.wasZl,
+      unit: "free",
       priceFrom: false,
     };
   }

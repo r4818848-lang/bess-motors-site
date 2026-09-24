@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { ChevronRight, Phone, Timer, Shield, Tag } from "lucide-react";
+import { ChevronRight, Phone } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { siteConfig } from "@/lib/site";
 import { PhoneLink } from "@/components/analytics/PhoneLink";
@@ -12,21 +12,15 @@ import { Logo } from "@/components/brand/Logo";
 export function Hero() {
   const { t } = useI18n();
 
-  const pills = [
-    { icon: Timer, label: t.hero.pillFast },
-    { icon: Shield, label: t.hero.pillPro },
-    { icon: Tag, label: t.hero.pillPrices },
-  ];
-
   return (
-    <section className="relative min-h-[68dvh] sm:min-h-[72vh] flex items-center overflow-hidden pt-6 sm:pt-8">
+    <section className="relative min-h-[72dvh] sm:min-h-[78vh] flex items-center overflow-hidden pt-4 sm:pt-6">
       <div className="absolute inset-0 z-0" aria-hidden>
         <Image
           src={siteConfig.bannerImage}
           alt="BESS MOTORS — serwis samochodowy Warszawa Włochy"
           fill
           priority
-          className="object-cover object-[72%_42%] sm:object-[75%_40%]"
+          className="object-cover object-[72%_42%] sm:object-[75%_40%] scale-105"
           sizes="100vw"
           quality={85}
         />
@@ -34,65 +28,62 @@ export function Hero() {
           className="absolute inset-0"
           style={{
             background:
-              "linear-gradient(90deg, rgba(0,0,0,0.97) 0%, rgba(0,0,0,0.92) 42%, rgba(0,0,0,0.55) 68%, rgba(0,0,0,0.25) 100%)",
+              "linear-gradient(105deg, rgba(0,0,0,0.96) 0%, rgba(0,0,0,0.88) 38%, rgba(10,10,10,0.45) 62%, rgba(0,0,0,0.2) 100%)",
           }}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-bm-black via-transparent to-bm-black/50" />
+        <div className="absolute inset-0 bg-gradient-to-t from-bm-black via-transparent to-bm-black/55" />
+        <div
+          className="absolute inset-0 opacity-40"
+          style={{
+            background:
+              "radial-gradient(ellipse 50% 60% at 20% 60%, rgba(225,6,0,0.28), transparent 70%)",
+          }}
+        />
       </div>
 
-      <div className="absolute inset-0 overflow-hidden pointer-events-none z-[1]">
-        <div className="absolute left-0 right-0 top-24 h-px bg-gradient-to-r from-transparent via-bm-red/50 to-transparent animate-scan-line" />
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-[1]" aria-hidden>
+        <div className="absolute left-0 right-0 top-28 h-px bg-gradient-to-r from-transparent via-bm-red/55 to-transparent animate-scan-line" />
+        <motion.div
+          className="absolute -left-20 top-1/3 h-64 w-64 rounded-full bg-bm-red/20 blur-3xl"
+          animate={{ opacity: [0.25, 0.45, 0.25], scale: [1, 1.08, 1] }}
+          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+        />
       </div>
 
-      <div className="relative z-10 mx-auto max-w-7xl px-4 lg:px-8 w-full py-10 sm:py-12">
+      <div className="relative z-10 mx-auto max-w-7xl px-4 lg:px-8 w-full py-12 sm:py-16">
         <div className="max-w-2xl">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-6"
+            transition={{ duration: 0.55 }}
+            className="mb-7"
           >
             <Logo size="lg" />
           </motion.div>
 
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 28 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
+            transition={{ duration: 0.75, delay: 0.08 }}
           >
-            <p className="font-display text-xs uppercase tracking-[0.25em] text-bm-red mb-3 drop-shadow-lg">
+            <p className="font-display text-xs uppercase tracking-[0.28em] text-bm-red mb-4 drop-shadow-lg">
               {t.tagline}
             </p>
 
-            <h1 className="font-display font-black uppercase leading-[0.95] tracking-tight overflow-hidden">
-              <span className="block text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-white italic sm:-skew-x-6 drop-shadow-[0_2px_20px_rgba(0,0,0,0.9)]">
+            <h1 className="font-display font-black uppercase leading-[0.92] tracking-tight">
+              <span className="block text-4xl sm:text-5xl md:text-6xl lg:text-7xl text-white italic sm:-skew-x-6 drop-shadow-[0_4px_28px_rgba(0,0,0,0.85)]">
                 {t.hero.slogan1}
               </span>
-              <span className="block text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-bm-red text-glow italic sm:-skew-x-6 mt-1">
+              <span className="block text-4xl sm:text-5xl md:text-6xl lg:text-7xl text-bm-red text-glow italic sm:-skew-x-6 mt-1.5">
                 {t.hero.slogan2}
               </span>
             </h1>
 
-            <p className="mt-3 text-sm sm:text-base text-white/90 font-semibold tracking-wide drop-shadow-md">
+            <p className="mt-5 text-base sm:text-lg text-white/90 font-semibold tracking-wide drop-shadow-md max-w-xl">
               {t.hero.subtitle}
             </p>
 
-            <p className="mt-5 text-bm-silver/95 leading-relaxed max-w-lg drop-shadow-md">
-              {t.hero.desc}
-            </p>
-
-            <div className="mt-6 flex flex-wrap gap-2">
-              {pills.map(({ icon: Icon, label }) => (
-                <div
-                  key={label}
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-full border border-bm-red/70 bg-bm-red/90 text-white text-xs font-bold uppercase tracking-wide shadow-[0_0_14px_rgba(225,6,0,0.35)]"
-                >
-                  <Icon className="w-4 h-4" />
-                  {label}
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-8 flex flex-wrap gap-4">
+            <div className="mt-9 flex flex-wrap gap-3 sm:gap-4">
               <PhoneLink trackSource="hero_cta" className="btn-primary group">
                 <Phone className="w-4 h-4" />
                 {t.hero.ctaCall}
@@ -103,12 +94,18 @@ export function Hero() {
               </BookingLink>
             </div>
 
-            <PhoneLink
-              trackSource="hero_phone"
-              className="mt-8 inline-block font-display text-2xl sm:text-3xl md:text-4xl font-black text-white hover:text-bm-red transition-colors tracking-wide drop-shadow-lg break-all sm:break-normal"
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.55, duration: 0.6 }}
             >
-              {siteConfig.phone}
-            </PhoneLink>
+              <PhoneLink
+                trackSource="hero_phone"
+                className="mt-9 inline-block font-display text-2xl sm:text-3xl md:text-4xl font-black text-white hover:text-bm-red transition-colors tracking-wide drop-shadow-lg break-all sm:break-normal"
+              >
+                {siteConfig.phone}
+              </PhoneLink>
+            </motion.div>
           </motion.div>
         </div>
       </div>

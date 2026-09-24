@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { OilBrakePromoBanner } from "@/components/home/OilBrakePromoBanner";
+import { FreeSuspensionPromoBanner } from "@/components/home/FreeSuspensionPromoBanner";
 import { SeasonalAcBanner } from "@/components/home/SeasonalAcBanner";
 import { PromoBanner } from "@/components/home/PromoBanner";
 import { useI18n } from "@/lib/i18n/context";
@@ -19,10 +20,10 @@ export default function PromocjePage() {
           : "Promocje BESS MOTORS";
   const intro =
     locale === "ru"
-      ? "Специальные цены на масло и тормоза по коду BessMotors, акция −50% на заправку кондиционера и −15% на остальные услуги."
+      ? "Замена масла 80 zł, бесплатная диагностика подвески, тормоза по коду BessMotors, −50% на заправку кондиционера и −15% на остальные услуги."
       : locale === "en"
-        ? "Special oil & brake prices with code BessMotors, −50% A/C recharge, and −15% on other services."
-        : "Specjalne ceny oleju i hamulców z kodem BessMotors, promocja −50% na nabijanie klimatyzacji oraz −15% na pozostałe usługi.";
+        ? "Oil change 80 PLN, free suspension diagnostics, brakes with code BessMotors, −50% A/C recharge, and −15% on other services."
+        : "Wymiana oleju 80 zł, bezpłatna diagnostyka zawieszenia, hamulce z kodem BessMotors, −50% nabijanie klimatyzacji oraz −15% na pozostałe usługi.";
 
   return (
     <div className="pt-28 pb-20">
@@ -34,6 +35,8 @@ export default function PromocjePage() {
         </BookingLink>
       </div>
       <OilBrakePromoBanner />
+      <div className="my-4" />
+      <FreeSuspensionPromoBanner />
       <div className="my-4" />
       <SeasonalAcBanner />
       <div className="my-4" />
