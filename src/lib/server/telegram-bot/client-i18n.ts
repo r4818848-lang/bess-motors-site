@@ -245,7 +245,7 @@ const LABELS: Record<BotLocale, ClientBotLabels> = {
       "✍️ Napisz, czego potrzebujesz: <b>usługa + numer telefonu</b>.\nTo zwykły czat — bez konta i logowania. Oddzwonimy.",
     writeNeedNeedPhone:
       "Dodaj jeszcze <b>numer telefonu</b> (np. +48 …), żebyśmy mogli oddzwonić.",
-    writeNeedSaved: "Dziękujemy. Oddzwonimy w kilka minut.",
+    writeNeedSaved: "Dziękujemy. Skontaktujemy się w sprawie wizyty.",
     book: "📅 Umów wizytę",
     call: "📞 Zamów telefon",
     myAppointments: "📅 Moje wizyty",
