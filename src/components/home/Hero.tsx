@@ -8,13 +8,13 @@ import { SITE_NAP } from "@/lib/site-nap";
 import { PhoneLink } from "@/components/analytics/PhoneLink";
 import { BookingLink } from "@/components/analytics/BookingLink";
 
-/** Calm hero — one photo, one H1, 2–3 CTAs (TZ §10–12) */
+/** Calm hero under the oil promo — brand + CTAs (TZ §10–12) */
 export function Hero() {
   const { t } = useI18n();
   const h = t.hero;
 
   return (
-    <section className="relative flex items-end sm:items-center overflow-hidden pt-2 pb-8 sm:pb-12 sm:min-h-[62vh]">
+    <section className="relative flex items-end sm:items-center overflow-hidden pt-2 pb-8 sm:pb-10 sm:min-h-[48vh]">
       <div className="absolute inset-0 z-0" aria-hidden>
         <Image
           src={siteConfig.bannerImage}
@@ -35,13 +35,13 @@ export function Hero() {
         <div className="absolute inset-0 bg-gradient-to-t from-bm-black via-transparent to-bm-black/40" />
       </div>
 
-      <div className="relative z-10 mx-auto max-w-7xl px-4 lg:px-8 w-full py-8 sm:py-12">
+      <div className="relative z-10 mx-auto max-w-7xl px-4 lg:px-8 w-full py-8 sm:py-10">
         <div className="max-w-2xl">
           <p className="text-sm text-bm-silver mb-3">
             {SITE_NAP.addressLine} · {SITE_NAP.workingHoursLabel}
           </p>
 
-          <h1 className="font-display font-bold tracking-tight text-[2.125rem] leading-[1.1] sm:text-5xl md:text-[3.5rem] text-white">
+          <h1 className="font-display font-bold tracking-tight text-[2.125rem] leading-[1.1] sm:text-5xl md:text-[3.25rem] text-white">
             {h.h1Short}
           </h1>
 

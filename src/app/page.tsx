@@ -14,17 +14,17 @@ import { SymptomFaq } from "@/components/home/SymptomFaq";
 import { HomeFinalCta } from "@/components/home/HomeFinalCta";
 
 /**
- * Homepage order per redesign TZ §36 — calmer, shorter funnel.
+ * Homepage: oil 80 zł promo first (above the fold), then hero funnel.
  * Ticker / fleet mid-page / chat block removed to cut noise.
  */
 export default function HomePage() {
   return (
     <>
       <div className="h-14 sm:h-16 safe-area-pt" aria-hidden />
+      <HomePromoBlock />
       <Hero />
       <HomeTrustBar />
       <SameDayServices />
-      <HomePromoBlock />
       <VinQuoteForm />
       <HowRepairWorks />
       <WhyBessMotors />
