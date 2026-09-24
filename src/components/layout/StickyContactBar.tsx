@@ -26,11 +26,11 @@ export function StickyContactBar() {
   if (hiddenPaths.some((p) => pathname.startsWith(p))) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-[90] md:hidden border-t border-bm-red/40 bg-bm-black/95 backdrop-blur-md safe-area-pb">
+    <div className="fixed bottom-0 left-0 right-0 z-[90] md:hidden border-t border-white/10 bg-bm-black/95 backdrop-blur-md safe-area-pb">
       <div className="grid grid-cols-3 gap-0">
         <PhoneLink
           trackSource="sticky_bar"
-          className="flex items-center justify-center gap-1.5 min-h-[44px] py-3.5 text-[11px] font-bold uppercase bg-bm-red text-white"
+          className="flex items-center justify-center gap-1.5 min-h-[52px] py-3 text-[11px] font-bold uppercase bg-bm-red text-white"
         >
           <Phone size={16} /> {sc.call}
         </PhoneLink>
@@ -38,13 +38,13 @@ export function StickyContactBar() {
           kind="whatsapp"
           href={workshopWhatsAppChatUrl(locale)}
           trackSource="sticky_bar_whatsapp"
-          className="flex items-center justify-center gap-1.5 min-h-[44px] py-3.5 text-[11px] font-bold uppercase bg-[#25D366] text-white border-x border-white/10"
+          className="flex items-center justify-center gap-1.5 min-h-[52px] py-3 text-[11px] font-bold uppercase bg-[#25D366] text-white border-x border-white/10"
         >
           <MessageCircle size={16} /> {sc.whatsapp}
         </SocialContactLink>
         <BookingLink
           trackSource="sticky_bar"
-          className="flex items-center justify-center gap-1.5 min-h-[44px] py-3.5 text-[11px] font-bold uppercase text-white bg-bm-black"
+          className="flex items-center justify-center gap-1.5 min-h-[52px] py-3 text-[11px] font-bold uppercase text-white bg-bm-black"
         >
           <Calendar size={16} /> {sc.book}
         </BookingLink>

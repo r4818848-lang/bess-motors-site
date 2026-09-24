@@ -2,39 +2,36 @@
 
 import { Hero } from "@/components/home/Hero";
 import { HomeTrustBar } from "@/components/home/HomeTrustBar";
-import { HomePromoBlock } from "@/components/home/HomePromoBlock";
 import { SameDayServices } from "@/components/home/SameDayServices";
+import { HomePromoBlock } from "@/components/home/HomePromoBlock";
 import { VinQuoteForm } from "@/components/home/VinQuoteForm";
 import { HowRepairWorks } from "@/components/home/HowRepairWorks";
-import { ChatNeedHelp } from "@/components/home/ChatNeedHelp";
-import { HomeDirectionsMap } from "@/components/home/HomeDirectionsMap";
-import { FleetTeaser } from "@/components/home/FleetTeaser";
+import { WhyBessMotors } from "@/components/home/WhyBessMotors";
 import { WorkshopGallerySection } from "@/components/home/WorkshopGallerySection";
 import { GoogleReviewsBlock } from "@/components/home/GoogleReviewsBlock";
-import { LocalServiceAreaSection } from "@/components/seo/LocalServiceAreaSection";
+import { HomeDirectionsMap } from "@/components/home/HomeDirectionsMap";
 import { SymptomFaq } from "@/components/home/SymptomFaq";
 import { HomeFinalCta } from "@/components/home/HomeFinalCta";
-import { PopularServicesTicker } from "@/components/home/PopularServicesTicker";
 
-/** Homepage conversion path — NO invented stats or ratings */
+/**
+ * Homepage order per redesign TZ §36 — calmer, shorter funnel.
+ * Ticker / fleet mid-page / chat block removed to cut noise.
+ */
 export default function HomePage() {
   return (
     <>
-      <div className="h-[3.65rem] sm:h-[4.15rem] safe-area-pt" aria-hidden />
-      <PopularServicesTicker />
+      <div className="h-14 sm:h-16 safe-area-pt" aria-hidden />
       <Hero />
       <HomeTrustBar />
-      <HomePromoBlock />
       <SameDayServices />
+      <HomePromoBlock />
       <VinQuoteForm />
       <HowRepairWorks />
-      <GoogleReviewsBlock />
+      <WhyBessMotors />
       <WorkshopGallerySection />
-      <FleetTeaser />
+      <GoogleReviewsBlock />
       <HomeDirectionsMap />
-      <LocalServiceAreaSection />
       <SymptomFaq />
-      <ChatNeedHelp />
       <HomeFinalCta />
     </>
   );
