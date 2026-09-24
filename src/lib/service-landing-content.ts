@@ -642,6 +642,16 @@ export const SERVICE_LANDING_FAQ_EXTRA: Partial<
   oil: [
     {
       q: {
+        pl: "Ile kosztuje wymiana oleju?",
+        ru: "Сколько стоит замена масла?",
+      },
+      a: {
+        pl: "Robocizna 80 zł zamiast 150 zł (kod BessMotors). Przy wymianie oleju diagnostyka zawieszenia gratis. Olej i filtr — osobno pod VIN.",
+        ru: "Работа 80 zł вместо 150 zł (код BessMotors). При замене масла диагностика подвески бесплатно. Масло и фильтр — отдельно по VIN.",
+      },
+    },
+    {
+      q: {
         pl: "Skąd wiecie, jaki olej pasuje do mojego auta?",
         ru: "Откуда вы знаете, какое масло подходит?",
       },
