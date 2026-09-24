@@ -40,13 +40,13 @@ export default function FleetServicePage() {
         <p className="mt-8 text-sm text-bm-muted">{f.contactHint}</p>
 
         <div className="mt-6 flex flex-col sm:flex-row flex-wrap gap-3">
-          <a
+          <Link
             href="/#wyceń-po-vin"
             className="btn-primary inline-flex items-center justify-center gap-2 min-h-[44px]"
           >
             {f.cta}
             <ChevronRight size={16} />
-          </a>
+          </Link>
           <BookingLink
             trackSource="fleet_page_book"
             className="btn-outline inline-flex items-center justify-center min-h-[44px]"

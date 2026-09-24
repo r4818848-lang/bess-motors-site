@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import Link from "next/link";
 import { FileSearch, CheckCircle2 } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { createCallRequest } from "@/lib/booking-actions";
@@ -237,9 +238,9 @@ export function VinQuoteForm() {
 
           <p className="text-xs text-bm-muted">
             {v.privacyNote}{" "}
-            <a href="/privacy" className="underline hover:text-white">
+            <Link href="/privacy" className="underline hover:text-white">
               {t.common.privacy}
-            </a>
+            </Link>
             {" · "}
             <a href={siteConfig.phoneHref} className="underline hover:text-white">
               {siteConfig.phone}
