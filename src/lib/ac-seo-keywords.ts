@@ -93,7 +93,7 @@ export const acSeoKeywordsPl = [
   "cena nabijania klimatyzacji",
   "promocja klimatyzacja samochodowa",
   "profesjonalny serwis klimatyzacji",
-  "najlepszy serwis klimatyzacji Warszawa",
+  "serwis klimatyzacji Warszawa Włochy",
   "warsztat klimatyzacji samochodowej",
   "mechanik klimatyzacji Warszawa",
   "serwis klimatyzacji 24h",
