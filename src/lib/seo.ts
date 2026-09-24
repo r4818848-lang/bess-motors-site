@@ -20,10 +20,10 @@ export const sitemapExcludedSlugs = new Set([
 ]);
 
 export const HOME_SEO_TITLE =
-  "BESS MOTORS — serwis samochodowy Warszawa Włochy";
+  "Mechanik Warszawa Włochy | BESS MOTORS — Serwis Samochodowy";
 
 export const HOME_SEO_DESCRIPTION =
-  "BESS MOTORS Warszawa Włochy (Aleja Krakowska 48/52). Wymiana oleju 80 zł + diagnostyka zawieszenia gratis przy oleju. Kod BessMotors. Klima −50%. Zapis online lub telefon.";
+  "BESS MOTORS — serwis samochodowy Warszawa Włochy, Aleja Krakowska 48/52. Olej, hamulce, klimatyzacja, opony, diagnostyka, zawieszenie i rozrząd. Umów wizytę.";
 
 export const defaultSeoKeywords = [
   "BESS MOTORS",
@@ -69,6 +69,7 @@ export const publicSitemapPaths: {
   { path: "/faq", changeFrequency: "monthly", priority: 0.75 },
   { path: "/blog", changeFrequency: "weekly", priority: 0.7 },
   { path: "/promocje", changeFrequency: "weekly", priority: 0.9 },
+  { path: "/serwis-flot-warszawa", changeFrequency: "monthly", priority: 0.75 },
 ];
 
 export const googleSiteVerification =

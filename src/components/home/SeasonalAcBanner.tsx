@@ -11,10 +11,14 @@ import { AcPromoPriceBadges } from "@/components/home/AcPromoPriceBadges";
 import { AcPromoAccentPills } from "@/components/home/AcPromoAccentPills";
 import { PhoneLink } from "@/components/analytics/PhoneLink";
 
+import { isAcSummerPromoActive } from "@/lib/service-prices";
+
 export function SeasonalAcBanner() {
   const { t, locale } = useI18n();
   const s = t.seasonalAc;
   const promoAlt = AC_RECHARGE_STATION_ALT[contentLocale(locale)];
+
+  if (!isAcSummerPromoActive()) return null;
 
   return (
     <section

@@ -36,8 +36,8 @@ export function GoogleBusinessReviews({ variant = "default", className = "" }: P
   const writeReviewUrl = siteConfig.googleWriteReviewUrl;
   const apiReviews = data?.reviews ?? [];
   const hasApi = apiReviews.length > 0;
-  const rating = data?.rating ?? 5;
-  const count = data?.userRatingCount ?? FEATURED_GOOGLE_REVIEWS.length;
+  const rating = hasApi ? data?.rating : undefined;
+  const count = hasApi ? data?.userRatingCount : undefined;
 
   const headingClass =
     variant === "compact"
@@ -53,11 +53,14 @@ export function GoogleBusinessReviews({ variant = "default", className = "" }: P
               {t.googleReviews.title}
             </h2>
             <p className="text-sm text-bm-muted mt-2 max-w-xl">
-              {hasApi && count > 0
+              {hasApi && rating != null && count != null && count > 0
                 ? gr.subtitleGoogle
                     .replace("{rating}", rating.toFixed(1))
                     .replace("{count}", String(count))
-                : gr.subtitleFeatured.replace("{count}", String(FEATURED_GOOGLE_REVIEWS.length))}
+                : gr.subtitleFeatured.replace(
+                    "{count}",
+                    String(FEATURED_GOOGLE_REVIEWS.length)
+                  )}
             </p>
             {hasApi && data?.placeName ? (
               <p className="text-xs text-bm-muted/80 mt-1">{data.placeName}</p>

@@ -60,8 +60,8 @@ export const blogPosts: BlogPost[] = [
     title: "Ile kosztuje wymiana oleju w Warszawie? (2026)",
     date: "2026-08-17",
     excerpt:
-      "Robocizna wymiany oleju i filtra w BESS MOTORS: 100 zł z kodem BessMotors (było 150 zł). Olej dobieramy pod VIN.",
-    body: `Ile kosztuje wymiana oleju w Warszawie? W BESS MOTORS (Aleja Krakowska 48/52, Włochy) robocizna wymiany oleju + filtr to 100 zł z kodem BessMotors — wcześniej 150 zł. Sam olej i filtr liczymy osobno, pod VIN, żeby trafić w specyfikację silnika.
+      "Robocizna wymiany oleju i filtra w BESS MOTORS: 80 zł z kodem BessMotors (było 150 zł). Olej dobieramy pod VIN.",
+    body: `Ile kosztuje wymiana oleju w Warszawie? W BESS MOTORS (Aleja Krakowska 48/52, Włochy) robocizna wymiany oleju + filtr to 80 zł z kodem BessMotors — wcześniej 150 zł. Sam olej i filtr liczymy osobno, pod VIN, żeby trafić w specyfikację silnika.
 
 Co wchodzi w cenę robocizny
 • spuszczenie zużytego oleju
@@ -76,7 +76,7 @@ Jak często wymieniać
 Zwykle co 10–15 tys. km lub raz w roku — wcześniej, jeśli jeździsz głównie po mieście, na krótkich odcinkach albo auto pali olej. Ciemny olej, stuki na zimno i kontrolka ciśnienia to sygnał, żeby nie czekać.
 
 Czas wizyty
-Wymiana oleju u nas to zwykle około 1 godziny, jeśli jest wolne stanowisko. Zapisz się online albo zostaw numer — oddzwonimy w kilka minut.
+Wymiana oleju u nas to zwykle około 1 godziny, jeśli jest wolne stanowisko. Zapisz się online albo zostaw numer — skontaktujemy się w sprawie terminu.
 
 Gdzie nas szukać
 Warsztat przy Alei Krakowskiej, ok. 5 min od Okęcia. Parking przy serwisie. Pn–Sb 8:00–18:00, tel. +48 791 257 229.`,

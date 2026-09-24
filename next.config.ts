@@ -24,6 +24,12 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
+      {
+        source: "/:path*",
+        has: [{ type: "host" as const, value: "bess-motors.com" }],
+        destination: "https://www.bess-motors.com/:path*",
+        permanent: true,
+      },
       { source: "/thank-you", destination: "/booking/thank-you", permanent: true },
       { source: "/kontakt", destination: "/contacts", permanent: true },
       { source: "/contact", destination: "/contacts", permanent: true },

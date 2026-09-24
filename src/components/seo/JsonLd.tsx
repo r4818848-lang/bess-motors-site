@@ -1,4 +1,5 @@
 import { siteConfig } from "@/lib/site";
+import { SITE_NAP } from "@/lib/site-nap";
 import { getSiteUrl } from "@/lib/seo";
 import {
   LOCAL_SERVICE_RADIUS_KM,
@@ -17,50 +18,43 @@ export function JsonLd() {
   const business: Record<string, unknown> = {
     "@type": ["AutoRepair", "LocalBusiness"],
     "@id": `${siteUrl}/#business`,
-    name: siteConfig.name,
-    legalName: siteConfig.legalName,
+    name: SITE_NAP.name,
+    legalName: SITE_NAP.legalName,
     description:
       `Niezależny serwis samochodowy Warszawa Włochy (Aleja Krakowska 48/52) — obszar do ok. ${LOCAL_SERVICE_RADIUS_KM} km: Włochy, Ursynów, Mokotów, Ochota, Okęcie. Wymiana oleju, hamulce, nabijanie klimatyzacji, diagnostyka, wulkanizacja. Rezerwacja online.`,
     url: siteUrl,
-    telephone: siteConfig.phone,
-    email: siteConfig.email,
+    telephone: SITE_NAP.phoneDisplay,
+    email: SITE_NAP.email,
     image: gbpPhotoUrls(siteUrl),
     logo: `${siteUrl}${siteConfig.logoImage}`,
     address: {
       "@type": "PostalAddress",
-      streetAddress: "Aleja Krakowska 48/52",
-      addressLocality: "Warszawa",
-      addressRegion: "mazowieckie",
-      postalCode: "02-284",
-      addressCountry: "PL",
+      streetAddress: SITE_NAP.streetAddress,
+      addressLocality: SITE_NAP.addressLocality,
+      addressRegion: SITE_NAP.addressRegion,
+      postalCode: SITE_NAP.postalCode,
+      addressCountry: SITE_NAP.addressCountry,
     },
     geo: schemaGeoCoordinates(),
     openingHoursSpecification: [
       {
         "@type": "OpeningHoursSpecification",
-        dayOfWeek: [
-          "Monday",
-          "Tuesday",
-          "Wednesday",
-          "Thursday",
-          "Friday",
-          "Saturday",
-        ],
-        opens: "08:00",
-        closes: "18:00",
+        dayOfWeek: [...SITE_NAP.openingHours.days],
+        opens: SITE_NAP.openingHours.opens,
+        closes: SITE_NAP.openingHours.closes,
       },
     ],
-    priceRange: "$$",
+    priceRange: SITE_NAP.priceRange,
     currenciesAccepted: "PLN",
-    paymentAccepted: "Cash, Credit Card, Bank Transfer",
+    paymentAccepted: SITE_NAP.paymentAccepted.join(", "),
     areaServed: schemaAreaServed(),
     serviceArea: schemaAreaServed(),
     hasMap: siteConfig.googleMapsReviewsUrl,
     sameAs: [
       siteConfig.googleMapsReviewsUrl,
-      siteConfig.instagram,
-      siteConfig.facebook,
-      siteConfig.telegram,
+      SITE_NAP.instagramUrl,
+      SITE_NAP.facebookUrl,
+      SITE_NAP.telegramUrl,
     ].filter(Boolean),
   };
 

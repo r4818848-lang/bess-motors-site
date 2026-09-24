@@ -36,7 +36,12 @@ export async function POST(req: Request) {
   const clientName = (body.clientName ?? "Klient").trim() || "Klient";
   const serviceLabel = (body.serviceLabel ?? "Zapytanie ze strony").trim();
   const comment = (body.comment ?? "").trim();
-  const source = body.source === "mini_quote" ? "mini_quote" : "website";
+  const source =
+    body.source === "mini_quote"
+      ? "mini_quote"
+      : body.source === "vin_quote"
+        ? "vin_quote"
+        : "website";
 
   const entry = {
     id: `call-${Date.now()}`,
@@ -48,7 +53,10 @@ export async function POST(req: Request) {
     comment,
     status: "needs_call" as const,
     source: "website" as const,
-    marketing: source === "mini_quote" ? { utmSource: "mini_quote" } : undefined,
+    marketing:
+      source === "mini_quote" || source === "vin_quote"
+        ? { utmSource: source }
+        : undefined,
     createdAt: new Date().toISOString(),
   };
 
@@ -70,7 +78,8 @@ export async function POST(req: Request) {
       `Tel: <b>${escapeHtml(phone)}</b>`,
       `Imię: <b>${escapeHtml(clientName)}</b>`,
       `Usługa: ${escapeHtml(serviceLabel)}`,
-      comment ? `Opis: ${escapeHtml(comment).slice(0, 500)}` : null,
+      source !== "website" ? `Źródło: ${escapeHtml(source)}` : null,
+      comment ? `Opis: ${escapeHtml(comment).slice(0, 800)}` : null,
     ]
       .filter(Boolean)
       .join("\n")
