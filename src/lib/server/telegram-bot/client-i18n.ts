@@ -242,7 +242,7 @@ const LABELS: Record<BotLocale, ClientBotLabels> = {
     linkedWelcome: (name) =>
       `👋 <b>Witaj, ${name}!</b>\n\n📅 Umów wizytę · 📞 oddzwonienie · napisz usługę i telefon`,
     writeNeedHint:
-      "✍️ Napisz, czego potrzebujesz: <b>usługa + numer telefonu</b>.\nTo zwykły czat — bez kabinetu. Oddzwonimy.",
+      "✍️ Napisz, czego potrzebujesz: <b>usługa + numer telefonu</b>.\nTo zwykły czat — bez konta i logowania. Oddzwonimy.",
     writeNeedNeedPhone:
       "Dodaj jeszcze <b>numer telefonu</b> (np. +48 …), żebyśmy mogli oddzwonić.",
     writeNeedSaved: "Dziękujemy. Oddzwonimy w kilka minut.",
