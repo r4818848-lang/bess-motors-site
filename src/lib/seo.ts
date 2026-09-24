@@ -23,7 +23,7 @@ export const HOME_SEO_TITLE =
   "BESS MOTORS — serwis samochodowy Warszawa Włochy";
 
 export const HOME_SEO_DESCRIPTION =
-  "Warsztat BESS MOTORS, Aleja Krakowska 48/52 (Włochy). Wymiana oleju 100 zł (było 150), klocki od 100 zł — kod BessMotors. Nabijanie klimatyzacji −50%. Diagnostyka, hamulce, opony. Zapis online.";
+  "Warsztat BESS MOTORS, Aleja Krakowska 48/52 (Włochy). Wymiana oleju 80 zł (było 150), diagnostyka zawieszenia gratis — kod BessMotors. Nabijanie klimatyzacji −50%. Diagnostyka, hamulce, opony. Zapis online.";
 
 export const defaultSeoKeywords = [
   "BESS MOTORS",
@@ -36,7 +36,7 @@ export const defaultSeoKeywords = [
   ...acPromoSeoKeywords,
   ...acRepairSeoKeywords,
   "wymiana oleju Warszawa",
-  "wymiana oleju 100 zł",
+  "wymiana oleju 80 zł",
   "klocki hamulcowe promocja Warszawa",
   "kod BessMotors",
   "chip tuning Warszawa",

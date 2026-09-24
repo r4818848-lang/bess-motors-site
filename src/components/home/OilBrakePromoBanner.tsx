@@ -123,7 +123,7 @@ export function OilBrakePromoBanner() {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-transparent" />
               <span className="absolute bottom-3 left-3 right-3 text-[10px] font-bold uppercase text-white text-center">
-                {p.oil} · 100 zł
+                {p.oil} · 80 zł
               </span>
             </Link>
             <Link

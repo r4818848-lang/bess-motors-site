@@ -17,7 +17,10 @@
 
   body {
     @apply bg-bm-black text-white font-body antialiased;
-    background-image: radial-gradient(ellipse at 50% 0%, rgba(225, 6, 0, 0.08) 0%, transparent 50%);
+    background-image:
+      radial-gradient(ellipse 80% 50% at 50% -10%, rgba(225, 6, 0, 0.14) 0%, transparent 55%),
+      radial-gradient(ellipse 40% 30% at 100% 20%, rgba(225, 6, 0, 0.06) 0%, transparent 50%),
+      linear-gradient(180deg, #0a0a0a 0%, #0c0c0c 100%);
     overflow-x: clip;
   }
 
