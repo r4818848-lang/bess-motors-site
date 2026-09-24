@@ -90,7 +90,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       "Aleja Krakowska 48/52",
       page.slug.replace(/-/g, " "),
       ...(slug === "wymiana-oleju"
-        ? ["wymiana oleju Warszawa", "wymiana oleju 100 zł", "kod BessMotors"]
+        ? [
+            "wymiana oleju Warszawa",
+            "wymiana oleju 80 zł",
+            "wymiana oleju Warszawa Włochy",
+            "gdzie wymienić olej Warszawa",
+            "kod BessMotors",
+          ]
         : []),
       ...(slug === "hamulce"
         ? ["klocki hamulcowe Warszawa", "wymiana tarcz hamulcowych", "kod BessMotors"]

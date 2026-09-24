@@ -9,6 +9,7 @@ import { PromoPriceDisplay } from "@/components/pricing/PromoPriceDisplay";
 import {
   OIL_BRAKE_PROMO_CODE,
   OIL_BRAKE_PROMO_OFFERS,
+  OIL_CHANGE_PROMO_BOOKING_ITEMS,
 } from "@/lib/oil-brake-promo";
 import { OIL_CHANGE_DRAIN_POSTER_SRC } from "@/lib/oil-media";
 import { BRAKE_PADS_CHANGE_PHOTO_SRC } from "@/lib/brake-media";
@@ -17,6 +18,7 @@ import { buildBookingUrl } from "@/lib/booking-url";
 export function OilBrakePromoBanner() {
   const { t } = useI18n();
   const p = t.oilBrakePromo;
+  const oilPackageHref = buildBookingUrl([...OIL_CHANGE_PROMO_BOOKING_ITEMS]);
 
   const labels: Record<string, string> = {
     oil_filter: p.oil,
@@ -78,7 +80,11 @@ export function OilBrakePromoBanner() {
                     size="md"
                   />
                   <BookingLink
-                    href={buildBookingUrl([offer.bookingItems])}
+                    href={
+                      offer.id === "oil_filter"
+                        ? oilPackageHref
+                        : buildBookingUrl([offer.bookingItems])
+                    }
                     trackSource={`oil_brake_promo_${offer.id}`}
                     className="mt-3 inline-flex text-xs font-bold uppercase text-bm-red hover:underline items-center gap-1"
                   >
@@ -93,7 +99,7 @@ export function OilBrakePromoBanner() {
 
             <div className="mt-6 flex flex-wrap gap-3">
               <BookingLink
-                href={buildBookingUrl(["oil_filter"])}
+                href={oilPackageHref}
                 trackSource="oil_brake_promo_banner"
                 className="btn-primary text-sm inline-flex items-center gap-2"
               >

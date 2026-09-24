@@ -111,7 +111,7 @@ export function servicesItemListSchema() {
   const items = [
     { name: "PROMOCJA −50% — nabijanie klimatyzacji bez kolejki R134a / R1234yf od 130 zł", path: "/klimatyzacja" },
     { name: "Naprawa klimatyzacji samochodowej", path: "/naprawa-klimatyzacji" },
-    { name: "Wymiana oleju 100 zł — kod BessMotors", path: "/wymiana-oleju" },
+    { name: "Wymiana oleju 80 zł — kod BessMotors", path: "/wymiana-oleju" },
     { name: "Wulkanizacja", path: "/opony" },
     { name: "Hamulce — klocki od 100 zł, kod BessMotors", path: "/hamulce" },
     { name: "Diagnostyka komputerowa", path: "/diagnostyka" },

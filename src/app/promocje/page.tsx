@@ -20,10 +20,12 @@ export default function PromocjePage() {
           : "Promocje BESS MOTORS";
   const intro =
     locale === "ru"
-      ? "Замена масла 80 zł, бесплатная диагностика подвески, тормоза по коду BessMotors, −50% на заправку кондиционера и −15% на остальные услуги."
+      ? "Замена масла 80 zł + диагностика подвески бесплатно при замене масла. Тормоза по коду BessMotors, −50% кондиционер, −15% на остальные услуги."
       : locale === "en"
-        ? "Oil change 80 PLN, free suspension diagnostics, brakes with code BessMotors, −50% A/C recharge, and −15% on other services."
-        : "Wymiana oleju 80 zł, bezpłatna diagnostyka zawieszenia, hamulce z kodem BessMotors, −50% nabijanie klimatyzacji oraz −15% na pozostałe usługi.";
+        ? "Oil change 80 PLN + free suspension check with the oil change. Brakes with code BessMotors, −50% A/C, −15% on other services."
+      : locale === "uk"
+        ? "Заміна оливи 80 zł + діагностика підвіски безкоштовно при заміні оливи. Гальма за кодом BessMotors, −50% кондиціонер, −15% на інші послуги."
+        : "Wymiana oleju 80 zł + diagnostyka zawieszenia gratis przy wymianie oleju. Hamulce z kodem BessMotors, −50% klima, −15% na pozostałe usługi.";
 
   return (
     <div className="pt-28 pb-20">

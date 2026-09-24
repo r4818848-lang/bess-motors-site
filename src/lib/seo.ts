@@ -23,7 +23,7 @@ export const HOME_SEO_TITLE =
   "BESS MOTORS — serwis samochodowy Warszawa Włochy";
 
 export const HOME_SEO_DESCRIPTION =
-  "Warsztat BESS MOTORS, Aleja Krakowska 48/52 (Włochy). Wymiana oleju 80 zł (było 150), diagnostyka zawieszenia gratis — kod BessMotors. Nabijanie klimatyzacji −50%. Diagnostyka, hamulce, opony. Zapis online.";
+  "BESS MOTORS Warszawa Włochy (Aleja Krakowska 48/52). Wymiana oleju 80 zł + diagnostyka zawieszenia gratis przy oleju. Kod BessMotors. Klima −50%. Zapis online lub telefon.";
 
 export const defaultSeoKeywords = [
   "BESS MOTORS",
@@ -36,7 +36,12 @@ export const defaultSeoKeywords = [
   ...acPromoSeoKeywords,
   ...acRepairSeoKeywords,
   "wymiana oleju Warszawa",
+  "wymiana oleju Warszawa Włochy",
+  "wymiana oleju Okęcie",
+  "wymiana oleju i filtra Warszawa",
   "wymiana oleju 80 zł",
+  "gdzie wymienić olej Warszawa",
+  "tania wymiana oleju Warszawa",
   "klocki hamulcowe promocja Warszawa",
   "kod BessMotors",
   "chip tuning Warszawa",

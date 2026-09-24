@@ -5,19 +5,22 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ChevronRight, Droplets, Filter, Disc, Snowflake, Circle, Gauge } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { BookingLink } from "@/components/analytics/BookingLink";
+import { OIL_CHANGE_PROMO_BOOKING_ITEMS } from "@/lib/oil-brake-promo";
 import { buildBookingUrl } from "@/lib/booking-url";
 
 const INTERVAL_MS = 2500;
 
 type SlideId = "ac" | "oil" | "suspension" | "filters" | "pads" | "tires";
 
+const oilPackageHref = buildBookingUrl([...OIL_CHANGE_PROMO_BOOKING_ITEMS]);
+
 const SLIDE_META: {
   id: SlideId;
   icon: typeof Snowflake;
   href: string;
 }[] = [
-  { id: "oil", icon: Droplets, href: buildBookingUrl(["oil_filter"]) },
-  { id: "suspension", icon: Gauge, href: buildBookingUrl(["suspension_diag"]) },
+  { id: "oil", icon: Droplets, href: oilPackageHref },
+  { id: "suspension", icon: Gauge, href: oilPackageHref },
   { id: "ac", icon: Snowflake, href: "/klimatyzacja" },
   { id: "filters", icon: Filter, href: buildBookingUrl(["cabin_filter", "air_filter"]) },
   { id: "pads", icon: Disc, href: buildBookingUrl(["brake_pads_front"]) },

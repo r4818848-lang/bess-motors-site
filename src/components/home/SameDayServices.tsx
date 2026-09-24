@@ -3,6 +3,7 @@
 import { Clock, Droplets, Disc, Snowflake, Filter, Circle } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { BookingLink } from "@/components/analytics/BookingLink";
+import { OIL_CHANGE_PROMO_BOOKING_ITEMS } from "@/lib/oil-brake-promo";
 import { buildBookingUrl } from "@/lib/booking-url";
 
 export function SameDayServices() {
@@ -13,7 +14,7 @@ export function SameDayServices() {
     {
       icon: Droplets,
       title: h.sameDayOil,
-      href: buildBookingUrl(["oil_filter"]),
+      href: buildBookingUrl([...OIL_CHANGE_PROMO_BOOKING_ITEMS]),
       source: "same_day_oil",
     },
     {

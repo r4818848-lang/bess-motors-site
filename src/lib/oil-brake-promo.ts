@@ -64,7 +64,7 @@ export function getOilBrakePromoOffer(id: string): OilBrakePromoOffer | undefine
   return isOilBrakePromoItem(id) ? BY_ID[id] : undefined;
 }
 
-/** Seasonal / homepage highlight — free suspension check */
+/** Free suspension diagnostics only together with oil-change promo booking */
 export const FREE_SUSPENSION_DIAG = {
   id: "suspension_diag" as const,
   wasZl: 150,
@@ -72,21 +72,29 @@ export const FREE_SUSPENSION_DIAG = {
   bookingItems: "suspension_diag",
 };
 
+/** Package: oil labour promo + free suspension check */
+export const OIL_CHANGE_PROMO_BOOKING_ITEMS = [
+  "oil_filter",
+  FREE_SUSPENSION_DIAG.id,
+] as const;
+
 /** Comment line for CRM / Telegram when client books promo services */
 export function oilBrakePromoBookingNote(itemIds: string[]): string | null {
-  const hit =
-    itemIds.some((id) => isOilBrakePromoItem(id)) ||
-    itemIds.includes(FREE_SUSPENSION_DIAG.id);
-  if (!hit) return null;
-  return `PROMO ${OIL_BRAKE_PROMO_CODE}: olej/hamulce — klient prosi o ceny promocji (olej 80 / klocki przód 100 / tarcze+klocki przód 150 / klocki tył 120 / tarcze+klocki tył 180 zł robocizna). Diagnostyka zawieszenia — BEZPŁATNIE.`;
+  const hasOil = itemIds.includes("oil_filter");
+  const hit = itemIds.some((id) => isOilBrakePromoItem(id));
+  if (!hit && !hasOil) return null;
+  if (hasOil) {
+    return `PROMO ${OIL_BRAKE_PROMO_CODE}: wymiana oleju 80 zł robocizna + diagnostyka zawieszenia BEZPŁATNIE (w pakiecie z olejem). Hamulce: klocki przód 100 / tarcze+klocki 150 / klocki tył 120 / tarcze+klocki tył 180 zł.`;
+  }
+  return `PROMO ${OIL_BRAKE_PROMO_CODE}: olej/hamulce — klient prosi o ceny promocji (olej 80 / klocki przód 100 / tarcze+klocki przód 150 / klocki tył 120 / tarcze+klocki tył 180 zł robocizna)`;
 }
 
 export function oilBrakePromoMetaTitlePl(): string {
-  return `Wymiana oleju 80 zł · diagnostyka zawieszenia gratis — kod ${OIL_BRAKE_PROMO_CODE} Warszawa`;
+  return `Wymiana oleju 80 zł · zawieszenie gratis przy oleju — kod ${OIL_BRAKE_PROMO_CODE} Warszawa`;
 }
 
 export function oilBrakePromoMetaDescriptionPl(): string {
-  return `Promocja kod ${OIL_BRAKE_PROMO_CODE}: wymiana oleju 80 zł (było 150), diagnostyka zawieszenia gratis, klocki przód 100 zł (było 120), tarcze+klocki przód 150 zł (było 220). BESS MOTORS Warszawa Włochy.`;
+  return `Promocja kod ${OIL_BRAKE_PROMO_CODE}: wymiana oleju i filtra 80 zł (było 150) + bezpłatna diagnostyka zawieszenia przy wymianie oleju. Klocki od 100 zł. BESS MOTORS Warszawa Włochy.`;
 }
 
 export function brakesPromoMetaTitlePl(): string {
@@ -98,11 +106,11 @@ export function brakesPromoMetaDescriptionPl(): string {
 }
 
 export function oilPromoMetaTitlePl(): string {
-  return `Wymiana oleju Warszawa 80 zł — kod ${OIL_BRAKE_PROMO_CODE}`;
+  return `Wymiana oleju Warszawa 80 zł | filtr + zawieszenie gratis`;
 }
 
 export function oilPromoMetaDescriptionPl(): string {
-  return `Gdzie wymienić olej w Warszawie? Promocja kod ${OIL_BRAKE_PROMO_CODE}: wymiana oleju i filtra 80 zł zamiast 150 zł + olej pod VIN. BESS MOTORS Aleja Krakowska 48/52.`;
+  return `Wymiana oleju i filtra w Warszawie (Włochy, Aleja Krakowska 48/52): 80 zł robocizny zamiast 150 zł. Diagnostyka zawieszenia gratis przy wymianie oleju. Olej pod VIN. Kod ${OIL_BRAKE_PROMO_CODE}. Zapis online.`;
 }
 
 export const OIL_BRAKE_PROMO_VALID_UNTIL = "2026-12-31";

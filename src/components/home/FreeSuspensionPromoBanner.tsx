@@ -1,35 +1,28 @@
 "use client";
 
-import Link from "next/link";
 import { motion } from "framer-motion";
 import { ChevronRight, Gauge } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { BookingLink } from "@/components/analytics/BookingLink";
-import { PromoPriceDisplay } from "@/components/pricing/PromoPriceDisplay";
-import { FREE_SUSPENSION_DIAG } from "@/lib/oil-brake-promo";
+import {
+  FREE_SUSPENSION_DIAG,
+  OIL_CHANGE_PROMO_BOOKING_ITEMS,
+} from "@/lib/oil-brake-promo";
 import { buildBookingUrl } from "@/lib/booking-url";
 
-/** Free suspension diagnostics — homepage / promocje highlight */
+/** Free suspension only with oil change — points clients to the oil package */
 export function FreeSuspensionPromoBanner() {
   const { t } = useI18n();
   const h = t.homeLead;
 
   return (
     <section
-      className="relative overflow-hidden border-y border-bm-red/40 bg-gradient-to-r from-bm-black via-bm-card to-bm-red/20"
+      className="border-y border-bm-border bg-bm-graphite"
       aria-labelledby="free-suspension-heading"
     >
-      <div
-        className="absolute inset-0 pointer-events-none opacity-50"
-        style={{
-          background:
-            "radial-gradient(circle at 80% 40%, rgba(225,6,0,0.25), transparent 55%)",
-        }}
-        aria-hidden
-      />
-      <div className="relative mx-auto max-w-7xl px-4 lg:px-8 py-8 sm:py-10">
+      <div className="mx-auto max-w-7xl px-4 lg:px-8 py-8 sm:py-10">
         <motion.div
-          initial={{ opacity: 0, y: 14 }}
+          initial={{ opacity: 0, y: 10 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           className="flex flex-col md:flex-row md:items-center md:justify-between gap-6"
@@ -46,28 +39,20 @@ export function FreeSuspensionPromoBanner() {
               {h.suspensionFree}
             </h2>
             <p className="mt-2 text-sm text-bm-silver/90">{h.suspensionNote}</p>
-            <div className="mt-3">
-              <PromoPriceDisplay
-                priceZl={0}
-                compareAtZl={FREE_SUSPENSION_DIAG.wasZl}
-                priceFrom={false}
-                size="md"
-              />
-            </div>
+            <p className="mt-2 text-sm text-bm-muted">
+              <span className="line-through opacity-70">{FREE_SUSPENSION_DIAG.wasZl} zł</span>
+              {" → "}
+              <span className="text-white font-semibold">0 zł</span>
+            </p>
           </div>
-          <div className="flex flex-wrap gap-3">
-            <BookingLink
-              href={buildBookingUrl([FREE_SUSPENSION_DIAG.bookingItems])}
-              trackSource="promocje_suspension_free"
-              className="btn-primary text-sm inline-flex items-center gap-2"
-            >
-              {h.promoCtaSuspension}
-              <ChevronRight size={16} />
-            </BookingLink>
-            <Link href="/booking" className="btn-outline text-sm">
-              {t.nav.booking}
-            </Link>
-          </div>
+          <BookingLink
+            href={buildBookingUrl([...OIL_CHANGE_PROMO_BOOKING_ITEMS])}
+            trackSource="promocje_oil_suspension_package"
+            className="btn-primary text-sm inline-flex items-center gap-2 shrink-0"
+          >
+            {h.promoCtaOil}
+            <ChevronRight size={16} />
+          </BookingLink>
         </motion.div>
       </div>
     </section>

@@ -1105,8 +1105,8 @@ export function getServiceLandingPrice(
       note:
       serviceId === "oil"
         ? {
-            pl: "Promocja kod BessMotors: 100 zł zamiast 150 zł (robocizna) + olej i filtry pod VIN.",
-            ru: "Акция код BessMotors: 100 zł вместо 150 zł (работа) + масло и фильтры по VIN.",
+            pl: "Promocja kod BessMotors: 80 zł zamiast 150 zł (robocizna) + diagnostyka zawieszenia gratis przy wymianie oleju. Olej i filtr pod VIN.",
+            ru: "Акция код BessMotors: 80 zł вместо 150 zł (работа) + диагностика подвески бесплатно при замене масла. Масло и фильтр по VIN.",
           }
         : undefined,
   };

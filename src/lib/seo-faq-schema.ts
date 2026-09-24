@@ -2,7 +2,15 @@
 export const siteFaqSchemaItems: { q: string; a: string }[] = [
   {
     q: "Ile kosztuje wymiana oleju?",
-    a: "Promocja kod BessMotors: wymiana oleju i filtra oleju 100 zł robocizny (było 150 zł). Olej i filtr dobieramy pod VIN — koszt materiałów osobno. Zapis online na /wymiana-oleju lub /booking.",
+    a: "Promocja kod BessMotors: wymiana oleju i filtra 80 zł robocizny (było 150 zł). Przy wymianie oleju diagnostyka zawieszenia gratis. Olej i filtr pod VIN — materiały osobno. Ok. 1 godziny. Zapis: /wymiana-oleju lub /booking.",
+  },
+  {
+    q: "Gdzie wymienić olej w Warszawie tanio?",
+    a: "BESS MOTORS — Aleja Krakowska 48/52 (Włochy, blisko Okęcia). Wymiana oleju 80 zł robocizna + zawieszenie gratis przy oleju. Kod BessMotors. Pn–Sb 8:00–18:00, telefon +48 791 257 229.",
+  },
+  {
+    q: "Czy diagnostyka zawieszenia jest naprawdę gratis?",
+    a: "Tak — bezpłatnie tylko razem z wymianą oleju w promocji. Osobna diagnostyka zawieszenia jest płatna według cennika.",
   },
   {
     q: "Czy robicie chip tuning?",

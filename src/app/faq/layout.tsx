@@ -7,9 +7,14 @@ import { faqPageSchema } from "@/lib/seo-structured-data";
 export const metadata: Metadata = buildPageMetadata({
   title: "FAQ — olej, hamulce, klima, ceny",
   description:
-    "FAQ BESS MOTORS Warszawa: wymiana oleju 100 zł, klocki od 100 zł (kod BessMotors), nabijanie klimatyzacji −50%, chip tuning, zapis online. Aleja Krakowska 48/52.",
+    "FAQ BESS MOTORS Warszawa: wymiana oleju 80 zł + zawieszenie gratis przy oleju, klocki od 100 zł (kod BessMotors), klima −50%. Aleja Krakowska 48/52.",
   path: "/faq",
-  keywords: ["FAQ serwis samochodowy Warszawa", "wymiana oleju 100 zł", "chip tuning Warszawa"],
+  keywords: [
+    "FAQ serwis samochodowy Warszawa",
+    "wymiana oleju 80 zł",
+    "wymiana oleju Warszawa",
+    "chip tuning Warszawa",
+  ],
 });
 
 export default function FaqLayout({ children }: { children: React.ReactNode }) {

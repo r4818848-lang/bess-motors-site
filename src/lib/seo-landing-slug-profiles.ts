@@ -113,12 +113,12 @@ export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
     education: [
       {
         title: L(
-          `Promocja kod BessMotors — wymiana oleju 100 zł`,
-          `Акция код BessMotors — замена масла 100 zł`
+          `Promocja kod BessMotors — wymiana oleju 80 zł`,
+          `Акция код BessMotors — замена масла 80 zł`
         ),
         body: L(
-          "Szukasz gdzie wymienić olej w Warszawie? W BESS MOTORS robocizna wymiany oleju i filtra kosztuje 100 zł zamiast 150 zł — przy zapisie podaj kod BessMotors. Olej i filtr dobieramy pod VIN (koszt materiałów osobno).",
-          "Где поменять масло в Варшаве? В BESS MOTORS работа по замене масла и фильтра — 100 zł вместо 150 zł по коду BessMotors при записи. Масло и фильтр под VIN (материалы отдельно)."
+          "Szukasz gdzie wymienić olej w Warszawie? W BESS MOTORS (Włochy, Aleja Krakowska) robocizna wymiany oleju i filtra to 80 zł zamiast 150 zł — kod BessMotors przy zapisie. Przy wymianie oleju diagnostyka zawieszenia gratis. Olej i filtr dobieramy pod VIN (materiały osobno).",
+          "Где поменять масло в Варшаве? В BESS MOTORS (Włochy) работа по замене масла и фильтра — 80 zł вместо 150 zł по коду BessMotors. При замене масла диагностика подвески бесплатно. Масло и фильтр под VIN (материалы отдельно)."
         ),
       },
       {
@@ -135,9 +135,16 @@ export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
           "Castrol, Motul, Shell, Liqui Moly — норма производителя. Можно со своим маслом по согласованию."
         ),
       },
+      {
+        title: L("Wymiana oleju Warszawa Włochy / Okęcie", "Замена масла Варшава Włochy"),
+        body: L(
+          "Dogodny dojazd: Aleja Krakowska 48/52, ok. 5 min od Okęcia i lotniska. Parking przy serwisie. Pn–Sb 8:00–18:00. Zapis online 24/7 na /wymiana-oleju lub telefon +48 791 257 229.",
+          "Удобный подъезд: Aleja Krakowska 48/52, ~5 мин от Okęcie. Парковка у сервиса. Пн–Сб 8:00–18:00. Онлайн-запись 24/7."
+        ),
+      },
     ],
     price: {
-      fromZl: getPriceItem("oil_filter")?.basePrice ?? 100,
+      fromZl: getPriceItem("oil_filter")?.basePrice ?? 80,
       compareAtZl: getPriceItem("oil_filter")?.listPrice ?? 150,
       priceFrom: false,
       materialsExtra: true,
@@ -145,18 +152,24 @@ export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
         L("Wymiana oleju silnikowego", "Замена моторного масла"),
         L("Wymiana filtra oleju", "Замена масляного фильтра"),
         L("Kontrola poziomu i szczelności", "Проверка уровня и утечек"),
+        L("Diagnostyka zawieszenia gratis przy wymianie oleju", "Диагностика подвески бесплатно при замене масла"),
         L("Kod promocji BessMotors przy zapisie", "Код акции BessMotors при записи"),
       ],
       priceTable: [
         {
           label: L("Wymiana oleju + filtr (robocizna)", "Масло + фильтр (работа)"),
-          priceZl: getPriceItem("oil_filter")?.basePrice ?? 100,
+          priceZl: getPriceItem("oil_filter")?.basePrice ?? 80,
           compareAtZl: getPriceItem("oil_filter")?.listPrice ?? 150,
+        },
+        {
+          label: L("Diagnostyka zawieszenia (przy oleju)", "Диагностика подвески (с маслом)"),
+          priceZl: 0,
+          compareAtZl: 150,
         },
       ],
       note: L(
-        "Promocja kod BessMotors: 100 zł zamiast 150 zł (robocizna). Olej i filtr — osobno po doborze VIN.",
-        "Акция код BessMotors: 100 zł вместо 150 zł (работа). Масло и фильтр — отдельно по VIN."
+        "Promocja kod BessMotors: 80 zł zamiast 150 zł (robocizna) + diagnostyka zawieszenia gratis przy wymianie oleju. Olej i filtr — osobno po doborze VIN.",
+        "Акция код BessMotors: 80 zł вместо 150 zł (работа) + диагностика подвески бесплатно при замене масла. Масло и фильтр — отдельно по VIN."
       ),
     },
   },

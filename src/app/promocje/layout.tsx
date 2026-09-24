@@ -11,9 +11,9 @@ export const metadata: Metadata = buildPageMetadata({
   path: "/promocje",
   keywords: [
     "promocja wymiana oleju Warszawa",
+    "wymiana oleju 80 zł",
     "klocki hamulcowe promocja",
     "kod BessMotors",
-    "wymiana oleju 100 zł",
   ],
 });
 
