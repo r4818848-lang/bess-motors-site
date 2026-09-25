@@ -90,11 +90,14 @@ function brake(id: "brake_pads_front" | "brake_disc_front" | "brake_pads_rear" |
   };
 }
 
-/** AC summer promo window — hide “Sezon letni …” after this date */
-export const AC_SUMMER_PROMO_END = "2026-09-30";
+/**
+ * Seasonal A/C −50% promo retired (Final Polish v3).
+ * Kept as API stubs so callers compile; always inactive.
+ */
+export const AC_SUMMER_PROMO_END = "2020-01-01";
 
-export function isAcSummerPromoActive(today = todayIsoDate()): boolean {
-  return isPromoActive("2026-05-01", AC_SUMMER_PROMO_END, today);
+export function isAcSummerPromoActive(_today = todayIsoDate()): boolean {
+  return false;
 }
 
 export const SERVICE_PRICES: ServicePriceRecord[] = [
@@ -123,12 +126,9 @@ export const SERVICE_PRICES: ServicePriceRecord[] = [
     slug: "klimatyzacja",
     namePl: "Podłączenie stacji klimatyzacji",
     category: "ac",
-    basePrice: 160,
-    promoPrice: isAcSummerPromoActive() ? acHookupPricePln() : undefined,
+    basePrice: acHookupPricePln(),
     pricePrefix: "fixed",
     durationHintPl: "ok. 1 godziny",
-    promotionStart: "2026-05-01",
-    promotionEnd: AC_SUMMER_PROMO_END,
     active: true,
     bookingServiceId: "ac_hookup",
   },
@@ -173,7 +173,7 @@ export function oilChangeBookingItems(): string[] {
 }
 
 export function acFromPriceDisplayZl(): number {
-  return isAcSummerPromoActive() ? acRechargeFromPln() : 260;
+  return acRechargeFromPln();
 }
 
 export { OIL_BRAKE_PROMO_CODE, OIL_BRAKE_PROMO_VALID_UNTIL };

@@ -10,7 +10,7 @@ import { getDiscountPercent } from "@/lib/site-promo-pricing";
 type BaseProps = {
   size?: "xs" | "sm" | "md" | "lg";
   className?: string;
-  /** Override auto discount badge (e.g. −50% on AC landing) */
+  /** Override auto discount badge when needed */
   discountPercent?: number;
 };
 

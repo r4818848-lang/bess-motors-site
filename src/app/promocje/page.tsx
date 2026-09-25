@@ -3,8 +3,6 @@
 import Link from "next/link";
 import { OilBrakePromoBanner } from "@/components/home/OilBrakePromoBanner";
 import { FreeSuspensionPromoBanner } from "@/components/home/FreeSuspensionPromoBanner";
-import { SeasonalAcBanner } from "@/components/home/SeasonalAcBanner";
-import { PromoBanner } from "@/components/home/PromoBanner";
 import { useI18n } from "@/lib/i18n/context";
 import { BookingLink } from "@/components/analytics/BookingLink";
 
@@ -20,17 +18,17 @@ export default function PromocjePage() {
           : "Promocje BESS MOTORS";
   const intro =
     locale === "ru"
-      ? "Замена масла 80 zł + диагностика подвески бесплатно при замене масла. Тормоза по коду BessMotors, −50% кондиционер, −15% на остальные услуги."
+      ? "Замена масла 80 zł + диагностика подвески бесплатно при замене масла. Тормоза по коду BessMotors."
       : locale === "en"
-        ? "Oil change 80 PLN + free suspension check with the oil change. Brakes with code BessMotors, −50% A/C, −15% on other services."
-      : locale === "uk"
-        ? "Заміна оливи 80 zł + діагностика підвіски безкоштовно при заміні оливи. Гальма за кодом BessMotors, −50% кондиціонер, −15% на інші послуги."
-        : "Wymiana oleju 80 zł + diagnostyka zawieszenia gratis przy wymianie oleju. Hamulce z kodem BessMotors, −50% klima, −15% na pozostałe usługi.";
+        ? "Oil change 80 PLN + free suspension check with the oil change. Brakes with code BessMotors."
+        : locale === "uk"
+          ? "Заміна оливи 80 zł + діагностика підвіски безкоштовно при заміні оливи. Гальма за кодом BessMotors."
+          : "Wymiana oleju 80 zł + diagnostyka zawieszenia gratis przy wymianie oleju. Hamulce z kodem BessMotors.";
 
   return (
     <div className="pt-28 pb-20">
       <div className="mx-auto max-w-7xl px-4 lg:px-8 mb-10 text-center">
-        <h1 className="font-display text-4xl font-bold uppercase text-glow">{title}</h1>
+        <h1 className="font-display text-4xl font-bold uppercase">{title}</h1>
         <p className="mt-3 text-bm-muted max-w-2xl mx-auto">{intro}</p>
         <BookingLink trackSource="promocje_page" className="btn-primary mt-6 inline-flex">
           {t.nav.booking}
@@ -39,10 +37,6 @@ export default function PromocjePage() {
       <OilBrakePromoBanner />
       <div className="my-4" />
       <FreeSuspensionPromoBanner />
-      <div className="my-4" />
-      <SeasonalAcBanner />
-      <div className="my-4" />
-      <PromoBanner />
       <div className="mx-auto max-w-7xl px-4 lg:px-8 mt-10 flex flex-wrap justify-center gap-4 text-sm">
         <Link href="/wymiana-oleju" className="text-bm-red hover:underline">
           /wymiana-oleju

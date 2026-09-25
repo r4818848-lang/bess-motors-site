@@ -23,6 +23,8 @@ export function VinQuoteForm() {
   const [phone, setPhone] = useState("");
   const [vin, setVin] = useState("");
   const [brand, setBrand] = useState("");
+  const [model, setModel] = useState("");
+  const [year, setYear] = useState("");
   const [problem, setProblem] = useState("");
   const [mileage, setMileage] = useState("");
   const [preferred, setPreferred] = useState<"phone" | "whatsapp">("phone");
@@ -42,10 +44,11 @@ export function VinQuoteForm() {
     setSending(true);
     setError("");
 
+    const vehicle = [brand.trim(), model.trim(), year.trim()].filter(Boolean).join(" ");
     const parts = [
       "Wyceń po VIN",
       vin.trim() ? `VIN: ${vin.trim().toUpperCase()}` : null,
-      brand.trim() ? `Marka/model: ${brand.trim()}` : null,
+      vehicle ? `Pojazd: ${vehicle}` : null,
       mileage.trim() ? `Przebieg: ${mileage.trim()}` : null,
       `Kontakt: ${preferred === "whatsapp" ? "WhatsApp" : "Telefon"}`,
       photoCount > 0 ? `Zdjęcia: klient ma ${photoCount} plik(ów) — prosi o WhatsApp` : null,
@@ -54,7 +57,7 @@ export function VinQuoteForm() {
 
     const result = await createCallRequest({
       phone: p,
-      clientName: brand.trim() || "Klient",
+      clientName: vehicle || "Klient",
       serviceId: "diagnostic",
       serviceLabel: "Wyceń po VIN",
       comment: parts.join("\n"),
@@ -147,7 +150,7 @@ export function VinQuoteForm() {
             />
           </div>
 
-          <div className="grid sm:grid-cols-2 gap-4">
+          <div className="grid sm:grid-cols-3 gap-4">
             <div>
               <label htmlFor="vin-brand" className="block text-xs font-semibold text-bm-silver mb-1.5">
                 {v.brand}
@@ -161,17 +164,43 @@ export function VinQuoteForm() {
               />
             </div>
             <div>
-              <label htmlFor="vin-mileage" className="block text-xs font-semibold text-bm-silver mb-1.5">
-                {v.mileage}
+              <label htmlFor="vin-model" className="block text-xs font-semibold text-bm-silver mb-1.5">
+                {v.model}
               </label>
               <input
-                id="vin-mileage"
+                id="vin-model"
                 className="w-full rounded-lg border border-bm-border/60 bg-white px-4 py-3 min-h-[44px] text-neutral-900 placeholder:text-neutral-500 outline-none focus:border-bm-red"
-                placeholder={v.mileagePlaceholder}
-                value={mileage}
-                onChange={(e) => setMileage(e.target.value)}
+                placeholder={v.modelPlaceholder}
+                value={model}
+                onChange={(e) => setModel(e.target.value)}
               />
             </div>
+            <div>
+              <label htmlFor="vin-year" className="block text-xs font-semibold text-bm-silver mb-1.5">
+                {v.year}
+              </label>
+              <input
+                id="vin-year"
+                inputMode="numeric"
+                className="w-full rounded-lg border border-bm-border/60 bg-white px-4 py-3 min-h-[44px] text-neutral-900 placeholder:text-neutral-500 outline-none focus:border-bm-red"
+                placeholder={v.yearPlaceholder}
+                value={year}
+                onChange={(e) => setYear(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div>
+            <label htmlFor="vin-mileage" className="block text-xs font-semibold text-bm-silver mb-1.5">
+              {v.mileage}
+            </label>
+            <input
+              id="vin-mileage"
+              className="w-full rounded-lg border border-bm-border/60 bg-white px-4 py-3 min-h-[44px] text-neutral-900 placeholder:text-neutral-500 outline-none focus:border-bm-red"
+              placeholder={v.mileagePlaceholder}
+              value={mileage}
+              onChange={(e) => setMileage(e.target.value)}
+            />
           </div>
 
           <div>
@@ -231,7 +260,7 @@ export function VinQuoteForm() {
           <button
             type="submit"
             disabled={sending}
-            className="btn-primary w-full sm:w-auto min-h-[44px] px-8"
+            className="btn-primary w-full sm:w-auto min-h-[44px] px-8 uppercase tracking-wide"
           >
             {sending ? "…" : v.submit}
           </button>

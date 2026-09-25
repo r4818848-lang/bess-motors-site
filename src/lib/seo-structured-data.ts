@@ -11,12 +11,7 @@ import {
   acR134aPer100gPln,
   acRechargeFromPln,
 } from "@/lib/ac-recharge-prices";
-import {
-  AC_HOOKUP_PROMO_OLD_PLN,
-  AC_R1234YF_PROMO_OLD_PLN,
-  AC_R134A_PROMO_OLD_PLN,
-  acPromoMetaDescriptionPl,
-} from "@/lib/ac-recharge-promo-seo";
+import { acPromoMetaDescriptionPl } from "@/lib/ac-recharge-promo-seo";
 import {
   getOilBrakePromoOffer,
   OIL_BRAKE_PROMO_CODE,
@@ -109,7 +104,7 @@ export function contactPageSchema() {
 export function servicesItemListSchema() {
   const siteUrl = getSiteUrl();
   const items = [
-    { name: "PROMOCJA −50% — nabijanie klimatyzacji bez kolejki R134a / R1234yf od 130 zł", path: "/klimatyzacja" },
+    { name: "Nabijanie klimatyzacji R134a / R1234yf — od 130 zł", path: "/klimatyzacja" },
     { name: "Naprawa klimatyzacji samochodowej", path: "/naprawa-klimatyzacji" },
     { name: "Wymiana oleju 80 zł — kod BessMotors", path: "/wymiana-oleju" },
     { name: "Wulkanizacja", path: "/opony" },
@@ -156,13 +151,12 @@ export function autoRepairServiceSchema(page: SeoLandingPage) {
   if (isAcPromo) {
     serviceNode.offers = {
       "@type": "Offer",
-      name: "Promocja −50% nabijania klimatyzacji R134a / R1234yf",
-      description: `Podłączenie ${acHookupPricePln()} zł (było ${AC_HOOKUP_PROMO_OLD_PLN} zł), R134a ${acR134aPer100gPln()} zł/100 g (było ${AC_R134A_PROMO_OLD_PLN} zł), R1234yf ${acR1234yfPer100gPln()} zł/100 g (było ${AC_R1234YF_PROMO_OLD_PLN} zł)`,
+      name: "Nabijanie klimatyzacji R134a / R1234yf",
+      description: `Podłączenie ${acHookupPricePln()} zł, R134a ${acR134aPer100gPln()} zł/100 g, R1234yf ${acR1234yfPer100gPln()} zł/100 g`,
       price: acRechargeFromPln(),
       priceCurrency: "PLN",
       availability: "https://schema.org/InStock",
       url,
-      priceValidUntil: "2026-12-31",
     };
   } else if (isAcRepair) {
     serviceNode.offers = {

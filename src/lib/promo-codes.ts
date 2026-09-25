@@ -1,4 +1,4 @@
-/** Site-wide promo — labor + parts. AC −50% promo is separate (ac-recharge-promo-seo). */
+/** Site-wide promo — labor + parts. A/C prices: ac-recharge-prices. */
 
 export type PromoRule = { code: string; percentOff: number };
 

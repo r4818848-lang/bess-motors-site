@@ -8,7 +8,7 @@ import { OIL_CHANGE_PROMO_BOOKING_ITEMS } from "@/lib/oil-brake-promo";
 import { buildBookingUrl } from "@/lib/booking-url";
 import { oilLabourPromoZl } from "@/lib/service-prices";
 
-/** Up to 8 popular services — calmer cards (TZ §17–19) */
+/** Max 8 popular services (Final Polish v3 §9) */
 export function SameDayServices() {
   const { t } = useI18n();
   const h = t.homeLead;
@@ -25,9 +25,9 @@ export function SameDayServices() {
     },
     {
       icon: Disc,
-      title: h.sameDayPads,
+      title: "Hamulce",
       price: "od 100 zł",
-      href: buildBookingUrl(["brake_pads_front"]),
+      href: "/hamulce",
       source: "same_day_pads",
       eta: "1–2 h",
     },
@@ -35,7 +35,7 @@ export function SameDayServices() {
       icon: Cpu,
       title: h.sameDayDiag,
       price: "od 150 zł",
-      href: buildBookingUrl(["computer_diag"]),
+      href: "/diagnostyka",
       source: "same_day_diag",
       eta: "30–60 min",
     },
@@ -57,9 +57,9 @@ export function SameDayServices() {
     },
     {
       icon: Gauge,
-      title: h.suspension,
-      price: h.suspensionFree,
-      href: buildBookingUrl([...OIL_CHANGE_PROMO_BOOKING_ITEMS]),
+      title: "Zawieszenie",
+      price: "wycena",
+      href: "/zawieszenie",
       source: "same_day_suspension",
       eta: "30–40 min",
     },
@@ -102,7 +102,7 @@ export function SameDayServices() {
               <p className="mt-3 font-semibold text-white leading-snug">{item.title}</p>
               <p className="mt-2 text-lg font-bold text-white">{item.price}</p>
               <p className="mt-1 inline-flex items-center gap-1.5 text-xs text-bm-muted">
-                <Clock size={12} />
+                <Clock size={12} aria-hidden />
                 {item.eta}
               </p>
               <BookingLink
@@ -111,7 +111,7 @@ export function SameDayServices() {
                 className="mt-4 text-sm font-semibold text-bm-red hover:text-white transition-colors inline-flex items-center gap-1"
               >
                 {h.sameDayBook}
-                <ChevronRight size={14} />
+                <ChevronRight size={14} aria-hidden />
               </BookingLink>
             </li>
           ))}
@@ -120,7 +120,7 @@ export function SameDayServices() {
         <div className="mt-8 text-center">
           <Link href="/services" className="btn-outline inline-flex items-center gap-2">
             {h.allServices}
-            <ChevronRight size={16} />
+            <ChevronRight size={16} aria-hidden />
           </Link>
         </div>
       </div>

@@ -7,6 +7,7 @@ import { HomePromoBlock } from "@/components/home/HomePromoBlock";
 import { VinQuoteForm } from "@/components/home/VinQuoteForm";
 import { HowRepairWorks } from "@/components/home/HowRepairWorks";
 import { WhyBessMotors } from "@/components/home/WhyBessMotors";
+import { HomeRealizations } from "@/components/home/HomeRealizations";
 import { WorkshopGallerySection } from "@/components/home/WorkshopGallerySection";
 import { GoogleReviewsBlock } from "@/components/home/GoogleReviewsBlock";
 import { HomeDirectionsMap } from "@/components/home/HomeDirectionsMap";
@@ -14,24 +15,25 @@ import { SymptomFaq } from "@/components/home/SymptomFaq";
 import { HomeFinalCta } from "@/components/home/HomeFinalCta";
 
 /**
- * Homepage: oil 80 zł promo first (above the fold), then hero funnel.
- * Ticker / fleet mid-page / chat block removed to cut noise.
+ * Homepage order — Final Polish v3 §5 / §39.
+ * One instance of each block; oil promo after popular services.
  */
 export default function HomePage() {
   return (
     <>
       <div className="h-14 sm:h-16 safe-area-pt" aria-hidden />
-      <HomePromoBlock />
       <Hero />
       <HomeTrustBar />
       <SameDayServices />
+      <HomePromoBlock />
       <VinQuoteForm />
       <HowRepairWorks />
       <WhyBessMotors />
-      <WorkshopGallerySection />
+      <HomeRealizations />
       <GoogleReviewsBlock />
-      <HomeDirectionsMap />
+      <WorkshopGallerySection />
       <SymptomFaq />
+      <HomeDirectionsMap />
       <HomeFinalCta />
     </>
   );

@@ -1,6 +1,5 @@
-/** Internal links for footer — strengthens topical authority */
 export const seoFooterServiceLinks: { href: string; label: string }[] = [
-  { href: "/klimatyzacja", label: "PROMOCJA −50% — nabijanie klimatyzacji bez kolejki od 130 zł" },
+  { href: "/klimatyzacja", label: "Nabijanie klimatyzacji — od 130 zł" },
   { href: "/naprawa-klimatyzacji", label: "Naprawa klimatyzacji samochodowej" },
   { href: "/wymiana-oleju", label: "Wymiana oleju 80 zł — kod BessMotors" },
   { href: "/opony", label: "Wulkanizacja" },

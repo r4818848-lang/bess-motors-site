@@ -43,10 +43,10 @@ export async function sendPromoList(chatId: number, locale: BotLocale): Promise<
     }),
     "",
     locale === "ru"
-      ? "На работы и запчасти. Назовите код менеджеру. Кондиционер — отдельная акция −50%."
+      ? "На работы и запчасти. Назовите код менеджеру."
       : locale === "en"
-        ? "Labor and parts. Tell the manager. A/C has a separate −50% promo."
-        : "Na robociznę i części. Podaj kod menedżerowi. Klima — osobna promocja −50%.",
+        ? "Labor and parts. Tell the manager."
+        : "Na robociznę i części. Podaj kod menedżerowi.",
   ];
   await sendTelegramMessage(chatId, lines.join("\n"), { inline_keyboard: [clientBackMenuRow(locale)] });
 }

@@ -11,7 +11,7 @@ import {
 import { buildBookingUrl } from "@/lib/booking-url";
 import { isPromoActive, OIL_BRAKE_PROMO_VALID_UNTIL } from "@/lib/service-prices";
 
-/** Oil 80 zł + free suspension — first thing after header (above the fold). */
+/** Single oil promo block — 80 zł labour + free suspension (Final Polish v3 §2/§10) */
 export function HomePromoBlock() {
   const { t } = useI18n();
   const h = t.homeLead;
@@ -22,10 +22,10 @@ export function HomePromoBlock() {
   return (
     <section
       id="oferta-olej"
-      className="relative z-20 border-b border-white/10 bg-bm-black"
+      className="relative z-20 border-y border-white/10 bg-bm-black"
       aria-labelledby="oil-offer-heading"
     >
-      <div className="mx-auto max-w-7xl px-4 lg:px-8 py-6 sm:py-8">
+      <div className="mx-auto max-w-7xl px-4 lg:px-8 py-8 sm:py-10">
         <p className="text-[11px] sm:text-xs font-semibold uppercase tracking-[0.22em] text-bm-red mb-2 sm:mb-3">
           {h.offerBadge} · {OIL_BRAKE_PROMO_CODE}
         </p>
@@ -44,9 +44,11 @@ export function HomePromoBlock() {
                 {oil.nowZl}
                 <span className="ml-1.5 text-2xl sm:text-3xl text-white/90 font-bold">zł</span>
               </span>
-              <span className="text-lg sm:text-xl text-bm-muted line-through decoration-bm-muted/80">
-                {oil.wasZl} zł
-              </span>
+              {oil.wasZl > oil.nowZl ? (
+                <span className="text-lg sm:text-xl text-bm-muted line-through decoration-bm-muted/80">
+                  {oil.wasZl} zł
+                </span>
+              ) : null}
             </p>
             <p className="mt-1 text-sm text-bm-silver">{h.labourLabel}</p>
 

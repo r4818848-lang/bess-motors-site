@@ -4,7 +4,7 @@ import { buildPageMetadata } from "@/lib/seo-metadata";
 export const metadata: Metadata = buildPageMetadata({
   title: "Zapis online — olej, hamulce, klima",
   description:
-    "Zapis online BESS MOTORS Warszawa: wybierz usługę i zostaw telefon. Wymiana oleju 80 zł, klocki od 100 zł (kod BessMotors), nabijanie klimatyzacji −50%. Aleja Krakowska 48/52.",
+    "Zapis online BESS MOTORS Warszawa: wybierz usługę i zostaw telefon. Wymiana oleju 80 zł, klocki od 100 zł (kod BessMotors). Aleja Krakowska 48/52.",
   path: "/booking",
   keywords: [
     "zapis online serwis Warszawa",

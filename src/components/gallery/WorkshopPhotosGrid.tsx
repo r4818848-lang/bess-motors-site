@@ -9,11 +9,14 @@ type Props = {
   className?: string;
   /** First tile spans 2 cols on md+ (good for exterior hero) */
   heroFirst?: boolean;
+  /** Max photos to show (homepage uses 3–5) */
+  limit?: number;
 };
 
-export function WorkshopPhotosGrid({ className, heroFirst = false }: Props) {
+export function WorkshopPhotosGrid({ className, heroFirst = false, limit }: Props) {
   const { t } = useI18n();
   const photos = t.workshopPhotos;
+  const list = limit ? WORKSHOP_PHOTOS.slice(0, limit) : WORKSHOP_PHOTOS;
 
   return (
     <div
@@ -23,7 +26,7 @@ export function WorkshopPhotosGrid({ className, heroFirst = false }: Props) {
         className
       )}
     >
-      {WORKSHOP_PHOTOS.map((photo, index) => {
+      {list.map((photo, index) => {
         const meta = photos[photo.id as WorkshopPhotoId];
         const isHero = heroFirst && index === 0;
         return (

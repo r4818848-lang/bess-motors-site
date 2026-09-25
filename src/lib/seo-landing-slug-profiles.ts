@@ -246,14 +246,14 @@ export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
     galleryTags: ["klim", "ac", "chłodnic", "radiator", "радиатор"],
     education: [
       {
-        title: L("Promocja letnia na nabijanie klimatyzacji", "Летняя акция на заправку кондиционера"),
+        title: L("Nabijanie klimatyzacji — ceny", "Заправка кондиционера — цены"),
         body: L(
-          `Promocja −50%: podłączenie układu ${acHookupPricePln()} zł zamiast ${AC_HOOKUP_PROMO_OLD_PLN} zł, freon R134a ${acR134aPer100gPln()} zł/100 g zamiast ${AC_R134A_PROMO_OLD_PLN} zł, R1234yf ${acR1234yfPer100gPln()} zł/100 g zamiast ${AC_R1234YF_PROMO_OLD_PLN} zł — pełna zaprawa od ${acRechargeFromPln()} zł. Nabijamy wszystkie marki aut — bez kolejki, od razu na miejscu.`,
-          `Акция −50%: подключение ${acHookupPricePln()} zł вместо ${AC_HOOKUP_PROMO_OLD_PLN} zł, фреон R134a ${acR134aPer100gPln()} zł/100 г вместо ${AC_R134A_PROMO_OLD_PLN} zł, R1234yf ${acR1234yfPer100gPln()} zł/100 г вместо ${AC_R1234YF_PROMO_OLD_PLN} zł — полная заправка от ${acRechargeFromPln()} zł. Заправляем все марки — без очереди, сразу на месте.`
+          `Podłączenie układu ${acHookupPricePln()} zł, freon R134a ${acR134aPer100gPln()} zł/100 g, R1234yf ${acR1234yfPer100gPln()} zł/100 g — pełna zaprawa od ${acRechargeFromPln()} zł. Nabijamy wszystkie marki aut.`,
+          `Подключение ${acHookupPricePln()} zł, фреон R134a ${acR134aPer100gPln()} zł/100 г, R1234yf ${acR1234yfPer100gPln()} zł/100 г — полная заправка от ${acRechargeFromPln()} zł. Заправляем все марки.`
         ),
       },
       {
-        title: L("Sezon letni — czas na serwis klimatyzacji", "Летний сезон — пора обслужить кондиционер"),
+        title: L("Kiedy warto zrobić serwis klimatyzacji", "Когда стоит обслуживать кондиционер"),
         body: L(
           "Nawet gdy klima jeszcze chłodzi, czynnik naturalnie ubywa. Przed upałami warto zrobić próżnię, kontrolę szczelności i uzupełnienie R134a lub R1234yf — mniejsze obciążenie sprężarki i komfort w aucie.",
           "Даже если кондиционер ещё холодит, хладагент со временем уходит. Перед жарой — вакуум, проверка герметичности и заправка R134a или R1234yf: меньше нагрузка на компрессор и комфорт в салоне."
@@ -290,17 +290,17 @@ export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
         ),
       },
       {
-        q: L("Czy jest promocja na nabijanie klimatyzacji?", "Есть ли скидка на заправку кондиционера?"),
+        q: L("Jakie są aktualne ceny nabijania klimatyzacji?", "Какие актуальные цены заправки кондиционера?"),
         a: L(
-          `Tak — promocja −50%: podłączenie ${acHookupPricePln()} zł zamiast ${AC_HOOKUP_PROMO_OLD_PLN} zł, R134a ${acR134aPer100gPln()} zł/100 g zamiast ${AC_R134A_PROMO_OLD_PLN} zł, R1234yf ${acR1234yfPer100gPln()} zł/100 g zamiast ${AC_R1234YF_PROMO_OLD_PLN} zł. Minimum od ${acRechargeFromPln()} zł. Umów wizytę online lub zadzwoń +48 791 257 229.`,
-          `Да — акция −50%: подключение ${acHookupPricePln()} zł вместо ${AC_HOOKUP_PROMO_OLD_PLN} zł, R134a ${acR134aPer100gPln()} zł/100 г вместо ${AC_R134A_PROMO_OLD_PLN} zł, R1234yf ${acR1234yfPer100gPln()} zł/100 г вместо ${AC_R1234YF_PROMO_OLD_PLN} zł. Минимум от ${acRechargeFromPln()} zł. Онлайн-запись или телефон +48 791 257 229.`
+          `Podłączenie ${acHookupPricePln()} zł, R134a ${acR134aPer100gPln()} zł/100 g, R1234yf ${acR1234yfPer100gPln()} zł/100 g. Minimum od ${acRechargeFromPln()} zł. Umów wizytę online lub zadzwoń +48 791 257 229.`,
+          `Подключение ${acHookupPricePln()} zł, R134a ${acR134aPer100gPln()} zł/100 г, R1234yf ${acR1234yfPer100gPln()} zł/100 г. Минимум от ${acRechargeFromPln()} zł. Онлайн-запись или телефон +48 791 257 229.`
         ),
       },
       {
         q: L("Ile kosztuje nabijanie klimatyzacji?", "Сколько стоит заправка кондиционера?"),
         a: L(
-          `Podłączenie układu ${acHookupPricePln()} zł, R134a ${acR134aPer100gPln()} zł/100 g (promocja −50% zamiast ${AC_R134A_PROMO_OLD_PLN} zł), R1234yf ${acR1234yfPer100gPln()} zł/100 g (zamiast ${AC_R1234YF_PROMO_OLD_PLN} zł) — dokładna ilość czynnika zależy od modelu.`,
-          `Подключение ${acHookupPricePln()} zł, R134a ${acR134aPer100gPln()} zł/100 г (акция −50% вместо ${AC_R134A_PROMO_OLD_PLN} zł), R1234yf ${acR1234yfPer100gPln()} zł/100 г (вместо ${AC_R1234YF_PROMO_OLD_PLN} zł) — объём зависит от модели.`
+          `Podłączenie układu ${acHookupPricePln()} zł, R134a ${acR134aPer100gPln()} zł/100 g, R1234yf ${acR1234yfPer100gPln()} zł/100 g — dokładna ilość czynnika zależy od modelu.`,
+          `Подключение ${acHookupPricePln()} zł, R134a ${acR134aPer100gPln()} zł/100 г, R1234yf ${acR1234yfPer100gPln()} zł/100 г — объём зависит от модели.`
         ),
       },
       {
@@ -323,8 +323,8 @@ export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
       priceFrom: true,
       materialsExtra: true,
       note: {
-        pl: `Promocja −50%: podłączenie ${acHookupPricePln()} zł (było ${AC_HOOKUP_PROMO_OLD_PLN} zł), R134a ${acR134aPer100gPln()} zł/100 g (było ${AC_R134A_PROMO_OLD_PLN} zł), R1234yf ${acR1234yfPer100gPln()} zł/100 g (było ${AC_R1234YF_PROMO_OLD_PLN} zł).`,
-        ru: `Акция −50%: подключение ${acHookupPricePln()} zł (было ${AC_HOOKUP_PROMO_OLD_PLN} zł), R134a ${acR134aPer100gPln()} zł/100 г (было ${AC_R134A_PROMO_OLD_PLN} zł), R1234yf ${acR1234yfPer100gPln()} zł/100 г (было ${AC_R1234YF_PROMO_OLD_PLN} zł).`,
+        pl: `Podłączenie ${acHookupPricePln()} zł, R134a ${acR134aPer100gPln()} zł/100 g, R1234yf ${acR1234yfPer100gPln()} zł/100 g.`,
+        ru: `Подключение ${acHookupPricePln()} zł, R134a ${acR134aPer100gPln()} zł/100 г, R1234yf ${acR1234yfPer100gPln()} zł/100 г.`,
       },
       includes: [
         L("Podłączenie układu i próżniowanie", "Подключение и вакуумирование"),
@@ -336,19 +336,16 @@ export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
         {
           label: L("Podłączenie układu klimatyzacji", "Подключение системы кондиционера"),
           priceZl: acHookupPricePln(),
-          compareAtZl: AC_HOOKUP_PROMO_OLD_PLN,
           priceFrom: false,
         },
         {
           label: L("Napełnianie R134a (za 100 g)", "Заправка R134a (за 100 г)"),
           priceZl: acR134aPer100gPln(),
-          compareAtZl: AC_R134A_PROMO_OLD_PLN,
           priceFrom: false,
         },
         {
           label: L("Napełnianie R1234yf (za 100 g)", "Заправка R1234yf (за 100 г)"),
           priceZl: acR1234yfPer100gPln(),
-          compareAtZl: AC_R1234YF_PROMO_OLD_PLN,
           priceFrom: false,
         },
         {
@@ -402,8 +399,8 @@ export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
       {
         title: L("Spawanie przewodów i wymiana elementów", "Сварка трубок и замена узлов"),
         body: L(
-          "Naprawiamy pęknięte przewody klimatyzacji metodą spawania, wymieniamy chłodnicę, osuszacz i sprężarkę. Po każdej naprawie — próżniowanie i nabijanie R134a lub R1234yf (promocja −50% na nabijanie).",
-          "Ремонтируем трещины в трубках сваркой, меняем радиатор, осушитель и компрессор. После ремонта — вакуум и заправка R134a или R1234yf (акция −50% на заправку)."
+          "Naprawiamy pęknięte przewody klimatyzacji metodą spawania, wymieniamy chłodnicę, osuszacz i sprężarkę. Po każdej naprawie — próżniowanie i nabijanie R134a lub R1234yf .",
+          "Ремонтируем трещины в трубках сваркой, меняем радиатор, осушитель и компрессор. После ремонта — вакуум и заправка R134a или R1234yf ."
         ),
       },
     ],
@@ -428,8 +425,8 @@ export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
       priceFrom: true,
       materialsExtra: true,
       note: {
-        pl: "Robocizna według cennika — części i ilość czynnika wyceniamy po diagnostyce. Nabijanie po naprawie: promocja −50%.",
-        ru: "Работа по прайсу — запчасти и фреон после диагностики. Заправка после ремонта: акция −50%.",
+        pl: "Robocizna według cennika — części i ilość czynnika wyceniamy po diagnostyce. Nabijanie po naprawie według cennika.",
+        ru: "Работа по прайсу — запчасти и фреон после диагностики. Заправка после ремонта по прайсу.",
       },
       includes: [
         L("Diagnostyka i test szczelności", "Диагностика и проверка герметичности"),
@@ -1047,15 +1044,15 @@ export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
       {
         title: L("Sprawdź aktualne promocje", "Актуальные акции"),
         description: L(
-          "−15% na wszystkie usługi oprócz klimatyzacji — ceny w cenniku już z rabatem. Kod BessMotors dla menedżera. Osobna promocja −50% na nabijanie klimatyzacji.",
-          "−15% на все услуги, кроме кондиционера — цены в прайсе уже со скидкой. Код BessMotors менеджеру. Отдельная акция −50% на заправку кондиционера."
+          "Aktualna oferta: wymiana oleju 80 zł + zawieszenie gratis przy oleju, hamulce z kodem BessMotors. Szczegóły na stronie promocji.",
+          "Актуальная акция: замена масла 80 zł + подвеска бесплатно при масле, тормоза по коду BessMotors. Подробности на странице акций."
         ),
       },
       {
         title: L("Powiedz kod przy przyjęciu auta", "Назовите код при приёмке"),
         description: L(
-          "Kod BessMotors działa na wszystkie usługi i części — nie dotyczy sezonowej promocji klimatyzacji (−50%).",
-          "Код BessMotors на все виды работ и запчасти — не суммируется с акцией на кондиционер (−50%)."
+          "Kod BessMotors działa na robociznę i części według aktualnych warunków promocji.",
+          "Код BessMotors действует на работы и запчасти по актуальным условиям акции."
         ),
       },
       {
@@ -1082,10 +1079,10 @@ export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
         ),
       },
       {
-        title: L("Klimatyzacja — osobna promocja −50%", "Кондиционер — отдельная акция −50%"),
+        title: L("Klimatyzacja — cennik usługi", "Кондиционер — прайс услуги"),
         body: L(
-          "Nabijanie klimatyzacji ma własną sezonową ofertę — podłączenie, R134a i R1234yf w promocyjnych cenach. Szczegóły na /klimatyzacja.",
-          "Заправка кондиционера — отдельная сезонная акция −50%. Подробности на /klimatyzacja."
+          "Nabijanie klimatyzacji: podłączenie i gaz według cennika. Szczegóły na /klimatyzacja.",
+          "Заправка кондиционера: подключение и газ по прайсу. Подробности на /klimatyzacja."
         ),
       },
       {
@@ -1115,7 +1112,7 @@ export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
       materialsExtra: false,
       includes: [
         L("Kod BessMotors — −15% robocizna i części", "BessMotors — −15% работы и запчасти"),
-        L("Promocja klimatyzacji −50% osobno", "Кондиционер −50% отдельно"),
+        L("Klimatyzacja — cennik na /klimatyzacja", "Кондиционер — прайс на /klimatyzacja"),
       ],
       note: L("Kod podaj menedżerowi. Klimatyzacja — ceny promocyjne według /klimatyzacja.", "Код менеджеру. Кондиционер — по акции на /klimatyzacja."),
     },

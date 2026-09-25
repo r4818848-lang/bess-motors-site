@@ -5,12 +5,11 @@ import {
   Fingerprint,
   MessageSquare,
   Receipt,
-  CreditCard,
   Cpu,
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 
-const ICONS = [ClipboardCheck, Fingerprint, MessageSquare, Receipt, CreditCard, Cpu] as const;
+const ICONS = [ClipboardCheck, Fingerprint, MessageSquare, Receipt, Cpu] as const;
 
 /** Concrete advantages — no empty superlatives (TZ §26) */
 export function WhyBessMotors() {

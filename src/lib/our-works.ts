@@ -389,7 +389,7 @@ W BESS MOTORS podłączamy układ klimatyzacji do automatycznej stacji serwisowe
 ✅ Uzupełnienie oleju i barwnika UV
 ✅ Diagnostyka przed i po serwisie
 
-🔥 PROMOCJA −50%: podłączenie 80 zł, gaz certyfikowany 50 zł/100 g (R134a i R1234yf)
+Podłączenie 80 zł · gaz certyfikowany 50 zł/100 g (R134a i R1234yf)
 
 📍 BESS MOTORS
 Aleja Krakowska 48/52, Warszawa
@@ -406,7 +406,7 @@ Umów nabijanie klimatyzacji online! ❄️`,
 ✅ Долив масла и UV-красителя
 ✅ Диагностика до и после сервиса
 
-🔥 АКЦИЯ −50%: подключение 80 zł, сертифицированный газ 50 zł/100 г (R134a и R1234yf)
+Подключение 80 zł · сертифицированный газ 50 zł/100 г (R134a и R1234yf)
 
 📍 BESS MOTORS
 Aleja Krakowska 48/52, Warszawa
@@ -423,7 +423,7 @@ At BESS MOTORS we connect the system to an automated station — vacuum, leak ch
 ✅ Oil and UV dye top-up
 ✅ Diagnostics before and after service
 
-🔥 −50% PROMO: hook-up 80 PLN, certified gas 50 PLN/100g (R134a and R1234yf)
+Hook-up 80 PLN · certified gas 50 PLN/100g (R134a and R1234yf)
 
 📍 BESS MOTORS
 Aleja Krakowska 48/52, Warsaw
@@ -529,11 +529,11 @@ Modern cars need precise service: correct refrigerant amount, leak-tightness and
       en: "AC recharge",
     },
     description: {
-      pl: `🔥 LETNIA PROMOCJA −50% NA KLIMATYZACJĘ!
+      pl: `Nabijanie klimatyzacji w BESS MOTORS
 
-💰 Podłączenie układu (próżnia) — 80 zł zamiast 160 zł
-💰 Freon R134a — 50 zł/100 g zamiast 100 zł
-💰 Freon R1234yf — 50 zł/100 g zamiast 100 zł
+💰 Podłączenie układu (próżnia) — 80 zł
+💰 Freon R134a — 50 zł/100 g
+💰 Freon R1234yf — 50 zł/100 g
 
 W BESS MOTORS wykonujemy:
 
@@ -552,12 +552,12 @@ Aleja Krakowska 48/52, Warszawa
 📞 +48 791 257 229
 
 Zapisz się wcześniej i wita lato w komforcie! ❄️☀️`,
-      ru: `🔥 ЛЕТНЯЯ АКЦИЯ −50% НА ЗАПРАВКУ КОНДИЦИОНЕРА!
+      ru: `Заправка кондиционера в BESS MOTORS
 
-Вместо полной цены — скидка −50%:
-💰 Подключение системы (вакуум) — 80 zł вместо 160 zł
-💰 Фреон R134a — 50 zł/100 г вместо 100 zł
-💰 Фреон R1234yf — 50 zł/100 г вместо 100 zł
+Цены:
+💰 Подключение системы (вакуум) — 80 zł
+💰 Фреон R134a — 50 zł/100 г
+💰 Фреон R1234yf — 50 zł/100 г
 
 В BESS MOTORS выполняем:
 
@@ -576,9 +576,9 @@ Aleja Krakowska 48/52, Warszawa
 📞 +48 791 257 229
 
 Запишитесь заранее и встречайте лето с комфортом! ❄️☀️`,
-      en: `🔥 SUMMER −50% A/C PROMO!
+      en: `A/C recharge at BESS MOTORS
 
-−50% off full price:
+Prices:
 💰 System hook-up (vacuum) — 80 PLN instead of 160
 💰 R134a refrigerant — 50 PLN/100g instead of 100
 💰 R1234yf refrigerant — 50 PLN/100g instead of 100

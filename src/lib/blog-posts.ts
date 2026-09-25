@@ -116,8 +116,8 @@ Warsztat: Aleja Krakowska 48/52, Warszawa Włochy — 5 min od Okęcia. Pn–Sb 
     title: "Nabijanie klimatyzacji — cena Warszawa 2026",
     date: "2026-08-17",
     excerpt:
-      "Nabijanie klimatyzacji w Warszawie Włochy: promocja −50%, od 130 zł, bez kolejki. R134a i R1234yf. BESS MOTORS przy Alei Krakowskiej.",
-    body: `Nabijanie klimatyzacji cena Warszawa — w BESS MOTORS (Włochy, Aleja Krakowska 48/52) sezonowa promocja −50%: podłączenie 80 zł zamiast 160 zł, gaz certyfikowany 50 zł/100 g (R134a i R1234yf, było 100 zł/100 g). Szacunek „od 130 zł” to podłączenie + 100 g R134a.
+      "Nabijanie klimatyzacji w Warszawie Włochy: od 130 zł. R134a i R1234yf. BESS MOTORS przy Alei Krakowskiej.",
+    body: `Nabijanie klimatyzacji cena Warszawa — w BESS MOTORS (Włochy, Aleja Krakowska 48/52) podłączenie 80 zł, gaz certyfikowany 50 zł/100 g (R134a i R1234yf). Szacunek „od 130 zł” to podłączenie + 100 g R134a.
 
 Co znaczy „nabijanie” i czego nie obejmuje
 Nabijanie (napełnienie) to odzysk czynnika, próżnia, test szczelności i uzupełnienie oleju PAG + czynnik. Nie obejmuje naprawy nieszczelnego skraplacza, sprężarki ani odgrzybiania — to osobne pozycje. Jeśli układ nie trzyma próżni, najpierw szukamy wycieku zamiast „dopychać gaz”.

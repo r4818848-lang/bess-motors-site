@@ -30,7 +30,7 @@ export function gbpKeyPricesPl(): string[] {
   return [
     `Wymiana oleju + filtr: ${oil?.nowZl ?? 100} zł robocizna (kod ${OIL_BRAKE_PROMO_CODE})`,
     `Klocki hamulcowe przód: ${pads?.nowZl ?? 100} zł robocizna (kod ${OIL_BRAKE_PROMO_CODE})`,
-    `Nabijanie klimatyzacji: od ${acRechargeFromPln()} zł (−50% sezonowa)`,
+    `Nabijanie klimatyzacji: od ${acRechargeFromPln()} zł`,
     `Godziny: ${GBP_HOURS_SHORT}`,
     `Adres: ${siteConfig.address}`,
     `Telefon: ${siteConfig.phone}`,

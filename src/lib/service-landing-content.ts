@@ -826,8 +826,8 @@ export const SERVICE_LANDING_FAQ_EXTRA: Partial<
         ru: "Делаете заправку после ремонта?",
       },
       a: {
-        pl: "Tak — po każdej naprawie obiegu odpowietrzamy układ, robimy próżnię i uzupełniamy czynnik. Na nabijanie obowiązuje osobna promocja −50%.",
-        ru: "Да — после ремонта вакуум и заправка. На заправку действует отдельная акция −50%.",
+        pl: "Tak — po każdej naprawie obiegu odpowietrzamy układ, robimy próżnię i uzupełniamy czynnik według cennika.",
+        ru: "Да — после ремонта вакуум и заправка по прайсу.",
       },
     },
   ],
