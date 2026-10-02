@@ -14,6 +14,7 @@ import {
   brakesPromoMetaTitlePl,
   brakesPromoMetaDescriptionPl,
 } from "@/lib/oil-brake-promo";
+import { EXTRA_SEO_SERVICE_PAGES } from "@/lib/seo-extra-service-pages";
 
 export type SeoLandingPage = {
   slug: string;
@@ -385,9 +386,10 @@ export const seoLandingPages: SeoLandingPage[] = [
     serviceId: "otherReason",
     icon: "Tag",
   },
+  ...EXTRA_SEO_SERVICE_PAGES,
 ];
 
-/** All 27 public landing URLs (for docs / QA) */
+/** Public landing URLs (for docs / QA) */
 export const seoLandingUrlTable = seoLandingPages.map((p) => ({
   slug: p.slug,
   url: `${getSiteUrl()}/${p.slug}`,

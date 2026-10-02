@@ -12,6 +12,7 @@ import type {
   ServiceLandingPrice,
   ServiceLandingStep,
 } from "@/lib/service-landing-content";
+import { EXTRA_SEO_SERVICE_PROFILES } from "@/lib/seo-extra-service-pages";
 
 export type SlugLandingProfile = {
   /** Modal booking — may differ from page content (e.g. Toyota page → diag content, oil booking) */
@@ -75,6 +76,7 @@ const chipPriceTable: ServiceLandingPrice = {
 
 /** Per-slug overrides — all 27 SEO landing URLs */
 export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
+  ...EXTRA_SEO_SERVICE_PROFILES,
   diagnostyka: {
     education: [
       {

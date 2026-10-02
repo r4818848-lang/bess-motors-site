@@ -33,17 +33,22 @@ export default function sitemap(): MetadataRoute.Sitemap {
   for (const slug of seoLandingSlugs) {
     if (sitemapExcludedSlugs.has(slug)) continue;
                 const priority =
-                  slug === "klimatyzacja"
+                  slug === "klimatyzacja" || slug === "serwis-klimatyzacji-warszawa"
                     ? 0.95
                     : slug === "wymiana-oleju" ||
+                        slug === "wymiana-oleju-warszawa" ||
                         slug === "hamulce" ||
-                        slug === "naprawa-klimatyzacji"
+                        slug === "hamulce-warszawa" ||
+                        slug === "naprawa-klimatyzacji" ||
+                        slug === "mechanik-warszawa-wlochy"
                       ? 0.9
-                      : slug.startsWith("serwis-")
-                        ? 0.82
-                        : slug.startsWith("warszawa-")
-                          ? 0.75
-                          : 0.8;
+                      : slug.endsWith("-warszawa") || slug.includes("warszawa")
+                        ? 0.88
+                        : slug.startsWith("serwis-")
+                          ? 0.82
+                          : slug.startsWith("warszawa-")
+                            ? 0.75
+                            : 0.8;
     add(`/${slug}`, "weekly", priority);
   }
 

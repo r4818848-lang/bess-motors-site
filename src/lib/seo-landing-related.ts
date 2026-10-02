@@ -1,4 +1,5 @@
 import { getSeoLandingPage, seoLandingPages } from "@/lib/seo-landing-pages";
+import { EXTRA_SEO_RELATED } from "@/lib/seo-extra-service-pages";
 
 export type RelatedLandingLink = {
   slug: string;
@@ -7,6 +8,7 @@ export type RelatedLandingLink = {
 
 /** Internal links for SEO — related services per landing slug */
 const RELATED_SLUGS: Record<string, string[]> = {
+  ...EXTRA_SEO_RELATED,
   diagnostyka: ["check-engine", "elektryka", "silnik", "wymiana-oleju", "hamulce"],
   zawieszenie: ["geometria", "hamulce", "opony", "diagnostyka", "silnik"],
   "wymiana-oleju": ["przeglad", "diagnostyka", "hamulce", "opony", "serwis-toyota"],

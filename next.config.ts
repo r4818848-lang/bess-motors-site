@@ -59,8 +59,7 @@ const nextConfig: NextConfig = {
       { source: "/cennik-uslug", destination: "/cennik", permanent: true },
       { source: "/zapis-online", destination: "/booking", permanent: true },
       { source: "/olej", destination: "/wymiana-oleju", permanent: true },
-      { source: "/wymiana-oleju-warszawa", destination: "/wymiana-oleju", permanent: true },
-      { source: "/hamulce-warszawa", destination: "/hamulce", permanent: true },
+      // /wymiana-oleju-warszawa and /hamulce-warszawa are indexed SEO landings (not redirects)
       { source: "/klocki-warszawa", destination: "/hamulce", permanent: true },
       { source: "/login", destination: "/crm/login", permanent: false },
       { source: "/logowanie", destination: "/crm/login", permanent: false },

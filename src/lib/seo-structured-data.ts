@@ -168,10 +168,10 @@ export function autoRepairServiceSchema(page: SeoLandingPage) {
       availability: "https://schema.org/InStock",
       url,
     };
-  } else if (page.slug === "wymiana-oleju") {
+  } else if (page.slug === "wymiana-oleju" || page.slug === "wymiana-oleju-warszawa") {
     const oil = getOilBrakePromoOffer("oil_filter");
     if (oil) serviceNode.offers = oilBrakePromoOfferSchema(siteUrl, oil);
-  } else if (page.slug === "hamulce") {
+  } else if (page.slug === "hamulce" || page.slug === "hamulce-warszawa") {
     const pads = getOilBrakePromoOffer("brake_pads_front");
     if (pads) {
       serviceNode.offers = {

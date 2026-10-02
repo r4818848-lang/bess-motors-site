@@ -3,6 +3,7 @@
 import { Hero } from "@/components/home/Hero";
 import { HomeTrustBar } from "@/components/home/HomeTrustBar";
 import { SameDayServices } from "@/components/home/SameDayServices";
+import { HomeSeoServiceLinks } from "@/components/home/HomeSeoServiceLinks";
 import { HomePromoBlock } from "@/components/home/HomePromoBlock";
 import { VinQuoteForm } from "@/components/home/VinQuoteForm";
 import { HowRepairWorks } from "@/components/home/HowRepairWorks";
@@ -25,6 +26,7 @@ export default function HomePage() {
       <Hero />
       <HomeTrustBar />
       <SameDayServices />
+      <HomeSeoServiceLinks />
       <HomePromoBlock />
       <VinQuoteForm />
       <HowRepairWorks />
