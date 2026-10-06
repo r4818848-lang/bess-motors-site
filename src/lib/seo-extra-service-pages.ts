@@ -8,6 +8,12 @@ import type { LocalizedText } from "@/lib/service-landing-content";
 import { getPriceItem } from "@/lib/price-list";
 import { oilLabourPromoZl, oilLabourWasZl } from "@/lib/service-prices";
 import { acRechargeFromPln } from "@/lib/ac-recharge-prices";
+import {
+  EXTRA_SEO_SERVICE_PAGES_BATCH2,
+  EXTRA_SEO_SERVICE_PROFILES_BATCH2,
+  EXTRA_SEO_RELATED_BATCH2,
+  EXTRA_SEO_RELATED_PARENT_UPDATES,
+} from "@/lib/seo-extra-service-pages-batch2";
 
 const L = (pl: string, ru: string): LocalizedText => ({ pl, ru });
 
@@ -19,7 +25,7 @@ const WHY_BESS_EDU = {
   ),
 };
 
-export const EXTRA_SEO_SERVICE_PAGES: SeoLandingPage[] = [
+const EXTRA_SEO_SERVICE_PAGES_BATCH1: SeoLandingPage[] = [
   {
     slug: "wymiana-rozrzadu-warszawa",
     title: "Wymiana rozrządu Warszawa – BESS MOTORS",
@@ -121,7 +127,12 @@ export const EXTRA_SEO_SERVICE_PAGES: SeoLandingPage[] = [
   },
 ];
 
-export const EXTRA_SEO_SERVICE_PROFILES: Record<string, SlugLandingProfile> = {
+export const EXTRA_SEO_SERVICE_PAGES: SeoLandingPage[] = [
+  ...EXTRA_SEO_SERVICE_PAGES_BATCH1,
+  ...EXTRA_SEO_SERVICE_PAGES_BATCH2,
+];
+
+const EXTRA_SEO_SERVICE_PROFILES_BATCH1: Record<string, SlugLandingProfile> = {
   "wymiana-rozrzadu-warszawa": {
     bookServiceId: "timingBelt",
     contentServiceId: "timingBelt",
@@ -697,7 +708,12 @@ export const EXTRA_SEO_SERVICE_PROFILES: Record<string, SlugLandingProfile> = {
   },
 };
 
-export const EXTRA_SEO_RELATED: Record<string, string[]> = {
+export const EXTRA_SEO_SERVICE_PROFILES: Record<string, SlugLandingProfile> = {
+  ...EXTRA_SEO_SERVICE_PROFILES_BATCH1,
+  ...EXTRA_SEO_SERVICE_PROFILES_BATCH2,
+};
+
+const EXTRA_SEO_RELATED_BATCH1: Record<string, string[]> = {
   "wymiana-rozrzadu-warszawa": [
     "silnik",
     "wymiana-oleju-warszawa",
@@ -752,4 +768,10 @@ export const EXTRA_SEO_RELATED: Record<string, string[]> = {
     "wymiana-oleju-warszawa",
     "mechanik-warszawa-wlochy",
   ],
+};
+
+export const EXTRA_SEO_RELATED: Record<string, string[]> = {
+  ...EXTRA_SEO_RELATED_BATCH1,
+  ...EXTRA_SEO_RELATED_PARENT_UPDATES,
+  ...EXTRA_SEO_RELATED_BATCH2,
 };

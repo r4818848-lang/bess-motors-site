@@ -40,7 +40,8 @@ const nextConfig: NextConfig = {
       { source: "/nabijanie-klimatyzacji-warszawa", destination: "/klimatyzacja", permanent: true },
       { source: "/zaprawa-klimatyzacji", destination: "/klimatyzacja", permanent: true },
       { source: "/wulkanizacja", destination: "/opony", permanent: true },
-      { source: "/wulkanizacja-warszawa", destination: "/opony", permanent: true },
+      // /wulkanizacja-warszawa is an indexed SEO landing (not a redirect)
+
       { source: "/chip-tuning", destination: "/chip-tuning-warszawa", permanent: true },
       { source: "/tuning", destination: "/chip-tuning-warszawa", permanent: true },
       { source: "/serwis-samochodowy", destination: "/", permanent: true },
