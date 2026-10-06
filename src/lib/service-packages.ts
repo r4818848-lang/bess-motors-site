@@ -41,7 +41,7 @@ export const servicePackages: ServicePackage[] = [
   {
     id: "winter_prep",
     serviceIds: ["tires", "diagnostic"],
-    priceItemIds: ["tire_change_cast_15_17", "computer_diag"],
+    priceItemIds: ["tire_change_r15", "computer_diag"],
     namePl: "Pakiet zimowy — opony + diagnostyka",
     nameRu: "Зимний пакет — шины + диагностика",
     nameEn: "Winter package — tires + diagnostics",

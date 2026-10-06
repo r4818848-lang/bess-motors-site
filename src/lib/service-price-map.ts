@@ -43,11 +43,11 @@ export const flowOptionPriceIds: Record<string, string | string[]> = {
   clean: "ac_clean",
   acDiag: "ac_diag",
 
-  change: "tire_change_cast_15_17",
-  balance: "wheel_balance",
+  change: "tire_change_r15",
+  balance: "wheel_balance_r15",
   repair: "puncture_repair",
   storage: "tire_storage",
-  runflat: "runflat_mount",
+  runflat: "runflat_surcharge",
 
   suspDiag: "suspension_diag",
   suspShocks: "shock_replace",

@@ -44,7 +44,7 @@ export const wizardSymptoms: WizardSymptom[] = [
   },
   {
     id: "tires",
-    priceItemIds: ["tire_change_cast_15_17", "alignment"],
+    priceItemIds: ["tire_change_r15", "alignment"],
     categoryId: "tires",
   },
   {
