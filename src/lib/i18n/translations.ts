@@ -207,7 +207,7 @@ const pl = {
     was: "było",
     now: "teraz",
     discount: "rabat",
-    legend: "Przekreślona cena — cennik przed rabatem −15%. Klimatyzacja bez tej zniżki.",
+    legend: "Przekreślona cena — cennik przed rabatem −15%. Klimatyzacja i wulkanizacja bez tej zniżki.",
   },
   carWizard: {
     title: "Co się dzieje z autem?",
@@ -506,7 +506,7 @@ const pl = {
     },
   },
   promoBanner: {
-    text: "−{percent}% na wszystkie usługi oprócz klimatyzacji — ceny w cenniku już z rabatem. Kod {code} dla menedżera.",
+    text: "−{percent}% na wszystkie usługi oprócz klimatyzacji i wulkanizacji — ceny w cenniku już z rabatem. Kod {code} dla menedżera.",
     cta: "Promocje",
   },
   oilBrakePromo: {
@@ -2275,7 +2275,7 @@ const ru: TranslationKeys = {
     was: "было",
     now: "стало",
     discount: "скидка",
-    legend: "Зачёркнутая цена — прайс до скидки −15%. Кондиционер без этой скидки.",
+    legend: "Зачёркнутая цена — прайс до скидки −15%. Кондиционер и шиномонтаж без этой скидки.",
   },
   carWizard: {
     title: "Что случилось с авто?",
@@ -2474,7 +2474,7 @@ const ru: TranslationKeys = {
     },
   },
   promoBanner: {
-    text: "−{percent}% на все услуги, кроме кондиционера — цены в прайсе уже со скидкой. Код {code} менеджеру.",
+    text: "−{percent}% на все услуги, кроме кондиционера и шиномонтажа — цены в прайсе уже со скидкой. Код {code} менеджеру.",
     cta: "Акции",
   },
   oilBrakePromo: {
@@ -4663,7 +4663,7 @@ const en: TranslationKeys = {
     viewAll: "More before / after photos",
   },
   promoBanner: {
-    text: "−{percent}% on all services except A/C — prices already discounted. Code {code} for the manager.",
+    text: "−{percent}% on all services except A/C and tyre service — prices already discounted. Code {code} for the manager.",
     cta: "Promos",
   },
   oilBrakePromo: {
@@ -4687,7 +4687,7 @@ const en: TranslationKeys = {
     was: "was",
     now: "now",
     discount: "off",
-    legend: "Crossed-out price is before −15% discount. A/C excluded.",
+    legend: "Crossed-out price is before −15% discount. A/C and tyre service excluded.",
   },
   telegramOpen: {
     label: "Open in Telegram",

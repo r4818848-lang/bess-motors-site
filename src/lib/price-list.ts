@@ -39,7 +39,7 @@ export interface PriceListItem {
   nameEn?: string;
   nameUk?: string;
   basePrice: number;
-  /** Original list price before site promo (−15%, not used for AC) */
+  /** Original list price before site promo (−15%; not used for AC or tires) */
   listPrice?: number;
   unit: PriceUnit;
   priceFrom?: boolean;
@@ -72,10 +72,10 @@ export const priceCategories: { id: PriceCategoryId; namePl: string; nameRu: str
 /** Примечания внизу прайса (не в корзине) */
 export const priceListFooterNotes: { pl: string; ru: string; en?: string; uk?: string }[] = [
   {
-    pl: "Ceny w cenniku zawierają rabat −15% (oprócz klimatyzacji). Przekreślona cena to cennik przed rabatem.",
-    ru: "Цены в прайсе уже со скидкой −15% (кроме кондиционера). Зачёркнутая — прайс до скидки.",
-    en: "Prices in the price list include a discount of-15% (except for air conditioning). The price strikethrough is the price list before the discount.",
-    uk: "Ціни в прайс-листі вже зі знижкою −15% (крім кондиціонера). Перекреслення — прайс-лист до знижки.",
+    pl: "Ceny w cenniku zawierają rabat −15% (oprócz klimatyzacji i wulkanizacji). Przekreślona cena to cennik przed rabatem.",
+    ru: "Цены в прайсе уже со скидкой −15% (кроме кондиционера и шиномонтажа). Зачёркнутая — прайс до скидки.",
+    en: "Prices in the price list include a −15% discount (except air conditioning and tyre service). The strikethrough is the price before the discount.",
+    uk: "Ціни в прайс-листі вже зі знижкою −15% (крім кондиціонера та шиномонтажу). Перекреслення — прайс до знижки.",
   },
   {
     pl: "Norma-godzina mechanika: 250 zł/h (prace rozliczane godzinowo według wyceny).",
@@ -1572,7 +1572,12 @@ function withSitePromoCatalogItem(item: PriceListItem): PriceListItem {
       priceFrom: false,
     };
   }
-  if (item.categoryId === "ac" || item.unit === "free" || item.basePrice <= 0) {
+  if (
+    item.categoryId === "ac" ||
+    item.categoryId === "tires" ||
+    item.unit === "free" ||
+    item.basePrice <= 0
+  ) {
     return item;
   }
   const basePrice = Math.round((item.basePrice * (100 - SITE_PROMO_PERCENT)) / 100);
