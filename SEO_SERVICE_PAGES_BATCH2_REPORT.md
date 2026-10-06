@@ -66,3 +66,15 @@ Redirect removed (now indexed page):
 - Zawieszenie → amortyzatory / wahacze / łożysko
 - Diagnostyka → silnik / dym / kompresja / przed zakupem
 - Automat → serwis AT / DSG / Haldex
+
+
+## QA verification (local `npm run build` + `npm run start -p 3010`)
+
+- Build: **exit 0**
+- All **39** EXTRA SEO URLs (9 batch1 + 30 batch2): HTTP **200**
+- Exactly **1 H1** each
+- Unique titles and meta descriptions (no duplicates)
+- Canonical: `https://www.bess-motors.com/{slug}`
+- Indexable (no noindex)
+- All 39 present in `/sitemap.xml`
+- Spot-check: Open Graph title/description + BreadcrumbList/Service schema present
