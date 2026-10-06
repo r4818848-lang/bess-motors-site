@@ -20,8 +20,8 @@ function buildPriceListHtml(locale: "pl" | "ru"): string {
   const priceCol = isRu ? "Цена" : "Cena";
 
   const promoNote = isRu
-    ? `−${SITE_PROMO_PERCENT}% на все услуги, кроме кондиционера. Цены со скидкой.`
-    : `−${SITE_PROMO_PERCENT}% na wszystkie usługi oprócz klimatyzacji. Ceny z rabatem.`;
+    ? `−${SITE_PROMO_PERCENT}% на все услуги, кроме кондиционера и шиномонтажа. Цены со скидкой.`
+    : `−${SITE_PROMO_PERCENT}% na wszystkie usługi oprócz klimatyzacji i wulkanizacji. Ceny z rabatem.`;
 
   let body = "";
   for (const cat of priceCategories) {

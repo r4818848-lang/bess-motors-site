@@ -1,17 +1,18 @@
 import type { PriceCategoryId, PriceListItem } from "@/lib/price-list";
 import { SITE_PROMO_PERCENT } from "@/lib/promo-codes";
 
+/** Categories without the site-wide −15% promo (full list price). */
 export function isSitePromoExcluded(
   item: Pick<PriceListItem, "categoryId">
 ): boolean {
-  return item.categoryId === "ac";
+  return item.categoryId === "ac" || item.categoryId === "tires";
 }
 
 export function applySitePromoPrice(
   basePrice: number,
   categoryId: PriceCategoryId
 ): number {
-  if (basePrice <= 0 || categoryId === "ac") return basePrice;
+  if (basePrice <= 0 || categoryId === "ac" || categoryId === "tires") return basePrice;
   return Math.round((basePrice * (100 - SITE_PROMO_PERCENT)) / 100);
 }
 
@@ -36,7 +37,7 @@ export function withSitePromoPriceZl(
   priceZl: number,
   categoryId: PriceCategoryId
 ): { priceZl: number; compareAtZl?: number } {
-  if (priceZl <= 0 || categoryId === "ac") return { priceZl };
+  if (priceZl <= 0 || categoryId === "ac" || categoryId === "tires") return { priceZl };
   const discounted = applySitePromoPrice(priceZl, categoryId);
   if (discounted >= priceZl) return { priceZl };
   return { priceZl: discounted, compareAtZl: priceZl };
