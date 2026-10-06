@@ -351,15 +351,15 @@ export const EXTRA_SEO_SERVICE_PROFILES_BATCH2: Record<string, SlugLandingProfil
     contentServiceId: "tires",
     faqDuration: L("Wymiana kompletu 4 kół zwykle 45–90 minut — zależnie od rozmiaru i kolejki.", "Замена комплекта обычно 45–90 минут.", "A set of 4 usually takes 45–90 minutes — depending on size and queue.", "Заміна комплекта зазвичай 45–90 минут."),
     price: {
-          fromZl: getPriceItem("tire_change_steel_15_17")?.basePrice ?? 160,
+          fromZl: getPriceItem("tire_change_r13")?.basePrice ?? 150,
           priceFrom: true,
           materialsExtra: false,
-          note: L("Orientacyjnie od ceny kompletu R15–R17 (felgi stalowe) według cennika. Większe rozmiary i aluminiowe — drożej. Szczegóły na /opony i /cennik.", "Ориентировочно от цены комплекта R15–R17 по прайсу.", "From the R15–R17 steel-wheel set price on the list. Larger sizes and alloys cost more. Details on /opony and /cennik.", "Ориентировочно от цены комплекта R15–R17 по прайсу."),
+          note: L("Cennik według rozmiaru: R13–R15 150 zł, R16 160 zł, R17 180 zł … R24 420 zł za komplet. RunFlat / niski profil +20 zł/koło. Szczegóły na /cennik.", "Прайс по размеру: R13–R15 150 zł … R24 420 zł за комплект. RunFlat / низкий профиль +20 zł/колесо.", "By size: R13–R15 150 zł, R16 160 zł, R17 180 zł … R24 420 zł per set. RunFlat / low profile +20 zł/wheel. Details on /cennik.", "Прайс за розміром: R13–R15 150 zł … R24 420 zł за комплект. RunFlat / низький профіль +20 zł/колесо."),
           includes: [
-            L("Demontaż i montaż opon", "Демонтаж и монтаж", "Tyre removal and fitting", "Демонтаж і монтаж"),
-            L("Wyważanie kół", "Балансировка", "Wheel balancing", "Балансування"),
-            L("Kontrola ciśnienia", "Проверка давления", "Pressure check", "Проверка давления"),
-            L("Wycena przed startem prac", "Смета до работ", "Quote before work starts", "Кошторис до работ"),
+            L("Demontaż i montaż opon + wyważanie", "Демонтаж и монтаж шин + балансировка", "Tyre demount/mount + balancing", "Демонтаж і монтаж шин + балансування"),
+            L("Czyszczenie piast (gratis)", "Очистка ступиц (бесплатно)", "Hub cleaning (included)", "Очищення маточин (безкоштовно)"),
+            L("Kontrola i korekta ciśnienia (gratis)", "Проверка и корректировка давления (бесплатно)", "Pressure check and adjustment (included)", "Перевірка і коригування тиску (безкоштовно)"),
+            L("Dokręcenie kluczem dynamometrycznym (gratis)", "Затяжка динамометрическим ключом (бесплатно)", "Torque-wrench tightening (included)", "Затяжка динамометричним ключем (безкоштовно)"),
           ],
         },
     education: [
@@ -405,14 +405,14 @@ export const EXTRA_SEO_SERVICE_PROFILES_BATCH2: Record<string, SlugLandingProfil
     contentServiceId: "tires",
     faqDuration: L("Wymiana 4 opon z wyważaniem: zwykle 45–90 minut.", "Замена 4 шин: обычно 45–90 минут.", "Tyre change for 4 with balancing: usually 45–90 minutes.", "Заміна 4 шин: зазвичай 45–90 минут."),
     price: {
-          fromZl: getPriceItem("tire_change_steel_15_17")?.basePrice ?? 160,
+          fromZl: getPriceItem("tire_change_r13")?.basePrice ?? 150,
           priceFrom: true,
           materialsExtra: false,
-          note: L("Cena za kompleksową wymianę kompletu zależy od rozmiaru i typu felg — szczegóły w cenniku i na stronie /opony.", "Цена комплекта зависит от размера и дисков — см. прайс и /opony.", "Full-set price depends on size and rim type — see the price list and /opony.", "Цена комплекта зависит от размера і дисков — см. прайс і /opony."),
+          note: L("Cennik według rozmiaru: R13–R15 150 zł, R16 160 zł, R17 180 zł, R18 200 zł … R24 420 zł za komplet. RunFlat / niski profil +20 zł/koło.", "Прайс по размеру: R13–R15 150 zł … R24 420 zł за комплект. RunFlat / низкий профиль +20 zł/колесо.", "By size: R13–R15 150 zł … R24 420 zł per set. RunFlat / low profile +20 zł/wheel.", "Прайс за розміром: R13–R15 150 zł … R24 420 zł за комплект."),
           includes: [
             L("Wymiana opon na komplecie 4 kół", "Замена шин на 4 колёсах", "Tyre change on a set of 4", "Заміна шин на 4 колісах"),
             L("Wyważanie", "Балансировка", "Balancing", "Балансування"),
-            L("Kontrola ciśnienia", "Проверка давления", "Pressure check", "Проверка давления"),
+            L("Czyszczenie piast, ciśnienie, klucz dynamometryczny", "Очистка ступиц, давление, динамометрический ключ", "Hub cleaning, pressure, torque wrench", "Очищення маточин, тиск, динамометричний ключ"),
           ],
         },
     education: [
@@ -458,10 +458,10 @@ export const EXTRA_SEO_SERVICE_PROFILES_BATCH2: Record<string, SlugLandingProfil
     contentServiceId: "tires",
     faqDuration: L("Wyważanie kompletu zwykle ok. 30–60 minut.", "Балансировка комплекта обычно 30–60 минут.", "Balancing a full set usually takes about 30–60 minutes.", "Балансування комплекта зазвичай 30–60 минут."),
     price: {
-          fromZl: getPriceItem("wheel_balance")?.basePrice ?? 15,
+          fromZl: getPriceItem("wheel_balance_r13")?.basePrice ?? 30,
           priceFrom: true,
           materialsExtra: false,
-          note: L("Wyważanie 1 koła według cennika (cena „od”). Komplet = 4 koła.", "Балансировка 1 колеса по прайсу. Комплект = 4 колеса.", "Balancing per wheel from the price list. A set = 4 wheels.", "Балансування 1 коліса по прайсу. Комплект = 4 коліса."),
+          note: L("Wyważanie bez wymiany opon: R13–R16 30 zł/koło (120 zł komplet), R17–R18 35 zł (140 zł), R19–R20 40 zł (160 zł), R21–R24 50 zł (200 zł).", "Балансировка без замены: R13–R16 30 zł/колесо (120 zł комплект) … R21–R24 50 zł (200 zł).", "Balance only: R13–R16 30 zł/wheel (120 zł set) … R21–R24 50 zł (200 zł set).", "Балансування без заміни: R13–R16 30 zł/колесо (120 zł комплект) … R21–R24 50 zł (200 zł)."),
           includes: [
             L("Wyważanie na maszynie", "Балансировка на станке", "Machine balancing", "Балансування на станке"),
             L("Kontrola ciężarków", "Проверка грузиков", "Weight check", "Проверка грузиков"),
@@ -511,10 +511,10 @@ export const EXTRA_SEO_SERVICE_PROFILES_BATCH2: Record<string, SlugLandingProfil
     contentServiceId: "tires",
     faqDuration: L("Naprawa przebicia zwykle ok. 30–60 minut — jeśli opona nadaje się do naprawy.", "Ремонт прокола обычно 30–60 минут.", "Puncture repair usually about 30–60 minutes if the tyre can be repaired safely.", "Ремонт прокола зазвичай 30–60 минут."),
     price: {
-          fromZl: getPriceItem("puncture_repair")?.basePrice ?? 80,
+          fromZl: getPriceItem("puncture_repair")?.basePrice ?? 70,
           priceFrom: true,
           materialsExtra: false,
-          note: L("Naprawa przebicia — cena „od” według cennika. Boczne uszkodzenia często wykluczają naprawę — wtedy proponujemy wymianę opony.", "Ремонт прокола — цена «от» по прайсу. Боковые повреждения часто не ремонтируются.", "Puncture repair from the price list. Sidewall damage often cannot be repaired — then we propose a new tyre.", "Ремонт прокола — ціна «от» по прайсу. Боковые повреждения часто не ремонтируются."),
+          note: L("Naprawa przebicia od 70 zł — w cenie: zdjęcie koła, demontaż opony, naprawa, montaż i wyważanie. Boczne uszkodzenia często wykluczają naprawę.", "Ремонт прокола от 70 zł — в цене снятие, демонтаж, ремонт, монтаж и балансировка.", "Puncture repair from 70 zł — includes wheel off, demount, repair, remount and balancing.", "Ремонт проколу від 70 zł — у ціні зняття, демонтаж, ремонт, монтаж і балансування."),
           includes: [
             L("Demontaż koła i opony", "Демонтаж колеса и шины", "Wheel and tyre removal", "Демонтаж коліса і шины"),
             L("Naprawa przebicia (gdy możliwa)", "Ремонт прокола при возможности", "Puncture repair when possible", "Ремонт прокола при возможнасти"),

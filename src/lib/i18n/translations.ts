@@ -111,7 +111,7 @@ const pl = {
       suspension: { title: "Zawieszenie gratis", price: "przy wymianie oleju" },
       filters: { title: "Filtry kabinowy i powietrza", price: "od 50 / 30 zł" },
       pads: { title: "Klocki hamulcowe przód", price: "100 zł robocizna" },
-      tires: { title: "Wymiana opon", price: "od 200 zł" },
+      tires: { title: "Wymiana opon", price: "od 150 zł" },
     },
   },
   hero: {
@@ -2180,7 +2180,7 @@ const ru: TranslationKeys = {
       suspension: { title: "Подвеска бесплатно", price: "при замене масла" },
       filters: { title: "Фильтры салона и воздуха", price: "от 50 / 30 zł" },
       pads: { title: "Колодки передние", price: "100 zł работа" },
-      tires: { title: "Замена шин", price: "от 200 zł" },
+      tires: { title: "Замена шин", price: "от 150 zł" },
     },
   },
   hero: {
@@ -4146,7 +4146,7 @@ const en: TranslationKeys = {
       suspension: { title: "Free suspension check", price: "with oil change" },
       filters: { title: "Cabin and air filters", price: "from 50 / 30 PLN" },
       pads: { title: "Front brake pads", price: "100 PLN labour" },
-      tires: { title: "Tire change", price: "from 200 PLN" },
+      tires: { title: "Tire change", price: "from 150 PLN" },
     },
   },
   priceList: {
@@ -5406,7 +5406,7 @@ const uk: TranslationKeys = {
       suspension: { title: "Підвіска безкоштовно", price: "при заміні оливи" },
       filters: { title: "Фільтри салону і повітря", price: "від 50 / 30 zł" },
       pads: { title: "Колодки передні", price: "100 zł робота" },
-      tires: { title: "Заміна шин", price: "від 200 zł" },
+      tires: { title: "Заміна шин", price: "від 150 zł" },
     },
   },
   homeLead: {

@@ -1262,51 +1262,65 @@ export function getServiceLandingPrice(
       };
     }
     if (serviceId === "tires") {
-      const steel1517 = getPriceItem("tire_change_steel_15_17");
-      const steel1820 = getPriceItem("tire_change_steel_18_20");
-      const cast1517 = getPriceItem("tire_change_cast_15_17");
-      const cast1820 = getPriceItem("tire_change_cast_18_20");
+      const sizes = [
+        "r13",
+        "r14",
+        "r15",
+        "r16",
+        "r17",
+        "r18",
+        "r19",
+        "r20",
+        "r21",
+        "r22",
+        "r23",
+        "r24",
+      ] as const;
+      const rows = sizes.map((size) => {
+        const item = getPriceItem(`tire_change_${size}`);
+        const label = size.toUpperCase();
+        return {
+          label: {
+            pl: `Wymiana opon komplet — ${label}`,
+            ru: `Замена шин комплект — ${label}`,
+            en: `Tyre change set — ${label}`,
+            uk: `Заміна шин комплект — ${label}`,
+          },
+          priceZl: item?.basePrice ?? 150,
+          priceFrom: false,
+        };
+      });
+      const fromItem = getPriceItem("tire_change_r13");
       return {
-        fromZl: steel1517?.basePrice ?? 136,
-        compareAtZl: steel1517?.listPrice,
+        fromZl: fromItem?.basePrice ?? 150,
         priceFrom: true,
         materialsExtra: false,
         includes: [
-          { pl: "Demontaż i montaż opon", ru: "Демонтаж и монтаж", en: "Dis-assembling and assembling the", uk: "Демонтаж та монтаж" },
-          { pl: "Wyważanie kół", ru: "Балансировка", en: "Wheel balancing", uk: "Балансування" },
-          { pl: "Kontrola ciśnienia", ru: "Проверка давления", en: "Pressure control-", uk: "- Перевірка реле тиску" },
-        ],
-        priceTable: [
           {
-            label: { pl: "Felgi stalowe R15–R17", ru: "Сталь R15–R17", en: "Steel rims R15–R17", uk: "Сталь R15–R17" },
-            priceZl: steel1517?.basePrice ?? 136,
-            compareAtZl: steel1517?.listPrice,
-            priceFrom: true,
+            pl: "Demontaż i montaż opon + wyważanie",
+            ru: "Демонтаж и монтаж шин + балансировка",
+            en: "Tyre demount/mount + balancing",
+            uk: "Демонтаж і монтаж шин + балансування",
           },
           {
-            label: { pl: "Felgi stalowe R18–R20", ru: "Сталь R18–R20", en: "Steel rims R18–R20", uk: "Сталь R18–R20" },
-            priceZl: steel1820?.basePrice ?? 170,
-            compareAtZl: steel1820?.listPrice,
-            priceFrom: true,
+            pl: "Czyszczenie piast, ciśnienie, klucz dynamometryczny",
+            ru: "Очистка ступиц, давление, динамометрический ключ",
+            en: "Hub cleaning, pressure, torque wrench",
+            uk: "Очищення маточин, тиск, динамометричний ключ",
           },
           {
-            label: { pl: "Felgi aluminiowe R15–R17", ru: "Литые R15–R17", en: "Alloy wheels R15–R17", uk: "Diecast R15–R17" },
-            priceZl: cast1517?.basePrice ?? 170,
-            compareAtZl: cast1517?.listPrice,
-            priceFrom: true,
-          },
-          {
-            label: { pl: "Felgi aluminiowe R18–R20", ru: "Литые R18–R20", en: "Alloy wheels R18–R20", uk: "Diecast R18–R20" },
-            priceZl: cast1820?.basePrice ?? 213,
-            compareAtZl: cast1820?.listPrice,
-            priceFrom: true,
+            pl: "Dopłata RunFlat / niski profil: +20 zł / koło",
+            ru: "Доплата RunFlat / низкий профиль: +20 zł / колесо",
+            en: "RunFlat / low-profile surcharge: +20 zł / wheel",
+            uk: "Доплата RunFlat / низький профіль: +20 zł / колесо",
           },
         ],
+        priceTable: rows,
         note: {
-          pl: "Ceny za kompleksową wymianę 4 kół — szczegóły na stronie Cennik.",
-          ru: "Цены за комплексную замену 4 колёс — подробности в прайсе.",
-          en: "Prices for a comprehensive replacement of 4 wheels — details on the Price List page.",
-          uk: "Ціни на комплексну заміну 4 коліс — детально в прайс-листі.",
+          pl: "Cena za komplet 4 kół. Przestawienie w komplecie, wyważanie bez wymiany i naprawa przebicia — w cenniku.",
+          ru: "Цена за комплект 4 колёс. Перестановка в сборе, балансировка без замены и ремонт прокола — в прайсе.",
+          en: "Price for a set of 4. Wheel rotation, balance-only and puncture repair — see the price list.",
+          uk: "Ціна за комплект 4 коліс. Перестановка у зборі, балансування без заміни та ремонт проколу — у прайсі.",
         },
       };
     }
