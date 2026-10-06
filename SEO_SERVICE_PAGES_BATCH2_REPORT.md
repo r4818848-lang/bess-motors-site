@@ -78,3 +78,10 @@ Redirect removed (now indexed page):
 - Indexable (no noindex)
 - All 39 present in `/sitemap.xml`
 - Spot-check: Open Graph title/description + BreadcrumbList/Service schema present
+
+
+## i18n (PL / RU / EN / UK)
+
+- Hero (H1, line1, line2, meta): `src/lib/seo-extra-service-i18n.ts` merged into `seo-landing-i18n.ts` for all 39 EXTRA pages.
+- Body (education, FAQ, price notes): `LocalizedText` now supports optional `en` / `uk`; `pickLocalized` selects by locale (en→en||pl, uk→uk||ru).
+- Batch 2 profiles include EN/UK body copy; batch 1 body uses UK (+ EN falls back to PL except shared “Why BESS MOTORS” block).

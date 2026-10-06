@@ -15,10 +15,16 @@ import {
   acPromoMetaTitleRu,
   acPromoMetaTitleUk,
 } from "@/lib/ac-recharge-promo-seo";
+import {
+  EXTRA_SEO_EN,
+  EXTRA_SEO_RU,
+  EXTRA_SEO_UK,
+} from "@/lib/seo-extra-service-i18n";
 
 type SeoText = Pick<SeoLandingPage, "title" | "line1" | "line2" | "metaTitle" | "metaDescription">;
 
 const SEO_RU: Partial<Record<string, SeoText>> = {
+  ...EXTRA_SEO_RU,
   diagnostyka: {
     title: "Компьютерная диагностика",
     line1: "Быстрая диагностика авто",
@@ -89,6 +95,7 @@ const SEO_RU: Partial<Record<string, SeoText>> = {
 };
 
 const SEO_UK: Partial<Record<string, SeoText>> = {
+  ...EXTRA_SEO_UK,
   klimatyzacja: {
     title: "Заправка кондиціонера без черги",
     line1: acPromoHeroLineUk(),
@@ -99,6 +106,7 @@ const SEO_UK: Partial<Record<string, SeoText>> = {
 };
 
 const SEO_EN: Partial<Record<string, SeoText>> = {
+  ...EXTRA_SEO_EN,
   diagnostyka: {
     title: "Computer Diagnostics",
     line1: "Fast car diagnostics",

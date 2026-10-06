@@ -3,7 +3,7 @@ import { getPriceItem } from "@/lib/price-list";
 import { serviceBasePriceId } from "@/lib/service-price-map";
 import { getSlugLandingProfile } from "@/lib/seo-landing-slug-profiles";
 
-export type LocalizedText = { pl: string; ru: string };
+export type LocalizedText = { pl: string; ru: string; en?: string; uk?: string };
 
 export type ServiceLandingStep = {
   title: LocalizedText;
