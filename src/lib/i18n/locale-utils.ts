@@ -17,18 +17,22 @@ export function pdfLocale(locale: Locale): "pl" | "ru" | "en" {
   return documentLocale(locale);
 }
 
-export function pickName<T extends { namePl: string; nameRu: string }>(
-  item: T,
-  locale: Locale
-): string {
-  return contentLocale(locale) === "ru" ? item.nameRu : item.namePl;
+export function pickName<
+  T extends { namePl: string; nameRu: string; nameEn?: string; nameUk?: string },
+>(item: T, locale: Locale): string {
+  if (locale === "en") return item.nameEn || item.namePl;
+  if (locale === "uk") return item.nameUk || item.nameRu;
+  if (locale === "ru") return item.nameRu;
+  return item.namePl;
 }
 
-export function pickTitle<T extends { titlePl: string; titleRu: string }>(
-  block: T,
-  locale: Locale
-): string {
-  return contentLocale(locale) === "ru" ? block.titleRu : block.titlePl;
+export function pickTitle<
+  T extends { titlePl: string; titleRu: string; titleEn?: string; titleUk?: string },
+>(block: T, locale: Locale): string {
+  if (locale === "en") return block.titleEn || block.titlePl;
+  if (locale === "uk") return block.titleUk || block.titleRu;
+  if (locale === "ru") return block.titleRu;
+  return block.titlePl;
 }
 
 export function fillTemplate(
