@@ -1,4 +1,5 @@
 import { getSeoLandingPage, seoLandingPages } from "@/lib/seo-landing-pages";
+import { EXTRA_SEO_RELATED } from "@/lib/seo-extra-service-pages";
 
 export type RelatedLandingLink = {
   slug: string;
@@ -7,17 +8,30 @@ export type RelatedLandingLink = {
 
 /** Internal links for SEO — related services per landing slug */
 const RELATED_SLUGS: Record<string, string[]> = {
+  ...EXTRA_SEO_RELATED,
   diagnostyka: ["check-engine", "elektryka", "silnik", "wymiana-oleju", "hamulce"],
   zawieszenie: ["geometria", "hamulce", "opony", "diagnostyka", "silnik"],
   "wymiana-oleju": ["przeglad", "diagnostyka", "hamulce", "opony", "serwis-toyota"],
-  hamulce: ["zawieszenie", "geometria", "diagnostyka", "opony", "przeglad"],
+  hamulce: [
+    "hamulce-warszawa",
+    "wymiana-klockow-hamulcowych-warszawa",
+    "wymiana-tarcz-hamulcowych-warszawa",
+    "wymiana-plynu-hamulcowego-warszawa",
+    "zawieszenie",
+  ],
   klimatyzacja: ["naprawa-klimatyzacji", "diagnostyka", "elektryka", "przeglad", "wymiana-oleju"],
   "naprawa-klimatyzacji": ["klimatyzacja", "diagnostyka", "elektryka", "przeglad", "wymiana-oleju"],
   geometria: ["zawieszenie", "opony", "hamulce", "diagnostyka", "wymiana-oleju"],
   silnik: ["diagnostyka", "check-engine", "wymiana-oleju", "elektryka", "zawieszenie"],
   elektryka: ["diagnostyka", "check-engine", "klimatyzacja", "silnik", "bmw"],
   przeglad: ["wymiana-oleju", "hamulce", "diagnostyka", "geometria", "opony"],
-  opony: ["geometria", "zawieszenie", "hamulce", "wymiana-oleju", "przeglad"],
+  opony: [
+    "wulkanizacja-warszawa",
+    "wymiana-opon-warszawa",
+    "wywazanie-kol-warszawa",
+    "naprawa-opon-warszawa",
+    "geometria",
+  ],
   bmw: ["diagnostyka", "wymiana-oleju", "hamulce", "chip-tuning-warszawa", "serwis-audi"],
   mercedes: ["diagnostyka", "wymiana-oleju", "klimatyzacja", "hamulce", "vag"],
   vag: ["serwis-audi", "diagnostyka", "wymiana-oleju", "geometria", "chip-tuning-warszawa"],

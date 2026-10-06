@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Calendar, ChevronRight, MapPin, Phone } from "lucide-react";
+import { Calendar, ChevronRight, MapPin, Phone, FileSearch } from "lucide-react";
 import type { SeoLandingPage } from "@/lib/seo-landing-pages";
 import type { ServiceId } from "@/lib/services-catalog";
 import { siteConfig } from "@/lib/site";
@@ -28,6 +28,8 @@ import { ServiceLandingReviews } from "@/components/seo/landing/ServiceLandingRe
 import { ServiceLandingPackageOffer } from "@/components/seo/landing/ServiceLandingPackageOffer";
 import { SeoLandingRelatedLinks } from "@/components/seo/landing/SeoLandingRelatedLinks";
 import { AcPromoAccentPills } from "@/components/home/AcPromoAccentPills";
+import { SeoLandingBreadcrumbs } from "@/components/seo/SeoLandingBreadcrumbs";
+import { WhyBessMotors } from "@/components/home/WhyBessMotors";
 import {
   resolveLandingBookServiceId,
   resolveLandingContentServiceId,
@@ -35,6 +37,7 @@ import {
 import { isBrandSeoLandingSlug } from "@/lib/seo-brand-slugs";
 import { CallbackRequestCta } from "@/components/callback/CallbackRequestCta";
 import { isCallbackLandingSlug } from "@/lib/callback-landing-slugs";
+import { EXTRA_SEO_SERVICE_PAGES } from "@/lib/seo-extra-service-pages";
 
 type Props = {
   page: SeoLandingPage;
@@ -81,10 +84,14 @@ export function SeoLandingPageView({ page }: Props) {
       ? pageLoc.title
       : `${pageLoc.title} — Warszawa`;
 
+  const isExtraSeoPage = EXTRA_SEO_SERVICE_PAGES.some((p) => p.slug === page.slug);
+
   return (
     <>
       <div className="pt-28 pb-28 min-h-[70vh]">
         <div className="mx-auto max-w-5xl px-4 lg:px-8">
+          <SeoLandingBreadcrumbs serviceTitle={pageLoc.title} serviceHref={`/${page.slug}`} />
+
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
@@ -176,7 +183,26 @@ export function SeoLandingPageView({ page }: Props) {
               <Phone size={18} />
               {t.stickyBar.call}
             </PhoneLink>
+            <Link
+              href="/#wyceń-po-vin"
+              className="btn-outline inline-flex justify-center items-center gap-2"
+            >
+              <FileSearch size={18} />
+              {t.hero.ctaVin}
+            </Link>
           </div>
+
+          <p className="mt-4 text-center text-sm text-bm-muted">
+            <Link href="/contacts" className="hover:text-bm-red transition-colors">
+              {t.nav.contacts}
+            </Link>
+            {" · "}
+            <Link href="/cennik" className="hover:text-bm-red transition-colors">
+              {t.nav.priceList}
+            </Link>
+            {" · "}
+            {siteConfig.address}
+          </p>
 
           {isCallbackLandingSlug(page.slug) ? (
             <CallbackRequestCta
@@ -214,6 +240,11 @@ export function SeoLandingPageView({ page }: Props) {
               <ServiceLandingPhotos serviceId={contentServiceId} slug={page.slug} />
               <ServiceLandingMap slug={page.slug} />
               <SeoLandingRelatedLinks slug={page.slug} />
+              {isExtraSeoPage ? (
+                <div className="mt-12">
+                  <WhyBessMotors />
+                </div>
+              ) : null}
               <ServiceLandingBottomCta
                 slug={page.slug}
                 serviceId={bookServiceId ?? contentServiceId}
@@ -223,6 +254,11 @@ export function SeoLandingPageView({ page }: Props) {
           ) : (
             <>
               <ServiceLandingMap slug={page.slug} />
+              {isExtraSeoPage ? (
+                <div className="mt-12">
+                  <WhyBessMotors />
+                </div>
+              ) : null}
               <ServiceLandingBottomCta slug={page.slug} />
             </>
           )}

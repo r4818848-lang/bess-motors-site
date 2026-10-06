@@ -47,7 +47,24 @@ export function ServiceLandingBottomCta({ slug, serviceId, onBook }: Props) {
           <Phone size={18} />
           {t.stickyBar.call}
         </PhoneLink>
+        <Link
+          href="/#wyceń-po-vin"
+          className="btn-outline inline-flex justify-center items-center gap-2"
+        >
+          {t.hero.ctaVin}
+        </Link>
       </div>
+      <p className="mt-4 text-sm text-bm-muted">
+        <Link href="/contacts" className="hover:text-bm-red transition-colors">
+          {t.nav.contacts}
+        </Link>
+        {" · "}
+        <Link href="/cennik" className="hover:text-bm-red transition-colors">
+          {t.nav.priceList}
+        </Link>
+        {" · "}
+        {siteConfig.address} · {siteConfig.phone}
+      </p>
       <div className="mt-4 flex flex-wrap justify-center gap-3">
         <SocialContactLink
           kind="whatsapp"

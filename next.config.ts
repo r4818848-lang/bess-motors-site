@@ -40,7 +40,8 @@ const nextConfig: NextConfig = {
       { source: "/nabijanie-klimatyzacji-warszawa", destination: "/klimatyzacja", permanent: true },
       { source: "/zaprawa-klimatyzacji", destination: "/klimatyzacja", permanent: true },
       { source: "/wulkanizacja", destination: "/opony", permanent: true },
-      { source: "/wulkanizacja-warszawa", destination: "/opony", permanent: true },
+      // /wulkanizacja-warszawa is an indexed SEO landing (not a redirect)
+
       { source: "/chip-tuning", destination: "/chip-tuning-warszawa", permanent: true },
       { source: "/tuning", destination: "/chip-tuning-warszawa", permanent: true },
       { source: "/serwis-samochodowy", destination: "/", permanent: true },
@@ -59,8 +60,7 @@ const nextConfig: NextConfig = {
       { source: "/cennik-uslug", destination: "/cennik", permanent: true },
       { source: "/zapis-online", destination: "/booking", permanent: true },
       { source: "/olej", destination: "/wymiana-oleju", permanent: true },
-      { source: "/wymiana-oleju-warszawa", destination: "/wymiana-oleju", permanent: true },
-      { source: "/hamulce-warszawa", destination: "/hamulce", permanent: true },
+      // /wymiana-oleju-warszawa and /hamulce-warszawa are indexed SEO landings (not redirects)
       { source: "/klocki-warszawa", destination: "/hamulce", permanent: true },
       { source: "/login", destination: "/crm/login", permanent: false },
       { source: "/logowanie", destination: "/crm/login", permanent: false },

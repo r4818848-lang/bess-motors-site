@@ -11,6 +11,8 @@ export type ServicePackage = {
   priceItemIds: string[];
   namePl: string;
   nameRu: string;
+  nameEn?: string;
+  nameUk?: string;
   /** Discounted package price (PLN) */
   packagePricePln: number;
   /** Promo valid until (ISO date) */
@@ -31,6 +33,8 @@ export const servicePackages: ServicePackage[] = [
     priceItemIds: ["oil_filter", "air_filter"],
     namePl: "Pakiet TO — olej + filtry",
     nameRu: "Пакет ТО — масло + фильтры",
+    nameEn: "Service package — oil + filters",
+    nameUk: "Пакет ТО — олива + фільтри",
     packagePricePln: 180,
     validUntil: "2026-12-31",
   },
@@ -40,6 +44,8 @@ export const servicePackages: ServicePackage[] = [
     priceItemIds: ["tire_change_cast_15_17", "computer_diag"],
     namePl: "Pakiet zimowy — opony + diagnostyka",
     nameRu: "Зимний пакет — шины + диагностика",
+    nameEn: "Winter package — tires + diagnostics",
+    nameUk: "Зимовий пакет — шини + діагностика",
     packagePricePln: 320,
     validUntil: "2026-12-31",
   },
@@ -49,6 +55,8 @@ export const servicePackages: ServicePackage[] = [
     priceItemIds: ["ac_diag", "ac_r134a", "ac_clean"],
     namePl: "Pakiet letni — klima + odgrzybianie",
     nameRu: "Летний пакет — кондиционер + антигрибок",
+    nameEn: "Summer package — A/C + antibacterial treatment",
+    nameUk: "Літній пакет — кондиціонер + антигрибок",
     packagePricePln: 349,
     validUntil: "2026-08-31",
   },
@@ -58,6 +66,8 @@ export const servicePackages: ServicePackage[] = [
     priceItemIds: ["brake_diag", "brake_pads_front"],
     namePl: "Pakiet hamulcowy — przegląd + klocki",
     nameRu: "Тормозной пакет — проверка + колодки",
+    nameEn: "Brake package — inspection + pads",
+    nameUk: "Гальмівний пакет — перевірка + колодки",
     packagePricePln: 200,
     validUntil: "2026-12-31",
   },

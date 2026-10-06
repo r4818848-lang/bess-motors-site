@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useI18n } from "@/lib/i18n/context";
-import { contentLocale } from "@/lib/i18n/locale-utils";
+import { pickName } from "@/lib/i18n/locale-utils";
 import {
   buildPackageBookingUrl,
   packageRegularTotal,
@@ -14,7 +14,6 @@ import { formatPln } from "@/lib/booking-cart";
 export function ServicePackagesSection() {
   const { locale, t } = useI18n();
   const p = t.servicePackages;
-  const useRu = contentLocale(locale) === "ru";
 
   return (
     <section className="mt-12 space-y-4">
@@ -25,7 +24,7 @@ export function ServicePackagesSection() {
           const savings = regular - pkg.packagePricePln;
           return (
             <div key={pkg.id} className="glass-red rounded-xl p-5 neon-border">
-              <h3 className="font-bold">{useRu ? pkg.nameRu : pkg.namePl}</h3>
+              <h3 className="font-bold">{pickName(pkg, locale)}</h3>
               <p className="text-xs text-bm-muted mt-2">
                 {pkg.priceItemIds.length} {p.servicesCount}
               </p>

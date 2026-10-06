@@ -15,10 +15,22 @@ import {
   acPromoMetaTitleRu,
   acPromoMetaTitleUk,
 } from "@/lib/ac-recharge-promo-seo";
+import {
+  EXTRA_SEO_EN,
+  EXTRA_SEO_RU,
+  EXTRA_SEO_UK,
+} from "@/lib/seo-extra-service-i18n";
+import {
+  CORE_SEO_EN,
+  CORE_SEO_RU,
+  CORE_SEO_UK,
+} from "@/lib/seo-core-landing-i18n";
 
 type SeoText = Pick<SeoLandingPage, "title" | "line1" | "line2" | "metaTitle" | "metaDescription">;
 
 const SEO_RU: Partial<Record<string, SeoText>> = {
+  ...CORE_SEO_RU,
+  ...EXTRA_SEO_RU,
   diagnostyka: {
     title: "Компьютерная диагностика",
     line1: "Быстрая диагностика авто",
@@ -89,6 +101,30 @@ const SEO_RU: Partial<Record<string, SeoText>> = {
 };
 
 const SEO_UK: Partial<Record<string, SeoText>> = {
+  ...CORE_SEO_UK,
+  ...EXTRA_SEO_UK,
+  diagnostyka: {
+    title: "Комп’ютерна діагностика",
+    line1: "Швидка діагностика авто",
+    line2: "Точне виявлення несправностей",
+    metaTitle: "Комп’ютерна діагностика Варшава",
+    metaDescription:
+      "Комп’ютерна діагностика в BESS MOTORS — швидко і точно. Помилки двигуна, електрика. Варшава, Aleja Krakowska.",
+  },
+  "wymiana-oleju": {
+    title: "Заміна оливи",
+    line1: "Олива та фільтри за 1 годину",
+    line2: "Витратники OEM/OES",
+    metaTitle: "Заміна оливи Варшава",
+    metaDescription: "Заміна оливи та фільтрів у BESS MOTORS — швидко, якісно. Сервіс Варшава.",
+  },
+  hamulce: {
+    title: "Гальмівна система",
+    line1: "Колодки, диски, супорти",
+    line2: "Безпека на дорозі",
+    metaTitle: "Сервіс гальм Варшава",
+    metaDescription: "Ремонт гальм — колодки, диски. BESS MOTORS Варшава.",
+  },
   klimatyzacja: {
     title: "Заправка кондиціонера без черги",
     line1: acPromoHeroLineUk(),
@@ -96,9 +132,25 @@ const SEO_UK: Partial<Record<string, SeoText>> = {
     metaTitle: acPromoMetaTitleUk(),
     metaDescription: acPromoMetaDescriptionUk(),
   },
+  zawieszenie: {
+    title: "Ремонт підвіски",
+    line1: "Стуки та люфт у підвісці?",
+    line2: "Професійний сервіс Варшава",
+    metaTitle: "Ремонт підвіски Варшава",
+    metaDescription: "Ремонт підвіски — амортизатори, важелі, стуки. BESS MOTORS.",
+  },
+  "check-engine": {
+    title: "Check Engine — діагностика",
+    line1: "Горить лампа Check Engine?",
+    line2: "Комп’ютерна діагностика",
+    metaTitle: "Check Engine Варшава — BESS MOTORS",
+    metaDescription: "Діагностика Check Engine — зчитування помилок, ремонт. BESS MOTORS.",
+  },
 };
 
 const SEO_EN: Partial<Record<string, SeoText>> = {
+  ...CORE_SEO_EN,
+  ...EXTRA_SEO_EN,
   diagnostyka: {
     title: "Computer Diagnostics",
     line1: "Fast car diagnostics",

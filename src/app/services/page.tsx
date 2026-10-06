@@ -16,6 +16,8 @@ import { CallbackRequestCta } from "@/components/callback/CallbackRequestCta";
 import { createCallRequest } from "@/lib/booking-actions";
 import { normalizePhone } from "@/lib/auth";
 import { saveSubmissionSnapshot, THANK_YOU_PATH } from "@/lib/submission-thank-you";
+import { EXTRA_SEO_SERVICE_PAGES } from "@/lib/seo-extra-service-pages";
+import { ChevronRight } from "lucide-react";
 
 export default function ServicesPage() {
   const router = useRouter();
@@ -85,6 +87,22 @@ export default function ServicesPage() {
           </div>
 
           <section className="mt-16">
+            <h2 className="font-display text-xl uppercase tracking-wide mb-6 text-bm-red">
+              Usługi — Warszawa
+            </h2>
+            <ul className="grid sm:grid-cols-2 gap-3 mb-12">
+              {EXTRA_SEO_SERVICE_PAGES.map((page) => (
+                <li key={page.slug}>
+                  <Link
+                    href={`/${page.slug}`}
+                    className="flex items-center justify-between gap-3 rounded-xl border border-bm-border/50 bg-bm-card/40 px-4 py-3 text-sm hover:border-bm-red/40 transition-colors"
+                  >
+                    <span className="font-medium">{page.title.replace(" – BESS MOTORS", "")}</span>
+                    <ChevronRight size={16} className="text-bm-red shrink-0" aria-hidden />
+                  </Link>
+                </li>
+              ))}
+            </ul>
             <h2 className="font-display text-xl uppercase tracking-wide mb-8 text-bm-red">
               {t.sections.popularServices}
             </h2>

@@ -104,7 +104,7 @@ export function FullPriceListView() {
             onClick={() => scrollToCategory(cat.id)}
             className="px-3 py-2 rounded-full text-[11px] font-bold uppercase tracking-wide border border-bm-border text-bm-muted hover:text-white hover:border-bm-red/40 transition-all"
           >
-            {contentLoc === "ru" ? cat.nameRu : cat.namePl}
+            {pickName(cat, locale)}
           </button>
         ))}
       </div>
@@ -124,7 +124,7 @@ export function FullPriceListView() {
             >
               <div className="bg-bm-card/80 px-4 py-3 border-b border-bm-border/60">
                 <h2 className="font-display text-lg uppercase text-bm-red">
-                  {contentLoc === "ru" ? cat.nameRu : cat.namePl}
+                  {pickName(cat, locale)}
                 </h2>
               </div>
               <ul className="divide-y divide-bm-border/40">
@@ -156,7 +156,15 @@ export function FullPriceListView() {
           {priceListFooterNotes.map((note) => (
             <li key={note.pl} className="flex gap-2">
               <span className="text-bm-red shrink-0">•</span>
-              <span>{contentLoc === "ru" ? note.ru : note.pl}</span>
+              <span>
+                {locale === "en"
+                  ? note.en || note.pl
+                  : locale === "uk"
+                    ? note.uk || note.ru
+                    : locale === "ru"
+                      ? note.ru
+                      : note.pl}
+              </span>
             </li>
           ))}
         </ul>
