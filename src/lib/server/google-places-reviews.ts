@@ -421,18 +421,21 @@ export async function fetchGooglePlaceReviews(
       return fromNew;
     }
 
-    const failed: GooglePlaceReviewsPayload = fromLegacy ??
-      fromNew ?? {
-        source: "unconfigured",
-        status: "places_api_error",
-        reviews: [],
-      };
+    const details = [fromNew?.detail, fromLegacy?.detail]
+      .filter(Boolean)
+      .join(" | ");
+    const failed: GooglePlaceReviewsPayload = {
+      source: "unconfigured",
+      status:
+        fromNew?.status === "places_api_denied" ||
+        fromLegacy?.status === "places_api_denied"
+          ? "places_api_denied"
+          : fromLegacy?.status ?? fromNew?.status ?? "places_api_error",
+      detail: details || fromLegacy?.detail || fromNew?.detail,
+      reviews: [],
+    };
 
-    // Don't cache hard failures for long — allow quick recovery after key fix
-    cacheByLang.set(lang, {
-      at: Date.now() - CACHE_MS + 5 * 60 * 1000,
-      data: failed,
-    });
+    // Do not cache denials — key/billing/CDN recovery must be immediate
     return failed;
   } catch (e) {
     console.warn("[google-reviews] fetch failed", e);
