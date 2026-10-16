@@ -114,11 +114,12 @@ export function getEnvHealth(): { ok: boolean; checks: EnvCheck[] } {
     },
     {
       id: "google_places",
+      // Presence only — /api/health probes live API asynchronously and overwrites this row.
       ok: Boolean(
         cleanEnvValue(process.env.GOOGLE_PLACES_API_KEY) ||
           cleanEnvValue(process.env.GOOGLE_MAPS_API_KEY)
       ),
-      hint: "GOOGLE_PLACES_API_KEY + Places API (New) enabled — live Google reviews on site",
+      hint: "GOOGLE_PLACES_API_KEY (+ optional GOOGLE_PLACE_ID) — live Google reviews",
     },
     {
       id: "marketing_ga4",
