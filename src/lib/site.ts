@@ -52,7 +52,9 @@ export const siteConfig = {
    * Optional: set NEXT_PUBLIC_GOOGLE_PLACE_ID (ChIJ…) in Vercel for write-review deep link.
    * Find ID: Google Maps Place ID finder or Places API response.
    */
-  googlePlaceId: process.env.NEXT_PUBLIC_GOOGLE_PLACE_ID?.trim() || "",
+  googlePlaceId:
+    process.env.NEXT_PUBLIC_GOOGLE_PLACE_ID?.trim() ||
+    "ChIJvSA65iEzGUcRRa0Qw5noTmg",
 
   /** Ask clients to leave a review (uses place id when configured) */
   get googleWriteReviewUrl(): string {
