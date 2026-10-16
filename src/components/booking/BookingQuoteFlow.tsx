@@ -305,6 +305,7 @@ export function BookingQuoteFlow({ onDone }: Props) {
   const [clientPhone, setClientPhone] = useState("");
   const [clientEmail, setClientEmail] = useState("");
   const [vehicleNote, setVehicleNote] = useState("");
+  const [clientVin, setClientVin] = useState("");
   const [clientPlate, setClientPlate] = useState("");
   const [submitError, setSubmitError] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -424,6 +425,7 @@ export function BookingQuoteFlow({ onDone }: Props) {
           >
             <div>
               <BookingVinLookup
+                onVinChange={setClientVin}
                 onDecoded={(info) => {
                   const label = [info.make, info.model, info.year].filter(Boolean).join(" ");
                   setVehicleNote(label);
@@ -562,6 +564,8 @@ export function BookingQuoteFlow({ onDone }: Props) {
               serviceLabel={cart.map((l) => l.label).join(", ")}
               cartLines={cart}
               estimatedTotal={total}
+              clientVin={clientVin}
+              vehicleLabel={vehicleNote}
               trackSource="booking_page"
               onDone={() => onDone?.()}
             />

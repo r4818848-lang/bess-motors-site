@@ -6,21 +6,32 @@ import { useI18n } from "@/lib/i18n/context";
 import { decodeVin } from "@/lib/vin";
 
 type Props = {
+  /** Always called with the current 17-char VIN (or "" when cleared). */
+  onVinChange: (vin: string) => void;
   onDecoded: (info: { make: string; model: string; year: string }) => void;
 };
 
-export function BookingVinLookup({ onDecoded }: Props) {
+export function BookingVinLookup({ onVinChange, onDecoded }: Props) {
   const { t } = useI18n();
   const v = t.bookingVin;
   const [vin, setVin] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "ok" | "err">("idle");
 
+  const setVinValue = (raw: string) => {
+    const next = raw.toUpperCase().replace(/[^A-HJ-NPR-Z0-9]/g, "").slice(0, 17);
+    setVin(next);
+    setStatus("idle");
+    onVinChange(next.length === 17 ? next : "");
+  };
+
   const run = async () => {
     const code = vin.trim().toUpperCase();
     if (code.length !== 17) {
       setStatus("err");
+      onVinChange("");
       return;
     }
+    onVinChange(code);
     setStatus("loading");
     try {
       const decoded = await decodeVin(code);
@@ -32,6 +43,7 @@ export function BookingVinLookup({ onDecoded }: Props) {
         });
         setStatus("ok");
       } else {
+        // VIN still kept for the workshop even if decode fails
         setStatus("err");
       }
     } catch {
@@ -51,10 +63,9 @@ export function BookingVinLookup({ onDecoded }: Props) {
           placeholder={v.placeholder}
           value={vin}
           maxLength={17}
-          onChange={(e) => {
-            setVin(e.target.value.toUpperCase());
-            setStatus("idle");
-          }}
+          autoComplete="off"
+          spellCheck={false}
+          onChange={(e) => setVinValue(e.target.value)}
         />
         <button type="button" className="btn-outline text-xs shrink-0" onClick={run}>
           {status === "loading" ? "…" : v.decode}
@@ -62,6 +73,9 @@ export function BookingVinLookup({ onDecoded }: Props) {
       </div>
       {status === "ok" && <p className="text-xs text-green-400 mt-2">{v.success}</p>}
       {status === "err" && <p className="text-xs text-bm-red mt-2">{v.error}</p>}
+      {vin.length === 17 && status !== "loading" && (
+        <p className="text-[10px] text-bm-muted mt-2 font-mono">VIN: {vin}</p>
+      )}
     </div>
   );
 }

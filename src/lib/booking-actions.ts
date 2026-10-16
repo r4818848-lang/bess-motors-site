@@ -27,6 +27,8 @@ export async function createCallRequest(params: {
   serviceId: string;
   serviceLabel: string;
   comment?: string;
+  vin?: string;
+  vehicleLabel?: string;
   source?: string;
 }): Promise<{ ok: boolean; cloudOk: boolean; error?: string }> {
   const phone = normalizePhone(params.phone);
@@ -44,6 +46,8 @@ export async function createCallRequest(params: {
         serviceId: params.serviceId,
         serviceLabel: params.serviceLabel,
         comment: params.comment,
+        vin: params.vin,
+        vehicleLabel: params.vehicleLabel,
         source: params.source,
       }),
     });
