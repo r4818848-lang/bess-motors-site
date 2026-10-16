@@ -31,6 +31,8 @@ export type GooglePlaceReviewsPayload = {
 export const BESS_MOTORS_GOOGLE_CID = "7516200575228226885";
 export const BESS_MOTORS_GOOGLE_FEATURE_ID = "0x0:0x684ee899c310ad45";
 export const BESS_MOTORS_MAPS_CID_URL = `https://www.google.com/maps?cid=${BESS_MOTORS_GOOGLE_CID}`;
+/** Places API Place ID (resolved live once billing was on) */
+export const BESS_MOTORS_GOOGLE_PLACE_ID = "ChIJvSA65iEzGUcRRa0Qw5noTmg";
 
 const CACHE_MS = 6 * 60 * 60 * 1000;
 const cacheByLang = new Map<string, { at: number; data: GooglePlaceReviewsPayload }>();
@@ -50,7 +52,7 @@ function configuredPlaceId(): string | null {
   const raw =
     process.env.GOOGLE_PLACE_ID?.trim() ||
     process.env.NEXT_PUBLIC_GOOGLE_PLACE_ID?.trim() ||
-    null;
+    BESS_MOTORS_GOOGLE_PLACE_ID;
   if (!raw) return null;
   return raw.replace(/^places\//, "");
 }
