@@ -48,8 +48,16 @@ export function CallRequestsPanel({ onUpdate }: { onUpdate?: () => void }) {
                 {formatDisplayDateTime(r.createdAt)} · {c.callStatus[r.status]}
               </p>
               {r.comment && (
-                <p className="text-xs text-bm-muted mt-2 italic">{r.comment}</p>
+                <p className="text-xs text-bm-muted mt-2 italic whitespace-pre-wrap break-words">
+                  {r.comment}
+                </p>
               )}
+              {(() => {
+                const m = r.comment?.match(/\bVIN:\s*([A-HJ-NPR-Z0-9]{17})\b/i);
+                return m ? (
+                  <p className="mt-2 text-sm font-mono font-bold text-bm-red">VIN: {m[1].toUpperCase()}</p>
+                ) : null;
+              })()}
             </div>
             {r.status === "needs_call" && (
               <Button

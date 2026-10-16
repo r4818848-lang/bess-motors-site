@@ -40,6 +40,11 @@ export function VinQuoteForm() {
       setError(v.errorPhone);
       return;
     }
+    const vinCode = vin.replace(/\s/g, "").toUpperCase();
+    if (vinCode.length !== 17) {
+      setError(v.errorVin);
+      return;
+    }
     if (sending) return;
     setSending(true);
     setError("");
@@ -47,7 +52,7 @@ export function VinQuoteForm() {
     const vehicle = [brand.trim(), model.trim(), year.trim()].filter(Boolean).join(" ");
     const parts = [
       "Wyceń po VIN",
-      vin.trim() ? `VIN: ${vin.trim().toUpperCase()}` : null,
+      `VIN: ${vinCode}`,
       vehicle ? `Pojazd: ${vehicle}` : null,
       mileage.trim() ? `Przebieg: ${mileage.trim()}` : null,
       `Kontakt: ${preferred === "whatsapp" ? "WhatsApp" : "Telefon"}`,
@@ -61,6 +66,8 @@ export function VinQuoteForm() {
       serviceId: "diagnostic",
       serviceLabel: "Wyceń po VIN",
       comment: parts.join("\n"),
+      vin: vinCode,
+      vehicleLabel: vehicle || undefined,
       source: "vin_quote",
     });
     setSending(false);
@@ -138,15 +145,20 @@ export function VinQuoteForm() {
 
           <div>
             <label htmlFor="vin-code" className="block text-xs font-semibold text-bm-silver mb-1.5">
-              {v.vin}
+              {v.vin} *
             </label>
             <input
               id="vin-code"
-              className="w-full rounded-lg border border-bm-border/60 bg-white px-4 py-3 min-h-[44px] text-neutral-900 placeholder:text-neutral-500 outline-none focus:border-bm-red uppercase tracking-wider"
+              required
+              className="w-full rounded-lg border border-bm-border/60 bg-white px-4 py-3 min-h-[44px] text-neutral-900 placeholder:text-neutral-500 outline-none focus:border-bm-red uppercase tracking-wider font-mono"
               placeholder={v.vinPlaceholder}
               value={vin}
               maxLength={17}
-              onChange={(e) => setVin(e.target.value)}
+              autoComplete="off"
+              spellCheck={false}
+              onChange={(e) =>
+                setVin(e.target.value.toUpperCase().replace(/[^A-HJ-NPR-Z0-9]/g, "").slice(0, 17))
+              }
             />
           </div>
 

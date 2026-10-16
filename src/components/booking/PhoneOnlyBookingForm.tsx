@@ -24,6 +24,10 @@ type Props = {
   serviceLabel: string;
   cartLines?: CartLine[];
   estimatedTotal?: number;
+  /** 17-char VIN from booking form — must reach workshop Telegram/CRM */
+  clientVin?: string;
+  /** Decoded vehicle label (make/model/year) */
+  vehicleLabel?: string;
   title?: string;
   subtitle?: string;
   submitLabel?: string;
@@ -38,6 +42,8 @@ export function PhoneOnlyBookingForm({
   serviceLabel,
   cartLines = [],
   estimatedTotal,
+  clientVin = "",
+  vehicleLabel = "",
   title,
   subtitle,
   submitLabel,
@@ -70,8 +76,12 @@ export function PhoneOnlyBookingForm({
       .map((l) => `${l.label}: ${l.isFree ? bq.free : formatPln(l.lineTotal)}`)
       .join("; ");
     const promoNote = oilBrakePromoBookingNote(cartLines.map((l) => l.itemId));
+    const vin = clientVin.trim().toUpperCase();
+    const vehicle = vehicleLabel.trim();
     const comment = [
       q.phoneOnlyNote,
+      vin.length === 17 ? `VIN: ${vin}` : null,
+      vehicle ? `Auto: ${vehicle}` : null,
       promoNote,
       cartLines.length ? `[${bq.grandTotal}: ${formatPln(estimatedTotal ?? 0)}]` : "",
       breakdown,
@@ -89,6 +99,8 @@ export function PhoneOnlyBookingForm({
         serviceId,
         serviceLabel,
         comment,
+        vin: vin.length === 17 ? vin : undefined,
+        vehicleLabel: vehicle || undefined,
         source: "phone_only_booking",
       });
       if (!result.ok) {
@@ -130,6 +142,14 @@ export function PhoneOnlyBookingForm({
           {subtitle ?? q.phoneOnlySubtitle}
         </p>
         <p className="mt-3 text-sm font-semibold text-bm-silver">{serviceLabel}</p>
+        {clientVin.trim().length === 17 ? (
+          <p className="mt-2 text-xs font-mono text-bm-muted">
+            VIN: <span className="text-white">{clientVin.trim().toUpperCase()}</span>
+            {vehicleLabel.trim() ? (
+              <span className="text-bm-silver"> · {vehicleLabel.trim()}</span>
+            ) : null}
+          </p>
+        ) : null}
         {cartLines.length > 0 && estimatedTotal != null ? (
           <p className="text-xs text-bm-muted mt-1">
             {bq.total}:{" "}
