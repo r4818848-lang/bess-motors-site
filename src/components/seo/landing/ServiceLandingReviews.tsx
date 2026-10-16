@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ExternalLink } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
+import { contentLocale } from "@/lib/i18n/locale-utils";
 import { siteConfig } from "@/lib/site";
 import type { ServiceId } from "@/lib/services-catalog";
 import type { GooglePlaceReviewsPayload } from "@/lib/server/google-places-reviews";
@@ -31,9 +32,10 @@ const SERVICE_REVIEW_TAG: Partial<Record<ServiceId, ReviewTag>> = {
 };
 
 export function ServiceLandingReviews({ serviceId }: { serviceId?: ServiceId }) {
-  const { t } = useI18n();
+  const { locale, t } = useI18n();
   const sl = t.serviceLanding;
   const gr = t.googleReviewsBlock;
+  const lang = contentLocale(locale);
   const [apiReviews, setApiReviews] = useState<ApiRating[]>([]);
   const [google, setGoogle] = useState<GooglePlaceReviewsPayload | null>(null);
 
@@ -42,11 +44,11 @@ export function ServiceLandingReviews({ serviceId }: { serviceId?: ServiceId }) 
       .then((r) => r.json())
       .then((data: { ratings?: ApiRating[] }) => setApiReviews(data.ratings ?? []))
       .catch(() => setApiReviews([]));
-    fetch("/api/google-reviews?lang=pl")
+    fetch(`/api/google-reviews?lang=${lang}`)
       .then((r) => r.json())
       .then((payload: GooglePlaceReviewsPayload) => setGoogle(payload))
       .catch(() => setGoogle({ source: "unconfigured", reviews: [] }));
-  }, []);
+  }, [lang]);
 
   const tag = serviceId ? SERVICE_REVIEW_TAG[serviceId] : undefined;
 

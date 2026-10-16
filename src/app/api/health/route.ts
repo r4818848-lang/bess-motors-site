@@ -5,10 +5,31 @@ import { GOOGLE_ADS_ID, googleAdsBookingConversionSendTo } from "@/lib/google-ad
 import { META_PIXEL_ID } from "@/lib/meta-pixel";
 import { YANDEX_METRIKA_ID, isYandexMetrikaEnabled } from "@/lib/yandex-metrika";
 import { getPromoRules } from "@/lib/promo-codes";
+import { probeGooglePlacesConfigured } from "@/lib/server/google-places-reviews";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   const health = getEnvHealth();
+  const googleProbe = await probeGooglePlacesConfigured();
+  const checks = health.checks.map((ch) =>
+    ch.id === "google_places"
+      ? {
+          ...ch,
+          ok: googleProbe.ok,
+          hint: googleProbe.hint,
+          debug: {
+            status: googleProbe.status ?? null,
+            detail: googleProbe.detail ?? null,
+            placeIdConfigured: Boolean(
+              cleanEnvValue(process.env.GOOGLE_PLACE_ID) ||
+                cleanEnvValue(process.env.NEXT_PUBLIC_GOOGLE_PLACE_ID)
+            ),
+          },
+        }
+      : ch
+  );
+  const ok = checks.every((c) => c.ok);
+
   const marketing = {
     gtm: cleanEnvValue(process.env.NEXT_PUBLIC_GTM_ID) || "GTM-NVKV27L8",
     googleAds: GOOGLE_ADS_ID,
@@ -19,11 +40,11 @@ export async function GET() {
     promoCodes: getPromoRules().map((p) => p.code),
   };
   return NextResponse.json({
-    ok: health.ok,
+    ok,
     ts: new Date().toISOString(),
     cloud: isSupabaseConfigured(),
-    vapid: health.checks.find((c) => c.id === "vapid")?.ok ?? false,
+    vapid: checks.find((c) => c.id === "vapid")?.ok ?? false,
     marketing,
-    checks: health.checks,
+    checks,
   });
 }

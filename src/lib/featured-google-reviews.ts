@@ -13,6 +13,7 @@ export type FeaturedGoogleReview = {
   photos?: string[];
 };
 
+/** Maps feature id for BESS MOTORS (same as CID 7516200575228226885) */
 const PLACE = "0x0:0x684ee899c310ad45";
 
 function mapsReviewUrl(reviewId: string): string {
