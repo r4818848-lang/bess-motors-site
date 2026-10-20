@@ -5,8 +5,8 @@ import { useI18n } from "@/lib/i18n/context";
 import { pickName } from "@/lib/i18n/locale-utils";
 import {
   buildPackageBookingUrl,
+  getPublicServicePackages,
   packageRegularTotal,
-  servicePackages,
 } from "@/lib/service-packages";
 import { BookingLink } from "@/components/analytics/BookingLink";
 import { formatPln } from "@/lib/booking-cart";
@@ -14,12 +14,15 @@ import { formatPln } from "@/lib/booking-cart";
 export function ServicePackagesSection() {
   const { locale, t } = useI18n();
   const p = t.servicePackages;
+  const packages = getPublicServicePackages();
+
+  if (packages.length === 0) return null;
 
   return (
     <section className="mt-12 space-y-4">
       <h2 className="font-display text-xl uppercase text-glow">{p.title}</h2>
       <div className="grid sm:grid-cols-3 gap-4">
-        {servicePackages.map((pkg) => {
+        {packages.map((pkg) => {
           const regular = packageRegularTotal(pkg);
           const savings = regular - pkg.packagePricePln;
           return (

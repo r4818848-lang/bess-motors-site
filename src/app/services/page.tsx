@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { ServiceIcon } from "@/components/icons/ServiceIcon";
 import { useI18n } from "@/lib/i18n/context";
-import { popularServices, type ServiceId } from "@/lib/services-catalog";
+import { publicPopularServices, type ServiceId } from "@/lib/services-catalog";
 import { serviceLandingHref } from "@/lib/service-slug-map";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -107,7 +107,7 @@ export default function ServicesPage() {
               {t.sections.popularServices}
             </h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-              {popularServices.map((cat, i) => {
+              {publicPopularServices.map((cat, i) => {
                 const label = t.serviceItems[cat.id as keyof typeof t.serviceItems];
                 const detailHref = serviceLandingHref(cat.id as ServiceId);
                 return (

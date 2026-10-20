@@ -18,10 +18,11 @@ import { useI18n } from "@/lib/i18n/context";
 import { contentLocale, pickName } from "@/lib/i18n/locale-utils";
 import type { Locale } from "@/lib/i18n/types";
 import {
-  priceCategories,
+  publicPriceCategories,
   priceListItems,
   HOURLY_RATE_PLN,
   itemsByCategory,
+  isPublicPriceCategory,
   type PriceCategoryId,
   type PriceListItem,
 } from "@/lib/price-list";
@@ -434,7 +435,7 @@ export function BookingQuoteFlow({ onDone }: Props) {
                 }}
               />
               <div className="flex flex-wrap gap-2 mb-6">
-                {priceCategories.map((cat) => (
+                {publicPriceCategories.map((cat) => (
                   <button
                     key={cat.id}
                     type="button"
@@ -493,7 +494,7 @@ export function BookingQuoteFlow({ onDone }: Props) {
                       for (const line of lines) map.set(line.itemId, line);
                       return [...map.values()];
                     });
-                    setCategory(cat);
+                    if (isPublicPriceCategory(cat)) setCategory(cat);
                   }}
                 />
                 <p className="text-xs text-bm-muted mt-3 leading-relaxed">

@@ -205,6 +205,28 @@ export const serviceFlows: Partial<Record<ServiceId, ServiceFlow[]>> = {
   ],
 };
 
+/**
+ * Services that need owner confirmation of in-house equipment / partner-only status.
+ * Hidden from public /services grid and homepage previews until confirmed.
+ */
+export const PENDING_EQUIPMENT_SERVICE_IDS = new Set<ServiceId>([
+  "detailing",
+  "polish",
+  "paint",
+  "stage1",
+  "chip",
+  "webasto",
+  "ppf",
+  "multimedia",
+  "cameras",
+  "audio",
+]);
+
+/** Public catalog cards — excludes unverified equipment-dependent offers */
+export const publicPopularServices = popularServices.filter(
+  (s) => !PENDING_EQUIPMENT_SERVICE_IDS.has(s.id)
+);
+
 /** Legacy list for dropdowns — same order */
 export const serviceCategories = popularServices;
 

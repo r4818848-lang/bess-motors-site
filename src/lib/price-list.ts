@@ -1010,7 +1010,7 @@ const priceListItemsCatalog: PriceListItem[] = [
     nameRu: "Заправка кондиционера R1234yf",
     nameEn: "Filling the air conditioner R1234yf",
     nameUk: "Заряджання кондиціонера R1234yf",
-    basePrice: 50,
+    basePrice: 100,
     unit: "per_100g",
     priceFrom: false,
     minQty: 1,
@@ -1196,39 +1196,8 @@ const priceListItemsCatalog: PriceListItem[] = [
     unit: "fixed",
     priceFrom: true,
   },
-  {
-    id: "egr_off",
-    categoryId: "emissions",
-    namePl: "EGR OFF (programowanie)",
-    nameRu: "EGR OFF (программирование)",
-    nameEn: "EGR off (programming)",
-    nameUk: "EGR вимкнено (програмування)",
-    basePrice: 700,
-    unit: "fixed",
-    priceFrom: true,
-  },
-  {
-    id: "dpf_off",
-    categoryId: "emissions",
-    namePl: "DPF OFF (programowanie)",
-    nameRu: "DPF OFF (программирование)",
-    nameEn: "DPF off (programming)",
-    nameUk: "DPF вимкнено (програмування)",
-    basePrice: 900,
-    unit: "fixed",
-    priceFrom: true,
-  },
-  {
-    id: "adblue_off",
-    categoryId: "emissions",
-    namePl: "AdBlue OFF (programowanie)",
-    nameRu: "AdBlue OFF (программирование)",
-    nameEn: "AdBlue off (programming)",
-    nameUk: "AdBlue вимкнено (програмування)",
-    basePrice: 900,
-    unit: "fixed",
-    priceFrom: true,
-  },
+  // EGR/DPF/AdBlue OFF — nie publikujemy (wyłączenie systemów emisji).
+  // Czyszczenie / naprawa: pozycje egr_clean, dpf_clean itd.
 
   // —— Wydech ——
   {
@@ -1277,6 +1246,7 @@ const priceListItemsCatalog: PriceListItem[] = [
   },
 
   // —— Opony / wulkanizacja (cena za komplet 4 kół, bez −15%) ——
+  // Oficjalny cennik TZ 2026-10-19: R13–R17 200, R18 260, R19 300, R20 350
   {
     id: "tire_change_r13",
     categoryId: "tires",
@@ -1284,7 +1254,7 @@ const priceListItemsCatalog: PriceListItem[] = [
     nameRu: "Замена шин комплект — R13",
     nameEn: "Tyre change set — R13",
     nameUk: "Заміна шин комплект — R13",
-    basePrice: 150,
+    basePrice: 200,
     unit: "fixed",
   },
   {
@@ -1294,7 +1264,7 @@ const priceListItemsCatalog: PriceListItem[] = [
     nameRu: "Замена шин комплект — R14",
     nameEn: "Tyre change set — R14",
     nameUk: "Заміна шин комплект — R14",
-    basePrice: 150,
+    basePrice: 200,
     unit: "fixed",
   },
   {
@@ -1304,7 +1274,7 @@ const priceListItemsCatalog: PriceListItem[] = [
     nameRu: "Замена шин комплект — R15",
     nameEn: "Tyre change set — R15",
     nameUk: "Заміна шин комплект — R15",
-    basePrice: 150,
+    basePrice: 200,
     unit: "fixed",
   },
   {
@@ -1314,7 +1284,7 @@ const priceListItemsCatalog: PriceListItem[] = [
     nameRu: "Замена шин комплект — R16",
     nameEn: "Tyre change set — R16",
     nameUk: "Заміна шин комплект — R16",
-    basePrice: 160,
+    basePrice: 200,
     unit: "fixed",
   },
   {
@@ -1324,7 +1294,7 @@ const priceListItemsCatalog: PriceListItem[] = [
     nameRu: "Замена шин комплект — R17",
     nameEn: "Tyre change set — R17",
     nameUk: "Заміна шин комплект — R17",
-    basePrice: 180,
+    basePrice: 200,
     unit: "fixed",
   },
   {
@@ -1334,7 +1304,7 @@ const priceListItemsCatalog: PriceListItem[] = [
     nameRu: "Замена шин комплект — R18",
     nameEn: "Tyre change set — R18",
     nameUk: "Заміна шин комплект — R18",
-    basePrice: 200,
+    basePrice: 260,
     unit: "fixed",
   },
   {
@@ -1344,7 +1314,7 @@ const priceListItemsCatalog: PriceListItem[] = [
     nameRu: "Замена шин комплект — R19",
     nameEn: "Tyre change set — R19",
     nameUk: "Заміна шин комплект — R19",
-    basePrice: 230,
+    basePrice: 300,
     unit: "fixed",
   },
   {
@@ -1354,48 +1324,52 @@ const priceListItemsCatalog: PriceListItem[] = [
     nameRu: "Замена шин комплект — R20",
     nameEn: "Tyre change set — R20",
     nameUk: "Заміна шин комплект — R20",
-    basePrice: 260,
+    basePrice: 350,
     unit: "fixed",
   },
   {
     id: "tire_change_r21",
     categoryId: "tires",
-    namePl: "Wymiana opon komplet — R21",
-    nameRu: "Замена шин комплект — R21",
-    nameEn: "Tyre change set — R21",
-    nameUk: "Заміна шин комплект — R21",
-    basePrice: 300,
+    namePl: "Wymiana opon komplet — R21 (SUV / po potwierdzeniu)",
+    nameRu: "Замена шин комплект — R21 (SUV / по подтверждению)",
+    nameEn: "Tyre change set — R21 (SUV / on confirmation)",
+    nameUk: "Заміна шин комплект — R21 (SUV / після підтвердження)",
+    basePrice: 350,
     unit: "fixed",
+    priceFrom: true,
   },
   {
     id: "tire_change_r22",
     categoryId: "tires",
-    namePl: "Wymiana opon komplet — R22",
-    nameRu: "Замена шин комплект — R22",
-    nameEn: "Tyre change set — R22",
-    nameUk: "Заміна шин комплект — R22",
-    basePrice: 340,
+    namePl: "Wymiana opon komplet — R22 (SUV / po potwierdzeniu)",
+    nameRu: "Замена шин комплект — R22 (SUV / по подтверждению)",
+    nameEn: "Tyre change set — R22 (SUV / on confirmation)",
+    nameUk: "Заміна шин комплект — R22 (SUV / після підтвердження)",
+    basePrice: 350,
     unit: "fixed",
+    priceFrom: true,
   },
   {
     id: "tire_change_r23",
     categoryId: "tires",
-    namePl: "Wymiana opon komplet — R23",
-    nameRu: "Замена шин комплект — R23",
-    nameEn: "Tyre change set — R23",
-    nameUk: "Заміна шин комплект — R23",
-    basePrice: 380,
+    namePl: "Wymiana opon komplet — R23 (SUV / po potwierdzeniu)",
+    nameRu: "Замена шин комплект — R23 (SUV / по подтверждению)",
+    nameEn: "Tyre change set — R23 (SUV / on confirmation)",
+    nameUk: "Заміна шин комплект — R23 (SUV / після підтвердження)",
+    basePrice: 350,
     unit: "fixed",
+    priceFrom: true,
   },
   {
     id: "tire_change_r24",
     categoryId: "tires",
-    namePl: "Wymiana opon komplet — R24",
-    nameRu: "Замена шин комплект — R24",
-    nameEn: "Tyre change set — R24",
-    nameUk: "Заміна шин комплект — R24",
-    basePrice: 420,
+    namePl: "Wymiana opon komplet — R24 (SUV / po potwierdzeniu)",
+    nameRu: "Замена шин комплект — R24 (SUV / по подтверждению)",
+    nameEn: "Tyre change set — R24 (SUV / on confirmation)",
+    nameUk: "Заміна шин комплект — R24 (SUV / після підтвердження)",
+    basePrice: 350,
     unit: "fixed",
+    priceFrom: true,
   },
   {
     id: "runflat_surcharge",
@@ -1602,9 +1576,9 @@ const priceListItemsCatalog: PriceListItem[] = [
     nameRu: "Ремонт прокола (снятие, монтаж и балансировка)",
     nameEn: "Puncture repair (incl. demount, remount and balancing)",
     nameUk: "Ремонт проколу (зняття, монтаж і балансування)",
-    basePrice: 70,
+    basePrice: 60,
     unit: "fixed",
-    priceFrom: true,
+    priceFrom: false,
   },
   {
     id: "sidewall_repair",
@@ -1859,6 +1833,27 @@ export function getPriceItem(id: string): PriceListItem | undefined {
   return priceListItems.find((i) => i.id === resolved);
 }
 
+/**
+ * Categories hidden from public cennik / booking / PDF until equipment is confirmed.
+ * Chip tuning / Stage / dyno require confirmed programming tools (Launch X431 removed).
+ */
+export const PUBLIC_HIDDEN_CATEGORY_IDS = new Set<PriceCategoryId>(["chip"]);
+
+export function isPublicPriceCategory(id: PriceCategoryId): boolean {
+  return !PUBLIC_HIDDEN_CATEGORY_IDS.has(id);
+}
+
+/** Categories shown on /cennik, booking picker and PDF */
+export const publicPriceCategories = priceCategories.filter((c) =>
+  isPublicPriceCategory(c.id)
+);
+
 export function itemsByCategory(categoryId: PriceCategoryId): PriceListItem[] {
+  if (!isPublicPriceCategory(categoryId)) return [];
+  return priceListItems.filter((i) => i.categoryId === categoryId);
+}
+
+/** Full catalog including hidden categories (CRM / internal only) */
+export function itemsByCategoryAll(categoryId: PriceCategoryId): PriceListItem[] {
   return priceListItems.filter((i) => i.categoryId === categoryId);
 }

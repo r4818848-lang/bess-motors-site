@@ -26,6 +26,8 @@ export type SeoLandingPage = {
   /** Opens smart booking modal for this service */
   serviceId?: ServiceId;
   icon: string;
+  /** Pending equipment / content — noindex + out of sitemap */
+  noIndex?: boolean;
 };
 
 export const seoLandingPages: SeoLandingPage[] = [
@@ -142,7 +144,7 @@ export const seoLandingPages: SeoLandingPage[] = [
     line2: "Szybka obsługa bez kolejek",
     metaTitle: "Wulkanizacja Warszawa — wymiana opon Włochy",
     metaDescription:
-      "Wulkanizacja Warszawa Włochy: wymiana i wyważanie opon bez kolejki. BESS MOTORS, Aleja Krakowska 48/52. Zapis online.",
+      "Wulkanizacja Warszawa Włochy: wymiana i wyważanie opon od 200 zł za komplet. BESS MOTORS, Aleja Krakowska 48/52. Zapytaj o termin.",
     serviceId: "tires",
     icon: "Circle",
   },
@@ -227,7 +229,7 @@ export const seoLandingPages: SeoLandingPage[] = [
     slug: "warszawa-ochota",
     title: "Serwis dla Ochoty",
     line1: "Rakowiec, Szczęśliwice — dojazd ok. 15 min",
-    line2: "Umów wizytę online bez kolejki",
+    line2: "Zapytaj o najbliższy termin online",
     metaTitle: "Mechanik Ochota Warszawa — BESS MOTORS",
     metaDescription:
       "Mechanik dla Ochoty i Rakowca — BESS MOTORS przy Alei Krakowskiej 48/52. Warsztat w zasięgu ok. 8 km: hamulce, diagnostyka, klimatyzacja, wymiana oleju.",
@@ -368,12 +370,13 @@ export const seoLandingPages: SeoLandingPage[] = [
     slug: "chip-tuning-warszawa",
     title: "Chip Tuning Warszawa",
     line1: "Więcej mocy i momentu obrotowego",
-    line2: "Stage 1 i Stage 2 — bezpiecznie",
-    metaTitle: "Chip tuning Warszawa — Stage 1 / Stage 2",
+    line2: "Zapytaj o dostępność usługi",
+    metaTitle: "Chip tuning Warszawa — zapytaj o dostępność",
     metaDescription:
-      "Chip tuning w BESS MOTORS — Stage 1 od 1200 zł, Stage 2 od 2500 zł. Diagnostyka przed tuningiem, mapa ECU, jazda testowa. Warszawa.",
+      "Chip tuning w BESS MOTORS — zapytaj o aktualną dostępność i wycenę. Warszawa Włochy, Aleja Krakowska 48/52.",
     serviceId: "chip",
     icon: "Cpu",
+    noIndex: true,
   },
   {
     slug: "promocje",

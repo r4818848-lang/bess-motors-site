@@ -16,22 +16,22 @@ export const EXTRA_SEO_SERVICE_PAGES_BATCH2: SeoLandingPage[] = [
   {
     slug: "wulkanizacja-warszawa",
     title: "Wulkanizacja i wymiana opon Warszawa",
-    line1: "Wymiana, wyważanie i naprawa opon",
+    line1: "R13–R17 200 zł · R18 260 · R19 300 · R20 350",
     line2: "Warszawa Włochy — Aleja Krakowska 48/52",
-    metaTitle: "Wulkanizacja Warszawa | Wymiana opon",
+    metaTitle: "Wulkanizacja i wymiana opon Warszawa Włochy | BESS MOTORS",
     metaDescription:
-      "Wulkanizacja Warszawa Włochy — wymiana i wyważanie opon, naprawa przebicia. BESS MOTORS, Aleja Krakowska 48/52. Umów wizytę lub zadzwoń +48 791 257 229.",
+      "Wulkanizacja Warszawa Włochy — wymiana kompletu od 200 zł (R13–R17), R18 260 zł, R19 300 zł, R20 350 zł. Naprawa przebicia 60 zł. Zapytaj o termin.",
     serviceId: "tires",
     icon: "Circle",
   },
   {
     slug: "wymiana-opon-warszawa",
     title: "Wymiana opon Warszawa",
-    line1: "Komplet 4 kół z wyważaniem",
-    line2: "Szybki termin we Włochach",
-    metaTitle: "Wymiana opon Warszawa",
+    line1: "Komplet 4 kół z wyważaniem od 200 zł",
+    line2: "Zapytaj o najbliższy termin we Włochach",
+    metaTitle: "Wymiana opon Warszawa Włochy | od 200 zł komplet",
     metaDescription:
-      "Wymiana opon Warszawa Włochy z wyważaniem — komplet 4 kół. BESS MOTORS, Aleja Krakowska 48/52. Zapis online lub telefon +48 791 257 229.",
+      "Wymiana opon Warszawa Włochy — komplet R13–R17 200 zł, R18 260 zł, R19 300 zł, R20 350 zł. BESS MOTORS, Aleja Krakowska 48/52. Zapytaj o termin.",
     serviceId: "tires",
     icon: "Circle",
   },
@@ -49,11 +49,11 @@ export const EXTRA_SEO_SERVICE_PAGES_BATCH2: SeoLandingPage[] = [
   {
     slug: "naprawa-opon-warszawa",
     title: "Naprawa opon Warszawa",
-    line1: "Naprawa przebitej opony",
+    line1: "Naprawa przebicia — 60 zł robocizna",
     line2: "Demontaż, naprawa, montaż i wyważanie",
-    metaTitle: "Naprawa opon Warszawa",
+    metaTitle: "Naprawa przebicia opony Warszawa | 60 zł",
     metaDescription:
-      "Naprawa opon Warszawa — przebicie, wulkanizacja opon. BESS MOTORS Włochy, Aleja Krakowska 48/52. Zapytaj o termin lub umów wizytę.",
+      "Naprawa przebicia opony Warszawa — 60 zł (zdjęcie, demontaż, naprawa, montaż, wyważanie). BESS MOTORS Włochy. Zapytaj o termin.",
     serviceId: "tires",
     icon: "Circle",
   },
@@ -349,12 +349,12 @@ export const EXTRA_SEO_SERVICE_PROFILES_BATCH2: Record<string, SlugLandingProfil
   "wulkanizacja-warszawa": {
     bookServiceId: "tires",
     contentServiceId: "tires",
-    faqDuration: L("Wymiana kompletu 4 kół zwykle 45–90 minut — zależnie od rozmiaru i kolejki.", "Замена комплекта обычно 45–90 минут.", "A set of 4 usually takes 45–90 minutes — depending on size and queue.", "Заміна комплекта зазвичай 45–90 минут."),
+    faqDuration: L("Wymiana kompletu 4 kół zwykle 45–90 minut — zależnie od rozmiaru i dostępności terminu.", "Замена комплекта обычно 45–90 минут.", "A set of 4 usually takes 45–90 minutes — depending on size and slot availability.", "Заміна комплекта зазвичай 45–90 минут."),
     price: {
-          fromZl: getPriceItem("tire_change_r13")?.basePrice ?? 150,
+          fromZl: getPriceItem("tire_change_r13")?.basePrice ?? 200,
           priceFrom: true,
           materialsExtra: false,
-          note: L("Cennik według rozmiaru: R13–R15 150 zł, R16 160 zł, R17 180 zł … R24 420 zł za komplet. RunFlat / niski profil +20 zł/koło. Szczegóły na /cennik.", "Прайс по размеру: R13–R15 150 zł … R24 420 zł за комплект. RunFlat / низкий профиль +20 zł/колесо.", "By size: R13–R15 150 zł, R16 160 zł, R17 180 zł … R24 420 zł per set. RunFlat / low profile +20 zł/wheel. Details on /cennik.", "Прайс за розміром: R13–R15 150 zł … R24 420 zł за комплект. RunFlat / низький профіль +20 zł/колесо."),
+          note: L("Cennik wymiany kompletu: R13–R17 200 zł, R18 260 zł, R19 300 zł, R20 350 zł. R21+ / SUV — po potwierdzeniu pojazdu. RunFlat / niski profil +20 zł/koło. Szczegóły na /cennik.", "Прайс комплекта: R13–R17 200 zł, R18 260 zł, R19 300 zł, R20 350 zł. R21+ / SUV — по подтверждению. RunFlat / низкий профиль +20 zł/колесо.", "Set change: R13–R17 200 zł, R18 260 zł, R19 300 zł, R20 350 zł. R21+ / SUV on confirmation. RunFlat / low profile +20 zł/wheel.", "Прайс комплекту: R13–R17 200 zł, R18 260 zł, R19 300 zł, R20 350 zł. R21+ / SUV — після підтвердження."),
           includes: [
             L("Demontaż i montaż opon + wyważanie", "Демонтаж и монтаж шин + балансировка", "Tyre demount/mount + balancing", "Демонтаж і монтаж шин + балансування"),
             L("Czyszczenie piast (gratis)", "Очистка ступиц (бесплатно)", "Hub cleaning (included)", "Очищення маточин (безкоштовно)"),
@@ -405,10 +405,10 @@ export const EXTRA_SEO_SERVICE_PROFILES_BATCH2: Record<string, SlugLandingProfil
     contentServiceId: "tires",
     faqDuration: L("Wymiana 4 opon z wyważaniem: zwykle 45–90 minut.", "Замена 4 шин: обычно 45–90 минут.", "Tyre change for 4 with balancing: usually 45–90 minutes.", "Заміна 4 шин: зазвичай 45–90 минут."),
     price: {
-          fromZl: getPriceItem("tire_change_r13")?.basePrice ?? 150,
+          fromZl: getPriceItem("tire_change_r13")?.basePrice ?? 200,
           priceFrom: true,
           materialsExtra: false,
-          note: L("Cennik według rozmiaru: R13–R15 150 zł, R16 160 zł, R17 180 zł, R18 200 zł … R24 420 zł za komplet. RunFlat / niski profil +20 zł/koło.", "Прайс по размеру: R13–R15 150 zł … R24 420 zł за комплект. RunFlat / низкий профиль +20 zł/колесо.", "By size: R13–R15 150 zł … R24 420 zł per set. RunFlat / low profile +20 zł/wheel.", "Прайс за розміром: R13–R15 150 zł … R24 420 zł за комплект."),
+          note: L("Cennik wymiany kompletu: R13–R17 200 zł, R18 260 zł, R19 300 zł, R20 350 zł. R21+ / SUV — po potwierdzeniu. RunFlat / niski profil +20 zł/koło.", "Прайс комплекта: R13–R17 200 zł, R18 260 zł, R19 300 zł, R20 350 zł. R21+ / SUV — по подтверждению.", "Set change: R13–R17 200 zł, R18 260 zł, R19 300 zł, R20 350 zł. R21+ / SUV on confirmation.", "Прайс комплекту: R13–R17 200 zł, R18 260 zł, R19 300 zł, R20 350 zł."),
           includes: [
             L("Wymiana opon na komplecie 4 kół", "Замена шин на 4 колёсах", "Tyre change on a set of 4", "Заміна шин на 4 колісах"),
             L("Wyważanie", "Балансировка", "Balancing", "Балансування"),
@@ -514,7 +514,7 @@ export const EXTRA_SEO_SERVICE_PROFILES_BATCH2: Record<string, SlugLandingProfil
           fromZl: getPriceItem("puncture_repair")?.basePrice ?? 70,
           priceFrom: true,
           materialsExtra: false,
-          note: L("Naprawa przebicia od 70 zł — w cenie: zdjęcie koła, demontaż opony, naprawa, montaż i wyważanie. Boczne uszkodzenia często wykluczają naprawę.", "Ремонт прокола от 70 zł — в цене снятие, демонтаж, ремонт, монтаж и балансировка.", "Puncture repair from 70 zł — includes wheel off, demount, repair, remount and balancing.", "Ремонт проколу від 70 zł — у ціні зняття, демонтаж, ремонт, монтаж і балансування."),
+          note: L("Naprawa przebicia 60 zł (robocizna) — w cenie: zdjęcie koła, demontaż opony, naprawa, montaż i wyważanie. Boczne uszkodzenia często wykluczają naprawę.", "Ремонт прокола 60 zł (работа) — в цене снятие, демонтаж, ремонт, монтаж и балансировка.", "Puncture repair 60 zł (labour) — includes wheel off, demount, repair, remount and balancing.", "Ремонт проколу 60 zł (робота) — у ціні зняття, демонтаж, ремонт, монтаж і балансування."),
           includes: [
             L("Demontaż koła i opony", "Демонтаж колеса и шины", "Wheel and tyre removal", "Демонтаж коліса і шины"),
             L("Naprawa przebicia (gdy możliwa)", "Ремонт прокола при возможности", "Puncture repair when possible", "Ремонт прокола при возможнасти"),

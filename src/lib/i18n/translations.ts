@@ -67,13 +67,39 @@ const pl = {
     chatWhatsapp: "WhatsApp",
     chatTelegram: "Telegram",
     callbackTitle: "Zostaw numer — oddzwonimy",
-    callbackSubtitle: "Zostaw numer telefonu, oddzwonimy w sprawie wizyty.",
+    callbackSubtitle: "Zostaw numer telefonu — skontaktujemy się w sprawie wizyty.",
     callbackSubmit: "Zadzwońcie do mnie",
     callbackDone: "Dziękujemy — skontaktujemy się.",
     callbackError: "Nie udało się wysłać. Zadzwoń: +48 791 257 229",
     callbackComment: "Prośba o kontakt — {page}",
     gbpNote:
       "Te same godziny i adres co w Google: Pn–Sb 8:00–18:00, Aleja Krakowska 48/52.",
+    mapLandmark:
+      "Wjazd od Alei Krakowskiej — warsztat i parking na terenie posesji. Szukaj szyldu BESS MOTORS.",
+  },
+  homeTireBlock: {
+    badge: "Sezon opon",
+    title: "Wymiana opon — Warszawa Włochy",
+    subtitle:
+      "Komplet 4 kół z wyważaniem. Zapytaj o najbliższy termin wymiany opon — potwierdzimy po kontakcie.",
+    priceNote: "SUV, RunFlat, R21+ — wycena po potwierdzeniu pojazdu. Naprawa przebicia: 60 zł robocizna.",
+    ctaAsk: "Zapytaj o termin wymiany opon",
+    ctaMore: "Wulkanizacja — szczegóły",
+    imageAlt: "Wymiana opon w BESS MOTORS Warszawa Włochy",
+  },
+  homeComplex: {
+    title: "Naprawy bardziej złożone",
+    subtitle:
+      "Rozrząd, sprzęgło, skrzynia automatyczna, Haldex — wycena po diagnostyce i VIN. Nie sprowadzamy oferty tylko do wymiany oleju.",
+    quoteNote: "Wycena po diagnostyce",
+    cta: "Zobacz usługę",
+    allServices: "Wszystkie usługi",
+    items: {
+      timing: "Wymiana rozrządu",
+      clutch: "Wymiana sprzęgła",
+      gearbox: "Serwis skrzyni automatycznej",
+      haldex: "Serwis Haldex",
+    },
   },
   whyBess: {
     title: "Dlaczego BESS MOTORS",
@@ -96,8 +122,8 @@ const pl = {
         body: "Paragon lub faktura — jasny zakres i koszt usługi.",
       },
       {
-        title: "Nowoczesna diagnostyka",
-        body: "Komputerowa diagnostyka i sprzęt warsztatowy.",
+        title: "Diagnostyka warsztatowa",
+        body: "Diagnostyka komputerowa w zakresie dostępnego sprzętu — wycena przed naprawą.",
       },
     ],
   },
@@ -111,7 +137,7 @@ const pl = {
       suspension: { title: "Zawieszenie gratis", price: "przy wymianie oleju" },
       filters: { title: "Filtry kabinowy i powietrza", price: "od 50 / 30 zł" },
       pads: { title: "Klocki hamulcowe przód", price: "100 zł robocizna" },
-      tires: { title: "Wymiana opon", price: "od 150 zł" },
+      tires: { title: "Wymiana opon", price: "od 200 zł" },
     },
   },
   hero: {
@@ -177,7 +203,7 @@ const pl = {
   priceList: {
     title: "Pełny cennik serwisu",
     subtitle:
-      "Aktualny cennik BESS MOTORS — diagnostyka, mechanika, klimatyzacja, chip tuning i więcej. Wybierz usługi i umów wizytę online.",
+      "Aktualny cennik BESS MOTORS — diagnostyka, mechanika, klimatyzacja, opony i więcej. Wybierz usługi i umów wizytę online.",
     hourlyRate: "Norma-godzina",
     bookCta: "Umów się",
     notesTitle: "Ważne informacje",
@@ -396,7 +422,7 @@ const pl = {
     load: "W serwisie: {repairs} aut · wizyt dziś: {appointments}",
     hintLow: "Mało wolnych terminów — rezerwuj online",
     hintMedium: "Średnie obłożenie — rezerwacja online przyspieszy wizytę",
-    hintHigh: "Są wolne terminy dziś",
+    hintHigh: "Zapytaj o najbliższy termin",
   },
   priceMatch: {
     text: "Znalazłeś taniej? Pokaż wycenę — dopasujemy cenę przy podobnym zakresie prac.",
@@ -464,8 +490,8 @@ const pl = {
     priceR134aNew: "50 zł/100 g",
     priceR1234Label: "R1234yf",
     priceR1234Old: "",
-    priceR1234New: "50 zł/100 g",
-    priceFrom: "podłączenie 80 zł · gaz certyfikowany 50 zł/100 g",
+    priceR1234New: "100 zł/100 g",
+    priceFrom: "podłączenie 80 zł · R134a 50 zł/100 g · R1234yf 100 zł/100 g",
     accentAllCars: "Wszystkie marki i modele aut",
     accentNoQueue: "Szybkie terminy — zapis online",
     bullets: [
@@ -480,7 +506,7 @@ const pl = {
     imageAlt: "Naprawa i serwis klimatyzacji — spawanie przewodu BESS MOTORS",
     watchVideo: "Zobacz wideo z warsztatu",
     bookLead:
-      "Podłączenie 80 zł · gaz R134a i R1234yf po 50 zł/100 g. Nabijamy w BESS MOTORS na Alei Krakowskiej.",
+      "Podłączenie 80 zł · R134a 50 zł/100 g · R1234yf 100 zł/100 g. Nabijamy w BESS MOTORS na Alei Krakowskiej.",
     bookTitle: "Nabijanie klimatyzacji",
     bookPoints: [
       "Szybkie terminy — zapis online",
@@ -557,7 +583,7 @@ const pl = {
     googleReview: "Zostaw opinię w Google Maps",
   },
   waitTime: {
-    estimate: "Szacunek: najbliższy termin ~{days} dni · wolne terminy: {slots}",
+    estimate: "Orientacyjnie: zapytaj o termin · dostępność potwierdzimy po kontakcie",
   },
   telegramLogin: {
     divider: "lub przez Telegram",
@@ -889,7 +915,8 @@ const pl = {
   },
   bookingQuote: {
     subtitle:
-      "1) Wybierz usługi z cennika  2) Zostaw telefon — oddzwonimy i potwierdzimy wizytę. Bez konta i logowania.",
+      "1) Wybierz usługi z cennika  2) Zostaw telefon — potwierdzimy termin telefonicznie. Bez konta i logowania.",
+    confirmNote: "To wniosek o zapis, nie potwierdzona rezerwacja slotu online.",
     addService: "Dodaj usługę",
     quantity: "Ilość",
     inCart: "W koszyku",
@@ -914,7 +941,7 @@ const pl = {
     note: "Uwagi (opcjonalnie)",
     notePlaceholder: "Dodatkowe uwagi (opcjonalnie)…",
     submit: "Umów się",
-    successHint: "Oddzwonimy lub potwierdzimy termin SMS-em.",
+    successHint: "Potwierdzimy termin telefonicznie lub SMS-em.",
     submitting: "Umów się…",
     submitFailed: "Nie udało się zapisać rezerwacji. Spróbuj ponownie lub zadzwoń.",
     cloudSyncFailed: "Rezerwacja nie dotarła do serwera. Zadzwoń pod {phone}, aby potwierdzić termin.",
@@ -933,7 +960,7 @@ const pl = {
     submitAc: "Umów nabijanie klimy",
     flexibleTimeNote: "Klient wybrał tylko datę — dopasować godzinę przy potwierdzeniu",
     noSlotsOnDate: "Brak wolnych terminów w tym dniu — wybierz inny dzień.",
-    priceFromNote: "Orientacyjnie: podłączenie 80 zł + gaz certyfikowany 50 zł/100 g",
+    priceFromNote: "Orientacyjnie: podłączenie 80 zł + R134a 50 zł/100 g (R1234yf 100 zł/100 g)",
     fullFormLink: "Pełny formularz z wyborem usług i godziny →",
     acChoiceTitle: "Jak umówić nabijanie klimy?",
     acChoiceSubtitle: "Zadzwoń teraz lub zostaw numer — oddzwonimy i potwierdzimy termin.",
@@ -1060,11 +1087,11 @@ const pl = {
     items: [
       {
         q: "Ile kosztuje wymiana oleju?",
-        a: "Od 150 zł (olej + filtr oleju). Dodatkowe filtry: kabinowy od 50 zł, powietrza od 30 zł. Pełny cennik w rezerwacji online.",
+        a: "Robocizna wymiany oleju i filtra oleju: 80 zł (kod BessMotors). Olej i filtr dobieramy do auta i rozliczamy osobno. Filtr kabinowy / powietrza — wg cennika.",
       },
       {
         q: "Czy robicie chip tuning?",
-        a: "Tak — Stage 1 od 1200 zł, Stage 2 od 2500 zł. Diagnostyka przed tuningiem jest obowiązkowa.",
+        a: "Zapytaj o aktualną dostępność chip tuningu — potwierdzimy sprzęt i wycenę przed wizytą.",
       },
       {
         q: "Jak umówić wizytę?",
@@ -2162,12 +2189,12 @@ const ru: TranslationKeys = {
     chatSubtitle: "WhatsApp или Telegram: услуга + телефон. Без регистрации.",
     chatWhatsapp: "WhatsApp",
     chatTelegram: "Telegram",
-    callbackTitle: "Перезвоним за 5 минут",
-    callbackSubtitle: "Оставьте номер — перезвоним.",
+    callbackTitle: "Оставьте номер — перезвоним",
+    callbackSubtitle: "Оставьте номер — свяжемся по поводу визита.",
     callbackSubmit: "Перезвоните мне",
-    callbackDone: "Спасибо — звоним.",
+    callbackDone: "Спасибо — свяжемся.",
     callbackError: "Не отправилось. Звоните: +48 791 257 229",
-    callbackComment: "Обратный звонок за 5 мин — {page}",
+    callbackComment: "Просьба о контакте — {page}",
     gbpNote:
       "Те же часы и адрес, что в Google: Пн–Сб 8:00–18:00, Aleja Krakowska 48/52.",
   },
@@ -2181,7 +2208,7 @@ const ru: TranslationKeys = {
       suspension: { title: "Подвеска бесплатно", price: "при замене масла" },
       filters: { title: "Фильтры салона и воздуха", price: "от 50 / 30 zł" },
       pads: { title: "Колодки передние", price: "100 zł работа" },
-      tires: { title: "Замена шин", price: "от 150 zł" },
+      tires: { title: "Замена шин", price: "от 200 zł" },
     },
   },
   hero: {
@@ -2246,7 +2273,7 @@ const ru: TranslationKeys = {
   priceList: {
     title: "Полный прайс-лист сервиса",
     subtitle:
-      "Актуальные цены BESS MOTORS — диагностика, механика, кондиционер, chip tuning и другое. Выберите услуги и запишитесь онлайн.",
+      "Актуальные цены BESS MOTORS — диагностика, механика, кондиционер, шины и другое. Выберите услуги и запишитесь онлайн.",
     hourlyRate: "Норма-час",
     bookCta: "Запись с прайса",
     notesTitle: "Важная информация",
@@ -2438,8 +2465,8 @@ const ru: TranslationKeys = {
     priceR134aNew: "50 zł/100 г",
     priceR1234Label: "R1234yf",
     priceR1234Old: "",
-    priceR1234New: "50 zł/100 г",
-    priceFrom: "подключение 80 zł · газ 50 zł/100 г",
+    priceR1234New: "100 zł/100 г",
+    priceFrom: "подключение 80 zł · R134a 50 zł/100 г · R1234yf 100 zł/100 г",
     accentAllCars: "Все марки и модели авто",
     accentNoQueue: "Быстрые сроки — онлайн-запись",
     subtitle:
@@ -2858,7 +2885,8 @@ const ru: TranslationKeys = {
   },
   bookingQuote: {
     subtitle:
-      "1) Выберите услуги из прайса  2) Оставьте телефон — мы перезвоним и подтвердим визит. Без кабинета и входа.",
+      "1) Выберите услуги из прайса  2) Оставьте телефон — подтвердим срок по телефону. Без кабинета и входа.",
+    confirmNote: "Это заявка на запись, а не подтверждённое бронирование слота онлайн.",
     addService: "Добавить услугу",
     quantity: "Количество",
     inCart: "В корзине",
@@ -2902,7 +2930,7 @@ const ru: TranslationKeys = {
     submitAc: "Записаться на заправку",
     flexibleTimeNote: "Клиент выбрал только дату — время согласовать при подтверждении",
     noSlotsOnDate: "Нет свободных слотов в этот день — выберите другую дату.",
-    priceFromNote: "Ориентировочно: подключение 80 zł + сертифицированный газ 50 zł/100 г",
+    priceFromNote: "Ориентировочно: подключение 80 zł + R134a 50 zł/100 г (R1234yf 100 zł/100 г)",
     fullFormLink: "Полная форма с выбором услуг и времени →",
     acChoiceTitle: "Как записаться на заправку?",
     acChoiceSubtitle: "Позвоните сейчас или оставьте номер — перезвоним и подтвердим время.",
@@ -3029,7 +3057,7 @@ const ru: TranslationKeys = {
     items: [
       {
         q: "Сколько стоит замена масла?",
-        a: "От 150 zł (масло + фильтр). Салонный фильтр от 50 zł, воздушный от 30 zł. Полный прайс в онлайн-записи.",
+        a: "Работа по замене масла и масляного фильтра: 80 zł (код BessMotors). Масло и фильтр подбираем отдельно. Салонный / воздушный фильтр — по прайсу.",
       },
       {
         q: "Делаете ли вы chip tuning?",
@@ -4128,12 +4156,12 @@ const en: TranslationKeys = {
     mapHours: "Mon–Sat 8:00–18:00",
     chatTitle: "Write what you need",
     chatSubtitle: "WhatsApp or Telegram: service + phone. No account needed.",
-    callbackTitle: "We call back in 5 minutes",
+    callbackTitle: "Leave your number — we will call back",
     callbackSubtitle: "Leave your number — we call back.",
     callbackSubmit: "Call me back",
     callbackDone: "Thanks — we are calling.",
     callbackError: "Could not send. Call +48 791 257 229",
-    callbackComment: "Call back in 5 min — {page}",
+    callbackComment: "Contact request — {page}",
     gbpNote:
       "Same hours and address as Google: Mon–Sat 8:00–18:00, Aleja Krakowska 48/52.",
   },
@@ -4147,13 +4175,13 @@ const en: TranslationKeys = {
       suspension: { title: "Free suspension check", price: "with oil change" },
       filters: { title: "Cabin and air filters", price: "from 50 / 30 PLN" },
       pads: { title: "Front brake pads", price: "100 PLN labour" },
-      tires: { title: "Tire change", price: "from 150 PLN" },
+      tires: { title: "Tire change", price: "from 200 PLN" },
     },
   },
   priceList: {
     title: "Full service price list",
     subtitle:
-      "Official BESS MOTORS prices — diagnostics, mechanics, A/C, chip tuning and more. Book online.",
+      "Official BESS MOTORS prices — diagnostics, mechanics, A/C, tyres and more. Book online.",
     hourlyRate: "Labour rate",
     bookCta: "Book from price list",
     notesTitle: "Important notes",
@@ -4261,7 +4289,8 @@ const en: TranslationKeys = {
   },
   bookingQuote: {
     subtitle:
-      "1) Pick services from the price list  2) Leave your phone — we call back to confirm. No account or login.",
+      "1) Pick services from the price list  2) Leave your phone — we confirm the slot by phone. No account or login.",
+    confirmNote: "This is a booking request, not a confirmed online slot reservation.",
     addService: "Add service",
     quantity: "Quantity",
     inCart: "In cart",
@@ -4601,7 +4630,7 @@ const en: TranslationKeys = {
     priceR134aNew: "50 PLN/100g",
     priceR1234Label: "R1234yf",
     priceR1234Old: "100 PLN/100g",
-    priceR1234New: "50 PLN/100g",
+    priceR1234New: "100 PLN/100g",
     priceFrom: "connection 80 PLN · certified gas 50 PLN/100g",
     accentAllCars: "All car makes and models",
     accentNoQueue: "No queue — fast slots",
@@ -5407,7 +5436,7 @@ const uk: TranslationKeys = {
       suspension: { title: "Підвіска безкоштовно", price: "при заміні оливи" },
       filters: { title: "Фільтри салону і повітря", price: "від 50 / 30 zł" },
       pads: { title: "Колодки передні", price: "100 zł робота" },
-      tires: { title: "Заміна шин", price: "від 150 zł" },
+      tires: { title: "Заміна шин", price: "від 200 zł" },
     },
   },
   homeLead: {
@@ -5437,9 +5466,9 @@ const uk: TranslationKeys = {
     mapTitle: "Як доїхати",
     chatTitle: "Напишіть, що потрібно",
     chatSubtitle: "WhatsApp або Telegram: послуга + телефон. Без реєстрації.",
-    callbackTitle: "Передзвонимо за 5 хвилин",
+    callbackTitle: "Залиште номер — передзвонимо",
     callbackSubmit: "Передзвоніть мені",
-    callbackDone: "Дякуємо — телефонуємо.",
+    callbackDone: "Дякуємо — зв’яжемося.",
   },
   hero: {
     title: "BESS",

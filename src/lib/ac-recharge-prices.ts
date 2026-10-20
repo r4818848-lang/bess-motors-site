@@ -16,7 +16,7 @@ export function acR134aPer100gPln(): number {
 }
 
 export function acR1234yfPer100gPln(): number {
-  return getPriceItem(AC_R1234YF_PRICE_ID)?.basePrice ?? 50;
+  return getPriceItem(AC_R1234YF_PRICE_ID)?.basePrice ?? 100;
 }
 
 /** Minimum estimate: connection + 100 g R134a */

@@ -14,6 +14,11 @@ import {
   EXTRA_SEO_RELATED_BATCH2,
   EXTRA_SEO_RELATED_PARENT_UPDATES,
 } from "@/lib/seo-extra-service-pages-batch2";
+import {
+  EXTRA_SEO_SERVICE_PAGES_BATCH3,
+  EXTRA_SEO_SERVICE_PROFILES_BATCH3,
+  EXTRA_SEO_RELATED_BATCH3,
+} from "@/lib/seo-extra-service-pages-batch3";
 
 const L = (pl: string, ru: string, en?: string, uk?: string): LocalizedText => ({
   pl,
@@ -77,9 +82,9 @@ const EXTRA_SEO_SERVICE_PAGES_BATCH1: SeoLandingPage[] = [
     title: "Wymiana oleju Warszawa",
     line1: `Robocizna ${oilLabourPromoZl()} zł — kod BessMotors`,
     line2: "Zawieszenie gratis przy wymianie oleju · olej i filtr osobno",
-    metaTitle: "Wymiana oleju Warszawa | 80 zł robocizna",
+    metaTitle: "Wymiana oleju Warszawa Włochy – robocizna 80 zł | BESS MOTORS",
     metaDescription:
-      "Wymiana oleju Warszawa Włochy — robocizna 80 zł, zawieszenie gratis przy oleju. Olej i filtr pod VIN. BESS MOTORS, Aleja Krakowska 48/52.",
+      "Wymiana oleju i filtra w BESS MOTORS przy Alei Krakowskiej 48/52. Robocizna 80 zł, olej i filtr dobieramy do samochodu i wyceniamy osobno. Zadzwoń.",
     serviceId: "oil",
     icon: "Droplets",
   },
@@ -132,6 +137,7 @@ const EXTRA_SEO_SERVICE_PAGES_BATCH1: SeoLandingPage[] = [
 export const EXTRA_SEO_SERVICE_PAGES: SeoLandingPage[] = [
   ...EXTRA_SEO_SERVICE_PAGES_BATCH1,
   ...EXTRA_SEO_SERVICE_PAGES_BATCH2,
+  ...EXTRA_SEO_SERVICE_PAGES_BATCH3,
 ];
 
 const EXTRA_SEO_SERVICE_PROFILES_BATCH1: Record<string, SlugLandingProfile> = {
@@ -539,6 +545,7 @@ const EXTRA_SEO_SERVICE_PROFILES_BATCH1: Record<string, SlugLandingProfile> = {
 export const EXTRA_SEO_SERVICE_PROFILES: Record<string, SlugLandingProfile> = {
   ...EXTRA_SEO_SERVICE_PROFILES_BATCH1,
   ...EXTRA_SEO_SERVICE_PROFILES_BATCH2,
+  ...EXTRA_SEO_SERVICE_PROFILES_BATCH3,
 };
 
 const EXTRA_SEO_RELATED_BATCH1: Record<string, string[]> = {
@@ -602,4 +609,5 @@ export const EXTRA_SEO_RELATED: Record<string, string[]> = {
   ...EXTRA_SEO_RELATED_BATCH1,
   ...EXTRA_SEO_RELATED_PARENT_UPDATES,
   ...EXTRA_SEO_RELATED_BATCH2,
+  ...EXTRA_SEO_RELATED_BATCH3,
 };

@@ -6,7 +6,7 @@ import {
   getSeoLandingPage,
   seoLandingSlugs,
 } from "@/lib/seo-landing-pages";
-import { sitemapExcludedSlugs } from "@/lib/seo";
+import { sitemapExcludedSlugs, pendingNoIndexSlugs } from "@/lib/seo";
 import { buildPageMetadata } from "@/lib/seo-metadata";
 import { autoRepairServiceSchema } from "@/lib/seo-structured-data";
 import { withLocalMetaSuffix } from "@/lib/seo-local";
@@ -61,6 +61,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: page.metaTitle,
     description,
     path: `/${page.slug}`,
+    noIndex:
+      page.noIndex === true ||
+      pendingNoIndexSlugs.has(slug) ||
+      sitemapExcludedSlugs.has(slug),
     ogImageAlt: `${page.title} — serwis samochodowy Warszawa`,
     ogImage:
       slug === "klimatyzacja" || slug === "naprawa-klimatyzacji"

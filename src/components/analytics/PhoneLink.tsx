@@ -1,14 +1,15 @@
 "use client";
 
-import type { ComponentProps } from "react";
+import type { ComponentProps, MouseEvent } from "react";
 import { siteConfig } from "@/lib/site";
+import { trackClickPhone } from "@/lib/gtag";
 
 type PhoneLinkProps = ComponentProps<"a"> & {
   /** Optional label for Meta event diagnostics */
   trackSource?: string;
 };
 
-/** Business phone link — fires Meta `Contact` on click (tel:+48791257229) */
+/** Business phone link — fires Meta `Contact` + GA4 `click_phone` (no PII) */
 export function PhoneLink({
   href = siteConfig.phoneHref,
   onClick,
@@ -16,6 +17,11 @@ export function PhoneLink({
   children,
   ...props
 }: PhoneLinkProps) {
+  const handleClick = (e: MouseEvent<HTMLAnchorElement>) => {
+    trackClickPhone(trackSource);
+    onClick?.(e);
+  };
+
   return (
     <a
       href={href}
@@ -24,7 +30,7 @@ export function PhoneLink({
         trackSource ? JSON.stringify({ content_name: trackSource }) : undefined
       }
       {...props}
-      onClick={onClick}
+      onClick={handleClick}
     >
       {children}
     </a>
