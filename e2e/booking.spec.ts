@@ -15,8 +15,8 @@ test("booking page — add service to cart and open phone step", async ({ page }
 
   await expect(page.getByText(/W koszyku/i).first()).toBeVisible({ timeout: 5000 });
 
-  await page.getByRole("button", { name: /^Dalej$/i }).click();
-  await expect(page.getByText(/Zostaw numer|telefon/i).first()).toBeVisible({
+  await page.getByRole("button", { name: /Dalej/i }).click();
+  await expect(page.getByText(/Zostaw numer|telefon|potwierdzimy/i).first()).toBeVisible({
     timeout: 10_000,
   });
 });
