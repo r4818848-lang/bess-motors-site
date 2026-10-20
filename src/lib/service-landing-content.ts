@@ -540,7 +540,7 @@ export const SERVICE_LANDING_STEPS: Partial<Record<ServiceId, ServiceLandingStep
     {
       title: { pl: "Rezerwacja terminu", ru: "Запись на время", en: "Book Appointment", uk: "Запис часу" },
       description: {
-        pl: "Wybierasz wymianę, wyważanie lub sezonową zmianę — rezerwujemy slot bez kolejki.",
+        pl: "Wybierasz wymianę, wyważanie lub sezonową zmianę — potwierdzimy termin po kontakcie.",
         ru: "Шиномонтаж, балансировка или сезонная смена — без очереди.",
         en: "You choose exchange, balancing or seasonal change — we reserve the slot without a queue.",
         uk: "Шиномонтаж, балансування або сезонна зміна — без черги.",
@@ -699,7 +699,7 @@ export const SERVICE_LANDING_EDUCATION: Partial<
     {
       title: { pl: "Sezonowa wymiana opon", ru: "Сезонная смена", en: "Seasonal tyre changes", uk: "Сезонна зміна" },
       body: {
-        pl: "Montaż, wyważanie, prawidłowe ciśnienie — komplet 4 kół bez kolejki po rezerwacji.",
+        pl: "Montaż, wyważanie, prawidłowe ciśnienie — komplet 4 kół po potwierdzeniu terminu.",
         ru: "Монтаж, балансировка, давление — 4 колеса без очереди.",
         en: "Assembly, balancing, correct pressure — a set of 4 wheels without a queue after booking.",
         uk: "Встановлення, балансування, тиск — 4 колеса без черги.",

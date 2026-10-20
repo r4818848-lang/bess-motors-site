@@ -6,6 +6,7 @@ import type { ServiceId } from "@/lib/services-catalog";
 import {
   buildPackageBookingUrl,
   getServicePackage,
+  isPackageCurrentlyValid,
   packageRegularTotal,
   type ServicePackageId,
 } from "@/lib/service-packages";
@@ -28,10 +29,12 @@ export function ServiceLandingPackageOffer({ serviceId }: { serviceId: ServiceId
   const useRu = contentLocale(locale) === "ru";
   const packageId = LANDING_PACKAGES[serviceId];
   const pkg = packageId ? getServicePackage(packageId) : undefined;
-  if (!pkg) return null;
+  if (!pkg || !isPackageCurrentlyValid(pkg)) return null;
 
   const regular = packageRegularTotal(pkg);
   const savings = regular - pkg.packagePricePln;
+  // Nie pokazuj „oszczędności”, gdy pakiet jest droższy niż suma pozycji
+  if (savings <= 0) return null;
 
   return (
     <section className="mt-8" aria-labelledby="landing-package-heading">

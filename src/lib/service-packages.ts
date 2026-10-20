@@ -26,6 +26,10 @@ function sumItemPrices(ids: string[]): number {
   }, 0);
 }
 
+/**
+ * Packages that claimed “savings” but cost MORE than buying items separately
+ * are kept in the catalog for reference only — not shown publicly.
+ */
 export const servicePackages: ServicePackage[] = [
   {
     id: "to_standard",
@@ -79,6 +83,20 @@ export function getServicePackage(id: string): ServicePackage | undefined {
 
 export function packageRegularTotal(pkg: ServicePackage): number {
   return sumItemPrices(pkg.priceItemIds);
+}
+
+export function isPackageCurrentlyValid(pkg: ServicePackage, now = new Date()): boolean {
+  const end = new Date(`${pkg.validUntil}T23:59:59`);
+  return !Number.isNaN(end.getTime()) && now <= end;
+}
+
+/** Only packages that are in date AND cheaper than buying items separately */
+export function getPublicServicePackages(now = new Date()): ServicePackage[] {
+  return servicePackages.filter((pkg) => {
+    if (!isPackageCurrentlyValid(pkg, now)) return false;
+    const regular = packageRegularTotal(pkg);
+    return pkg.packagePricePln < regular;
+  });
 }
 
 export function buildPackageBookingUrl(pkg: ServicePackage): string {

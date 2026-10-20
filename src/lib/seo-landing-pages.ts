@@ -142,7 +142,7 @@ export const seoLandingPages: SeoLandingPage[] = [
     line2: "Szybka obsługa bez kolejek",
     metaTitle: "Wulkanizacja Warszawa — wymiana opon Włochy",
     metaDescription:
-      "Wulkanizacja Warszawa Włochy: wymiana i wyważanie opon bez kolejki. BESS MOTORS, Aleja Krakowska 48/52. Zapis online.",
+      "Wulkanizacja Warszawa Włochy: wymiana i wyważanie opon od 200 zł za komplet. BESS MOTORS, Aleja Krakowska 48/52. Zapytaj o termin.",
     serviceId: "tires",
     icon: "Circle",
   },
@@ -227,7 +227,7 @@ export const seoLandingPages: SeoLandingPage[] = [
     slug: "warszawa-ochota",
     title: "Serwis dla Ochoty",
     line1: "Rakowiec, Szczęśliwice — dojazd ok. 15 min",
-    line2: "Umów wizytę online bez kolejki",
+    line2: "Zapytaj o najbliższy termin online",
     metaTitle: "Mechanik Ochota Warszawa — BESS MOTORS",
     metaDescription:
       "Mechanik dla Ochoty i Rakowca — BESS MOTORS przy Alei Krakowskiej 48/52. Warsztat w zasięgu ok. 8 km: hamulce, diagnostyka, klimatyzacja, wymiana oleju.",

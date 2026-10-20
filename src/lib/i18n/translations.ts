@@ -111,7 +111,7 @@ const pl = {
       suspension: { title: "Zawieszenie gratis", price: "przy wymianie oleju" },
       filters: { title: "Filtry kabinowy i powietrza", price: "od 50 / 30 zł" },
       pads: { title: "Klocki hamulcowe przód", price: "100 zł robocizna" },
-      tires: { title: "Wymiana opon", price: "od 150 zł" },
+      tires: { title: "Wymiana opon", price: "od 200 zł" },
     },
   },
   hero: {
@@ -396,7 +396,7 @@ const pl = {
     load: "W serwisie: {repairs} aut · wizyt dziś: {appointments}",
     hintLow: "Mało wolnych terminów — rezerwuj online",
     hintMedium: "Średnie obłożenie — rezerwacja online przyspieszy wizytę",
-    hintHigh: "Są wolne terminy dziś",
+    hintHigh: "Zapytaj o najbliższy termin",
   },
   priceMatch: {
     text: "Znalazłeś taniej? Pokaż wycenę — dopasujemy cenę przy podobnym zakresie prac.",
@@ -464,8 +464,8 @@ const pl = {
     priceR134aNew: "50 zł/100 g",
     priceR1234Label: "R1234yf",
     priceR1234Old: "",
-    priceR1234New: "50 zł/100 g",
-    priceFrom: "podłączenie 80 zł · gaz certyfikowany 50 zł/100 g",
+    priceR1234New: "100 zł/100 g",
+    priceFrom: "podłączenie 80 zł · R134a 50 zł/100 g · R1234yf 100 zł/100 g",
     accentAllCars: "Wszystkie marki i modele aut",
     accentNoQueue: "Szybkie terminy — zapis online",
     bullets: [
@@ -480,7 +480,7 @@ const pl = {
     imageAlt: "Naprawa i serwis klimatyzacji — spawanie przewodu BESS MOTORS",
     watchVideo: "Zobacz wideo z warsztatu",
     bookLead:
-      "Podłączenie 80 zł · gaz R134a i R1234yf po 50 zł/100 g. Nabijamy w BESS MOTORS na Alei Krakowskiej.",
+      "Podłączenie 80 zł · R134a 50 zł/100 g · R1234yf 100 zł/100 g. Nabijamy w BESS MOTORS na Alei Krakowskiej.",
     bookTitle: "Nabijanie klimatyzacji",
     bookPoints: [
       "Szybkie terminy — zapis online",
@@ -557,7 +557,7 @@ const pl = {
     googleReview: "Zostaw opinię w Google Maps",
   },
   waitTime: {
-    estimate: "Szacunek: najbliższy termin ~{days} dni · wolne terminy: {slots}",
+    estimate: "Orientacyjnie: zapytaj o termin · dostępność potwierdzimy po kontakcie",
   },
   telegramLogin: {
     divider: "lub przez Telegram",
@@ -933,7 +933,7 @@ const pl = {
     submitAc: "Umów nabijanie klimy",
     flexibleTimeNote: "Klient wybrał tylko datę — dopasować godzinę przy potwierdzeniu",
     noSlotsOnDate: "Brak wolnych terminów w tym dniu — wybierz inny dzień.",
-    priceFromNote: "Orientacyjnie: podłączenie 80 zł + gaz certyfikowany 50 zł/100 g",
+    priceFromNote: "Orientacyjnie: podłączenie 80 zł + R134a 50 zł/100 g (R1234yf 100 zł/100 g)",
     fullFormLink: "Pełny formularz z wyborem usług i godziny →",
     acChoiceTitle: "Jak umówić nabijanie klimy?",
     acChoiceSubtitle: "Zadzwoń teraz lub zostaw numer — oddzwonimy i potwierdzimy termin.",
@@ -1060,7 +1060,7 @@ const pl = {
     items: [
       {
         q: "Ile kosztuje wymiana oleju?",
-        a: "Od 150 zł (olej + filtr oleju). Dodatkowe filtry: kabinowy od 50 zł, powietrza od 30 zł. Pełny cennik w rezerwacji online.",
+        a: "Robocizna wymiany oleju i filtra oleju: 80 zł (kod BessMotors). Olej i filtr dobieramy do auta i rozliczamy osobno. Filtr kabinowy / powietrza — wg cennika.",
       },
       {
         q: "Czy robicie chip tuning?",
@@ -2181,7 +2181,7 @@ const ru: TranslationKeys = {
       suspension: { title: "Подвеска бесплатно", price: "при замене масла" },
       filters: { title: "Фильтры салона и воздуха", price: "от 50 / 30 zł" },
       pads: { title: "Колодки передние", price: "100 zł работа" },
-      tires: { title: "Замена шин", price: "от 150 zł" },
+      tires: { title: "Замена шин", price: "от 200 zł" },
     },
   },
   hero: {
@@ -2438,8 +2438,8 @@ const ru: TranslationKeys = {
     priceR134aNew: "50 zł/100 г",
     priceR1234Label: "R1234yf",
     priceR1234Old: "",
-    priceR1234New: "50 zł/100 г",
-    priceFrom: "подключение 80 zł · газ 50 zł/100 г",
+    priceR1234New: "100 zł/100 г",
+    priceFrom: "подключение 80 zł · R134a 50 zł/100 г · R1234yf 100 zł/100 г",
     accentAllCars: "Все марки и модели авто",
     accentNoQueue: "Быстрые сроки — онлайн-запись",
     subtitle:
@@ -2902,7 +2902,7 @@ const ru: TranslationKeys = {
     submitAc: "Записаться на заправку",
     flexibleTimeNote: "Клиент выбрал только дату — время согласовать при подтверждении",
     noSlotsOnDate: "Нет свободных слотов в этот день — выберите другую дату.",
-    priceFromNote: "Ориентировочно: подключение 80 zł + сертифицированный газ 50 zł/100 г",
+    priceFromNote: "Ориентировочно: подключение 80 zł + R134a 50 zł/100 г (R1234yf 100 zł/100 г)",
     fullFormLink: "Полная форма с выбором услуг и времени →",
     acChoiceTitle: "Как записаться на заправку?",
     acChoiceSubtitle: "Позвоните сейчас или оставьте номер — перезвоним и подтвердим время.",
@@ -3029,7 +3029,7 @@ const ru: TranslationKeys = {
     items: [
       {
         q: "Сколько стоит замена масла?",
-        a: "От 150 zł (масло + фильтр). Салонный фильтр от 50 zł, воздушный от 30 zł. Полный прайс в онлайн-записи.",
+        a: "Работа по замене масла и масляного фильтра: 80 zł (код BessMotors). Масло и фильтр подбираем отдельно. Салонный / воздушный фильтр — по прайсу.",
       },
       {
         q: "Делаете ли вы chip tuning?",
@@ -4128,7 +4128,7 @@ const en: TranslationKeys = {
     mapHours: "Mon–Sat 8:00–18:00",
     chatTitle: "Write what you need",
     chatSubtitle: "WhatsApp or Telegram: service + phone. No account needed.",
-    callbackTitle: "We call back in 5 minutes",
+    callbackTitle: "Leave your number — we will call back",
     callbackSubtitle: "Leave your number — we call back.",
     callbackSubmit: "Call me back",
     callbackDone: "Thanks — we are calling.",
@@ -4601,7 +4601,7 @@ const en: TranslationKeys = {
     priceR134aNew: "50 PLN/100g",
     priceR1234Label: "R1234yf",
     priceR1234Old: "100 PLN/100g",
-    priceR1234New: "50 PLN/100g",
+    priceR1234New: "100 PLN/100g",
     priceFrom: "connection 80 PLN · certified gas 50 PLN/100g",
     accentAllCars: "All car makes and models",
     accentNoQueue: "No queue — fast slots",
@@ -5407,7 +5407,7 @@ const uk: TranslationKeys = {
       suspension: { title: "Підвіска безкоштовно", price: "при заміні оливи" },
       filters: { title: "Фільтри салону і повітря", price: "від 50 / 30 zł" },
       pads: { title: "Колодки передні", price: "100 zł робота" },
-      tires: { title: "Заміна шин", price: "від 150 zł" },
+      tires: { title: "Заміна шин", price: "від 200 zł" },
     },
   },
   homeLead: {

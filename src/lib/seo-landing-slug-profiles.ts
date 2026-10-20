@@ -160,7 +160,7 @@ export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
         body: L(
           "Dogodny dojazd: Aleja Krakowska 48/52, ok. 5 min od Okęcia i lotniska. Parking przy serwisie. Pn–Sb 8:00–18:00. Zapis online 24/7 na /wymiana-oleju lub telefon +48 791 257 229.",
           "Удобный подъезд: Aleja Krakowska 48/52, ~5 мин от Okęcie. Парковка у сервиса. Пн–Сб 8:00–18:00. Онлайн-запись 24/7.",
-          "Convenient access: Aleja Krakowska 48/52, approx. 5 minutes from Okęcie and the airport. Parking at the service. Mon-Sat 8:00–18:00. Online registration 24/7 on /oil-change or phone +48 791 257 229.",
+          "Convenient access: Aleja Krakowska 48/52, near Okęcie and the airport. Parking at the workshop. Mon–Sat 8:00–18:00. Book online or call +48 791 257 229 — we confirm the appointment by phone.",
           "Зручний доступ: Aleja Krakowska 48/52, ~5 хв від Окенце. Парковка на службі. Пн–Сб 8:00–18:00. Онлайн запис 24/7."
         ),
       },
@@ -282,10 +282,10 @@ export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
       {
         title: L("Nabijanie klimatyzacji — ceny", "Заправка кондиционера — цены", "Air Conditioning Charging — Prices", "Заправка кондиціонера — ціни"),
         body: L(
-    "Podłączenie układu ${acHookupPricePln()} zł, freon R134a ${acR134aPer100gPln()} zł/100 g, R1234yf ${acR1234yfPer100gPln()} zł/100 g — pełna zaprawa od ${acRechargeFromPln()} zł. Nabijamy wszystkie marki aut.",
-    "Подключение ${acHookupPricePln()} zł, фреон R134a ${acR134aPer100gPln()} zł/100 г, R1234yf ${acR1234yfPer100gPln()} zł/100 г — полная заправка от ${acRechargeFromPln()} zł. Заправляем все марки.",
-    "Connection of the system ${acHookupPricePln ()} PLN, freon R134a ${acR134aPer100gPln ()} PLN/100 g, R1234yf ${acR1234yfPer100gPln ()} PLN/100 g — full mortar from ${acRechargeFromPln()} PLN. We charge all car brands.",
-    "Підключення ${acHookupPricePln()} zł, фреон R134a ${acR134aPer100gPln()} zł/100 г, R1234yf ${acR1234yfPer100gPln()} zł/100 г — повна заправка від ${acRechargeFromPln()} zł. Ми заправляємо всі бренди."
+    "Podłączenie układu ${acHookupPricePln()} zł, czynnik R134a ${acR134aPer100gPln()} zł/100 g, R1234yf ${acR1234yfPer100gPln()} zł/100 g — pełne napełnienie od ${acRechargeFromPln()} zł (zależnie od ilości czynnika). Nabijamy wszystkie marki aut.",
+    "Подключение ${acHookupPricePln()} zł, фреон R134a ${acR134aPer100gPln()} zł/100 г, R1234yf ${acR1234yfPer100gPln()} zł/100 г — полная заправка от ${acRechargeFromPln()} zł (зависит от объёма). Заправляем все марки.",
+    "System hook-up ${acHookupPricePln()} PLN, R134a ${acR134aPer100gPln()} PLN/100 g, R1234yf ${acR1234yfPer100gPln()} PLN/100 g — full recharge from ${acRechargeFromPln()} PLN (depends on refrigerant volume).",
+    "Підключення ${acHookupPricePln()} zł, фреон R134a ${acR134aPer100gPln()} zł/100 г, R1234yf ${acR1234yfPer100gPln()} zł/100 г — повна заправка від ${acRechargeFromPln()} zł (залежить від обсягу)."
         ),
       },
       {
@@ -779,7 +779,7 @@ export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
       {
         title: L("Serwis dla mieszkańców Ursynowa", "Сервис для Ursynów", "Service for residents of Ursynów", "Сервіс для Урсинува"),
         body: L(
-          "Dojazd z Ursynowa i Mokotowa przez S2 lub Al. Krakowską — ok. 15–20 min. Umów wizytę bez kolejki.",
+          "Dojazd z Ursynowa i Mokotowa przez S2 lub Al. Krakowską. Zapytaj o najbliższy termin wizyty.",
           "Из Ursynów и Mokotów — 15–20 мин. Запись без очереди.",
           "Access from Ursynowo and Mokotów via S2 or Al. Krakowska — approx. 15–20 min. Arrange a skip the line appointment.",
           "З Урсинува та Мокотува — 15–20 хв. Без черги."

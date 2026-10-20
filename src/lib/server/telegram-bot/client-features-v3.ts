@@ -2,7 +2,7 @@ import type { InlineKeyboardMarkup } from "@/lib/server/telegram-api";
 import { sendTelegramMessage } from "@/lib/server/telegram-api";
 import { siteConfig } from "@/lib/site";
 import { getPromoRules } from "@/lib/promo-codes";
-import { servicePackages } from "@/lib/service-packages";
+import { getPublicServicePackages, getServicePackage } from "@/lib/service-packages";
 import type { BotLocale } from "./client-i18n";
 import { getClientBotLabels, botContentLocale } from "./client-i18n";
 import { getClientServiceLabel, normalizeTelegramServiceId } from "./client-services";
@@ -16,7 +16,7 @@ export function packagesKeyboard(locale: BotLocale): InlineKeyboardMarkup {
   const loc = botContentLocale(locale);
   return {
     inline_keyboard: [
-      ...servicePackages.map((p) => [
+      ...getPublicServicePackages().map((p) => [
         {
           text: loc === "ru" ? p.nameRu : p.namePl,
           callback_data: `cl:pkg:${p.id}`,
@@ -72,7 +72,7 @@ export async function startPackageBooking(
   locale: BotLocale,
   packageId: string
 ): Promise<void> {
-  const pkg = servicePackages.find((p) => p.id === packageId);
+  const pkg = getServicePackage(packageId);
   if (!pkg) return;
   const loc = botContentLocale(locale);
   const label = loc === "ru" ? pkg.nameRu : pkg.namePl;
