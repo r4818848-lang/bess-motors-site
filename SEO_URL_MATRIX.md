@@ -7,7 +7,7 @@ Canonical host: `https://www.bess-motors.com`
 | `/` | existing-improved | Brand + local workshop | CTAs, promo oil/tires |
 | `/services` | existing-improved | Service hub | Categories → SEO pages |
 | `/cennik` | existing-improved | Full price list | Tire/AC/puncture prices synced |
-| `/booking` | existing-improved | Booking request | Soft availability copy |
+| `/booking` | existing-improved | Booking request | SSR H1/NAP + client form; “potwierdzimy telefonicznie” |
 | `/contacts` | existing-improved | NAP + map | |
 | `/promocje` | existing-improved | Promos | Expired packages hidden |
 | `/serwis-flot-warszawa` | existing-improved | B2B fleet | |
@@ -25,7 +25,7 @@ Canonical host: `https://www.bess-motors.com`
 | `/diagnostyka-zawieszenia-warszawa` | **new-published** | Suspension diag | Free with oil promo |
 | `/wymiana-akumulatora-warszawa` | **new-published** | Battery | Materials separate |
 | `/odgrzybianie-klimatyzacji-warszawa` | **new-published** | A/C disinfection | |
-| `/chip-tuning-warszawa` | pending-content | Chip tuning | Equipment confirmation needed |
+| `/chip-tuning-warszawa` | pending-content (**noindex**, out of sitemap) | Chip tuning | Hidden until equipment confirmed |
 | District clones Ursynów/Mokotów/Ochota | merged / thin-risk | Geo | Keep but don’t expand clones |
 | Brand landings BMW/Mercedes/… | existing-improved | Brand service | No fake dealership claims |
 

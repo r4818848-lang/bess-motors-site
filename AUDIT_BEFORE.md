@@ -50,3 +50,12 @@ Non-index: `/crm/*`, `/admin`, `/mechanic`, `/cabinet`, `/sign/*`, `/status`, `/
 
 - Real workshop photos in gallery; no stock replacement planned
 - Hours Pn–Sb 8:00–18:00 in code — verify vs Google Business Profile (owner)
+
+## Gap closure (this iteration)
+
+- Chip category hidden from public cennik/PDF/booking; chip landing noindex
+- Detailing/PPF/Webasto/stage/chip removed from public /services cards
+- OBD “all modules / free” overclaims softened
+- Homepage: tyre season block + complex repairs; Jak dojechać + entrance photo
+- Booking: SSR shell with H1/NAP; named GA4 conversion events; price validate script
+- Packages: public only if savings ≥ 20 zł

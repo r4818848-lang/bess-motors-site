@@ -106,7 +106,7 @@ export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
       {
         q: L("Czy diagnostyka jest płatna?", "Диагностика платная?", "Is the diagnosis paid?", "Діагностика платна?"),
         a: L(
-          "Krótki odczyt kodów często bezpłatny — pełna diagnoza według cennika na stronie.",
+          "Zakres odczytu kodów omawiamy przy wizycie — pełna diagnoza według cennika na stronie.",
           "Краткий odczyt часто бесплатен — полная диагностика по прайсу.",
           "Short code reading is often free — full diagnosis according to the price list on the website.",
           "Короткий оджит часто безкоштовний — повна діагностика за прайс-листом."
@@ -737,7 +737,7 @@ export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
       },
       {
         q: L("Czy mogę umówić się na dziś?", "Можно на сегодня?", "Can I make an appointment for today?", "Можна мені на сьогодні?"),
-        a: L("Sprawdź wolne terminy w kalendarzu — często mamy slot tego samego dnia.", "Смотрите календарь — часто есть слот в тот же день.", "Check the free dates on the calendar — we often have a slot on the same day.", "Дивіться календар — часто в один і той же день є слот."),
+        a: L("Zapytaj o najbliższy termin — potwierdzimy wizytę po kontakcie.", "Спросите о ближайшем сроке — подтвердим после связи.", "Ask about the next available slot — we confirm after contact.", "Запитайте про найближчий термін — підтвердимо після контакту."),
       },
     ],
     price: {
@@ -745,8 +745,8 @@ export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
       priceFrom: false,
       materialsExtra: false,
       includes: [
-        L("Rezerwacja online 24/7", "Онлайн-запись 24/7", "Online booking 24/7", "Онлайн-запис 24/7"),
-        L("Potwierdzenie terminu", "Подтверждение времени", "Date Confirmation", "Підтвердження часу"),
+        L("Wniosek o wizytę online", "Заявка на визит онлайн", "Online visit request", "Заявка на візит онлайн"),
+        L("Potwierdzenie terminu po kontakcie", "Подтверждение срока после связи", "Slot confirmed after contact", "Підтвердження терміну після контакту"),
         L("Konsultacja przy przyjęciu auta", "Консультация при приёме", "Consultation at the reception of the car", "Консультація на рецепції"),
       ],
       note: L("Ceny poszczególnych usług — w cenniku na stronie.", "Цены услуг — в прайсе на сайте.", "Prices of individual services — in the price list on the website.", "Ціни на послуги — в прайс-листі на сайті."),
@@ -1169,7 +1169,7 @@ export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
         L("Omówienie z mechanikiem", "Разбор с механиком", "Discussion with the mechanic", "Обговорення з механіком"),
         L("Rekomendacje napraw", "Рекомендации", "Recommendations for repairs", "Рекомендації"),
       ],
-      note: L("Krótki odczyt kodów może być bezpłatny — pełna diagnoza według cennika.", "Краткий оdczyt может быть бесплатным.", "A short reading of codes can be free — full diagnosis according to the price list.", "Короткий одцит може бути вільним."),
+      note: L("Zakres odczytu kodów omawiamy przy wizycie — pełna diagnoza według cennika.", "Объём считывания кодов обсуждаем при визите — полная диагностика по прайсу.", "Code-read scope is discussed at the visit — full diagnosis per the price list.", "Обсяг зчитування кодів обговорюємо під час візиту — повна діагностика за прайсом."),
     },
   },
   "klocki-hamulcowe": {

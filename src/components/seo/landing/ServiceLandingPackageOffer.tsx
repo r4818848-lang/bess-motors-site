@@ -33,8 +33,8 @@ export function ServiceLandingPackageOffer({ serviceId }: { serviceId: ServiceId
 
   const regular = packageRegularTotal(pkg);
   const savings = regular - pkg.packagePricePln;
-  // Nie pokazuj „oszczędności”, gdy pakiet jest droższy niż suma pozycji
-  if (savings <= 0) return null;
+  // Nie pokazuj „oszczędności”, gdy pakiet nie jest wyraźnie tańszy
+  if (savings < 20) return null;
 
   return (
     <section className="mt-8" aria-labelledby="landing-package-heading">

@@ -67,13 +67,39 @@ const pl = {
     chatWhatsapp: "WhatsApp",
     chatTelegram: "Telegram",
     callbackTitle: "Zostaw numer — oddzwonimy",
-    callbackSubtitle: "Zostaw numer telefonu, oddzwonimy w sprawie wizyty.",
+    callbackSubtitle: "Zostaw numer telefonu — skontaktujemy się w sprawie wizyty.",
     callbackSubmit: "Zadzwońcie do mnie",
     callbackDone: "Dziękujemy — skontaktujemy się.",
     callbackError: "Nie udało się wysłać. Zadzwoń: +48 791 257 229",
     callbackComment: "Prośba o kontakt — {page}",
     gbpNote:
       "Te same godziny i adres co w Google: Pn–Sb 8:00–18:00, Aleja Krakowska 48/52.",
+    mapLandmark:
+      "Wjazd od Alei Krakowskiej — warsztat i parking na terenie posesji. Szukaj szyldu BESS MOTORS.",
+  },
+  homeTireBlock: {
+    badge: "Sezon opon",
+    title: "Wymiana opon — Warszawa Włochy",
+    subtitle:
+      "Komplet 4 kół z wyważaniem. Zapytaj o najbliższy termin wymiany opon — potwierdzimy po kontakcie.",
+    priceNote: "SUV, RunFlat, R21+ — wycena po potwierdzeniu pojazdu. Naprawa przebicia: 60 zł robocizna.",
+    ctaAsk: "Zapytaj o termin wymiany opon",
+    ctaMore: "Wulkanizacja — szczegóły",
+    imageAlt: "Wymiana opon w BESS MOTORS Warszawa Włochy",
+  },
+  homeComplex: {
+    title: "Naprawy bardziej złożone",
+    subtitle:
+      "Rozrząd, sprzęgło, skrzynia automatyczna, Haldex — wycena po diagnostyce i VIN. Nie sprowadzamy oferty tylko do wymiany oleju.",
+    quoteNote: "Wycena po diagnostyce",
+    cta: "Zobacz usługę",
+    allServices: "Wszystkie usługi",
+    items: {
+      timing: "Wymiana rozrządu",
+      clutch: "Wymiana sprzęgła",
+      gearbox: "Serwis skrzyni automatycznej",
+      haldex: "Serwis Haldex",
+    },
   },
   whyBess: {
     title: "Dlaczego BESS MOTORS",
@@ -96,8 +122,8 @@ const pl = {
         body: "Paragon lub faktura — jasny zakres i koszt usługi.",
       },
       {
-        title: "Nowoczesna diagnostyka",
-        body: "Komputerowa diagnostyka i sprzęt warsztatowy.",
+        title: "Diagnostyka warsztatowa",
+        body: "Diagnostyka komputerowa w zakresie dostępnego sprzętu — wycena przed naprawą.",
       },
     ],
   },
@@ -177,7 +203,7 @@ const pl = {
   priceList: {
     title: "Pełny cennik serwisu",
     subtitle:
-      "Aktualny cennik BESS MOTORS — diagnostyka, mechanika, klimatyzacja, chip tuning i więcej. Wybierz usługi i umów wizytę online.",
+      "Aktualny cennik BESS MOTORS — diagnostyka, mechanika, klimatyzacja, opony i więcej. Wybierz usługi i umów wizytę online.",
     hourlyRate: "Norma-godzina",
     bookCta: "Umów się",
     notesTitle: "Ważne informacje",
@@ -889,7 +915,8 @@ const pl = {
   },
   bookingQuote: {
     subtitle:
-      "1) Wybierz usługi z cennika  2) Zostaw telefon — oddzwonimy i potwierdzimy wizytę. Bez konta i logowania.",
+      "1) Wybierz usługi z cennika  2) Zostaw telefon — potwierdzimy termin telefonicznie. Bez konta i logowania.",
+    confirmNote: "To wniosek o zapis, nie potwierdzona rezerwacja slotu online.",
     addService: "Dodaj usługę",
     quantity: "Ilość",
     inCart: "W koszyku",
@@ -914,7 +941,7 @@ const pl = {
     note: "Uwagi (opcjonalnie)",
     notePlaceholder: "Dodatkowe uwagi (opcjonalnie)…",
     submit: "Umów się",
-    successHint: "Oddzwonimy lub potwierdzimy termin SMS-em.",
+    successHint: "Potwierdzimy termin telefonicznie lub SMS-em.",
     submitting: "Umów się…",
     submitFailed: "Nie udało się zapisać rezerwacji. Spróbuj ponownie lub zadzwoń.",
     cloudSyncFailed: "Rezerwacja nie dotarła do serwera. Zadzwoń pod {phone}, aby potwierdzić termin.",
@@ -1064,7 +1091,7 @@ const pl = {
       },
       {
         q: "Czy robicie chip tuning?",
-        a: "Tak — Stage 1 od 1200 zł, Stage 2 od 2500 zł. Diagnostyka przed tuningiem jest obowiązkowa.",
+        a: "Zapytaj o aktualną dostępność chip tuningu — potwierdzimy sprzęt i wycenę przed wizytą.",
       },
       {
         q: "Jak umówić wizytę?",
@@ -2162,12 +2189,12 @@ const ru: TranslationKeys = {
     chatSubtitle: "WhatsApp или Telegram: услуга + телефон. Без регистрации.",
     chatWhatsapp: "WhatsApp",
     chatTelegram: "Telegram",
-    callbackTitle: "Перезвоним за 5 минут",
-    callbackSubtitle: "Оставьте номер — перезвоним.",
+    callbackTitle: "Оставьте номер — перезвоним",
+    callbackSubtitle: "Оставьте номер — свяжемся по поводу визита.",
     callbackSubmit: "Перезвоните мне",
-    callbackDone: "Спасибо — звоним.",
+    callbackDone: "Спасибо — свяжемся.",
     callbackError: "Не отправилось. Звоните: +48 791 257 229",
-    callbackComment: "Обратный звонок за 5 мин — {page}",
+    callbackComment: "Просьба о контакте — {page}",
     gbpNote:
       "Те же часы и адрес, что в Google: Пн–Сб 8:00–18:00, Aleja Krakowska 48/52.",
   },
@@ -2246,7 +2273,7 @@ const ru: TranslationKeys = {
   priceList: {
     title: "Полный прайс-лист сервиса",
     subtitle:
-      "Актуальные цены BESS MOTORS — диагностика, механика, кондиционер, chip tuning и другое. Выберите услуги и запишитесь онлайн.",
+      "Актуальные цены BESS MOTORS — диагностика, механика, кондиционер, шины и другое. Выберите услуги и запишитесь онлайн.",
     hourlyRate: "Норма-час",
     bookCta: "Запись с прайса",
     notesTitle: "Важная информация",
@@ -2858,7 +2885,8 @@ const ru: TranslationKeys = {
   },
   bookingQuote: {
     subtitle:
-      "1) Выберите услуги из прайса  2) Оставьте телефон — мы перезвоним и подтвердим визит. Без кабинета и входа.",
+      "1) Выберите услуги из прайса  2) Оставьте телефон — подтвердим срок по телефону. Без кабинета и входа.",
+    confirmNote: "Это заявка на запись, а не подтверждённое бронирование слота онлайн.",
     addService: "Добавить услугу",
     quantity: "Количество",
     inCart: "В корзине",
@@ -4133,7 +4161,7 @@ const en: TranslationKeys = {
     callbackSubmit: "Call me back",
     callbackDone: "Thanks — we are calling.",
     callbackError: "Could not send. Call +48 791 257 229",
-    callbackComment: "Call back in 5 min — {page}",
+    callbackComment: "Contact request — {page}",
     gbpNote:
       "Same hours and address as Google: Mon–Sat 8:00–18:00, Aleja Krakowska 48/52.",
   },
@@ -4147,13 +4175,13 @@ const en: TranslationKeys = {
       suspension: { title: "Free suspension check", price: "with oil change" },
       filters: { title: "Cabin and air filters", price: "from 50 / 30 PLN" },
       pads: { title: "Front brake pads", price: "100 PLN labour" },
-      tires: { title: "Tire change", price: "from 150 PLN" },
+      tires: { title: "Tire change", price: "from 200 PLN" },
     },
   },
   priceList: {
     title: "Full service price list",
     subtitle:
-      "Official BESS MOTORS prices — diagnostics, mechanics, A/C, chip tuning and more. Book online.",
+      "Official BESS MOTORS prices — diagnostics, mechanics, A/C, tyres and more. Book online.",
     hourlyRate: "Labour rate",
     bookCta: "Book from price list",
     notesTitle: "Important notes",
@@ -4261,7 +4289,8 @@ const en: TranslationKeys = {
   },
   bookingQuote: {
     subtitle:
-      "1) Pick services from the price list  2) Leave your phone — we call back to confirm. No account or login.",
+      "1) Pick services from the price list  2) Leave your phone — we confirm the slot by phone. No account or login.",
+    confirmNote: "This is a booking request, not a confirmed online slot reservation.",
     addService: "Add service",
     quantity: "Quantity",
     inCart: "In cart",
@@ -5437,9 +5466,9 @@ const uk: TranslationKeys = {
     mapTitle: "Як доїхати",
     chatTitle: "Напишіть, що потрібно",
     chatSubtitle: "WhatsApp або Telegram: послуга + телефон. Без реєстрації.",
-    callbackTitle: "Передзвонимо за 5 хвилин",
+    callbackTitle: "Залиште номер — передзвонимо",
     callbackSubmit: "Передзвоніть мені",
-    callbackDone: "Дякуємо — телефонуємо.",
+    callbackDone: "Дякуємо — зв’яжемося.",
   },
   hero: {
     title: "BESS",

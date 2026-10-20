@@ -3,6 +3,8 @@
 import { Hero } from "@/components/home/Hero";
 import { HomeTrustBar } from "@/components/home/HomeTrustBar";
 import { SameDayServices } from "@/components/home/SameDayServices";
+import { HomeTireSeasonBlock } from "@/components/home/HomeTireSeasonBlock";
+import { HomeComplexRepairs } from "@/components/home/HomeComplexRepairs";
 import { HomeSeoServiceLinks } from "@/components/home/HomeSeoServiceLinks";
 import { HomePromoBlock } from "@/components/home/HomePromoBlock";
 import { VinQuoteForm } from "@/components/home/VinQuoteForm";
@@ -16,8 +18,7 @@ import { SymptomFaq } from "@/components/home/SymptomFaq";
 import { HomeFinalCta } from "@/components/home/HomeFinalCta";
 
 /**
- * Homepage order — Final Polish v3 §5 / §39.
- * One instance of each block; oil promo after popular services.
+ * Homepage order — Final Polish v3 §5 / §39 + TZ CRO (tires + complex repairs).
  */
 export default function HomePage() {
   return (
@@ -26,6 +27,8 @@ export default function HomePage() {
       <Hero />
       <HomeTrustBar />
       <SameDayServices />
+      <HomeTireSeasonBlock />
+      <HomeComplexRepairs />
       <HomeSeoServiceLinks />
       <HomePromoBlock />
       <VinQuoteForm />

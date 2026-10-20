@@ -11,13 +11,16 @@ export function getSiteUrl(): string {
 }
 
 /** Public pages for Google (no cabinet, CRM, admin) */
-/** Landing slugs that 301 to another URL — exclude from sitemap */
+/** Landing slugs that 301 to another URL — exclude from sitemap + static params */
 export const sitemapExcludedSlugs = new Set([
   "kontakt",
   "klocki-hamulcowe",
   "serwis-klimatyzacji",
   "promocje",
 ]);
+
+/** Published URL kept for bookmarks but noindex until equipment/content confirmed */
+export const pendingNoIndexSlugs = new Set(["chip-tuning-warszawa"]);
 
 export const HOME_SEO_TITLE =
   "Mechanik Warszawa Włochy | BESS MOTORS — Serwis Samochodowy";
@@ -44,7 +47,6 @@ export const defaultSeoKeywords = [
   "tania wymiana oleju Warszawa",
   "klocki hamulcowe promocja Warszawa",
   "kod BessMotors",
-  "chip tuning Warszawa",
   "diagnostyka komputerowa",
   "serwis BMW Warszawa",
   "serwis Mercedes Warszawa",

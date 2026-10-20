@@ -7,7 +7,7 @@ import { useI18n } from "@/lib/i18n/context";
 import {
   HOURLY_RATE_PLN,
   itemsByCategory,
-  priceCategories,
+  publicPriceCategories,
   priceListFooterNotes,
   type PriceCategoryId,
   type PriceListItem,
@@ -97,7 +97,7 @@ export function FullPriceListView() {
 
       <p className="text-xs text-bm-muted mb-4">{t.priceList.jumpHint}</p>
       <div className="flex flex-wrap gap-2 mb-8 sticky top-20 z-30 py-2 bg-bm-black/90 backdrop-blur-sm -mx-1 px-1">
-        {priceCategories.map((cat) => (
+        {publicPriceCategories.map((cat) => (
           <button
             key={cat.id}
             type="button"
@@ -110,7 +110,7 @@ export function FullPriceListView() {
       </div>
 
       <div className="space-y-10 mb-10">
-        {priceCategories.map((cat) => {
+        {publicPriceCategories.map((cat) => {
           const items = itemsByCategory(cat.id);
           if (!items.length) return null;
           return (

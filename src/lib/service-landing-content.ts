@@ -207,10 +207,10 @@ export const SERVICE_LANDING_STEPS: Partial<Record<ServiceId, ServiceLandingStep
     {
       title: { pl: "Podłączenie komputera diagnostycznego", ru: "Подключение сканера", en: "Connecting the diagnostic computer", uk: "Підключення сканера" },
       description: {
-        pl: "Skaner OBD — kody błędów ze wszystkich układów: silnik, skrzynia, ABS, airbag.",
-        ru: "OBD-сканер — коды ошибок всех систем: двигатель, КПП, ABS, подушки.",
-        en: "OBD scanner — error codes from all systems: engine, box, ABS, airbag.",
-        uk: "OBD сканер — коди помилок всіх систем: двигун, коробка передач, ABS, подушки безпеки.",
+        pl: "Odczyt kodów diagnostycznych OBD — silnik i dostępne moduły. Zakres zależy od auta i aktualnego sprzętu w warsztacie.",
+        ru: "Считывание кодов OBD — двигатель и доступные модули. Объём зависит от авто и оборудования в сервисе.",
+        en: "OBD diagnostic code reading — engine and available modules. Scope depends on the car and workshop equipment.",
+        uk: "Зчитування кодів OBD — двигун і доступні модулі. Обсяг залежить від авто та обладнання сервісу.",
       },
     },
     {
@@ -630,19 +630,19 @@ export const SERVICE_LANDING_EDUCATION: Partial<
     {
       title: { pl: "Czy odczyt OBD jest bezpłatny?", ru: "OBD бесплатно?", en: "Is the OBD reading free?", uk: "Без OBD?" },
       body: {
-        pl: "Krótki odczyt kodów przy wizycie — często w ramach konsultacji. Pełna diagnostyka z raportem to osobna usługa.",
-        ru: "Краткое считывание при визите часто бесплатно. Полная диагностика с отчётом — отдельная услуга.",
-        en: "Short reading of codes during the visit — often as part of consultations. Full diagnostics with a report is a separate service.",
-        uk: "Коротке читання під час візиту часто є безкоштовним. Повна діагностика з звітом — окрема послуга.",
+        pl: "Krótki odczyt kodów przy wizycie omawiamy indywidualnie. Pełna diagnostyka z raportem — według cennika.",
+        ru: "Краткое считывание при визите обсуждаем индивидуально. Полная диагностика с отчётом — по прайсу.",
+        en: "A short code read during a visit is discussed case by case. Full diagnostics with a report follow the price list.",
+        uk: "Коротке зчитування під час візиту обговорюємо індивідуально. Повна діагностика зі звітом — за прайсом.",
       },
     },
     {
       title: { pl: "Sprzęt diagnostyczny", ru: "Диагностическое оборудование", en: "DIAG EQUIPMENT", uk: "Діагностичне обладнання" },
       body: {
-        pl: "Profesjonalne skanery OBD, testy podzespołów na żywo, pomiary parametrów silnika i skrzyni. Raport z kodami i rekomendacjami napraw.",
-        ru: "Профессиональные OBD-сканеры, тесты узлов, замеры параметров двигателя и КПП. Отчёт с кодами и рекомендациями.",
-        en: "Professional OBD scanners, live component testing, engine and case measurements. Report with codes and recommendations for repairs.",
-        uk: "Професійні OBD сканери, випробування агрегатів, вимірювання параметрів двигуна та коробки передач. Звіт з кодами та рекомендаціями.",
+        pl: "Diagnostyka komputerowa w zakresie dostępnego sprzętu warsztatu — odczyt kodów, testy i raport z rekomendacjami. Zapytaj o zakres dla Twojego auta.",
+        ru: "Компьютерная диагностика в рамках доступного оборудования — коды, тесты и отчёт с рекомендациями. Уточните объём для вашего авто.",
+        en: "Computer diagnostics within available workshop equipment — codes, tests and a report with recommendations. Ask about scope for your car.",
+        uk: "Комп’ютерна діагностика в межах доступного обладнання — коди, тести та звіт з рекомендаціями. Уточніть обсяг для вашого авто.",
       },
     },
   ],

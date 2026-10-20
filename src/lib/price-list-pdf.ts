@@ -2,7 +2,7 @@ import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
 import {
   HOURLY_RATE_PLN,
-  priceCategories,
+  publicPriceCategories,
   priceListItems,
   priceListFooterNotes,
 } from "@/lib/price-list";
@@ -24,7 +24,7 @@ function buildPriceListHtml(locale: "pl" | "ru"): string {
     : `−${SITE_PROMO_PERCENT}% na wszystkie usługi oprócz klimatyzacji i wulkanizacji. Ceny z rabatem.`;
 
   let body = "";
-  for (const cat of priceCategories) {
+  for (const cat of publicPriceCategories) {
     const items = priceListItems.filter((i) => i.categoryId === cat.id);
     if (!items.length) continue;
     body += `<h2 style="font-size:14px;margin:16px 0 8px;color:#e10600;">${isRu ? cat.nameRu : cat.namePl}</h2>`;

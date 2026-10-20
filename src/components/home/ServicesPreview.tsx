@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useI18n } from "@/lib/i18n/context";
 import { ServiceIcon } from "@/components/icons/ServiceIcon";
-import { popularServices, type ServiceId } from "@/lib/services-catalog";
+import { publicPopularServices, type ServiceId } from "@/lib/services-catalog";
 import { Card } from "@/components/ui/Card";
 import { LazySmartBookingModal } from "@/components/booking/LazySmartBookingModal";
 
@@ -31,7 +31,7 @@ export function ServicesPreview() {
             </Link>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-            {popularServices.map((cat, i) => {
+            {publicPopularServices.map((cat, i) => {
               const label = t.serviceItems[cat.id as keyof typeof t.serviceItems];
               return (
                 <Card

@@ -1,13 +1,22 @@
 import { NextResponse } from "next/server";
-import { priceListItems, priceCategories } from "@/lib/price-list";
+import {
+  priceListItems,
+  publicPriceCategories,
+  isPublicPriceCategory,
+} from "@/lib/price-list";
 
 export const dynamic = "force-dynamic";
 
-/** Compact price list for PWA offline cache */
+/** Compact price list for PWA offline cache (public categories only) */
 export async function GET() {
+  const publicItems = priceListItems.filter((i) => isPublicPriceCategory(i.categoryId));
   return NextResponse.json({
-    categories: priceCategories.map((c) => ({ id: c.id, namePl: c.namePl, nameRu: c.nameRu })),
-    items: priceListItems.map((i) => ({
+    categories: publicPriceCategories.map((c) => ({
+      id: c.id,
+      namePl: c.namePl,
+      nameRu: c.nameRu,
+    })),
+    items: publicItems.map((i) => ({
       id: i.id,
       categoryId: i.categoryId,
       namePl: i.namePl,

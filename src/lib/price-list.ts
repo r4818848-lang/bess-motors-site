@@ -1833,6 +1833,27 @@ export function getPriceItem(id: string): PriceListItem | undefined {
   return priceListItems.find((i) => i.id === resolved);
 }
 
+/**
+ * Categories hidden from public cennik / booking / PDF until equipment is confirmed.
+ * Chip tuning / Stage / dyno require confirmed programming tools (Launch X431 removed).
+ */
+export const PUBLIC_HIDDEN_CATEGORY_IDS = new Set<PriceCategoryId>(["chip"]);
+
+export function isPublicPriceCategory(id: PriceCategoryId): boolean {
+  return !PUBLIC_HIDDEN_CATEGORY_IDS.has(id);
+}
+
+/** Categories shown on /cennik, booking picker and PDF */
+export const publicPriceCategories = priceCategories.filter((c) =>
+  isPublicPriceCategory(c.id)
+);
+
 export function itemsByCategory(categoryId: PriceCategoryId): PriceListItem[] {
+  if (!isPublicPriceCategory(categoryId)) return [];
+  return priceListItems.filter((i) => i.categoryId === categoryId);
+}
+
+/** Full catalog including hidden categories (CRM / internal only) */
+export function itemsByCategoryAll(categoryId: PriceCategoryId): PriceListItem[] {
   return priceListItems.filter((i) => i.categoryId === categoryId);
 }

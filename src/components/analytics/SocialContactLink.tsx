@@ -1,8 +1,9 @@
 "use client";
 
-import type { ComponentProps } from "react";
+import type { ComponentProps, MouseEvent } from "react";
 import { siteConfig } from "@/lib/site";
 import { workshopTelegramChatUrl } from "@/lib/chat-cta";
+import { trackClickWhatsapp } from "@/lib/gtag";
 
 type SocialKind = "whatsapp" | "telegram";
 
@@ -16,7 +17,7 @@ type SocialContactLinkProps = ComponentProps<"a"> & {
   trackSource?: string;
 };
 
-/** WhatsApp / Telegram — fires Meta Contact on click */
+/** WhatsApp / Telegram — fires Meta Contact + GA4 click_whatsapp (no PII) */
 export function SocialContactLink({
   kind,
   href,
@@ -27,6 +28,11 @@ export function SocialContactLink({
   children,
   ...props
 }: SocialContactLinkProps) {
+  const handleClick = (e: MouseEvent<HTMLAnchorElement>) => {
+    if (kind === "whatsapp") trackClickWhatsapp(trackSource ?? kind);
+    onClick?.(e);
+  };
+
   return (
     <a
       href={href ?? hrefByKind[kind]}
@@ -35,7 +41,7 @@ export function SocialContactLink({
       data-fbq-track="Contact"
       data-fbq-params={JSON.stringify({ content_name: trackSource ?? kind })}
       {...props}
-      onClick={onClick}
+      onClick={handleClick}
     >
       {children}
     </a>

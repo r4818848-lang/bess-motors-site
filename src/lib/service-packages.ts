@@ -90,12 +90,13 @@ export function isPackageCurrentlyValid(pkg: ServicePackage, now = new Date()): 
   return !Number.isNaN(end.getTime()) && now <= end;
 }
 
-/** Only packages that are in date AND cheaper than buying items separately */
+/** Only packages that are in date AND clearly cheaper than buying items separately */
 export function getPublicServicePackages(now = new Date()): ServicePackage[] {
   return servicePackages.filter((pkg) => {
     if (!isPackageCurrentlyValid(pkg, now)) return false;
     const regular = packageRegularTotal(pkg);
-    return pkg.packagePricePln < regular;
+    // Require real savings (≥20 zł) — avoid “promo” packages that barely beat the sum
+    return regular - pkg.packagePricePln >= 20;
   });
 }
 
