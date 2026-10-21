@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Star, ExternalLink } from "lucide-react";
@@ -18,6 +18,29 @@ type Props = {
   variant?: "default" | "compact";
   className?: string;
 };
+
+function norm(s: string): string {
+  return s.toLowerCase().replace(/\s+/g, " ").trim();
+}
+
+/** Drop featured cards already present in the live Google payload */
+function featuredNotInLive(
+  live: { author: string; text: string }[]
+): typeof FEATURED_GOOGLE_REVIEWS {
+  const liveTexts = live.map((r) => norm(r.text)).filter((t) => t.length > 12);
+  const liveAuthors = new Set(live.map((r) => norm(r.author)));
+
+  return FEATURED_GOOGLE_REVIEWS.filter((f) => {
+    const text = norm(f.text);
+    if (!text) return false;
+    if (liveTexts.some((t) => t.includes(text.slice(0, 48)) || text.includes(t.slice(0, 48)))) {
+      return false;
+    }
+    // Same short author + similar short review (e.g. Ilya / 10/10)
+    if (liveAuthors.has(norm(f.author)) && text.length < 40) return false;
+    return true;
+  });
+}
 
 export function GoogleBusinessReviews({ variant = "default", className = "" }: Props) {
   const { locale, t } = useI18n();
@@ -44,10 +67,20 @@ export function GoogleBusinessReviews({ variant = "default", className = "" }: P
   const rating = hasLiveRating ? data?.rating : undefined;
   const count = hasLiveRating ? data?.userRatingCount : undefined;
 
+  const extraFeatured = useMemo(() => {
+    const live = data?.reviews ?? [];
+    return live.length > 0 ? featuredNotInLive(live) : FEATURED_GOOGLE_REVIEWS;
+  }, [data]);
+
   const headingClass =
     variant === "compact"
       ? "font-display text-xl uppercase"
       : "font-display text-2xl uppercase text-glow";
+
+  const mapsCta =
+    hasLiveRating && count != null
+      ? gr.viewAllOnMaps.replace("{count}", String(count))
+      : gr.viewOnMaps;
 
   return (
     <section className={className} aria-labelledby="google-reviews-heading">
@@ -67,7 +100,11 @@ export function GoogleBusinessReviews({ variant = "default", className = "" }: P
                     String(FEATURED_GOOGLE_REVIEWS.length)
                   )}
             </p>
-            {data?.source === "google" && data.placeName ? (
+            {hasLiveRating && count != null ? (
+              <p className="text-xs text-bm-muted/80 mt-1">
+                {gr.subtitleShowing.replace("{count}", String(count))}
+              </p>
+            ) : data?.source === "google" && data.placeName ? (
               <p className="text-xs text-bm-muted/80 mt-1">{data.placeName}</p>
             ) : null}
           </div>
@@ -79,7 +116,7 @@ export function GoogleBusinessReviews({ variant = "default", className = "" }: P
               className="btn-outline text-sm inline-flex items-center gap-2"
             >
               <ExternalLink size={14} />
-              {gr.viewOnMaps}
+              {mapsCta}
             </Link>
             <Link
               href={writeReviewUrl}
@@ -138,10 +175,26 @@ export function GoogleBusinessReviews({ variant = "default", className = "" }: P
           </div>
         ) : null}
 
-        <FeaturedGoogleReviewsGrid
-          reviews={FEATURED_GOOGLE_REVIEWS}
-          compact={variant === "compact"}
-        />
+        {extraFeatured.length > 0 ? (
+          <FeaturedGoogleReviewsGrid
+            reviews={extraFeatured}
+            compact={variant === "compact"}
+          />
+        ) : null}
+
+        {hasLiveRating && count != null && count > apiReviews.length ? (
+          <p className="text-center mt-6">
+            <Link
+              href={mapsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm text-bm-red hover:underline inline-flex items-center gap-2"
+            >
+              <ExternalLink size={14} />
+              {gr.viewAllOnMaps.replace("{count}", String(count))}
+            </Link>
+          </p>
+        ) : null}
       </div>
     </section>
   );

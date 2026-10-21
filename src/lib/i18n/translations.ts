@@ -438,7 +438,10 @@ const pl = {
     subtitleHonest:
       "Opinie z Twojej wizytówki Google — zachęcamy klientów do oceny po naprawie.",
     subtitleFeatured: "Prawdziwe opinie klientów w Google Maps ({count})",
+    subtitleShowing:
+      "Na stronie: najnowsze z Google + wybrane opinie. Wszystkie {count} — w Google Maps.",
     viewOnMaps: "Zobacz w Google Maps",
+    viewAllOnMaps: "Wszystkie {count} opinii w Google",
     leaveReview: "Zostaw opinię w Google",
     readReview: "Zobacz opinię w Google",
     fallback:
@@ -2416,7 +2419,10 @@ const ru: TranslationKeys = {
     subtitleHonest:
       "Отзывы с вашей карточки Google — просим клиентов оставлять оценку после ремонта.",
     subtitleFeatured: "Реальные отзывы клиентов в Google Maps ({count})",
+    subtitleShowing:
+      "На сайте: свежие из Google + выбранные отзывы. Все {count} — в Google Maps.",
     viewOnMaps: "Смотреть в Google Maps",
+    viewAllOnMaps: "Все {count} отзывов в Google",
     leaveReview: "Оставить отзыв в Google",
     readReview: "Читать отзыв в Google",
     fallback:
@@ -4581,7 +4587,10 @@ const en: TranslationKeys = {
     subtitleHonest:
       "Reviews from your Google Business Profile — we ask customers to rate us after service.",
     subtitleFeatured: "Real customer reviews on Google Maps ({count})",
+    subtitleShowing:
+      "On the site: latest from Google + selected reviews. All {count} are on Google Maps.",
     viewOnMaps: "View on Google Maps",
+    viewAllOnMaps: "All {count} reviews on Google",
     leaveReview: "Leave a Google review",
     readReview: "Read review on Google",
     fallback:
