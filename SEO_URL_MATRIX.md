@@ -26,6 +26,11 @@ Canonical host: `https://www.bess-motors.com`
 | `/wymiana-akumulatora-warszawa` | **new-published** | Battery | Materials separate |
 | `/odgrzybianie-klimatyzacji-warszawa` | **new-published** | A/C disinfection | |
 | `/chip-tuning-warszawa` | pending-content (**noindex**, out of sitemap) | Chip tuning | Hidden until equipment confirmed |
+| `/wymiana-turbosprezarki-warszawa` | **new-published** | Turbo replace | Batch 4 |
+| `/diagnostyka-elektryki-samochodowej-warszawa` | **new-published** | Electrics diag | Batch 4 |
+| `/wymiana-termostatu-warszawa` | **new-published** | Thermostat | Batch 4 |
+| `/wymiana-tlumika-warszawa` | **new-published** | Muffler | Batch 4 |
+| `/sprawdzenie-szczelnosci-klimatyzacji-warszawa` | **new-published** | A/C leak test | Batch 4 |
 | District clones Ursynów/Mokotów/Ochota | merged / thin-risk | Geo | Keep but don’t expand clones |
 | Brand landings BMW/Mercedes/… | existing-improved | Brand service | No fake dealership claims |
 

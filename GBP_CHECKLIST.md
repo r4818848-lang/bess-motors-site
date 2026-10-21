@@ -13,3 +13,7 @@ Owner must apply in Google Business Profile UI (no API write from this repo).
 - [ ] Directions link works; UTM optional `?utm_source=google&utm_medium=organic&utm_campaign=gbp`
 - [ ] Reviews: reply to new reviews; site shows live rating via Places API
 - [ ] Do **not** advertise DPF/EGR/AdBlue OFF
+- [ ] Add/refresh photos: entrance (`exterior`), lift bay, tyre area, before/after brakes if consented
+- [ ] Services list: oil 80 zł labour note, tyre prices R13–R20, A/C hookup + gas rates
+- [ ] Posts (optional): seasonal tyre change, oil promo — link to www pages
+- [ ] Q&A on GBP: hours, parking, booking process («potwierdzimy telefonicznie»)
