@@ -31,8 +31,8 @@ export function PriceListCalculator() {
         "computer_diag",
         "brake_pads_front",
         "ac_r134a",
-        "alignment",
-        "stage1",
+        "tire_change_r15",
+        "puncture_repair",
       ]
         .map((id) => getPriceItem(id))
         .filter(Boolean),

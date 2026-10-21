@@ -58,7 +58,7 @@ export function blogPostingSchema(post: BlogPost) {
         headline: post.title,
         description: post.excerpt,
         datePublished: post.date,
-        dateModified: post.date,
+        dateModified: post.updatedAt ?? post.date,
         author: {
           "@type": "Organization",
           name: siteConfig.name,

@@ -19,6 +19,11 @@ import {
   EXTRA_SEO_SERVICE_PROFILES_BATCH3,
   EXTRA_SEO_RELATED_BATCH3,
 } from "@/lib/seo-extra-service-pages-batch3";
+import {
+  EXTRA_SEO_SERVICE_PAGES_BATCH4,
+  EXTRA_SEO_SERVICE_PROFILES_BATCH4,
+  EXTRA_SEO_RELATED_BATCH4,
+} from "@/lib/seo-extra-service-pages-batch4";
 
 const L = (pl: string, ru: string, en?: string, uk?: string): LocalizedText => ({
   pl,
@@ -138,6 +143,7 @@ export const EXTRA_SEO_SERVICE_PAGES: SeoLandingPage[] = [
   ...EXTRA_SEO_SERVICE_PAGES_BATCH1,
   ...EXTRA_SEO_SERVICE_PAGES_BATCH2,
   ...EXTRA_SEO_SERVICE_PAGES_BATCH3,
+  ...EXTRA_SEO_SERVICE_PAGES_BATCH4,
 ];
 
 const EXTRA_SEO_SERVICE_PROFILES_BATCH1: Record<string, SlugLandingProfile> = {
@@ -546,6 +552,7 @@ export const EXTRA_SEO_SERVICE_PROFILES: Record<string, SlugLandingProfile> = {
   ...EXTRA_SEO_SERVICE_PROFILES_BATCH1,
   ...EXTRA_SEO_SERVICE_PROFILES_BATCH2,
   ...EXTRA_SEO_SERVICE_PROFILES_BATCH3,
+  ...EXTRA_SEO_SERVICE_PROFILES_BATCH4,
 };
 
 const EXTRA_SEO_RELATED_BATCH1: Record<string, string[]> = {
@@ -610,4 +617,5 @@ export const EXTRA_SEO_RELATED: Record<string, string[]> = {
   ...EXTRA_SEO_RELATED_PARENT_UPDATES,
   ...EXTRA_SEO_RELATED_BATCH2,
   ...EXTRA_SEO_RELATED_BATCH3,
+  ...EXTRA_SEO_RELATED_BATCH4,
 };

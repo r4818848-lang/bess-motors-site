@@ -1054,6 +1054,191 @@ Aleja Krakowska 48/52, Warsaw
 Book condenser cleaning and A/C service online! ❄️`,
     },
   },
+  {
+    id: "case-brakes-discs-pads",
+    serviceIds: ["brakePads", "brakesFull"],
+    imageOnly: true,
+    posterSrc: "/images/works/before-after/brakes-discs-pads/after/01.jpg",
+    title: {
+      pl: "Hamulce — tarcze i klocki (przed/po)",
+      ru: "Тормоза — диски и колодки (до/после)",
+      en: "Brakes — discs and pads (before/after)",
+    },
+    description: {
+      pl: `Realna wymiana tarcz i klocków w BESS MOTORS.
+
+Zużyte tarcze i klocki skracają drogę hamowania i powodują wibracje. Po oględzinach wymieniamy komplet na osi i kontrolujemy układ.
+
+✅ Ocena stanu tarcz i klocków
+✅ Wymiana robocizną według cennika / promocji
+✅ Części dobierane do modelu (VIN)
+
+Zobacz też: /hamulce-warszawa · /wymiana-klockow-hamulcowych-warszawa
+
+📍 Aleja Krakowska 48/52, Warszawa Włochy
+📞 +48 791 257 229`,
+      ru: `Реальная замена дисков и колодок в BESS MOTORS.
+
+См. также: /hamulce-warszawa
+
+📍 Aleja Krakowska 48/52, Warszawa
+📞 +48 791 257 229`,
+      en: `Real disc and pad replacement at BESS MOTORS.
+
+See also: /hamulce-warszawa
+
+📍 Aleja Krakowska 48/52, Warsaw
+📞 +48 791 257 229`,
+    },
+  },
+  {
+    id: "case-audi-a6-suspension",
+    serviceIds: ["suspension"],
+    imageOnly: true,
+    posterSrc: "/images/works/before-after/audi-a6-suspension/after/01.jpg",
+    title: {
+      pl: "Audi A6 — naprawa zawieszenia",
+      ru: "Audi A6 — ремонт подвески",
+      en: "Audi A6 — suspension repair",
+    },
+    description: {
+      pl: `Naprawa zawieszenia Audi A6 w BESS MOTORS (niezależny serwis, nie dealer).
+
+Stuki, luzy i nierówne zużycie opon — najpierw diagnostyka, potem wymiana zużytych elementów i kontrola geometrii gdy potrzebna.
+
+✅ Diagnostyka zawieszenia
+✅ Wymiana według wyceny przed startem
+✅ Części pod VIN
+
+Zobacz: /naprawa-zawieszenia-warszawa · /diagnostyka-zawieszenia-warszawa
+
+📍 Aleja Krakowska 48/52, Warszawa Włochy
+📞 +48 791 257 229`,
+      ru: `Ремонт подвески Audi A6 в BESS MOTORS.
+
+См.: /naprawa-zawieszenia-warszawa
+
+📍 Aleja Krakowska 48/52
+📞 +48 791 257 229`,
+      en: `Audi A6 suspension repair at BESS MOTORS.
+
+See: /naprawa-zawieszenia-warszawa
+
+📍 Aleja Krakowska 48/52
+📞 +48 791 257 229`,
+    },
+  },
+  {
+    id: "case-ac-recharge-bay",
+    serviceIds: ["acRefill", "acRepair"],
+    imageOnly: true,
+    posterSrc: "/images/works/before-after/ac-recharge/01.jpg",
+    title: {
+      pl: "Serwis klimatyzacji na stanowisku",
+      ru: "Сервис кондиционера на посту",
+      en: "A/C service in the bay",
+    },
+    description: {
+      pl: `Nabijanie i serwis klimatyzacji w warsztacie BESS MOTORS.
+
+Podłączenie, próżnia, test szczelności, uzupełnienie R134a / R1234yf według tabliczki. Przy nieszczelności — najpierw naprawa, nie „dopychanie gazu”.
+
+✅ Podłączenie 80 zł
+✅ R134a 50 zł/100 g · R1234yf 100 zł/100 g
+✅ Odgrzybianie na życzenie
+
+Zobacz: /serwis-klimatyzacji-warszawa · /sprawdzenie-szczelnosci-klimatyzacji-warszawa
+
+📍 Aleja Krakowska 48/52, Warszawa Włochy
+📞 +48 791 257 229`,
+      ru: `Сервис кондиционера в BESS MOTORS.
+
+См.: /serwis-klimatyzacji-warszawa
+
+📍 Aleja Krakowska 48/52
+📞 +48 791 257 229`,
+      en: `A/C service at BESS MOTORS.
+
+See: /serwis-klimatyzacji-warszawa
+
+📍 Aleja Krakowska 48/52
+📞 +48 791 257 229`,
+    },
+  },
+  {
+    id: "case-timing-belt-passat",
+    serviceIds: ["timingBelt"],
+    imageOnly: true,
+    posterSrc: "/images/works/timing-belt-passat-cover.png",
+    title: {
+      pl: "Wymiana rozrządu — Passat",
+      ru: "Замена ГРМ — Passat",
+      en: "Timing belt — Passat",
+    },
+    description: {
+      pl: `Wymiana rozrządu (pasek) w Volkswagen Passat — robocizna i dobór zestawu według modelu.
+
+Prace złożone: wycena po diagnostyce, części osobno, potwierdzenie zakresu przed startem.
+
+✅ Ocena stanu rozrządu
+✅ Wymiana według zaleceń producenta
+✅ Często pompa wody / rolki w komplecie — po wycenie
+
+Zobacz: /wymiana-rozrzadu-warszawa
+
+📍 Aleja Krakowska 48/52, Warszawa Włochy
+📞 +48 791 257 229`,
+      ru: `Замена ГРМ Volkswagen Passat.
+
+См.: /wymiana-rozrzadu-warszawa
+
+📍 Aleja Krakowska 48/52
+📞 +48 791 257 229`,
+      en: `Timing belt job on a Volkswagen Passat.
+
+See: /wymiana-rozrzadu-warszawa
+
+📍 Aleja Krakowska 48/52
+📞 +48 791 257 229`,
+    },
+  },
+  {
+    id: "case-clutch-citroen",
+    serviceIds: ["clutch"],
+    imageOnly: true,
+    posterSrc: "/images/works/clutch-citroen-cover.png",
+    title: {
+      pl: "Wymiana sprzęgła — Citroën",
+      ru: "Замена сцепления — Citroën",
+      en: "Clutch replacement — Citroën",
+    },
+    description: {
+      pl: `Wymiana sprzęgła w Citroënie — praca złożona, wycena po ocenie skrzyni i dostępu.
+
+Objawy: ślizganie, trudna zmiana biegów, drżenie. Potwierdzamy zakres i termin po kontakcie.
+
+✅ Diagnostyka objawów
+✅ Wymiana zestawu sprzęgła według wyceny
+✅ Części osobno
+
+Zobacz: /wymiana-sprzegla-warszawa
+
+📍 Aleja Krakowska 48/52, Warszawa Włochy
+📞 +48 791 257 229`,
+      ru: `Замена сцепления Citroën.
+
+См.: /wymiana-sprzegla-warszawa
+
+📍 Aleja Krakowska 48/52
+📞 +48 791 257 229`,
+      en: `Clutch replacement on a Citroën.
+
+See: /wymiana-sprzegla-warszawa
+
+📍 Aleja Krakowska 48/52
+📞 +48 791 257 229`,
+    },
+  },
 ];
 
 export const OUR_WORK_VIDEOS: OurWorkVideo[] = [...OUR_WORK_VIDEOS_SOURCE].reverse();

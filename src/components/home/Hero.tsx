@@ -20,9 +20,10 @@ export function Hero() {
           alt="BESS MOTORS — serwis samochodowy Warszawa Włochy"
           fill
           priority
+          fetchPriority="high"
           className="object-cover object-[72%_42%] sm:object-[75%_40%]"
           sizes="100vw"
-          quality={85}
+          quality={75}
         />
         <div
           className="absolute inset-0"
