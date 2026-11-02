@@ -38,6 +38,8 @@ import { logoutAdmin } from "@/lib/auth";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { CrmTodayPanel } from "@/components/crm/CrmTodayPanel";
+import { AiAssistantPanel } from "@/components/crm/AiAssistantPanel";
+import { PartsSearchPanel } from "@/components/crm/PartsSearchPanel";
 
 type CrmTab =
   | "overview"
@@ -205,6 +207,10 @@ function CRMPageContent() {
           <>
             <CrmModuleTiles />
             <CrmTodayPanel />
+            <div className="grid lg:grid-cols-2 gap-4">
+              <AiAssistantPanel />
+              <PartsSearchPanel />
+            </div>
             <CrmListToolbar showPriceToggle>
               <CrmSearchInput
                 value={search}

@@ -22,7 +22,7 @@ export type WorkOrderAuditEntry = {
 
 export type WorkOrderSlaLevel = "ok" | "warn" | "critical";
 
-const ACTIVE: RepairStatus[] = ["received", "diagnostic", "repair", "waitingParts"];
+const ACTIVE: RepairStatus[] = ["received", "diagnostic", "awaitingApproval", "waitingParts", "partsOrdered", "repair"];
 
 function addDays(isoDate: string, days: number): string {
   const d = new Date(`${isoDate}T12:00:00`);

@@ -3,10 +3,13 @@ import type { RepairStatus, Vehicle, WorkOrder } from "@/lib/store";
 const STATUS_WEIGHT: Record<RepairStatus, number> = {
   received: 40,
   diagnostic: 35,
-  repair: 30,
+  awaitingApproval: 32,
   waitingParts: 25,
+  partsOrdered: 28,
+  repair: 30,
   ready: 85,
   delivered: 100,
+  cancelled: 50,
 };
 
 export function computeVehicleHealthScore(

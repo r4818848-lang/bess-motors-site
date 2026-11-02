@@ -13,10 +13,13 @@ function siteBase(): string {
 const STATUSES: RepairStatus[] = [
   "received",
   "diagnostic",
-  "repair",
+  "awaitingApproval",
   "waitingParts",
+  "partsOrdered",
+  "repair",
   "ready",
   "delivered",
+  "cancelled",
 ];
 
 export function mainMenuKeyboard(): InlineKeyboardMarkup {

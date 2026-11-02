@@ -39,6 +39,18 @@ function docForCloud(db: Database): Database {
   return { ...db, currentUserId: null };
 }
 
+function stripUserSecrets(db: Database, role: string): Database {
+  const users = (db.users ?? []).map((u) => {
+    const { password: _p, passwordHash: _h, ...rest } = u;
+    if (role === "admin") {
+      // Admin still should not pull hashes to the browser — login uses cloud directly.
+      return rest as typeof u;
+    }
+    return rest as typeof u;
+  });
+  return { ...db, users };
+}
+
 export async function GET(req: Request) {
   const auth = await requireStaffSession(req);
   if ("error" in auth && auth.error) return auth.error;
@@ -47,9 +59,10 @@ export async function GET(req: Request) {
   if (!snapshot) {
     return NextResponse.json({ cloud: true, db: null, updatedAt: null });
   }
+  const role = auth.session!.role;
   return NextResponse.json({
     cloud: true,
-    db: snapshot.doc,
+    db: stripUserSecrets(snapshot.doc, role),
     updatedAt: snapshot.updatedAt,
   });
 }
@@ -80,6 +93,34 @@ export async function PUT(req: Request) {
   const { mergeCloudDocuments, collectRemovedIds } = await import("@/lib/crm-db-merge");
   const { applyWorkOrderClosure } = await import("@/lib/work-order-lifecycle");
   const { applyWorkOrderCompletedAt } = await import("@/lib/work-order-dates");
+
+  // Client no longer receives password hashes — restore them from cloud on write.
+  if (before?.doc?.users?.length) {
+    const byId = new Map(before.doc.users.map((u) => [u.id, u]));
+    db = {
+      ...db,
+      users: db.users.map((u) => {
+        const prev = byId.get(u.id);
+        if (!prev) return u;
+        return {
+          ...u,
+          passwordHash: u.passwordHash || prev.passwordHash,
+          password: u.password || prev.password,
+        };
+      }),
+    };
+  }
+
+  // Mechanics cannot overwrite global settings / expense ledger / mechanic profiles.
+  if (auth.session!.role === "mechanic" && before?.doc) {
+    db = {
+      ...db,
+      settings: before.doc.settings,
+      mechanics: before.doc.mechanics,
+      expenses: before.doc.expenses,
+    };
+  }
+
   const incoming = docForCloud({
     ...db,
     workOrders: db.workOrders.map((o) =>

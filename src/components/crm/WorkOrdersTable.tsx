@@ -23,10 +23,13 @@ import { CrmTableFooter } from "@/components/crm/CrmTableFooter";
 const STATUSES: RepairStatus[] = [
   "received",
   "diagnostic",
-  "repair",
+  "awaitingApproval",
   "waitingParts",
+  "partsOrdered",
+  "repair",
   "ready",
   "delivered",
+  "cancelled",
 ];
 
 function formatTableMoney(value: number, locale: string): string {

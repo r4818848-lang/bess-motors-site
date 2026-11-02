@@ -1,8 +1,12 @@
 import type { WorkOrder } from "@/lib/store";
 
-/** Order is closed (history) when repair status or document status is «issued to client». */
+/** Order is closed (history) when issued to client or cancelled. */
 export function isWorkOrderClosed(order: WorkOrder): boolean {
-  return order.status === "delivered" || order.documentStatus === "delivered";
+  return (
+    order.status === "delivered" ||
+    order.status === "cancelled" ||
+    order.documentStatus === "delivered"
+  );
 }
 
 /** Open work orders — not yet issued to client. */

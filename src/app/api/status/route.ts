@@ -11,10 +11,17 @@ export const dynamic = "force-dynamic";
 const STATUS_LABELS: Record<RepairStatus, { pl: string; ru: string; en: string }> = {
   received: { pl: "Przyjęty", ru: "Принят", en: "Received" },
   diagnostic: { pl: "Diagnostyka", ru: "Диагностика", en: "Diagnostics" },
-  repair: { pl: "Naprawa", ru: "Ремонт", en: "In repair" },
+  awaitingApproval: {
+    pl: "Oczekuje na akceptację",
+    ru: "Ожидает согласования",
+    en: "Awaiting approval",
+  },
   waitingParts: { pl: "Czeka na części", ru: "Ожидание запчастей", en: "Waiting for parts" },
+  partsOrdered: { pl: "Części zamówione", ru: "Запчасти заказаны", en: "Parts ordered" },
+  repair: { pl: "Naprawa", ru: "Ремонт", en: "In repair" },
   ready: { pl: "Gotowy", ru: "Готов", en: "Ready" },
   delivered: { pl: "Wydany", ru: "Выдан", en: "Delivered" },
+  cancelled: { pl: "Anulowane", ru: "Отменён", en: "Cancelled" },
 };
 
 function orderMatchesPlate(db: Database, order: WorkOrder, plateKey: string): boolean {

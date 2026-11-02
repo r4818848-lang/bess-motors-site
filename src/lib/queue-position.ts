@@ -3,8 +3,10 @@ import type { Database, WorkOrder } from "./store";
 const ACTIVE: WorkOrder["status"][] = [
   "received",
   "diagnostic",
-  "repair",
+  "awaitingApproval",
   "waitingParts",
+  "partsOrdered",
+  "repair",
 ];
 
 export function getQueuePosition(

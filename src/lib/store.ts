@@ -3,10 +3,13 @@
 export type RepairStatus =
   | "received"
   | "diagnostic"
-  | "repair"
+  | "awaitingApproval"
   | "waitingParts"
+  | "partsOrdered"
+  | "repair"
   | "ready"
-  | "delivered";
+  | "delivered"
+  | "cancelled";
 
 export type ExpenseCategory =
   | "rent"
@@ -365,6 +368,19 @@ export interface AppSettings {
   /** Default VAT % (Poland 23%) */
   vatRate: number;
   vatEnabledByDefault: boolean;
+  /** Editable labor hour rate (PLN netto) — default 250 for BESS MOTORS */
+  laborHourRate?: number;
+  /** Default parts markup % when suggesting sell price from supplier net */
+  partsMarkupPercent?: number;
+  /**
+   * Wage basis when order has vatEnabled=false.
+   * Independent of payment method (cash ≠ non-VAT).
+   */
+  nonVatLaborBasis?: "net" | "configured";
+  /** When >0 and mechanic partsPercent>0, parts margin enters wage */
+  payrollIncludePartsPercent?: number;
+  /** Locked payroll weeks: "YYYY-MM-DD_YYYY-MM-DD" (Mon–Sun Warsaw) */
+  payrollLockedWeeks?: string[];
   /** Incomplete online bookings for recovery cron */
   abandonedBookingDrafts?: AbandonedBookingDraft[];
   /** Master switch for runCrmAutomation */
@@ -378,6 +394,9 @@ export interface AppSettings {
   blockedBookingSlots?: string[];
   lunchBreakStart?: string;
   lunchBreakEnd?: string;
+  /** Working hours defaults Europe/Warsaw */
+  workdayStart?: string;
+  workdayEnd?: string;
 }
 
 export interface PasswordResetRecord {
@@ -764,19 +783,25 @@ const defaultDb: Database = {
     { id: "ex2", category: "utilities", description: "Prąd + woda", amount: 680, date: "2025-05-05" },
   ],
   mechanics: [
-    { id: "mech-1", name: "Siergiej", laborPercent: 50, partsPercent: 50, bonusPerOrder: 0 },
-    { id: "mech-2", name: "Piotr Nowak", laborPercent: 50, partsPercent: 50, bonusPerOrder: 0 },
+    { id: "mech-1", name: "Siergiej", laborPercent: 50, partsPercent: 0, bonusPerOrder: 0 },
+    { id: "mech-2", name: "Ilja", laborPercent: 50, partsPercent: 0, bonusPerOrder: 0 },
   ],
   settings: {
     defaultLaborPercent: 50,
-    defaultPartsPercent: 50,
+    defaultPartsPercent: 0,
     vatRate: 23,
     vatEnabledByDefault: true,
+    laborHourRate: 250,
+    partsMarkupPercent: 30,
+    nonVatLaborBasis: "net",
+    payrollIncludePartsPercent: 0,
     autoCreateWorkOrderFromBooking: true,
     autoConfirmWebBookings: true,
     defaultWarrantyMonths: 12,
     lunchBreakStart: "13:00",
     lunchBreakEnd: "14:00",
+    workdayStart: "09:00",
+    workdayEnd: "18:00",
   },
   passwordResets: [],
   warehouse: [

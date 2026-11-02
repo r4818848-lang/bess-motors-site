@@ -21,6 +21,7 @@ import {
 } from "@/lib/store";
 import { PAYMENT_METHODS } from "@/lib/payment";
 import { pullCrmFromCloud, pushCrmDelete, saveDbAndPushCrm } from "@/lib/cloud-crm-db";
+import { appendOrderAudit } from "@/lib/order-audit";
 import { staffCrmFetch, staffCrmFetchFailureReason } from "@/lib/crm-staff-fetch";
 import { syncWarehouseFromWorkOrder } from "@/lib/warehouse-stock";
 import {
@@ -82,10 +83,13 @@ type EditTab = "client" | "works" | "status" | "payment" | "documents" | "more";
 const statuses: RepairStatus[] = [
   "received",
   "diagnostic",
-  "repair",
+  "awaitingApproval",
   "waitingParts",
+  "partsOrdered",
+  "repair",
   "ready",
   "delivered",
+  "cancelled",
 ];
 
 function emptyOrder(db: Database): WorkOrder {
@@ -351,21 +355,25 @@ export function WorkOrderForm({
       draft.documentStatus ??
       deriveDocumentStatus(draft.status, draft.confirmationStatus);
     const isPaid = draft.paymentStatus === "paid";
-    const updated = applyWorkOrderCompletedAt(
-      applyWorkOrderClosure({
-        ...draft,
-        documentStatus,
-        updatedAt: nowIsoTimestamp(),
-        paymentStatus: draft.paymentStatus ?? "unpaid",
-        ...(isPaid
-          ? { paidAt: draft.paidAt ?? new Date().toISOString().slice(0, 10) }
-          : {
-              paidAt: undefined,
-              paymentMethod: undefined,
-              paidCashAmount: undefined,
-              paidCardAmount: undefined,
-            }),
-      })
+    const updated = appendOrderAudit(
+      previousOrder,
+      applyWorkOrderCompletedAt(
+        applyWorkOrderClosure({
+          ...draft,
+          documentStatus,
+          updatedAt: nowIsoTimestamp(),
+          paymentStatus: draft.paymentStatus ?? "unpaid",
+          ...(isPaid
+            ? { paidAt: draft.paidAt ?? new Date().toISOString().slice(0, 10) }
+            : {
+                paidAt: undefined,
+                paymentMethod: undefined,
+                paidCashAmount: undefined,
+                paidCardAmount: undefined,
+              }),
+        })
+      ),
+      "crm"
     );
     if (idx >= 0) fresh.workOrders[idx] = updated;
     else fresh.workOrders.push(updated);

@@ -6,7 +6,7 @@ import type { Database, WorkOrder } from "@/lib/store";
 
 export const dynamic = "force-dynamic";
 
-const ACTIVE = ["received", "diagnostic", "repair", "waitingParts"] as const;
+const ACTIVE = ["received", "diagnostic", "awaitingApproval", "waitingParts", "partsOrdered", "repair"] as const;
 
 function daysSince(iso: string): number {
   return Math.floor(

@@ -11,10 +11,13 @@ import {
 const repairStatuses: RepairStatus[] = [
   "received",
   "diagnostic",
-  "repair",
+  "awaitingApproval",
   "waitingParts",
+  "partsOrdered",
+  "repair",
   "ready",
   "delivered",
+  "cancelled",
 ];
 
 interface Props {

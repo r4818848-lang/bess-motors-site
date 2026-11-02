@@ -179,10 +179,13 @@ export function computeCrmAnalytics(
   const statusCounts: Record<RepairStatus, number> = {
     received: 0,
     diagnostic: 0,
-    repair: 0,
+    awaitingApproval: 0,
     waitingParts: 0,
+    partsOrdered: 0,
+    repair: 0,
     ready: 0,
     delivered: 0,
+    cancelled: 0,
   };
   orders.forEach((o) => {
     statusCounts[o.status] = (statusCounts[o.status] ?? 0) + 1;
