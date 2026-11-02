@@ -1,4 +1,5 @@
 import { siteConfig } from "@/lib/site";
+import { businessConfig } from "@/lib/businessConfig";
 import { WORKSHOP_PHOTOS } from "@/lib/workshop-photos";
 import { getSiteUrl } from "@/lib/seo";
 import { acRechargeFromPln } from "@/lib/ac-recharge-prices";
@@ -6,14 +7,14 @@ import { OIL_BRAKE_PROMO_CODE, OIL_BRAKE_PROMO_OFFERS } from "@/lib/oil-brake-pr
 
 /**
  * Canonical facts for Google Business Profile + the website.
- * Keep GBP hours, NAP, photos and labour prices identical to these values.
+ * Keep GBP hours, NAP, photos and labour prices identical to businessConfig.
  */
-export const GBP_HOURS_SHORT = siteConfig.workingHours;
+export const GBP_HOURS_SHORT = businessConfig.workingHoursLabel;
 
 export const GBP_OPENING_HOURS = {
-  days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"] as const,
-  opens: "08:00",
-  closes: "18:00",
+  days: businessConfig.openingHours.days,
+  opens: businessConfig.openingHours.opens,
+  closes: businessConfig.openingHours.closes,
 };
 
 export function gbpPhotoUrls(siteUrl = getSiteUrl()): string[] {

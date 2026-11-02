@@ -1,36 +1,41 @@
 import type { ServiceId } from "./services-catalog";
+import {
+  businessConfig,
+  googleMapsDirectionsUrl,
+  googleWriteReviewUrl,
+} from "@/lib/businessConfig";
 
-/** BESS MOTORS contact & site data (independent workshop, not a car brand dealer) */
+/** BESS MOTORS contact & site data — values from businessConfig */
 
 export const siteConfig = {
-  name: "BESS MOTORS",
+  name: businessConfig.name,
 
-  legalName: "Serwis Samochodowy",
+  legalName: businessConfig.legalName,
 
-  phone: "+48 791 257 229",
+  phone: businessConfig.phoneDisplay,
 
-  phoneHref: "tel:+48791257229",
+  phoneHref: businessConfig.phoneHref,
 
-  whatsapp: "https://wa.me/48791257229",
+  whatsapp: businessConfig.whatsappUrl,
 
-  telegram: "https://t.me/BessMotors_bot",
+  telegram: businessConfig.telegramUrl,
 
-  viber: "viber://chat?number=48791257229",
+  viber: businessConfig.viberUrl,
 
-  address: "Aleja Krakowska 48/52, 02-284 Warszawa",
+  address: businessConfig.addressLine,
 
-  email: "bessmotorss@gmail.com",
+  email: businessConfig.email,
 
-  instagram: "https://instagram.com/bessmotors.pl",
+  instagram: businessConfig.instagramUrl,
 
-  facebook: "https://facebook.com/bessmotorss",
+  facebook: businessConfig.facebookUrl,
 
-  bannerImage: "/images/banner.png",
+  bannerImage: businessConfig.bannerImage,
 
   /** Hero background — только авто и блок телефона (без карточек услуг) */
   heroCarImage: "/images/hero-car.png",
 
-  logoImage: "/images/logo.png",
+  logoImage: businessConfig.logoImage,
 
   forgedCarbonImage: "/images/forged-carbon.png",
 
@@ -40,29 +45,20 @@ export const siteConfig = {
   /** Dev fallback; production JWT must be JWT_SECRET on Vercel only */
   jwtSecret: "dev-local-jwt-only-not-for-production",
 
-  workingHours: "Pn–Sb 8:00–18:00",
+  workingHours: businessConfig.workingHoursLabel,
 
-  /** Google Maps CID for BESS MOTORS (stable Maps link) */
-  googleMapsCid: "7516200575228226885",
+  googleMapsCid: businessConfig.googleMapsCid,
 
-  /** Google Maps — business profile / reviews list */
-  googleMapsReviewsUrl: "https://www.google.com/maps?cid=7516200575228226885",
+  googleMapsReviewsUrl: businessConfig.googleMapsUrl,
 
-  /**
-   * Optional: set NEXT_PUBLIC_GOOGLE_PLACE_ID (ChIJ…) in Vercel for write-review deep link.
-   * Find ID: Google Maps Place ID finder or Places API response.
-   */
-  googlePlaceId:
-    process.env.NEXT_PUBLIC_GOOGLE_PLACE_ID?.trim() ||
-    "ChIJvSA65iEzGUcRRa0Qw5noTmg",
+  googlePlaceId: businessConfig.googlePlaceId,
 
-  /** Ask clients to leave a review (uses place id when configured) */
   get googleWriteReviewUrl(): string {
-    const pid = this.googlePlaceId;
-    if (pid) {
-      return `https://search.google.com/local/writereview?placeid=${encodeURIComponent(pid)}`;
-    }
-    return this.googleMapsReviewsUrl;
+    return googleWriteReviewUrl(businessConfig);
+  },
+
+  get googleMapsDirectionsUrl(): string {
+    return googleMapsDirectionsUrl(businessConfig);
   },
 };
 
@@ -75,12 +71,11 @@ export const sitePartners = [
   { id: "hella", name: "Hella", tagPl: "Elektryka / klimatyzacja", tagRu: "Электрика / кондиционер" },
 ] as const;
 
-/** Service boxes on home page banner section — opens smart booking for serviceId */
+/** Service boxes on home page banner — confirmed public services only (no chip) */
 export const bannerServices = [
   { id: "ac" as const, serviceId: "acRefill" as ServiceId, fast: true, seasonal: true },
   { id: "tires" as const, serviceId: "tires" as ServiceId, fast: true },
   { id: "oil" as const, serviceId: "oil" as ServiceId, fast: true },
-  { id: "tuning" as const, serviceId: "chip" as ServiceId },
+  { id: "brakes" as const, serviceId: "brakesFull" as ServiceId, fast: true },
   { id: "other" as const, serviceId: "diagnostic" as ServiceId },
 ];
-

@@ -169,10 +169,10 @@ const pl = {
     servicesTitle: "Nasze usługi",
   },
   bannerServices: {
-    tires: { title: "WYMIANA OPON", items: ["Montaż", "Wyważanie", "Geometria"] },
+    tires: { title: "WYMIANA OPON", items: ["Montaż", "Wyważanie", "Naprawa przebicia"] },
     ac: { title: "SERWIS KLIMATYZACJI", items: ["Nabijanie R134a / R1234yf", "Próżnia i szczelność", "Odgrzybianie"] },
     oil: { title: "WYMIANA OLEJU", items: ["Wymiana oleju", "Filtr oleju", "Kontrola"] },
-    tuning: { title: "TUNING / CHIP TUNING", items: ["Więcej mocy", "Lepsza dynamika", "Niższe spalanie"] },
+    brakes: { title: "HAMULCE", items: ["Klocki", "Tarcze", "Płyn hamulcowy"] },
     other: { title: "POZOSTAŁE PRACE", items: ["Mechanika", "Elektryka", "Diagnostyka i więcej"] },
   },
   bannerValues: {
@@ -2240,10 +2240,10 @@ const ru: TranslationKeys = {
     servicesTitle: "Наши услуги",
   },
   bannerServices: {
-    tires: { title: "ШИНОМОНТАЖ", items: ["Монтаж", "Балансировка", "Развал-схождение"] },
+    tires: { title: "ШИНОМОНТАЖ", items: ["Монтаж", "Балансировка", "Ремонт прокола"] },
     ac: { title: "КОНДИЦИОНЕР", items: ["Заправка R134a / R1234yf", "Вакуум и герметичность", "Антигрибок"] },
     oil: { title: "ЗАМЕНА МАСЛА", items: ["Замена масла", "Фильтр", "Контроль"] },
-    tuning: { title: "TUNING / CHIP TUNING", items: ["Больше мощности", "Динамика", "Меньше расход"] },
+    brakes: { title: "ТОРМОЗА", items: ["Колодки", "Диски", "Тормозная жидкость"] },
     other: { title: "ПРОЧИЕ РАБОТЫ", items: ["Механика", "Электрика", "Диагностика и др."] },
   },
   bannerValues: {

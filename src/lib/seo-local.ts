@@ -1,10 +1,11 @@
 /** Local SEO — BESS MOTORS service area (Aleja Krakowska 48/52, Włochy) */
+import { businessConfig } from "@/lib/businessConfig";
 
 export const LOCAL_SERVICE_RADIUS_KM = 8;
 
 export const businessGeo = {
-  latitude: 52.1785,
-  longitude: 20.9789,
+  latitude: businessConfig.geo.latitude,
+  longitude: businessConfig.geo.longitude,
 } as const;
 
 /** Districts & neighborhoods typically within ~8 km drive */

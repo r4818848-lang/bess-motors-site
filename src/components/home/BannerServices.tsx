@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Timer, Snowflake, Droplets, Gauge, Wrench } from "lucide-react";
+import { Timer, Snowflake, Droplets, CircleDot, Wrench } from "lucide-react";
 import { motion } from "framer-motion";
 import { useI18n } from "@/lib/i18n/context";
 import { bannerServices as serviceIds } from "@/lib/site";
@@ -12,7 +12,7 @@ const icons = {
   tires: Timer,
   ac: Snowflake,
   oil: Droplets,
-  tuning: Gauge,
+  brakes: CircleDot,
   other: Wrench,
 };
 
