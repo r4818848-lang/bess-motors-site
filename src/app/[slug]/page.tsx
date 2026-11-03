@@ -19,7 +19,7 @@ import { AC_PROMO_HERO_SRC, AC_RECHARGE_BMW_POSTER_SRC } from "@/lib/ac-media";
 import { OIL_CHANGE_DRAIN_POSTER_SRC } from "@/lib/oil-media";
 import { ALTERNATOR_INSTALL_PHOTO_SRC } from "@/lib/alternator-media";
 import { BRAKE_PADS_CHANGE_PHOTO_SRC } from "@/lib/brake-media";
-import { TIRE_SERVICE_POSTER_SRC } from "@/lib/tire-media";
+import { TIRE_SERVICE_HERO_SRC } from "@/lib/tire-media";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -71,8 +71,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         ? AC_PROMO_HERO_SRC
         : slug === "wymiana-oleju"
           ? OIL_CHANGE_DRAIN_POSTER_SRC
-          : slug === "opony" || slug === "geometria"
-            ? TIRE_SERVICE_POSTER_SRC
+          : slug === "opony" ||
+              slug === "geometria" ||
+              slug === "wulkanizacja-warszawa" ||
+              slug === "wymiana-opon-warszawa" ||
+              slug === "wywazanie-kol-warszawa" ||
+              slug === "naprawa-opon-warszawa"
+            ? TIRE_SERVICE_HERO_SRC
             : slug === "hamulce" || slug === "klocki-hamulcowe"
               ? BRAKE_PADS_CHANGE_PHOTO_SRC
               : slug === "elektryka"

@@ -7,7 +7,7 @@ import {
   AC_REPAIR_WELD_PROMO_SRC,
 } from "@/lib/ac-media";
 import {
-  TIRE_SERVICE_POSTER_SRC,
+  TIRE_SERVICE_HERO_SRC,
   TIRE_SERVICE_VIDEO_SRC,
 } from "@/lib/tire-media";
 import { BRAKE_PADS_CHANGE_PHOTO_SRC } from "@/lib/brake-media";
@@ -719,7 +719,7 @@ Car on the lift, full drain of old oil, clean work and proven procedures — tha
     id: "tire-service",
     serviceIds: ["tires", "alignment"],
     videoSrc: TIRE_SERVICE_VIDEO_SRC,
-    posterSrc: TIRE_SERVICE_POSTER_SRC,
+    posterSrc: TIRE_SERVICE_HERO_SRC,
     title: {
       pl: "Wulkanizacja i wyważanie opon",
       ru: "Шиномонтаж и балансировка",

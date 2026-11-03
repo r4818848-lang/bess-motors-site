@@ -5,7 +5,7 @@ import Image from "next/image";
 import { Circle, ChevronRight } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { BookingLink } from "@/components/analytics/BookingLink";
-import { TIRE_SERVICE_POSTER_SRC } from "@/lib/tire-media";
+import { TIRE_SERVICE_HERO_SRC } from "@/lib/tire-media";
 
 /** Seasonal tyre change — real price ladder, no fake queue claims */
 export function HomeTireSeasonBlock() {
@@ -69,11 +69,12 @@ export function HomeTireSeasonBlock() {
           </div>
           <div className="relative aspect-[4/3] rounded-xl overflow-hidden border border-white/10 min-h-[220px]">
             <Image
-              src={TIRE_SERVICE_POSTER_SRC}
+              src={TIRE_SERVICE_HERO_SRC}
               alt={h.imageAlt}
               fill
               className="object-cover"
               sizes="(max-width: 1024px) 100vw, 40vw"
+              priority
             />
           </div>
         </div>

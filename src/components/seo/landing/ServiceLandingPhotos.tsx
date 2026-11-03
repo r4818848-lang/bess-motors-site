@@ -38,10 +38,7 @@ import {
   RADIATOR_WASH_IMAGE_ALT,
   RADIATOR_WASH_POSTER_SRC,
 } from "@/lib/radiator-media";
-import {
-  TIRE_SERVICE_IMAGE_ALT,
-  TIRE_SERVICE_POSTER_SRC,
-} from "@/lib/tire-media";
+import { TIRE_SERVICE_PHOTOS } from "@/lib/tire-media";
 import { WORKSHOP_PHOTOS } from "@/lib/workshop-photos";
 import { Wrench, Camera } from "lucide-react";
 import { WorkBeforeAfterList } from "@/components/gallery/WorkBeforeAfterCollage";
@@ -66,9 +63,9 @@ const WORKSHOP_ALT: Record<string, { pl: string; ru: string; en: string }> = {
     en: "Workshop hall — mechanics at work",
   },
   tireService: {
-    pl: "Strefa wulkanizacji i opon",
-    ru: "Зона шиномонтажа",
-    en: "Tire service area",
+    pl: "BMW i komplet kół przed serwisem BESS MOTORS — wulkanizacja",
+    ru: "BMW и комплект колёс у BESS MOTORS — шиномонтаж",
+    en: "BMW and wheel set at BESS MOTORS — tyre fitting",
   },
 };
 
@@ -249,27 +246,15 @@ const SERVICE_FALLBACK: Partial<
       },
     },
   ],
-  tires: [
-    {
-      src: TIRE_SERVICE_POSTER_SRC,
-      alt: TIRE_SERVICE_IMAGE_ALT,
-    },
+  tires: TIRE_SERVICE_PHOTOS,
+  alignment: [
+    ...TIRE_SERVICE_PHOTOS,
     {
       src: "/images/workshop/lift-bay.png",
       alt: {
-        pl: "Wymiana kół na podnośniku — BESS MOTORS",
-        ru: "Замена колёс на подъёмнике — BESS MOTORS",
-        en: "Wheel change on lift — BESS MOTORS",
-      },
-    },
-  ],
-  alignment: [
-    {
-      src: TIRE_SERVICE_POSTER_SRC,
-      alt: {
-        pl: "Geometria kół i wulkanizacja — BESS MOTORS",
-        ru: "Развал-схождение и шиномонтаж — BESS MOTORS",
-        en: "Wheel alignment and tire service — BESS MOTORS",
+        pl: "Geometria kół i stanowisko serwisowe — BESS MOTORS",
+        ru: "Развал-схождение и пост сервиса — BESS MOTORS",
+        en: "Wheel alignment and service bay — BESS MOTORS",
       },
     },
   ],
