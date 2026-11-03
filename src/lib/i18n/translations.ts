@@ -81,11 +81,11 @@ const pl = {
     badge: "Sezon opon",
     title: "Wymiana opon — Warszawa Włochy",
     subtitle:
-      "Komplet 4 kół z wyważaniem. Zapytaj o najbliższy termin wymiany opon — potwierdzimy po kontakcie.",
+      "Komplet 4 kół z wyważaniem. Prawdziwe zdjęcia z warsztatu — umów termin online i przyjedź bez kolejki.",
     priceNote: "SUV, RunFlat, R21+ — wycena po potwierdzeniu pojazdu. Naprawa przebicia: 60 zł robocizna.",
-    ctaAsk: "Zapytaj o termin wymiany opon",
+    ctaAsk: "Umów sezonową wymianę opon",
     ctaMore: "Wulkanizacja — szczegóły",
-    imageAlt: "Wymiana opon w BESS MOTORS Warszawa Włochy",
+    imageAlt: "Wymiana opon w BESS MOTORS Warszawa Włochy — zdjęcia z warsztatu",
   },
   homeComplex: {
     title: "Naprawy bardziej złożone",
@@ -2153,6 +2153,17 @@ const ru: TranslationKeys = {
     crm: "CRM Admin",
     mechanic: "Панель механика",
     promos: "Акции",
+  },
+  homeTireBlock: {
+    ...pl.homeTireBlock,
+    badge: "Сезон шин",
+    title: "Шиномонтаж — Варшава Włochy",
+    subtitle:
+      "Комплект 4 колёс с балансировкой. Реальные фото сервиса — запишитесь онлайн и приезжайте без очереди.",
+    priceNote: "SUV, RunFlat, R21+ — цена после подтверждения авто. Ремонт прокола: 60 zł работа.",
+    ctaAsk: "Записаться на сезонную замену шин",
+    ctaMore: "Шиномонтаж — подробнее",
+    imageAlt: "Шиномонтаж в BESS MOTORS Варшава Włochy — фото с сервиса",
   },
   homeLead: {
     ...pl.homeLead,

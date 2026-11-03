@@ -6,6 +6,7 @@ import { ChevronRight } from "lucide-react";
 /** Curated high-intent SEO links — not the full catalog (avoids footer-style clutter) */
 const FEATURED_SEO_LINKS: { href: string; label: string }[] = [
   { href: "/wymiana-oleju-warszawa", label: "Wymiana oleju Warszawa" },
+  { href: "/sezonowa-wymiana-opon-warszawa", label: "Sezonowa wymiana opon" },
   { href: "/wulkanizacja-warszawa", label: "Wulkanizacja / opony" },
   { href: "/serwis-klimatyzacji-warszawa", label: "Serwis klimatyzacji" },
   { href: "/hamulce-warszawa", label: "Hamulce Warszawa" },

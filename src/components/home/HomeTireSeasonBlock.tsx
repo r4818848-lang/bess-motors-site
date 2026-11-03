@@ -4,13 +4,16 @@ import Link from "next/link";
 import Image from "next/image";
 import { Circle, ChevronRight } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
+import { contentLocale } from "@/lib/i18n/locale-utils";
 import { BookingLink } from "@/components/analytics/BookingLink";
-import { TIRE_SERVICE_HERO_SRC } from "@/lib/tire-media";
+import { TIRE_AD_LANDING_PATH, TIRE_SERVICE_PHOTOS } from "@/lib/tire-media";
 
-/** Seasonal tyre change — real price ladder, no fake queue claims */
+/** Seasonal tyre ad on homepage — price ladder + real workshop photos → booking landing */
 export function HomeTireSeasonBlock() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const h = t.homeTireBlock;
+  const lang = contentLocale(locale);
+  const photos = TIRE_SERVICE_PHOTOS.slice(0, 3);
 
   return (
     <section
@@ -18,7 +21,7 @@ export function HomeTireSeasonBlock() {
       aria-labelledby="home-tires-heading"
     >
       <div className="mx-auto max-w-7xl px-4 lg:px-8">
-        <div className="grid lg:grid-cols-[1.1fr_0.9fr] gap-8 items-center">
+        <div className="grid lg:grid-cols-[1.05fr_0.95fr] gap-8 items-center">
           <div>
             <p className="text-xs uppercase tracking-[0.2em] text-bm-red font-bold mb-2">
               {h.badge}
@@ -51,7 +54,7 @@ export function HomeTireSeasonBlock() {
             <p className="mt-3 text-xs text-bm-muted">{h.priceNote}</p>
             <div className="mt-6 flex flex-col sm:flex-row flex-wrap gap-3">
               <BookingLink
-                href="/wymiana-opon-warszawa"
+                href={TIRE_AD_LANDING_PATH}
                 trackSource="home_tires_season"
                 className="btn-primary inline-flex items-center justify-center gap-2 text-sm"
               >
@@ -67,15 +70,36 @@ export function HomeTireSeasonBlock() {
               </Link>
             </div>
           </div>
-          <div className="relative aspect-[4/3] rounded-xl overflow-hidden border border-white/10 min-h-[220px]">
-            <Image
-              src={TIRE_SERVICE_HERO_SRC}
-              alt={h.imageAlt}
-              fill
-              className="object-cover"
-              sizes="(max-width: 1024px) 100vw, 40vw"
-              priority
-            />
+
+          <div className="grid grid-cols-2 gap-2 sm:gap-3" aria-label={h.imageAlt}>
+            <div className="relative col-span-2 aspect-[16/10] rounded-xl overflow-hidden border border-white/10 min-h-[180px]">
+              <Image
+                src={photos[0].src}
+                alt={photos[0].alt[lang] ?? h.imageAlt}
+                fill
+                className="object-cover"
+                sizes="(max-width: 1024px) 100vw, 45vw"
+                priority
+              />
+            </div>
+            <div className="relative aspect-[4/3] rounded-xl overflow-hidden border border-white/10">
+              <Image
+                src={photos[1].src}
+                alt={photos[1].alt[lang] ?? h.imageAlt}
+                fill
+                className="object-cover"
+                sizes="(max-width: 1024px) 50vw, 22vw"
+              />
+            </div>
+            <div className="relative aspect-[4/3] rounded-xl overflow-hidden border border-white/10">
+              <Image
+                src={photos[2].src}
+                alt={photos[2].alt[lang] ?? h.imageAlt}
+                fill
+                className="object-cover"
+                sizes="(max-width: 1024px) 50vw, 22vw"
+              />
+            </div>
           </div>
         </div>
       </div>

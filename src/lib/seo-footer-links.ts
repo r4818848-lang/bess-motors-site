@@ -6,6 +6,7 @@ export const seoFooterServiceLinks: { href: string; label: string }[] = [
   { href: "/serwis-klimatyzacji-warszawa", label: "Serwis klimatyzacji Warszawa" },
   { href: "/naprawa-zawieszenia-warszawa", label: "Naprawa zawieszenia" },
   { href: "/wulkanizacja-warszawa", label: "Wulkanizacja Warszawa" },
+  { href: "/sezonowa-wymiana-opon-warszawa", label: "Sezonowa wymiana opon" },
   { href: "/wymiana-opon-warszawa", label: "Wymiana opon Warszawa" },
   { href: "/wymiana-rozrzadu-warszawa", label: "Wymiana rozrządu" },
   { href: "/wymiana-sprzegla-warszawa", label: "Wymiana sprzęgła" },

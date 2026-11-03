@@ -11,6 +11,10 @@ export const TIRE_MERCEDES_BAY_SRC = "/images/works/tire-mercedes-bay-hex-bess.j
 /** Prefer real exterior shot as primary visual for tyre landings / home block */
 export const TIRE_SERVICE_HERO_SRC = TIRE_BMW_FRONT_SRC;
 
+/** Ads / seasonal search landing — book tyre change in one click */
+export const TIRE_AD_LANDING_SLUG = "sezonowa-wymiana-opon-warszawa";
+export const TIRE_AD_LANDING_PATH = `/${TIRE_AD_LANDING_SLUG}`;
+
 export const TIRE_SERVICE_IMAGE_ALT = {
   pl: "Wymiana opon — profesjonalnie i bezpiecznie BESS MOTORS Warszawa",
   ru: "Шиномонтаж и балансировка — BESS MOTORS Варшава",

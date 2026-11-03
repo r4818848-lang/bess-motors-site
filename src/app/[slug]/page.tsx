@@ -75,6 +75,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
               slug === "geometria" ||
               slug === "wulkanizacja-warszawa" ||
               slug === "wymiana-opon-warszawa" ||
+              slug === "sezonowa-wymiana-opon-warszawa" ||
               slug === "wywazanie-kol-warszawa" ||
               slug === "naprawa-opon-warszawa"
             ? TIRE_SERVICE_HERO_SRC

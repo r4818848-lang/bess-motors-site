@@ -3,8 +3,10 @@
 import Link from "next/link";
 import { OilBrakePromoBanner } from "@/components/home/OilBrakePromoBanner";
 import { FreeSuspensionPromoBanner } from "@/components/home/FreeSuspensionPromoBanner";
+import { TirePromoBanner } from "@/components/home/TirePromoBanner";
 import { useI18n } from "@/lib/i18n/context";
 import { BookingLink } from "@/components/analytics/BookingLink";
+import { TIRE_AD_LANDING_PATH } from "@/lib/tire-media";
 
 export default function PromocjePage() {
   const { t, locale } = useI18n();
@@ -37,6 +39,8 @@ export default function PromocjePage() {
       <OilBrakePromoBanner />
       <div className="my-4" />
       <FreeSuspensionPromoBanner />
+      <div className="my-4" />
+      <TirePromoBanner />
       <div className="mx-auto max-w-7xl px-4 lg:px-8 mt-10 flex flex-wrap justify-center gap-4 text-sm">
         <Link href="/wymiana-oleju" className="text-bm-red hover:underline">
           /wymiana-oleju
@@ -46,6 +50,9 @@ export default function PromocjePage() {
         </Link>
         <Link href="/klimatyzacja" className="text-bm-red hover:underline">
           /klimatyzacja
+        </Link>
+        <Link href={TIRE_AD_LANDING_PATH} className="text-bm-red hover:underline">
+          {TIRE_AD_LANDING_PATH}
         </Link>
       </div>
     </div>

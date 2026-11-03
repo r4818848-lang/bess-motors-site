@@ -58,6 +58,17 @@ export const EXTRA_SEO_SERVICE_PAGES_BATCH2: SeoLandingPage[] = [
     icon: "Circle",
   },
   {
+    slug: "sezonowa-wymiana-opon-warszawa",
+    title: "Sezonowa wymiana opon Warszawa",
+    line1: "Komplet od 200 zł — umów termin online",
+    line2: "BESS MOTORS Włochy · zdjęcia z warsztatu · wyważanie w cenie",
+    metaTitle: "Sezonowa wymiana opon Warszawa Włochy | od 200 zł | BESS MOTORS",
+    metaDescription:
+      "Sezonowa wymiana opon Warszawa Włochy — komplet R13–R17 200 zł, R18 260, R19 300, R20 350. Wyważanie w cenie. Umów wizytę online lub zadzwoń +48 791 257 229.",
+    serviceId: "tires",
+    icon: "Circle",
+  },
+  {
     slug: "wymiana-klockow-hamulcowych-warszawa",
     title: "Wymiana klocków hamulcowych Warszawa",
     line1: "Przód i tył — wycena przed montażem",
@@ -396,6 +407,114 @@ export const EXTRA_SEO_SERVICE_PROFILES_BATCH2: Record<string, SlugLandingProfil
       {
         q: L("Macie przechowywanie opon?", "Есть хранение шин?", "Do you store tyres?", "Есть хранение шин?"),
         a: L("Tak — sezonowe przechowywanie; zapytaj przy rezerwacji.", "Да — сезонное хранение, уточните при записи.", "Yes — seasonal storage; ask when you book.", "Так — сезонное хранение, уточните при записи."),
+      },
+    ],
+  },
+
+  "sezonowa-wymiana-opon-warszawa": {
+    bookServiceId: "tires",
+    contentServiceId: "tires",
+    faqDuration: L(
+      "Sezonowa wymiana kompletu 4 kół z wyważaniem: zwykle 45–90 minut — potwierdzimy termin przy zapisie.",
+      "Сезонная замена комплекта 4 колёс с балансировкой: обычно 45–90 минут.",
+      "Seasonal change of 4 wheels with balancing: usually 45–90 minutes — we confirm the slot when you book.",
+      "Сезонна заміна комплекту 4 коліс з балансуванням: зазвичай 45–90 хвилин."
+    ),
+    price: {
+      fromZl: getPriceItem("tire_change_r13")?.basePrice ?? 200,
+      priceFrom: true,
+      materialsExtra: false,
+      note: L(
+        "Cennik kompletu: R13–R17 200 zł, R18 260 zł, R19 300 zł, R20 350 zł. SUV / RunFlat / R21+ — po potwierdzeniu pojazdu. Naprawa przebicia 60 zł robocizna.",
+        "Прайс комплекта: R13–R17 200 zł, R18 260 zł, R19 300 zł, R20 350 zł. SUV / RunFlat / R21+ — по подтверждению. Ремонт прокола 60 zł.",
+        "Set prices: R13–R17 200 zł, R18 260 zł, R19 300 zł, R20 350 zł. SUV / RunFlat / R21+ on confirmation. Puncture repair 60 zł labour.",
+        "Прайс комплекту: R13–R17 200 zł, R18 260 zł, R19 300 zł, R20 350 zł. SUV / RunFlat / R21+ — після підтвердження."
+      ),
+      includes: [
+        L("Sezonowa wymiana opon na 4 kołach", "Сезонная замена шин на 4 колёсах", "Seasonal tyre change on 4 wheels", "Сезонна заміна шин на 4 колісах"),
+        L("Wyważanie + ciśnienie", "Балансировка + давление", "Balancing + pressure", "Балансування + тиск"),
+        L("Czyszczenie piast i klucz dynamometryczny", "Очистка ступиц и динамометрический ключ", "Hub cleaning and torque wrench", "Очищення маточин і динамометричний ключ"),
+      ],
+    },
+    education: [
+      {
+        title: L(
+          "Sezonowa wymiana opon w Warszawie Włochy",
+          "Сезонная замена шин в Варшаве Włochy",
+          "Seasonal tyre change in Warsaw Włochy",
+          "Сезонна заміна шин у Варшаві Włochy"
+        ),
+        body: L(
+          "Zima lub lato — komplet z wyważaniem w BESS MOTORS przy Alei Krakowskiej 48/52. Na tej stronie od razu umówisz termin: przycisk „Umów wizytę” otwiera zapis online.",
+          "Зима или лето — комплект с балансировкой в BESS MOTORS, Aleja Krakowska 48/52. На этой странице сразу запишитесь: кнопка «Записаться» открывает онлайн-запись.",
+          "Winter or summer — a full set with balancing at BESS MOTORS, Aleja Krakowska 48/52. Book right here: the Visit button opens online booking.",
+          "Зима чи літо — комплект з балансуванням у BESS MOTORS, Aleja Krakowska 48/52. Запишіться прямо тут онлайн."
+        ),
+      },
+      {
+        title: L("Kiedy zmieniać opony?", "Когда менять шины?", "When to change tyres?", "Коли міняти шини?"),
+        body: L(
+          "Praktyczna reguła w Polsce: ok. +7°C. Zimą — zanim pierwszy mróz i śnieg; latem — gdy wraca ciepło. Lepiej umówić termin wcześniej niż stać w kolejce w pierwszy mroźny poranek.",
+          "Практическое правило в Польше: около +7°C. Зимой — до первых морозов; летом — когда теплеет. Лучше записаться заранее.",
+          "Rule of thumb in Poland: about +7°C. Book early — queues spike on the first frosty morning.",
+          "Практичне правило в Польщі: близько +7°C. Краще записатися заздалегідь."
+        ),
+      },
+      {
+        title: L("Co jest w cenie", "Что в цене", "What’s included", "Що в ціні"),
+        body: L(
+          "Demontaż/montaż, wyważanie, czyszczenie piast, kontrola ciśnienia i dokręcenie kluczem dynamometrycznym. Opony jako towar — osobno, jeśli zamawiasz u nas.",
+          "Демонтаж/монтаж, балансировка, очистка ступиц, давление и динамометрический ключ. Шины как товар — отдельно.",
+          "Demount/mount, balancing, hub clean, pressure check and torque. Tyres as goods are separate if you buy from us.",
+          "Демонтаж/монтаж, балансування, очищення маточин, тиск і динамометричний ключ."
+        ),
+      },
+      {
+        title: L("Jak umówić wizytę", "Как записаться", "How to book", "Як записатися"),
+        body: L(
+          "Kliknij „Umów wizytę” na tej stronie, zostaw telefon w formularzu zwrotnym albo zadzwoń +48 791 257 229. Potwierdzimy wolny termin po kontakcie.",
+          "Нажмите «Записаться» на этой странице, оставьте телефон в форме или звоните +48 791 257 229.",
+          "Tap Book a visit on this page, leave your number for a callback, or call +48 791 257 229.",
+          "Натисніть «Записатися» на цій сторінці або телефонуйте +48 791 257 229."
+        ),
+      },
+      {
+        title: L("Dlaczego BESS MOTORS", "Почему BESS MOTORS", "Why BESS MOTORS", "Чому BESS MOTORS"),
+        body: L(
+          "Prawdziwe zdjęcia z warsztatu, wycena przed pracą, dojazd z Okęcia i południowej Warszawy. Adres: Aleja Krakowska 48/52, 02-284 Warszawa.",
+          "Реальные фото сервиса, смета до работ, удобный заезд с Okęcie. Адрес: Aleja Krakowska 48/52, 02-284 Warszawa.",
+          "Real workshop photos, quote before work, easy access from Okęcie. Address: Aleja Krakowska 48/52, 02-284 Warsaw.",
+          "Реальні фото сервісу, кошторис до робіт. Адреса: Aleja Krakowska 48/52, 02-284 Warszawa."
+        ),
+      },
+    ],
+    faqExtra: [
+      {
+        q: L("Czy mogę zapisać się od razu z tej strony?", "Можно записаться прямо здесь?", "Can I book from this page?", "Можна записатися прямо тут?"),
+        a: L(
+          "Tak — przycisk „Umów wizytę” otwiera zapis online z usługą wulkanizacji. Alternatywnie zadzwoń +48 791 257 229.",
+          "Да — кнопка «Записаться» открывает онлайн-запись на шиномонтаж. Или звоните +48 791 257 229.",
+          "Yes — Book a visit opens online booking for tyre service. Or call +48 791 257 229.",
+          "Так — кнопка «Записатися» відкриває онлайн-запис. Або телефонуйте +48 791 257 229."
+        ),
+      },
+      {
+        q: L("Ile kosztuje sezonowa wymiana?", "Сколько стоит сезонная замена?", "How much is a seasonal change?", "Скільки коштує сезонна заміна?"),
+        a: L(
+          "R13–R17 200 zł, R18 260 zł, R19 300 zł, R20 350 zł za komplet z wyważaniem. SUV / RunFlat / R21+ — po potwierdzeniu pojazdu.",
+          "R13–R17 200 zł, R18 260 zł, R19 300 zł, R20 350 zł за комплект с балансировкой.",
+          "R13–R17 200 zł, R18 260 zł, R19 300 zł, R20 350 zł per set with balancing.",
+          "R13–R17 200 zł, R18 260 zł, R19 300 zł, R20 350 zł за комплект з балансуванням."
+        ),
+      },
+      {
+        q: L("Czy mogę przywieźć własne opony?", "Можно свои шины?", "Can I bring my own tyres?", "Можна свої шини?"),
+        a: L(
+          "Tak — montujemy Twój komplet (na felgach lub osobno). Przy zapisie podaj rozmiar R.",
+          "Да — монтируем ваш комплект. При записи укажите размер R.",
+          "Yes — we fit your set (on rims or loose). Tell us the R-size when booking.",
+          "Так — монтуємо ваш комплект. При записі вкажіть розмір R."
+        ),
       },
     ],
   },
@@ -1911,8 +2030,9 @@ export const EXTRA_SEO_SERVICE_PROFILES_BATCH2: Record<string, SlugLandingProfil
 };
 
 export const EXTRA_SEO_RELATED_BATCH2: Record<string, string[]> = {
-  "wulkanizacja-warszawa": ["wymiana-opon-warszawa", "wywazanie-kol-warszawa", "naprawa-opon-warszawa", "opony", "geometria"],
-  "wymiana-opon-warszawa": ["wulkanizacja-warszawa", "wywazanie-kol-warszawa", "naprawa-opon-warszawa", "opony"],
+  "wulkanizacja-warszawa": ["sezonowa-wymiana-opon-warszawa", "wymiana-opon-warszawa", "wywazanie-kol-warszawa", "naprawa-opon-warszawa", "opony"],
+  "wymiana-opon-warszawa": ["sezonowa-wymiana-opon-warszawa", "wulkanizacja-warszawa", "wywazanie-kol-warszawa", "naprawa-opon-warszawa", "opony"],
+  "sezonowa-wymiana-opon-warszawa": ["wymiana-opon-warszawa", "wulkanizacja-warszawa", "wywazanie-kol-warszawa", "naprawa-opon-warszawa", "opony", "geometria"],
   "wywazanie-kol-warszawa": ["wulkanizacja-warszawa", "wymiana-opon-warszawa", "geometria", "naprawa-opon-warszawa"],
   "naprawa-opon-warszawa": ["wulkanizacja-warszawa", "wymiana-opon-warszawa", "wywazanie-kol-warszawa", "opony"],
   "wymiana-klockow-hamulcowych-warszawa": ["hamulce-warszawa", "wymiana-tarcz-hamulcowych-warszawa", "wymiana-plynu-hamulcowego-warszawa", "hamulce"],
