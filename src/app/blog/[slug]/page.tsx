@@ -40,6 +40,11 @@ export default async function BlogPostPage({
   if (!post) notFound();
 
   const updated = post.updatedAt ?? post.date;
+  const tireAdLink = post.relatedHrefs?.find(
+    (l) => l.href === "/sezonowa-wymiana-opon-warszawa"
+  );
+  const primaryBookHref = tireAdLink?.href ?? "/booking";
+  const primaryBookLabel = tireAdLink ? "Umów wymianę opon" : "Umów wizytę online";
 
   return (
     <>
@@ -87,8 +92,8 @@ export default async function BlogPostPage({
         ) : null}
 
         <p className="mt-10 flex flex-wrap gap-3">
-          <Link href="/booking" className="btn-primary inline-flex text-sm">
-            Umów wizytę online
+          <Link href={primaryBookHref} className="btn-primary inline-flex text-sm">
+            {primaryBookLabel}
           </Link>
           <Link href="/contacts" className="btn-outline inline-flex text-sm">
             Kontakt

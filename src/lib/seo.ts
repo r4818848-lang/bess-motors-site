@@ -23,10 +23,10 @@ export const sitemapExcludedSlugs = new Set([
 export const pendingNoIndexSlugs = new Set(["chip-tuning-warszawa"]);
 
 export const HOME_SEO_TITLE =
-  "Mechanik Warszawa Włochy | BESS MOTORS — Serwis Samochodowy";
+  "Mechanik Warszawa Włochy | Warsztat Samochodowy BESS MOTORS";
 
 export const HOME_SEO_DESCRIPTION =
-  "BESS MOTORS — serwis samochodowy Warszawa Włochy, Aleja Krakowska 48/52. Olej, hamulce, diagnostyka, klimatyzacja, zawieszenie, opony i rozrząd. Umów wizytę.";
+  "BESS MOTORS — serwis samochodowy Warszawa Włochy, Aleja Krakowska 48/52. Diagnostyka, hamulce, rozrząd, klimatyzacja i wymiana opon. Umów wizytę!";
 
 export const defaultSeoKeywords = [
   "BESS MOTORS",

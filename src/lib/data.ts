@@ -1,3 +1,5 @@
+import { businessConfig } from "@/lib/businessConfig";
+
 export { popularServices, serviceCategories, serviceFlows } from "./services-catalog";
 export type { ServiceId } from "./services-catalog";
 
@@ -7,14 +9,23 @@ export const mechanics = [
   { id: "mech-3", name: "Marek Wiśniewski", specialty: "Detailing / Paint", rating: 5.0 },
 ];
 
-/** Workshop hours Mon–Sat 08:00–18:00 (hourly booking slots; 13:00 blocked by lunch in CRM settings). */
-export const WORKSHOP_OPEN = "08:00";
-export const WORKSHOP_CLOSE = "18:00";
+/** Workshop hours from businessConfig (booking slots; 13:00 lunch may block in CRM). */
+export const WORKSHOP_OPEN = businessConfig.openingHours.opens;
+export const WORKSHOP_CLOSE = businessConfig.openingHours.closes;
 
 export const timeSlots = [
-  "08:00", "09:00", "10:00", "11:00", "12:00",
-  "13:00", "14:00", "15:00", "16:00", "17:00", "18:00",
-];
+  "08:00",
+  "09:00",
+  "10:00",
+  "11:00",
+  "12:00",
+  "13:00",
+  "14:00",
+  "15:00",
+  "16:00",
+  "17:00",
+  "18:00",
+].filter((t) => t >= WORKSHOP_OPEN && t <= WORKSHOP_CLOSE);
 
 export const reviews = [
   { name: "Michał K.", car: "BMW M340i", text: "Stage 2 + downpipe — +80 KM. Profesjonalizm na najwyższym poziomie!", rating: 5 },

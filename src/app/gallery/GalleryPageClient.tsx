@@ -16,7 +16,11 @@ import { OurWorksSection } from "@/components/gallery/OurWorksSection";
 
 type GalleryTab = "workshop" | "works" | "repairs";
 
-export default function GalleryPageClient() {
+export default function GalleryPageClient({
+  hideTitle = false,
+}: {
+  hideTitle?: boolean;
+}) {
   const { t } = useI18n();
   const g = t.galleryPage;
   const searchParams = useSearchParams();
@@ -55,13 +59,15 @@ export default function GalleryPageClient() {
     makeFilter === "all" ? items : items.filter((item) => item.make === makeFilter);
 
   return (
-    <div className="pt-28 pb-20">
+    <div className={hideTitle ? "pt-6 pb-20" : "pt-28 pb-20"}>
       <div className="mx-auto max-w-7xl px-4 lg:px-8">
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
-          <h1 className="font-display text-4xl font-bold uppercase text-glow">{g.title}</h1>
-          <p className="mt-4 text-bm-muted max-w-2xl">{g.subtitle}</p>
-          <div className="mt-4 h-1 w-24 bg-bm-red shadow-neon-sm" />
-        </motion.div>
+        {!hideTitle && (
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
+            <h1 className="font-display text-4xl font-bold uppercase text-glow">{g.title}</h1>
+            <p className="mt-4 text-bm-muted max-w-2xl">{g.subtitle}</p>
+            <div className="mt-4 h-1 w-24 bg-bm-red shadow-neon-sm" />
+          </motion.div>
+        )}
 
         <div className="mt-10 flex flex-wrap gap-2" role="tablist" aria-label={g.title}>
           {tabs.map(({ id, label }) => (

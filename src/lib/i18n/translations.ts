@@ -81,11 +81,11 @@ const pl = {
     badge: "Sezon opon",
     title: "Wymiana opon — Warszawa Włochy",
     subtitle:
-      "Komplet 4 kół z wyważaniem. Zapytaj o najbliższy termin wymiany opon — potwierdzimy po kontakcie.",
+      "Komplet 4 kół z wyważaniem. Prawdziwe zdjęcia z warsztatu — umów termin online i przyjedź bez kolejki.",
     priceNote: "SUV, RunFlat, R21+ — wycena po potwierdzeniu pojazdu. Naprawa przebicia: 60 zł robocizna.",
-    ctaAsk: "Zapytaj o termin wymiany opon",
+    ctaAsk: "Umów sezonową wymianę opon",
     ctaMore: "Wulkanizacja — szczegóły",
-    imageAlt: "Wymiana opon w BESS MOTORS Warszawa Włochy",
+    imageAlt: "Wymiana opon w BESS MOTORS Warszawa Włochy — zdjęcia z warsztatu",
   },
   homeComplex: {
     title: "Naprawy bardziej złożone",
@@ -169,10 +169,10 @@ const pl = {
     servicesTitle: "Nasze usługi",
   },
   bannerServices: {
-    tires: { title: "WYMIANA OPON", items: ["Montaż", "Wyważanie", "Geometria"] },
+    tires: { title: "WYMIANA OPON", items: ["Montaż", "Wyważanie", "Naprawa przebicia"] },
     ac: { title: "SERWIS KLIMATYZACJI", items: ["Nabijanie R134a / R1234yf", "Próżnia i szczelność", "Odgrzybianie"] },
     oil: { title: "WYMIANA OLEJU", items: ["Wymiana oleju", "Filtr oleju", "Kontrola"] },
-    tuning: { title: "TUNING / CHIP TUNING", items: ["Więcej mocy", "Lepsza dynamika", "Niższe spalanie"] },
+    brakes: { title: "HAMULCE", items: ["Klocki", "Tarcze", "Płyn hamulcowy"] },
     other: { title: "POZOSTAŁE PRACE", items: ["Mechanika", "Elektryka", "Diagnostyka i więcej"] },
   },
   bannerValues: {
@@ -2154,6 +2154,17 @@ const ru: TranslationKeys = {
     mechanic: "Панель механика",
     promos: "Акции",
   },
+  homeTireBlock: {
+    ...pl.homeTireBlock,
+    badge: "Сезон шин",
+    title: "Шиномонтаж — Варшава Włochy",
+    subtitle:
+      "Комплект 4 колёс с балансировкой. Реальные фото сервиса — запишитесь онлайн и приезжайте без очереди.",
+    priceNote: "SUV, RunFlat, R21+ — цена после подтверждения авто. Ремонт прокола: 60 zł работа.",
+    ctaAsk: "Записаться на сезонную замену шин",
+    ctaMore: "Шиномонтаж — подробнее",
+    imageAlt: "Шиномонтаж в BESS MOTORS Варшава Włochy — фото с сервиса",
+  },
   homeLead: {
     ...pl.homeLead,
     promoBadge: "Акция",
@@ -2240,10 +2251,10 @@ const ru: TranslationKeys = {
     servicesTitle: "Наши услуги",
   },
   bannerServices: {
-    tires: { title: "ШИНОМОНТАЖ", items: ["Монтаж", "Балансировка", "Развал-схождение"] },
+    tires: { title: "ШИНОМОНТАЖ", items: ["Монтаж", "Балансировка", "Ремонт прокола"] },
     ac: { title: "КОНДИЦИОНЕР", items: ["Заправка R134a / R1234yf", "Вакуум и герметичность", "Антигрибок"] },
     oil: { title: "ЗАМЕНА МАСЛА", items: ["Замена масла", "Фильтр", "Контроль"] },
-    tuning: { title: "TUNING / CHIP TUNING", items: ["Больше мощности", "Динамика", "Меньше расход"] },
+    brakes: { title: "ТОРМОЗА", items: ["Колодки", "Диски", "Тормозная жидкость"] },
     other: { title: "ПРОЧИЕ РАБОТЫ", items: ["Механика", "Электрика", "Диагностика и др."] },
   },
   bannerValues: {

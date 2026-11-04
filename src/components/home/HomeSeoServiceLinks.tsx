@@ -6,6 +6,7 @@ import { ChevronRight } from "lucide-react";
 /** Curated high-intent SEO links — not the full catalog (avoids footer-style clutter) */
 const FEATURED_SEO_LINKS: { href: string; label: string }[] = [
   { href: "/wymiana-oleju-warszawa", label: "Wymiana oleju Warszawa" },
+  { href: "/sezonowa-wymiana-opon-warszawa", label: "Sezonowa wymiana opon" },
   { href: "/wulkanizacja-warszawa", label: "Wulkanizacja / opony" },
   { href: "/serwis-klimatyzacji-warszawa", label: "Serwis klimatyzacji" },
   { href: "/hamulce-warszawa", label: "Hamulce Warszawa" },
@@ -13,10 +14,10 @@ const FEATURED_SEO_LINKS: { href: string; label: string }[] = [
   { href: "/wymiana-sprzegla-warszawa", label: "Wymiana sprzęgła" },
   { href: "/naprawa-zawieszenia-warszawa", label: "Naprawa zawieszenia" },
   { href: "/diagnostyka-komputerowa-warszawa", label: "Diagnostyka komputerowa" },
-  { href: "/diagnostyka-elektryki-samochodowej-warszawa", label: "Diagnostyka elektryki" },
-  { href: "/wymiana-turbosprezarki-warszawa", label: "Wymiana turbosprężarki" },
-  { href: "/czyszczenie-dpf-warszawa", label: "Czyszczenie DPF" },
+  { href: "/serwis-skrzyni-automatycznej-warszawa", label: "Skrzynia automatyczna" },
   { href: "/mechanik-warszawa-wlochy", label: "Mechanik Warszawa Włochy" },
+  { href: "/mechanik-warszawa-okecie", label: "Mechanik Okęcie" },
+  { href: "/czyszczenie-dpf-warszawa", label: "Czyszczenie DPF" },
 ];
 
 export function HomeSeoServiceLinks() {

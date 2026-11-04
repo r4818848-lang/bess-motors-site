@@ -10,7 +10,7 @@ export const WORKSHOP_PHOTOS: WorkshopPhoto[] = [
   { id: "exterior", src: "/images/workshop/exterior.png" },
   { id: "liftBay", src: "/images/workshop/lift-bay.png" },
   { id: "workshopHall", src: "/images/workshop/workshop-hall.png" },
-  { id: "tireService", src: "/images/workshop/tire-service.png" },
+  { id: "tireService", src: "/images/workshop/tire-service-bmw.jpg" },
 ];
 
 export const WORKSHOP_HERO_PHOTO = WORKSHOP_PHOTOS[0];

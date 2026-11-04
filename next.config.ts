@@ -35,6 +35,16 @@ const nextConfig: NextConfig = {
       { source: "/contact", destination: "/contacts", permanent: true },
       { source: "/kontakty", destination: "/contacts", permanent: true },
       { source: "/klocki-hamulcowe", destination: "/hamulce", permanent: true },
+      {
+        source: "/wymiana-hamulcow-warszawa",
+        destination: "/hamulce-warszawa",
+        permanent: true,
+      },
+      {
+        source: "/wymiana-hamulcow",
+        destination: "/hamulce-warszawa",
+        permanent: true,
+      },
       { source: "/serwis-klimatyzacji", destination: "/klimatyzacja", permanent: true },
       { source: "/nabijanie-klimatyzacji", destination: "/klimatyzacja", permanent: true },
       { source: "/nabijanie-klimatyzacji-warszawa", destination: "/klimatyzacja", permanent: true },

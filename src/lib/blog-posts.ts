@@ -80,8 +80,9 @@ export const blogPosts: BlogPost[] = [
     updatedAt: "2026-10-21",
     excerpt: "Terminy wymiany letnia / zima w Polsce.",
     body:
-      "W Polsce większość kierowców zmienia opony przy ok. +7°C — zazwyczaj marzec–kwiecień (lato) i październik–listopad (zima).\n\nW BESS MOTORS komplet 4 kół: R13–R17 200 zł, R18 260 zł, R19 300 zł, R20 350 zł. SUV / RunFlat / R21+ — po potwierdzeniu pojazdu. Naprawa przebicia: 60 zł robocizna.\n\nZapytaj o termin wymiany opon — potwierdzimy po kontakcie.",
+      "W Polsce większość kierowców zmienia opony przy ok. +7°C — zazwyczaj marzec–kwiecień (lato) i październik–listopad (zima).\n\nW BESS MOTORS komplet 4 kół: R13–R17 200 zł, R18 260 zł, R19 300 zł, R20 350 zł. SUV / RunFlat / R21+ — po potwierdzeniu pojazdu. Naprawa przebicia: 60 zł robocizna.\n\nUmów sezonową wymianę online: /sezonowa-wymiana-opon-warszawa — zapis w jednym kroku, potwierdzimy termin po kontakcie.",
     relatedHrefs: [
+      { href: "/sezonowa-wymiana-opon-warszawa", label: "Umów sezonową wymianę" },
       { href: "/wymiana-opon-warszawa", label: "Wymiana opon" },
       { href: "/wulkanizacja-warszawa", label: "Wulkanizacja" },
       { href: "/naprawa-opon-warszawa", label: "Naprawa opon" },
@@ -194,8 +195,9 @@ Cennik wymiany kompletu w BESS MOTORS
 SUV, RunFlat, niski profil, R21+ — wycena po potwierdzeniu pojazdu. Naprawa przebicia: 60 zł robocizna.
 
 Jak umówić
-Zadzwoń +48 791 257 229 albo zostaw wniosek online — potwierdzimy termin telefonicznie. Adres: Aleja Krakowska 48/52, Warszawa Włochy.`,
+Wejdź na stronę sezonowej wymiany opon (/sezonowa-wymiana-opon-warszawa) i kliknij „Umów wizytę” — albo zadzwoń +48 791 257 229. Potwierdzimy termin telefonicznie. Adres: Aleja Krakowska 48/52, Warszawa Włochy.`,
     relatedHrefs: [
+      { href: "/sezonowa-wymiana-opon-warszawa", label: "Umów sezonową wymianę" },
       { href: "/wymiana-opon-warszawa", label: "Wymiana opon Warszawa" },
       { href: "/wulkanizacja-warszawa", label: "Wulkanizacja" },
       { href: "/booking", label: "Zapytaj o termin" },

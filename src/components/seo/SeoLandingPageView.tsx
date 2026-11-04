@@ -38,6 +38,8 @@ import { isBrandSeoLandingSlug } from "@/lib/seo-brand-slugs";
 import { CallbackRequestCta } from "@/components/callback/CallbackRequestCta";
 import { isCallbackLandingSlug } from "@/lib/callback-landing-slugs";
 import { EXTRA_SEO_SERVICE_PAGES } from "@/lib/seo-extra-service-pages";
+import { TirePromoPhotoStrip } from "@/components/seo/landing/TirePromoPhotoStrip";
+import { TIRE_AD_LANDING_SLUG } from "@/lib/tire-media";
 
 type Props = {
   page: SeoLandingPage;
@@ -117,6 +119,12 @@ export function SeoLandingPageView({ page }: Props) {
             ) : null}
             <div className="mt-6 h-1 w-24 bg-bm-red shadow-neon-sm mx-auto" />
           </motion.div>
+
+          {page.slug === TIRE_AD_LANDING_SLUG ||
+          page.slug === "wulkanizacja-warszawa" ||
+          page.slug === "wymiana-opon-warszawa" ? (
+            <TirePromoPhotoStrip className="mt-10" />
+          ) : null}
 
           <motion.div
             initial={{ opacity: 0, y: 12 }}
