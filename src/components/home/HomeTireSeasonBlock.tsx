@@ -7,8 +7,12 @@ import { useI18n } from "@/lib/i18n/context";
 import { contentLocale } from "@/lib/i18n/locale-utils";
 import { BookingLink } from "@/components/analytics/BookingLink";
 import { TIRE_AD_LANDING_PATH, TIRE_SERVICE_PHOTOS } from "@/lib/tire-media";
+import {
+  TIRE_PROMO_EXTRAS,
+  TIRE_PROMO_LADDER_HOME,
+} from "@/lib/tire-promo-prices";
 
-/** Seasonal tyre ad on homepage — price ladder + real workshop photos → booking landing */
+/** Seasonal tyre ad on homepage — promo ladder + real workshop photos → booking landing */
 export function HomeTireSeasonBlock() {
   const { t, locale } = useI18n();
   const h = t.homeTireBlock;
@@ -33,25 +37,26 @@ export function HomeTireSeasonBlock() {
               {h.title}
             </h2>
             <p className="mt-3 text-sm text-bm-muted max-w-xl leading-relaxed">{h.subtitle}</p>
-            <ul className="mt-5 grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
-              <li className="rounded-lg border border-white/10 bg-bm-card/60 px-3 py-2">
-                <span className="text-bm-muted block text-xs">R13–R17</span>
-                <span className="font-bold text-white">200 zł</span>
-              </li>
-              <li className="rounded-lg border border-white/10 bg-bm-card/60 px-3 py-2">
-                <span className="text-bm-muted block text-xs">R18</span>
-                <span className="font-bold text-white">260 zł</span>
-              </li>
-              <li className="rounded-lg border border-white/10 bg-bm-card/60 px-3 py-2">
-                <span className="text-bm-muted block text-xs">R19</span>
-                <span className="font-bold text-white">300 zł</span>
-              </li>
-              <li className="rounded-lg border border-white/10 bg-bm-card/60 px-3 py-2">
-                <span className="text-bm-muted block text-xs">R20</span>
-                <span className="font-bold text-white">350 zł</span>
-              </li>
+            <ul className="mt-5 grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-sm">
+              {TIRE_PROMO_LADDER_HOME.map((row) => (
+                <li
+                  key={row.label}
+                  className="rounded-lg border border-white/10 bg-bm-card/60 px-3 py-2"
+                >
+                  <span className="text-bm-muted block text-xs">{row.label}</span>
+                  <span className="flex items-baseline gap-2 flex-wrap">
+                    <span className="font-bold text-emerald-400">{row.nowZl} zł</span>
+                    <span className="text-xs text-bm-muted line-through">{row.wasZl} zł</span>
+                  </span>
+                </li>
+              ))}
             </ul>
             <p className="mt-3 text-xs text-bm-muted">{h.priceNote}</p>
+            <p className="mt-1 text-xs text-bm-muted">
+              RunFlat +{TIRE_PROMO_EXTRAS.runFlatPerWheelZl} zł/koło · TPMS +
+              {TIRE_PROMO_EXTRAS.tpmsPerWheelZl} zł/koło · utylizacja{" "}
+              {TIRE_PROMO_EXTRAS.disposalPerWheelZl} zł/koło
+            </p>
             <div className="mt-6 flex flex-col sm:flex-row flex-wrap gap-3">
               <BookingLink
                 href={TIRE_AD_LANDING_PATH}

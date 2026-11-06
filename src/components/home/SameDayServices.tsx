@@ -50,7 +50,7 @@ export function SameDayServices() {
     {
       icon: Circle,
       title: h.sameDayTires,
-      price: "od 200 zł",
+      price: "od 140 zł",
       href: "/opony",
       source: "same_day_tires",
       eta: "ok. 1 h",

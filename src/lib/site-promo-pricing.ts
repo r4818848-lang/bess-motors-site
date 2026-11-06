@@ -23,8 +23,11 @@ export function getEffectiveUnitPrice(item: PriceListItem): number {
 }
 
 export function getCompareAtUnitPrice(item: PriceListItem): number | null {
-  if (item.unit === "free" || isSitePromoExcluded(item)) return null;
-  return item.listPrice ?? null;
+  if (item.unit === "free") return null;
+  /** Explicit listPrice (e.g. tyre seasonal promo) always shows as compare-at */
+  if (item.listPrice != null && item.listPrice > item.basePrice) return item.listPrice;
+  if (isSitePromoExcluded(item)) return null;
+  return null;
 }
 
 export function getDiscountPercent(compareAt: number, price: number): number | null {
