@@ -16,22 +16,22 @@ export const EXTRA_SEO_SERVICE_PAGES_BATCH2: SeoLandingPage[] = [
   {
     slug: "wulkanizacja-warszawa",
     title: "Wulkanizacja i wymiana opon Warszawa",
-    line1: "R13–R17 200 zł · R18 260 · R19 300 · R20 350",
+    line1: "R13–R15 140 zł · R16 170 · R17 190 · R18 220 · R19 280 · R20 350",
     line2: "Warszawa Włochy — Aleja Krakowska 48/52",
     metaTitle: "Wulkanizacja i wymiana opon Warszawa Włochy | BESS MOTORS",
     metaDescription:
-      "Wulkanizacja Warszawa Włochy — wymiana kompletu od 200 zł (R13–R17), R18 260 zł, R19 300 zł, R20 350 zł. Naprawa przebicia 60 zł. Zapytaj o termin.",
+      "Wulkanizacja Warszawa Włochy — wymiana kompletu od 140 zł (R13–R15), R16 170 zł, R17 190 zł, R18 220 zł, R19 280 zł, R20 350 zł. Naprawa przebicia 60 zł. Zapytaj o termin.",
     serviceId: "tires",
     icon: "Circle",
   },
   {
     slug: "wymiana-opon-warszawa",
     title: "Wymiana opon Warszawa",
-    line1: "Komplet 4 kół z wyważaniem od 200 zł",
+    line1: "Komplet 4 kół z wyważaniem od 140 zł",
     line2: "Zapytaj o najbliższy termin we Włochach",
-    metaTitle: "Wymiana opon Warszawa Włochy | od 200 zł komplet",
+    metaTitle: "Wymiana opon Warszawa Włochy | od 140 zł komplet",
     metaDescription:
-      "Wymiana opon Warszawa Włochy — komplet R13–R17 200 zł, R18 260 zł, R19 300 zł, R20 350 zł. BESS MOTORS, Aleja Krakowska 48/52. Zapytaj o termin.",
+      "Wymiana opon Warszawa Włochy — komplet R13–R15 140 zł, R16 170 zł, R17 190 zł, R18 220 zł, R19 280 zł, R20 350 zł. BESS MOTORS, Aleja Krakowska 48/52. Zapytaj o termin.",
     serviceId: "tires",
     icon: "Circle",
   },
@@ -60,11 +60,11 @@ export const EXTRA_SEO_SERVICE_PAGES_BATCH2: SeoLandingPage[] = [
   {
     slug: "sezonowa-wymiana-opon-warszawa",
     title: "Sezonowa wymiana opon Warszawa",
-    line1: "Komplet od 200 zł — umów termin online",
+    line1: "Komplet od 140 zł — umów termin online",
     line2: "BESS MOTORS Włochy · zdjęcia z warsztatu · wyważanie w cenie",
-    metaTitle: "Sezonowa wymiana opon Warszawa Włochy | od 200 zł | BESS MOTORS",
+    metaTitle: "Sezonowa wymiana opon Warszawa Włochy | od 140 zł | BESS MOTORS",
     metaDescription:
-      "Sezonowa wymiana opon Warszawa Włochy — komplet R13–R17 200 zł, R18 260, R19 300, R20 350. Wyważanie w cenie. Umów wizytę online lub zadzwoń +48 791 257 229.",
+      "Sezonowa wymiana opon Warszawa Włochy — komplet R13–R15 140 zł, R16 170, R17 190, R18 220, R19 280, R20 350. Wyważanie w cenie. Umów wizytę online lub zadzwoń +48 791 257 229.",
     serviceId: "tires",
     icon: "Circle",
   },
@@ -362,10 +362,10 @@ export const EXTRA_SEO_SERVICE_PROFILES_BATCH2: Record<string, SlugLandingProfil
     contentServiceId: "tires",
     faqDuration: L("Wymiana kompletu 4 kół zwykle 45–90 minut — zależnie od rozmiaru i dostępności terminu.", "Замена комплекта обычно 45–90 минут.", "A set of 4 usually takes 45–90 minutes — depending on size and slot availability.", "Заміна комплекта зазвичай 45–90 минут."),
     price: {
-          fromZl: getPriceItem("tire_change_r13")?.basePrice ?? 200,
+          fromZl: getPriceItem("tire_change_r13")?.basePrice ?? 140,
           priceFrom: true,
           materialsExtra: false,
-          note: L("Cennik wymiany kompletu: R13–R17 200 zł, R18 260 zł, R19 300 zł, R20 350 zł. R21+ / SUV — po potwierdzeniu pojazdu. RunFlat / niski profil +20 zł/koło. Szczegóły na /cennik.", "Прайс комплекта: R13–R17 200 zł, R18 260 zł, R19 300 zł, R20 350 zł. R21+ / SUV — по подтверждению. RunFlat / низкий профиль +20 zł/колесо.", "Set change: R13–R17 200 zł, R18 260 zł, R19 300 zł, R20 350 zł. R21+ / SUV on confirmation. RunFlat / low profile +20 zł/wheel.", "Прайс комплекту: R13–R17 200 zł, R18 260 zł, R19 300 zł, R20 350 zł. R21+ / SUV — після підтвердження."),
+          note: L("Cennik wymiany kompletu: R13–R15 140 zł, R16 170 zł, R17 190 zł, R18 220 zł, R19 280 zł, R20 350 zł. R21–R23 w cenniku. RunFlat / niski profil / TPMS +25 zł/koło. Szczegóły na /cennik.", "Прайс комплекта: R13–R15 140 zł, R16 170 zł, R17 190 zł, R18 220 zł, R19 280 zł, R20 350 zł. R21–R23 в прайсе. RunFlat / низкий профиль / TPMS +25 zł/колесо.", "Set change: R13–R15 140 zł, R16 170 zł, R17 190 zł, R18 220 zł, R19 280 zł, R20 350 zł. R21–R23 on the price list. RunFlat / low profile / TPMS +25 zł/wheel.", "Прайс комплекту: R13–R15 140 zł, R16 170 zł, R17 190 zł, R18 220 zł, R19 280 zł, R20 350 zł. R21+ / SUV — після підтвердження."),
           includes: [
             L("Demontaż i montaż opon + wyważanie", "Демонтаж и монтаж шин + балансировка", "Tyre demount/mount + balancing", "Демонтаж і монтаж шин + балансування"),
             L("Czyszczenie piast (gratis)", "Очистка ступиц (бесплатно)", "Hub cleaning (included)", "Очищення маточин (безкоштовно)"),
@@ -421,14 +421,14 @@ export const EXTRA_SEO_SERVICE_PROFILES_BATCH2: Record<string, SlugLandingProfil
       "Сезонна заміна комплекту 4 коліс з балансуванням: зазвичай 45–90 хвилин."
     ),
     price: {
-      fromZl: getPriceItem("tire_change_r13")?.basePrice ?? 200,
+      fromZl: getPriceItem("tire_change_r13")?.basePrice ?? 140,
       priceFrom: true,
       materialsExtra: false,
       note: L(
-        "Cennik kompletu: R13–R17 200 zł, R18 260 zł, R19 300 zł, R20 350 zł. SUV / RunFlat / R21+ — po potwierdzeniu pojazdu. Naprawa przebicia 60 zł robocizna.",
-        "Прайс комплекта: R13–R17 200 zł, R18 260 zł, R19 300 zł, R20 350 zł. SUV / RunFlat / R21+ — по подтверждению. Ремонт прокола 60 zł.",
-        "Set prices: R13–R17 200 zł, R18 260 zł, R19 300 zł, R20 350 zł. SUV / RunFlat / R21+ on confirmation. Puncture repair 60 zł labour.",
-        "Прайс комплекту: R13–R17 200 zł, R18 260 zł, R19 300 zł, R20 350 zł. SUV / RunFlat / R21+ — після підтвердження."
+        "Cennik kompletu: R13–R15 140 zł, R16 170 zł, R17 190 zł, R18 220 zł, R19 280 zł, R20 350 zł. R21–R23 w cenniku. Naprawa przebicia 60 zł robocizna.",
+        "Прайс комплекта: R13–R15 140 zł, R16 170 zł, R17 190 zł, R18 220 zł, R19 280 zł, R20 350 zł. R21–R23 в прайсе. Ремонт прокола 60 zł.",
+        "Set prices: R13–R15 140 zł, R16 170 zł, R17 190 zł, R18 220 zł, R19 280 zł, R20 350 zł. R21–R23 on the price list. Puncture repair 60 zł labour.",
+        "Прайс комплекту: R13–R15 140 zł, R16 170 zł, R17 190 zł, R18 220 zł, R19 280 zł, R20 350 zł. R21–R23 у прайсі."
       ),
       includes: [
         L("Sezonowa wymiana opon na 4 kołach", "Сезонная замена шин на 4 колёсах", "Seasonal tyre change on 4 wheels", "Сезонна заміна шин на 4 колісах"),
@@ -501,10 +501,10 @@ export const EXTRA_SEO_SERVICE_PROFILES_BATCH2: Record<string, SlugLandingProfil
       {
         q: L("Ile kosztuje sezonowa wymiana?", "Сколько стоит сезонная замена?", "How much is a seasonal change?", "Скільки коштує сезонна заміна?"),
         a: L(
-          "R13–R17 200 zł, R18 260 zł, R19 300 zł, R20 350 zł za komplet z wyważaniem. SUV / RunFlat / R21+ — po potwierdzeniu pojazdu.",
-          "R13–R17 200 zł, R18 260 zł, R19 300 zł, R20 350 zł за комплект с балансировкой.",
-          "R13–R17 200 zł, R18 260 zł, R19 300 zł, R20 350 zł per set with balancing.",
-          "R13–R17 200 zł, R18 260 zł, R19 300 zł, R20 350 zł за комплект з балансуванням."
+          "R13–R15 140 zł, R16 170 zł, R17 190 zł, R18 220 zł, R19 280 zł, R20 350 zł za komplet z wyważaniem. R21–R23 w cenniku.",
+          "R13–R15 140 zł, R16 170 zł, R17 190 zł, R18 220 zł, R19 280 zł, R20 350 zł за комплект с балансировкой.",
+          "R13–R15 140 zł, R16 170 zł, R17 190 zł, R18 220 zł, R19 280 zł, R20 350 zł per set with balancing.",
+          "R13–R15 140 zł, R16 170 zł, R17 190 zł, R18 220 zł, R19 280 zł, R20 350 zł за комплект з балансуванням."
         ),
       },
       {
@@ -524,10 +524,10 @@ export const EXTRA_SEO_SERVICE_PROFILES_BATCH2: Record<string, SlugLandingProfil
     contentServiceId: "tires",
     faqDuration: L("Wymiana 4 opon z wyważaniem: zwykle 45–90 minut.", "Замена 4 шин: обычно 45–90 минут.", "Tyre change for 4 with balancing: usually 45–90 minutes.", "Заміна 4 шин: зазвичай 45–90 минут."),
     price: {
-          fromZl: getPriceItem("tire_change_r13")?.basePrice ?? 200,
+          fromZl: getPriceItem("tire_change_r13")?.basePrice ?? 140,
           priceFrom: true,
           materialsExtra: false,
-          note: L("Cennik wymiany kompletu: R13–R17 200 zł, R18 260 zł, R19 300 zł, R20 350 zł. R21+ / SUV — po potwierdzeniu. RunFlat / niski profil +20 zł/koło.", "Прайс комплекта: R13–R17 200 zł, R18 260 zł, R19 300 zł, R20 350 zł. R21+ / SUV — по подтверждению.", "Set change: R13–R17 200 zł, R18 260 zł, R19 300 zł, R20 350 zł. R21+ / SUV on confirmation.", "Прайс комплекту: R13–R17 200 zł, R18 260 zł, R19 300 zł, R20 350 zł."),
+          note: L("Cennik wymiany kompletu: R13–R15 140 zł, R16 170 zł, R17 190 zł, R18 220 zł, R19 280 zł, R20 350 zł. R21–R23 w cenniku. RunFlat / niski profil +25 zł/koło.", "Прайс комплекта: R13–R15 140 zł, R16 170 zł, R17 190 zł, R18 220 zł, R19 280 zł, R20 350 zł. R21–R23 в прайсе.", "Set change: R13–R15 140 zł, R16 170 zł, R17 190 zł, R18 220 zł, R19 280 zł, R20 350 zł. R21–R23 on the price list.", "Прайс комплекту: R13–R15 140 zł, R16 170 zł, R17 190 zł, R18 220 zł, R19 280 zł, R20 350 zł."),
           includes: [
             L("Wymiana opon na komplecie 4 kół", "Замена шин на 4 колёсах", "Tyre change on a set of 4", "Заміна шин на 4 колісах"),
             L("Wyważanie", "Балансировка", "Balancing", "Балансування"),

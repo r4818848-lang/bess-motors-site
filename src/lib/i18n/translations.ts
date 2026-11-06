@@ -78,11 +78,11 @@ const pl = {
       "Wjazd od Alei Krakowskiej — warsztat i parking na terenie posesji. Szukaj szyldu BESS MOTORS.",
   },
   homeTireBlock: {
-    badge: "Sezon opon",
+    badge: "Sezon opon — promocja",
     title: "Wymiana opon — Warszawa Włochy",
     subtitle:
-      "Komplet 4 kół z wyważaniem. Prawdziwe zdjęcia z warsztatu — umów termin online i przyjedź bez kolejki.",
-    priceNote: "SUV, RunFlat, R21+ — wycena po potwierdzeniu pojazdu. Naprawa przebicia: 60 zł robocizna.",
+      "Komplet 4 kół z wyważaniem w cenie promocji. Prawdziwe zdjęcia z warsztatu — umów termin online.",
+    priceNote: "R21–R23 w cenniku. Naprawa przebicia: 60 zł robocizna.",
     ctaAsk: "Umów sezonową wymianę opon",
     ctaMore: "Wulkanizacja — szczegóły",
     imageAlt: "Wymiana opon w BESS MOTORS Warszawa Włochy — zdjęcia z warsztatu",
@@ -137,7 +137,7 @@ const pl = {
       suspension: { title: "Zawieszenie gratis", price: "przy wymianie oleju" },
       filters: { title: "Filtry kabinowy i powietrza", price: "od 50 / 30 zł" },
       pads: { title: "Klocki hamulcowe przód", price: "100 zł robocizna" },
-      tires: { title: "Wymiana opon", price: "od 200 zł" },
+      tires: { title: "Wymiana opon", price: "od 140 zł" },
     },
   },
   hero: {
@@ -233,7 +233,7 @@ const pl = {
     was: "było",
     now: "teraz",
     discount: "rabat",
-    legend: "Przekreślona cena — cennik przed rabatem −15%. Klimatyzacja i wulkanizacja bez tej zniżki.",
+    legend: "Przekreślona cena — cennik przed rabatem −15% (lub przed promocją sezonową opon). Klimatyzacja bez −15%.",
   },
   carWizard: {
     title: "Co się dzieje z autem?",
@@ -2156,11 +2156,11 @@ const ru: TranslationKeys = {
   },
   homeTireBlock: {
     ...pl.homeTireBlock,
-    badge: "Сезон шин",
+    badge: "Сезон шин — акция",
     title: "Шиномонтаж — Варшава Włochy",
     subtitle:
-      "Комплект 4 колёс с балансировкой. Реальные фото сервиса — запишитесь онлайн и приезжайте без очереди.",
-    priceNote: "SUV, RunFlat, R21+ — цена после подтверждения авто. Ремонт прокола: 60 zł работа.",
+      "Комплект 4 колёс с балансировкой по акции. Реальные фото сервиса — запишитесь онлайн.",
+    priceNote: "R21–R23 в прайсе. Ремонт прокола: 60 zł работа.",
     ctaAsk: "Записаться на сезонную замену шин",
     ctaMore: "Шиномонтаж — подробнее",
     imageAlt: "Шиномонтаж в BESS MOTORS Варшава Włochy — фото с сервиса",
@@ -2219,7 +2219,7 @@ const ru: TranslationKeys = {
       suspension: { title: "Подвеска бесплатно", price: "при замене масла" },
       filters: { title: "Фильтры салона и воздуха", price: "от 50 / 30 zł" },
       pads: { title: "Колодки передние", price: "100 zł работа" },
-      tires: { title: "Замена шин", price: "от 200 zł" },
+      tires: { title: "Замена шин", price: "от 140 zł" },
     },
   },
   hero: {
@@ -5447,7 +5447,7 @@ const uk: TranslationKeys = {
       suspension: { title: "Підвіска безкоштовно", price: "при заміні оливи" },
       filters: { title: "Фільтри салону і повітря", price: "від 50 / 30 zł" },
       pads: { title: "Колодки передні", price: "100 zł робота" },
-      tires: { title: "Заміна шин", price: "від 200 zł" },
+      tires: { title: "Заміна шин", price: "від 140 zł" },
     },
   },
   homeLead: {

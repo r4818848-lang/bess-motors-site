@@ -10,6 +10,10 @@ import {
   TIRE_BMW_X3_JACK_SRC,
   TIRE_MERCEDES_BAY_SRC,
 } from "@/lib/tire-media";
+import {
+  TIRE_PROMO_FROM_ZL,
+  TIRE_PROMO_SUMMARY_SHORT_PL,
+} from "@/lib/tire-promo-prices";
 
 /** Compact tyre-season promo for /promocje and ad surfaces */
 export function TirePromoBanner() {
@@ -22,17 +26,17 @@ export function TirePromoBanner() {
         <div className="grid lg:grid-cols-[1.1fr_0.9fr] gap-6 lg:gap-10 items-center">
           <div>
             <p className="text-[11px] sm:text-xs font-semibold uppercase tracking-[0.22em] text-bm-red mb-2">
-              Sezon opon
+              Sezon opon — promocja
             </p>
             <h2
               id="tire-promo-heading"
               className="font-display text-2xl sm:text-3xl font-bold text-white tracking-tight"
             >
-              Sezonowa wymiana opon od 200 zł
+              Sezonowa wymiana opon od {TIRE_PROMO_FROM_ZL} zł
             </h2>
             <p className="mt-3 text-sm text-bm-silver max-w-xl leading-relaxed">
-              Komplet 4 kół z wyważaniem — R13–R17 200 zł, R18 260, R19 300, R20 350.
-              Umów termin online w BESS MOTORS (Włochy).
+              Komplet 4 kół z wyważaniem — {TIRE_PROMO_SUMMARY_SHORT_PL}. Umów termin
+              online w BESS MOTORS (Włochy).
             </p>
             <div className="mt-6 flex flex-col sm:flex-row flex-wrap gap-3">
               <BookingLink
