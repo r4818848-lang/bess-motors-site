@@ -20,6 +20,11 @@ import { OIL_CHANGE_DRAIN_POSTER_SRC } from "@/lib/oil-media";
 import { ALTERNATOR_INSTALL_PHOTO_SRC } from "@/lib/alternator-media";
 import { BRAKE_PADS_CHANGE_PHOTO_SRC } from "@/lib/brake-media";
 import { TIRE_SERVICE_HERO_SRC } from "@/lib/tire-media";
+import {
+  getModelHeroForSlug,
+  MODEL_BRAKE_SLUGS,
+  MODEL_TIRE_SLUGS,
+} from "@/lib/model-service-media";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -66,28 +71,37 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       pendingNoIndexSlugs.has(slug) ||
       sitemapExcludedSlugs.has(slug),
     ogImageAlt: `${page.title} — serwis samochodowy Warszawa`,
-    ogImage:
-      slug === "klimatyzacja" || slug === "naprawa-klimatyzacji"
-        ? AC_PROMO_HERO_SRC
-        : slug === "wymiana-oleju"
-          ? OIL_CHANGE_DRAIN_POSTER_SRC
-          : slug === "opony" ||
-              slug === "geometria" ||
-              slug === "wulkanizacja-warszawa" ||
-              slug === "wymiana-opon-warszawa" ||
-              slug === "sezonowa-wymiana-opon-warszawa" ||
-              slug === "wywazanie-kol-warszawa" ||
-              slug === "naprawa-opon-warszawa"
-            ? TIRE_SERVICE_HERO_SRC
-            : slug === "hamulce" || slug === "klocki-hamulcowe"
-              ? BRAKE_PADS_CHANGE_PHOTO_SRC
-              : slug === "elektryka"
-                ? ALTERNATOR_INSTALL_PHOTO_SRC
-                : brandOgSlugs.has(slug)
-                  ? AC_RECHARGE_BMW_POSTER_SRC
-                  : diagOgSlugs.has(slug)
-                    ? ALTERNATOR_INSTALL_PHOTO_SRC
-                    : undefined,
+    ogImage: (() => {
+      const modelHero = getModelHeroForSlug(slug);
+      if (modelHero) return modelHero.src;
+      if (slug === "klimatyzacja" || slug === "naprawa-klimatyzacji") return AC_PROMO_HERO_SRC;
+      if (slug === "wymiana-oleju") return OIL_CHANGE_DRAIN_POSTER_SRC;
+      if (
+        slug === "opony" ||
+        slug === "geometria" ||
+        slug === "wulkanizacja-warszawa" ||
+        slug === "wymiana-opon-warszawa" ||
+        slug === "sezonowa-wymiana-opon-warszawa" ||
+        slug === "wywazanie-kol-warszawa" ||
+        slug === "naprawa-opon-warszawa" ||
+        MODEL_TIRE_SLUGS.has(slug)
+      ) {
+        return TIRE_SERVICE_HERO_SRC;
+      }
+      if (
+        slug === "hamulce" ||
+        slug === "klocki-hamulcowe" ||
+        slug === "hamulce-warszawa" ||
+        slug === "wymiana-klockow-hamulcowych-warszawa" ||
+        MODEL_BRAKE_SLUGS.has(slug)
+      ) {
+        return BRAKE_PADS_CHANGE_PHOTO_SRC;
+      }
+      if (slug === "elektryka") return ALTERNATOR_INSTALL_PHOTO_SRC;
+      if (brandOgSlugs.has(slug)) return AC_RECHARGE_BMW_POSTER_SRC;
+      if (diagOgSlugs.has(slug)) return ALTERNATOR_INSTALL_PHOTO_SRC;
+      return undefined;
+    })(),
     keywords: [
       page.metaTitle,
       page.title,

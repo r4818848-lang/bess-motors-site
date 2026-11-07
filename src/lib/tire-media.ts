@@ -7,6 +7,8 @@ export const TIRE_SERVICE_POSTER_SRC = "/images/works/tire-service-cover.png";
 export const TIRE_BMW_FRONT_SRC = "/images/works/tire-bmw-front-bess.jpg";
 export const TIRE_BMW_X3_JACK_SRC = "/images/works/tire-bmw-x3-jack-bess.jpg";
 export const TIRE_MERCEDES_BAY_SRC = "/images/works/tire-mercedes-bay-hex-bess.jpg";
+export const TIRE_AUDI_Q5_SRC = "/images/works/tire-audi-q5-bess.jpg";
+export const TIRE_BMW_7_G70_SRC = "/images/works/tire-bmw-7-g70-bess.jpg";
 
 /** Prefer real exterior shot as primary visual for tyre landings / home block */
 export const TIRE_SERVICE_HERO_SRC = TIRE_BMW_FRONT_SRC;
@@ -25,6 +27,22 @@ export const TIRE_SERVICE_PHOTOS: {
   src: string;
   alt: { pl: string; ru: string; en: string };
 }[] = [
+  {
+    src: TIRE_AUDI_Q5_SRC,
+    alt: {
+      pl: "Audi Q5 — wymiana opon BESS MOTORS Warszawa Włochy",
+      ru: "Audi Q5 — шиномонтаж BESS MOTORS Варшава Włochy",
+      en: "Audi Q5 tyre change at BESS MOTORS Warsaw Włochy",
+    },
+  },
+  {
+    src: TIRE_BMW_7_G70_SRC,
+    alt: {
+      pl: "BMW 7 G70 — wulkanizacja BESS MOTORS, Aleja Krakowska 48/52",
+      ru: "BMW 7 G70 — шиномонтаж BESS MOTORS",
+      en: "BMW 7 G70 tyre service at BESS MOTORS Warsaw",
+    },
+  },
   {
     src: TIRE_BMW_FRONT_SRC,
     alt: {
