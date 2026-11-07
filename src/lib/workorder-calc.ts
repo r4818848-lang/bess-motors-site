@@ -235,14 +235,23 @@ export function calcMechanicSalary(
   return labor * (commissionPercent / 100) + bonusPerOrder;
 }
 
+/**
+ * Canonical workshop numbers: BESS/2026/000153
+ * Also recognizes legacy BM-YYYY-NNNN when computing next sequence.
+ */
 export function generateOrderNumber(existing: WorkOrder[]): string {
   const year = new Date().getFullYear();
   const nums = existing
-    .map((o) => o.number.match(/BM-\d+-(\d+)/)?.[1])
-    .filter(Boolean)
-    .map(Number);
+    .map((o) => {
+      const bess = o.number.match(/BESS\/(\d{4})\/(\d+)/i);
+      if (bess && Number(bess[1]) === year) return Number(bess[2]);
+      const bm = o.number.match(/BM-(\d+)-(\d+)/i);
+      if (bm && Number(bm[1]) === year) return Number(bm[2]);
+      return null;
+    })
+    .filter((n): n is number => n != null && Number.isFinite(n));
   const next = (nums.length ? Math.max(...nums) : 0) + 1;
-  return `BM-${year}-${String(next).padStart(4, "0")}`;
+  return `BESS/${year}/${String(next).padStart(6, "0")}`;
 }
 
 export function toClientWorkOrder(order: WorkOrder): WorkOrder {

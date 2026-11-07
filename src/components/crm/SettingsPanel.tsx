@@ -11,6 +11,10 @@ import { Button } from "@/components/ui/Button";
 import { PriceNumberInput } from "@/components/ui/PriceNumberInput";
 import { DataBackupPanel } from "@/components/crm/DataBackupPanel";
 import { CrmEnvHealthPanel } from "@/components/crm/CrmEnvHealthPanel";
+import { SuppliersSettingsPanel } from "@/components/crm/SuppliersSettingsPanel";
+import { PartsSearchPanel } from "@/components/crm/PartsSearchPanel";
+import { PayrollPanel } from "@/components/crm/PayrollPanel";
+import { AiAssistantPanel } from "@/components/crm/AiAssistantPanel";
 
 type MechRow = MechanicProfile & { phone: string; newPassword: string };
 
@@ -44,7 +48,7 @@ export function SettingsPanel({ onUpdate }: { onUpdate: () => void }) {
         partsPercent: settings.defaultPartsPercent,
         bonusPerOrder: 0,
         phone: "",
-        newPassword: "1234",
+        newPassword: "",
       },
     ]);
   };
@@ -103,7 +107,10 @@ export function SettingsPanel({ onUpdate }: { onUpdate: () => void }) {
           user.passwordHash = await hashPassword(row.newPassword.trim());
           delete user.password;
         } else if (!user.passwordHash && !user.password) {
-          user.password = "1234";
+          // Do not seed plaintext passwords — require explicit set
+          setSaveError("Укажите пароль для нового механика (plaintext больше не сохраняется)");
+          setSaving(false);
+          return;
         }
       }
 
@@ -129,6 +136,11 @@ export function SettingsPanel({ onUpdate }: { onUpdate: () => void }) {
       </h2>
 
       <CrmEnvHealthPanel />
+
+      <SuppliersSettingsPanel />
+      <PartsSearchPanel />
+      <PayrollPanel />
+      <AiAssistantPanel />
 
       {saveError && (
         <p className="text-sm text-amber-300 bg-amber-500/10 border border-amber-500/30 rounded-lg px-3 py-2">
@@ -238,6 +250,30 @@ export function SettingsPanel({ onUpdate }: { onUpdate: () => void }) {
             }
           />
           <p className="text-[10px] text-bm-muted mt-1">{w.partsPercentHint}</p>
+        </div>
+        <div>
+          <label className="text-xs text-bm-muted uppercase">Нормо-час (zł netto)</label>
+          <input
+            type="number"
+            min={0}
+            className="input-premium mt-1"
+            value={settings.laborHourRate ?? 250}
+            onChange={(e) =>
+              setSettings({ ...settings, laborHourRate: Number(e.target.value) })
+            }
+          />
+        </div>
+        <div>
+          <label className="text-xs text-bm-muted uppercase">Наценка на запчасти %</label>
+          <input
+            type="number"
+            min={0}
+            className="input-premium mt-1"
+            value={settings.partsMarkupPercent ?? 30}
+            onChange={(e) =>
+              setSettings({ ...settings, partsMarkupPercent: Number(e.target.value) })
+            }
+          />
         </div>
       </div>
 

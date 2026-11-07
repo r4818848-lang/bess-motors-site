@@ -9,8 +9,10 @@ import { saveWorkOrderStatusAndSync } from "@/lib/work-order-status-update";
 const COLS: RepairStatus[] = [
   "received",
   "diagnostic",
-  "repair",
+  "awaitingApproval",
   "waitingParts",
+  "partsOrdered",
+  "repair",
   "ready",
   "delivered",
 ];

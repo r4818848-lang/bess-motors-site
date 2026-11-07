@@ -5,10 +5,13 @@ import { formatDisplayDateExample, formatDisplayDateKey } from "@/lib/display-da
 export const REPAIR_STATUS_RU: Record<RepairStatus, string> = {
   received: "Принят",
   diagnostic: "Диагностика",
-  repair: "Ремонт",
+  awaitingApproval: "Ожидает согласования",
   waitingParts: "Ожидание запчастей",
+  partsOrdered: "Запчасти заказаны",
+  repair: "Ремонт",
   ready: "Готов",
   delivered: "Выдан",
+  cancelled: "Отменён",
 };
 
 export const EXPENSE_CATEGORY_RU: Record<ExpenseCategory, string> = {

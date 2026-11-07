@@ -1238,10 +1238,13 @@ const pl = {
   repairStatus: {
     received: "Przyjęty",
     diagnostic: "Diagnostyka",
-    repair: "Naprawa",
+    awaitingApproval: "Oczekuje na akceptację",
     waitingParts: "Oczekiwanie na części",
+    partsOrdered: "Części zamówione",
+    repair: "Naprawa",
     ready: "Gotowy",
     delivered: "Wydany",
+    cancelled: "Anulowane",
   },
   about: {
     title: "O BESS MOTORS",
@@ -3218,10 +3221,13 @@ const ru: TranslationKeys = {
   repairStatus: {
     received: "Принят",
     diagnostic: "Диагностика",
-    repair: "Ремонт",
+    awaitingApproval: "Ожидает согласования",
     waitingParts: "Ожидание запчастей",
+    partsOrdered: "Запчасти заказаны",
+    repair: "Ремонт",
     ready: "Готов",
     delivered: "Выдан",
+    cancelled: "Отменён",
   },
   about: {
     title: "О BESS MOTORS",
