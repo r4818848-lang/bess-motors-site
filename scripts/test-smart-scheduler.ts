@@ -357,6 +357,14 @@ void (async () => {
   assert.match(draft, /scheduler_crm_occupancy/);
   assert.match(draft, /scheduler_lock_workshop/);
   assert.match(draft, /scheduler_guard_reservation/);
+  assert.match(draft, /scheduler_assert_crm/);
+  assert.match(draft, /scheduler_open_session/);
+  assert.doesNotMatch(draft, /actor_role text := current_setting\('app.actor_role'/);
+  const legacyCalendar = readFileSync(join(process.cwd(), "src/lib/server/staff-calendar-commit.ts"), "utf8");
+  assert.doesNotMatch(legacyCalendar, /commitLegacyCalendarWrite|scheduler_lock_workshop|commitUnifiedWorkshopWrite/);
+  const pilot = readFileSync(join(process.cwd(), "supabase/drafts/smart-scheduler-pilot.md"), "utf8");
+  assert.match(pilot, /резервн/);
+  assert.match(pilot, /SMART_WORK_SCHEDULER/);
   const schedulerSource = readFileSync(join(process.cwd(), "src/lib/smart-scheduler/schedule.ts"), "utf8");
   assert.doesNotMatch(schedulerSource, /250\s*zł|price\s*:/);
   console.log("smart scheduler ok");

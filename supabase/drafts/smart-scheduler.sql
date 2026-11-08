@@ -104,20 +104,66 @@ create table if not exists public.scheduler_reservations (
 
 create table if not exists public.scheduler_approvals (
   id text primary key,
+  request_id text not null,
   operation_code text not null,
   mechanic_id text not null,
   work_date date not null,
   start_clock text not null,
   minutes integer not null,
+  resource_ids text[] not null,
   confirmed_by text not null,
   confirmed_role text not null check (confirmed_role in ('owner', 'admin')),
   confirmed_at timestamptz not null default now(),
-  consumed_by text
+  expires_at timestamptz not null,
+  consumed_by text,
+  consumed_request_id text,
+  check (expires_at > confirmed_at)
 );
 
 create unique index if not exists scheduler_approval_open
-  on public.scheduler_approvals (operation_code, mechanic_id, work_date, start_clock, minutes)
+  on public.scheduler_approvals (request_id)
   where consumed_by is null;
+
+create table if not exists public.scheduler_actor_sessions (
+  id text primary key,
+  staff_id text not null,
+  actor_role text not null check (actor_role in ('owner', 'admin', 'mechanic')),
+  mechanic_id text,
+  db_role text not null,
+  expires_at timestamptz not null,
+  created_at timestamptz not null default now(),
+  check (actor_role <> 'mechanic' or coalesce(mechanic_id, '') <> '')
+);
+
+-- Local stand-ins for the two CRM surfaces. A booking may commit only when they match.
+-- The pilot RPC reads the existing crm_store and appointments instead of creating those tables.
+create table if not exists public.scheduler_store_appointments (
+  id text primary key,
+  mechanic_id text not null,
+  resource_id text not null default '',
+  start_at timestamptz not null,
+  end_at timestamptz not null,
+  active boolean not null default true,
+  check (start_at < end_at)
+);
+
+create table if not exists public.scheduler_row_appointments (
+  id text primary key,
+  mechanic_id text not null,
+  resource_id text not null default '',
+  start_at timestamptz not null,
+  end_at timestamptz not null,
+  active boolean not null default true,
+  check (start_at < end_at)
+);
+
+create table if not exists public.scheduler_crm_snapshot (
+  id text primary key,
+  digest text not null,
+  available boolean not null,
+  expires_at timestamptz not null,
+  created_at timestamptz not null default now()
+);
 
 create table if not exists public.scheduler_crm_occupancy (
   id text primary key,
@@ -186,21 +232,175 @@ end $$;
 create or replace function public.scheduler_lock_workshop() returns void
 language plpgsql as $$
 begin
-  -- One workshop lock for scheduler holds and, later, the existing calendar write.
+  -- Shared by the old calendar writer and Smart Scheduler. Re-entrant in one transaction.
   perform pg_advisory_xact_lock(874213);
+end $$;
+
+create or replace function public.scheduler_surface_digest(surface text) returns text
+language sql stable as $$
+  select coalesce(md5(string_agg(
+    id || '|' || mechanic_id || '|' || resource_id || '|' || start_at::text || '|' || end_at::text,
+    ',' order by id
+  )), md5('empty'))
+  from (
+    select id, mechanic_id, resource_id, start_at, end_at
+    from public.scheduler_store_appointments
+    where surface = 'store' and active
+    union all
+    select id, mechanic_id, resource_id, start_at, end_at
+    from public.scheduler_row_appointments
+    where surface = 'row' and active
+  ) rows;
+$$;
+
+create or replace function public.scheduler_open_session(staff_id text, actor_role text, mechanic_id text) returns text
+language plpgsql as $$
+declare
+  session_id text := 'ses-' || gen_random_uuid()::text;
+  bound_role text;
+begin
+  if current_user in ('scheduler_mechanic', 'scheduler_anon', 'anon', 'authenticated') then
+    raise exception 'forbidden_reservation' using errcode = '42501';
+  end if;
+  if actor_role not in ('owner', 'admin', 'mechanic') then
+    raise exception 'forbidden_reservation' using errcode = '42501';
+  end if;
+  if actor_role = 'mechanic' and coalesce(mechanic_id, '') = '' then
+    raise exception 'forbidden_reservation' using errcode = '42501';
+  end if;
+  bound_role := case when actor_role = 'mechanic' then 'scheduler_mechanic' else 'scheduler_staff' end;
+  insert into public.scheduler_actor_sessions (id, staff_id, actor_role, mechanic_id, db_role, expires_at)
+  values (session_id, staff_id, actor_role, mechanic_id, bound_role, now() + interval '10 minutes');
+  return session_id;
+end $$;
+
+create or replace function public.scheduler_load_actor(session_id text)
+returns table(staff_id text, actor_role text, mechanic_id text)
+language plpgsql as $$
+declare
+  sess public.scheduler_actor_sessions%rowtype;
+begin
+  perform public.scheduler_lock_workshop();
+  -- app.actor_role and app.actor_mechanic are ignored on purpose.
+  select * into sess from public.scheduler_actor_sessions
+  where id = session_id and expires_at > now();
+  if not found then
+    raise exception 'forbidden_reservation' using errcode = '42501';
+  end if;
+  if current_user = 'scheduler_mechanic' and sess.db_role <> 'scheduler_mechanic' then
+    raise exception 'forbidden_reservation' using errcode = '42501';
+  end if;
+  if current_user = 'scheduler_staff' and sess.db_role <> 'scheduler_staff' then
+    raise exception 'forbidden_reservation' using errcode = '42501';
+  end if;
+  if current_user in ('scheduler_anon', 'anon', 'authenticated') then
+    raise exception 'forbidden_reservation' using errcode = '42501';
+  end if;
+  staff_id := sess.staff_id;
+  actor_role := sess.actor_role;
+  mechanic_id := sess.mechanic_id;
+  return next;
+end $$;
+
+create or replace function public.scheduler_issue_snapshot(available boolean) returns text
+language plpgsql as $$
+declare
+  store_digest text := public.scheduler_surface_digest('store');
+  row_digest text := public.scheduler_surface_digest('row');
+  token text := 'snap-' || gen_random_uuid()::text;
+begin
+  perform public.scheduler_lock_workshop();
+  if not available then
+    raise exception 'crm_unavailable';
+  end if;
+  if store_digest is distinct from row_digest then
+    raise exception 'crm_diverged';
+  end if;
+  if (select count(*) from public.scheduler_resources) < 6 then
+    raise exception 'config_missing';
+  end if;
+  insert into public.scheduler_crm_snapshot (id, digest, available, expires_at)
+  values (token, store_digest, true, now() + interval '30 seconds');
+  return token;
+end $$;
+
+create or replace function public.scheduler_assert_crm(snapshot_id text) returns void
+language plpgsql as $$
+declare
+  snap public.scheduler_crm_snapshot%rowtype;
+  store_digest text := public.scheduler_surface_digest('store');
+  row_digest text := public.scheduler_surface_digest('row');
+begin
+  perform public.scheduler_lock_workshop();
+  if snapshot_id is null or snapshot_id = '' then
+    raise exception 'crm_unavailable';
+  end if;
+  select * into snap from public.scheduler_crm_snapshot where id = snapshot_id;
+  if not found or not snap.available then
+    raise exception 'crm_unavailable';
+  end if;
+  if snap.expires_at <= now() then
+    raise exception 'crm_stale';
+  end if;
+  if store_digest is distinct from row_digest then
+    raise exception 'crm_diverged';
+  end if;
+  if store_digest is distinct from snap.digest then
+    raise exception 'crm_stale';
+  end if;
+  if (select count(*) from public.scheduler_resources) < 6 then
+    raise exception 'config_missing';
+  end if;
+end $$;
+
+create or replace function public.scheduler_mirror_interval(
+  interval_id text,
+  mechanic text,
+  resource text,
+  starts_at timestamptz,
+  ends_at timestamptz
+) returns void
+language plpgsql as $$
+begin
+  insert into public.scheduler_store_appointments (id, mechanic_id, resource_id, start_at, end_at)
+  values (interval_id, mechanic, resource, starts_at, ends_at);
+  insert into public.scheduler_row_appointments (id, mechanic_id, resource_id, start_at, end_at)
+  values (interval_id, mechanic, resource, starts_at, ends_at);
+  insert into public.scheduler_crm_occupancy (id, appointment_id, mechanic_id, resource_id, start_at, end_at)
+  values (interval_id, interval_id, mechanic, resource, starts_at, ends_at);
+end $$;
+
+create or replace function public.scheduler_release_interval(interval_id text) returns void
+language plpgsql as $$
+begin
+  delete from public.scheduler_store_appointments
+  where id = interval_id or id like interval_id || ':%';
+  delete from public.scheduler_row_appointments
+  where id = interval_id or id like interval_id || ':%';
+  delete from public.scheduler_crm_occupancy
+  where id = interval_id or appointment_id = interval_id or id like interval_id || ':%';
 end $$;
 
 create or replace function public.scheduler_guard_reservation() returns trigger
 language plpgsql as $$
 declare
-  actor_role text := current_setting('app.actor_role', true);
-  actor_mechanic text := current_setting('app.actor_mechanic', true);
+  sess public.scheduler_actor_sessions%rowtype;
 begin
-  if actor_role in ('owner', 'admin') then
+  -- A custom setting is only a lookup key. It never grants owner or mechanic identity.
+  select * into sess from public.scheduler_actor_sessions
+  where id = current_setting('app.actor_session', true) and expires_at > now();
+  if not found then
+    raise exception 'forbidden_reservation' using errcode = '42501';
+  end if;
+  if current_user = 'scheduler_mechanic' and sess.db_role <> 'scheduler_mechanic' then
+    raise exception 'forbidden_reservation' using errcode = '42501';
+  end if;
+  if sess.actor_role in ('owner', 'admin') and current_user <> 'scheduler_mechanic' then
     return new;
   end if;
-  if actor_role = 'mechanic' and actor_mechanic <> '' and new.mechanic_id = actor_mechanic
-     and (tg_op = 'INSERT' or old.mechanic_id = actor_mechanic) then
+  if sess.actor_role = 'mechanic' and coalesce(sess.mechanic_id, '') <> ''
+     and new.mechanic_id = sess.mechanic_id
+     and (tg_op = 'INSERT' or old.mechanic_id = sess.mechanic_id) then
     return new;
   end if;
   raise exception 'forbidden_reservation' using errcode = '42501';
@@ -268,6 +468,10 @@ alter table public.scheduler_holds enable row level security;
 alter table public.scheduler_resource_holds enable row level security;
 alter table public.scheduler_actuals enable row level security;
 alter table public.scheduler_approvals enable row level security;
+alter table public.scheduler_actor_sessions enable row level security;
+alter table public.scheduler_store_appointments enable row level security;
+alter table public.scheduler_row_appointments enable row level security;
+alter table public.scheduler_crm_snapshot enable row level security;
 alter table public.scheduler_crm_occupancy enable row level security;
 
 alter table public.scheduler_operations force row level security;
@@ -282,6 +486,10 @@ alter table public.scheduler_holds force row level security;
 alter table public.scheduler_resource_holds force row level security;
 alter table public.scheduler_actuals force row level security;
 alter table public.scheduler_approvals force row level security;
+alter table public.scheduler_actor_sessions force row level security;
+alter table public.scheduler_store_appointments force row level security;
+alter table public.scheduler_row_appointments force row level security;
+alter table public.scheduler_crm_snapshot force row level security;
 alter table public.scheduler_crm_occupancy force row level security;
 
 revoke all on table public.scheduler_operations from public, scheduler_anon;
@@ -295,8 +503,12 @@ revoke all on table public.scheduler_reservations from public, scheduler_anon;
 revoke all on table public.scheduler_holds from public, scheduler_anon;
 revoke all on table public.scheduler_resource_holds from public, scheduler_anon;
 revoke all on table public.scheduler_actuals from public, scheduler_anon;
-revoke all on table public.scheduler_approvals from public, scheduler_anon;
-revoke all on table public.scheduler_crm_occupancy from public, scheduler_anon;
+revoke all on table public.scheduler_approvals from public, scheduler_anon, scheduler_mechanic;
+revoke all on table public.scheduler_actor_sessions from public, scheduler_anon, scheduler_mechanic;
+revoke all on table public.scheduler_store_appointments from public, scheduler_anon, scheduler_mechanic;
+revoke all on table public.scheduler_row_appointments from public, scheduler_anon, scheduler_mechanic;
+revoke all on table public.scheduler_crm_snapshot from public, scheduler_anon, scheduler_mechanic;
+revoke all on table public.scheduler_crm_occupancy from public, scheduler_anon, scheduler_mechanic;
 
 do $$
 declare role_name text;
@@ -307,7 +519,8 @@ begin
       foreach table_name in array array[
         'scheduler_operations','scheduler_overlap_rules','scheduler_resources','scheduler_display_names',
         'scheduler_shifts','scheduler_time_off','scheduler_breaks','scheduler_reservations',
-        'scheduler_holds','scheduler_resource_holds','scheduler_actuals','scheduler_approvals','scheduler_crm_occupancy'
+        'scheduler_holds','scheduler_resource_holds','scheduler_actuals','scheduler_approvals','scheduler_actor_sessions',
+        'scheduler_store_appointments','scheduler_row_appointments','scheduler_crm_snapshot','scheduler_crm_occupancy'
       ] loop
         execute format('revoke all on table public.%I from %I', table_name, role_name);
       end loop;
@@ -327,9 +540,14 @@ grant select, insert, update, delete on table public.scheduler_holds to schedule
 grant select, insert, update, delete on table public.scheduler_resource_holds to scheduler_staff;
 grant select, insert, update, delete on table public.scheduler_actuals to scheduler_staff;
 grant select, insert, update, delete on table public.scheduler_approvals to scheduler_staff;
+grant select, insert, update, delete on table public.scheduler_actor_sessions to scheduler_staff;
+grant select, insert, update, delete on table public.scheduler_store_appointments to scheduler_staff;
+grant select, insert, update, delete on table public.scheduler_row_appointments to scheduler_staff;
+grant select, insert, update, delete on table public.scheduler_crm_snapshot to scheduler_staff;
 grant select, insert, update, delete on table public.scheduler_crm_occupancy to scheduler_staff;
 grant select, update on table public.scheduler_reservations to scheduler_mechanic;
 grant select on table public.scheduler_holds to scheduler_mechanic;
+grant select on table public.scheduler_actor_sessions to scheduler_mechanic;
 
 drop policy if exists scheduler_staff_all on public.scheduler_holds;
 create policy scheduler_staff_all on public.scheduler_holds for all to scheduler_staff using (true) with check (true);
@@ -343,13 +561,63 @@ drop policy if exists scheduler_staff_approvals on public.scheduler_approvals;
 create policy scheduler_staff_approvals on public.scheduler_approvals for all to scheduler_staff using (true) with check (true);
 drop policy if exists scheduler_staff_crm on public.scheduler_crm_occupancy;
 create policy scheduler_staff_crm on public.scheduler_crm_occupancy for all to scheduler_staff using (true) with check (true);
+drop policy if exists scheduler_staff_sessions on public.scheduler_actor_sessions;
+create policy scheduler_staff_sessions on public.scheduler_actor_sessions for all to scheduler_staff using (true) with check (true);
+drop policy if exists scheduler_mechanic_own_session on public.scheduler_actor_sessions;
+create policy scheduler_mechanic_own_session on public.scheduler_actor_sessions for select to scheduler_mechanic
+  using (
+    id = current_setting('app.actor_session', true)
+    and actor_role = 'mechanic'
+    and db_role = 'scheduler_mechanic'
+  );
+drop policy if exists scheduler_staff_store on public.scheduler_store_appointments;
+create policy scheduler_staff_store on public.scheduler_store_appointments for all to scheduler_staff using (true) with check (true);
+drop policy if exists scheduler_staff_rows on public.scheduler_row_appointments;
+create policy scheduler_staff_rows on public.scheduler_row_appointments for all to scheduler_staff using (true) with check (true);
 drop policy if exists scheduler_mechanic_read on public.scheduler_reservations;
 create policy scheduler_mechanic_read on public.scheduler_reservations for select to scheduler_mechanic
-  using (mechanic_id = current_setting('app.actor_mechanic', true));
+  using (mechanic_id = (
+    select mechanic_id from public.scheduler_actor_sessions
+    where id = current_setting('app.actor_session', true)
+      and actor_role = 'mechanic'
+      and db_role = 'scheduler_mechanic'
+      and expires_at > now()
+  ));
 drop policy if exists scheduler_mechanic_change on public.scheduler_reservations;
 create policy scheduler_mechanic_change on public.scheduler_reservations for update to scheduler_mechanic
-  using (mechanic_id = current_setting('app.actor_mechanic', true))
-  with check (mechanic_id = current_setting('app.actor_mechanic', true));
+  using (mechanic_id = (
+    select mechanic_id from public.scheduler_actor_sessions
+    where id = current_setting('app.actor_session', true)
+      and actor_role = 'mechanic'
+      and db_role = 'scheduler_mechanic'
+      and expires_at > now()
+  ))
+  with check (mechanic_id = (
+    select mechanic_id from public.scheduler_actor_sessions
+    where id = current_setting('app.actor_session', true)
+      and actor_role = 'mechanic'
+      and db_role = 'scheduler_mechanic'
+      and expires_at > now()
+  ));
 drop policy if exists scheduler_mechanic_holds on public.scheduler_holds;
 create policy scheduler_mechanic_holds on public.scheduler_holds for select to scheduler_mechanic
-  using (mechanic_id = current_setting('app.actor_mechanic', true));
+  using (mechanic_id = (
+    select mechanic_id from public.scheduler_actor_sessions
+    where id = current_setting('app.actor_session', true)
+      and actor_role = 'mechanic'
+      and db_role = 'scheduler_mechanic'
+      and expires_at > now()
+  ));
+
+revoke all on function public.scheduler_open_session(text, text, text) from public;
+revoke all on function public.scheduler_load_actor(text) from public;
+revoke all on function public.scheduler_issue_snapshot(boolean) from public;
+revoke all on function public.scheduler_assert_crm(text) from public;
+revoke all on function public.scheduler_mirror_interval(text, text, text, timestamptz, timestamptz) from public;
+revoke all on function public.scheduler_release_interval(text) from public;
+grant execute on function public.scheduler_open_session(text, text, text) to scheduler_staff;
+grant execute on function public.scheduler_load_actor(text) to scheduler_staff;
+grant execute on function public.scheduler_issue_snapshot(boolean) to scheduler_staff;
+grant execute on function public.scheduler_assert_crm(text) to scheduler_staff;
+grant execute on function public.scheduler_mirror_interval(text, text, text, timestamptz, timestamptz) to scheduler_staff;
+grant execute on function public.scheduler_release_interval(text) to scheduler_staff;

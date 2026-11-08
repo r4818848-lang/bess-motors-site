@@ -6,6 +6,8 @@ export type BookingActor = {
   mechanicId?: string;
   canEdit: boolean;
   id: string;
+  staffId?: string;
+  sessionId?: string;
 };
 
 export function mayChangeExistingReservation(actor: BookingActor, currentMechanicId: string, nextMechanicId: string): boolean {
@@ -22,6 +24,7 @@ export function bookingFingerprint(input: {
   minutes: number;
   resourceIds: string[];
   parts: string;
+  requestId?: string;
 }): string {
   return [
     input.operationCode,
@@ -31,6 +34,7 @@ export function bookingFingerprint(input: {
     String(input.minutes),
     [...input.resourceIds].sort().join(","),
     input.parts,
+    input.requestId ?? "",
   ].join("|");
 }
 
