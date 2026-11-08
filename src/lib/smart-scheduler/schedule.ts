@@ -215,52 +215,77 @@ export function applyAdjustmentsOnce(adjustments: { id: string; coefficient?: nu
   return { coefficient, applied };
 }
 
+export type OverlapRule = {
+  ruleId: string;
+  primaryOperations: string[];
+  secondaryOperations: string[];
+  minSecondary: number;
+  resultOperation: string | null;
+  sharedDisassemblyMinutes: number | null;
+  approved: boolean;
+  active: boolean;
+};
+
 export type OverlapAdvice = {
   ruleId: string;
   resultOperation: string | null;
   minutes: number | null;
+  savingsMinutes: number;
   replacesSum: number | null;
   explanation: string;
 };
 
-const PACKAGE_FILTERS = ["MA-003", "MA-004", "MA-005", "MA-006", "MA-007"];
-
-export function explainOverlap(codes: string[], catalog: Operation[]): OverlapAdvice[] {
+export function explainOverlap(codes: string[], catalog: Operation[], rules: OverlapRule[] = []): OverlapAdvice[] {
   const advice: OverlapAdvice[] = [];
   const selected = new Set(codes);
-  const extras = PACKAGE_FILTERS.filter((code) => selected.has(code));
-  if (selected.has("MA-001") && extras.length >= 3) {
-    const pack = catalog.find((operation) => operation.operationCode === "MA-015");
+  for (const rule of rules) {
+    if (!rule.active) continue;
+    const primary = rule.primaryOperations.every((code) => selected.has(code));
+    const secondary = rule.secondaryOperations.filter((code) => selected.has(code)).length;
+    if (!primary || secondary < rule.minSecondary) continue;
     const sum = codes.reduce((total, code) => total + (catalog.find((operation) => operation.operationCode === code)?.referenceCalendarMinutes ?? 0), 0);
+    const savings = rule.approved ? Math.max(0, rule.sharedDisassemblyMinutes ?? 0) : 0;
     advice.push({
-      ruleId: "pkg-service",
-      resultOperation: "MA-015",
-      minutes: pack?.referenceCalendarMinutes ?? null,
+      ruleId: rule.ruleId,
+      resultOperation: rule.resultOperation,
+      minutes: rule.approved ? rule.sharedDisassemblyMinutes : null,
+      savingsMinutes: savings,
       replacesSum: sum,
-      explanation: "Масло и фильтры заменяются комплексным ТО. Сумма отдельных слотов не используется.",
+      explanation: rule.approved
+        ? "Утверждённое правило уменьшает время один раз."
+        : "Правило есть в справочнике, но не подтверждено. Время не сокращается.",
     });
   }
-  if (selected.has("SU-008") && selected.has("SU-009")) {
-    advice.push({
-      ruleId: "tie-rod-side",
-      resultOperation: null,
-      minutes: null,
-      replacesSum: null,
-      explanation: "Наконечник и тяга с одной стороны могут иметь общий демонтаж. Минуты не вычитаются, пока владелец не утвердит правило.",
-    });
-  }
-  const sameGroup = catalog.filter((operation) => selected.has(operation.operationCode) && operation.overlapGroup);
-  const groups = new Set(sameGroup.map((operation) => operation.overlapGroup));
-  if (advice.length === 0 && groups.size === 1 && sameGroup.length > 1) {
+  const grouped = catalog.filter((operation) => selected.has(operation.operationCode) && operation.overlapGroup);
+  const groups = new Set(grouped.map((operation) => operation.overlapGroup));
+  if (advice.length === 0 && groups.size === 1 && grouped.length > 1) {
     advice.push({
       ruleId: "group-hint",
       resultOperation: null,
       minutes: null,
+      savingsMinutes: 0,
       replacesSum: null,
       explanation: "Совпадение группы только подсказывает искать правило. Скидка по времени не применяется.",
     });
   }
   return advice;
+}
+
+export function roundDurationUp(minutes: number): number {
+  if (!(minutes > 0)) return 0;
+  return Math.ceil(minutes / 15) * 15;
+}
+
+export function resolveDuration(planned: number, override?: { minutes: number; reason: string }): { ok: true; minutes: number } | { ok: false; error: "reason_required" } {
+  if (!override || override.minutes === planned) return { ok: true, minutes: planned };
+  if (!override.reason.trim()) return { ok: false, error: "reason_required" };
+  return { ok: true, minutes: roundDurationUp(override.minutes) };
+}
+
+export function applyRunflatOnce(baseMinutes: number, enabled: boolean, coefficient: number): number {
+  if (!enabled) return baseMinutes;
+  const factor = coefficient > 0 ? coefficient : 1;
+  return baseMinutes * factor;
 }
 
 export function holdsFromLegacy(input: {
@@ -381,7 +406,67 @@ export function assignResources(input: {
 
 export function effectiveMode(operation: Operation, parts: PartsStatus | undefined, resourcesConfirmed: boolean): Operation["bookingMode"] {
   if (operation.bookingMode === "MANUAL" || operation.baseLaborHours == null) return "MANUAL";
-  if (!resourcesConfirmed) return operation.bookingMode === "AUTO" ? "APPROVAL" : operation.bookingMode;
-  if (parts && parts !== "available") return "APPROVAL";
+  if (!resourcesConfirmed || parts !== "available") return operation.bookingMode === "AUTO" ? "APPROVAL" : operation.bookingMode;
   return operation.bookingMode;
+}
+
+export function breakHolds(input: {
+  date: string;
+  breaks: { mechanicId: string; start: string; end: string }[];
+}): Hold[] {
+  const holds: Hold[] = [];
+  for (const item of input.breaks) {
+    const start = clockToMinutes(item.start);
+    const end = clockToMinutes(item.end);
+    if (start == null || end == null || end <= start) continue;
+    const startAt = warsawCivilToUtc(input.date, item.start);
+    const endAt = warsawCivilToUtc(input.date, item.end);
+    if (!startAt || !endAt) continue;
+    holds.push({
+      id: `break:${item.mechanicId}:${item.start}`,
+      mechanicId: item.mechanicId,
+      resourceIds: [],
+      startMs: startAt.getTime(),
+      endMs: endAt.getTime(),
+      operationCode: "break",
+      active: true,
+    });
+  }
+  return holds;
+}
+
+export function suggestSlots(input: {
+  date: string;
+  start: string;
+  minutes: number;
+  mechanicId: string;
+  mechanicIds: string[];
+  resourceIds: string[];
+  hours: WorkshopHours;
+  occupied: Hold[];
+}): { mechanicId: string; start: string }[] {
+  const window = openingWindowForDateKey(input.date, input.hours);
+  const startMin = clockToMinutes(input.start);
+  if (!window || startMin == null) return [];
+  const ideas: { mechanicId: string; start: string }[] = [];
+  const candidates = [...input.mechanicIds.filter((id) => id !== input.mechanicId), input.mechanicId];
+  for (const mechanicId of candidates) {
+    for (let cursor = mechanicId === input.mechanicId ? startMin + 5 : startMin; cursor + input.minutes <= window.closeMin && ideas.length < 4; cursor += 5) {
+      const blocks = splitWorkBlocks({
+        id: "idea",
+        date: input.date,
+        start: minutesToClock(cursor),
+        minutes: input.minutes,
+        hours: input.hours,
+        mechanicId,
+        resourceIds: input.resourceIds,
+        operationCode: "idea",
+      });
+      if (!blocks.ok) continue;
+      if (blocks.blocks.some((block) => findHoldConflict(input.occupied, block))) continue;
+      ideas.push({ mechanicId, start: minutesToClock(cursor) });
+      if (mechanicId !== input.mechanicId) break;
+    }
+  }
+  return ideas;
 }

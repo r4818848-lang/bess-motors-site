@@ -41,8 +41,8 @@ create table if not exists public.scheduler_overlap_rules (
 create table if not exists public.scheduler_holds (
   id text primary key,
   appointment_id text,
+  work_order_id text,
   mechanic_id text not null default '',
-  resource_ids text[] not null default '{}',
   operation_code text,
   start_at timestamptz not null,
   end_at timestamptz not null,
@@ -51,6 +51,42 @@ create table if not exists public.scheduler_holds (
   version integer not null default 1,
   check (start_at < end_at)
 );
+
+create table if not exists public.scheduler_resource_holds (
+  hold_id text not null references public.scheduler_holds(id) on delete cascade,
+  resource_id text not null,
+  start_at timestamptz not null,
+  end_at timestamptz not null,
+  active boolean not null default true,
+  primary key (hold_id, resource_id),
+  check (start_at < end_at)
+);
+
+create table if not exists public.scheduler_breaks (
+  mechanic_id text not null,
+  starts_at time not null,
+  ends_at time not null,
+  primary key (mechanic_id, starts_at),
+  check (starts_at < ends_at)
+);
+
+-- Requires btree_gist on the TEST database only.
+-- Two concurrent inserts for one mechanic or one resource fail instead of double-booking.
+create extension if not exists btree_gist;
+
+alter table public.scheduler_holds
+  add constraint scheduler_mechanic_no_overlap
+  exclude using gist (
+    mechanic_id with =,
+    tstzrange(start_at, end_at, '[)') with &&
+  ) where (active and mechanic_id <> '');
+
+alter table public.scheduler_resource_holds
+  add constraint scheduler_resource_no_overlap
+  exclude using gist (
+    resource_id with =,
+    tstzrange(start_at, end_at, '[)') with &&
+  ) where (active);
 
 create table if not exists public.scheduler_actuals (
   id text primary key,
@@ -67,9 +103,16 @@ create table if not exists public.scheduler_actuals (
 alter table public.scheduler_operations enable row level security;
 alter table public.scheduler_overlap_rules enable row level security;
 alter table public.scheduler_holds enable row level security;
+alter table public.scheduler_resource_holds enable row level security;
+alter table public.scheduler_breaks enable row level security;
 alter table public.scheduler_actuals enable row level security;
 
 revoke all on table public.scheduler_operations from anon, authenticated;
 revoke all on table public.scheduler_overlap_rules from anon, authenticated;
 revoke all on table public.scheduler_holds from anon, authenticated;
+revoke all on table public.scheduler_resource_holds from anon, authenticated;
+revoke all on table public.scheduler_breaks from anon, authenticated;
 revoke all on table public.scheduler_actuals from anon, authenticated;
+
+-- No policies for anon or authenticated. service_role is the only server path.
+-- Do not grant select/insert/update/delete to anon or authenticated.
