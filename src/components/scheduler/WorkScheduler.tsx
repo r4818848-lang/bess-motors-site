@@ -193,7 +193,7 @@ export function WorkScheduler({
     });
     const body = (await response.json().catch(() => null)) as { error?: string } | null;
     if (response.status === 409) setNotice(`Сервер отказал: ${body?.error ?? "conflict"}. Запись не создана.`);
-    else if (response.status === 403) setNotice("Запись в боевую CRM выключена.");
+    else if (response.status === 403) setNotice(body?.error === "forbidden" ? "Нельзя изменить чужую работу." : "Запись в боевую CRM выключена.");
     else if (response.status === 503) setNotice("Нужна отдельная тестовая база. Боевая база не используется.");
     else if (response.ok) setNotice("Бронь записана только в тестовую базу. Клиент и заказ-наряд не создавались.");
     else setNotice("Сервер не принял бронь.");

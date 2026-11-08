@@ -5,7 +5,7 @@ import { workshopHours } from "../src/lib/businessConfig";
 import { evaluateArrivalTime } from "../src/lib/arrival-window";
 import { warsawCivilToUtc, warsawParts } from "../src/lib/workshop-schedule";
 import { assertUniqueCatalog, parseOperationCatalog } from "../src/lib/smart-scheduler/catalog";
-import { schedulerTestWritesEnabled, smartWorkSchedulerEnabled } from "../src/lib/smart-scheduler/flag";
+import { schedulerCrmWritesEnabled, schedulerTestWritesEnabled, smartWorkSchedulerEnabled } from "../src/lib/smart-scheduler/flag";
 import { searchOperations } from "../src/lib/smart-scheduler/search";
 import {
   applyAdjustmentsOnce,
@@ -23,6 +23,7 @@ import {
   type SchedulerStore,
 } from "../src/lib/smart-scheduler/schedule";
 import { guardScheduler, isGuardError, mechanicMayPlan } from "../src/lib/smart-scheduler/access";
+import { bookingFingerprint, mayChangeExistingReservation, selectRequiredResources } from "../src/lib/smart-scheduler/booking-rules";
 import { readOnlyAppointments } from "../src/lib/smart-scheduler/crm-read";
 import { schedulerDatabaseUrl } from "../src/lib/smart-scheduler/postgres";
 import { visibleToActor, responseLeaksSecrets } from "../src/lib/smart-scheduler/visibility";
@@ -181,7 +182,20 @@ const rolled = commitTransaction({ version: 1, reservations: [] }, [
 assert.equal(rolled.status, 409);
 assert.equal(rolled.store.version, 1);
 assert.equal(mechanicMayPlan({ role: "mechanic", mechanicId: "mech-1" }, "mech-2"), false);
+assert.equal(mechanicMayPlan({ role: "mechanic", mechanicId: "mech-1", canEdit: false }, "mech-1"), false);
 assert.equal(mechanicMayPlan({ role: "owner" }, "mech-2"), true);
+const editor = { role: "mechanic", mechanicId: "mech-1", canEdit: true, id: "mech-1" };
+assert.equal(mayChangeExistingReservation(editor, "mech-2", "mech-1"), false);
+assert.equal(mayChangeExistingReservation(editor, "mech-1", "mech-1"), true);
+assert.equal(mayChangeExistingReservation({ role: "admin", canEdit: true, id: "admin" }, "mech-2", "mech-1"), true);
+assert.notEqual(
+  bookingFingerprint({ operationCode: "MA-001", mechanicId: "mech-1", date: "2026-11-10", start: "11:00", minutes: 45, resourceIds: ["lift-1"], parts: "available" }),
+  bookingFingerprint({ operationCode: "MA-001", mechanicId: "mech-1", date: "2026-11-10", start: "11:00", minutes: 60, resourceIds: ["lift-1"], parts: "available" })
+);
+assert.equal(selectRequiredResources(oil, [], defaultSchedulerSettings.resources).ok, false);
+const fuel = byCode.get("MA-006");
+assert.equal(fuel?.bookingMode, "APPROVAL");
+assert.deepEqual(fuel ? selectRequiredResources(fuel, ["ac-1"], defaultSchedulerSettings.resources) : null, { ok: true, resourceIds: [] });
 
 const sergeyColumn = mechanicColumn({ id: "mech-1", name: "Siergiej" });
 const secondColumn = mechanicColumn({ id: "mech-2", name: "Piotr Nowak" });
@@ -197,6 +211,7 @@ assert.equal(defaultSchedulerSettings.resources.every((item) => item.confirmed =
 assert.equal(defaultSchedulerSettings.schedules.every((item) => item.breaks.length === 0 && item.shiftStart == null), true);
 assert.equal(canAutoBook({ operation: oil, parts: "available", resources: defaultSchedulerSettings.resources, resourceIds: ["lift-1"] }).reason, "equipment");
 const confirmedResources = defaultSchedulerSettings.resources.map((item) => ({ ...item, status: "available" as const, confirmed: true }));
+assert.deepEqual(selectRequiredResources(oil, ["lift-1", "ac-1"], confirmedResources), { ok: true, resourceIds: ["lift-1"] });
 assert.equal(canAutoBook({ operation: oil, parts: "available", resources: confirmedResources, resourceIds: ["lift-1"] }).reason, "ok");
 assert.equal(excludedFromAuto({ ...oil, operationNameRu: "Замена ремня ГРМ", operationNamePl: "Rozrząd" }), true);
 assert.equal(excludedFromAuto(byCode.get("DI-014") ?? oil), true);
@@ -310,6 +325,7 @@ void (async () => {
   const disabled = await guardScheduler(new Request("http://local/api/internal/operations"));
   assert.equal(isGuardError(disabled) && disabled.status, 404);
   process.env.SMART_WORK_SCHEDULER = "true";
+  assert.equal(schedulerCrmWritesEnabled(), false);
   const unsigned = await guardScheduler(new Request("http://local/api/internal/operations"));
   assert.equal(isGuardError(unsigned) && unsigned.status, 401);
   if (savedFlag === undefined) delete process.env.SMART_WORK_SCHEDULER;
@@ -328,8 +344,19 @@ void (async () => {
   assert.match(seed, /TEST DATABASE ONLY/);
   assert.doesNotMatch(seed, /\+48\d/);
   const route = readFileSync(join(process.cwd(), "src/app/api/internal/schedule/reservations/route.ts"), "utf8");
-  assert.doesNotMatch(route, /body\.store|request\.store|reserveOnLedger|moveOnLedger|cancelOnLedger/);
-  assert.match(route, /bookInDatabase/);
+  assert.doesNotMatch(route, /body\.store|request\.store|body\.approval|reserveOnLedger|moveOnLedger|cancelOnLedger/);
+  assert.match(route, /commitUnifiedWorkshopWrite/);
+  assert.match(route, /expectedVersion/);
+  const postgres = readFileSync(join(process.cwd(), "src/lib/smart-scheduler/postgres.ts"), "utf8");
+  assert.match(postgres, /bookInDatabase/);
+  assert.match(postgres, /for update/i);
+  assert.match(postgres, /request_fingerprint/);
+  assert.doesNotMatch(postgres, /insert into (crm_store|appointments)/i);
+  const rollback = readFileSync(join(process.cwd(), "supabase/drafts/smart-scheduler-rollback.sql"), "utf8");
+  assert.match(rollback, /crm_store/);
+  assert.match(draft, /scheduler_crm_occupancy/);
+  assert.match(draft, /scheduler_lock_workshop/);
+  assert.match(draft, /scheduler_guard_reservation/);
   const schedulerSource = readFileSync(join(process.cwd(), "src/lib/smart-scheduler/schedule.ts"), "utf8");
   assert.doesNotMatch(schedulerSource, /250\s*zł|price\s*:/);
   console.log("smart scheduler ok");

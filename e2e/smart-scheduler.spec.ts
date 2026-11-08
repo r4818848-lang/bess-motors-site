@@ -14,6 +14,8 @@ test("the work planner is off unless the owner enables it", async ({ page, reque
   expect(preview.status()).toBe(404);
   const reservations = await request.post("/api/internal/schedule/reservations", { data: {} });
   expect(reservations.status()).toBe(404);
+  const approvals = await request.post("/api/internal/schedule/approvals", { data: {} });
+  expect(approvals.status()).toBe(404);
   await page.goto("/telegram/calendar");
   await expect(page.getByTestId("telegram-calendar-gate")).toBeVisible();
 });

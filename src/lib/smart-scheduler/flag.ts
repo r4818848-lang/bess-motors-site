@@ -10,6 +10,11 @@ export function schedulerTestWritesEnabled(): boolean {
   return process.env.SCHEDULER_TEST_WRITES === "local";
 }
 
+/** CRM appointment rows stay untouched. A later enablement must use the same transaction. */
+export function schedulerCrmWritesEnabled(): boolean {
+  return false;
+}
+
 /** Local screenshot and TEST board only. Never on preview or production. */
 export function schedulerTestBoardOpen(): boolean {
   if (!smartWorkSchedulerEnabled()) return false;

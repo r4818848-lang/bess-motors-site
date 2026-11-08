@@ -1,6 +1,8 @@
 -- DRAFT ONLY. Do not run this file on production or on any Supabase project.
 -- Local test database name must be bess_scheduler_test.
--- Rollback: drop the scheduler_* tables in this file. CRM appointments are not touched.
+-- Future pilot: backup the existing Supabase project, then apply only these scheduler_* tables there.
+-- Do not create a second production database. Keep bess_scheduler_test separate.
+-- Rollback is supabase/drafts/smart-scheduler-rollback.sql. It does not touch crm_store or appointments.
 
 create extension if not exists btree_gist;
 
@@ -10,7 +12,12 @@ exception when duplicate_object then null;
 end $$;
 
 do $$ begin
-  create role scheduler_staff nologin;
+  create role scheduler_staff nologin nobypassrls;
+exception when duplicate_object then null;
+end $$;
+
+do $$ begin
+  create role scheduler_mechanic nologin nobypassrls;
 exception when duplicate_object then null;
 end $$;
 
@@ -82,12 +89,45 @@ create table if not exists public.scheduler_breaks (
 create table if not exists public.scheduler_reservations (
   id text primary key,
   idempotency_key text not null unique,
+  request_fingerprint text not null,
   appointment_id text,
   work_order_id text,
   operation_code text not null,
   mechanic_id text not null,
   parts_status text not null,
+  version integer not null default 1,
+  confirmed_by text,
+  confirmed_at timestamptz,
+  confirmed_minutes integer,
   active boolean not null default true
+);
+
+create table if not exists public.scheduler_approvals (
+  id text primary key,
+  operation_code text not null,
+  mechanic_id text not null,
+  work_date date not null,
+  start_clock text not null,
+  minutes integer not null,
+  confirmed_by text not null,
+  confirmed_role text not null check (confirmed_role in ('owner', 'admin')),
+  confirmed_at timestamptz not null default now(),
+  consumed_by text
+);
+
+create unique index if not exists scheduler_approval_open
+  on public.scheduler_approvals (operation_code, mechanic_id, work_date, start_clock, minutes)
+  where consumed_by is null;
+
+create table if not exists public.scheduler_crm_occupancy (
+  id text primary key,
+  appointment_id text not null,
+  mechanic_id text not null,
+  resource_id text not null default '',
+  start_at timestamptz not null,
+  end_at timestamptz not null,
+  active boolean not null default true,
+  check (start_at < end_at)
 );
 
 create table if not exists public.scheduler_holds (
@@ -143,6 +183,70 @@ do $$ begin
 exception when duplicate_object then null;
 end $$;
 
+create or replace function public.scheduler_lock_workshop() returns void
+language plpgsql as $$
+begin
+  -- One workshop lock for scheduler holds and, later, the existing calendar write.
+  perform pg_advisory_xact_lock(874213);
+end $$;
+
+create or replace function public.scheduler_guard_reservation() returns trigger
+language plpgsql as $$
+declare
+  actor_role text := current_setting('app.actor_role', true);
+  actor_mechanic text := current_setting('app.actor_mechanic', true);
+begin
+  if actor_role in ('owner', 'admin') then
+    return new;
+  end if;
+  if actor_role = 'mechanic' and actor_mechanic <> '' and new.mechanic_id = actor_mechanic
+     and (tg_op = 'INSERT' or old.mechanic_id = actor_mechanic) then
+    return new;
+  end if;
+  raise exception 'forbidden_reservation' using errcode = '42501';
+end $$;
+
+drop trigger if exists scheduler_guard_reservation on public.scheduler_reservations;
+create trigger scheduler_guard_reservation
+before insert or update on public.scheduler_reservations
+for each row execute function public.scheduler_guard_reservation();
+
+create or replace function public.scheduler_reject_crm_mechanic() returns trigger
+language plpgsql as $$
+begin
+  if new.active and exists (
+    select 1 from public.scheduler_crm_occupancy crm
+    where crm.active and crm.mechanic_id = new.mechanic_id
+      and tstzrange(crm.start_at, crm.end_at, '[)') && tstzrange(new.start_at, new.end_at, '[)')
+  ) then
+    raise exception 'crm_overlap' using errcode = '23P01';
+  end if;
+  return new;
+end $$;
+
+drop trigger if exists scheduler_reject_crm_mechanic on public.scheduler_holds;
+create trigger scheduler_reject_crm_mechanic
+before insert or update on public.scheduler_holds
+for each row execute function public.scheduler_reject_crm_mechanic();
+
+create or replace function public.scheduler_reject_crm_resource() returns trigger
+language plpgsql as $$
+begin
+  if new.active and exists (
+    select 1 from public.scheduler_crm_occupancy crm
+    where crm.active and crm.resource_id <> '' and crm.resource_id = new.resource_id
+      and tstzrange(crm.start_at, crm.end_at, '[)') && tstzrange(new.start_at, new.end_at, '[)')
+  ) then
+    raise exception 'crm_overlap' using errcode = '23P01';
+  end if;
+  return new;
+end $$;
+
+drop trigger if exists scheduler_reject_crm_resource on public.scheduler_resource_holds;
+create trigger scheduler_reject_crm_resource
+before insert or update on public.scheduler_resource_holds
+for each row execute function public.scheduler_reject_crm_resource();
+
 insert into public.scheduler_resources (id, kind, label, status, confirmed) values
   ('lift-1', 'lift', 'Подъёмник 1', 'maintenance', false),
   ('lift-2', 'lift', 'Подъёмник 2', 'maintenance', false),
@@ -163,6 +267,8 @@ alter table public.scheduler_reservations enable row level security;
 alter table public.scheduler_holds enable row level security;
 alter table public.scheduler_resource_holds enable row level security;
 alter table public.scheduler_actuals enable row level security;
+alter table public.scheduler_approvals enable row level security;
+alter table public.scheduler_crm_occupancy enable row level security;
 
 alter table public.scheduler_operations force row level security;
 alter table public.scheduler_overlap_rules force row level security;
@@ -175,6 +281,8 @@ alter table public.scheduler_reservations force row level security;
 alter table public.scheduler_holds force row level security;
 alter table public.scheduler_resource_holds force row level security;
 alter table public.scheduler_actuals force row level security;
+alter table public.scheduler_approvals force row level security;
+alter table public.scheduler_crm_occupancy force row level security;
 
 revoke all on table public.scheduler_operations from public, scheduler_anon;
 revoke all on table public.scheduler_overlap_rules from public, scheduler_anon;
@@ -187,6 +295,8 @@ revoke all on table public.scheduler_reservations from public, scheduler_anon;
 revoke all on table public.scheduler_holds from public, scheduler_anon;
 revoke all on table public.scheduler_resource_holds from public, scheduler_anon;
 revoke all on table public.scheduler_actuals from public, scheduler_anon;
+revoke all on table public.scheduler_approvals from public, scheduler_anon;
+revoke all on table public.scheduler_crm_occupancy from public, scheduler_anon;
 
 do $$
 declare role_name text;
@@ -197,7 +307,7 @@ begin
       foreach table_name in array array[
         'scheduler_operations','scheduler_overlap_rules','scheduler_resources','scheduler_display_names',
         'scheduler_shifts','scheduler_time_off','scheduler_breaks','scheduler_reservations',
-        'scheduler_holds','scheduler_resource_holds','scheduler_actuals'
+        'scheduler_holds','scheduler_resource_holds','scheduler_actuals','scheduler_approvals','scheduler_crm_occupancy'
       ] loop
         execute format('revoke all on table public.%I from %I', table_name, role_name);
       end loop;
@@ -216,6 +326,10 @@ grant select, insert, update, delete on table public.scheduler_reservations to s
 grant select, insert, update, delete on table public.scheduler_holds to scheduler_staff;
 grant select, insert, update, delete on table public.scheduler_resource_holds to scheduler_staff;
 grant select, insert, update, delete on table public.scheduler_actuals to scheduler_staff;
+grant select, insert, update, delete on table public.scheduler_approvals to scheduler_staff;
+grant select, insert, update, delete on table public.scheduler_crm_occupancy to scheduler_staff;
+grant select, update on table public.scheduler_reservations to scheduler_mechanic;
+grant select on table public.scheduler_holds to scheduler_mechanic;
 
 drop policy if exists scheduler_staff_all on public.scheduler_holds;
 create policy scheduler_staff_all on public.scheduler_holds for all to scheduler_staff using (true) with check (true);
@@ -225,3 +339,17 @@ drop policy if exists scheduler_staff_resource_holds on public.scheduler_resourc
 create policy scheduler_staff_resource_holds on public.scheduler_resource_holds for all to scheduler_staff using (true) with check (true);
 drop policy if exists scheduler_staff_reservations on public.scheduler_reservations;
 create policy scheduler_staff_reservations on public.scheduler_reservations for all to scheduler_staff using (true) with check (true);
+drop policy if exists scheduler_staff_approvals on public.scheduler_approvals;
+create policy scheduler_staff_approvals on public.scheduler_approvals for all to scheduler_staff using (true) with check (true);
+drop policy if exists scheduler_staff_crm on public.scheduler_crm_occupancy;
+create policy scheduler_staff_crm on public.scheduler_crm_occupancy for all to scheduler_staff using (true) with check (true);
+drop policy if exists scheduler_mechanic_read on public.scheduler_reservations;
+create policy scheduler_mechanic_read on public.scheduler_reservations for select to scheduler_mechanic
+  using (mechanic_id = current_setting('app.actor_mechanic', true));
+drop policy if exists scheduler_mechanic_change on public.scheduler_reservations;
+create policy scheduler_mechanic_change on public.scheduler_reservations for update to scheduler_mechanic
+  using (mechanic_id = current_setting('app.actor_mechanic', true))
+  with check (mechanic_id = current_setting('app.actor_mechanic', true));
+drop policy if exists scheduler_mechanic_holds on public.scheduler_holds;
+create policy scheduler_mechanic_holds on public.scheduler_holds for select to scheduler_mechanic
+  using (mechanic_id = current_setting('app.actor_mechanic', true));

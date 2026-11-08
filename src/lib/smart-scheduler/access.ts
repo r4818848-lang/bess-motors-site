@@ -4,8 +4,9 @@ import { verifyToken } from "@/lib/server/verify-session";
 import { verifyTelegramWebAppInitData } from "@/lib/server/telegram-webapp-auth";
 import { resolveStaffCalendarActor } from "@/lib/server/staff-calendar-access";
 
-export function mechanicMayPlan(actor: { role: string; mechanicId?: string }, mechanicId: string): boolean {
+export function mechanicMayPlan(actor: { role: string; mechanicId?: string; canEdit?: boolean }, mechanicId: string): boolean {
   if (actor.role === "owner" || actor.role === "admin") return true;
+  if (actor.canEdit === false) return false;
   return actor.role === "mechanic" && Boolean(actor.mechanicId) && actor.mechanicId === mechanicId;
 }
 
