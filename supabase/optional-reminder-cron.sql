@@ -1,0 +1,34 @@
+-- OPTIONAL fallback. Do not run this file until the owner confirms it.
+-- Do not run it on the production database as part of a deploy.
+--
+-- Use it only if a Vercel deploy fails with:
+--   "Hobby accounts are limited to daily cron jobs."
+-- In that case the project is on Hobby, Vercel cannot call the reminder
+-- route every 5 minutes, and this schedule is the economical replacement.
+--
+-- If the Vercel deploy succeeds, do not enable this job as well.
+-- Two schedulers can overlap on the first send of a reminder.
+--
+-- Before running, store the site cron secret in Supabase Vault as
+-- bess_cron_secret and edit the URL if the canonical host changes.
+-- The secret value is not kept in this repository.
+
+-- create extension if not exists pg_cron;
+-- create extension if not exists pg_net;
+--
+-- select cron.schedule(
+--   'bess-appointment-reminders',
+--   '*/5 * * * *',
+--   $$
+--   select net.http_get(
+--     url := 'https://www.bess-motors.com/api/telegram/cron/appointment-reminders',
+--     headers := jsonb_build_object(
+--       'Authorization',
+--       'Bearer ' || (select decrypted_secret from vault.decrypted_secrets where name = 'bess_cron_secret')
+--     )
+--   );
+--   $$
+-- );
+
+-- Rollback, after the owner decides the job is no longer needed:
+-- select cron.unschedule('bess-appointment-reminders');

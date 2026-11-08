@@ -60,7 +60,7 @@ const pl = {
     mapSubtitle:
       "Aleja Krakowska 48/52, Warszawa Włochy — 5 min od Okęcia. Parking przy serwisie.",
     mapCta: "Wyznacz trasę",
-    mapHours: "Pn–Sb 8:00–18:00",
+    mapHours: "Pn–Pt 9:00–18:00, Sb 9:00–14:00",
     chatTitle: "Napisz, co potrzebujesz",
     chatSubtitle:
       "WhatsApp lub Telegram: usługa + telefon. Bez konta i logowania.",
@@ -73,7 +73,7 @@ const pl = {
     callbackError: "Nie udało się wysłać. Zadzwoń: +48 791 257 229",
     callbackComment: "Prośba o kontakt — {page}",
     gbpNote:
-      "Te same godziny i adres co w Google: Pn–Sb 8:00–18:00, Aleja Krakowska 48/52.",
+      "Godziny pracy: Pn–Pt 9:00–18:00, Sb 9:00–14:00, Nd zamknięte. Aleja Krakowska 48/52.",
     mapLandmark:
       "Wjazd od Alei Krakowskiej — warsztat i parking na terenie posesji. Szukaj szyldu BESS MOTORS.",
   },
@@ -243,7 +243,7 @@ const pl = {
     brakesWeak: "Słabe hamulce",
     acWeak: "Słaba klimatyzacja",
     oilService: "Wymiana oleju",
-    tires: "Opony / geometria",
+    tires: "Opony",
     chipPower: "Więcej mocy / chip",
     electrical: "Elektryka / akumulator",
     apply: "Dodaj sugerowane usługi",
@@ -333,7 +333,7 @@ const pl = {
   },
   homeFinalCta: {
     title: "Umów wizytę lub poproś o wycenę",
-    subtitle: "Aleja Krakowska 48/52, Warszawa Włochy · Pn–Sb 8:00–18:00",
+    subtitle: "Aleja Krakowska 48/52, Warszawa Włochy · Pn–Pt 9:00–18:00, Sb 9:00–14:00",
     ctaVin: "Wyceń po VIN",
     ctaBook: "Umów wizytę",
     fleetLink: "Serwis flot i firm →",
@@ -1091,11 +1091,11 @@ const pl = {
       },
       {
         q: "Czy robicie chip tuning?",
-        a: "Zapytaj o aktualną dostępność chip tuningu — potwierdzimy sprzęt i wycenę przed wizytą.",
+        a: "Nie. Chip tuningu nie ma w cenniku ani w katalogu usług.",
       },
       {
         q: "Jak umówić wizytę?",
-        a: "Online na stronie /booking, telefonicznie +48 791 257 229 lub WhatsApp. Pn–Sb 8:00–18:00.",
+        a: "Online na stronie /booking, telefonicznie +48 791 257 229 lub WhatsApp. Pn–Pt 9:00–18:00, Sb 9:00–14:00. Niedziela zamknięte.",
       },
       {
         q: "Ile trwa naprawa?",
@@ -1119,7 +1119,7 @@ const pl = {
       "Rezerwacja zapisana — potwierdzimy termin telefonicznie lub SMS-em w ciągu kilkunastu minut.",
     syncFailed:
       "Rezerwacja nie dotarła do naszego systemu. Zadzwoń teraz pod +48 791 257 229 — potwierdzimy termin.",
-    hours: "Pn–Sb 8:00–18:00 · Aleja Krakowska 48/52, Warszawa",
+    hours: "Pn–Pt 9:00–18:00, Sb 9:00–14:00 · Aleja Krakowska 48/52, Warszawa",
     call: "Zadzwoń",
     cabinet: "Konto klienta",
     home: "Strona główna",
@@ -1255,9 +1255,9 @@ const pl = {
     phone: "Telefon",
     email: "E-mail",
     hours: "Godziny otwarcia",
-    hoursValue: "Poniedziałek – sobota, 8:00 – 18:00",
+    hoursValue: "Pn–Pt 9:00–18:00, Sb 9:00–14:00, Nd zamknięte",
     gbpNote:
-      "Te same godziny, adres i ceny robocizny co w wizytówce Google: Pn–Sb 8:00–18:00, Aleja Krakowska 48/52.",
+      "Godziny: Pn–Pt 9:00–18:00, Sb 9:00–14:00, Nd zamknięte. Adres: Aleja Krakowska 48/52. Ceny robocizny według cennika.",
     send: "Wyślij wiadomość",
     name: "Imię",
     message: "Wiadomość",
@@ -1320,6 +1320,7 @@ const pl = {
     bookingStatus: {
       scheduled: "Zaplanowana",
       confirmed: "Potwierdzona",
+      in_progress: "W trakcie",
       completed: "Zakończona",
       cancelled: "Anulowana",
     },
@@ -2195,7 +2196,7 @@ const ru: TranslationKeys = {
     mapSubtitle:
       "Aleja Krakowska 48/52, Warszawa Włochy — 5 мин от Okęcie. Парковка у сервиса.",
     mapCta: "Маршрут в Google Maps",
-    mapHours: "Пн–Сб 8:00–18:00",
+    mapHours: "Пн–Пт 9:00–18:00, Сб 9:00–14:00",
     chatTitle: "Напишите, что нужно",
     chatSubtitle: "WhatsApp или Telegram: услуга + телефон. Без регистрации.",
     chatWhatsapp: "WhatsApp",
@@ -2207,7 +2208,7 @@ const ru: TranslationKeys = {
     callbackError: "Не отправилось. Звоните: +48 791 257 229",
     callbackComment: "Просьба о контакте — {page}",
     gbpNote:
-      "Те же часы и адрес, что в Google: Пн–Сб 8:00–18:00, Aleja Krakowska 48/52.",
+      "Часы работы: Пн–Пт 9:00–18:00, Сб 9:00–14:00, Вс выходной. Aleja Krakowska 48/52.",
   },
   serviceTicker: {
     badge: "Акция",
@@ -2324,7 +2325,7 @@ const ru: TranslationKeys = {
     brakesWeak: "Слабые тормоза",
     acWeak: "Слабый кондиционер",
     oilService: "Замена масла",
-    tires: "Шины / развал",
+    tires: "Шины",
     chipPower: "Больше мощи / chip",
     electrical: "Электрика / АКБ",
     apply: "Добавить услуги",
@@ -3072,11 +3073,11 @@ const ru: TranslationKeys = {
       },
       {
         q: "Делаете ли вы chip tuning?",
-        a: "Спросите об актуальной доступности chip tuning — подтвердим оборудование и смету перед визитом.",
+        a: "Нет. Chip tuning нет в прайсе и в каталоге услуг.",
       },
       {
         q: "Как записаться?",
-        a: "На сайте /booking, по телефону +48 791 257 229 или WhatsApp. Пн–Сб 8:00–18:00.",
+        a: "На сайте /booking, по телефону +48 791 257 229 или WhatsApp. Пн–Пт 9:00–18:00, Сб 9:00–14:00.",
       },
       {
         q: "Сколько длится ремонт?",
@@ -3099,7 +3100,7 @@ const ru: TranslationKeys = {
       "Запись сохранена — подтвердим время по телефону или SMS в ближайшие минуты.",
     syncFailed:
       "Запись не дошла до нашей системы. Позвоните сейчас +48 791 257 229 — подтвердим время.",
-    hours: "Пн–Сб 8:00–18:00 · Aleja Krakowska 48/52, Варшава",
+    hours: "Пн–Пт 9:00–18:00, Сб 9:00–14:00 · Aleja Krakowska 48/52, Варшава",
     call: "Позвонить",
     cabinet: "Личный кабинет",
     home: "На главную",
@@ -3241,9 +3242,9 @@ const ru: TranslationKeys = {
     phone: "Телефон",
     email: "E-mail",
     hours: "Часы работы",
-    hoursValue: "Понедельник – суббота, 8:00 – 18:00",
+    hoursValue: "Пн–Пт 9:00–18:00, Сб 9:00–14:00, Вс выходной",
     gbpNote:
-      "Те же часы, адрес и цены работ, что в Google: Пн–Сб 8:00–18:00, Aleja Krakowska 48/52.",
+      "Часы: Пн–Пт 9:00–18:00, Сб 9:00–14:00, Вс выходной. Адрес: Aleja Krakowska 48/52. Цены работ по прайсу.",
     send: "Отправить сообщение",
     name: "Имя",
     message: "Сообщение",
@@ -3288,6 +3289,7 @@ const ru: TranslationKeys = {
     bookingStatus: {
       scheduled: "Ожидает",
       confirmed: "Подтверждена",
+      in_progress: "В работе",
       completed: "Выполнена",
       cancelled: "Отменена",
     },
@@ -4164,7 +4166,7 @@ const en: TranslationKeys = {
     mapSubtitle:
       "Aleja Krakowska 48/52, Warszawa Włochy — 5 min from Okęcie. Parking at the shop.",
     mapCta: "Directions in Google Maps",
-    mapHours: "Mon–Sat 8:00–18:00",
+    mapHours: "Mon–Fri 9:00–18:00, Sat 9:00–14:00",
     chatTitle: "Write what you need",
     chatSubtitle: "WhatsApp or Telegram: service + phone. No account needed.",
     callbackTitle: "Leave your number — we will call back",
@@ -4174,7 +4176,7 @@ const en: TranslationKeys = {
     callbackError: "Could not send. Call +48 791 257 229",
     callbackComment: "Contact request — {page}",
     gbpNote:
-      "Same hours and address as Google: Mon–Sat 8:00–18:00, Aleja Krakowska 48/52.",
+      "Hours: Mon–Fri 9:00–18:00, Sat 9:00–14:00, Sun closed. Aleja Krakowska 48/52.",
   },
   serviceTicker: {
     badge: "Offer",
@@ -4990,9 +4992,9 @@ const en: TranslationKeys = {
     phone: "Phone",
     email: "Email",
     hours: "Opening Hours",
-    hoursValue: "Monday – Saturday, 8:00 AM – 6:00 PM",
+    hoursValue: "Mon–Fri 9:00–18:00, Sat 9:00–14:00, Sun closed",
     gbpNote:
-      "Same hours, address and labour prices as Google Business: Mon–Sat 8:00–18:00, Aleja Krakowska 48/52.",
+      "Hours: Mon–Fri 9:00–18:00, Sat 9:00–14:00, Sun closed. Address: Aleja Krakowska 48/52. Labour prices are on the price list.",
     send: "Send Message",
     name: "Name",
     message: "Message",

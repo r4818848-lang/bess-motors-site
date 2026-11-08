@@ -717,7 +717,7 @@ Car on the lift, full drain of old oil, clean work and proven procedures — tha
   },
   {
     id: "tire-service",
-    serviceIds: ["tires", "alignment"],
+    serviceIds: ["tires"],
     videoSrc: TIRE_SERVICE_VIDEO_SRC,
     posterSrc: TIRE_SERVICE_HERO_SRC,
     title: {
@@ -734,7 +734,6 @@ Profesjonalny montaż, wyważanie kół i kontrola ciśnienia. Obsługujemy auta
 ✅ Wyważanie na nowoczesnej maszynie
 ✅ Naprawa opony (wkręt, przebicie)
 ✅ Sezonowe przechowanie opon
-✅ Geometria kół (zbieżność)
 
 Zimówka czy lato — umów termin online i przyjedź bez czekania.
 
@@ -768,7 +767,6 @@ Professional mounting, wheel balancing and pressure check. We service passenger 
 ✅ Balancing on modern equipment
 ✅ Tire repair (nail, puncture)
 ✅ Seasonal tire storage
-✅ Wheel alignment
 
 Winter or summer — book online and skip the wait.
 
@@ -1104,7 +1102,7 @@ See also: /hamulce-warszawa
     description: {
       pl: `Naprawa zawieszenia Audi A6 w BESS MOTORS (niezależny serwis, nie dealer).
 
-Stuki, luzy i nierówne zużycie opon — najpierw diagnostyka, potem wymiana zużytych elementów i kontrola geometrii gdy potrzebna.
+Stuki, luzy i nierówne zużycie opon — najpierw diagnostyka, potem wymiana zużytych elementów. Geometrii kół nie wykonujemy.
 
 ✅ Diagnostyka zawieszenia
 ✅ Wymiana według wyceny przed startem

@@ -3,7 +3,7 @@ import { jsPDF } from "jspdf";
 import {
   HOURLY_RATE_PLN,
   publicPriceCategories,
-  priceListItems,
+  itemsByCategory,
   priceListFooterNotes,
 } from "@/lib/price-list";
 import {
@@ -25,7 +25,7 @@ function buildPriceListHtml(locale: "pl" | "ru"): string {
 
   let body = "";
   for (const cat of publicPriceCategories) {
-    const items = priceListItems.filter((i) => i.categoryId === cat.id);
+    const items = itemsByCategory(cat.id);
     if (!items.length) continue;
     body += `<h2 style="font-size:14px;margin:16px 0 8px;color:#e10600;">${isRu ? cat.nameRu : cat.namePl}</h2>`;
     body += `<table style="width:100%;border-collapse:collapse;font-size:11px;margin-bottom:8px;">`;

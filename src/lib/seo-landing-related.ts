@@ -1,5 +1,6 @@
 import { getSeoLandingPage, seoLandingPages } from "@/lib/seo-landing-pages";
 import { EXTRA_SEO_RELATED } from "@/lib/seo-extra-service-pages";
+import { pendingNoIndexSlugs } from "@/lib/seo";
 
 export type RelatedLandingLink = {
   slug: string;
@@ -10,7 +11,7 @@ export type RelatedLandingLink = {
 const RELATED_SLUGS: Record<string, string[]> = {
   ...EXTRA_SEO_RELATED,
   diagnostyka: ["check-engine", "elektryka", "silnik", "wymiana-oleju", "hamulce"],
-  zawieszenie: ["geometria", "hamulce", "opony", "diagnostyka", "silnik"],
+  zawieszenie: ["hamulce", "opony", "diagnostyka", "silnik", "wymiana-oleju"],
   "wymiana-oleju": ["przeglad", "diagnostyka", "hamulce", "opony", "serwis-toyota"],
   hamulce: [
     "hamulce-warszawa",
@@ -24,13 +25,13 @@ const RELATED_SLUGS: Record<string, string[]> = {
   geometria: ["zawieszenie", "opony", "hamulce", "diagnostyka", "wymiana-oleju"],
   silnik: ["diagnostyka", "check-engine", "wymiana-oleju", "elektryka", "zawieszenie"],
   elektryka: ["diagnostyka", "check-engine", "klimatyzacja", "silnik", "bmw"],
-  przeglad: ["wymiana-oleju", "hamulce", "diagnostyka", "geometria", "opony"],
+  przeglad: ["wymiana-oleju", "hamulce", "diagnostyka", "opony", "zawieszenie"],
   opony: [
     "wymiana-opon-audi-q5-warszawa",
     "wymiana-opon-bmw-7-g70-warszawa",
     "wulkanizacja-warszawa",
     "wymiana-opon-warszawa",
-    "geometria",
+    "wywazanie-kol-warszawa",
   ],
   bmw: [
     "wymiana-opon-bmw-7-g70-warszawa",
@@ -47,7 +48,7 @@ const RELATED_SLUGS: Record<string, string[]> = {
     "wymiana-oleju",
     "hamulce",
   ],
-  vag: ["serwis-audi", "wymiana-opon-audi-q5-warszawa", "diagnostyka", "wymiana-oleju", "geometria"],
+  vag: ["serwis-audi", "wymiana-opon-audi-q5-warszawa", "diagnostyka", "wymiana-oleju", "zawieszenie"],
   kontakt: ["diagnostyka", "wymiana-oleju", "warszawa-wlochy", "hamulce", "opony"],
   "warszawa-wlochy": ["warszawa-ursynow", "diagnostyka", "opony", "klimatyzacja", "wymiana-oleju"],
   "warszawa-ursynow": ["warszawa-wlochy", "warszawa-mokotow", "diagnostyka", "hamulce", "klimatyzacja"],
@@ -67,7 +68,7 @@ const RELATED_SLUGS: Record<string, string[]> = {
   "serwis-peugeot": ["diagnostyka", "silnik", "hamulce", "wymiana-oleju", "vag"],
   "check-engine": ["diagnostyka", "elektryka", "silnik", "wymiana-oleju", "serwis-ford"],
   "chip-tuning-warszawa": ["diagnostyka", "silnik", "bmw", "vag", "promocje"],
-  promocje: ["wymiana-oleju", "diagnostyka", "opony", "hamulce", "chip-tuning-warszawa"],
+  promocje: ["wymiana-oleju", "diagnostyka", "opony", "hamulce", "klimatyzacja"],
 };
 
 const DEFAULT_RELATED = [
@@ -84,7 +85,7 @@ export function getRelatedLandingLinks(slug: string): RelatedLandingLink[] {
     .filter((s) => s !== slug)
     .map((s) => {
       const page = getSeoLandingPage(s);
-      if (!page) return null;
+      if (!page || page.noIndex || pendingNoIndexSlugs.has(s)) return null;
       return { slug: s, title: page.title };
     })
     .filter((x): x is RelatedLandingLink => x !== null)

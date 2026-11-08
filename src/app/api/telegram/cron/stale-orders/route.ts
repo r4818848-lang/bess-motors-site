@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cleanEnvValue } from "@/lib/server/supabase-config";
+import { cronAuthorized, reminderDeliveryEnabled } from "@/lib/server/cron-auth";
 import { loadCrmFromCloud } from "@/lib/server/telegram-bot/crm-actions";
 import { notifyAdminTelegram } from "@/lib/server/telegram-api";
 import type { Database, WorkOrder } from "@/lib/store";
@@ -15,9 +15,11 @@ function daysSince(iso: string): number {
 }
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
-  const secret = cleanEnvValue(process.env.CRON_SECRET);
-  if (!secret || req.headers.get("authorization") !== `Bearer ${secret}`) {
+  if (!cronAuthorized(req.headers.get("authorization"))) {
     return NextResponse.json({ ok: false }, { status: 401 });
+  }
+  if (!reminderDeliveryEnabled()) {
+    return NextResponse.json({ ok: true, delivery: "skipped" });
   }
 
   const db = await loadCrmFromCloud();

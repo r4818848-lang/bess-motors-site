@@ -4,6 +4,7 @@ export type InlineKeyboardButton = {
   text: string;
   callback_data?: string;
   url?: string;
+  web_app?: { url: string };
 };
 
 export type InlineKeyboardMarkup = {
@@ -237,6 +238,32 @@ export async function answerCallbackQuery(
     callback_query_id: callbackQueryId,
     text,
     show_alert: text ? text.length > 60 : false,
+  });
+}
+
+/**
+ * Menu button for one private chat.
+ * chat_id is mandatory: calling setChatMenuButton without it replaces the
+ * button for every user, including public clients of this bot.
+ */
+export async function setPersonalChatMenuButton(body: {
+  chat_id: number;
+  menu_button: { type: "web_app"; text: string; web_app: { url: string } };
+}): Promise<void> {
+  if (!Number.isInteger(body.chat_id)) return;
+  if (!body.menu_button.web_app.url.startsWith("https://")) return;
+  await telegramRequest("setChatMenuButton", body);
+}
+
+export async function setStaffBotCommands(chatId: number): Promise<void> {
+  await telegramRequest("setMyCommands", {
+    scope: { type: "chat", chat_id: chatId },
+    commands: [
+      { command: "calendar", description: "Календарь записей" },
+      { command: "today", description: "Визиты на сегодня" },
+      { command: "menu", description: "Меню" },
+      { command: "find", description: "Поиск" },
+    ],
   });
 }
 

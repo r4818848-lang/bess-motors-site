@@ -1,4 +1,5 @@
 import { handleAppointmentNotification } from "@/lib/client-notifications";
+import { assertBookingSlotAvailable } from "@/lib/server/booking-slot-validation";
 import { cloudGetCrmStore, cloudPutCrmStore } from "@/lib/server/crm-cloud";
 import { cloudUpsertAppointment } from "@/lib/server/appointments-cloud";
 import type { Database, Appointment } from "@/lib/store";
@@ -36,7 +37,15 @@ export async function rescheduleAppointment(
     time: apt.time,
     appointmentStatus: apt.appointmentStatus,
   };
-  apt.date = shiftDate(apt.date, days);
+  const nextDate = shiftDate(apt.date, days);
+  const slotCheck = await assertBookingSlotAvailable({
+    date: nextDate,
+    time: apt.time,
+    serviceIds: apt.serviceIds,
+    excludeAptId: apt.id,
+  });
+  if (!slotCheck.ok) return { ok: false };
+  apt.date = nextDate;
   handleAppointmentNotification(db, apt, "rescheduled", previous);
   const put = await cloudPutCrmStore(db);
   if (!put.ok) return { ok: false };

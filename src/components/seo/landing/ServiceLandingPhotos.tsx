@@ -252,9 +252,9 @@ const SERVICE_FALLBACK: Partial<
     {
       src: "/images/workshop/lift-bay.png",
       alt: {
-        pl: "Geometria kół i stanowisko serwisowe — BESS MOTORS",
-        ru: "Развал-схождение и пост сервиса — BESS MOTORS",
-        en: "Wheel alignment and service bay — BESS MOTORS",
+        pl: "Stanowisko serwisowe BESS MOTORS — geometrii kół nie wykonujemy",
+        ru: "Пост BESS MOTORS — развал-схождение не делаем",
+        en: "BESS MOTORS service bay — wheel alignment is not offered",
       },
     },
   ],

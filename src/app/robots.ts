@@ -16,6 +16,7 @@ export default function robots(): MetadataRoute.Robots {
         "/status",
         "/referral",
         "/booking/thank-you",
+        "/telegram",
       ],
     },
     sitemap: `${siteUrl}/sitemap.xml`,

@@ -1872,8 +1872,15 @@ export function getPriceItem(id: string): PriceListItem | undefined {
  */
 export const PUBLIC_HIDDEN_CATEGORY_IDS = new Set<PriceCategoryId>(["chip"]);
 
+/** Line items hidden from cennik, PDF and the public price API. */
+export const PUBLIC_HIDDEN_PRICE_ITEM_IDS = new Set<string>(["alignment"]);
+
 export function isPublicPriceCategory(id: PriceCategoryId): boolean {
   return !PUBLIC_HIDDEN_CATEGORY_IDS.has(id);
+}
+
+export function isPublicPriceItem(item: { id: string; categoryId: PriceCategoryId }): boolean {
+  return isPublicPriceCategory(item.categoryId) && !PUBLIC_HIDDEN_PRICE_ITEM_IDS.has(item.id);
 }
 
 /** Categories shown on /cennik, booking picker and PDF */
@@ -1883,7 +1890,7 @@ export const publicPriceCategories = priceCategories.filter((c) =>
 
 export function itemsByCategory(categoryId: PriceCategoryId): PriceListItem[] {
   if (!isPublicPriceCategory(categoryId)) return [];
-  return priceListItems.filter((i) => i.categoryId === categoryId);
+  return priceListItems.filter((i) => i.categoryId === categoryId && isPublicPriceItem(i));
 }
 
 /** Full catalog including hidden categories (CRM / internal only) */

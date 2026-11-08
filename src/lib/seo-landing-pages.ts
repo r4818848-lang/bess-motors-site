@@ -95,14 +95,15 @@ export const seoLandingPages: SeoLandingPage[] = [
   },
   {
     slug: "geometria",
-    title: "Geometria Kół",
-    line1: "Ustawienie zbieżności kół",
-    line2: "Auto nie ściąga na drodze",
-    metaTitle: "Geometria kół Warszawa Włochy",
+    title: "Geometria kół — nie wykonujemy",
+    line1: "Rozwał-zbieżności nie robimy",
+    line2: "Zawieszenie i opony — tak, kąty kół — w innym warsztacie",
+    metaTitle: "Geometria kół — nie wykonujemy | BESS MOTORS",
     metaDescription:
-      "Geometria i zbieżność kół w BESS MOTORS Warszawa. Auto ściąga na bok — ustawienie osi. Aleja Krakowska 48/52, Włochy.",
+      "BESS MOTORS nie wykonuje geometrii ani zbieżności kół. Robimy zawieszenie i opony. Aleja Krakowska 48/52, Warszawa Włochy.",
     serviceId: "alignment",
     icon: "Crosshair",
+    noIndex: true,
   },
   {
     slug: "silnik",
@@ -368,12 +369,12 @@ export const seoLandingPages: SeoLandingPage[] = [
   },
   {
     slug: "chip-tuning-warszawa",
-    title: "Chip Tuning Warszawa",
-    line1: "Więcej mocy i momentu obrotowego",
-    line2: "Zapytaj o dostępność usługi",
-    metaTitle: "Chip tuning Warszawa — zapytaj o dostępność",
+    title: "Chip tuning — nie ma w ofercie",
+    line1: "Chip tuningu nie wykonujemy",
+    line2: "Usługi nie ma w cenniku ani w katalogu",
+    metaTitle: "Chip tuning — nie ma w ofercie",
     metaDescription:
-      "Chip tuning w BESS MOTORS — zapytaj o aktualną dostępność i wycenę. Warszawa Włochy, Aleja Krakowska 48/52.",
+      "BESS MOTORS nie ma chip tuningu w cenniku ani w katalogu usług. Warszawa Włochy, Aleja Krakowska 48/52.",
     serviceId: "chip",
     icon: "Cpu",
     noIndex: true,

@@ -1,4 +1,6 @@
+import { workshopHours } from "@/lib/businessConfig";
 import { formatLocalDateKey, formatWarsawDateKey, parseDateKey } from "@/lib/date-key";
+import { bookingStartTimes } from "@/lib/workshop-schedule";
 import { formatDisplayDateKey } from "@/lib/display-date";
 import { getPriceItem } from "@/lib/price-list";
 import { serviceBasePriceId } from "@/lib/service-price-map";
@@ -74,16 +76,20 @@ export function decodeTimeSlot(encoded: string): string {
   return encoded;
 }
 
-/** Next bookable dates (Mon–Sat), starting today (Warsaw workshop TZ). */
-export function nextBookableDates(count = 12): string[] {
+/** Next dates that still have a start finishing by closing time (Warsaw). */
+export function nextBookableDates(count = 12, now = new Date()): string[] {
   const dates: string[] = [];
-  const cursor = parseDateKey(formatWarsawDateKey());
+  const cursor = parseDateKey(formatWarsawDateKey(now));
+  const hours = workshopHours();
+  let guard = 0;
 
-  while (dates.length < count) {
-    if (cursor.getDay() !== 0) {
-      dates.push(formatLocalDateKey(cursor));
+  while (dates.length < count && guard < count + 21) {
+    const key = formatLocalDateKey(cursor);
+    if (bookingStartTimes(key, hours, undefined, now).length > 0) {
+      dates.push(key);
     }
     cursor.setDate(cursor.getDate() + 1);
+    guard += 1;
   }
   return dates;
 }

@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { verifyToken } from "@/lib/server/verify-session";
-import { assertBookingSlotAvailable } from "@/lib/server/booking-slot-validation";
+import {
+  appointmentKeepsExistingSlot,
+  assertBookingSlotAvailable,
+} from "@/lib/server/booking-slot-validation";
+import { cloudGetCrmStore } from "@/lib/server/crm-cloud";
 import { cloudMutateCrmStore } from "@/lib/server/crm-cloud-mutate";
 import { normalizePhone } from "@/lib/server/normalize-phone";
 import type { Appointment } from "@/lib/store";
@@ -16,6 +20,22 @@ import {
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
+async function keepServerStaffFields(apt: Appointment): Promise<void> {
+  const crm = await cloudGetCrmStore();
+  const stored = crm?.doc?.appointments?.find((item) => item.id === apt.id);
+  if (!stored) {
+    delete apt.holdUntil;
+    delete apt.multiDay;
+    delete apt.adminReminder;
+    delete apt.notifyMechanic;
+    return;
+  }
+  apt.holdUntil = stored.holdUntil;
+  apt.multiDay = stored.multiDay;
+  apt.adminReminder = stored.adminReminder;
+  apt.notifyMechanic = stored.notifyMechanic;
+}
+
 function bearerToken(req: Request): string | null {
   const h = req.headers.get("authorization");
   if (!h?.startsWith("Bearer ")) return null;
@@ -23,16 +43,12 @@ function bearerToken(req: Request): string | null {
 }
 
 export async function POST(req: Request) {
-  if (!isCloudAppointmentsEnabled()) {
-    return NextResponse.json(
-      { ok: false, error: "cloud_disabled" },
-      { status: 503 }
-    );
-  }
-
   let apt: Appointment;
+  let durationMinutes: number | undefined;
   try {
-    apt = (await req.json()) as Appointment;
+    const body = (await req.json()) as Appointment & { durationMinutes?: number };
+    apt = body;
+    durationMinutes = body.durationMinutes;
     if (!apt?.id || !apt.date || !apt.time) {
       return NextResponse.json({ ok: false, error: "invalid" }, { status: 400 });
     }
@@ -41,18 +57,32 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, error: "phone" }, { status: 400 });
     }
     apt.clientPhone = phone;
+    await keepServerStaffFields(apt);
   } catch {
     return NextResponse.json({ ok: false, error: "invalid" }, { status: 400 });
   }
 
-  const slotCheck = await assertBookingSlotAvailable({
-    date: apt.date,
-    time: apt.time,
-    excludeAptId: apt.id,
-  });
-  if (!slotCheck.ok) {
-    const status = slotCheck.error === "slot_taken" ? 409 : 400;
-    return NextResponse.json({ ok: false, error: slotCheck.error }, { status });
+  const keepsSlot = await appointmentKeepsExistingSlot(apt.id, apt.date, apt.time);
+  if (!keepsSlot) {
+    const slotCheck = await assertBookingSlotAvailable({
+      date: apt.date,
+      time: apt.time,
+      excludeAptId: apt.id,
+      durationMinutes,
+      serviceIds: apt.serviceIds,
+      mechanicId: apt.mechanicId,
+    });
+    if (!slotCheck.ok) {
+      const status = slotCheck.error === "slot_taken" ? 409 : 400;
+      return NextResponse.json({ ok: false, error: slotCheck.error }, { status });
+    }
+  }
+
+  if (!isCloudAppointmentsEnabled()) {
+    return NextResponse.json(
+      { ok: false, error: "cloud_disabled" },
+      { status: 503 }
+    );
   }
 
   const { ensureClientCredentialsForBooking } = await import(

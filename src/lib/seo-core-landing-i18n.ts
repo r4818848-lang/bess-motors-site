@@ -13,12 +13,12 @@ export const CORE_SEO_RU: Partial<Record<string, SeoText>> = {
       "Ремонт автокондиционера в BESS MOTORS — утечки, компрессор, радиатор, трубки. Варшава Włochy, Aleja Krakowska 48/52.",
   },
   "geometria": {
-    title: "Развал-схождение",
-    line1: "Настройка углов колёс",
-    line2: "Авто не уводит в сторону",
-    metaTitle: "Развал-схождение Варшава Włochy",
+    title: "Развал-схождение не делаем",
+    line1: "Углы колёс не настраиваем",
+    line2: "Подвеску и шины делаем, развал — в другом сервисе",
+    metaTitle: "Развал-схождение не делаем",
     metaDescription:
-      "Развал-схождение в BESS MOTORS Варшава. Авто уводит в сторону — настройка осей. Aleja Krakowska 48/52, Włochy.",
+      "BESS MOTORS не делает развал-схождение. Делаем подвеску и шины. Aleja Krakowska 48/52, Варшава Włochy.",
   },
   "silnik": {
     title: "Ремонт двигателя",
@@ -205,12 +205,12 @@ export const CORE_SEO_RU: Partial<Record<string, SeoText>> = {
       "Сервис автокондиционера в BESS MOTORS — заправка R134a/R1234yf, диагностика. Варшава Włochy.",
   },
   "chip-tuning-warszawa": {
-    title: "Chip tuning Варшава",
-    line1: "Больше мощности и момента",
-    line2: "Stage 1 и Stage 2 — безопасно",
-    metaTitle: "Chip tuning Варшава — Stage 1 / Stage 2",
+    title: "Chip tuning не в прайсе",
+    line1: "Chip tuning не делаем",
+    line2: "Услуги нет в прайсе и каталоге",
+    metaTitle: "Chip tuning не в прайсе",
     metaDescription:
-      "Chip tuning в BESS MOTORS — Stage 1 от 1200 zł, Stage 2 от 2500 zł. Диагностика до тюнинга, карта ECU. Варшава.",
+      "BESS MOTORS не предлагает chip tuning в прайсе и каталоге услуг. Варшава Włochy.",
   },
   "promocje": {
     title: "Акции и скидки",
@@ -232,12 +232,12 @@ export const CORE_SEO_EN: Partial<Record<string, SeoText>> = {
       "Car air-conditioning repair at BESS MOTORS — leaks, compressor, condenser, lines. Warsaw Włochy, Aleja Krakowska 48/52.",
   },
   "geometria": {
-    title: "Wheel alignment",
-    line1: "Toe and camber setup",
-    line2: "Stop the car pulling to one side",
-    metaTitle: "Wheel alignment Warsaw Włochy",
+    title: "Wheel alignment — not offered",
+    line1: "We do not set wheel angles",
+    line2: "Suspension and tyres yes, alignment at another shop",
+    metaTitle: "Wheel alignment not offered",
     metaDescription:
-      "Wheel alignment at BESS MOTORS Warsaw. Car pulls aside — axle geometry setup. Aleja Krakowska 48/52, Włochy.",
+      "BESS MOTORS does not perform wheel alignment. We do suspension and tyres. Aleja Krakowska 48/52, Warsaw Włochy.",
   },
   "silnik": {
     title: "Engine repair",
@@ -424,12 +424,12 @@ export const CORE_SEO_EN: Partial<Record<string, SeoText>> = {
       "Car A/C service at BESS MOTORS — R134a/R1234yf recharge, diagnostics. Warsaw Włochy.",
   },
   "chip-tuning-warszawa": {
-    title: "Chip tuning Warsaw",
-    line1: "More power and torque",
-    line2: "Stage 1 and Stage 2 — done safely",
-    metaTitle: "Chip tuning Warsaw — Stage 1 / Stage 2",
+    title: "Chip tuning is not listed",
+    line1: "We do not perform chip tuning",
+    line2: "It is not in the price list or the service catalog",
+    metaTitle: "Chip tuning is not listed",
     metaDescription:
-      "Chip tuning at BESS MOTORS — Stage 1 from 1200 zł, Stage 2 from 2500 zł. Pre-tune diagnostics, ECU map. Warsaw.",
+      "BESS MOTORS does not list chip tuning in the price list or the service catalog. Warsaw Włochy.",
   },
   "promocje": {
     title: "Promos and discounts",
@@ -451,12 +451,12 @@ export const CORE_SEO_UK: Partial<Record<string, SeoText>> = {
       "Ремонт автокондиціонера в BESS MOTORS — витоки, компресор, радіатор. Варшава Włochy, Aleja Krakowska 48/52.",
   },
   "geometria": {
-    title: "Розвал-сходження",
-    line1: "Налаштування кутів коліс",
-    line2: "Авто не відводить убік",
-    metaTitle: "Розвал-сходження Варшава Włochy",
+    title: "Розвал-сходження не робимо",
+    line1: "Кути коліс не налаштовуємо",
+    line2: "Підвіску і шини робимо, розвал — в іншому сервісі",
+    metaTitle: "Розвал-сходження не робимо",
     metaDescription:
-      "Розвал-сходження в BESS MOTORS Варшава. Авто відводить убік — налаштування осей. Aleja Krakowska 48/52.",
+      "BESS MOTORS не робить розвал-сходження. Робимо підвіску і шини. Aleja Krakowska 48/52, Варшава Włochy.",
   },
   "silnik": {
     title: "Ремонт двигуна",
@@ -643,12 +643,12 @@ export const CORE_SEO_UK: Partial<Record<string, SeoText>> = {
       "Сервіс автокондиціонера в BESS MOTORS — заправка R134a/R1234yf, діагностика. Варшава Włochy.",
   },
   "chip-tuning-warszawa": {
-    title: "Chip tuning Варшава",
-    line1: "Більше потужності та моменту",
-    line2: "Stage 1 і Stage 2 — безпечно",
-    metaTitle: "Chip tuning Варшава — Stage 1 / Stage 2",
+    title: "Chip tuning не в прайсі",
+    line1: "Chip tuning не робимо",
+    line2: "Послуги немає в прайсі і каталозі",
+    metaTitle: "Chip tuning не в прайсі",
     metaDescription:
-      "Chip tuning в BESS MOTORS — Stage 1 від 1200 zł, Stage 2 від 2500 zł. Діагностика до тюнінгу, карта ECU. Варшава.",
+      "BESS MOTORS не має chip tuning у прайсі і каталозі послуг. Варшава Włochy.",
   },
   "promocje": {
     title: "Акції та знижки",

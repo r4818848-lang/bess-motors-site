@@ -110,8 +110,6 @@ export function servicesItemListSchema() {
     { name: "Wulkanizacja", path: "/opony" },
     { name: "Hamulce — klocki od 100 zł, kod BessMotors", path: "/hamulce" },
     { name: "Diagnostyka komputerowa", path: "/diagnostyka" },
-    { name: "Chip tuning", path: "/chip-tuning-warszawa" },
-    { name: "Geometria kół", path: "/geometria" },
     { name: "Naprawa zawieszenia", path: "/zawieszenie" },
   ];
   return {
@@ -181,14 +179,19 @@ export function autoRepairServiceSchema(page: SeoLandingPage) {
       };
     }
   }
+  const notOffered =
+    page.slug === "geometria" ||
+    page.serviceId === "alignment" ||
+    page.slug === "chip-tuning-warszawa" ||
+    page.serviceId === "chip";
   const graph: Record<string, unknown>[] = [
-    serviceNode,
     breadcrumbSchema([
       { name: "Strona główna", path: "/" },
       { name: "Usługi", path: "/services" },
       { name: page.title, path: `/${page.slug}` },
     ]),
   ];
+  if (!notOffered) graph.unshift(serviceNode);
   const faqSchema = faqPageSchema(faq);
   if (faqSchema) graph.push(faqSchema);
   return { "@context": "https://schema.org", "@graph": graph };

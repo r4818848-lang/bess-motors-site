@@ -120,39 +120,12 @@ export const SERVICE_LANDING_STEPS: Partial<Record<ServiceId, ServiceLandingStep
   ],
   chip: [
     {
-      title: { pl: "Konsultacja i dobór mapy", ru: "Консультация и выбор карты", en: "Consultation and selection of the map", uk: "Консультація та вибір картки" },
+      title: { pl: "Czego nie robimy", ru: "Чего не делаем", en: "What we do not do", uk: "Чого не робимо" },
       description: {
-        pl: "Omawiasz cel — więcej mocy, dynamika lub oszczędność. Dobieramy Stage 1 lub Stage 2 do Twojego silnika.",
-        ru: "Обсуждаем цель — мощность, динамика или экономия. Подбираем Stage 1 или 2 под ваш мотор.",
-        en: "You discuss the goal — more power, dynamics or savings. We select Stage 1 or Stage 2 for your engine.",
-        uk: "Обговорюємо мету — влада, динаміка чи економія. Ми вибираємо етап 1 або 2 для вашого двигуна.",
-      },
-    },
-    {
-      title: { pl: "Diagnostyka ECU przed tuningiem", ru: "Диагностика ECU перед тюнингом", en: "ECU diagnostics before tuning", uk: "Діагностика ECU перед налаштуванням" },
-      description: {
-        pl: "Odczytujemy błędy i sprawdzamy stan silnika. Tuning tylko na sprawnym aucie — warunek bezpieczeństwa.",
-        ru: "Считываем ошибки, проверяем двигатель. Тюнинг только на исправном авто.",
-        en: "We read errors and check the condition of the motor. Tuning only on an efficient car — a safety condition.",
-        uk: "Прочитайте помилки, перевірте двигун. Тюнінг тільки на справний автомобіль.",
-      },
-    },
-    {
-      title: { pl: "Akceptacja zakresu i wyceny", ru: "Согласование объёма и сметы", en: "Acceptance of scope and valuation", uk: "Затвердження обсягу та кошторису" },
-      description: {
-        pl: "Pokazujemy co zmieniamy w mapie i jaki będzie efekt. Podpisujesz zakres — dopiero potem zaczynamy.",
-        ru: "Показываем изменения в карте и эффект. Подписываете объём работ — только потом начинаем.",
-        en: "We show what we change in the map and what the effect will be. You sign the scope — only then do we start.",
-        uk: "Показуємо зміни на карті та ефект. Ви підписуєте обсяг робіт — тільки тоді ми починаємо.",
-      },
-    },
-    {
-      title: { pl: "Zapis mapy i jazda testowa", ru: "Запись карты и тест-драйв", en: "Map Saving and Test Drive", uk: "Запис картки та тест-драйв" },
-      description: {
-        pl: "Wgrywamy mapę ECU, jazda testowa — moc, moment, temperatura silnika.",
-        ru: "Прошиваем ECU, тест-драйв — мощность, момент, температура.",
-        en: "Upload the ECU map, test drive — power, torque, engine temperature.",
-        uk: "Пожежний ECU, тест-драйв — потужність, крутний момент, температура.",
+        pl: "Chip tuningu nie wykonujemy. Nie ma go w cenniku ani w katalogu usług.",
+        ru: "Chip tuning не делаем. Его нет в прайсе и в каталоге услуг.",
+        en: "We do not perform chip tuning. It is not in the price list or the service catalog.",
+        uk: "Chip tuning не робимо. Його немає в прайсі і в каталозі послуг.",
       },
     },
   ],
@@ -386,39 +359,21 @@ export const SERVICE_LANDING_STEPS: Partial<Record<ServiceId, ServiceLandingStep
   ],
   alignment: [
     {
-      title: { pl: "Rezerwacja geometrii", ru: "Запись на развал", en: "Reservation of geometry", uk: "Запис для згортання" },
+      title: { pl: "Czego nie robimy", ru: "Чего не делаем", en: "What we do not do", uk: "Чого не робимо" },
       description: {
-        pl: "Umawiasz się — podaj rozmiar felg i czy auto ściąga.",
-        ru: "Запись — размер дисков, увод.",
-        en: "You are dating — specify the size of the rims and whether the car is pulling.",
-        uk: "Запис — розмір диска, пошук.",
+        pl: "Nie wykonujemy geometrii ani zbieżności kół. Nie mamy stanowiska do ustawiania kątów.",
+        ru: "Развал-схождение не делаем. Стенда для углов колёс нет.",
+        en: "We do not perform wheel alignment. There is no alignment rack in the workshop.",
+        uk: "Розвал-сходження не робимо. Стенда для кутів коліс немає.",
       },
     },
     {
-      title: { pl: "Pomiar zbieżności 3D", ru: "Замер 3D", en: "Taper Measurement", uk: "Вимірювання 3D" },
+      title: { pl: "Co robimy zamiast tego", ru: "Что делаем", en: "What we do instead", uk: "Що робимо" },
       description: {
-        pl: "Mierzymy kąty kół przed korektą — wydruk parametrów.",
-        ru: "Замер углов — распечатка.",
-        en: "We measure the angles of the wheels before the correction — print the parameters.",
-        uk: "Вимірювання кута — роздруківка.",
-      },
-    },
-    {
-      title: { pl: "Regulacja zbieżności", ru: "Регулировка", en: "Toe adjustment", uk: "Корекція" },
-      description: {
-        pl: "Ustawiamy kąty wg danych producenta dla Twojego modelu.",
-        ru: "Углы по данным производителя.",
-        en: "We set the angles according to the manufacturer's data for your model.",
-        uk: "Кути згідно з виробником.",
-      },
-    },
-    {
-      title: { pl: "Kontrola i odbiór", ru: "Проверка", en: "Inspection and Acceptance:", uk: "Перевірка" },
-      description: {
-        pl: "Ponowny pomiar — auto jedzie prosto.",
-        ru: "Повторный замер — едет прямо.",
-        en: "Re-measurement — the car goes straight.",
-        uk: "Повторне вимірювання - йде прямо.",
+        pl: "Diagnostyka zawieszenia, wahacze, drążki i opony — tak. Ustawienie kątów zostawiamy warsztatowi, który ma geometrię.",
+        ru: "Диагностику подвески, рычаги, тяги и шины делаем. Углы — в сервисе со стендом.",
+        en: "We diagnose suspension, replace arms and track rods, and fit tyres. Wheel angles belong at a shop with an alignment rack.",
+        uk: "Діагностику підвіски, важелі, тяги і шини робимо. Кути — у сервісі зі стендом.",
       },
     },
   ],
@@ -677,21 +632,12 @@ export const SERVICE_LANDING_EDUCATION: Partial<
   ],
   alignment: [
     {
-      title: { pl: "Kiedy robić geometrię?", ru: "Когда делать развал?", en: "When to do geometry?", uk: "Коли робити обвал?" },
+      title: { pl: "Kiedy kąty kół mają znaczenie", ru: "Когда важны углы", en: "When wheel angles matter", uk: "Коли важливі кути" },
       body: {
-        pl: "Po wymianie elementów zawieszenia, uderzeniu w dziurę, gdy auto ściąga lub opony zużywają się bokiem.",
-        ru: "После ремонта подвески, удара, увода или бокового износа шин.",
-        en: "After replacing the suspension components, hitting the hole when the car pulls down or the tires wear sideways.",
-        uk: "Після ремонту підвіски, удару, втягування або бічного зносу шин.",
-      },
-    },
-    {
-      title: { pl: "Stanowisko 3D", ru: "Стенд 3D", en: "3D Station", uk: "Стенд 3D" },
-      body: {
-        pl: "Pomiar przed i po regulacji — dostajesz wydruk kątów kół.",
-        ru: "Замер до и после — распечатка углов.",
-        en: "Measurement before and after adjustment — you get a printout of the wheel angles.",
-        uk: "Вимірювання до і після — друк кутів.",
+        pl: "Po wymianie wahaczy lub drążków, po uderzeniu albo gdy auto ściąga. Tej regulacji u nas nie zrobisz.",
+        ru: "После рычагов, тяг, удара или если авто уводит. У нас эту регулировку не сделать.",
+        en: "After control arms, track rods, a hit, or if the car pulls. We cannot set those angles here.",
+        uk: "Після важелів, тяг, удару або якщо авто тягне. У нас це налаштування не зробити.",
       },
     },
   ],
@@ -770,21 +716,12 @@ export const SERVICE_LANDING_EDUCATION: Partial<
   ],
   chip: [
     {
-      title: { pl: "Czy chip tuning jest bezpieczny?", ru: "Чип-тюнинг безопасен?", en: "Is chip tuning safe?", uk: "Чи безпечний чіп-тюнінг?" },
+      title: { pl: "Czy robicie chip tuning?", ru: "Делаете chip tuning?", en: "Do you do chip tuning?", uk: "Робите chip tuning?" },
       body: {
-        pl: "Tak — po diagnostyce i w granicach tolerancji silnika. Nie tuningujemy aut z poważnymi usterkami.",
-        ru: "Да — после диагностики и в пределах допусков. Не тюним авто с серьёзными неисправностями.",
-        en: "Yes — after diagnosis and within engine tolerances. We do not tune cars with serious faults.",
-        uk: "Так — після постановки діагнозу та в межах допустимих відхилень. Не налаштовуйте автомобілі з серйозними несправностями.",
-      },
-    },
-    {
-      title: { pl: "Stage 1 vs Stage 2", ru: "Stage 1 и Stage 2", en: "Stage 1 vs Stage 2", uk: "Етап 1 та Етап 2" },
-      body: {
-        pl: "Stage 1 — optymalizacja fabrycznej mapy. Stage 2 — często wymaga modyfikacji układu dolotowego/wydechowego.",
-        ru: "Stage 1 — оптимизация штатной карты. Stage 2 — часто нужны доработки впуска/выпуска.",
-        en: "Stage 1 — optimization of the factory map. Stage 2 — often requires modification of the intake/exhaust system.",
-        uk: "Етап 1 — оптимізація карти персоналу. Етап 2 — часто потрібні модифікації входу/виходу.",
+        pl: "Nie. Chip tuningu nie ma w cenniku ani w katalogu usług.",
+        ru: "Нет. Chip tuning нет в прайсе и в каталоге услуг.",
+        en: "No. Chip tuning is not in the price list or the service catalog.",
+        uk: "Ні. Chip tuning немає в прайсі і в каталозі послуг.",
       },
     },
   ],
@@ -918,10 +855,10 @@ export const SERVICE_LANDING_FAQ_EXTRA: Partial<
         uk: "Чи безпечний двигун для чип-тюнінгу?",
       },
       a: {
-        pl: "Po diagnostyce i w bezpiecznych granicach mapy. Nie zaczynamy przy aktywnych usterkach silnika.",
-        ru: "После диагностики и в безопасных пределах. Не начинаем при серьёзных ошибках.",
-        en: "After diagnosis and within safe limits of the map. We do not start with active engine faults.",
-        uk: "Після діагностики та в безпечних межах. Ми не починаємо з серйозних помилок.",
+        pl: "Chip tuningu nie ma w cenniku ani w katalogu usług.",
+        ru: "Chip tuning нет в прайсе и в каталоге услуг.",
+        en: "Chip tuning is not in the price list or the service catalog.",
+        uk: "Chip tuning немає в прайсі і в каталозі послуг.",
       },
     },
     {
@@ -932,10 +869,10 @@ export const SERVICE_LANDING_FAQ_EXTRA: Partial<
         uk: "Скільки часу займає чип-тюнінг?",
       },
       a: {
-        pl: "Stage 1 zwykle 1 dzień — diagnostyka, mapa, jazda testowa.",
-        ru: "Stage 1 обычно 1 день — диагностика, карта, тест-драйв.",
-        en: "Stage 1 usually 1 day — diagnostics, map, test drive.",
-        uk: "1 етап зазвичай 1 день — діагностика, карта, тест-драйв.",
+        pl: "Nie wykonujemy chip tuningu, więc nie ma czasu realizacji tej usługi.",
+        ru: "Chip tuning не делаем, срока по этой услуге нет.",
+        en: "We do not perform chip tuning, so there is no turnaround time for it.",
+        uk: "Chip tuning не робимо, строку по цій послузі немає.",
       },
     },
   ],
@@ -1070,12 +1007,12 @@ export const SERVICE_LANDING_FAQ_EXTRA: Partial<
   ],
   alignment: [
     {
-      q: { pl: "Czy geometria jest potrzebna co roku?", ru: "Развал каждый год?", en: "Do you need geometry every year?", uk: "Згортати щороку?" },
+      q: { pl: "Czy robicie geometrię kół?", ru: "Делаете развал?", en: "Do you do wheel alignment?", uk: "Робите розвал?" },
       a: {
-        pl: "Przy wymianie opon lub po uderzeniu w krawężnik — warto sprawdzić.",
-        ru: "После удара о бордюр или смены шин — стоит проверить.",
-        en: "When replacing tires or after hitting the curb — it is worth checking.",
-        uk: "Після наїзду на бордюр або заміни шин варто перевірити.",
+        pl: "Nie. Geometrii i zbieżności nie wykonujemy.",
+        ru: "Нет. Развал-схождение не делаем.",
+        en: "No. We do not perform wheel alignment.",
+        uk: "Ні. Розвал-сходження не робимо.",
       },
     },
   ],
@@ -1189,35 +1126,17 @@ export function getServiceLandingPrice(
   serviceId: ServiceId,
   slug?: string
 ): ServiceLandingPrice | null {
+  if (
+    serviceId === "alignment" ||
+    slug === "geometria" ||
+    serviceId === "chip" ||
+    slug === "chip-tuning-warszawa"
+  ) {
+    return null;
+  }
   const slugProfile = slug ? getSlugLandingProfile(slug) : undefined;
   if (slugProfile && "price" in slugProfile) {
     return slugProfile.price ?? null;
-  }
-
-  if (serviceId === "chip") {
-    const stage1 = getPriceItem("stage1");
-    const stage2 = getPriceItem("stage2");
-    return {
-      fromZl: stage1?.basePrice ?? 1020,
-      compareAtZl: stage1?.listPrice,
-      priceFrom: true,
-      materialsExtra: false,
-      includes: getDefaultIncludes("chip"),
-      priceTable: [
-        {
-          label: { pl: "Stage 1", ru: "Stage 1", en: "Stage 1", uk: "Stage 1" },
-          priceZl: stage1?.basePrice ?? 1020,
-          compareAtZl: stage1?.listPrice,
-          priceFrom: true,
-        },
-        {
-          label: { pl: "Stage 2", ru: "Stage 2", en: "Stage 2", uk: "Stage 2" },
-          priceZl: stage2?.basePrice ?? 2125,
-          compareAtZl: stage2?.listPrice,
-          priceFrom: true,
-        },
-      ],
-    };
   }
 
   const priceId = serviceBasePriceId[serviceId];
@@ -1462,8 +1381,8 @@ const FAQ_PAD: Partial<Record<ServiceId, { q: LocalizedText; a: LocalizedText }>
     a: { pl: "Tak — po diagnostyce i wycenie.", ru: "Да — после диагностики и сметы.", en: "Yes — after diagnosis and valuation.", uk: "Так — після діагностики та оцінки." },
   },
   alignment: {
-    q: { pl: "Czy geometria jest na stanowisku 3D?", ru: "Развал на 3D?", en: "Is the geometry on a 3D workstation?", uk: "Згорнути в 3D?" },
-    a: { pl: "Tak — pomiar i regulacja z wydrukiem parametrów.", ru: "Да — замер и регулировка с распечаткой.", en: "Yes — measurement and adjustment with printout of parameters.", uk: "Так — вимірювання та налаштування з роздруківкою." },
+    q: { pl: "Gdzie ustawić zbieżność?", ru: "Где сделать развал?", en: "Where can I get alignment?", uk: "Де зробити розвал?" },
+    a: { pl: "W warsztacie ze stanowiskiem do geometrii. U nas tej usługi nie ma.", ru: "В сервисе со стендом. У нас этой услуги нет.", en: "At a shop with an alignment rack. We do not offer it.", uk: "У сервісі зі стендом. У нас цієї послуги немає." },
   },
   otherReason: {
     q: { pl: "Jak umówić wizytę?", ru: "Как записаться?", en: "How to make an appointment?", uk: "Як зареєструватися?" },

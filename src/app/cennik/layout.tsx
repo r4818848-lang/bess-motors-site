@@ -11,7 +11,6 @@ export const metadata: Metadata = buildPageMetadata({
     "wymiana oleju 80 zł",
     "wymiana oleju Warszawa",
     "klocki hamulcowe cena Warszawa",
-    "chip tuning cena",
   ],
 });
 

@@ -47,11 +47,12 @@ export function ServiceLandingEducation({
                   className={clsx("shrink-0 text-bm-red transition-transform", isOpen && "rotate-180")}
                 />
               </button>
-              {isOpen && (
-                <div className="px-4 pb-4 text-sm text-bm-muted leading-relaxed border-t border-bm-border/30 pt-3">
-                  {pickLocalized(item.body, locale)}
-                </div>
-              )}
+              <div
+                hidden={!isOpen}
+                className="px-4 pb-4 text-sm text-bm-muted leading-relaxed border-t border-bm-border/30 pt-3"
+              >
+                {pickLocalized(item.body, locale)}
+              </div>
             </div>
           );
         })}

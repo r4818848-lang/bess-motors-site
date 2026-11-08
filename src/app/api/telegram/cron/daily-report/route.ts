@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { computeCrmAnalytics } from "@/lib/crm-analytics";
 import { getWebsiteHotOrders } from "@/lib/hot-orders";
-import { cleanEnvValue } from "@/lib/server/supabase-config";
+import { cronAuthorized, reminderDeliveryEnabled } from "@/lib/server/cron-auth";
 import { loadCrmFromCloud } from "@/lib/server/telegram-bot/crm-actions";
 import { formatTodaySummary } from "@/lib/server/telegram-bot/format";
 import { formatLowStockReport } from "@/lib/warehouse-stock";
@@ -14,16 +14,12 @@ import { runAbandonedBookingReminders } from "@/lib/server/telegram-cron/abandon
 
 export const dynamic = "force-dynamic";
 
-function isAuthorized(req: NextRequest): boolean {
-  const secret = cleanEnvValue(process.env.CRON_SECRET);
-  if (!secret) return false;
-  const auth = req.headers.get("authorization");
-  return auth === `Bearer ${secret}`;
-}
-
 export async function GET(req: NextRequest): Promise<NextResponse> {
-  if (!isAuthorized(req)) {
+  if (!cronAuthorized(req.headers.get("authorization"))) {
     return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });
+  }
+  if (!reminderDeliveryEnabled()) {
+    return NextResponse.json({ ok: true, delivery: "skipped" });
   }
 
   const kind = req.nextUrl.searchParams.get("kind") ?? "morning";

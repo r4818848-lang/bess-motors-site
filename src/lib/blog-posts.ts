@@ -53,10 +53,10 @@ export const blogPosts: BlogPost[] = [
     updatedAt: "2026-10-21",
     excerpt: "Objawy złej zbieżności i zużycia opon.",
     body:
-      "Auto ściąga na bok, nierównomierne zużycie bieżnika lub po wymianie zawieszenia — to sygnał do ustawienia geometrii. W BESS MOTORS wykonujemy pomiar i korektę zbieżności. Zapytaj o najbliższy termin wizyty.",
+      "Auto ściąga na bok, nierównomierne zużycie bieżnika albo świeża wymiana zawieszenia to sygnał, że kąty kół warto sprawdzić. BESS MOTORS nie wykonuje geometrii ani zbieżności. Robimy zawieszenie i opony, a ustawienie kątów trzeba zrobić w warsztacie, który ma stanowisko do geometrii.",
     relatedHrefs: [
-      { href: "/geometria", label: "Geometria kół" },
       { href: "/naprawa-zawieszenia-warszawa", label: "Naprawa zawieszenia" },
+      { href: "/wulkanizacja-warszawa", label: "Wulkanizacja" },
     ],
   },
   {
@@ -113,7 +113,7 @@ Czas wizyty
 Wymiana oleju u nas to zwykle około 1 godziny, jeśli jest wolne stanowisko. Zapisz się online albo zostaw numer — potwierdzimy termin po kontakcie.
 
 Gdzie nas szukać
-Warsztat przy Alei Krakowskiej, okolice Okęcia. Parking przy serwisie. Pn–Sb 8:00–18:00, tel. +48 791 257 229.`,
+Warsztat przy Alei Krakowskiej, okolice Okęcia. Parking przy serwisie. Pn–Pt 9:00–18:00, Sb 9:00–14:00, tel. +48 791 257 229.`,
     relatedHrefs: [
       { href: "/wymiana-oleju-warszawa", label: "Wymiana oleju Warszawa" },
       { href: "/booking", label: "Umów wizytę" },
@@ -144,7 +144,7 @@ W BESS MOTORS robocizna z kodem BessMotors:
 • klocki tył — 120 zł (było 150 zł)
 Części wyceniamy osobno.
 
-Warsztat: Aleja Krakowska 48/52, Warszawa Włochy. Pn–Sb 8:00–18:00.`,
+Warsztat: Aleja Krakowska 48/52, Warszawa Włochy. Pn–Pt 9:00–18:00, Sb 9:00–14:00.`,
     relatedHrefs: [
       { href: "/hamulce-warszawa", label: "Hamulce Warszawa" },
       { href: "/wymiana-klockow-hamulcowych-warszawa", label: "Wymiana klocków" },

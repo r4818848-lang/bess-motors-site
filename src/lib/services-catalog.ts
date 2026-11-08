@@ -209,6 +209,9 @@ export const serviceFlows: Partial<Record<ServiceId, ServiceFlow[]>> = {
  * Services that need owner confirmation of in-house equipment / partner-only status.
  * Hidden from public /services grid and homepage previews until confirmed.
  */
+/** Confirmed not offered — hidden from the public services grid. */
+export const NOT_OFFERED_SERVICE_IDS = new Set<ServiceId>(["alignment"]);
+
 export const PENDING_EQUIPMENT_SERVICE_IDS = new Set<ServiceId>([
   "detailing",
   "polish",
@@ -224,7 +227,7 @@ export const PENDING_EQUIPMENT_SERVICE_IDS = new Set<ServiceId>([
 
 /** Public catalog cards — excludes unverified equipment-dependent offers */
 export const publicPopularServices = popularServices.filter(
-  (s) => !PENDING_EQUIPMENT_SERVICE_IDS.has(s.id)
+  (s) => !PENDING_EQUIPMENT_SERVICE_IDS.has(s.id) && !NOT_OFFERED_SERVICE_IDS.has(s.id)
 );
 
 /** Legacy list for dropdowns — same order */

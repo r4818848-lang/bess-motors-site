@@ -93,6 +93,26 @@ export async function PUT(req: Request) {
     : incoming;
   const { runCrmAutomation } = await import("@/lib/crm-automation");
   runCrmAutomation(payload, before?.doc ?? null);
+  if (before?.doc) {
+    const { invalidAppointmentChange } = await import("@/lib/staff-calendar");
+    const { workshopHours } = await import("@/lib/businessConfig");
+    const lunch = {
+      start: payload.settings?.lunchBreakStart || "13:00",
+      end: payload.settings?.lunchBreakEnd || "14:00",
+    };
+    const scheduleError = invalidAppointmentChange(
+      before.doc.appointments ?? [],
+      payload.appointments ?? [],
+      workshopHours(),
+      lunch
+    );
+    if (scheduleError) {
+      return NextResponse.json(
+        { ok: false, error: scheduleError.error, id: scheduleError.id },
+        { status: scheduleError.error === "mechanic_conflict" ? 409 : 400 }
+      );
+    }
+  }
   const result = await cloudPutCrmStore(payload, { skipNotify: true });
   if (!result.ok) {
     return NextResponse.json(

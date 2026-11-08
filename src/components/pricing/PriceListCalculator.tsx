@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { Calculator } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { pickName } from "@/lib/i18n/locale-utils";
-import { getPriceItem, priceListItems } from "@/lib/price-list";
+import { getPriceItem, isPublicPriceItem, priceListItems } from "@/lib/price-list";
 import { buildCartLine, cartSubtotal, formatPln } from "@/lib/booking-cart";
 import { PromoPriceDisplay } from "@/components/pricing/PromoPriceDisplay";
 import { BookingLink } from "@/components/analytics/BookingLink";
@@ -83,7 +83,7 @@ export function PriceListCalculator() {
       <p className="text-xs text-bm-muted mb-2">
         {c.moreHint}{" "}
         <span className="text-bm-silver">
-          ({priceListItems.length} {c.positions})
+          ({priceListItems.filter(isPublicPriceItem).length} {c.positions})
         </span>
       </p>
       <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-bm-border/40">

@@ -263,7 +263,7 @@ const EXTRA_SEO_SERVICE_PROFILES_BATCH1: Record<string, SlugLandingProfile> = {
       },
       {
         title: L("Jak umówić wizytę", "Как записаться", "How to make an appointment", "Как записаться"),
-        body: L("Zadzwoń +48 791 257 229, umów online albo wyślij VIN z opisem usterki. Godziny: Pn–Sb 8:00–18:00.", "Телефон +48 791 257 229, онлайн-запись или VIN с описанием.", "Call +48 791 257 229, make online agreements or send the VIN with a description of the defect. Hours: Mon-Sat 8:00–18:00.", "Телефон +48 791 257 229, онлайн-запис або VIN с описанием."),
+        body: L("Zadzwoń +48 791 257 229, umów online albo wyślij VIN z opisem usterki. Godziny: Pn–Pt 9:00–18:00, Sb 9:00–14:00.", "Телефон +48 791 257 229, онлайн-запись или VIN с описанием.", "Call +48 791 257 229, make online agreements or send the VIN with a description of the defect. Hours: Mon–Fri 9:00–18:00, Sat 9:00–14:00.", "Телефон +48 791 257 229, онлайн-запис або VIN с описанием."),
       },
       WHY_BESS_EDU,
     ],
@@ -506,7 +506,7 @@ const EXTRA_SEO_SERVICE_PROFILES_BATCH1: Record<string, SlugLandingProfile> = {
     faqExtra: [
       {
         q: L("Czy robicie geometrię po zawieszeniu?", "Делаете геометрию после подвески?", "Do you do geometry after suspension?", "Делаете геометрию після підвіски?"),
-        a: L("Po wymianie wahaczy lub elementów wpływających na kąty — zalecamy geometrię. Możesz umówić ją u nas osobno.", "После рычагов рекомендуем геометрию.", "After replacing the rockers or elements affecting the angles — we recommend geometry. You can book it with us separately.", "Після важелів ми рекомендуємо геометрію."),
+        a: L("Po wymianie wahaczy kąty kół trzeba ustawić w innym warsztacie. Geometrii u nas nie wykonujemy.", "После рычагов углы колёс нужно делать в другом сервисе. Развал у нас не делаем.", "After control-arm work, set the wheel angles at another shop. We do not perform alignment.", "Після важелів кути коліс треба робити в іншому сервісі. Розвал у нас не робимо."),
       },
     ],
   },
@@ -549,7 +549,7 @@ const EXTRA_SEO_SERVICE_PROFILES_BATCH1: Record<string, SlugLandingProfile> = {
     faqExtra: [
       {
         q: L("Czy to pełna wymiana dynamiczna?", "Это полная динамическая замена?", "Is this a full dynamic exchange?", "Це полная динамическая заміна?"),
-        a: L("Zakres (częściowa / pełna / z filtrem) ustalamy po typie skrzyni i zaleceniach. Nie każda skrzynia wymaga płukania dynamicznego.", "Объём зависит от типа КПП.", "The range (partial / full / with filter) is determined after the box type and recommendations. Not every crate requires dynamic flushing.", "Обсяг залежить від типу коробки передач."),
+        a: L("Nie. Dynamicznej wymiany ATF nie wykonujemy. Robimy wymianę statyczną albo częściową — według typu skrzyni.", "Нет. Динамическую замену ATF не делаем. Делаем статическую или частичную — по типу КПП.", "No. We do not perform a dynamic ATF exchange. We do a static or partial change by gearbox type.", "Ні. Динамічну заміну ATF не робимо. Робимо статичну або часткову — за типом КПП."),
       },
     ],
   },
@@ -603,12 +603,10 @@ const EXTRA_SEO_RELATED_BATCH1: Record<string, string[]> = {
   "hamulce-warszawa": [
     "naprawa-zawieszenia-warszawa",
     "diagnostyka-komputerowa-warszawa",
-    "geometria",
     "mechanik-warszawa-wlochy",
   ],
   "naprawa-zawieszenia-warszawa": [
     "hamulce-warszawa",
-    "geometria",
     "wymiana-oleju-warszawa",
     "mechanik-warszawa-wlochy",
   ],

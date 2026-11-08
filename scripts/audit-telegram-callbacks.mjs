@@ -48,6 +48,8 @@ function hasHandler(prefix) {
   const base = prefix.replace(/\*+$/, "");
   if (handlerSrc.includes(exact)) return true;
   if (handlerSrc.includes(`data.startsWith("${base}`)) return true;
+  const starts = [...handlerSrc.matchAll(/data\.startsWith\("([^"]+)"\)/g)].map((match) => match[1]);
+  if (starts.some((start) => base.startsWith(start))) return true;
   if (base.startsWith("cl:v4:") && handlerSrc.includes('data.startsWith("cl:v4:"')) return true;
   if (base.startsWith("cl:np:") && handlerSrc.includes('data.startsWith("cl:np:"')) return true;
   if (base.startsWith("cl:orders:") && handlerSrc.includes('data.startsWith("cl:orders:"')) return true;

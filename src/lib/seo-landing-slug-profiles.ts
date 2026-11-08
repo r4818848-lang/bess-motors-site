@@ -158,10 +158,10 @@ export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
       {
         title: L("Wymiana oleju Warszawa Włochy / Okęcie", "Замена масла Варшава Włochy", "Oil change Warsaw Italy / Okęcie", "Заміна масла Варшава Влохи"),
         body: L(
-          "Dogodny dojazd: Aleja Krakowska 48/52, ok. 5 min od Okęcia i lotniska. Parking przy serwisie. Pn–Sb 8:00–18:00. Zapis online 24/7 na /wymiana-oleju lub telefon +48 791 257 229.",
-          "Удобный подъезд: Aleja Krakowska 48/52, ~5 мин от Okęcie. Парковка у сервиса. Пн–Сб 8:00–18:00. Онлайн-запись 24/7.",
-          "Convenient access: Aleja Krakowska 48/52, near Okęcie and the airport. Parking at the workshop. Mon–Sat 8:00–18:00. Book online or call +48 791 257 229 — we confirm the appointment by phone.",
-          "Зручний доступ: Aleja Krakowska 48/52, ~5 хв від Окенце. Парковка на службі. Пн–Сб 8:00–18:00. Онлайн запис 24/7."
+          "Dogodny dojazd: Aleja Krakowska 48/52, ok. 5 min od Okęcia i lotniska. Parking przy serwisie. Pn–Pt 9:00–18:00, Sb 9:00–14:00. Zapis online 24/7 na /wymiana-oleju lub telefon +48 791 257 229.",
+          "Удобный подъезд: Aleja Krakowska 48/52, ~5 мин от Okęcie. Парковка у сервиса. Пн–Пт 9:00–18:00, Сб 9:00–14:00. Онлайн-запись 24/7.",
+          "Convenient access: Aleja Krakowska 48/52, near Okęcie and the airport. Parking at the workshop. Mon–Fri 9:00–18:00, Sat 9:00–14:00. Book online or call +48 791 257 229 — we confirm the appointment by phone.",
+          "Зручний доступ: Aleja Krakowska 48/52, ~5 хв від Окенце. Парковка на службі. Пн–Пт 9:00–18:00, Сб 9:00–14:00. Онлайн запис 24/7."
         ),
       },
     ],
@@ -533,7 +533,12 @@ export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
     },
   },
   geometria: {
-    faqDuration: L("Geometria kół: ok. 1 godziny.", "Развал-схождение: около 1 часа.", "Wheel alignment: approx. 1 hour.", "Конвергенція розломів: близько 1 години."),
+    faqDuration: L(
+      "Geometrii kół nie wykonujemy.",
+      "Развал-схождение не делаем.",
+      "We do not perform wheel alignment.",
+      "Розвал-сходження не робимо."
+    ),
     galleryTags: ["geometr", "opon", "align", "развал"],
   },
   silnik: {
@@ -788,10 +793,10 @@ export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
       {
         title: L("Usługi na miejscu", "Услуги на месте", "On-Site Services:", "Послуги на місці"),
         body: L(
-          "Olej, opony, hamulce, geometria, diagnostyka — kompleksowo w jednym warsztacie.",
-          "Масло, шины, тормоза, развал, диагностика — всё в одном сервисе.",
-          "Oil, tyres, brakes, geometry, diagnostics — comprehensively in one workshop.",
-          "Масло, шини, гальма, колапс, діагностика — все в одному сервісі."
+          "Olej, opony, hamulce i diagnostyka — w jednym warsztacie. Geometrii kół nie wykonujemy.",
+          "Масло, шины, тормоза и диагностика — в одном сервисе. Развал-схождение не делаем.",
+          "Oil, tyres, brakes and diagnostics in one workshop. We do not perform wheel alignment.",
+          "Масло, шини, гальма і діагностика — в одному сервісі. Розвал-сходження не робимо."
         ),
       },
     ],

@@ -4,7 +4,7 @@ import { buildPageMetadata } from "@/lib/seo-metadata";
 export const metadata: Metadata = buildPageMetadata({
   title: "O nas — warsztat Warszawa Włochy",
   description:
-    "BESS MOTORS — niezależny warsztat samochodowy w Warszawie Włochy, Aleja Krakowska 48/52. Olej, hamulce, klimatyzacja, diagnostyka i chip tuning. Pn–Sb 8:00–18:00.",
+    "BESS MOTORS — niezależny warsztat samochodowy w Warszawie Włochy, Aleja Krakowska 48/52. Olej, hamulce, klimatyzacja i diagnostyka. Pn–Pt 9:00–18:00, Sb 9:00–14:00, Nd zamknięte.",
   path: "/about",
 });
 

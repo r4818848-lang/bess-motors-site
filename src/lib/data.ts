@@ -9,7 +9,11 @@ export const mechanics = [
   { id: "mech-3", name: "Marek Wiśniewski", specialty: "Detailing / Paint", rating: 5.0 },
 ];
 
-/** Workshop hours from businessConfig (booking slots; 13:00 lunch may block in CRM). */
+/**
+ * Clock labels from weekday open through weekday close.
+ * Bookable starts are narrower: see bookingStartTimes (Saturday ends 14:00,
+ * and a visit must finish by closing). CRM still uses this grid.
+ */
 export const WORKSHOP_OPEN = businessConfig.openingHours.opens;
 export const WORKSHOP_CLOSE = businessConfig.openingHours.closes;
 

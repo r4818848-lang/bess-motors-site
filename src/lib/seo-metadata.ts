@@ -39,8 +39,10 @@ export function buildPageMetadata(input: PageSeoInput): Metadata {
   const ogType = input.openGraphType ?? "website";
   const imageAlt = input.ogImageAlt ?? `${BRAND} — serwis samochodowy Warszawa`;
 
+  const titleAlreadyBranded = input.absoluteTitle || input.title.includes(BRAND);
+
   return {
-    title: input.absoluteTitle ? { absolute: input.title } : input.title,
+    title: titleAlreadyBranded ? { absolute: input.title } : input.title,
     description: input.description,
     ...(input.keywords?.length ? { keywords: input.keywords } : {}),
     alternates: { canonical },

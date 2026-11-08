@@ -13,7 +13,6 @@ export const metadata: Metadata = buildPageMetadata({
     "FAQ serwis samochodowy Warszawa",
     "wymiana oleju 80 zł",
     "wymiana oleju Warszawa",
-    "chip tuning Warszawa",
   ],
 });
 

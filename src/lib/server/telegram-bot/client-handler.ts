@@ -1116,7 +1116,7 @@ async function handleClientCallbackInner(cb: TelegramCallback): Promise<void> {
       messageId,
       locale,
       `${L.chooseTime}\n📅 ${formatDateShort(date, locale)}`,
-      clientTimeKeyboard(locale)
+      clientTimeKeyboard(locale, date)
     );
     return;
   }

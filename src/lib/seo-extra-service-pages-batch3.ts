@@ -336,7 +336,6 @@ export const EXTRA_SEO_RELATED_BATCH3: Record<string, string[]> = {
     "naprawa-zawieszenia-warszawa",
     "wymiana-amortyzatorow-warszawa",
     "wymiana-oleju-warszawa",
-    "geometria",
   ],
   "wymiana-akumulatora-warszawa": [
     "wymiana-alternatora-warszawa",

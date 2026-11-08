@@ -10,7 +10,7 @@
     },
     {
       "path": "/api/telegram/cron/appointment-reminders",
-      "schedule": "0 * * * *"
+      "schedule": "*/5 * * * *"
     },
     {
       "path": "/api/telegram/cron/post-service-followup",

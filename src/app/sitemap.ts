@@ -4,13 +4,14 @@ import {
   publicSitemapPaths,
   sitemapExcludedSlugs,
   pendingNoIndexSlugs,
+  SITEMAP_LAST_MODIFIED,
 } from "@/lib/seo";
 import { seoLandingSlugs } from "@/lib/seo-landing-pages";
 import { blogPosts } from "@/lib/blog-posts";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const siteUrl = getSiteUrl();
-  const lastModified = new Date();
+  const lastModified = SITEMAP_LAST_MODIFIED;
 
   const seen = new Set<string>();
   const entries: MetadataRoute.Sitemap = [];
@@ -66,8 +67,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
         : 0.65;
     add(`/blog/${post.slug}`, "monthly", priority);
   }
-
-  add("/privacy", "yearly", 0.3);
 
   return entries;
 }

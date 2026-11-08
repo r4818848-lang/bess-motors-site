@@ -1,8 +1,14 @@
 import { addDays } from "date-fns";
+import { workshopHours } from "@/lib/businessConfig";
 import { formatWarsawDateKey, parseDateKey } from "@/lib/date-key";
-import { timeSlots } from "@/lib/data";
 import { BOOKING_HORIZON_DAYS } from "@/lib/booking-horizon";
 import { isSlotBlocked } from "@/lib/booking-slots";
+import { findMechanicConflict } from "@/lib/staff-calendar";
+import {
+  evaluateBookingStart,
+  resolveBookingDurationMinutes,
+  type ScheduleError,
+} from "@/lib/workshop-schedule";
 import type { Appointment, AppSettings, Database } from "@/lib/store";
 import { cloudListAppointmentsForAdmin } from "./appointments-cloud";
 import { cloudGetCrmStore } from "./crm-cloud";
@@ -47,20 +53,65 @@ export async function collectBusyBookingSlots(excludeAptId?: string): Promise<Se
   return busy;
 }
 
+export async function appointmentKeepsExistingSlot(
+  id: string,
+  date: string,
+  time: string
+): Promise<boolean> {
+  if (!id) return false;
+  try {
+    const appointments = await cloudListAppointmentsForAdmin();
+    const found = appointments.find((apt) => apt.id === id);
+    if (found && found.date === date && found.time === time) return true;
+  } catch {
+    /* appointments table optional */
+  }
+  const crm = await cloudGetCrmStore();
+  const stored = crm?.doc?.appointments?.find((apt) => apt.id === id);
+  return Boolean(stored && stored.date === date && stored.time === time);
+}
+
+async function loadMergedAppointments(): Promise<Appointment[]> {
+  const map = new Map<string, Appointment>();
+  try {
+    for (const apt of await cloudListAppointmentsForAdmin()) map.set(apt.id, apt);
+  } catch {
+    /* appointments table optional */
+  }
+  const crm = await cloudGetCrmStore();
+  for (const apt of crm?.doc?.appointments ?? []) map.set(apt.id, apt);
+  return [...map.values()];
+}
+
 export async function assertBookingSlotAvailable(params: {
   date: string;
   time: string;
   excludeAptId?: string;
+  durationMinutes?: number;
+  serviceIds?: string[];
+  mechanicId?: string;
+  holdUntil?: string;
+  now?: Date;
 }): Promise<{ ok: true } | { ok: false; error: string }> {
   const { date, time, excludeAptId } = params;
+  const durationMinutes = resolveBookingDurationMinutes({
+    durationMinutes: params.durationMinutes,
+    serviceIds: params.serviceIds,
+  });
+
+  const schedule = evaluateBookingStart({
+    date,
+    time,
+    durationMinutes,
+    now: params.now,
+    hours: workshopHours(),
+  });
+  if (!schedule.ok) return { ok: false, error: schedule.error satisfies ScheduleError };
 
   if (!isValidDateKey(date)) return { ok: false, error: "invalid_date" };
-  if (!timeSlots.includes(time)) return { ok: false, error: "invalid_time" };
 
   const day = parseDateKey(date);
-  if (day.getDay() === 0) return { ok: false, error: "closed_sunday" };
-
-  const today = parseDateKey(formatWarsawDateKey());
+  const today = parseDateKey(formatWarsawDateKey(params.now ?? new Date()));
   const maxDay = addDays(today, BOOKING_HORIZON_DAYS);
   if (day < today || day > maxDay) return { ok: false, error: "date_out_of_range" };
 
@@ -71,8 +122,31 @@ export async function assertBookingSlotAvailable(params: {
   }
   if (isSlotBlocked(settings, date, time)) return { ok: false, error: "slot_blocked" };
 
-  const busy = await collectBusyBookingSlots(excludeAptId);
-  if (busy.has(`${date}|${time}`)) return { ok: false, error: "slot_taken" };
+  if (params.mechanicId) {
+    const appointments = await loadMergedAppointments();
+    const conflict = findMechanicConflict(
+      appointments,
+      {
+        id: excludeAptId || "incoming",
+        date,
+        time,
+        mechanicId: params.mechanicId,
+        durationMinutes,
+        serviceIds: params.serviceIds ?? [],
+        holdUntil: params.holdUntil,
+        appointmentStatus: "scheduled",
+      },
+      workshopHours(),
+      {
+        start: settings.lunchBreakStart ?? "13:00",
+        end: settings.lunchBreakEnd ?? "14:00",
+      }
+    );
+    if (conflict) return { ok: false, error: "mechanic_conflict" };
+  } else {
+    const busy = await collectBusyBookingSlots(excludeAptId);
+    if (busy.has(`${date}|${time}`)) return { ok: false, error: "slot_taken" };
+  }
 
   return { ok: true };
 }

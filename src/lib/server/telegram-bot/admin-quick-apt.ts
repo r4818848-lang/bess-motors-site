@@ -1,6 +1,7 @@
 import { normalizePhone } from "@/lib/auth";
 import { handleAppointmentNotification } from "@/lib/client-notifications";
 import { ensureClientForBooking } from "@/lib/create-work-order-from-booking";
+import { assertBookingSlotAvailable } from "@/lib/server/booking-slot-validation";
 import { cloudUpsertAppointment } from "@/lib/server/appointments-cloud";
 import { mutateCrm } from "./crm-actions";
 import type { Appointment } from "@/lib/store";
@@ -34,6 +35,13 @@ export async function createQuickAppointment(params: {
   comment: string;
   clientName?: string;
 }): Promise<{ ok: boolean; id?: string; error?: string }> {
+  const slotCheck = await assertBookingSlotAvailable({
+    date: params.date,
+    time: params.time,
+    serviceIds: ["diagnostic"],
+  });
+  if (!slotCheck.ok) return { ok: false, error: slotCheck.error };
+
   let created: Appointment | null = null;
   const result = await mutateCrm((db) => {
     const name = params.clientName?.trim() || "Klient Telegram";

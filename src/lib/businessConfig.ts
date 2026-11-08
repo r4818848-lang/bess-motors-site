@@ -1,11 +1,11 @@
+import { isOpenAt } from "@/lib/workshop-schedule";
+
 /**
  * Single source of truth for BESS MOTORS NAP, hours, Maps, social.
- * UI, JSON-LD, booking slots, and SEO copy should derive from here.
+ * UI, JSON-LD and SEO copy should derive from here.
  *
- * HOURS NOTE (owner confirmation required):
- * - Currently published everywhere: Mon–Sat 08:00–18:00
- * - Owner draft / possible GBP mismatch: Mon–Sat 09:00–18:00
- * Do NOT flip opens to 09:00 until confirmed against Google Business Profile.
+ * Hours confirmed 2026-11-08: Mon–Fri 09:00–18:00, Sat 09:00–14:00, Sun closed.
+ * Booking slots use Europe/Warsaw and must finish by closing time.
  */
 
 export const businessConfig = {
@@ -24,22 +24,14 @@ export const businessConfig = {
   district: "Włochy",
   nearLandmark: "Okęcie",
   /** Human-readable hours (PL) — keep in sync with openingHours */
-  workingHoursLabel: "Pn–Sb 8:00–18:00",
+  workingHoursLabel: "Pn–Pt 9:00–18:00, Sb 9:00–14:00, Nd zamknięte",
   openingHours: {
     days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"] as const,
-    opens: "08:00",
+    opens: "09:00",
     closes: "18:00",
+    saturdayOpens: "09:00",
+    saturdayCloses: "14:00",
     closedDays: ["Sunday"] as const,
-  },
-  /**
-   * Pending owner + GBP confirmation. When approved, set openingHours.opens to "09:00"
-   * and update workingHoursLabel + booking WORKSHOP_OPEN together.
-   */
-  hoursPendingOwnerConfirm: {
-    proposedOpens: "09:00",
-    proposedCloses: "18:00",
-    proposedLabelPl: "Pn–Sb 9:00–18:00",
-    note: "Potwierdź z Google Business Profile przed zmianą na stronie i w schema.",
   },
   /** Approximate workshop entrance (Aleja Krakowska 48/52) */
   geo: {
@@ -86,11 +78,34 @@ export function googleWriteReviewUrl(
   return cfg.googleMapsUrl;
 }
 
+export function businessOpeningHoursSpecification() {
+  const h = businessConfig.openingHours;
+  return [
+    {
+      "@type": "OpeningHoursSpecification" as const,
+      dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+      opens: h.opens,
+      closes: h.closes,
+    },
+    {
+      "@type": "OpeningHoursSpecification" as const,
+      dayOfWeek: "Saturday",
+      opens: h.saturdayOpens,
+      closes: h.saturdayCloses,
+    },
+  ];
+}
+
+export function workshopHours() {
+  const h = businessConfig.openingHours;
+  return {
+    opens: h.opens,
+    closes: h.closes,
+    saturdayOpens: h.saturdayOpens,
+    saturdayCloses: h.saturdayCloses,
+  };
+}
+
 export function isWithinBusinessHours(now = new Date()): boolean {
-  const day = now.getDay();
-  if (day === 0) return false;
-  const [oh, om] = businessConfig.openingHours.opens.split(":").map(Number);
-  const [ch, cm] = businessConfig.openingHours.closes.split(":").map(Number);
-  const mins = now.getHours() * 60 + now.getMinutes();
-  return mins >= oh * 60 + om && mins < ch * 60 + cm;
+  return isOpenAt(now, workshopHours());
 }

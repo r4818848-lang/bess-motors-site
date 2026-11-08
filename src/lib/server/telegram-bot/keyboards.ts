@@ -1,4 +1,5 @@
 import type { InlineKeyboardMarkup, ReplyKeyboardMarkup } from "@/lib/server/telegram-api";
+import { calendarAppUrl } from "./staff-calendar-bot";
 import type { ReportPeriod } from "@/lib/crm-analytics";
 import { cleanEnvValue } from "@/lib/server/supabase-config";
 import type { ExpenseCategory, RepairStatus } from "@/lib/store";
@@ -22,6 +23,7 @@ const STATUSES: RepairStatus[] = [
 export function mainMenuKeyboard(): InlineKeyboardMarkup {
   return {
     inline_keyboard: [
+      [{ text: "📅 Календарь", web_app: { url: calendarAppUrl() } }],
       [{ text: BOT.todaySummary, callback_data: "sum:day" }],
       [
         { text: BOT.finance, callback_data: "fin:menu" },
@@ -71,6 +73,9 @@ export function adminReplyKeyboard(): ReplyKeyboardMarkup {
     keyboard: [
       [
         { text: BOT.menu },
+        { text: "📅 Календарь" },
+      ],
+      [
         {
           text: BOT.adminConsole,
           web_app: { url: `${siteBase()}/crm` },

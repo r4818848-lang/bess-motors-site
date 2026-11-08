@@ -8,6 +8,7 @@ import {
   answerCallbackQuery,
   isAuthorizedChat,
   sendTelegramMessage,
+  setStaffBotCommands,
   updateTelegramInlineScreen,
 } from "@/lib/server/telegram-api";
 import {
@@ -73,6 +74,12 @@ import { BOT, REPAIR_STATUS_RU } from "./labels";
 import { handleClientTelegramUpdate } from "./client-handler";
 import { handleMechanicTelegramUpdate, mechanicDashKeyboard } from "./mechanic-handler";
 import { isAdminTelegramChat, resolveMechanicActor } from "./telegram-actor";
+import {
+  isCalendarOpenText,
+  publishStaffCalendarMenu,
+  sendCalendarOpenPrompt,
+  sendStaffDay,
+} from "./staff-calendar-bot";
 import {
   formatUnsignedList,
   remindClientToSign,
@@ -203,6 +210,8 @@ async function attachAdminReplyKeyboard(chatId: number): Promise<void> {
 
 async function showMainMenu(chatId: number, messageId?: number): Promise<void> {
   await clearTelegramSession(String(chatId));
+  void setStaffBotCommands(chatId);
+  void publishStaffCalendarMenu(chatId);
   await replyOrEdit(chatId, messageId, BOT.welcome, mainMenuKeyboard());
   if (messageId === undefined) {
     await attachAdminReplyKeyboard(chatId);
@@ -334,6 +343,18 @@ async function handleMessage(msg: TelegramMessage): Promise<void> {
   if (text === "/help") {
     await clearTelegramSession(chatKey);
     await sendTelegramMessage(chatId, BOT.helpText, mainMenuKeyboard());
+    return;
+  }
+
+  if (isCalendarOpenText(text)) {
+    await clearTelegramSession(chatKey);
+    await sendCalendarOpenPrompt(chatId);
+    return;
+  }
+
+  if (text === "/today") {
+    await clearTelegramSession(chatKey);
+    await sendStaffDay(chatId, 0);
     return;
   }
 
@@ -526,6 +547,11 @@ async function handleCallback(cb: TelegramCallback): Promise<void> {
 
   if (data === "menu") {
     await showMainMenu(chatId, messageId);
+    return;
+  }
+
+  if (data === "cal:today" || data === "cal:tomorrow") {
+    await sendStaffDay(chatId, data === "cal:tomorrow" ? 1 : 0);
     return;
   }
 

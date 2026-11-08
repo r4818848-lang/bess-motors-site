@@ -2,6 +2,8 @@ import type { ReportPeriod } from "@/lib/crm-analytics";
 import { cleanEnvValue } from "@/lib/server/supabase-config";
 import {
   answerCallbackQuery,
+  sendTelegramMessage,
+  setStaffBotCommands,
   type InlineKeyboardButton,
   type InlineKeyboardMarkup,
   updateTelegramInlineScreen,
@@ -14,6 +16,13 @@ import { esc, formatWorkOrderDetail } from "./format";
 import { REPAIR_STATUS_RU } from "./labels";
 import type { MechanicActor } from "./telegram-actor";
 import { linkMechanicTelegram } from "./telegram-actor";
+import {
+  calendarAppUrl,
+  isCalendarOpenText,
+  publishStaffCalendarMenu,
+  sendCalendarOpenPrompt,
+  sendStaffDay,
+} from "./staff-calendar-bot";
 
 type TelegramMessage = {
   message_id: number;
@@ -51,7 +60,7 @@ function siteBase(): string {
   return cleanEnvValue(process.env.NEXT_PUBLIC_SITE_URL) || "https://www.bess-motors.com";
 }
 
-function mechanicMainKeyboard(): InlineKeyboardMarkup {
+export function mechanicMainKeyboard(): InlineKeyboardMarkup {
   const site = siteBase();
   return {
     inline_keyboard: [
@@ -59,7 +68,7 @@ function mechanicMainKeyboard(): InlineKeyboardMarkup {
       [{ text: "💰 Зарплата (месяц)", callback_data: "mch:salary" }],
       [
         { text: "🌐 Панель на сайте", url: `${site}/mechanic` },
-        { text: "📅 Календарь", url: `${site}/mechanic?view=calendar` },
+        { text: "📅 Календарь", web_app: { url: calendarAppUrl() } },
       ],
       [{ text: "🏠 Меню", callback_data: "mch:menu" }],
     ],
@@ -207,7 +216,19 @@ async function handleMechanicMessage(
   const text = msg.text?.trim() ?? "";
 
   if (text === "/start" || text === "/menu") {
+    void setStaffBotCommands(chatId);
+    void publishStaffCalendarMenu(chatId);
     await mechReply(chatId, undefined, MECH.welcome(actor.name));
+    return;
+  }
+
+  if (isCalendarOpenText(text)) {
+    await sendCalendarOpenPrompt(chatId);
+    return;
+  }
+
+  if (text === "/today") {
+    await sendStaffDay(chatId, 0, actor.mechanicId);
     return;
   }
 
@@ -258,6 +279,11 @@ async function handleMechanicCallback(
 
   if (data === "mch:menu") {
     await mechReply(chatId, messageId, MECH.welcome(actor.name));
+    return;
+  }
+
+  if (data === "cal:today" || data === "cal:tomorrow") {
+    await sendStaffDay(chatId, data === "cal:tomorrow" ? 1 : 0, actor.mechanicId);
     return;
   }
 

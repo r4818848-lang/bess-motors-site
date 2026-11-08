@@ -149,7 +149,7 @@ export const EXTRA_SEO_SERVICE_PAGES_BATCH2: SeoLandingPage[] = [
     slug: "wymiana-drazkow-kierowniczych-warszawa",
     title: "Wymiana drążków kierowniczych Warszawa",
     line1: "Końcówki i drążki — mniej luzu na kierownicy",
-    line2: "Po wymianie zalecana geometria",
+    line2: "Po wymianie sprawdzamy luz i prowadzenie",
     metaTitle: "Wymiana drążków kierowniczych Warszawa",
     metaDescription:
       "Wymiana drążków i końcówek kierowniczych Warszawa. BESS MOTORS Włochy. Umów wizytę lub zadzwoń +48 791 257 229.",
@@ -545,7 +545,7 @@ export const EXTRA_SEO_SERVICE_PROFILES_BATCH2: Record<string, SlugLandingProfil
       },
       {
         title: L("Objawy złego montażu lub zużycia", "Симптомы", "Symptoms of bad fit or wear", "Симптомы"),
-        body: L("Wibracje, ściąganie, hałas z opony, szybkie zużycie barku — warto sprawdzić wyważenie i geometrię.", "Вибрации, увод, шум, износ плеча.", "Vibration, pulling, tyre noise, fast shoulder wear — check balancing and alignment.", "Вибрации, увод, шум, износ плеча."),
+        body: L("Wibracje, ściąganie, hałas z opony lub szybkie zużycie barku — sprawdzamy wyważenie. Geometrii kół nie wykonujemy.", "Вибрации, увод, шум, износ плеча.", "Vibration, pulling, tyre noise, fast shoulder wear — check balancing and alignment.", "Вибрации, увод, шум, износ плеча."),
       },
       {
         title: L("Czas i koszt", "Срок и цена", "Time and cost", "Срок і ціна"),
@@ -616,7 +616,7 @@ export const EXTRA_SEO_SERVICE_PROFILES_BATCH2: Record<string, SlugLandingProfil
       },
       {
         q: L("Czy geometria to to samo?", "Геометрия это то же?", "Is balancing the same as alignment?", "Геометрия это то же?"),
-        a: L("Nie. Wyważanie dotyczy koła; geometria ustawia kąty zawieszenia. Przy ściąganiu auta często potrzeba obu.", "Нет — балансировка и развал-схождение разные услуги.", "No. Balancing is the wheel; alignment sets suspension angles.", "Ні — балансування і развал-схождение разные услуги."),
+        a: L("Nie. Wyważanie dotyczy koła. Geometrii kół nie wykonujemy — kąty ustawia inny warsztat.", "Нет — балансировка и развал-схождение разные услуги.", "No. Balancing is the wheel; alignment sets suspension angles.", "Ні — балансування і развал-схождение разные услуги."),
       },
       {
         q: L("Ile kół wyważać?", "Сколько колёс?", "How many wheels to balance?", "Сколько коліс?"),
@@ -882,7 +882,7 @@ export const EXTRA_SEO_SERVICE_PROFILES_BATCH2: Record<string, SlugLandingProfil
       },
       {
         q: L("Czy po wymianie robicie geometrię?", "Делаете геометрию?", "Details and quote at BESS MOTORS — Aleja Krakowska 48/52. Call +48 791 257 229.", "Делаете геометрию?"),
-        a: L("Po niektórych konstrukcjach zalecamy geometrię. Możesz umówić ją u nas osobno.", "После некоторых конструкций рекомендуем геометрию.", "After", "Після некоторых конструкций рекомендуємо геометрию."),
+        a: L("Po niektórych konstrukcjach kąty trzeba ustawić w innym warsztacie. Geometrii u nas nie ma.", "После некоторых конструкций рекомендуем геометрию.", "After", "Після некоторых конструкций рекомендуємо геометрию."),
       },
       {
         q: L("Ile kosztują części?", "Сколько детали?", "Parts?", "Сколько детали?"),
@@ -899,7 +899,7 @@ export const EXTRA_SEO_SERVICE_PROFILES_BATCH2: Record<string, SlugLandingProfil
           fromZl: getPriceItem("arm_replace")?.basePrice ?? 250,
           priceFrom: true,
           materialsExtra: true,
-          note: L("Robocizna wymiany wahacza według cennika. Po wymianie często zalecana geometria kół.", "Работа по замене рычага по прайсу. После часто нужна геометрия.", "Labour replacement price list. after hours", "Робота по замене рычага по прайсу. Після часто нужна геометрия."),
+          note: L("Robocizna wymiany wahacza według cennika. Geometrii kół nie wykonujemy.", "Работа по замене рычага по прайсу. После часто нужна геометрия.", "Labour replacement price list. after hours", "Робота по замене рычага по прайсу. Після часто нужна геометрия."),
           includes: [
             L("Diagnostyka luzów", "Диагностика люфтов", "Diagnostics", "Діагностика люфтов"),
             L("Wymiana wahacza według wyceny", "Замена рычага по смете", "Replacement quote", "Заміна рычага по смете"),
@@ -921,7 +921,7 @@ export const EXTRA_SEO_SERVICE_PROFILES_BATCH2: Record<string, SlugLandingProfil
       },
       {
         title: L("Czas i koszt", "Срок и цена", "Time and price", "Срок і ціна"),
-        body: L("Kilka godzin typowo. Robocizna od pozycji wahacza w cenniku + część. Geometria — osobno gdy potrzebna.", "Обычно несколько часов. Работа по прайсу + деталь.", "Usually several hours. labour price list + parts", "Зазвичай кілька годин. Робота по прайсу + деталь."),
+        body: L("Kilka godzin typowo. Robocizna od pozycji wahacza w cenniku + część. Geometrii kół nie wykonujemy.", "Обычно несколько часов. Работа по прайсу + деталь.", "Usually several hours. labour price list + parts", "Зазвичай кілька годин. Робота по прайсу + деталь."),
       },
       {
         title: L("Dlaczego BESS MOTORS", "Почему BESS MOTORS", "Why BESS MOTORS", "Чому BESS MOTORS"),
@@ -935,7 +935,7 @@ export const EXTRA_SEO_SERVICE_PROFILES_BATCH2: Record<string, SlugLandingProfil
       },
       {
         q: L("Czy geometria jest w cenie?", "Геометрия в цене?", "Details and quote at BESS MOTORS — Aleja Krakowska 48/52. Call +48 791 257 229.", "Геометрия в цене?"),
-        a: L("Nie — geometria to osobna usługa. Zalecamy ją po wymianie elementów wpływających na kąty.", "Нет — отдельная услуга, рекомендуем после рычагов.", "No — , after", "Ні — отдельная услуга, рекомендуємо після рычагов."),
+        a: L("Nie. Geometrii nie wykonujemy. Po wymianie elementów, które zmieniają kąty, ustawienie trzeba zrobić w innym warsztacie.", "Нет — отдельная услуга, рекомендуем после рычагов.", "No — , after", "Ні — отдельная услуга, рекомендуємо після рычагов."),
       },
       {
         q: L("Lewy czy prawy?", "Левый или правый?", "Or ?", "Левый або правый?"),
@@ -970,7 +970,7 @@ export const EXTRA_SEO_SERVICE_PROFILES_BATCH2: Record<string, SlugLandingProfil
       },
       {
         title: L("Jak naprawiamy", "Как ремонтируем", "How", "Как ремонтируем"),
-        body: L("Diagnozujemy, wskazujemy zużyty element, wyceniamy i wymieniamy po akceptacji. Po drążkach/końcówkach zalecamy geometrię.", "Диагностика, смета, замена; после тяг — геометрия.", "Diagnostics, quote, replacement; after —", "Діагностика, кошторис, заміна; після тяг — геометрия."),
+        body: L("Diagnozujemy, wskazujemy zużyty element, wyceniamy i wymieniamy po akceptacji. Geometrii kół nie wykonujemy.", "Диагностика, смета, замена; после тяг — геометрия.", "Diagnostics, quote, replacement; after —", "Діагностика, кошторис, заміна; після тяг — геометрия."),
       },
       {
         title: L("Czas i koszt", "Срок и цена", "Time and price", "Срок і ціна"),
@@ -988,7 +988,7 @@ export const EXTRA_SEO_SERVICE_PROFILES_BATCH2: Record<string, SlugLandingProfil
       },
       {
         q: L("Czy macie geometrię?", "Есть геометрия?", "Details and quote at BESS MOTORS — Aleja Krakowska 48/52. Call +48 791 257 229.", "Есть геометрия?"),
-        a: L("Tak — możesz umówić geometrię po naprawie kierownicy lub zawieszenia.", "Да — можно записать на геометрию после ремонта.", "Yes — you can booking after", "Так — можна записать на геометрию після ремонта."),
+        a: L("Nie. Geometrii nie wykonujemy.", "Да — можно записать на геометрию после ремонта.", "Yes — you can booking after", "Так — можна записать на геометрию після ремонта."),
       },
       {
         q: L("Jak umówić diagnostykę?", "Как записаться?", "How booking?", "Как записаться?"),
@@ -1023,7 +1023,7 @@ export const EXTRA_SEO_SERVICE_PROFILES_BATCH2: Record<string, SlugLandingProfil
       },
       {
         title: L("Zakres usługi", "Объём", "Scope", "Объём"),
-        body: L("Potwierdzamy usterkę, wyceniamy regenerację lub wymianę, montujemy i zalecamy geometrię po pracach.", "Подтверждение, смета, монтаж, геометрия после работ.", "Quote, , after labour", "Подтверждение, кошторис, монтаж, геометрия після работ."),
+        body: L("Potwierdzamy usterkę, wyceniamy regenerację lub wymianę i montujemy. Geometrii kół nie wykonujemy.", "Подтверждение, смета, монтаж, геометрия после работ.", "Quote, , after labour", "Подтверждение, кошторис, монтаж, геометрия після работ."),
       },
       {
         title: L("Czas i koszt", "Срок и цена", "Time and price", "Срок і ціна"),
@@ -1053,16 +1053,16 @@ export const EXTRA_SEO_SERVICE_PROFILES_BATCH2: Record<string, SlugLandingProfil
   "wymiana-drazkow-kierowniczych-warszawa": {
     bookServiceId: "suspension",
     contentServiceId: "suspension",
-    faqDuration: L("Wymiana końcówek/drążków zwykle 1–3 godziny + geometria osobno.", "Замена наконечников/тяг обычно 1–3 часа.", "Replacement / usually 1–3 hours", "Заміна наконечников/тяг зазвичай 1–3 год."),
+    faqDuration: L("Wymiana końcówek/drążków zwykle 1–3 godziny. Geometrii nie wykonujemy.", "Замена наконечников/тяг обычно 1–3 часа.", "Replacement / usually 1–3 hours", "Заміна наконечников/тяг зазвичай 1–3 год."),
     price: {
           fromZl: getPriceItem("tie_rod")?.basePrice ?? 200,
           priceFrom: true,
           materialsExtra: true,
-          note: L("Wymiana końcówki drążka kierowniczego według cennika. Po wymianie zalecamy geometrię.", "Замена наконечника по прайсу. После рекомендуем геометрию.", "Replacement price list. after", "Заміна наконечника по прайсу. Після рекомендуємо геометрию."),
+          note: L("Wymiana końcówki drążka kierowniczego według cennika. Geometrii nie wykonujemy.", "Замена наконечника по прайсу. После рекомендуем геометрию.", "Replacement price list. after", "Заміна наконечника по прайсу. Після рекомендуємо геометрию."),
           includes: [
             L("Diagnostyka luzów na końcówkach", "Диагностика люфтов наконечников", "Diagnostics", "Діагностика люфтов наконечников"),
             L("Wymiana według wyceny", "Замена по смете", "Replacement quote", "Заміна по смете"),
-            L("Zalecenie geometrii po montażu", "Рекомендация геометрии", "Details and quote at BESS MOTORS — Aleja Krakowska 48/52. Call +48 791 257 229.", "Рекомендация геометрии"),
+            L("Informacja, że geometrii u nas nie ma", "Рекомендация геометрии", "Details and quote at BESS MOTORS — Aleja Krakowska 48/52. Call +48 791 257 229.", "Рекомендация геометрии"),
           ],
         },
     education: [
@@ -1076,11 +1076,11 @@ export const EXTRA_SEO_SERVICE_PROFILES_BATCH2: Record<string, SlugLandingProfil
       },
       {
         title: L("Jak wygląda wizyta", "Как проходит визит", "How the visit works", "Как проходит визит"),
-        body: L("Kontrola na podnośniku, wycena, wymiana, jazda próbna. Geometrię umawiamy osobno lub od razu po montażu.", "Проверка, смета, замена, тест. Геометрия отдельно или сразу.", "Quote, replacement, . or", "Проверка, кошторис, заміна, тест. Геометрия отдельно або сразу."),
+        body: L("Kontrola na podnośniku, wycena, wymiana, jazda próbna. Geometrię trzeba umówić w innym warsztacie.", "Проверка, смета, замена, тест. Геометрия отдельно или сразу.", "Quote, replacement, . or", "Проверка, кошторис, заміна, тест. Геометрия отдельно або сразу."),
       },
       {
         title: L("Czas i koszt", "Срок и цена", "Time and price", "Срок і ціна"),
-        body: L("Często 1–3 h. Robocizna od pozycji w cenniku + części. Geometria — osobna usługa.", "Часто 1–3 ч. Работа по прайсу + детали.", "Hours 1–3 . labour price list + parts", "Часто 1–3 ч. Робота по прайсу + детали."),
+        body: L("Często 1–3 h. Robocizna od pozycji w cenniku + części. Geometrii nie wykonujemy.", "Часто 1–3 ч. Работа по прайсу + детали.", "Hours 1–3 . labour price list + parts", "Часто 1–3 ч. Робота по прайсу + детали."),
       },
       {
         title: L("Dlaczego BESS MOTORS", "Почему BESS MOTORS", "Why BESS MOTORS", "Чому BESS MOTORS"),
@@ -1094,7 +1094,7 @@ export const EXTRA_SEO_SERVICE_PROFILES_BATCH2: Record<string, SlugLandingProfil
       },
       {
         q: L("Czy mogę odłożyć geometrię?", "Можно отложить геометрию?", "You can ?", "Можна отложить геометрию?"),
-        a: L("Lepiej nie — bez geometrii opony i kierunek jazdy mogą ucierpieć.", "Лучше не откладывать — страдают шины и курс.", "— tyres and", "Лучше не откладывать — страдают шины і курс."),
+        a: L("Bez ustawienia kątów opony mogą zużywać się nierówno. Tej usługi u nas nie ma.", "Лучше не откладывать — страдают шины и курс.", "— tyres and", "Лучше не откладывать — страдают шины і курс."),
       },
       {
         q: L("Czy to wpływa na przegląd?", "Влияет на техосмотр?", "Details and quote at BESS MOTORS — Aleja Krakowska 48/52. Call +48 791 257 229.", "Влияет на техосмотр?"),
@@ -1843,7 +1843,7 @@ export const EXTRA_SEO_SERVICE_PROFILES_BATCH2: Record<string, SlugLandingProfil
     education: [
       {
         title: L("Co obejmuje serwis automatu?", "Что входит", "What", "Що входит"),
-        body: L("Dobór ATF, wymiana oleju (i filtra gdy trzeba), kontrola poziomu i jazda próbna. Nie każdy automat „płucze się” dynamicznie.", "Подбор ATF, замена, фильтр при необходимости, тест.", "ATF, replacement, filter", "Подбор ATF, заміна, фільтр при необходимости, тест."),
+        body: L("Dobór ATF, wymiana statyczna lub częściowa (i filtr gdy trzeba), kontrola poziomu i jazda próbna. Dynamicznej wymiany ATF nie wykonujemy.", "Подбор ATF, статическая или частичная замена, фильтр при необходимости, тест. Динамическую замену не делаем.", "ATF selection, static or partial change, filter when needed. We do not do a dynamic ATF exchange.", "Підбір ATF, статична або часткова заміна, фільтр за потреби. Динамічну заміну не робимо."),
       },
       {
         title: L("Kiedy serwisować?", "Когда обслуживать", "When", "Коли обслуживать"),
@@ -1869,7 +1869,7 @@ export const EXTRA_SEO_SERVICE_PROFILES_BATCH2: Record<string, SlugLandingProfil
       },
       {
         q: L("Częściowa czy pełna wymiana?", "Частичная или полная?", "Hours or ?", "Частичная або полная?"),
-        a: L("Dobieramy do typu skrzyni i zaleceń — nie każda wymaga płukania dynamicznego.", "По типу КПП — не каждой нужна динамическая промывка.", "Details and quote at BESS MOTORS — Aleja Krakowska 48/52. Call +48 791 257 229.", "По типу КПП — не каждой нужна динамическая промывка."),
+        a: L("Nie. Dynamicznej wymiany ATF nie wykonujemy. Olej dobieramy do typu skrzyni i wymieniamy statycznie albo częściowo.", "Нет. Динамическую замену ATF не делаем. Масло подбираем по типу КПП и меняем статически или частично.", "No. We do not perform a dynamic ATF exchange. Oil is matched to the gearbox and changed statically or partially.", "Ні. Динамічну заміну ATF не робимо. Оливу підбираємо за типом КПП і міняємо статично або частково."),
       },
       {
         q: L("Jak umówić?", "Как записаться?", "How booking?", "Как записаться?"),
@@ -2000,7 +2000,7 @@ export const EXTRA_SEO_SERVICE_PROFILES_BATCH2: Record<string, SlugLandingProfil
       },
       {
         title: L("Dojazd z Okęcia / lotniska", "Доезд с Okęcie", "Okęcie", "Доезд с Okęcie"),
-        body: L("Aleja Krakowska to główna oś — wygodnie z terminali, hoteli przy lotnisku i osiedli na Okęciu. Pn–Sb 8:00–18:00.", "Удобно с терминалов и районов Okęcie. Пн–Сб 8:00–18:00.", "Min and Okęcie. – 8:00–18:00", "Удобно с терминалов і районов Okęcie. Пн–Сб 8:00–18:00."),
+        body: L("Aleja Krakowska to główna oś — wygodnie z terminali, hoteli przy lotnisku i osiedli na Okęciu. Pn–Pt 9:00–18:00, Sb 9:00–14:00.", "Удобно с терминалов и районов Okęcie. Пн–Пт 9:00–18:00, Сб 9:00–14:00.", "Near the airport and Okęcie. Mon–Fri 9:00–18:00, Sat 9:00–14:00.", "Удобно с терминалов і районов Okęcie. Пн–Пт 9:00–18:00, Сб 9:00–14:00."),
       },
       {
         title: L("Jak umówić", "Как записаться", "How to book", "Как записаться"),
@@ -2032,17 +2032,17 @@ export const EXTRA_SEO_SERVICE_PROFILES_BATCH2: Record<string, SlugLandingProfil
 export const EXTRA_SEO_RELATED_BATCH2: Record<string, string[]> = {
   "wulkanizacja-warszawa": ["sezonowa-wymiana-opon-warszawa", "wymiana-opon-warszawa", "wywazanie-kol-warszawa", "naprawa-opon-warszawa", "opony"],
   "wymiana-opon-warszawa": ["sezonowa-wymiana-opon-warszawa", "wulkanizacja-warszawa", "wywazanie-kol-warszawa", "naprawa-opon-warszawa", "opony"],
-  "sezonowa-wymiana-opon-warszawa": ["wymiana-opon-warszawa", "wulkanizacja-warszawa", "wywazanie-kol-warszawa", "naprawa-opon-warszawa", "opony", "geometria"],
-  "wywazanie-kol-warszawa": ["wulkanizacja-warszawa", "wymiana-opon-warszawa", "geometria", "naprawa-opon-warszawa"],
+  "sezonowa-wymiana-opon-warszawa": ["wymiana-opon-warszawa", "wulkanizacja-warszawa", "wywazanie-kol-warszawa", "naprawa-opon-warszawa", "opony"],
+  "wywazanie-kol-warszawa": ["wulkanizacja-warszawa", "wymiana-opon-warszawa", "naprawa-opon-warszawa"],
   "naprawa-opon-warszawa": ["wulkanizacja-warszawa", "wymiana-opon-warszawa", "wywazanie-kol-warszawa", "opony"],
   "wymiana-klockow-hamulcowych-warszawa": ["hamulce-warszawa", "wymiana-tarcz-hamulcowych-warszawa", "wymiana-plynu-hamulcowego-warszawa", "hamulce"],
   "wymiana-tarcz-hamulcowych-warszawa": ["hamulce-warszawa", "wymiana-klockow-hamulcowych-warszawa", "wymiana-plynu-hamulcowego-warszawa", "hamulce"],
   "wymiana-plynu-hamulcowego-warszawa": ["hamulce-warszawa", "wymiana-klockow-hamulcowych-warszawa", "wymiana-tarcz-hamulcowych-warszawa", "hamulce"],
-  "wymiana-amortyzatorow-warszawa": ["naprawa-zawieszenia-warszawa", "wymiana-wahaczy-warszawa", "wymiana-lozyska-kola-warszawa", "geometria"],
-  "wymiana-wahaczy-warszawa": ["naprawa-zawieszenia-warszawa", "wymiana-amortyzatorow-warszawa", "wymiana-lozyska-kola-warszawa", "geometria"],
-  "naprawa-ukladu-kierowniczego-warszawa": ["wymiana-przekladni-kierowniczej-warszawa", "wymiana-drazkow-kierowniczych-warszawa", "naprawa-zawieszenia-warszawa", "geometria"],
-  "wymiana-przekladni-kierowniczej-warszawa": ["naprawa-ukladu-kierowniczego-warszawa", "wymiana-drazkow-kierowniczych-warszawa", "geometria", "naprawa-zawieszenia-warszawa"],
-  "wymiana-drazkow-kierowniczych-warszawa": ["naprawa-ukladu-kierowniczego-warszawa", "wymiana-przekladni-kierowniczej-warszawa", "geometria", "naprawa-zawieszenia-warszawa"],
+  "wymiana-amortyzatorow-warszawa": ["naprawa-zawieszenia-warszawa", "wymiana-wahaczy-warszawa", "wymiana-lozyska-kola-warszawa"],
+  "wymiana-wahaczy-warszawa": ["naprawa-zawieszenia-warszawa", "wymiana-amortyzatorow-warszawa", "wymiana-lozyska-kola-warszawa"],
+  "naprawa-ukladu-kierowniczego-warszawa": ["wymiana-przekladni-kierowniczej-warszawa", "wymiana-drazkow-kierowniczych-warszawa", "naprawa-zawieszenia-warszawa"],
+  "wymiana-przekladni-kierowniczej-warszawa": ["naprawa-ukladu-kierowniczego-warszawa", "wymiana-drazkow-kierowniczych-warszawa", "naprawa-zawieszenia-warszawa"],
+  "wymiana-drazkow-kierowniczych-warszawa": ["naprawa-ukladu-kierowniczego-warszawa", "wymiana-przekladni-kierowniczej-warszawa", "naprawa-zawieszenia-warszawa"],
   "wymiana-filtrow-warszawa": ["wymiana-oleju-warszawa", "wymiana-oleju", "przeglad", "diagnostyka-komputerowa-warszawa"],
   "wymiana-plynu-chlodniczego-warszawa": ["wymiana-pompy-wody-warszawa", "wymiana-rozrzadu-warszawa", "silnik", "diagnostyka-silnika-warszawa"],
   "wymiana-swiec-zaplonowych-warszawa": ["diagnostyka-silnika-warszawa", "diagnostyka-komputerowa-warszawa", "wymiana-oleju-warszawa", "silnik"],
@@ -2056,7 +2056,7 @@ export const EXTRA_SEO_RELATED_BATCH2: Record<string, string[]> = {
   "wymiana-pompy-wody-warszawa": ["wymiana-rozrzadu-warszawa", "wymiana-plynu-chlodniczego-warszawa", "silnik", "diagnostyka-silnika-warszawa"],
   "wymiana-uszczelki-pokrywy-zaworow-warszawa": ["diagnostyka-silnika-warszawa", "wymiana-oleju-warszawa", "silnik", "wymiana-poduszki-silnika-warszawa"],
   "wymiana-poduszki-silnika-warszawa": ["diagnostyka-silnika-warszawa", "wymiana-uszczelki-pokrywy-zaworow-warszawa", "silnik", "wymiana-sprzegla-warszawa"],
-  "wymiana-lozyska-kola-warszawa": ["naprawa-zawieszenia-warszawa", "wymiana-amortyzatorow-warszawa", "wymiana-wahaczy-warszawa", "geometria"],
+  "wymiana-lozyska-kola-warszawa": ["naprawa-zawieszenia-warszawa", "wymiana-amortyzatorow-warszawa", "wymiana-wahaczy-warszawa"],
   "serwis-skrzyni-automatycznej-warszawa": ["wymiana-oleju-skrzynia-automatyczna-warszawa", "wymiana-oleju-dsg-warszawa", "serwis-haldex-warszawa", "diagnostyka-komputerowa-warszawa"],
   "wymiana-oleju-dsg-warszawa": ["wymiana-oleju-skrzynia-automatyczna-warszawa", "serwis-skrzyni-automatycznej-warszawa", "serwis-haldex-warszawa", "vag"],
   "serwis-haldex-warszawa": ["wymiana-oleju-dsg-warszawa", "serwis-skrzyni-automatycznej-warszawa", "wymiana-oleju-skrzynia-automatyczna-warszawa", "vag"],
@@ -2065,7 +2065,7 @@ export const EXTRA_SEO_RELATED_BATCH2: Record<string, string[]> = {
 
 export const EXTRA_SEO_RELATED_PARENT_UPDATES: Record<string, string[]> = {
   "hamulce-warszawa": ["wymiana-klockow-hamulcowych-warszawa", "wymiana-tarcz-hamulcowych-warszawa", "wymiana-plynu-hamulcowego-warszawa", "naprawa-zawieszenia-warszawa"],
-  "naprawa-zawieszenia-warszawa": ["wymiana-amortyzatorow-warszawa", "wymiana-wahaczy-warszawa", "wymiana-lozyska-kola-warszawa", "geometria"],
+  "naprawa-zawieszenia-warszawa": ["wymiana-amortyzatorow-warszawa", "wymiana-wahaczy-warszawa", "wymiana-lozyska-kola-warszawa"],
   "diagnostyka-komputerowa-warszawa": ["diagnostyka-silnika-warszawa", "diagnostyka-dymem-warszawa", "test-kompresji-warszawa", "diagnostyka-przed-zakupem-warszawa"],
   "wymiana-oleju-skrzynia-automatyczna-warszawa": ["serwis-skrzyni-automatycznej-warszawa", "wymiana-oleju-dsg-warszawa", "serwis-haldex-warszawa", "diagnostyka-komputerowa-warszawa"],
   "mechanik-warszawa-wlochy": ["mechanik-warszawa-okecie", "wymiana-oleju-warszawa", "diagnostyka-komputerowa-warszawa", "wulkanizacja-warszawa"],

@@ -7,7 +7,7 @@ import { Footer } from "@/components/layout/Footer";
 import { StickyContactBar } from "@/components/layout/StickyContactBar";
 import { ChatFloatingButtons } from "@/components/layout/ChatFloatingButtons";
 
-const MINIMAL_CHROME_PREFIXES = ["/crm", "/admin", "/mechanic", "/sign"];
+const MINIMAL_CHROME_PREFIXES = ["/crm", "/admin", "/mechanic", "/sign", "/telegram"];
 
 function usesMinimalChrome(pathname: string): boolean {
   return MINIMAL_CHROME_PREFIXES.some(

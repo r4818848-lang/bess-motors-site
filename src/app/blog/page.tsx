@@ -6,7 +6,7 @@ import { buildPageMetadata } from "@/lib/seo-metadata";
 export const metadata: Metadata = buildPageMetadata({
   title: "Blog — porady serwisowe Warszawa",
   description:
-    "Porady BESS MOTORS Warszawa: wymiana oleju, Check Engine, hamulce, geometria kół, chip tuning. Warsztat Włochy, Aleja Krakowska 48/52.",
+    "Porady BESS MOTORS Warszawa: wymiana oleju, Check Engine, hamulce i opony. Warsztat Włochy, Aleja Krakowska 48/52.",
   path: "/blog",
 });
 

@@ -64,6 +64,7 @@ export async function createTelegramBooking(params: {
   const slotCheck = await assertBookingSlotAvailable({
     date: params.date,
     time: params.time,
+    serviceIds: [params.serviceId],
   });
   if (!slotCheck.ok) {
     return { ok: false, error: slotCheck.error };
@@ -183,7 +184,12 @@ export async function getClientAppointmentsByPhone(phone: string): Promise<Appoi
   const normalized = normalizePhone(phone);
   if (!normalized) return [];
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Warsaw",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
 
   return db.appointments
     .filter((a) => {

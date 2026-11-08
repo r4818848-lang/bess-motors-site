@@ -29,8 +29,7 @@ export function SymptomFaq() {
                 >
                   {useRu ? entry.questionRu : entry.questionPl}
                 </button>
-                {isOpen && (
-                  <div className="px-4 pb-4 text-sm text-bm-muted space-y-3">
+                <div hidden={!isOpen} className="px-4 pb-4 text-sm text-bm-muted space-y-3">
                     <p>{useRu ? entry.answerRu : entry.answerPl}</p>
                     <div className="flex flex-wrap gap-2">
                       {entry.serviceIds.map((sid) => (
@@ -44,7 +43,6 @@ export function SymptomFaq() {
                       ))}
                     </div>
                   </div>
-                )}
               </div>
             );
           })}

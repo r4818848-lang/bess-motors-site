@@ -39,6 +39,7 @@ const statuses: RepairStatus[] = [
 const appointmentStatuses: AppointmentStatus[] = [
   "scheduled",
   "confirmed",
+  "in_progress",
   "completed",
   "cancelled",
 ];
@@ -111,12 +112,20 @@ export function AppointmentCalendar({
     [appointments]
   );
 
+  const [scheduleError, setScheduleError] = useState("");
+
   const persistApt = async (fresh: ReturnType<typeof loadDb>, apt: Appointment) => {
     setSyncing(true);
     const ok = await syncAppointmentToCloud(fresh, apt);
     setSyncing(false);
-    if (!ok) return;
+    if (!ok) {
+      setScheduleError("cloud");
+      return false;
+    }
+    saveDb(fresh);
     setSelected({ ...apt });
+    setScheduleError("");
+    return true;
   };
 
   const moveAppointment = (id: string, date: string, time: string) => {
@@ -126,9 +135,14 @@ export function AppointmentCalendar({
     const previous = { date: apt.date, time: apt.time, appointmentStatus: apt.appointmentStatus };
     apt.date = date;
     apt.time = time;
-    handleAppointmentNotification(fresh, apt, "rescheduled", previous);
-    saveDb(fresh);
-    void persistApt(fresh, apt);
+    void persistApt(fresh, apt).then((ok) => {
+      if (ok) handleAppointmentNotification(fresh, apt, "rescheduled", previous);
+      else {
+        apt.date = previous.date;
+        apt.time = previous.time;
+        apt.appointmentStatus = previous.appointmentStatus;
+      }
+    });
   };
 
   const updateSelected = (patch: Partial<Appointment>) => {
@@ -149,8 +163,16 @@ export function AppointmentCalendar({
     if (wantsConfirm && !apt.workOrderId) {
       createWorkOrderFromAppointment(fresh, apt, serviceLabel);
     }
-    saveDb(fresh);
-    void persistApt(fresh, apt);
+    const slotChanged = patch.date !== undefined || patch.time !== undefined;
+    void persistApt(fresh, apt).then((ok) => {
+      if (!ok) {
+        apt.date = previous.date;
+        apt.time = previous.time;
+        apt.appointmentStatus = previous.appointmentStatus;
+        return;
+      }
+      if (slotChanged) handleAppointmentNotification(fresh, apt, "rescheduled", previous);
+    });
   };
 
   const confirmSelectedBooking = () => {
@@ -224,6 +246,9 @@ export function AppointmentCalendar({
 
   return (
     <div className="space-y-6">
+      {scheduleError && (
+        <p className="text-xs text-bm-red">Сервер отклонил время записи. Локальная копия не сохранена.</p>
+      )}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h2 className="font-display text-xl uppercase text-glow">{cal.title}</h2>
         <div className="flex flex-wrap gap-2">

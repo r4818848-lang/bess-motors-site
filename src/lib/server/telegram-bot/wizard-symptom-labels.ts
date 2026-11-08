@@ -7,7 +7,7 @@ const LABELS: Record<WizardSymptomId, Record<BotLocale, string>> = {
   brakes_weak: { pl: "Słabe hamulce", ru: "Слабые тормоза", uk: "Слабкі гальма", en: "Weak brakes" },
   ac_weak: { pl: "Słaba klimatyzacja", ru: "Слабый кондиционер", uk: "Слабкий кондиціонер", en: "Weak A/C" },
   oil_service: { pl: "Serwis oleju", ru: "Замена масла", uk: "Заміна масла", en: "Oil service" },
-  tires: { pl: "Opony / geometria", ru: "Шины / развал", uk: "Шини / розвал", en: "Tires / alignment" },
+  tires: { pl: "Opony", ru: "Шины", uk: "Шини", en: "Tyres" },
   chip_power: { pl: "Chip / moc", ru: "Чип / мощность", uk: "Чіп / потужність", en: "Chip tuning" },
   electrical: { pl: "Elektryka", ru: "Электрика", uk: "Електрика", en: "Electrical" },
 };

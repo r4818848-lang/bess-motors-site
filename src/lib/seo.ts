@@ -20,7 +20,13 @@ export const sitemapExcludedSlugs = new Set([
 ]);
 
 /** Published URL kept for bookmarks but noindex until equipment/content confirmed */
-export const pendingNoIndexSlugs = new Set(["chip-tuning-warszawa"]);
+export const pendingNoIndexSlugs = new Set(["chip-tuning-warszawa", "geometria"]);
+
+/**
+ * Sitemap lastmod. Bump only when public page content, hours or schema change.
+ * Do not use `new Date()` — that marks every URL as edited on each build.
+ */
+export const SITEMAP_LAST_MODIFIED = new Date("2026-11-08T08:00:00.000Z");
 
 export const HOME_SEO_TITLE =
   "Mechanik Warszawa Włochy | Warsztat Samochodowy BESS MOTORS";

@@ -392,7 +392,25 @@ export interface PasswordResetRecord {
   createdAt: string;
 }
 
-export type AppointmentStatus = "scheduled" | "confirmed" | "completed" | "cancelled";
+export type AppointmentStatus =
+  | "scheduled"
+  | "confirmed"
+  | "in_progress"
+  | "completed"
+  | "cancelled";
+
+export type AdminReminderStatus = "pending" | "sending" | "sent" | "failed" | "cancelled";
+
+export interface AdminReminderState {
+  dueAt?: string;
+  status?: AdminReminderStatus;
+  sentAt?: string;
+  sendingAt?: string;
+  attempts?: number;
+  lastError?: string;
+  kind?: "two_hour" | "soon";
+  deliveredChatIds?: string[];
+}
 
 export type CallRequestStatus = "needs_call" | "called" | "done";
 
@@ -445,6 +463,19 @@ export interface Appointment extends MarketingAttributionFields {
   createdAt: string;
   reminderDayBeforeSentAt?: string;
   reminder2hSentAt?: string;
+  /** Labour time in minutes. Arrival time stays in `time`. */
+  durationMinutes?: number;
+  /** Inclusive last day the car stays at the workshop. */
+  holdUntil?: string;
+  /** Staff planned a job that continues after closing. */
+  multiDay?: boolean;
+  problemText?: string;
+  /** Also ping the assigned mechanic 2 hours before arrival. */
+  notifyMechanic?: boolean;
+  /** Idempotency key for a staff create request. */
+  clientRequestId?: string;
+  updatedAt?: string;
+  adminReminder?: AdminReminderState;
 }
 
 export interface WarehouseItem {

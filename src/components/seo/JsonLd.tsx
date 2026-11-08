@@ -9,6 +9,7 @@ import {
 import { businessAggregateRatingSchema } from "@/lib/seo-business-rating";
 import { oilBrakePromoCatalogSchema } from "@/lib/oil-brake-promo";
 import { gbpPhotoUrls } from "@/lib/google-business-facts";
+import { businessOpeningHoursSpecification } from "@/lib/businessConfig";
 
 /** Global Schema.org — local business + website (FAQ only on /faq and landing pages) */
 export function JsonLd() {
@@ -36,14 +37,7 @@ export function JsonLd() {
       addressCountry: SITE_NAP.addressCountry,
     },
     geo: schemaGeoCoordinates(),
-    openingHoursSpecification: [
-      {
-        "@type": "OpeningHoursSpecification",
-        dayOfWeek: [...SITE_NAP.openingHours.days],
-        opens: SITE_NAP.openingHours.opens,
-        closes: SITE_NAP.openingHours.closes,
-      },
-    ],
+    openingHoursSpecification: businessOpeningHoursSpecification(),
     priceRange: SITE_NAP.priceRange,
     currenciesAccepted: "PLN",
     paymentAccepted: SITE_NAP.paymentAccepted.join(", "),
@@ -86,17 +80,6 @@ export function JsonLd() {
             ],
           },
         },
-      },
-      {
-        "@type": "BreadcrumbList",
-        itemListElement: [
-          {
-            "@type": "ListItem",
-            position: 1,
-            name: "Strona główna",
-            item: siteUrl,
-          },
-        ],
       },
     ],
   };

@@ -66,6 +66,8 @@ function handled(data) {
   if (data.startsWith("cons:")) return true;
   if (data === "imp:menu" || data === "imp:phone" || data === "imp:confirm") return true;
   if (data.startsWith("imp:")) return true;
+  if (data.startsWith("fpart:")) return true;
+  if (data === "cal:today" || data === "cal:tomorrow") return true;
   return false;
 }
 
