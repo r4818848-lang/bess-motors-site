@@ -24,6 +24,9 @@ import {
 } from "../src/lib/smart-scheduler/schedule";
 import { guardScheduler, isGuardError, mechanicMayPlan } from "../src/lib/smart-scheduler/access";
 import { readOnlyAppointments } from "../src/lib/smart-scheduler/crm-read";
+import { schedulerDatabaseUrl } from "../src/lib/smart-scheduler/postgres";
+import { visibleToActor, responseLeaksSecrets } from "../src/lib/smart-scheduler/visibility";
+import { assembleBoard } from "../src/lib/smart-scheduler/board";
 import { syntheticSnapshot, upcomingMonday } from "../src/lib/smart-scheduler/fixture";
 import { mechanicColumn } from "../src/lib/smart-scheduler/identity";
 import { cancelOnLedger, linkExistingWorkOrder, moveOnLedger, reserveOnLedger, resetSchedulerLedger, schedulerLedgerSnapshot } from "../src/lib/smart-scheduler/ledger";
@@ -190,7 +193,11 @@ assert.equal(secondColumn.id, "mech-2");
 assert.equal(secondColumn.label, "Piotr Nowak");
 assert.equal(effectiveMode(oil, undefined, true), "APPROVAL");
 assert.equal(canAutoBook({ operation: oil, parts: "unknown", resources: defaultSchedulerSettings.resources, resourceIds: ["lift-1"] }).auto, false);
-assert.equal(canAutoBook({ operation: oil, parts: "available", resources: defaultSchedulerSettings.resources.map((item) => item.id === "lift-1" ? { ...item, operational: false } : item), resourceIds: ["lift-1"] }).reason, "equipment");
+assert.equal(defaultSchedulerSettings.resources.every((item) => item.confirmed === false && item.status === "maintenance"), true);
+assert.equal(defaultSchedulerSettings.schedules.every((item) => item.breaks.length === 0 && item.shiftStart == null), true);
+assert.equal(canAutoBook({ operation: oil, parts: "available", resources: defaultSchedulerSettings.resources, resourceIds: ["lift-1"] }).reason, "equipment");
+const confirmedResources = defaultSchedulerSettings.resources.map((item) => ({ ...item, status: "available" as const, confirmed: true }));
+assert.equal(canAutoBook({ operation: oil, parts: "available", resources: confirmedResources, resourceIds: ["lift-1"] }).reason, "ok");
 assert.equal(excludedFromAuto({ ...oil, operationNameRu: "Замена ремня ГРМ", operationNamePl: "Rozrząd" }), true);
 assert.equal(excludedFromAuto(byCode.get("DI-014") ?? oil), true);
 assert.equal(canAutoBook({ operation: byCode.get("DI-014") ?? tube, parts: "available", resources: defaultSchedulerSettings.resources, resourceIds: ["diag-1"] }).auto, false);
@@ -223,6 +230,43 @@ const hidden = readOnlyAppointments({
 assert.equal(JSON.stringify(hidden).includes("+48111222333"), false);
 assert.equal(JSON.stringify(hidden).includes("Hidden Person"), false);
 assert.equal(JSON.stringify(hidden).includes("+48000000000"), false);
+const withVin = readOnlyAppointments({
+  mechanics: [{ id: "mech-1", name: "Siergiej" }, { id: "mech-2", name: "Piotr Nowak" }],
+  vehicles: [{ id: "v1", vin: "TESTVIN0000000001", plate: "WX1001", make: "Test", model: "Compact" }],
+  appointments: [
+    { id: "own", date: "2026-11-09", time: "11:00", mechanicId: "mech-1", workStart: "11:00", workMinutes: 45, vehicleId: "v1", clientPhone: "+48111222333" },
+    { id: "other", date: "2026-11-09", time: "11:20", mechanicId: "mech-2", workStart: "11:20", workMinutes: 60, clientPlate: "WX9999" },
+  ],
+  workOrders: [],
+}, hours);
+const mechanicView = visibleToActor({ role: "mechanic", mechanicId: "mech-1", canEdit: false }, withVin.appointments);
+assert.deepEqual(mechanicView.map((item) => item.id), ["own"]);
+assert.equal(JSON.stringify(mechanicView).includes("WX9999"), false);
+assert.equal(JSON.stringify(withVin).includes("TESTVIN0000000001"), false);
+assert.equal(responseLeaksSecrets(mechanicView), false);
+assert.equal(visibleToActor({ role: "admin", canEdit: true }, withVin.appointments).length, 2);
+assert.equal(visibleToActor({ role: "owner", canEdit: true }, withVin.appointments).length, 2);
+const liveBoard = assembleBoard({ mode: "live", actor: { role: "owner", canEdit: true }, now: new Date("2026-11-08T12:00:00Z"), hours, crm: null, settings: defaultSchedulerSettings });
+assert.equal(liveBoard.snapshot.appointments.length, 0);
+assert.equal(liveBoard.snapshot.source, "live");
+assert.equal(JSON.stringify(liveBoard).includes("WX1001"), false);
+const mechanicBoard = assembleBoard({ mode: "test", actor: { role: "mechanic", mechanicId: "mech-1", canEdit: false }, now: new Date("2026-11-08T12:00:00Z"), hours, crm: null, settings: defaultSchedulerSettings });
+assert.equal(mechanicBoard.snapshot.appointments.every((item) => item.mechanicId === "mech-1"), true);
+assert.equal(JSON.stringify(mechanicBoard).includes("WX1002"), false);
+assert.match(mechanicBoard.message, /TEST/);
+const savedDatabase = process.env.SCHEDULER_DATABASE_URL;
+const savedVercelForDatabase = process.env.VERCEL_ENV;
+process.env.SCHEDULER_DATABASE_URL = "postgresql://example.supabase.co/postgres";
+assert.equal(schedulerDatabaseUrl(), null);
+process.env.SCHEDULER_DATABASE_URL = "postgresql://ubuntu@/bess_scheduler_test?host=/var/run/postgresql";
+delete process.env.VERCEL_ENV;
+assert.equal(schedulerDatabaseUrl() != null, true);
+process.env.VERCEL_ENV = "production";
+assert.equal(schedulerDatabaseUrl(), null);
+if (savedDatabase === undefined) delete process.env.SCHEDULER_DATABASE_URL;
+else process.env.SCHEDULER_DATABASE_URL = savedDatabase;
+if (savedVercelForDatabase === undefined) delete process.env.VERCEL_ENV;
+else process.env.VERCEL_ENV = savedVercelForDatabase;
 
 void (async () => {
   resetSchedulerLedger();
@@ -273,15 +317,19 @@ void (async () => {
 
   const draft = readFileSync(join(process.cwd(), "supabase/drafts/smart-scheduler.sql"), "utf8");
   assert.match(draft, /DRAFT ONLY/);
-  assert.match(draft, /revoke all on table public.scheduler_operations from anon, authenticated/);
+  assert.match(draft, /revoke all on table public.scheduler_operations from public, scheduler_anon/);
+  assert.match(draft, /'anon', 'authenticated'/);
+  assert.match(draft, /force row level security/);
   assert.match(draft, /scheduler_mechanic_no_overlap/);
   assert.match(draft, /scheduler_resource_no_overlap/);
-  assert.match(draft, /revoke all on table public.scheduler_resource_holds from anon, authenticated/);
+  assert.match(draft, /scheduler_reservations/);
+  assert.match(draft, /'maintenance', false/);
   const seed = readFileSync(join(process.cwd(), "supabase/drafts/smart-scheduler-test-seed.sql"), "utf8");
   assert.match(seed, /TEST DATABASE ONLY/);
   assert.doesNotMatch(seed, /\+48\d/);
   const route = readFileSync(join(process.cwd(), "src/app/api/internal/schedule/reservations/route.ts"), "utf8");
-  assert.doesNotMatch(route, /body\.store|request\.store/);
+  assert.doesNotMatch(route, /body\.store|request\.store|reserveOnLedger|moveOnLedger|cancelOnLedger/);
+  assert.match(route, /bookInDatabase/);
   const schedulerSource = readFileSync(join(process.cwd(), "src/lib/smart-scheduler/schedule.ts"), "utf8");
   assert.doesNotMatch(schedulerSource, /250\s*zł|price\s*:/);
   console.log("smart scheduler ok");

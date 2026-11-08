@@ -1,13 +1,18 @@
--- DRAFT ONLY. Do not run this file on production.
--- It is not part of a deployment. The planner flag SMART_WORK_SCHEDULER stays false.
--- No existing crm_store or appointments rows are copied or updated.
---
--- Rollback after an accidental test-database run:
---   drop table if exists public.scheduler_actuals;
---   drop table if exists public.scheduler_holds;
---   drop table if exists public.scheduler_overlap_rules;
---   drop table if exists public.scheduler_operations;
--- Existing appointments, clients, work orders and the Telegram bot stay untouched.
+-- DRAFT ONLY. Do not run this file on production or on any Supabase project.
+-- Local test database name must be bess_scheduler_test.
+-- Rollback: drop the scheduler_* tables in this file. CRM appointments are not touched.
+
+create extension if not exists btree_gist;
+
+do $$ begin
+  create role scheduler_anon nologin;
+exception when duplicate_object then null;
+end $$;
+
+do $$ begin
+  create role scheduler_staff nologin;
+exception when duplicate_object then null;
+end $$;
 
 create table if not exists public.scheduler_operations (
   operation_code text primary key,
@@ -38,28 +43,32 @@ create table if not exists public.scheduler_overlap_rules (
   active boolean not null default false
 );
 
-create table if not exists public.scheduler_holds (
+create table if not exists public.scheduler_resources (
   id text primary key,
-  appointment_id text,
-  work_order_id text,
-  mechanic_id text not null default '',
-  operation_code text,
-  start_at timestamptz not null,
-  end_at timestamptz not null,
-  active boolean not null default true,
-  idempotency_key text,
-  version integer not null default 1,
-  check (start_at < end_at)
+  kind text not null,
+  label text not null,
+  status text not null check (status in ('available', 'broken', 'maintenance')),
+  confirmed boolean not null default false
 );
 
-create table if not exists public.scheduler_resource_holds (
-  hold_id text not null references public.scheduler_holds(id) on delete cascade,
-  resource_id text not null,
-  start_at timestamptz not null,
-  end_at timestamptz not null,
-  active boolean not null default true,
-  primary key (hold_id, resource_id),
-  check (start_at < end_at)
+create table if not exists public.scheduler_display_names (
+  mechanic_id text primary key,
+  display_name text not null
+);
+
+create table if not exists public.scheduler_shifts (
+  mechanic_id text primary key,
+  shift_start time,
+  shift_end time
+);
+
+create table if not exists public.scheduler_time_off (
+  id text primary key,
+  mechanic_id text not null,
+  starts_on date not null,
+  ends_on date not null,
+  kind text not null check (kind in ('vacation', 'absent')),
+  check (starts_on <= ends_on)
 );
 
 create table if not exists public.scheduler_breaks (
@@ -70,23 +79,37 @@ create table if not exists public.scheduler_breaks (
   check (starts_at < ends_at)
 );
 
--- Requires btree_gist on the TEST database only.
--- Two concurrent inserts for one mechanic or one resource fail instead of double-booking.
-create extension if not exists btree_gist;
+create table if not exists public.scheduler_reservations (
+  id text primary key,
+  idempotency_key text not null unique,
+  appointment_id text,
+  work_order_id text,
+  operation_code text not null,
+  mechanic_id text not null,
+  parts_status text not null,
+  active boolean not null default true
+);
 
-alter table public.scheduler_holds
-  add constraint scheduler_mechanic_no_overlap
-  exclude using gist (
-    mechanic_id with =,
-    tstzrange(start_at, end_at, '[)') with &&
-  ) where (active and mechanic_id <> '');
+create table if not exists public.scheduler_holds (
+  id text primary key,
+  reservation_id text not null references public.scheduler_reservations(id),
+  mechanic_id text not null,
+  operation_code text not null,
+  start_at timestamptz not null,
+  end_at timestamptz not null,
+  active boolean not null default true,
+  check (start_at < end_at)
+);
 
-alter table public.scheduler_resource_holds
-  add constraint scheduler_resource_no_overlap
-  exclude using gist (
-    resource_id with =,
-    tstzrange(start_at, end_at, '[)') with &&
-  ) where (active);
+create table if not exists public.scheduler_resource_holds (
+  hold_id text not null references public.scheduler_holds(id) on delete cascade,
+  resource_id text not null references public.scheduler_resources(id),
+  start_at timestamptz not null,
+  end_at timestamptz not null,
+  active boolean not null default true,
+  primary key (hold_id, resource_id),
+  check (start_at < end_at)
+);
 
 create table if not exists public.scheduler_actuals (
   id text primary key,
@@ -100,19 +123,105 @@ create table if not exists public.scheduler_actuals (
   version integer not null default 1
 );
 
+do $$ begin
+  alter table public.scheduler_holds
+    add constraint scheduler_mechanic_no_overlap
+    exclude using gist (
+      mechanic_id with =,
+      tstzrange(start_at, end_at, '[)') with &&
+    ) where (active and mechanic_id <> '');
+exception when duplicate_object then null;
+end $$;
+
+do $$ begin
+  alter table public.scheduler_resource_holds
+    add constraint scheduler_resource_no_overlap
+    exclude using gist (
+      resource_id with =,
+      tstzrange(start_at, end_at, '[)') with &&
+    ) where (active);
+exception when duplicate_object then null;
+end $$;
+
+insert into public.scheduler_resources (id, kind, label, status, confirmed) values
+  ('lift-1', 'lift', 'Подъёмник 1', 'maintenance', false),
+  ('lift-2', 'lift', 'Подъёмник 2', 'maintenance', false),
+  ('tyre-1', 'tyre_machine', 'Шиномонтажный станок', 'maintenance', false),
+  ('balancer-1', 'balancer', 'Балансировочный станок', 'maintenance', false),
+  ('ac-1', 'ac_station', 'Станция кондиционера', 'maintenance', false),
+  ('diag-1', 'diagnostic_device', 'Диагностическое оборудование', 'maintenance', false)
+on conflict (id) do nothing;
+
 alter table public.scheduler_operations enable row level security;
 alter table public.scheduler_overlap_rules enable row level security;
+alter table public.scheduler_resources enable row level security;
+alter table public.scheduler_display_names enable row level security;
+alter table public.scheduler_shifts enable row level security;
+alter table public.scheduler_time_off enable row level security;
+alter table public.scheduler_breaks enable row level security;
+alter table public.scheduler_reservations enable row level security;
 alter table public.scheduler_holds enable row level security;
 alter table public.scheduler_resource_holds enable row level security;
-alter table public.scheduler_breaks enable row level security;
 alter table public.scheduler_actuals enable row level security;
 
-revoke all on table public.scheduler_operations from anon, authenticated;
-revoke all on table public.scheduler_overlap_rules from anon, authenticated;
-revoke all on table public.scheduler_holds from anon, authenticated;
-revoke all on table public.scheduler_resource_holds from anon, authenticated;
-revoke all on table public.scheduler_breaks from anon, authenticated;
-revoke all on table public.scheduler_actuals from anon, authenticated;
+alter table public.scheduler_operations force row level security;
+alter table public.scheduler_overlap_rules force row level security;
+alter table public.scheduler_resources force row level security;
+alter table public.scheduler_display_names force row level security;
+alter table public.scheduler_shifts force row level security;
+alter table public.scheduler_time_off force row level security;
+alter table public.scheduler_breaks force row level security;
+alter table public.scheduler_reservations force row level security;
+alter table public.scheduler_holds force row level security;
+alter table public.scheduler_resource_holds force row level security;
+alter table public.scheduler_actuals force row level security;
 
--- No policies for anon or authenticated. service_role is the only server path.
--- Do not grant select/insert/update/delete to anon or authenticated.
+revoke all on table public.scheduler_operations from public, scheduler_anon;
+revoke all on table public.scheduler_overlap_rules from public, scheduler_anon;
+revoke all on table public.scheduler_resources from public, scheduler_anon;
+revoke all on table public.scheduler_display_names from public, scheduler_anon;
+revoke all on table public.scheduler_shifts from public, scheduler_anon;
+revoke all on table public.scheduler_time_off from public, scheduler_anon;
+revoke all on table public.scheduler_breaks from public, scheduler_anon;
+revoke all on table public.scheduler_reservations from public, scheduler_anon;
+revoke all on table public.scheduler_holds from public, scheduler_anon;
+revoke all on table public.scheduler_resource_holds from public, scheduler_anon;
+revoke all on table public.scheduler_actuals from public, scheduler_anon;
+
+do $$
+declare role_name text;
+declare table_name text;
+begin
+  foreach role_name in array array['anon', 'authenticated'] loop
+    if exists (select 1 from pg_roles where rolname = role_name) then
+      foreach table_name in array array[
+        'scheduler_operations','scheduler_overlap_rules','scheduler_resources','scheduler_display_names',
+        'scheduler_shifts','scheduler_time_off','scheduler_breaks','scheduler_reservations',
+        'scheduler_holds','scheduler_resource_holds','scheduler_actuals'
+      ] loop
+        execute format('revoke all on table public.%I from %I', table_name, role_name);
+      end loop;
+    end if;
+  end loop;
+end $$;
+
+grant select, insert, update, delete on table public.scheduler_operations to scheduler_staff;
+grant select, insert, update, delete on table public.scheduler_overlap_rules to scheduler_staff;
+grant select, insert, update, delete on table public.scheduler_resources to scheduler_staff;
+grant select, insert, update, delete on table public.scheduler_display_names to scheduler_staff;
+grant select, insert, update, delete on table public.scheduler_shifts to scheduler_staff;
+grant select, insert, update, delete on table public.scheduler_time_off to scheduler_staff;
+grant select, insert, update, delete on table public.scheduler_breaks to scheduler_staff;
+grant select, insert, update, delete on table public.scheduler_reservations to scheduler_staff;
+grant select, insert, update, delete on table public.scheduler_holds to scheduler_staff;
+grant select, insert, update, delete on table public.scheduler_resource_holds to scheduler_staff;
+grant select, insert, update, delete on table public.scheduler_actuals to scheduler_staff;
+
+drop policy if exists scheduler_staff_all on public.scheduler_holds;
+create policy scheduler_staff_all on public.scheduler_holds for all to scheduler_staff using (true) with check (true);
+drop policy if exists scheduler_staff_resources on public.scheduler_resources;
+create policy scheduler_staff_resources on public.scheduler_resources for all to scheduler_staff using (true) with check (true);
+drop policy if exists scheduler_staff_resource_holds on public.scheduler_resource_holds;
+create policy scheduler_staff_resource_holds on public.scheduler_resource_holds for all to scheduler_staff using (true) with check (true);
+drop policy if exists scheduler_staff_reservations on public.scheduler_reservations;
+create policy scheduler_staff_reservations on public.scheduler_reservations for all to scheduler_staff using (true) with check (true);

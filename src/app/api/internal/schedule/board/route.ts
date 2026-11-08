@@ -1,28 +1,52 @@
 import { NextResponse } from "next/server";
 import { workshopHours } from "@/lib/businessConfig";
 import { guardScheduler, isGuardError } from "@/lib/smart-scheduler/access";
-import { readOnlyAppointments } from "@/lib/smart-scheduler/crm-read";
-import { syntheticSnapshot } from "@/lib/smart-scheduler/fixture";
+import { assembleBoard } from "@/lib/smart-scheduler/board";
+import { schedulerTestBoardOpen } from "@/lib/smart-scheduler/flag";
+import { connectSchedulerDatabase, loadSchedulerSettings, schedulerDatabaseUrl } from "@/lib/smart-scheduler/postgres";
+import { defaultSchedulerSettings } from "@/lib/smart-scheduler/settings";
+import { responseLeaksSecrets } from "@/lib/smart-scheduler/visibility";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-export async function GET(req: Request) {
-  const actor = await guardScheduler(req);
-  if (isGuardError(actor)) return actor;
-  if (process.env.SCHEDULER_CRM_SOURCE === "cloud") {
-    const { loadCrmFromCloud } = await import("@/lib/server/telegram-bot/crm-actions");
-    const db = await loadCrmFromCloud();
-    if (!db) return NextResponse.json({ ok: false, error: "cloud_empty", writable: false }, { status: 503 });
-    const read = readOnlyAppointments(db, workshopHours());
-    return NextResponse.json({ ok: true, source: "cloud", writable: false, mechanics: read.mechanicNames, appointments: read.appointments });
+async function settingsOrDefault() {
+  if (!schedulerDatabaseUrl()) return defaultSchedulerSettings;
+  const client = await connectSchedulerDatabase();
+  try {
+    return await loadSchedulerSettings(client);
+  } finally {
+    await client.end();
   }
-  const snapshot = syntheticSnapshot(new Date(), workshopHours());
+}
+
+export async function GET(req: Request) {
+  const mode = new URL(req.url).searchParams.get("mode") === "test" ? "test" : "live";
+  const actor = await guardScheduler(req, { allowTestBoard: mode === "test" });
+  if (isGuardError(actor)) {
+    if (mode === "live" && schedulerTestBoardOpen()) {
+      const empty = assembleBoard({ mode: "live", actor: { role: "owner", canEdit: true }, now: new Date(), hours: workshopHours(), crm: null, settings: await settingsOrDefault() });
+      return NextResponse.json({ ok: true, mode: "live", canConfigure: true, writable: false, message: empty.message, snapshot: empty.snapshot });
+    }
+    return actor;
+  }
+  const settings = await settingsOrDefault();
+  let crm = null;
+  if (mode === "live" && process.env.SCHEDULER_CRM_SOURCE === "cloud") {
+    const { loadCrmFromCloud } = await import("@/lib/server/telegram-bot/crm-actions");
+    crm = await loadCrmFromCloud();
+    if (!crm) return NextResponse.json({ ok: false, error: "cloud_empty", writable: false }, { status: 503 });
+  }
+  const board = assembleBoard({ mode, actor, now: new Date(), hours: workshopHours(), crm, settings });
+  if (responseLeaksSecrets(board) || JSON.stringify(board).includes("service_role")) {
+    return NextResponse.json({ ok: false, error: "redacted", writable: false }, { status: 500 });
+  }
   return NextResponse.json({
     ok: true,
-    source: snapshot.source,
+    mode,
+    canConfigure: actor.role === "owner",
     writable: false,
-    mechanics: snapshot.mechanics.map((mechanic) => ({ id: mechanic.id, label: mechanic.label, confirmed: mechanic.confirmed })),
-    count: snapshot.appointments.length,
+    message: board.message,
+    snapshot: board.snapshot,
   });
 }

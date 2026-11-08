@@ -19,7 +19,7 @@ type CrmAppointment = {
   vehicleId?: string;
 };
 
-type CrmDb = {
+export type CrmDb = {
   mechanics: { id: string; name: string; phone?: string }[];
   appointments: CrmAppointment[];
   workOrders: { id: string; appointmentId?: string }[];

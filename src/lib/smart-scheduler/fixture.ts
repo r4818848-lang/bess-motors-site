@@ -25,7 +25,7 @@ export type SchedulerAppointment = {
 };
 
 export type SchedulerSnapshot = {
-  source: "fixture";
+  source: "fixture" | "live";
   writable: false;
   date: string;
   mechanics: MechanicColumn[];
@@ -127,5 +127,29 @@ export function syntheticSnapshot(now: Date, hours: WorkshopHours): SchedulerSna
     appointments,
     settings: defaultSchedulerSettings,
     crmHolds,
+  };
+}
+
+export function emptyLiveSnapshot(now: Date): SchedulerSnapshot {
+  return {
+    source: "live",
+    writable: false,
+    date: warsawParts(now).dateKey,
+    mechanics: PROFILES.map(mechanicColumn),
+    appointments: [],
+    settings: defaultSchedulerSettings,
+    crmHolds: [],
+  };
+}
+
+export function withDisplayNames(snapshot: SchedulerSnapshot, settings: SchedulerSettings): SchedulerSnapshot {
+  return {
+    ...snapshot,
+    settings,
+    mechanics: snapshot.mechanics.map((mechanic) => {
+      const custom = settings.displayNames[mechanic.id]?.trim();
+      if (!custom) return mechanic;
+      return { ...mechanic, label: custom, note: "Отображаемое имя задано владельцем. Внутренний ID не изменён." };
+    }),
   };
 }

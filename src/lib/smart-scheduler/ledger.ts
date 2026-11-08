@@ -1,3 +1,4 @@
+// In-process helper for unit tests only. Booking, move and cancel use PostgreSQL.
 import {
   breakHolds,
   findHoldConflict,

@@ -9,3 +9,10 @@ export function schedulerTestWritesEnabled(): boolean {
   if (process.env.VERCEL_ENV === "production" || process.env.VERCEL_ENV === "preview") return false;
   return process.env.SCHEDULER_TEST_WRITES === "local";
 }
+
+/** Local screenshot and TEST board only. Never on preview or production. */
+export function schedulerTestBoardOpen(): boolean {
+  if (!smartWorkSchedulerEnabled()) return false;
+  if (process.env.VERCEL_ENV === "production" || process.env.VERCEL_ENV === "preview") return false;
+  return process.env.SCHEDULER_TEST_BOARD === "open";
+}
