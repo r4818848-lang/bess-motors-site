@@ -28,6 +28,7 @@ import {
   HOME_SEO_TITLE,
 } from "@/lib/seo";
 import { buildPageMetadata, DEFAULT_OG_IMAGE } from "@/lib/seo-metadata";
+import { telegramLaunchHeadScript } from "@/lib/telegram-webapp-client";
 
 
 
@@ -120,6 +121,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="pl" className={`${inter.variable} ${orbitron.variable}`} suppressHydrationWarning>
 
       <head>
+        <script dangerouslySetInnerHTML={{ __html: telegramLaunchHeadScript }} />
         <meta
           name="facebook-domain-verification"
           content={facebookDomainVerification}

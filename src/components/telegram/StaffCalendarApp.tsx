@@ -2,6 +2,14 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { addDateKeyDays } from "@/lib/staff-calendar";
+import {
+  markTelegramWebAppReady,
+  readTelegramWebApp,
+  telegramLanguageCode,
+  telegramLaunchStatus,
+  waitForTelegramInitData,
+  type TelegramWebAppSnapshot,
+} from "@/lib/telegram-webapp-client";
 
 type Role = "owner" | "admin" | "mechanic";
 type View = "today" | "week" | "month" | "add";
@@ -62,6 +70,14 @@ const COPY = {
     drop: "Оставляет автомобиль",
     pickup: "Дата выдачи",
     gate: "Календарь открывается из Telegram сотрудником сервиса.",
+    sdkReady: "Официальный модуль Telegram загружен.",
+    sdkMissing: "Официальный модуль Telegram ещё не загрузился.",
+    launchMissing: "Подпись запуска не получена. Данные CRM не запрашивались.",
+    hint: "Откройте кнопку «📅 Календарь» под сообщением бота, команду /calendar или персональную кнопку меню. Нижняя клавиатура эту подпись не передаёт.",
+    retry: "Повторить",
+    rejected: "Подпись Telegram не прошла проверку. Откройте календарь заново из бота.",
+    forbidden: "Этот Telegram не подключён как сотрудник сервиса.",
+    failed: "Календарь сейчас недоступен. Повторите открытие из бота.",
     loading: "Загрузка…",
     saved: "Сохранено",
     status: { expected: "Ожидается", arrived: "Прибыл", no_show: "Не приехал" },
@@ -92,6 +108,14 @@ const COPY = {
     drop: "Zostawia samochód",
     pickup: "Data odbioru",
     gate: "Kalendarz otwiera się z Telegrama pracownika.",
+    sdkReady: "Oficjalny moduł Telegram jest załadowany.",
+    sdkMissing: "Oficjalny moduł Telegram jeszcze się nie załadował.",
+    launchMissing: "Brak podpisu uruchomienia. Dane CRM nie zostały pobrane.",
+    hint: "Użyj przycisku «📅 Календарь» pod wiadomością bota, komendy /calendar albo osobistego przycisku menu.",
+    retry: "Ponów",
+    rejected: "Podpis Telegram nie został zaakceptowany. Otwórz kalendarz ponownie z bota.",
+    forbidden: "Ten Telegram nie jest podłączony jako pracownik.",
+    failed: "Kalendarz jest teraz niedostępny. Otwórz go ponownie z bota.",
     loading: "Ładowanie…",
     saved: "Zapisano",
     status: { expected: "Oczekiwany", arrived: "Przyjechał", no_show: "Nie przyjechał" },
@@ -122,6 +146,14 @@ const COPY = {
     drop: "Залишає автомобіль",
     pickup: "Дата видачі",
     gate: "Календар відкривається з Telegram співробітника.",
+    sdkReady: "Офіційний модуль Telegram завантажено.",
+    sdkMissing: "Офіційний модуль Telegram ще не завантажився.",
+    launchMissing: "Підпис запуску не отримано. Дані CRM не запитувались.",
+    hint: "Відкрийте кнопку «📅 Календарь» під повідомленням бота, команду /calendar або персональну кнопку меню.",
+    retry: "Повторити",
+    rejected: "Підпис Telegram не пройшов перевірку. Відкрийте календар знову з бота.",
+    forbidden: "Цей Telegram не підключений як співробітник.",
+    failed: "Календар зараз недоступний. Відкрийте його знову з бота.",
     loading: "Завантаження…",
     saved: "Збережено",
     status: { expected: "Очікується", arrived: "Прибув", no_show: "Не приїхав" },
@@ -152,6 +184,14 @@ const COPY = {
     drop: "Leaves the car",
     pickup: "Pickup date",
     gate: "The calendar opens from a staff Telegram chat.",
+    sdkReady: "The official Telegram module is loaded.",
+    sdkMissing: "The official Telegram module has not loaded yet.",
+    launchMissing: "The launch signature was not received. CRM data was not requested.",
+    hint: "Use the «📅 Календарь» button under the bot message, the /calendar command, or the personal menu button.",
+    retry: "Retry",
+    rejected: "The Telegram signature was rejected. Open the calendar from the bot again.",
+    forbidden: "This Telegram account is not connected as staff.",
+    failed: "The calendar is unavailable. Open it from the bot again.",
     loading: "Loading…",
     saved: "Saved",
     status: { expected: "Expected", arrived: "Arrived", no_show: "No-show" },
@@ -173,9 +213,16 @@ function monthEnd(dateKey: string): string {
   return `${dateKey.slice(0, 8)}${String(last).padStart(2, "0")}`;
 }
 
+function staffFailureText(code: string, text: (typeof COPY)["ru"]): string {
+  if (code === "forbidden") return text.forbidden;
+  if (code === "bad_signature" || code === "stale" || code === "missing" || code === "no_user") return text.rejected;
+  return text.failed;
+}
+
 export function StaffCalendarApp() {
   const [initData, setInitData] = useState("");
   const [ready, setReady] = useState(false);
+  const [launch, setLaunch] = useState<TelegramWebAppSnapshot | null>(null);
   const [lang, setLang] = useState<Lang>("ru");
   const [session, setSession] = useState<Session | null>(null);
   const [view, setView] = useState<View>("today");
@@ -217,12 +264,18 @@ export function StaffCalendarApp() {
   );
 
   useEffect(() => {
-    const webApp = (window as unknown as { Telegram?: { WebApp?: { initData?: string; initDataUnsafe?: { user?: { language_code?: string } }; ready?: () => void; expand?: () => void } } }).Telegram?.WebApp;
-    webApp?.ready?.();
-    webApp?.expand?.();
-    setLang(langOf(webApp?.initDataUnsafe?.user?.language_code ?? ""));
-    setInitData(webApp?.initData ?? "");
-    setReady(true);
+    let cancelled = false;
+    waitForTelegramInitData(() => readTelegramWebApp(window)).then((snapshot) => {
+      if (cancelled) return;
+      markTelegramWebAppReady(window);
+      setLang(langOf(telegramLanguageCode(window)));
+      setLaunch(snapshot);
+      setInitData(snapshot.initData);
+      setReady(true);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const load = useCallback(
@@ -284,12 +337,12 @@ export function StaffCalendarApp() {
         await load(next, "today");
       })
       .catch((err: Error) => {
-        if (!cancelled) setError(err.message);
+        if (!cancelled) setError(staffFailureText(err.message, text));
       });
     return () => {
       cancelled = true;
     };
-  }, [ready, initData, post, load]);
+  }, [ready, initData, post, load, text]);
 
   async function openView(nextView: View) {
     setSelected(null);
@@ -343,14 +396,32 @@ export function StaffCalendarApp() {
 
   if (!ready) return <main className="p-6 text-sm"><h1 className="text-xl font-semibold">BESS MOTORS</h1><p>{COPY.ru.loading}</p></main>;
   if (!initData) {
+    const status = telegramLaunchStatus(launch ?? { sdkReady: false, initData: "", platform: "" });
     return (
-      <main className="mx-auto max-w-md p-6 text-sm">
+      <main className="mx-auto max-w-md p-6 text-sm" data-testid="telegram-calendar-gate">
         <h1 className="mb-3 text-xl font-semibold">BESS MOTORS</h1>
         <p>{text.gate}</p>
+        <p className="mt-3">{status.sdkReady ? text.sdkReady : text.sdkMissing}</p>
+        <p className="mt-2">{text.launchMissing}</p>
+        {status.platform && status.platform !== "unknown" ? <p className="mt-2">Telegram: {status.platform}</p> : null}
+        <p className="mt-3 text-zinc-600">{text.hint}</p>
+        <button type="button" className="mt-4 rounded-lg bg-white px-4 py-2 font-semibold text-black" onClick={() => window.location.reload()}>
+          {text.retry}
+        </button>
       </main>
     );
   }
-  if (!session) return <main className="p-6 text-sm">{error || text.loading}</main>;
+  if (!session) {
+    return (
+      <main className="mx-auto max-w-md p-6 text-sm" data-testid="telegram-calendar-denied">
+        <h1 className="mb-3 text-xl font-semibold">BESS MOTORS</h1>
+        <p>{error || text.loading}</p>
+        <button type="button" className="mt-4 rounded-lg bg-white px-4 py-2 font-semibold text-black" onClick={() => window.location.reload()}>
+          {text.retry}
+        </button>
+      </main>
+    );
+  }
 
   const grouped = rows.reduce<Record<string, Card[]>>((acc, row) => {
     acc[row.date] = [...(acc[row.date] ?? []), row];

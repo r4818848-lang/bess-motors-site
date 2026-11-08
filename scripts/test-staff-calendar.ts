@@ -11,6 +11,14 @@ import {
   planAdminReminder,
 } from "../src/lib/staff-calendar";
 import { verifyTelegramWebAppInitData } from "../src/lib/server/telegram-webapp-auth";
+import { resolveStaffCalendarActor, staffRoleFromIds } from "../src/lib/server/staff-calendar-access";
+import {
+  parseTelegramLaunchHash,
+  readTelegramWebApp,
+  telegramLaunchHeadScript,
+  telegramLaunchStatus,
+  waitForTelegramInitData,
+} from "../src/lib/telegram-webapp-client";
 import { adminReplyKeyboard, mainMenuKeyboard } from "../src/lib/server/telegram-bot/keyboards";
 import { mechanicMainKeyboard } from "../src/lib/server/telegram-bot/mechanic-handler";
 import {
@@ -275,4 +283,88 @@ const apiSource = readFileSync(join(process.cwd(), "src/lib/server/telegram-api.
 assert.match(apiSource, /telegramRequest\("setChatMenuButton", body\)/);
 assert.doesNotMatch(apiSource, /setChatMenuButton",\s*\{/);
 
+const encodedUser = encodeURIComponent(JSON.stringify({ id: 77 }));
+const launchHash = `#tgWebAppData=${encodeURIComponent(`query_id=AA&user=${encodedUser}&auth_date=1&hash=abcd`)}&tgWebAppVersion=8.0&tgWebAppPlatform=web`;
+const parsed = parseTelegramLaunchHash(launchHash);
+assert.ok(parsed);
+assert.equal(parsed.tgWebAppPlatform, "web");
+assert.match(String(parsed.tgWebAppData), /^query_id=AA&user=/);
+assert.equal(parseTelegramLaunchHash("#tgWebAppPlatform=web"), null);
+assert.equal(parseTelegramLaunchHash(""), null);
+
+const secretLaunch = "super-secret-init";
+const status = telegramLaunchStatus({ sdkReady: true, initData: secretLaunch, platform: "web" });
+assert.equal(status.hasInitData, true);
+assert.equal(JSON.stringify(status).includes(secretLaunch), false);
+assert.equal(telegramLaunchStatus({ sdkReady: false, initData: "   ", platform: "" }).hasInitData, false);
+
+const emptyNow = readTelegramWebApp({ location: { hash: "" }, sessionStorage: { getItem: () => null } });
+assert.equal(emptyNow.sdkReady, false);
+assert.equal(emptyNow.initData, "");
+assert.equal(emptyNow.launchPending, false);
+const pending = readTelegramWebApp({
+  location: { hash: "" },
+  sessionStorage: { getItem: () => JSON.stringify({ tgWebAppData: secretLaunch }) },
+});
+assert.equal(pending.launchPending, true);
+assert.equal(JSON.stringify({ pending: pending.launchPending }).includes(secretLaunch), false);
+
+void (async () => {
+const outside = await waitForTelegramInitData(
+  () => ({ sdkReady: true, initData: "", platform: "web", launchPending: false }),
+  { attempts: 10, delayMs: 1 }
+);
+assert.equal(outside.initData, "");
+assert.equal(outside.sdkReady, true);
+
+const unloaded = await waitForTelegramInitData(
+  () => ({ sdkReady: false, initData: "", platform: "", launchPending: false }),
+  { attempts: 20, delayMs: 1, plainAttempts: 2 }
+);
+assert.equal(unloaded.sdkReady, false);
+assert.equal(unloaded.initData, "");
+
+let reads = 0;
+const arrived = await waitForTelegramInitData(() => {
+  reads += 1;
+  if (reads < 3) return { sdkReady: false, initData: "", platform: "", launchPending: true };
+  return { sdkReady: true, initData: "signed-init", platform: "tdesktop", launchPending: true };
+}, { attempts: 6, delayMs: 1 });
+assert.equal(arrived.sdkReady, true);
+assert.equal(arrived.initData, "signed-init");
+assert.equal(arrived.platform, "tdesktop");
+
+assert.doesNotMatch(telegramLaunchHeadScript, /console\./);
+assert.match(telegramLaunchHeadScript, /__telegram__initParams/);
+assert.match(telegramLaunchHeadScript, /telegram\.org\/js\/telegram-web-app\.js/);
+assert.match(telegramLaunchHeadScript, /history\.replaceState/);
+const appSource = readFileSync(join(process.cwd(), "src/components/telegram/StaffCalendarApp.tsx"), "utf8");
+assert.doesNotMatch(appSource, /console\.(log|debug|info|warn|error)/);
+assert.match(appSource, /waitForTelegramInitData/);
+const layoutSource = readFileSync(join(process.cwd(), "src/app/layout.tsx"), "utf8");
+assert.match(layoutSource, /telegramLaunchHeadScript/);
+
+const savedOwner = process.env.TELEGRAM_OWNER_CHAT_ID;
+const savedChat = process.env.TELEGRAM_CHAT_ID;
+const savedAdmins = process.env.TELEGRAM_ADMIN_CHAT_IDS;
+const savedBindings = process.env.TELEGRAM_MECHANIC_BINDINGS;
+process.env.TELEGRAM_OWNER_CHAT_ID = "1";
+process.env.TELEGRAM_CHAT_ID = "1";
+process.env.TELEGRAM_ADMIN_CHAT_IDS = "2";
+delete process.env.TELEGRAM_MECHANIC_BINDINGS;
+assert.equal(staffRoleFromIds("1", new Set(["1"]), new Set(["2"])), "owner");
+assert.equal(staffRoleFromIds("2", new Set(["1"]), new Set(["2"])), "admin");
+assert.equal(staffRoleFromIds("999001", new Set(["1"]), new Set(["2"])), null);
+assert.equal(await resolveStaffCalendarActor(999001), null);
+assert.equal((await resolveStaffCalendarActor(1))?.role, "owner");
+if (savedOwner === undefined) delete process.env.TELEGRAM_OWNER_CHAT_ID;
+else process.env.TELEGRAM_OWNER_CHAT_ID = savedOwner;
+if (savedChat === undefined) delete process.env.TELEGRAM_CHAT_ID;
+else process.env.TELEGRAM_CHAT_ID = savedChat;
+if (savedAdmins === undefined) delete process.env.TELEGRAM_ADMIN_CHAT_IDS;
+else process.env.TELEGRAM_ADMIN_CHAT_IDS = savedAdmins;
+if (savedBindings === undefined) delete process.env.TELEGRAM_MECHANIC_BINDINGS;
+else process.env.TELEGRAM_MECHANIC_BINDINGS = savedBindings;
+
 console.log("staff calendar ok");
+})();
