@@ -68,6 +68,8 @@ export function VinQuoteForm() {
       comment: parts.join("\n"),
       vin: vinCode,
       vehicleLabel: vehicle || undefined,
+      make: brand.trim(),
+      model: model.trim(),
       source: "vin_quote",
     });
     setSending(false);

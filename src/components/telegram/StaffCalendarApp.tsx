@@ -48,6 +48,7 @@ const COPY = {
     move: "Перенести",
     remove: "Удалить",
     confirm: "Удалить эту запись из календаря?",
+    archive: "Архив",
     save: "Сохранить",
     back: "Назад",
     name: "Имя",
@@ -77,6 +78,7 @@ const COPY = {
     move: "Przenieś",
     remove: "Usuń",
     confirm: "Usunąć tę wizytę z kalendarza?",
+    archive: "Archiwum",
     save: "Zapisz",
     back: "Wróć",
     name: "Imię",
@@ -106,6 +108,7 @@ const COPY = {
     move: "Перенести",
     remove: "Видалити",
     confirm: "Прибрати цей запис з календаря?",
+    archive: "Архів",
     save: "Зберегти",
     back: "Назад",
     name: "Ім'я",
@@ -135,6 +138,7 @@ const COPY = {
     move: "Reschedule",
     remove: "Delete",
     confirm: "Remove this visit from the calendar?",
+    archive: "Archive",
     save: "Save",
     back: "Back",
     name: "Name",
@@ -175,6 +179,7 @@ export function StaffCalendarApp() {
   const [lang, setLang] = useState<Lang>("ru");
   const [session, setSession] = useState<Session | null>(null);
   const [view, setView] = useState<View>("today");
+  const [archive, setArchive] = useState(false);
   const [rows, setRows] = useState<Card[]>([]);
   const [selected, setSelected] = useState<Card | null>(null);
   const [moving, setMoving] = useState(false);
@@ -221,12 +226,12 @@ export function StaffCalendarApp() {
   }, []);
 
   const load = useCallback(
-    async (next: Session, nextView: View) => {
+    async (next: Session, nextView: View, showArchive = false) => {
       const from = nextView === "week" ? next.today : nextView === "month" ? `${next.today.slice(0, 8)}01` : next.today;
       const to = nextView === "week" ? addDateKeyDays(next.today, 6) : nextView === "month" ? monthEnd(next.today) : next.today;
-      const data = await post({ action: "list", from, to });
+      const data = await post({ action: "list", from, to, includeArchive: showArchive && next.role === "owner" });
       const appointments = (data.appointments as Card[]) ?? [];
-      setRows(nextView === "today" ? appointments.filter((row) => row.date === next.today) : appointments);
+      setRows(showArchive || nextView !== "today" ? appointments : appointments.filter((row) => row.date === next.today));
     },
     [post]
   );
@@ -291,7 +296,7 @@ export function StaffCalendarApp() {
     setMoving(false);
     setConfirmDelete(false);
     setView(nextView);
-    if (nextView !== "add" && session) await load(session, nextView).catch((err: Error) => setError(err.message));
+    if (nextView !== "add" && session) await load(session, nextView, archive).catch((err: Error) => setError(err.message));
   }
 
   async function mutate(action: string, extra: Record<string, unknown> = {}) {
@@ -365,6 +370,22 @@ export function StaffCalendarApp() {
           </button>
         ))}
       </nav>
+      {session.role === "owner" && (
+        <button
+          type="button"
+          className="mb-4 text-xs text-zinc-400"
+          onClick={() => {
+            const nextArchive = !archive;
+            setArchive(nextArchive);
+            setSelected(null);
+            const nextView = view === "add" ? "today" : view;
+            if (view === "add") setView("today");
+            load(session, nextView, nextArchive).catch((err: Error) => setError(err.message));
+          }}
+        >
+          {archive ? text.today : text.archive}
+        </button>
+      )}
       {notice && <p className="mb-3 text-sm text-emerald-300">{notice}</p>}
       {error && <p className="mb-3 text-sm text-red-300">{error}</p>}
 

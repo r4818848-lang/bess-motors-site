@@ -1,6 +1,6 @@
 import { cloudMutateCrmStore } from "@/lib/server/crm-cloud-mutate";
 import { sendTelegramMessage, type InlineKeyboardMarkup } from "@/lib/server/telegram-api";
-import { leadStatusLabel, missingText, siteLocaleLabel } from "@/lib/service-leads";
+import { applyLeadAction, leadStatusLabel, missingText, siteLocaleLabel } from "@/lib/service-leads";
 import type { LeadStatus, ServiceLead } from "@/lib/store";
 import { loadCrmFromCloud } from "./crm-actions";
 import { calendarAppUrl } from "./staff-calendar-bot";
@@ -135,10 +135,9 @@ export async function handleLeadCallback(chatId: number, data: string): Promise<
   }
   const confirm = /^ly:([A-Za-z0-9_-]{1,64}):(call|sms)$/.exec(data);
   if (confirm) {
-    const kind = confirm[2] === "sms" ? "sms" : "call";
+    const action = confirm[2] === "sms" ? "confirm_sms" : "confirm_call";
     const lead = await mutateLead(confirm[1], (item, now) => {
-      item.status = item.status === "new" ? "processing" : item.status;
-      item.contacts.push({ id: `contact-${now.getTime()}`, kind, at: now.toISOString() });
+      applyLeadAction(item, action, now, String(chatId));
     });
     await sendTelegramMessage(chatId, lead ? "Контакт записан в заявку." : "Не удалось сохранить.");
     return true;
@@ -147,13 +146,8 @@ export async function handleLeadCallback(chatId: number, data: string): Promise<
   if (simple) {
     const code = simple[1];
     const lead = await mutateLead(simple[2], (item, now) => {
-      if (code === "n") item.status = "no_answer";
-      if (code === "l") {
-        item.status = "processing";
-        item.contacts.push({ id: `contact-${now.getTime()}`, kind: "callback", at: now.toISOString() });
-      }
-      if (code === "x") item.status = "declined";
-      if (code === "d") item.status = "done";
+      const action = code === "n" ? "no_answer" : code === "l" ? "callback" : code === "x" ? "decline" : "done";
+      applyLeadAction(item, action, now, String(chatId));
     });
     await sendTelegramMessage(chatId, lead ? `Статус: ${leadStatusLabel(lead.status)}` : "Не удалось сохранить.");
     return true;

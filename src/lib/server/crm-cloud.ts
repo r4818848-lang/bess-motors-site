@@ -76,3 +76,32 @@ export async function cloudPutCrmStore(
     return { ok: false, error: msg };
   }
 }
+
+/** Write only when updated_at still matches. An empty result means another writer won. */
+export async function patchCrmIfUnchanged(
+  doc: Database,
+  expectedUpdatedAt: string
+): Promise<"ok" | "stale" | "error"> {
+  const cfg = getSupabaseConfig();
+  if (!cfg || !expectedUpdatedAt) return "error";
+  try {
+    const res = await fetch(
+      `${cfg.url}/rest/v1/crm_store?id=eq.${ROW_ID}&updated_at=eq.${encodeURIComponent(expectedUpdatedAt)}`,
+      {
+        method: "PATCH",
+        headers: {
+          apikey: cfg.key,
+          Authorization: `Bearer ${cfg.key}`,
+          "Content-Type": "application/json",
+          Prefer: "return=representation",
+        },
+        body: JSON.stringify({ doc, updated_at: new Date().toISOString() }),
+      }
+    );
+    if (!res.ok) return "error";
+    const rows = (await res.json()) as unknown[];
+    return Array.isArray(rows) && rows.length > 0 ? "ok" : "stale";
+  } catch {
+    return "error";
+  }
+}

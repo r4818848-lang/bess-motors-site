@@ -1,5 +1,6 @@
+import { calcLineTotal } from "@/lib/booking-cart";
 import { getPriceItem } from "@/lib/price-list";
-import type { Database, LeadStatus, ServiceLead, SiteLocale } from "@/lib/store";
+import type { Database, LeadContact, LeadStatus, ServiceLead, SiteLocale } from "@/lib/store";
 
 const LOCALES: SiteLocale[] = ["pl", "uk", "ru", "en"];
 
@@ -36,6 +37,21 @@ export function quoteService(id: string | undefined, fallbackLabel: string): {
   };
 }
 
+export function quoteSubmittedLine(
+  id: string | undefined,
+  label: string,
+  quantity?: number
+): { id?: string; label: string; priceText: string } {
+  const item = id ? getPriceItem(id) : undefined;
+  const name = label.trim() || item?.nameRu || "Не указано";
+  if (!item) return { id, label: name, priceText: "требует расчёта" };
+  if (item.unit === "free") return { id: item.id, label: name, priceText: "0 zł" };
+  const qty = Math.max(item.minQty ?? 1, Math.min(item.maxQty ?? 99, quantity && quantity > 0 ? quantity : 1));
+  const amount = calcLineTotal(item, qty);
+  if (!Number.isFinite(amount) || amount <= 0) return { id: item.id, label: name, priceText: "требует расчёта" };
+  return { id: item.id, label: name, priceText: `${item.priceFrom ? "от " : ""}${amount} zł` };
+}
+
 export function totalQuote(services: { priceText: string }[]): string {
   if (!services.length) return "требует расчёта";
   if (services.some((item) => item.priceText === "требует расчёта")) return "требует расчёта";
@@ -67,6 +83,7 @@ export type IncomingLead = {
   serviceLabel?: string;
   desiredDate?: string;
   desiredTime?: string;
+  services?: { id?: string; label?: string; quantity?: number }[];
   siteLocale?: unknown;
   source?: string;
   sourceUrl?: string;
@@ -96,10 +113,13 @@ export function upsertWebsiteLead(db: Database, input: IncomingLead): { lead: Se
   if (existing) return { lead: existing, created: false };
 
   const names = splitName(input.name ?? "");
-  const service = quoteService(input.serviceId, input.serviceLabel ?? "");
-  const services = input.serviceId || input.serviceLabel ? [service] : [];
+  const services = input.services?.length
+    ? input.services.map((item) => quoteSubmittedLine(item.id, item.label ?? "", item.quantity))
+    : input.serviceId || input.serviceLabel
+      ? [quoteService(input.serviceId, input.serviceLabel ?? "")]
+      : [];
   const lead: ServiceLead = {
-    id: input.id || `lead-${now.getTime()}`,
+    id: input.id || input.clientRequestId || `lead-${now.getTime()}`,
     createdAt: now.toISOString(),
     updatedAt: now.toISOString(),
     firstName: names.firstName,
@@ -108,7 +128,9 @@ export function upsertWebsiteLead(db: Database, input: IncomingLead): { lead: Se
     make: input.make ?? "",
     model: input.model ?? "",
     plate: input.plate ?? "",
-    vin: (input.vin ?? "").replace(/\s/g, "").toUpperCase(),
+    vin: (input.vin ?? "").replace(/\s/g, "").toUpperCase().length === 17
+      ? (input.vin ?? "").replace(/\s/g, "").toUpperCase()
+      : "",
     services,
     totalText: totalQuote(services),
     desiredDate: input.desiredDate ?? "",
@@ -125,6 +147,46 @@ export function upsertWebsiteLead(db: Database, input: IncomingLead): { lead: Se
   };
   db.leads.push(lead);
   return { lead, created: true };
+}
+
+export type LeadAction = "confirm_call" | "confirm_sms" | "no_answer" | "callback" | "decline" | "done" | "booked";
+
+export function applyLeadAction(lead: ServiceLead, action: LeadAction, now: Date, managerId = ""): void {
+  lead.updatedAt = now.toISOString();
+  if (managerId) lead.managerId = managerId;
+  const push = (kind: LeadContact["kind"]) => {
+    lead.contacts = [
+      ...(lead.contacts ?? []),
+      { id: `contact-${now.getTime()}-${kind}`, kind, at: now.toISOString(), managerId: managerId || undefined },
+    ];
+  };
+  if (action === "confirm_call" || action === "confirm_sms") {
+    if (lead.status === "new") lead.status = "processing";
+    push(action === "confirm_sms" ? "sms" : "call");
+    return;
+  }
+  if (action === "no_answer") {
+    lead.status = "no_answer";
+    push("no_answer");
+    return;
+  }
+  if (action === "callback") {
+    lead.status = "processing";
+    push("callback");
+    return;
+  }
+  if (action === "decline") {
+    lead.status = "declined";
+    push("decline");
+    return;
+  }
+  if (action === "done") {
+    lead.status = "done";
+    push("done");
+    return;
+  }
+  lead.status = "booked";
+  push("booked");
 }
 
 export function leadStatusLabel(status: LeadStatus): string {

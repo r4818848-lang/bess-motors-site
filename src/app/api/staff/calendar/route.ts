@@ -9,6 +9,7 @@ import { loadCrmFromCloud } from "@/lib/server/telegram-bot/crm-actions";
 import { normalizePhone } from "@/lib/server/normalize-phone";
 import type { Appointment, CallRequest, Database, Vehicle } from "@/lib/store";
 import { formatWarsawDateKey } from "@/lib/date-key";
+import { isActiveCalendarVisit } from "@/lib/calendar-history";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -19,6 +20,7 @@ type Body = StaffAppointmentInput & {
   from?: string;
   to?: string;
   q?: string;
+  includeArchive?: boolean;
 };
 
 function visible(actor: StaffCalendarActor, apt: Appointment): boolean {
@@ -140,17 +142,20 @@ export async function POST(req: Request) {
   }
 
   if (action === "list") {
-    const from = body.from || formatWarsawDateKey();
+    const today = formatWarsawDateKey();
+    const archive = body.includeArchive === true;
+    if (archive && actor.role !== "owner") {
+      return NextResponse.json({ ok: false, error: "forbidden" }, { status: 403 });
+    }
+    const from = body.from || today;
     const to = body.to || from;
     const appointments = db.appointments
-      .filter(
-        (apt) =>
-          visible(actor, apt) &&
-          !apt.calendarHidden &&
-          apt.appointmentStatus !== "cancelled" &&
-          apt.date >= from &&
-          apt.date <= to
+      .filter((apt) => visible(actor, apt))
+      .filter((apt) =>
+        archive ? !isActiveCalendarVisit(apt, today) : isActiveCalendarVisit(apt, today) && apt.date >= from && apt.date <= to
       )
+      .sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time))
+      .slice(0, archive ? 200 : 500)
       .map((apt) => card(db, apt));
     const calls =
       actor.seeAll && from === to
@@ -165,8 +170,11 @@ export async function POST(req: Request) {
   if (action === "search") {
     const q = (body.q ?? "").trim();
     if (q.length < 2) return NextResponse.json({ ok: false, error: "query" }, { status: 400 });
+    const today = formatWarsawDateKey();
+    const archive = body.includeArchive === true && actor.role === "owner";
     const appointments = db.appointments
       .filter((apt) => visible(actor, apt) && matchesQuery(db, apt, q))
+      .filter((apt) => (archive ? true : isActiveCalendarVisit(apt, today)))
       .slice(0, 40)
       .map((apt) => card(db, apt));
     return NextResponse.json({ ok: true, appointments });

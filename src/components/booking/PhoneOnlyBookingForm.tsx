@@ -101,7 +101,12 @@ export function PhoneOnlyBookingForm({
         comment,
         vin: vin.length === 17 ? vin : undefined,
         vehicleLabel: vehicle || undefined,
-        source: "phone_only_booking",
+        services: cartLines.map((line) => ({
+          id: line.itemId,
+          label: line.label,
+          quantity: line.quantity,
+        })),
+        source: trackSource,
       });
       if (!result.ok) {
         setSubmitError(withPhone(bq.callFailed));

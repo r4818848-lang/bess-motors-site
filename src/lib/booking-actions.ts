@@ -36,6 +36,12 @@ export async function createCallRequest(params: {
   comment?: string;
   vin?: string;
   vehicleLabel?: string;
+  make?: string;
+  model?: string;
+  plate?: string;
+  desiredDate?: string;
+  desiredTime?: string;
+  services?: { id?: string; label?: string; quantity?: number }[];
   source?: string;
 }): Promise<{ ok: boolean; cloudOk: boolean; error?: string }> {
   const phone = normalizePhone(params.phone);
@@ -55,6 +61,12 @@ export async function createCallRequest(params: {
         comment: params.comment,
         vin: params.vin,
         vehicleLabel: params.vehicleLabel,
+        make: params.make,
+        model: params.model,
+        plate: params.plate,
+        desiredDate: params.desiredDate,
+        desiredTime: params.desiredTime,
+        services: params.services,
         source: params.source,
         siteLocale: savedSiteLocale(),
         sourceUrl: typeof window !== "undefined" ? window.location.href : "",

@@ -4,6 +4,13 @@ function activeVisit(apt: Appointment): boolean {
   return apt.appointmentStatus !== "cancelled" && apt.appointmentStatus !== "completed" && !apt.calendarHidden;
 }
 
+/** Live calendar: today's and future visits that are not cancelled, completed, or hidden. */
+export function isActiveCalendarVisit(apt: Appointment, todayKey: string): boolean {
+  if (apt.calendarHidden) return false;
+  if (apt.appointmentStatus === "cancelled" || apt.appointmentStatus === "completed") return false;
+  return Boolean(apt.date) && apt.date >= todayKey;
+}
+
 /** Past, cancelled, and completed visits leave the calendar. Future and today's active visits stay. */
 export function shouldArchiveCalendarVisit(apt: Appointment, todayKey: string): boolean {
   if (apt.calendarHidden) return false;

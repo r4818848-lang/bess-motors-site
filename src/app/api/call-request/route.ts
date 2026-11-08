@@ -36,6 +36,7 @@ export async function POST(req: Request) {
     model?: string;
     desiredDate?: string;
     desiredTime?: string;
+    services?: { id?: string; label?: string; quantity?: number }[];
   };
   try {
     body = await req.json();
@@ -65,14 +66,8 @@ export async function POST(req: Request) {
   if (baseComment) commentBits.push(baseComment);
   const comment = commentBits.join("\n");
 
-  const source =
-    body.source === "mini_quote"
-      ? "mini_quote"
-      : body.source === "vin_quote"
-        ? "vin_quote"
-        : body.source === "phone_only_booking"
-          ? "phone_only_booking"
-          : "website";
+  const requestedSource = (body.source ?? "website").trim().toLowerCase();
+  const source = /^[a-z0-9_-]{1,40}$/.test(requestedSource) ? requestedSource : "website";
 
   const entry = {
     id: `call-${Date.now()}`,
@@ -108,12 +103,13 @@ export async function POST(req: Request) {
       clientRequestId: entry.id,
       phone,
       name: clientName,
-      make: body.make,
+      make: body.make || vehicleLabel,
       model: body.model,
       plate: body.plate,
-      vin,
+      vin: vin.length === 17 ? vin : "",
       serviceId: body.serviceId,
       serviceLabel,
+      services: Array.isArray(body.services) ? body.services : undefined,
       desiredDate: body.desiredDate,
       desiredTime: body.desiredTime,
       siteLocale: normalizeSiteLocale(body.siteLocale),

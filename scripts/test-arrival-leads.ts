@@ -1,6 +1,10 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { arrivalTimes, evaluateArrivalTime } from "../src/lib/arrival-window";
-import { archiveCalendarHistory, planCalendarArchive } from "../src/lib/calendar-history";
+import { archiveCalendarHistory, isActiveCalendarVisit, planCalendarArchive } from "../src/lib/calendar-history";
+import { cronHoldActive } from "../src/lib/server/crm-cloud-mutate";
+import { getSupabaseConfig } from "../src/lib/server/supabase-config";
+import { mergeServerCloudMutation } from "../src/lib/crm-db-merge";
 import {
   formatMorningDigest,
   isMorningDigestHour,
@@ -10,8 +14,10 @@ import {
 import { findMechanicConflict } from "../src/lib/staff-calendar";
 import { leadNeedsNotice } from "../src/lib/server/telegram-cron/lead-notifications";
 import {
+  applyLeadAction,
   formatLeadMessage,
   normalizeSiteLocale,
+  quoteSubmittedLine,
   quoteService,
   totalQuote,
   upsertWebsiteLead,
@@ -67,6 +73,12 @@ const rows = [
   visit({ id: "hidden", date: today, time: "10:30", calendarHidden: true }),
 ];
 assert.deepEqual(visibleTodayArrivals(rows, today).map((row) => row.id), ["today"]);
+assert.equal(isActiveCalendarVisit(rows[0], today), true);
+assert.equal(isActiveCalendarVisit(rows[1], today), true);
+assert.equal(isActiveCalendarVisit(rows[2], today), false);
+assert.equal(isActiveCalendarVisit(rows[3], today), false);
+assert.equal(isActiveCalendarVisit(rows[4], today), false);
+assert.equal(isActiveCalendarVisit(visit({ id: "past", date: "2026-11-01", time: "09:00" }), today), false);
 
 const archived = archiveCalendarHistory(rows, today, "2026-11-09T07:00:00.000Z");
 assert.equal(archived.appointments.find((row) => row.id === "today")?.calendarHidden, undefined);
@@ -149,5 +161,83 @@ assert.match(labels, /📅 Календарь/);
 assert.match(labels, /📥 Заявки/);
 assert.match(labels, /🚗 Сегодня/);
 assert.match(labels, /➕ Новая запись/);
+
+assert.match(quoteSubmittedLine("computer_diag", "Diagnostyka", 1).priceText, /^от \d+ zł$/);
+assert.equal(quoteSubmittedLine("missing-service", "Неизвестная", 1).priceText, "требует расчёта");
+const shortVin = upsertWebsiteLead(db, {
+  clientRequestId: "vin-short",
+  phone: "+48111222333",
+  name: "Jan",
+  vin: "ABC",
+  serviceLabel: "VIN",
+  siteLocale: "ru",
+  now: new Date(past.getTime() + 5 * 60 * 1000),
+});
+assert.equal(shortVin.lead.vin, "");
+assert.equal(shortVin.lead.siteLocale, "ru");
+
+for (const [index, locale] of (["pl", "uk", "ru", "en"] as const).entries()) {
+  const saved = upsertWebsiteLead(db, {
+    clientRequestId: `locale-${locale}`,
+    phone: `+480000001${index}`,
+    name: "Test",
+    serviceLabel: "Diagnostyka",
+    siteLocale: locale,
+    now: past,
+  });
+  assert.equal(saved.created, true);
+  assert.equal(saved.lead.siteLocale, locale);
+  assert.match(formatLeadMessage(saved.lead), new RegExp(`Язык сайта: ${locale.toUpperCase()}`));
+}
+
+const parallelBase = mergeStoredDb({ leads: [] });
+upsertWebsiteLead(parallelBase, { clientRequestId: "lead-a", phone: "+48111000001", name: "Anna", serviceLabel: "Olej", now: past });
+upsertWebsiteLead(parallelBase, { clientRequestId: "lead-b", phone: "+48111000002", name: "Bartek", serviceLabel: "Hamulce", now: past });
+const left = structuredClone(parallelBase);
+const right = structuredClone(parallelBase);
+applyLeadAction(left.leads[0], "no_answer", new Date("2026-11-08T08:00:00.000Z"), "admin-1");
+applyLeadAction(right.leads[1], "decline", new Date("2026-11-08T08:00:01.000Z"), "admin-2");
+const merged = mergeServerCloudMutation(left, right);
+assert.equal(merged.leads.find((lead) => lead.clientRequestId === "lead-a")?.status, "no_answer");
+assert.equal(merged.leads.find((lead) => lead.clientRequestId === "lead-b")?.status, "declined");
+const same = structuredClone(merged);
+applyLeadAction(same.leads[0], "confirm_call", new Date("2026-11-08T08:05:00.000Z"), "admin-1");
+assert.equal(same.leads[0].status, "no_answer");
+assert.equal(same.leads[0].contacts.at(-1)?.kind, "call");
+applyLeadAction(same.leads[0], "booked", new Date("2026-11-08T08:06:00.000Z"));
+assert.equal(same.leads[0].status, "booked");
+
+assert.equal(leadNeedsNotice({ ...pending, notifyStatus: "sending", updatedAt: new Date(past.getTime() + 30_000).toISOString() }, new Date(past.getTime() + 60_000)), false);
+assert.equal(cronHoldActive(new Date(past.getTime() + 60_000).toISOString(), past), true);
+assert.equal(cronHoldActive(new Date(past.getTime() - 1000).toISOString(), past), false);
+
+const lockSql = readFileSync("supabase/lock-crm-personal-access.sql", "utf8");
+assert.match(lockSql, /enable row level security/);
+assert.match(lockSql, /force row level security/);
+assert.match(lockSql, /revoke all on table public\.crm_store from public, anon, authenticated/);
+assert.match(lockSql, /revoke all on table public\.appointments from public, anon, authenticated/);
+assert.match(lockSql, /grant select, insert, update, delete on table public\.crm_store to service_role/);
+assert.match(lockSql, /grant select, insert, update, delete on table public\.appointments to service_role/);
+assert.doesNotMatch(lockSql, /grant .+ to anon/i);
+assert.doesNotMatch(lockSql, /to authenticated/i);
+const serverAccess = [
+  readFileSync("src/lib/server/crm-cloud.ts", "utf8"),
+  readFileSync("src/lib/server/appointments-cloud.ts", "utf8"),
+].join("\n");
+assert.match(serverAccess, /getSupabaseConfig/);
+assert.match(serverAccess, /apikey: cfg\.key/);
+assert.doesNotMatch(serverAccess, /SUPABASE_ANON|sb_publishable_/);
+const savedUrl = process.env.SUPABASE_URL;
+const savedKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+process.env.SUPABASE_URL = "https://example.supabase.co";
+process.env.SUPABASE_SERVICE_ROLE_KEY = "sb_publishable_abcdefghijklmnopqrstuvwxyz";
+assert.equal(getSupabaseConfig(), null);
+process.env.SUPABASE_SERVICE_ROLE_KEY = "sb_secret_abcdefghijklmnopqrstuvwxyz";
+assert.equal(getSupabaseConfig()?.key.startsWith("sb_secret_"), true);
+if (savedUrl === undefined) delete process.env.SUPABASE_URL;
+else process.env.SUPABASE_URL = savedUrl;
+if (savedKey === undefined) delete process.env.SUPABASE_SERVICE_ROLE_KEY;
+else process.env.SUPABASE_SERVICE_ROLE_KEY = savedKey;
+assert.equal(getSupabaseConfig(), null);
 
 console.log("arrival and leads ok");

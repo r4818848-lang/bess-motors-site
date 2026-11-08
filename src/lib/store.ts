@@ -380,6 +380,8 @@ export interface AppSettings {
   lunchBreakEnd?: string;
   /** Local date of the last morning arrival digest, Europe/Warsaw. */
   morningDigestDate?: string;
+  /** Short lease so only one Vercel project sends a shared cron job. */
+  cronHoldUntil?: Record<string, string>;
 }
 
 export interface PasswordResetRecord {
@@ -486,7 +488,7 @@ export interface ServiceLead {
   contacts: LeadContact[];
   appointmentId?: string;
   clientRequestId?: string;
-  notifyStatus: "pending" | "sent";
+  notifyStatus: "pending" | "sending" | "sent";
   notifyAttempts: number;
 }
 

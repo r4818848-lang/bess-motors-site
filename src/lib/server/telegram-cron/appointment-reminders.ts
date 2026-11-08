@@ -8,7 +8,7 @@ import {
   morningDigestAlreadySent,
   warsawTodayKey,
 } from "@/lib/morning-digest";
-import { cloudPutCrmStore } from "@/lib/server/crm-cloud";
+import { cloudMutateCrmStore } from "@/lib/server/crm-cloud-mutate";
 import { sendTelegramMessage } from "@/lib/server/telegram-api";
 import { getClientBotLabels, type BotLocale } from "@/lib/server/telegram-bot/client-i18n";
 import { getClientServiceLabel } from "@/lib/server/telegram-bot/client-services";
@@ -25,6 +25,41 @@ import { deliverPendingLeadNotices } from "./lead-notifications";
 
 function reminderLocale(user: User): BotLocale {
   return user.telegramLocale ?? "pl";
+}
+
+async function saveReminderFields(before: Database, after: Database): Promise<void> {
+  await cloudMutateCrmStore((live) => {
+    for (const apt of after.appointments) {
+      const prev = before.appointments.find((item) => item.id === apt.id);
+      const row = live.appointments.find((item) => item.id === apt.id);
+      if (!prev || !row) continue;
+      if (apt.reminderDayBeforeSentAt && !row.reminderDayBeforeSentAt) {
+        row.reminderDayBeforeSentAt = apt.reminderDayBeforeSentAt;
+      }
+      if (apt.reminder2hSentAt && !row.reminder2hSentAt) row.reminder2hSentAt = apt.reminder2hSentAt;
+      if (apt.adminReminder && JSON.stringify(apt.adminReminder) !== JSON.stringify(prev.adminReminder)) {
+        const liveStatus = row.adminReminder?.status;
+        const nextStatus = apt.adminReminder.status;
+        if (liveStatus === "sent" || (nextStatus === "sending" && liveStatus === "sending")) continue;
+        row.adminReminder = apt.adminReminder;
+      }
+    }
+  }, { skipAutomation: true });
+}
+
+export async function reserveMorningDigest(today: string): Promise<boolean> {
+  const result = await cloudMutateCrmStore((db) => {
+    if (db.settings.morningDigestDate === today) return "skip";
+    db.settings.morningDigestDate = today;
+    return "send";
+  }, { skipAutomation: true });
+  return result.ok && result.result === "send";
+}
+
+export async function releaseMorningDigest(today: string): Promise<void> {
+  await cloudMutateCrmStore((db) => {
+    if (db.settings.morningDigestDate === today) db.settings.morningDigestDate = undefined;
+  }, { skipAutomation: true });
 }
 
 async function notifyClient(user: User, text: string, now: Date): Promise<boolean> {
@@ -80,10 +115,11 @@ export async function runAppointmentReminders(
       ].join("\n");
 
       if (await notifyClient(user, text, now)) {
+        const before = structuredClone(db);
         apt.reminderDayBeforeSentAt = now.toISOString();
         dayBefore += 1;
         clientDirty = true;
-        await cloudPutCrmStore(db);
+        await saveReminderFields(before, db);
       }
     }
 
@@ -103,40 +139,39 @@ export async function runAppointmentReminders(
         ].join("\n");
 
         if (await notifyClient(user, text, now)) {
+          const before = structuredClone(db);
           apt.reminder2hSentAt = now.toISOString();
           twoHour += 1;
           clientDirty = true;
-          await cloudPutCrmStore(db);
+          await saveReminderFields(before, db);
         }
       }
     }
   }
 
+  const beforeAdmin = structuredClone(db);
   const admin = await deliverAdminArrivalReminders({
     db,
     now,
     adminChatIds: productionAdminChatIds(),
     send: sendAdminArrivalMessage,
     save: async (snapshot) => {
-      await cloudPutCrmStore(snapshot);
+      await saveReminderFields(beforeAdmin, snapshot);
     },
   });
 
   if (clientDirty && admin.sent === 0 && admin.failed === 0 && admin.cancelled === 0) {
-    await cloudPutCrmStore(db);
+    await saveReminderFields(beforeAdmin, db);
   }
 
-  await deliverPendingLeadNotices(db, now);
+  await deliverPendingLeadNotices(now);
 
   const warsaw = warsawParts(now);
   const digestDate = warsawTodayKey(now);
   if (isMorningDigestHour(now) && warsaw.minutes >= 5 && !morningDigestAlreadySent(db, digestDate)) {
-    db.settings.morningDigestDate = digestDate;
-    await cloudPutCrmStore(db);
-    const digestSent = await notifyAdminTelegram(formatMorningDigest(db, digestDate));
-    if (!digestSent) {
-      db.settings.morningDigestDate = undefined;
-      await cloudPutCrmStore(db);
+    if (await reserveMorningDigest(digestDate)) {
+      const digestSent = await notifyAdminTelegram(formatMorningDigest(db, digestDate));
+      if (!digestSent) await releaseMorningDigest(digestDate);
     }
   }
 
