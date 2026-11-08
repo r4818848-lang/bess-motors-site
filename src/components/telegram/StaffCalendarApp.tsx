@@ -1,13 +1,15 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { addDateKeyDays } from "@/lib/staff-calendar";
 import {
+  bindTelegramViewport,
   markTelegramWebAppReady,
   readTelegramWebApp,
   telegramLanguageCode,
   telegramLaunchStatus,
   waitForTelegramInitData,
+  type CalendarFrame,
   type TelegramWebAppSnapshot,
 } from "@/lib/telegram-webapp-client";
 
@@ -51,6 +53,8 @@ const COPY = {
     month: "Месяц",
     add: "Добавить",
     empty: "На сегодня записей нет",
+    emptyAny: "Записей нет",
+    newVisit: "Новая запись",
     arrived: "Прибыл",
     missed: "Не приехал",
     move: "Перенести",
@@ -89,6 +93,8 @@ const COPY = {
     month: "Miesiąc",
     add: "Dodaj",
     empty: "Na dziś nie ma wizyt",
+    emptyAny: "Brak wizyt",
+    newVisit: "Nowa wizyta",
     arrived: "Przyjechał",
     missed: "Nie przyjechał",
     move: "Przenieś",
@@ -127,6 +133,8 @@ const COPY = {
     month: "Місяць",
     add: "Додати",
     empty: "На сьогодні записів немає",
+    emptyAny: "Записів немає",
+    newVisit: "Новий запис",
     arrived: "Прибув",
     missed: "Не приїхав",
     move: "Перенести",
@@ -165,6 +173,8 @@ const COPY = {
     month: "Month",
     add: "Add",
     empty: "No arrivals today",
+    emptyAny: "No visits",
+    newVisit: "New visit",
     arrived: "Arrived",
     missed: "No-show",
     move: "Reschedule",
@@ -213,6 +223,61 @@ function monthEnd(dateKey: string): string {
   return `${dateKey.slice(0, 8)}${String(last).padStart(2, "0")}`;
 }
 
+const fieldClass = "mt-1 box-border h-12 w-full max-w-full rounded-xl bg-zinc-900 px-3 text-base";
+const tabClass = "flex min-h-12 items-center justify-center rounded-xl px-1 text-center text-[13px] font-semibold leading-tight";
+const actionClass = "min-h-12 rounded-xl px-2 text-sm font-semibold";
+
+function useCalendarFrame(): CalendarFrame {
+  const [frame, setFrame] = useState(() => bindFrame());
+  useEffect(() => {
+    let detach: (() => void) | undefined;
+    const bind = () => {
+      if (detach) return;
+      detach = bindTelegramViewport((next) => setFrame(next)) ?? undefined;
+    };
+    bind();
+    const timer = window.setInterval(bind, 150);
+    const stop = window.setTimeout(() => window.clearInterval(timer), 5000);
+    return () => {
+      window.clearInterval(timer);
+      window.clearTimeout(stop);
+      detach?.();
+    };
+  }, []);
+  return frame;
+}
+
+function bindFrame(): CalendarFrame {
+  return {
+    paddingTop: 8,
+    paddingRight: 16,
+    paddingBottom: 16,
+    paddingLeft: 16,
+    minHeight: "100dvh",
+    keyboard: false,
+  };
+}
+
+function CalendarShell({ frame, children }: { frame: CalendarFrame; children: ReactNode }) {
+  return (
+    <main
+      data-testid="telegram-calendar-shell"
+      className="mx-auto box-border w-full max-w-lg bg-zinc-950 text-zinc-100"
+      style={{
+        paddingTop: frame.paddingTop,
+        paddingRight: frame.paddingRight,
+        paddingBottom: frame.paddingBottom,
+        paddingLeft: frame.paddingLeft,
+        minHeight: frame.minHeight,
+        maxHeight: frame.maxHeight,
+        overflow: frame.maxHeight ? "auto" : undefined,
+      }}
+    >
+      {children}
+    </main>
+  );
+}
+
 function staffFailureText(code: string, text: (typeof COPY)["ru"]): string {
   if (code === "forbidden") return text.forbidden;
   if (code === "bad_signature" || code === "stale" || code === "missing" || code === "no_user") return text.rejected;
@@ -248,6 +313,7 @@ export function StaffCalendarApp() {
     clientRequestId: "",
   });
   const text = COPY[lang];
+  const frame = useCalendarFrame();
 
   const post = useCallback(
     async (body: Record<string, unknown>) => {
@@ -394,32 +460,43 @@ export function StaffCalendarApp() {
     }
   }
 
-  if (!ready) return <main className="p-6 text-sm"><h1 className="text-xl font-semibold">BESS MOTORS</h1><p>{COPY.ru.loading}</p></main>;
+  if (!ready) {
+    return (
+      <CalendarShell frame={frame}>
+        <h1 className="text-sm font-semibold tracking-[0.16em] text-zinc-400">BESS MOTORS</h1>
+        <p className="mt-2 text-sm">{COPY.ru.loading}</p>
+      </CalendarShell>
+    );
+  }
   if (!initData) {
     const status = telegramLaunchStatus(launch ?? { sdkReady: false, initData: "", platform: "" });
     return (
-      <main className="mx-auto max-w-md p-6 text-sm" data-testid="telegram-calendar-gate">
-        <h1 className="mb-3 text-xl font-semibold">BESS MOTORS</h1>
+      <CalendarShell frame={frame}>
+      <div data-testid="telegram-calendar-gate">
+        <h1 className="mb-3 text-sm font-semibold tracking-[0.16em] text-zinc-400">BESS MOTORS</h1>
         <p>{text.gate}</p>
         <p className="mt-3">{status.sdkReady ? text.sdkReady : text.sdkMissing}</p>
         <p className="mt-2">{text.launchMissing}</p>
         {status.platform && status.platform !== "unknown" ? <p className="mt-2">Telegram: {status.platform}</p> : null}
         <p className="mt-3 text-zinc-600">{text.hint}</p>
-        <button type="button" className="mt-4 rounded-lg bg-white px-4 py-2 font-semibold text-black" onClick={() => window.location.reload()}>
+        <button type="button" className="mt-4 min-h-12 rounded-xl bg-white px-4 font-semibold text-black" onClick={() => window.location.reload()}>
           {text.retry}
         </button>
-      </main>
+      </div>
+      </CalendarShell>
     );
   }
   if (!session) {
     return (
-      <main className="mx-auto max-w-md p-6 text-sm" data-testid="telegram-calendar-denied">
-        <h1 className="mb-3 text-xl font-semibold">BESS MOTORS</h1>
+      <CalendarShell frame={frame}>
+      <div data-testid="telegram-calendar-denied">
+        <h1 className="mb-3 text-sm font-semibold tracking-[0.16em] text-zinc-400">BESS MOTORS</h1>
         <p>{error || text.loading}</p>
-        <button type="button" className="mt-4 rounded-lg bg-white px-4 py-2 font-semibold text-black" onClick={() => window.location.reload()}>
+        <button type="button" className="mt-4 min-h-12 rounded-xl bg-white px-4 font-semibold text-black" onClick={() => window.location.reload()}>
           {text.retry}
         </button>
-      </main>
+      </div>
+      </CalendarShell>
     );
   }
 
@@ -429,14 +506,14 @@ export function StaffCalendarApp() {
   }, {});
 
   return (
-    <main className="mx-auto min-h-screen max-w-lg bg-zinc-950 px-4 py-4 text-zinc-100">
-      <header className="mb-4">
-        <p className="text-xs tracking-[0.2em] text-zinc-500">{text.title}</p>
-        <h1 className="text-xl font-semibold">{session.today}</h1>
-      </header>
-      <nav className="mb-4 grid grid-cols-4 gap-1 text-xs">
+    <CalendarShell frame={frame}>
+      <div className="mb-3">
+        <p className="text-[11px] font-semibold tracking-[0.16em] text-zinc-400">{text.title}</p>
+        <h1 className="text-lg font-semibold leading-tight">{session.today}</h1>
+      </div>
+      <nav className="mb-3 grid grid-cols-4 gap-1.5">
         {(["today", "week", "month", "add"] as View[]).map((item) => (
-          <button key={item} type="button" onClick={() => void openView(item)} className={`rounded-lg px-2 py-2 ${view === item ? "bg-white text-black" : "bg-zinc-900"}`}>
+          <button key={item} type="button" data-testid={`telegram-tab-${item}`} onClick={() => void openView(item)} className={`${tabClass} ${view === item ? "bg-white text-black" : "bg-zinc-900 text-zinc-100"}`}>
             {text[item]}
           </button>
         ))}
@@ -444,7 +521,8 @@ export function StaffCalendarApp() {
       {session.role === "owner" && (
         <button
           type="button"
-          className="mb-4 text-xs text-zinc-400"
+          data-testid="telegram-calendar-archive"
+          className="mb-3 min-h-12 w-full rounded-xl bg-zinc-900 px-3 text-sm font-semibold"
           onClick={() => {
             const nextArchive = !archive;
             setArchive(nextArchive);
@@ -468,29 +546,29 @@ export function StaffCalendarApp() {
             saveNew().catch((err: Error) => setError(err.message));
           }}
         >
-          <input className="w-full rounded-lg bg-zinc-900 px-3 py-2" placeholder={text.name} value={form.clientName} onChange={(event) => setForm({ ...form, clientName: event.target.value })} required />
-          <input className="w-full rounded-lg bg-zinc-900 px-3 py-2" placeholder={text.phone} value={form.clientPhone} onChange={(event) => setForm({ ...form, clientPhone: event.target.value })} required />
-          <input className="w-full rounded-lg bg-zinc-900 px-3 py-2" placeholder={text.car} value={form.car} onChange={(event) => setForm({ ...form, car: event.target.value })} />
-          <input className="w-full rounded-lg bg-zinc-900 px-3 py-2" placeholder={text.plate} value={form.plate} onChange={(event) => setForm({ ...form, plate: event.target.value })} />
-          <input className="w-full rounded-lg bg-zinc-900 px-3 py-2" placeholder={text.service} value={form.problemText} onChange={(event) => setForm({ ...form, problemText: event.target.value })} />
-          <label className="block text-xs text-zinc-400">{text.date}<input type="date" className="mt-1 w-full rounded-lg bg-zinc-900 px-3 py-2" value={form.date} onChange={(event) => setForm({ ...form, date: event.target.value })} required /></label>
+          <input className={fieldClass} placeholder={text.name} value={form.clientName} onChange={(event) => setForm({ ...form, clientName: event.target.value })} required />
+          <input className={fieldClass} inputMode="tel" placeholder={text.phone} value={form.clientPhone} onChange={(event) => setForm({ ...form, clientPhone: event.target.value })} required />
+          <input className={fieldClass} placeholder={text.car} value={form.car} onChange={(event) => setForm({ ...form, car: event.target.value })} />
+          <input className={fieldClass} placeholder={text.plate} value={form.plate} onChange={(event) => setForm({ ...form, plate: event.target.value })} />
+          <input className={fieldClass} placeholder={text.service} value={form.problemText} onChange={(event) => setForm({ ...form, problemText: event.target.value })} />
+          <label className="block text-xs text-zinc-400">{text.date}<input type="date" className={fieldClass} value={form.date} onChange={(event) => setForm({ ...form, date: event.target.value })} required /></label>
           <label className="block text-xs text-zinc-400">{text.time}
-            <select className="mt-1 w-full rounded-lg bg-zinc-900 px-3 py-2" value={form.time} onChange={(event) => setForm({ ...form, time: event.target.value })}>
+            <select className={fieldClass} value={form.time} onChange={(event) => setForm({ ...form, time: event.target.value })}>
               {SLOTS.map((slot) => <option key={slot}>{slot}</option>)}
             </select>
           </label>
           <label className="block text-xs text-zinc-400">{text.mechanic}
-            <select className="mt-1 w-full rounded-lg bg-zinc-900 px-3 py-2" value={form.mechanicId} onChange={(event) => setForm({ ...form, mechanicId: event.target.value })}>
+            <select className={fieldClass} value={form.mechanicId} onChange={(event) => setForm({ ...form, mechanicId: event.target.value })}>
               {session.mechanics.map((mechanic) => <option key={mechanic.id} value={mechanic.id}>{mechanic.name}</option>)}
             </select>
           </label>
-          <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.leavesCar} onChange={(event) => setForm({ ...form, leavesCar: event.target.checked })} />{text.drop}</label>
-          {form.leavesCar && <label className="block text-xs text-zinc-400">{text.pickup}<input type="date" className="mt-1 w-full rounded-lg bg-zinc-900 px-3 py-2" value={form.pickupDate} onChange={(event) => setForm({ ...form, pickupDate: event.target.value })} /></label>}
-          <button className="w-full rounded-lg bg-white py-3 font-semibold text-black" type="submit">{text.save}</button>
+          <label className="flex min-h-12 items-center gap-3 text-base"><input className="h-5 w-5" type="checkbox" checked={form.leavesCar} onChange={(event) => setForm({ ...form, leavesCar: event.target.checked })} />{text.drop}</label>
+          {form.leavesCar && <label className="block text-xs text-zinc-400">{text.pickup}<input type="date" className={fieldClass} value={form.pickupDate} onChange={(event) => setForm({ ...form, pickupDate: event.target.value })} /></label>}
+          <button className="min-h-12 w-full rounded-xl bg-white font-semibold text-black" type="submit">{text.save}</button>
         </form>
       ) : selected ? (
         <section className="rounded-2xl bg-zinc-900 p-4">
-          <button type="button" className="mb-3 text-xs text-zinc-400" onClick={() => setSelected(null)}>{text.back}</button>
+          <button type="button" className="mb-3 min-h-12 text-sm font-semibold text-zinc-300" onClick={() => setSelected(null)}>{text.back}</button>
           <p className="text-2xl font-semibold">{selected.time}</p>
           <p className="mt-2">{selected.clientName}</p>
           <a className="text-sky-300" href={`tel:${selected.clientPhone}`}>{selected.clientPhone}</a>
@@ -500,29 +578,34 @@ export function StaffCalendarApp() {
           <p>{text.status[selected.visitState] ?? selected.appointmentStatus}</p>
           {selected.leavesCar && <p>{text.drop}{selected.pickupDate ? ` · ${selected.pickupDate}` : ""}</p>}
           {session.canEdit && (
-            <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
-              <button type="button" className="rounded-lg bg-white py-2 text-black" onClick={() => mutate("arrive").catch((err: Error) => setError(err.message))}>{text.arrived}</button>
-              <button type="button" className="rounded-lg bg-zinc-800 py-2" onClick={() => mutate("noshow").catch((err: Error) => setError(err.message))}>{text.missed}</button>
-              <button type="button" className="rounded-lg bg-zinc-800 py-2" onClick={() => setMoving(true)}>{text.move}</button>
-              <button type="button" className="rounded-lg bg-red-950 py-2" onClick={() => setConfirmDelete(true)}>{text.remove}</button>
+            <div className="mt-4 grid grid-cols-2 gap-2">
+              <button type="button" className={`${actionClass} bg-white text-black`} onClick={() => mutate("arrive").catch((err: Error) => setError(err.message))}>{text.arrived}</button>
+              <button type="button" className={`${actionClass} bg-zinc-800`} onClick={() => mutate("noshow").catch((err: Error) => setError(err.message))}>{text.missed}</button>
+              <button type="button" data-testid="telegram-move" className={`${actionClass} bg-zinc-800`} onClick={() => setMoving(true)}>{text.move}</button>
+              <button type="button" data-testid="telegram-remove" className={`${actionClass} bg-red-950`} onClick={() => setConfirmDelete(true)}>{text.remove}</button>
             </div>
           )}
           {moving && (
             <form className="mt-3 space-y-2" onSubmit={(event) => { event.preventDefault(); const data = new FormData(event.currentTarget); mutate("update", { date: data.get("date"), time: data.get("time"), clientName: selected.clientName, clientPhone: selected.clientPhone, mechanicId: selected.mechanicId }).catch((err: Error) => setError(err.message)); }}>
-              <input name="date" type="date" defaultValue={selected.date} className="w-full rounded-lg bg-zinc-950 px-3 py-2" required />
-              <select name="time" defaultValue={selected.time} className="w-full rounded-lg bg-zinc-950 px-3 py-2">{SLOTS.map((slot) => <option key={slot}>{slot}</option>)}</select>
-              <button className="w-full rounded-lg bg-white py-2 text-black" type="submit">{text.save}</button>
+              <input name="date" type="date" defaultValue={selected.date} className={fieldClass} required />
+              <select name="time" defaultValue={selected.time} className={fieldClass}>{SLOTS.map((slot) => <option key={slot}>{slot}</option>)}</select>
+              <button className="min-h-12 w-full rounded-xl bg-white font-semibold text-black" type="submit">{text.save}</button>
             </form>
           )}
           {confirmDelete && (
             <div className="mt-3 rounded-lg bg-red-950 p-3 text-sm">
               <p>{text.confirm}</p>
-              <button type="button" className="mt-2 w-full rounded-lg bg-white py-2 text-black" onClick={() => mutate("remove").catch((err: Error) => setError(err.message))}>{text.remove}</button>
+              <button type="button" className="mt-2 min-h-12 w-full rounded-xl bg-white font-semibold text-black" onClick={() => mutate("remove").catch((err: Error) => setError(err.message))}>{text.remove}</button>
             </div>
           )}
         </section>
       ) : rows.length === 0 ? (
-        <p className="text-sm text-zinc-400">{text.empty}</p>
+        <div data-testid="telegram-calendar-empty" className="rounded-2xl bg-zinc-900 px-4 py-4">
+          <p className="text-sm">{view === "today" ? text.empty : text.emptyAny}</p>
+          <button type="button" data-testid="telegram-calendar-new" className="mt-3 min-h-12 w-full rounded-xl bg-white font-semibold text-black" onClick={() => void openView("add")}>
+            {text.newVisit}
+          </button>
+        </div>
       ) : (
         <div className="space-y-4">
           {Object.keys(grouped).sort().map((date) => (
@@ -530,7 +613,7 @@ export function StaffCalendarApp() {
               {view !== "today" && <h2 className="mb-2 text-sm text-zinc-400">{date}</h2>}
               <div className="space-y-2">
                 {grouped[date].sort((a, b) => a.time.localeCompare(b.time)).map((row) => (
-                  <button key={row.id} type="button" onClick={() => { setSelected(row); setConfirmDelete(false); setMoving(false); }} className="block w-full rounded-2xl bg-zinc-900 p-3 text-left">
+                  <button key={row.id} type="button" onClick={() => { setSelected(row); setConfirmDelete(false); setMoving(false); }} className="block min-h-12 w-full max-w-full rounded-2xl bg-zinc-900 p-3 text-left">
                     <span className="text-lg font-semibold">{row.time}</span>
                     <span className="mt-1 block">{row.clientName}</span>
                     <span className="block text-sm text-zinc-400">{row.clientPhone}</span>
@@ -545,6 +628,6 @@ export function StaffCalendarApp() {
           ))}
         </div>
       )}
-    </main>
+    </CalendarShell>
   );
 }

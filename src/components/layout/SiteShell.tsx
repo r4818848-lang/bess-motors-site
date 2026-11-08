@@ -27,7 +27,8 @@ export function SiteShell({ children }: { children: ReactNode }) {
   const pathname = usePathname() ?? "";
 
   if (usesMinimalChrome(pathname)) {
-    return <main className="min-h-screen">{children}</main>;
+    const telegram = pathname === "/telegram" || pathname.startsWith("/telegram/");
+    return <main className={telegram ? "min-h-0 bg-zinc-950" : "min-h-screen"}>{children}</main>;
   }
 
   const hideMobileBar = hidesMobileStickyBar(pathname);

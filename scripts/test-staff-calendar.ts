@@ -13,6 +13,8 @@ import {
 import { verifyTelegramWebAppInitData } from "../src/lib/server/telegram-webapp-auth";
 import { resolveStaffCalendarActor, staffRoleFromIds } from "../src/lib/server/staff-calendar-access";
 import {
+  calendarFrame,
+  combineTelegramInsets,
   parseTelegramLaunchHash,
   readTelegramWebApp,
   telegramLaunchHeadScript,
@@ -309,6 +311,46 @@ const pending = readTelegramWebApp({
 assert.equal(pending.launchPending, true);
 assert.equal(JSON.stringify({ pending: pending.launchPending }).includes(secretLaunch), false);
 
+const island = calendarFrame({
+  safeArea: { top: 59, bottom: 34, left: 0, right: 0 },
+  contentSafeArea: { top: 46, bottom: 0, left: 0, right: 0 },
+  viewportStableHeight: 745,
+  viewportHeight: 745,
+});
+assert.equal(island.paddingTop, 113);
+assert.equal(island.paddingBottom, 50);
+assert.equal(island.minHeight, "745px");
+assert.equal(island.maxHeight, undefined);
+assert.equal(island.keyboard, false);
+assert.equal(calendarFrame({ safeArea: { top: 47 }, contentSafeArea: { top: 46 } }).paddingTop, 101);
+assert.equal(calendarFrame({ safeArea: { top: 20 }, contentSafeArea: { top: 46 } }).paddingTop, 74);
+assert.equal(calendarFrame({ safeArea: { top: 24 }, contentSafeArea: { top: 0 } }).paddingTop, 32);
+assert.equal(calendarFrame({
+  safeArea: { top: 0, left: 0 },
+  contentSafeArea: { top: 0, left: 0 },
+  viewportStableHeight: 800,
+  viewportHeight: 800,
+}).paddingTop, 8);
+const keyboardFrame = calendarFrame({
+  safeArea: { top: 59 },
+  contentSafeArea: { top: 46 },
+  viewportStableHeight: 745,
+  viewportHeight: 400,
+});
+assert.equal(keyboardFrame.keyboard, true);
+assert.equal(keyboardFrame.minHeight, "400px");
+assert.equal(keyboardFrame.maxHeight, "400px");
+assert.equal(keyboardFrame.paddingTop, 113);
+assert.equal(calendarFrame({
+  safeArea: { top: 59 },
+  contentSafeArea: { top: 46 },
+  viewportStableHeight: 745,
+  viewportHeight: 700,
+}).keyboard, false);
+assert.equal(calendarFrame({ safeArea: { top: -12 }, contentSafeArea: { top: Number.NaN } }).paddingTop, 8);
+assert.equal(combineTelegramInsets({ top: 59, left: 4 }, { top: 46, left: 0 }).top, 105);
+assert.equal(combineTelegramInsets({ top: 59, left: 4 }, { top: 46, left: 0 }).left, 4);
+
 void (async () => {
 const outside = await waitForTelegramInitData(
   () => ({ sdkReady: true, initData: "", platform: "web", launchPending: false }),
@@ -341,8 +383,16 @@ assert.match(telegramLaunchHeadScript, /history\.replaceState/);
 const appSource = readFileSync(join(process.cwd(), "src/components/telegram/StaffCalendarApp.tsx"), "utf8");
 assert.doesNotMatch(appSource, /console\.(log|debug|info|warn|error)/);
 assert.match(appSource, /waitForTelegramInitData/);
+assert.match(appSource, /bindTelegramViewport/);
+assert.match(appSource, /На сегодня записей нет/);
+assert.match(appSource, /Новая запись/);
+assert.doesNotMatch(appSource, /env\(safe-area-inset/);
+assert.doesNotMatch(appSource, /min-h-screen|100vh/);
+assert.doesNotMatch(appSource, /<header/);
 const layoutSource = readFileSync(join(process.cwd(), "src/app/layout.tsx"), "utf8");
 assert.match(layoutSource, /telegramLaunchHeadScript/);
+const calendarLayout = readFileSync(join(process.cwd(), "src/app/telegram/calendar/layout.tsx"), "utf8");
+assert.match(calendarLayout, /viewportFit: "cover"/);
 
 const savedOwner = process.env.TELEGRAM_OWNER_CHAT_ID;
 const savedChat = process.env.TELEGRAM_CHAT_ID;

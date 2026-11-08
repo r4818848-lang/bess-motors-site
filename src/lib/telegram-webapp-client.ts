@@ -8,12 +8,20 @@ export type TelegramWebAppSnapshot = {
   launchPending: boolean;
 };
 
+type InsetLike = { top?: number; right?: number; bottom?: number; left?: number };
+
 type TelegramWebAppLike = {
   initData?: string;
   platform?: string;
   ready?: () => void;
   expand?: () => void;
   initDataUnsafe?: { user?: { language_code?: string } };
+  safeAreaInset?: InsetLike;
+  contentSafeAreaInset?: InsetLike;
+  viewportHeight?: number | false;
+  viewportStableHeight?: number | false;
+  onEvent?: (eventType: string, callback: () => void) => void;
+  offEvent?: (eventType: string, callback: () => void) => void;
 };
 
 type TelegramWindowLike = {
@@ -87,6 +95,98 @@ export function markTelegramWebAppReady(win: TelegramWindowLike): void {
   const webApp = win.Telegram?.WebApp;
   webApp?.ready?.();
   webApp?.expand?.();
+}
+
+export type EdgeInsets = { top: number; right: number; bottom: number; left: number };
+
+export type CalendarFrame = {
+  paddingTop: number;
+  paddingRight: number;
+  paddingBottom: number;
+  paddingLeft: number;
+  minHeight: string;
+  maxHeight?: string;
+  keyboard: boolean;
+};
+
+const CONTENT_GAP = 8;
+const SIDE_GAP = 16;
+
+function positiveInset(value: unknown): number {
+  const number = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(number) || number <= 0) return 0;
+  return number;
+}
+
+function positivePx(value: unknown): number {
+  const number = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(number) || number <= 0) return 0;
+  return Math.round(number);
+}
+
+/**
+ * Telegram measures contentSafeAreaInset inside safeAreaInset.
+ * The full distance from the viewport edge is their sum, once.
+ * CSS env(safe-area-inset-*) is the same device inset and must not be added again.
+ */
+export function combineTelegramInsets(
+  safeArea?: InsetLike | null,
+  contentSafeArea?: InsetLike | null
+): EdgeInsets {
+  return {
+    top: positiveInset(safeArea?.top) + positiveInset(contentSafeArea?.top),
+    right: positiveInset(safeArea?.right) + positiveInset(contentSafeArea?.right),
+    bottom: positiveInset(safeArea?.bottom) + positiveInset(contentSafeArea?.bottom),
+    left: positiveInset(safeArea?.left) + positiveInset(contentSafeArea?.left),
+  };
+}
+
+export function calendarFrame(input: {
+  safeArea?: InsetLike | null;
+  contentSafeArea?: InsetLike | null;
+  viewportHeight?: number | null;
+  viewportStableHeight?: number | null;
+}): CalendarFrame {
+  const chrome = combineTelegramInsets(input.safeArea, input.contentSafeArea);
+  const stable = positivePx(input.viewportStableHeight);
+  const current = positivePx(input.viewportHeight);
+  const keyboard = stable > 0 && current > 0 && stable - current > 80;
+  const height = keyboard ? current : stable;
+  return {
+    paddingTop: chrome.top + CONTENT_GAP,
+    paddingRight: chrome.right + SIDE_GAP,
+    paddingBottom: chrome.bottom + SIDE_GAP,
+    paddingLeft: chrome.left + SIDE_GAP,
+    minHeight: height ? `${height}px` : "100dvh",
+    maxHeight: keyboard ? `${current}px` : undefined,
+    keyboard,
+  };
+}
+
+export function bindTelegramViewport(onChange: (frame: CalendarFrame) => void): (() => void) | null {
+  if (typeof window === "undefined") return null;
+  const webApp = (window as TelegramWindowLike).Telegram?.WebApp;
+  if (!webApp) return null;
+  webApp.ready?.();
+  webApp.expand?.();
+  const read = () => {
+    onChange(calendarFrame({
+      safeArea: webApp.safeAreaInset,
+      contentSafeArea: webApp.contentSafeAreaInset,
+      viewportHeight: typeof webApp.viewportHeight === "number" ? webApp.viewportHeight : undefined,
+      viewportStableHeight: typeof webApp.viewportStableHeight === "number" ? webApp.viewportStableHeight : undefined,
+    }));
+  };
+  read();
+  if (!webApp.onEvent) return () => {};
+  webApp.onEvent("viewportChanged", read);
+  webApp.onEvent("safeAreaChanged", read);
+  webApp.onEvent("contentSafeAreaChanged", read);
+  return () => {
+    webApp.offEvent?.("viewportChanged", read);
+    webApp.offEvent?.("safeAreaChanged", read);
+    webApp.offEvent?.("contentSafeAreaChanged", read);
+  };
 }
 
 /**
