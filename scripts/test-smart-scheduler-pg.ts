@@ -63,7 +63,7 @@ async function main() {
   await admin.query(`
     drop table if exists public.scheduler_resource_holds, public.scheduler_holds, public.scheduler_crm_occupancy,
       public.scheduler_crm_snapshot, public.scheduler_row_appointments, public.scheduler_store_appointments,
-      public.scheduler_actor_sessions, public.scheduler_approvals, public.scheduler_reservations,
+      public.scheduler_runtime, public.scheduler_actor_sessions, public.scheduler_approvals, public.scheduler_reservations,
       public.scheduler_actuals, public.scheduler_breaks, public.scheduler_time_off, public.scheduler_shifts,
       public.scheduler_display_names, public.scheduler_resources, public.scheduler_overlap_rules, public.scheduler_operations cascade
   `);
@@ -689,6 +689,26 @@ async function main() {
   });
   assert.equal(unified.status, 200);
   assert.equal(unified.crmWritten, false);
+
+  async function denied(role: string, sql: string): Promise<boolean> {
+    await admin.query("begin");
+    await admin.query(`set local role ${role}`);
+    try {
+      await admin.query(sql);
+      await admin.query("rollback");
+      return false;
+    } catch (error) {
+      const code = typeof error === "object" && error && "code" in error ? String(error.code) : "";
+      await admin.query("rollback");
+      return code === "42501";
+    }
+  }
+  assert.equal(await denied("scheduler_staff", "select scheduler_open_session('intruder', 'owner', null)"), true);
+  assert.equal(await denied("scheduler_mechanic", "select scheduler_open_session('intruder', 'admin', 'mech-1')"), true);
+  assert.equal(await denied("scheduler_staff", "insert into scheduler_actor_sessions (id, staff_id, actor_role, mechanic_id, db_role, expires_at) values ('ses-evil', 'other-staff', 'owner', null, 'scheduler_staff', now() + interval '5 minutes')"), true);
+  assert.equal(await denied("scheduler_staff", "select scheduler_set_unified_calendar(true)"), true);
+  const stillOff = await admin.query<{ unified_calendar: boolean }>("select unified_calendar from scheduler_runtime where id = 'main'");
+  assert.equal(stillOff.rows[0].unified_calendar, false);
 
   await admin.query("truncate public.scheduler_resource_holds, public.scheduler_holds, public.scheduler_crm_occupancy, public.scheduler_crm_snapshot, public.scheduler_row_appointments, public.scheduler_store_appointments, public.scheduler_actor_sessions, public.scheduler_approvals, public.scheduler_reservations, public.scheduler_breaks, public.scheduler_time_off, public.scheduler_shifts, public.scheduler_display_names");
   await admin.query("update public.scheduler_resources set status = 'maintenance', confirmed = false");

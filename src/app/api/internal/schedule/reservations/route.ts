@@ -6,7 +6,8 @@ import { guardScheduler, isGuardError, mechanicMayPlan } from "@/lib/smart-sched
 import type { BookingActor } from "@/lib/smart-scheduler/booking-rules";
 import { parseOperationCatalog } from "@/lib/smart-scheduler/catalog";
 import { schedulerTestWritesEnabled } from "@/lib/smart-scheduler/flag";
-import { projectCrmOccupancy } from "@/lib/smart-scheduler/occupancy";
+import { crmSurfacesMatch, type CrmAppointmentDoc } from "@/lib/smart-scheduler/crm-reconcile";
+import { readCloudAppointmentDocs } from "@/lib/smart-scheduler/crm-surfaces";
 import { cancelInDatabase, commitUnifiedWorkshopWrite, connectSchedulerDatabase, issueCrmSnapshot, moveInDatabase, openActorSession, schedulerDatabaseUrl } from "@/lib/smart-scheduler/postgres";
 import { planOperationMinutes, resolveDuration, type PartsStatus } from "@/lib/smart-scheduler/schedule";
 
@@ -29,15 +30,16 @@ type Body = {
   expectedVersion?: number;
 };
 
-async function confirmedCrm(client: { query: (sql: string) => Promise<{ rows: { n: number }[] }> }) {
+async function confirmedCrm(client: { query: (sql: string) => Promise<{ rows: { enabled?: boolean }[] }> }) {
   if (process.env.SCHEDULER_CRM_SOURCE !== "cloud") return "unavailable" as const;
   const { loadCrmFromCloud } = await import("@/lib/server/telegram-bot/crm-actions");
   const db = await loadCrmFromCloud();
   if (!db) return "unavailable" as const;
-  const blocks = projectCrmOccupancy(db, workshopHours());
-  const store = await client.query("select count(*)::int as n from scheduler_store_appointments where active");
-  const rows = await client.query("select count(*)::int as n from scheduler_row_appointments where active");
-  if (store.rows[0].n !== rows.rows[0].n || store.rows[0].n !== blocks.length) return "diverged" as const;
+  const rows = await readCloudAppointmentDocs();
+  if (!rows.ok) return "unavailable" as const;
+  if (!crmSurfacesMatch(db.appointments, rows.docs as CrmAppointmentDoc[])) return "diverged" as const;
+  const live = await client.query("select scheduler_live_crm_enabled() as enabled");
+  if (live.rows[0]?.enabled !== true) return "unavailable" as const;
   return "ok" as const;
 }
 

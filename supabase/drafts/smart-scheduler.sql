@@ -1,7 +1,8 @@
 -- DRAFT ONLY. Do not run this file on production or on any Supabase project.
--- Local test database name must be bess_scheduler_test.
--- Future pilot: backup the existing Supabase project, then apply only these scheduler_* tables there.
--- Do not create a second production database. Keep bess_scheduler_test separate.
+-- Local mirror tests use bess_scheduler_test. The real-schema copy uses bess_crm_copy_test.
+-- Future pilot: backup the existing Supabase project, then apply only these scheduler_* objects there.
+-- This file does not create crm_store or appointments and does not replace them.
+-- scheduler_store_appointments and scheduler_row_appointments stay test mirrors.
 -- Rollback is supabase/drafts/smart-scheduler-rollback.sql. It does not touch crm_store or appointments.
 
 create extension if not exists btree_gist;
@@ -135,8 +136,17 @@ create table if not exists public.scheduler_actor_sessions (
   check (actor_role <> 'mechanic' or coalesce(mechanic_id, '') <> '')
 );
 
--- Local stand-ins for the two CRM surfaces. A booking may commit only when they match.
--- The pilot RPC reads the existing crm_store and appointments instead of creating those tables.
+-- Default off. The old calendar stays on its current path until a separate launch.
+create table if not exists public.scheduler_runtime (
+  id text primary key default 'main',
+  live_crm boolean not null default false,
+  unified_calendar boolean not null default false
+);
+
+insert into public.scheduler_runtime (id) values ('main') on conflict (id) do nothing;
+
+-- Local stand-ins for tests. They are not the production CRM.
+-- Live mode reads the existing crm_store and appointments instead.
 create table if not exists public.scheduler_store_appointments (
   id text primary key,
   mechanic_id text not null,
@@ -254,12 +264,14 @@ language sql stable as $$
 $$;
 
 create or replace function public.scheduler_open_session(staff_id text, actor_role text, mechanic_id text) returns text
-language plpgsql as $$
+language plpgsql
+set search_path = public
+as $$
 declare
   session_id text := 'ses-' || gen_random_uuid()::text;
   bound_role text;
 begin
-  if current_user in ('scheduler_mechanic', 'scheduler_anon', 'anon', 'authenticated') then
+  if current_user in ('scheduler_staff', 'scheduler_mechanic', 'scheduler_anon', 'anon', 'authenticated') then
     raise exception 'forbidden_reservation' using errcode = '42501';
   end if;
   if actor_role not in ('owner', 'admin', 'mechanic') then
@@ -276,7 +288,9 @@ end $$;
 
 create or replace function public.scheduler_load_actor(session_id text)
 returns table(staff_id text, actor_role text, mechanic_id text)
-language plpgsql as $$
+language plpgsql
+set search_path = public
+as $$
 declare
   sess public.scheduler_actor_sessions%rowtype;
 begin
@@ -302,14 +316,138 @@ begin
   return next;
 end $$;
 
-create or replace function public.scheduler_issue_snapshot(available boolean) returns text
-language plpgsql as $$
+create or replace function public.scheduler_appointment_lines(doc jsonb)
+returns setof text
+language sql
+immutable
+set search_path = public
+as $$
+  with chosen as (
+    select distinct coalesce(value, '') as resource_id
+    from jsonb_array_elements_text(
+      case
+        when jsonb_typeof(doc->'resourceIds') = 'array' and jsonb_array_length(doc->'resourceIds') > 0
+        then doc->'resourceIds'
+        else jsonb_build_array(coalesce(doc->>'resourceId', ''))
+      end
+    ) as value
+  )
+  select
+    coalesce(doc->>'id', '') || '|' ||
+    coalesce(doc->>'mechanicId', '') || '|' ||
+    coalesce(doc->>'date', '') || '|' ||
+    coalesce(doc->>'workStart', '') || '|' ||
+    coalesce(nullif(doc->>'workMinutes', ''), '0') || '|' ||
+    coalesce(resource_id, '') || '|' ||
+    coalesce(doc->>'appointmentStatus', '') || '|' ||
+    case
+      when coalesce(doc->>'appointmentStatus', '') in ('cancelled', 'completed')
+        or coalesce(doc->>'visitState', '') = 'no_show'
+        or lower(coalesce(doc->>'calendarHidden', 'false')) in ('true', 't', '1')
+      then '0' else '1'
+    end
+  from chosen;
+$$;
+
+create or replace function public.scheduler_warsaw_parts(instant timestamptz)
+returns table(work_date text, work_clock text)
+language sql
+stable
+set search_path = public
+as $$
+  select to_char(instant at time zone 'Europe/Warsaw', 'YYYY-MM-DD'),
+         to_char(instant at time zone 'Europe/Warsaw', 'HH24:MI');
+$$;
+
+create or replace function public.scheduler_live_crm_enabled() returns boolean
+language plpgsql
+stable
+set search_path = public
+as $$
+begin
+  if to_regclass('public.crm_store') is null or to_regclass('public.appointments') is null then
+    return false;
+  end if;
+  return coalesce((select live_crm from public.scheduler_runtime where id = 'main'), false);
+end $$;
+
+create or replace function public.scheduler_live_digest(surface text) returns text
+language plpgsql
+stable
+set search_path = public
+as $$
 declare
-  store_digest text := public.scheduler_surface_digest('store');
-  row_digest text := public.scheduler_surface_digest('row');
+  digest text;
+begin
+  if to_regclass('public.crm_store') is null or to_regclass('public.appointments') is null then
+    return md5('missing');
+  end if;
+  if surface = 'store' then
+    select coalesce(md5(string_agg(line, ',' order by line)), md5('empty')) into digest
+    from (
+      select line
+      from public.crm_store
+      cross join lateral jsonb_array_elements(coalesce(doc->'appointments', '[]'::jsonb)) item
+      cross join lateral public.scheduler_appointment_lines(item) as lines(line)
+      where crm_store.id = 'main'
+    ) lines;
+  else
+    select coalesce(md5(string_agg(line, ',' order by line)), md5('empty')) into digest
+    from (
+      select line
+      from public.appointments
+      cross join lateral public.scheduler_appointment_lines(doc) as lines(line)
+    ) lines;
+  end if;
+  return digest;
+end $$;
+
+create or replace function public.scheduler_set_unified_calendar(enabled boolean) returns void
+language plpgsql
+set search_path = public
+as $$
+begin
+  if current_user in ('scheduler_staff', 'scheduler_mechanic', 'scheduler_anon', 'anon', 'authenticated') then
+    raise exception 'forbidden_session' using errcode = '42501';
+  end if;
+  insert into public.scheduler_runtime (id, live_crm, unified_calendar)
+  values ('main', enabled, enabled)
+  on conflict (id) do update set live_crm = excluded.live_crm, unified_calendar = excluded.unified_calendar;
+end $$;
+
+create or replace function public.scheduler_guard_session() returns trigger
+language plpgsql
+set search_path = public
+as $$
+begin
+  if current_user in ('scheduler_staff', 'scheduler_mechanic', 'scheduler_anon', 'anon', 'authenticated') then
+    raise exception 'forbidden_session' using errcode = '42501';
+  end if;
+  return new;
+end $$;
+
+drop trigger if exists scheduler_guard_session on public.scheduler_actor_sessions;
+create trigger scheduler_guard_session
+before insert or update on public.scheduler_actor_sessions
+for each row execute function public.scheduler_guard_session();
+
+create or replace function public.scheduler_issue_snapshot(available boolean) returns text
+language plpgsql
+set search_path = public
+as $$
+declare
+  store_digest text;
+  row_digest text;
   token text := 'snap-' || gen_random_uuid()::text;
 begin
   perform public.scheduler_lock_workshop();
+  if public.scheduler_live_crm_enabled() then
+    store_digest := public.scheduler_live_digest('store');
+    row_digest := public.scheduler_live_digest('row');
+  else
+    store_digest := public.scheduler_surface_digest('store');
+    row_digest := public.scheduler_surface_digest('row');
+  end if;
   if not available then
     raise exception 'crm_unavailable';
   end if;
@@ -325,11 +463,13 @@ begin
 end $$;
 
 create or replace function public.scheduler_assert_crm(snapshot_id text) returns void
-language plpgsql as $$
+language plpgsql
+set search_path = public
+as $$
 declare
   snap public.scheduler_crm_snapshot%rowtype;
-  store_digest text := public.scheduler_surface_digest('store');
-  row_digest text := public.scheduler_surface_digest('row');
+  store_digest text;
+  row_digest text;
 begin
   perform public.scheduler_lock_workshop();
   if snapshot_id is null or snapshot_id = '' then
@@ -341,6 +481,13 @@ begin
   end if;
   if snap.expires_at <= now() then
     raise exception 'crm_stale';
+  end if;
+  if public.scheduler_live_crm_enabled() then
+    store_digest := public.scheduler_live_digest('store');
+    row_digest := public.scheduler_live_digest('row');
+  else
+    store_digest := public.scheduler_surface_digest('store');
+    row_digest := public.scheduler_surface_digest('row');
   end if;
   if store_digest is distinct from row_digest then
     raise exception 'crm_diverged';
@@ -473,6 +620,7 @@ alter table public.scheduler_store_appointments enable row level security;
 alter table public.scheduler_row_appointments enable row level security;
 alter table public.scheduler_crm_snapshot enable row level security;
 alter table public.scheduler_crm_occupancy enable row level security;
+alter table public.scheduler_runtime enable row level security;
 
 alter table public.scheduler_operations force row level security;
 alter table public.scheduler_overlap_rules force row level security;
@@ -491,6 +639,7 @@ alter table public.scheduler_store_appointments force row level security;
 alter table public.scheduler_row_appointments force row level security;
 alter table public.scheduler_crm_snapshot force row level security;
 alter table public.scheduler_crm_occupancy force row level security;
+alter table public.scheduler_runtime force row level security;
 
 revoke all on table public.scheduler_operations from public, scheduler_anon;
 revoke all on table public.scheduler_overlap_rules from public, scheduler_anon;
@@ -509,6 +658,7 @@ revoke all on table public.scheduler_store_appointments from public, scheduler_a
 revoke all on table public.scheduler_row_appointments from public, scheduler_anon, scheduler_mechanic;
 revoke all on table public.scheduler_crm_snapshot from public, scheduler_anon, scheduler_mechanic;
 revoke all on table public.scheduler_crm_occupancy from public, scheduler_anon, scheduler_mechanic;
+revoke all on table public.scheduler_runtime from public, scheduler_anon, scheduler_mechanic, scheduler_staff;
 
 do $$
 declare role_name text;
@@ -520,7 +670,8 @@ begin
         'scheduler_operations','scheduler_overlap_rules','scheduler_resources','scheduler_display_names',
         'scheduler_shifts','scheduler_time_off','scheduler_breaks','scheduler_reservations',
         'scheduler_holds','scheduler_resource_holds','scheduler_actuals','scheduler_approvals','scheduler_actor_sessions',
-        'scheduler_store_appointments','scheduler_row_appointments','scheduler_crm_snapshot','scheduler_crm_occupancy'
+        'scheduler_store_appointments','scheduler_row_appointments','scheduler_crm_snapshot','scheduler_crm_occupancy',
+        'scheduler_runtime'
       ] loop
         execute format('revoke all on table public.%I from %I', table_name, role_name);
       end loop;
@@ -540,7 +691,9 @@ grant select, insert, update, delete on table public.scheduler_holds to schedule
 grant select, insert, update, delete on table public.scheduler_resource_holds to scheduler_staff;
 grant select, insert, update, delete on table public.scheduler_actuals to scheduler_staff;
 grant select, insert, update, delete on table public.scheduler_approvals to scheduler_staff;
-grant select, insert, update, delete on table public.scheduler_actor_sessions to scheduler_staff;
+revoke insert, update, delete on table public.scheduler_actor_sessions from scheduler_staff;
+grant select on table public.scheduler_actor_sessions to scheduler_staff;
+grant select on table public.scheduler_runtime to scheduler_staff;
 grant select, insert, update, delete on table public.scheduler_store_appointments to scheduler_staff;
 grant select, insert, update, delete on table public.scheduler_row_appointments to scheduler_staff;
 grant select, insert, update, delete on table public.scheduler_crm_snapshot to scheduler_staff;
@@ -562,7 +715,9 @@ create policy scheduler_staff_approvals on public.scheduler_approvals for all to
 drop policy if exists scheduler_staff_crm on public.scheduler_crm_occupancy;
 create policy scheduler_staff_crm on public.scheduler_crm_occupancy for all to scheduler_staff using (true) with check (true);
 drop policy if exists scheduler_staff_sessions on public.scheduler_actor_sessions;
-create policy scheduler_staff_sessions on public.scheduler_actor_sessions for all to scheduler_staff using (true) with check (true);
+create policy scheduler_staff_sessions on public.scheduler_actor_sessions for select to scheduler_staff using (true);
+drop policy if exists scheduler_staff_runtime on public.scheduler_runtime;
+create policy scheduler_staff_runtime on public.scheduler_runtime for select to scheduler_staff using (true);
 drop policy if exists scheduler_mechanic_own_session on public.scheduler_actor_sessions;
 create policy scheduler_mechanic_own_session on public.scheduler_actor_sessions for select to scheduler_mechanic
   using (
@@ -609,14 +764,23 @@ create policy scheduler_mechanic_holds on public.scheduler_holds for select to s
       and expires_at > now()
   ));
 
-revoke all on function public.scheduler_open_session(text, text, text) from public;
+revoke all on function public.scheduler_open_session(text, text, text) from public, scheduler_staff, scheduler_mechanic, scheduler_anon;
 revoke all on function public.scheduler_load_actor(text) from public;
 revoke all on function public.scheduler_issue_snapshot(boolean) from public;
 revoke all on function public.scheduler_assert_crm(text) from public;
 revoke all on function public.scheduler_mirror_interval(text, text, text, timestamptz, timestamptz) from public;
 revoke all on function public.scheduler_release_interval(text) from public;
-grant execute on function public.scheduler_open_session(text, text, text) to scheduler_staff;
+revoke all on function public.scheduler_set_unified_calendar(boolean) from public, scheduler_staff, scheduler_mechanic, scheduler_anon;
+revoke all on function public.scheduler_guard_session() from public;
+revoke all on function public.scheduler_live_digest(text) from public;
+revoke all on function public.scheduler_live_crm_enabled() from public;
+revoke all on function public.scheduler_appointment_lines(jsonb) from public;
+revoke all on function public.scheduler_warsaw_parts(timestamptz) from public;
 grant execute on function public.scheduler_load_actor(text) to scheduler_staff;
+grant execute on function public.scheduler_live_digest(text) to scheduler_staff;
+grant execute on function public.scheduler_live_crm_enabled() to scheduler_staff;
+grant execute on function public.scheduler_appointment_lines(jsonb) to scheduler_staff;
+grant execute on function public.scheduler_warsaw_parts(timestamptz) to scheduler_staff;
 grant execute on function public.scheduler_issue_snapshot(boolean) to scheduler_staff;
 grant execute on function public.scheduler_assert_crm(text) to scheduler_staff;
 grant execute on function public.scheduler_mirror_interval(text, text, text, timestamptz, timestamptz) to scheduler_staff;

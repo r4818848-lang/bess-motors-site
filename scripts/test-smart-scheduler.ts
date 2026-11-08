@@ -1,11 +1,13 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { workshopHours } from "../src/lib/businessConfig";
 import { evaluateArrivalTime } from "../src/lib/arrival-window";
 import { warsawCivilToUtc, warsawParts } from "../src/lib/workshop-schedule";
 import { assertUniqueCatalog, parseOperationCatalog } from "../src/lib/smart-scheduler/catalog";
-import { schedulerCrmWritesEnabled, schedulerTestWritesEnabled, smartWorkSchedulerEnabled } from "../src/lib/smart-scheduler/flag";
+import { canonicalCrmDigest, canonicalCrmLines, crmSurfacesMatch } from "../src/lib/smart-scheduler/crm-reconcile";
+import { schedulerCrmWritesEnabled, schedulerTestWritesEnabled, schedulerUnifiedCalendarWired, smartWorkSchedulerEnabled } from "../src/lib/smart-scheduler/flag";
 import { searchOperations } from "../src/lib/smart-scheduler/search";
 import {
   applyAdjustmentsOnce,
@@ -365,6 +367,34 @@ void (async () => {
   const pilot = readFileSync(join(process.cwd(), "supabase/drafts/smart-scheduler-pilot.md"), "utf8");
   assert.match(pilot, /резервн/);
   assert.match(pilot, /SMART_WORK_SCHEDULER/);
+  assert.match(draft, /perform public\.scheduler_lock_workshop\(\);\n {2}if public\.scheduler_live_crm_enabled\(\)/);
+  assert.doesNotMatch(draft, /store_digest text := public\.scheduler_surface_digest/);
+  assert.doesNotMatch(draft, /grant execute on function public\.scheduler_open_session\(text, text, text\) to scheduler_staff/);
+  assert.match(draft, /revoke all on function public\.scheduler_open_session\(text, text, text\) from public, scheduler_staff/);
+  assert.equal(schedulerUnifiedCalendarWired(), false);
+  assert.doesNotMatch(legacyCalendar, /commitLiveCalendar|live-crm/);
+  assert.doesNotMatch(readFileSync(join(process.cwd(), "src/app/api/appointments/route.ts"), "utf8"), /commitLiveCalendar|live-crm/);
+  assert.doesNotMatch(route, /count\(\*\)|commitLiveCalendar/);
+  assert.match(route, /crmSurfacesMatch/);
+  const sameCountDifferentWork = crmSurfacesMatch(
+    [{ id: "a", mechanicId: "mech-1", date: "2026-12-01", workStart: "11:00", workMinutes: 45, resourceId: "lift-1", appointmentStatus: "scheduled" }, { id: "b", mechanicId: "mech-2", date: "2026-12-01", workStart: "12:00", workMinutes: 30, resourceId: "", appointmentStatus: "scheduled" }],
+    [{ id: "b", mechanicId: "mech-2", date: "2026-12-01", workStart: "12:00", workMinutes: 30, resourceId: "", appointmentStatus: "scheduled" }, { id: "a", mechanicId: "mech-1", date: "2026-12-01", workStart: "11:30", workMinutes: 45, resourceId: "lift-1", appointmentStatus: "scheduled" }]
+  );
+  assert.equal(sameCountDifferentWork, false);
+  const reversed = canonicalCrmLines([
+    { id: "b", mechanicId: "mech-2", date: "2026-12-01", workStart: "12:00", workMinutes: 30, appointmentStatus: "scheduled" },
+    { id: "a", mechanicId: "mech-1", date: "2026-12-01", workStart: "11:00", workMinutes: 45, resourceId: "lift-1", appointmentStatus: "scheduled" },
+  ]);
+  assert.deepEqual(reversed, canonicalCrmLines([...reversed].reverse().map((line) => {
+    const [id, mechanicId, date, workStart, workMinutes, resourceId, appointmentStatus, active] = line.split("|");
+    return { id, mechanicId, date, workStart, workMinutes, resourceId, appointmentStatus, calendarHidden: active === "0" };
+  })));
+  assert.equal(canonicalCrmDigest([]), createHash("md5").update("empty").digest("hex"));
+  const liveCrm = readFileSync(join(process.cwd(), "src/lib/smart-scheduler/live-crm.ts"), "utf8");
+  assert.match(liveCrm, /bess_crm_copy_test/);
+  assert.match(liveCrm, /insert into crm_store/);
+  assert.match(liveCrm, /insert into appointments/);
+  assert.doesNotMatch(liveCrm, /scheduler_store_appointments|scheduler_row_appointments/);
   const schedulerSource = readFileSync(join(process.cwd(), "src/lib/smart-scheduler/schedule.ts"), "utf8");
   assert.doesNotMatch(schedulerSource, /250\s*zł|price\s*:/);
   console.log("smart scheduler ok");

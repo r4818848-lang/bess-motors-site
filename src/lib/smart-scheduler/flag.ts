@@ -15,6 +15,11 @@ export function schedulerCrmWritesEnabled(): boolean {
   return false;
 }
 
+/** Production routes stay on the old calendar. The SQL switch is default off and is not read here. */
+export function schedulerUnifiedCalendarWired(): boolean {
+  return false;
+}
+
 /** Local screenshot and TEST board only. Never on preview or production. */
 export function schedulerTestBoardOpen(): boolean {
   if (!smartWorkSchedulerEnabled()) return false;

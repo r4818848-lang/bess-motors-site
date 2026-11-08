@@ -1,30 +1,30 @@
 # Пилот Smart Scheduler в существующей Supabase
 
-Это план, а не выполненная миграция. Не запускать на боевом проекте, пока владелец не снимет резервную копию и явно не попросит включение. `SMART_WORK_SCHEDULER` остаётся выключенным. Отдельная production-база не нужна.
+Это план, а не выполненная миграция. Не запускать на боевом проекте, пока владелец не снимет резервную копию и явно не попросит включение. `SMART_WORK_SCHEDULER` остаётся выключенным. `schedulerUnifiedCalendarWired()` в коде приложения всегда `false`: боевые маршруты не переключены. Отдельная production-база не нужна.
 
-Тестовая база `bess_scheduler_test` остаётся отдельной. Код отвергает адрес Supabase и запись при `VERCEL_ENV=production` или `preview`.
+Тестовые базы `bess_scheduler_test` и `bess_crm_copy_test` остаются локальными. Код отвергает адрес Supabase и запись при `VERCEL_ENV=production` или `preview`.
 
 ## Что является одним источником истины
 
-Создание, перенос и отмена и старого календаря, и Smart Scheduler проходят одну транзакцию:
+На копии реальной схемы создание, перенос и отмена проходят одну транзакцию `commitLiveCalendar`:
 
-1. `scheduler_lock_workshop()` берёт общий замок.
-2. `scheduler_load_actor()` читает серверную сессию. Значения `app.actor_role` и `app.actor_mechanic` не дают прав.
-3. `scheduler_assert_crm()` сверяет снимок `crm_store` и таблицы `appointments`. Если CRM недоступна, снимок просрочен или поверхности разошлись, транзакция обрывается до записи.
-4. До коммита проверяется пересечение механика и обязательных ресурсов.
-5. Обе поверхности занятости меняются вместе. Частичная запись откатывается.
+1. `scheduler_lock_workshop()` берёт общий замок. Только после этого `scheduler_issue_snapshot()` и `scheduler_assert_crm()` считают digest.
+2. `scheduler_load_actor()` читает серверную сессию. `scheduler_open_session()` не выдана ролям `scheduler_staff` и `scheduler_mechanic`. Значения `app.actor_role` и `app.actor_mechanic` не дают прав.
+3. Digest сравнивает содержимое существующих `crm_store.doc.appointments` и `appointments.doc`: идентификатор, механик, дата, `workStart`, `workMinutes`, ресурс, статус и активность. Сортировка каноническая. Дата и время — Europe/Warsaw. Одинакового количества интервалов недостаточно.
+4. До коммита проверяется пересечение с другими записями CRM и с подтверждёнными бронями планировщика.
+5. `crm_store` и `appointments` меняются вместе. Частичная запись откатывается.
 
-Пока флаг выключен, боевой `commitStaffAppointment` не вызывает этот путь и не меняет живые записи.
+`scheduler_store_appointments` и `scheduler_row_appointments` остаются только тестовыми зеркалами. Боевой путь их не подставляет вместо CRM.
+
+Пока переключатель выключен, боевой `commitStaffAppointment` не вызывает этот путь и не меняет живые записи. Обратимое включение описано в `supabase/drafts/smart-scheduler-switch.md`.
 
 ## Миграция
 
-Файл `supabase/drafts/smart-scheduler.sql` создаёт только объекты `scheduler_*`, роли и функции. Он не изменяет `crm_store`, `appointments` и клиентов. На боевом Supabase его можно применить только после копии и только к этому проекту.
-
-Локальные таблицы `scheduler_store_appointments` и `scheduler_row_appointments` — стенд двух поверхностей CRM. В пилоте функция должна читать существующие `crm_store` и `appointments`, а не создавать вторую пару таблиц с теми же именами.
+Файл `supabase/drafts/smart-scheduler.sql` создаёт только объекты `scheduler_*`, роли и функции. Он не создаёт и не изменяет `crm_store`, `appointments` и клиентов. Строка `scheduler_runtime` по умолчанию держит `live_crm` и `unified_calendar` выключенными. На боевом Supabase файл можно применить только после копии и только к этому проекту.
 
 ## Восстановление
 
-1. Остановить запись: оставить `SMART_WORK_SCHEDULER` пустым и не ставить `SCHEDULER_TEST_WRITES`.
+1. Остановить запись: оставить `SMART_WORK_SCHEDULER` пустым, не ставить `SCHEDULER_TEST_WRITES` и не вызывать `scheduler_set_unified_calendar(true)`.
 2. Если применён только черновик и боевые записи не менялись, выполнить `supabase/drafts/smart-scheduler-rollback.sql`. Он удаляет объекты `scheduler_*` и не трогает `crm_store` и `appointments`.
 3. Если пилот уже писал боевые записи, восстанавливать проект из резервной копии, снятой до включения, а не из отката черновика.
 4. Проверить, что сайт снова открывает прежний календарь и что новые таблицы `scheduler_*` отсутствуют.
@@ -32,8 +32,8 @@
 ## Шаги включения
 
 1. Снять полную резервную копию текущего Supabase и проверить, что она открывается.
-2. На копии, не на боевом проекте, применить `smart-scheduler.sql`.
-3. Сверить активные интервалы `crm_store` и `appointments`. Пока они расходятся, новая запись должна получать отказ, а не выбирает одну из копий.
-4. Подключить старый календарь и Smart Scheduler к `scheduler_lock_workshop()`, `scheduler_assert_crm()` и общей функции записи. Не оставлять отдельный `patchCrmIfUnchanged` плюс последующий upsert.
-5. Прогнать локальные PostgreSQL-тесты на `bess_scheduler_test`.
+2. На копии, не на боевом проекте, применить `smart-scheduler.sql`. Таблицы `crm_store` и `appointments` уже должны существовать.
+3. Сверить канонические строки `crm_store` и `appointments`. Пока они расходятся, новая запись должна получать отказ, а не выбирает одну из копий.
+4. Отдельным запуском подключить перечисленные в `smart-scheduler-switch.md` пути записи к `commitLiveCalendar`. Не оставлять отдельный `patchCrmIfUnchanged` плюс последующий upsert. До этого запуска старый календарь остаётся как есть.
+5. Прогнать локальные PostgreSQL-тесты на `bess_scheduler_test` и на `bess_crm_copy_test`.
 6. Только после этого владелец может включить `SMART_WORK_SCHEDULER` на боевом проекте. До этого шага флаг не включается.
