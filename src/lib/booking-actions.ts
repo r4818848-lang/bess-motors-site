@@ -14,6 +14,13 @@ function newAppointmentId(): string {
   return `apt-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 }
 
+function savedSiteLocale(): "pl" | "ru" | "en" | "uk" {
+  if (typeof localStorage === "undefined") return "pl";
+  const value = localStorage.getItem("bess-locale");
+  if (value === "pl" || value === "ru" || value === "en" || value === "uk") return value;
+  return "pl";
+}
+
 function newCallRequestId(): string {
   if (typeof crypto !== "undefined" && crypto.randomUUID) {
     return `call-${crypto.randomUUID()}`;
@@ -49,6 +56,8 @@ export async function createCallRequest(params: {
         vin: params.vin,
         vehicleLabel: params.vehicleLabel,
         source: params.source,
+        siteLocale: savedSiteLocale(),
+        sourceUrl: typeof window !== "undefined" ? window.location.href : "",
       }),
     });
     const data = (await res.json()) as { ok?: boolean; cloud?: boolean; error?: string };
@@ -130,6 +139,7 @@ export async function createBookingAppointment(params: {
       clientPlate: plate,
       source: "website" as const,
       marketing: marketing ?? undefined,
+      siteLocale: savedSiteLocale(),
       createdAt: new Date().toISOString(),
     };
 

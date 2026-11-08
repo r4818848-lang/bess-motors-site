@@ -22,7 +22,7 @@ async function slots(request: import("@playwright/test").APIRequestContext, quer
   return body.slots ?? [];
 }
 
-test("weekday and Saturday slots stop at closing", async ({ request }) => {
+test("arrival slots are Monday to Saturday 09:00-13:30", async ({ request }) => {
   const rows = await slots(request);
   const dates = [...new Set(rows.map((row) => row.date))];
   for (const date of dates) {
@@ -36,31 +36,31 @@ test("weekday and Saturday slots stop at closing", async ({ request }) => {
 
   const saturdayTimes = rows.filter((row) => row.date === saturday).map((row) => row.time);
   expect(saturdayTimes).toContain("09:00");
-  expect(saturdayTimes).toContain("13:00");
-  expect(saturdayTimes.some((time) => time >= "14:00")).toBe(false);
+  expect(saturdayTimes).toContain("13:30");
+  expect(saturdayTimes).not.toContain("14:00");
 
   const weekdayTimes = rows.filter((row) => row.date === monday).map((row) => row.time);
-  expect(weekdayTimes).toContain("09:00");
-  expect(weekdayTimes).toContain("17:00");
-  expect(weekdayTimes).not.toContain("08:00");
-  expect(weekdayTimes).not.toContain("18:00");
+  expect(weekdayTimes).toEqual([
+    "09:00",
+    "09:30",
+    "10:00",
+    "10:30",
+    "11:00",
+    "11:30",
+    "12:00",
+    "12:30",
+    "13:00",
+    "13:30",
+  ]);
 });
 
-test("a two-hour job cannot start in the last hour", async ({ request }) => {
+test("a long repair does not remove later arrival slots", async ({ request }) => {
   const rows = await slots(request, "days=21&duration=120");
   const dates = [...new Set(rows.map((row) => row.date))];
-  const saturday = [...dates].reverse().find((date) => weekday(date) === 6);
   const monday = [...dates].reverse().find((date) => weekday(date) === 1);
-  expect(saturday).toBeTruthy();
   expect(monday).toBeTruthy();
-
-  const saturdayTimes = rows.filter((row) => row.date === saturday).map((row) => row.time);
-  expect(saturdayTimes).toContain("12:00");
-  expect(saturdayTimes).not.toContain("13:00");
-
   const weekdayTimes = rows.filter((row) => row.date === monday).map((row) => row.time);
-  expect(weekdayTimes).toContain("16:00");
-  expect(weekdayTimes).not.toContain("17:00");
+  expect(weekdayTimes).toContain("13:30");
 });
 
 test("API rejects closed and overrun times", async ({ request }) => {
@@ -70,9 +70,8 @@ test("API rejects closed and overrun times", async ({ request }) => {
 
   const cases: { date: string; time: string; durationMinutes?: number; error: string }[] = [
     { date: monday, time: "08:00", error: "before_open" },
-    { date: monday, time: "18:00", error: "after_close" },
+    { date: monday, time: "14:00", error: "after_close" },
     { date: monday, time: "17:00", durationMinutes: 120, error: "after_close" },
-    { date: saturday, time: "15:00", error: "after_close" },
     { date: saturday, time: "14:00", error: "after_close" },
     { date: sunday, time: "10:00", error: "closed_sunday" },
   ];

@@ -1,15 +1,16 @@
 import type { InlineKeyboardMarkup, ReplyKeyboardMarkup } from "@/lib/server/telegram-api";
-import { calendarAppUrl } from "./staff-calendar-bot";
+import {
+  CALENDAR_REPLY_LABEL,
+  STAFF_LEADS_LABEL,
+  STAFF_NEW_LABEL,
+  STAFF_TODAY_LABEL,
+  calendarAppUrl,
+} from "./staff-calendar-bot";
 import type { ReportPeriod } from "@/lib/crm-analytics";
-import { cleanEnvValue } from "@/lib/server/supabase-config";
 import type { ExpenseCategory, RepairStatus } from "@/lib/store";
 import type { HotOrderRow } from "@/lib/hot-orders";
 import { REPAIR_STATUS_RU } from "./labels";
 import { BOT } from "./labels";
-
-function siteBase(): string {
-  return cleanEnvValue(process.env.NEXT_PUBLIC_SITE_URL) || "https://www.bess-motors.com";
-}
 
 const STATUSES: RepairStatus[] = [
   "received",
@@ -23,42 +24,10 @@ const STATUSES: RepairStatus[] = [
 export function mainMenuKeyboard(): InlineKeyboardMarkup {
   return {
     inline_keyboard: [
-      [{ text: "📅 Календарь", web_app: { url: calendarAppUrl() } }],
-      [{ text: BOT.todaySummary, callback_data: "sum:day" }],
-      [
-        { text: BOT.finance, callback_data: "fin:menu" },
-        { text: BOT.workOrders, callback_data: "wo:p:0" },
-      ],
-      [
-        { text: BOT.hotOrders, callback_data: "hot:0" },
-        { text: BOT.appointments, callback_data: "apt:0" },
-      ],
-      [
-        { text: BOT.unpaid, callback_data: "unpaid:0" },
-        { text: BOT.unsigned, callback_data: "unsigned:0" },
-      ],
-      [
-        { text: BOT.calls, callback_data: "calls:0" },
-        { text: BOT.quickApt, callback_data: "qapt:menu" },
-      ],
-      [{ text: BOT.quickWo, callback_data: "qwo:menu" }],
-      [
-        { text: BOT.importWo, callback_data: "imp:menu" },
-        { text: BOT.importBulkWo, callback_data: "imp:bulk" },
-      ],
-      [{ text: BOT.search, callback_data: "search:menu" }],
-      [
-        { text: BOT.expenses, callback_data: "exp:menu" },
-        { text: BOT.analytics, callback_data: "an:menu" },
-      ],
-      [
-        { text: BOT.warehouse, callback_data: "wh:0" },
-        { text: BOT.monthlyParts, callback_data: "parts:menu" },
-      ],
-      [{ text: BOT.monthlyInvoiceParts, callback_data: "fpart:menu" }],
-      [{ text: BOT.monthlyConsumables, callback_data: "cons:menu" }],
-      [{ text: "📱 Сайт", url: siteBase() }],
-      [{ text: BOT.help, callback_data: "help" }],
+      [{ text: CALENDAR_REPLY_LABEL, web_app: { url: calendarAppUrl() } }],
+      [{ text: STAFF_LEADS_LABEL, callback_data: "leads:new" }],
+      [{ text: STAFF_TODAY_LABEL, callback_data: "cal:today" }],
+      [{ text: STAFF_NEW_LABEL, web_app: { url: calendarAppUrl(undefined, { create: true }) } }],
     ],
   };
 }
@@ -67,20 +36,12 @@ export function backMenuRow(): InlineKeyboardMarkup["inline_keyboard"][number] {
   return [{ text: BOT.menu, callback_data: "menu" }];
 }
 
-/** Persistent bottom keyboard for admin — menu + direct CRM link */
+/** Bottom keyboard. Calendar is plain text so Telegram sends signed initData via the inline button. */
 export function adminReplyKeyboard(): ReplyKeyboardMarkup {
   return {
     keyboard: [
-      [
-        { text: BOT.menu },
-        { text: "📅 Календарь" },
-      ],
-      [
-        {
-          text: BOT.adminConsole,
-          web_app: { url: `${siteBase()}/crm` },
-        },
-      ],
+      [{ text: CALENDAR_REPLY_LABEL }, { text: STAFF_LEADS_LABEL }],
+      [{ text: STAFF_TODAY_LABEL }, { text: STAFF_NEW_LABEL }],
     ],
     resize_keyboard: true,
     is_persistent: true,

@@ -65,8 +65,8 @@ assert.equal(
   false
 );
 assert.equal(
-  evaluateStaffArrival({ date: monday, time: "13:30", durationMinutes: 60, hours, lunch }).ok,
-  false
+  evaluateStaffArrival({ date: monday, time: "13:30", durationMinutes: 60, hours, lunch, now: new Date("2026-11-09T07:00:00.000Z") }).ok,
+  true
 );
 assert.equal(
   evaluateStaffArrival({
@@ -86,6 +86,17 @@ assert.equal(
     allowMultiDay: true,
     hours,
     lunch,
+  }).ok,
+  false
+);
+assert.equal(
+  evaluateStaffArrival({
+    date: monday,
+    time: "13:30",
+    durationMinutes: 120,
+    hours,
+    lunch,
+    now: new Date("2026-11-09T07:00:00.000Z"),
   }).ok,
   true
 );
@@ -119,8 +130,17 @@ assert.equal(
 );
 assert.equal(
   findMechanicConflict(
-    [{ ...base, id: "a", date: monday, time: "10:00", mechanicId: "mech-1", durationMinutes: 120 }],
-    { ...base, id: "b", date: monday, time: "11:00", mechanicId: "mech-1", durationMinutes: 60 },
+    [{ ...base, id: "a", date: monday, time: "10:00", mechanicId: "mech-1", durationMinutes: 120, leavesCar: true }],
+    { ...base, id: "b", date: monday, time: "11:00", mechanicId: "mech-1", durationMinutes: 60, leavesCar: true },
+    hours,
+    lunch
+  ),
+  null
+);
+assert.equal(
+  findMechanicConflict(
+    [{ ...base, id: "a", date: monday, time: "09:00", mechanicId: "mech-1", durationMinutes: 60, workStart: "10:00", workMinutes: 120 }],
+    { ...base, id: "b", date: monday, time: "11:00", mechanicId: "mech-1", durationMinutes: 60, workStart: "11:00", workMinutes: 60 },
     hours,
     lunch
   ),

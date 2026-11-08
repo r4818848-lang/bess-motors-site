@@ -14,7 +14,7 @@ import { normalizePhone } from "@/lib/server/normalize-phone";
 import { getSupabaseConfig } from "@/lib/server/supabase-config";
 
 export type StaffAppointmentInput = {
-  mode: "create" | "update" | "cancel";
+  mode: "create" | "update" | "cancel" | "arrive" | "noshow" | "remove";
   id?: string;
   expectedUpdatedAt?: string;
   clientRequestId?: string;
@@ -37,6 +37,12 @@ export type StaffAppointmentInput = {
   comment?: string;
   appointmentStatus?: AppointmentStatus;
   notifyMechanic?: boolean;
+  leavesCar?: boolean;
+  pickupDate?: string;
+  workStart?: string;
+  workMinutes?: number;
+  leadId?: string;
+  siteLocale?: Appointment["siteLocale"];
 };
 
 export type StaffCommitResult =
@@ -130,16 +136,22 @@ async function applyStaffChange(
     if (existing) return { ok: true, appointment: existing };
   }
 
-  if (input.mode === "cancel" || input.mode === "update") {
+  if (input.mode !== "create") {
     const apt = db.appointments.find((item) => item.id === input.id);
     if (!apt) return { ok: false, error: "not_found", status: 404 };
     if (input.expectedUpdatedAt && apt.updatedAt && apt.updatedAt !== input.expectedUpdatedAt) {
       return { ok: false, error: "conflict", status: 409 };
     }
-    if (input.mode === "cancel") {
+    if (input.mode === "cancel" || input.mode === "remove") {
       apt.appointmentStatus = "cancelled";
+      apt.calendarHidden = true;
       apt.updatedAt = now.toISOString();
       apt.adminReminder = { ...(apt.adminReminder ?? {}), status: "cancelled" };
+      return { ok: true, appointment: apt };
+    }
+    if (input.mode === "arrive" || input.mode === "noshow") {
+      apt.visitState = input.mode === "arrive" ? "arrived" : "no_show";
+      apt.updatedAt = now.toISOString();
       return { ok: true, appointment: apt };
     }
     return fillAppointment(db, apt, input, now, false);
@@ -204,6 +216,8 @@ async function fillAppointment(
   });
   if (!arrival.ok) return { ok: false, error: arrival.error, status: 400 };
 
+  const workStart = input.workStart?.trim() || apt.workStart;
+  const workMinutes = input.workMinutes ?? apt.workMinutes;
   const draft: Appointment = {
     ...apt,
     date,
@@ -212,6 +226,10 @@ async function fillAppointment(
     durationMinutes,
     holdUntil: multiDay ? holdUntil : undefined,
     multiDay,
+    leavesCar: input.leavesCar ?? apt.leavesCar,
+    pickupDate: input.pickupDate?.trim() || apt.pickupDate,
+    workStart,
+    workMinutes,
     serviceIds,
     appointmentStatus: input.appointmentStatus ?? apt.appointmentStatus ?? "scheduled",
   };
@@ -252,9 +270,29 @@ async function fillAppointment(
   apt.comment = (input.comment ?? apt.comment ?? "").slice(0, 1000);
   apt.appointmentStatus = draft.appointmentStatus;
   apt.notifyMechanic = Boolean(input.notifyMechanic);
+  apt.leavesCar = Boolean(draft.leavesCar);
+  apt.pickupDate = draft.pickupDate;
+  apt.workStart = workStart || undefined;
+  apt.workMinutes = workMinutes && workMinutes > 0 ? workMinutes : undefined;
+  apt.leadId = input.leadId ?? apt.leadId;
+  apt.siteLocale = input.siteLocale ?? apt.siteLocale;
+  apt.visitState = apt.visitState ?? "expected";
+  apt.calendarHidden = false;
   apt.source = apt.source ?? "telegram";
   apt.updatedAt = now.toISOString();
   if (creating) apt.createdAt = now.toISOString();
+  if (creating && apt.leadId) {
+    const lead = (db.leads ?? []).find((item) => item.id === apt.leadId);
+    if (lead && !lead.appointmentId) {
+      lead.status = "booked";
+      lead.appointmentId = apt.id;
+      lead.updatedAt = now.toISOString();
+      lead.contacts = [
+        ...(lead.contacts ?? []),
+        { id: `contact-${now.getTime()}`, kind: "booked", at: now.toISOString() },
+      ];
+    }
+  }
 
   const slotChanged = previous.date !== apt.date || previous.time !== apt.time;
   if (slotChanged) {

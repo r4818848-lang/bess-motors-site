@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { cloudMutateCrmStore } from "@/lib/server/crm-cloud-mutate";
 import { notifyAdminTelegram } from "@/lib/server/admin-telegram";
 import { normalizePhone } from "@/lib/server/normalize-phone";
+import { formatLeadMessage, normalizeSiteLocale, upsertWebsiteLead } from "@/lib/service-leads";
+import type { ServiceLead } from "@/lib/store";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -27,6 +29,13 @@ export async function POST(req: Request) {
     vin?: string;
     vehicleLabel?: string;
     source?: string;
+    siteLocale?: string;
+    sourceUrl?: string;
+    plate?: string;
+    make?: string;
+    model?: string;
+    desiredDate?: string;
+    desiredTime?: string;
   };
   try {
     body = await req.json();
@@ -84,9 +93,34 @@ export async function POST(req: Request) {
     createdAt: new Date().toISOString(),
   };
 
+  const savedLead: { current: ServiceLead | null } = { current: null };
   const put = await cloudMutateCrmStore((db) => {
     db.callRequests = db.callRequests ?? [];
-    db.callRequests.push(entry);
+    const recent = db.callRequests.some(
+      (call) =>
+        call.phone === phone &&
+        call.serviceLabel === serviceLabel &&
+        Date.now() - Date.parse(call.createdAt) < 2 * 60 * 1000
+    );
+    if (!recent) db.callRequests.push(entry);
+    const saved = upsertWebsiteLead(db, {
+      id: entry.id.replace(/^call-/, "lead-"),
+      clientRequestId: entry.id,
+      phone,
+      name: clientName,
+      make: body.make,
+      model: body.model,
+      plate: body.plate,
+      vin,
+      serviceId: body.serviceId,
+      serviceLabel,
+      desiredDate: body.desiredDate,
+      desiredTime: body.desiredTime,
+      siteLocale: normalizeSiteLocale(body.siteLocale),
+      source,
+      sourceUrl: body.sourceUrl,
+    });
+    savedLead.current = saved.lead;
   });
   if (!put.ok) {
     console.error("[call-request] CRM save failed", put.error);
@@ -96,7 +130,9 @@ export async function POST(req: Request) {
     );
   }
 
+  const lead = savedLead.current;
   const telegramOk = await notifyAdminTelegram(
+    lead ? formatLeadMessage(lead) :
     [
       source === "vin_quote"
         ? "<b>Wyceń po VIN — nowe zapytanie</b>"
@@ -112,7 +148,13 @@ export async function POST(req: Request) {
       .filter(Boolean)
       .join("\n")
   );
-  if (!telegramOk) {
+  if (telegramOk && lead) {
+    const sentId = lead.id;
+    await cloudMutateCrmStore((db) => {
+      const row = (db.leads ?? []).find((item) => item.id === sentId);
+      if (row) row.notifyStatus = "sent";
+    });
+  } else {
     console.warn("[call-request] telegram notify failed (check TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID)");
   }
 

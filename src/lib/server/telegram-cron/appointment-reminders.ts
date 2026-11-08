@@ -1,6 +1,13 @@
 import { formatWarsawDateKey } from "@/lib/date-key";
 import { addDateKeyDays } from "@/lib/staff-calendar";
-import { warsawCivilToUtc } from "@/lib/workshop-schedule";
+import { warsawCivilToUtc, warsawParts } from "@/lib/workshop-schedule";
+import { notifyAdminTelegram } from "@/lib/server/telegram-api";
+import {
+  formatMorningDigest,
+  isMorningDigestHour,
+  morningDigestAlreadySent,
+  warsawTodayKey,
+} from "@/lib/morning-digest";
 import { cloudPutCrmStore } from "@/lib/server/crm-cloud";
 import { sendTelegramMessage } from "@/lib/server/telegram-api";
 import { getClientBotLabels, type BotLocale } from "@/lib/server/telegram-bot/client-i18n";
@@ -14,6 +21,7 @@ import {
   productionAdminChatIds,
   sendAdminArrivalMessage,
 } from "./admin-arrival-reminders";
+import { deliverPendingLeadNotices } from "./lead-notifications";
 
 function reminderLocale(user: User): BotLocale {
   return user.telegramLocale ?? "pl";
@@ -116,6 +124,20 @@ export async function runAppointmentReminders(
 
   if (clientDirty && admin.sent === 0 && admin.failed === 0 && admin.cancelled === 0) {
     await cloudPutCrmStore(db);
+  }
+
+  await deliverPendingLeadNotices(db, now);
+
+  const warsaw = warsawParts(now);
+  const digestDate = warsawTodayKey(now);
+  if (isMorningDigestHour(now) && warsaw.minutes >= 5 && !morningDigestAlreadySent(db, digestDate)) {
+    db.settings.morningDigestDate = digestDate;
+    await cloudPutCrmStore(db);
+    const digestSent = await notifyAdminTelegram(formatMorningDigest(db, digestDate));
+    if (!digestSent) {
+      db.settings.morningDigestDate = undefined;
+      await cloudPutCrmStore(db);
+    }
   }
 
   return {

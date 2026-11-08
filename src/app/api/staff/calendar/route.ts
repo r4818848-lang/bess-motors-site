@@ -54,6 +54,11 @@ function card(db: Database, apt: Appointment) {
     mechanicName: mechanic?.name ?? "",
     comment: (apt.comment ?? "").slice(0, 1000),
     appointmentStatus: apt.appointmentStatus,
+    visitState: apt.visitState ?? "expected",
+    leavesCar: Boolean(apt.leavesCar),
+    pickupDate: apt.pickupDate ?? "",
+    workStart: apt.workStart ?? "",
+    workMinutes: apt.workMinutes ?? 0,
     notifyMechanic: Boolean(apt.notifyMechanic),
     updatedAt: apt.updatedAt ?? null,
     source: apt.source ?? null,
@@ -128,6 +133,7 @@ export async function POST(req: Request) {
       today,
       tomorrow: addDateKeyDays(today, 1),
       hours: workshopHours(),
+      arrival: { from: "09:00", to: "13:30", step: 30, sundayClosed: true },
       todayWindow: weekdayWindowLabel(today, workshopHours()),
       mechanics: db.mechanics.map((mechanic) => ({ id: mechanic.id, name: mechanic.name })),
     });
@@ -137,7 +143,14 @@ export async function POST(req: Request) {
     const from = body.from || formatWarsawDateKey();
     const to = body.to || from;
     const appointments = db.appointments
-      .filter((apt) => visible(actor, apt) && apt.date >= from && apt.date <= to)
+      .filter(
+        (apt) =>
+          visible(actor, apt) &&
+          !apt.calendarHidden &&
+          apt.appointmentStatus !== "cancelled" &&
+          apt.date >= from &&
+          apt.date <= to
+      )
       .map((apt) => card(db, apt));
     const calls =
       actor.seeAll && from === to
@@ -199,7 +212,33 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true, clients });
   }
 
-  if (action !== "create" && action !== "update" && action !== "cancel") {
+  if (action === "lead") {
+    if (!actor.seeAll) return NextResponse.json({ ok: false, error: "forbidden" }, { status: 403 });
+    const lead = (db.leads ?? []).find((item) => item.id === body.leadId);
+    if (!lead) return NextResponse.json({ ok: false, error: "not_found" }, { status: 404 });
+    return NextResponse.json({
+      ok: true,
+      lead: {
+        id: lead.id,
+        firstName: lead.firstName,
+        lastName: lead.lastName,
+        phone: lead.phone,
+        make: lead.make,
+        model: lead.model,
+        plate: lead.plate,
+        vin: lead.vin,
+        desiredDate: lead.desiredDate,
+        desiredTime: lead.desiredTime,
+        siteLocale: lead.siteLocale,
+        services: lead.services,
+        totalText: lead.totalText,
+        status: lead.status,
+      },
+    });
+  }
+
+  const mutations = new Set(["create", "update", "cancel", "arrive", "noshow", "remove"]);
+  if (!mutations.has(action)) {
     return NextResponse.json({ ok: false, error: "unknown_action" }, { status: 400 });
   }
 
@@ -207,7 +246,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: "writes_disabled" }, { status: 403 });
   }
 
-  const staffAction = action === "create" ? "create" : action === "cancel" ? "cancel" : "update";
+  const staffAction = action === "create" ? "create" : action === "cancel" || action === "remove" ? "cancel" : "update";
   if (!canStaff(actor.role, staffAction, { mechanicCanEdit: actor.canEdit })) {
     return NextResponse.json({ ok: false, error: "forbidden" }, { status: 403 });
   }
@@ -223,7 +262,10 @@ export async function POST(req: Request) {
     body.mechanicId = actor.mechanicId;
   }
 
-  const result = await commitStaffAppointment({ ...body, mode: action });
+  const result = await commitStaffAppointment({
+    ...body,
+    mode: action as StaffAppointmentInput["mode"],
+  });
   if (!result.ok) {
     return NextResponse.json({ ok: false, error: result.error }, { status: result.status });
   }

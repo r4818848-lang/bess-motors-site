@@ -68,6 +68,7 @@ function handled(data) {
   if (data.startsWith("imp:")) return true;
   if (data.startsWith("fpart:")) return true;
   if (data === "cal:today" || data === "cal:tomorrow") return true;
+  if (data.startsWith("leads:")) return true;
   return false;
 }
 

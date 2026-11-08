@@ -6,16 +6,14 @@
  */
 
 import type { AdminReminderState, Appointment, AppointmentStatus } from "@/lib/store";
+import { evaluateArrivalTime, type ArrivalError } from "@/lib/arrival-window";
 import {
   clockToMinutes,
-  evaluateBookingStart,
   minutesToClock,
   openingWindowForDateKey,
   resolveBookingDurationMinutes,
   warsawCivilToUtc,
   warsawParts,
-  weekdayIndexFromDateKey,
-  type ScheduleError,
   type WorkshopHours,
 } from "@/lib/workshop-schedule";
 
@@ -174,10 +172,6 @@ function nextOpenInstant(cursor: number, hours: WorkshopHours, lunch: LunchWindo
   return null;
 }
 
-function rangesOverlap(a: BusyChunk, b: BusyChunk): boolean {
-  return a.startMs < b.endMs && b.startMs < a.endMs;
-}
-
 type SlotShape = Pick<
   Appointment,
   | "id"
@@ -189,45 +183,42 @@ type SlotShape = Pick<
   | "serviceIds"
   | "appointmentStatus"
   | "multiDay"
->;
+> & {
+  workStart?: string;
+  workMinutes?: number;
+  leavesCar?: boolean;
+  calendarHidden?: boolean;
+};
 
 function durationOf(apt: SlotShape): number {
   return clampStaffDuration(apt.durationMinutes, apt.serviceIds);
 }
 
+function workWindow(apt: SlotShape): { date: string; start: number; end: number } | null {
+  if (!apt.workStart || !apt.workMinutes || apt.workMinutes <= 0) return null;
+  const start = clockToMinutes(apt.workStart);
+  if (start == null) return null;
+  return { date: apt.date, start, end: start + apt.workMinutes };
+}
+
+/** A drop-off does not occupy the mechanic. Only an explicit work window does. */
 export function findMechanicConflict(
   existing: SlotShape[],
   candidate: SlotShape,
-  hours: WorkshopHours,
-  lunch: LunchWindow
+  _hours: WorkshopHours,
+  _lunch: LunchWindow
 ): string | null {
-  if (!ACTIVE.has(candidate.appointmentStatus)) return null;
+  if (!ACTIVE.has(candidate.appointmentStatus) || candidate.calendarHidden) return null;
+  const left = workWindow(candidate);
+  if (!left) return null;
   const mechanicId = candidate.mechanicId || "";
-  const left = occupationChunks({
-    date: candidate.date,
-    time: candidate.time,
-    durationMinutes: durationOf(candidate),
-    holdUntil: candidate.holdUntil,
-    hours,
-    lunch,
-  });
-  if (!left.length) return null;
-
   for (const other of existing) {
-    if (other.id === candidate.id) continue;
+    if (other.id === candidate.id || other.calendarHidden) continue;
     if (!ACTIVE.has(other.appointmentStatus)) continue;
     if ((other.mechanicId || "") !== mechanicId) continue;
-    const right = occupationChunks({
-      date: other.date,
-      time: other.time,
-      durationMinutes: durationOf(other),
-      holdUntil: other.holdUntil,
-      hours,
-      lunch,
-    });
-    if (left.some((chunk) => right.some((item) => rangesOverlap(chunk, item)))) {
-      return other.id;
-    }
+    const right = workWindow(other);
+    if (!right || right.date !== left.date) continue;
+    if (left.start < right.end && right.start < left.end) return other.id;
   }
   return null;
 }
@@ -240,36 +231,12 @@ export function evaluateStaffArrival(input: {
   hours: WorkshopHours;
   lunch: LunchWindow;
   now?: Date;
-}): { ok: true } | { ok: false; error: ScheduleError | "slot_blocked" } {
-  const start = clockToMinutes(input.time);
-  const weekday = weekdayIndexFromDateKey(input.date);
-  const window = openingWindowForDateKey(input.date, input.hours);
-  if (weekday == null) return { ok: false, error: "invalid_date" };
-  if (start == null) return { ok: false, error: "invalid_time" };
-  if (!window) return { ok: false, error: "closed_sunday" };
-  const lunch = lunchBounds(input.lunch);
-  if (lunch && start >= lunch.start && start < lunch.end) {
-    return { ok: false, error: "slot_blocked" };
-  }
-
-  const strict = evaluateBookingStart({
-    date: input.date,
-    time: input.time,
-    durationMinutes: input.durationMinutes,
-    now: input.now,
-    hours: input.hours,
-  });
-  if (strict.ok || !input.allowMultiDay) return strict.ok ? { ok: true } : strict;
-
-  const probe = Math.max(1, Math.min(30, window.closeMin - start));
-  const arrival = evaluateBookingStart({
-    date: input.date,
-    time: input.time,
-    durationMinutes: probe,
-    now: input.now,
-    hours: input.hours,
-  });
-  return arrival.ok ? { ok: true } : arrival;
+}): { ok: true } | { ok: false; error: ArrivalError } {
+  void input.durationMinutes;
+  void input.allowMultiDay;
+  void input.hours;
+  void input.lunch;
+  return evaluateArrivalTime({ date: input.date, time: input.time, now: input.now });
 }
 
 export function slotSignature(apt: SlotShape): string {
@@ -321,6 +288,7 @@ export function planAdminReminder(
     appointmentStatus: string;
     createdAt?: string;
     adminReminder?: AdminReminderState;
+    calendarHidden?: boolean;
   },
   now: Date
 ):
@@ -328,7 +296,11 @@ export function planAdminReminder(
   | { action: "cancel" }
   | { action: "send"; kind: "two_hour" | "soon"; dueAt: string } {
   const state = apt.adminReminder;
-  if (apt.appointmentStatus === "cancelled" || apt.appointmentStatus === "completed") {
+  if (
+    apt.calendarHidden ||
+    apt.appointmentStatus === "cancelled" ||
+    apt.appointmentStatus === "completed"
+  ) {
     if (state?.status === "sent" || state?.status === "cancelled") return { action: "skip" };
     return { action: "cancel" };
   }

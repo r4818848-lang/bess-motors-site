@@ -2,13 +2,9 @@ import { addDays } from "date-fns";
 import { workshopHours } from "@/lib/businessConfig";
 import { formatWarsawDateKey, parseDateKey } from "@/lib/date-key";
 import { BOOKING_HORIZON_DAYS } from "@/lib/booking-horizon";
-import { isSlotBlocked } from "@/lib/booking-slots";
+import { evaluateArrivalTime } from "@/lib/arrival-window";
 import { findMechanicConflict } from "@/lib/staff-calendar";
-import {
-  evaluateBookingStart,
-  resolveBookingDurationMinutes,
-  type ScheduleError,
-} from "@/lib/workshop-schedule";
+import { resolveBookingDurationMinutes } from "@/lib/workshop-schedule";
 import type { Appointment, AppSettings, Database } from "@/lib/store";
 import { cloudListAppointmentsForAdmin } from "./appointments-cloud";
 import { cloudGetCrmStore } from "./crm-cloud";
@@ -91,22 +87,13 @@ export async function assertBookingSlotAvailable(params: {
   serviceIds?: string[];
   mechanicId?: string;
   holdUntil?: string;
+  workStart?: string;
+  workMinutes?: number;
   now?: Date;
 }): Promise<{ ok: true } | { ok: false; error: string }> {
   const { date, time, excludeAptId } = params;
-  const durationMinutes = resolveBookingDurationMinutes({
-    durationMinutes: params.durationMinutes,
-    serviceIds: params.serviceIds,
-  });
-
-  const schedule = evaluateBookingStart({
-    date,
-    time,
-    durationMinutes,
-    now: params.now,
-    hours: workshopHours(),
-  });
-  if (!schedule.ok) return { ok: false, error: schedule.error satisfies ScheduleError };
+  const schedule = evaluateArrivalTime({ date, time, now: params.now });
+  if (!schedule.ok) return { ok: false, error: schedule.error };
 
   if (!isValidDateKey(date)) return { ok: false, error: "invalid_date" };
 
@@ -120,9 +107,12 @@ export async function assertBookingSlotAvailable(params: {
   if (crm?.doc) {
     settings = { ...settings, ...(crm.doc as Database).settings };
   }
-  if (isSlotBlocked(settings, date, time)) return { ok: false, error: "slot_blocked" };
+  if (settings.blockedBookingSlots?.includes(`${date}|${time}`)) {
+    return { ok: false, error: "slot_blocked" };
+  }
 
-  if (params.mechanicId) {
+  const workMinutes = params.workMinutes && params.workMinutes > 0 ? params.workMinutes : 0;
+  if (params.mechanicId && params.workStart && workMinutes) {
     const appointments = await loadMergedAppointments();
     const conflict = findMechanicConflict(
       appointments,
@@ -131,7 +121,12 @@ export async function assertBookingSlotAvailable(params: {
         date,
         time,
         mechanicId: params.mechanicId,
-        durationMinutes,
+        durationMinutes: resolveBookingDurationMinutes({
+          durationMinutes: params.durationMinutes,
+          serviceIds: params.serviceIds,
+        }),
+        workStart: params.workStart,
+        workMinutes,
         serviceIds: params.serviceIds ?? [],
         holdUntil: params.holdUntil,
         appointmentStatus: "scheduled",
@@ -143,9 +138,6 @@ export async function assertBookingSlotAvailable(params: {
       }
     );
     if (conflict) return { ok: false, error: "mechanic_conflict" };
-  } else {
-    const busy = await collectBusyBookingSlots(excludeAptId);
-    if (busy.has(`${date}|${time}`)) return { ok: false, error: "slot_taken" };
   }
 
   return { ok: true };

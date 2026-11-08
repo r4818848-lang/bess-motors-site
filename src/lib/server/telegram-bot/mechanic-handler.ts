@@ -18,6 +18,9 @@ import type { MechanicActor } from "./telegram-actor";
 import { linkMechanicTelegram } from "./telegram-actor";
 import {
   calendarAppUrl,
+  STAFF_LEADS_LABEL,
+  STAFF_NEW_LABEL,
+  STAFF_TODAY_LABEL,
   isCalendarOpenText,
   publishStaffCalendarMenu,
   sendCalendarOpenPrompt,
@@ -61,16 +64,10 @@ function siteBase(): string {
 }
 
 export function mechanicMainKeyboard(): InlineKeyboardMarkup {
-  const site = siteBase();
   return {
     inline_keyboard: [
-      [{ text: "📋 Мои заказы", callback_data: "mch:orders:0" }],
-      [{ text: "💰 Зарплата (месяц)", callback_data: "mch:salary" }],
-      [
-        { text: "🌐 Панель на сайте", url: `${site}/mechanic` },
-        { text: "📅 Календарь", web_app: { url: calendarAppUrl() } },
-      ],
-      [{ text: "🏠 Меню", callback_data: "mch:menu" }],
+      [{ text: "📅 Календарь", web_app: { url: calendarAppUrl() } }],
+      [{ text: "🚗 Сегодня", callback_data: "mch:today" }],
     ],
   };
 }
@@ -227,8 +224,18 @@ async function handleMechanicMessage(
     return;
   }
 
-  if (text === "/today") {
+  if (text === "/today" || text === STAFF_TODAY_LABEL) {
     await sendStaffDay(chatId, 0, actor.mechanicId);
+    return;
+  }
+
+  if (text === STAFF_NEW_LABEL) {
+    await sendCalendarOpenPrompt(chatId);
+    return;
+  }
+
+  if (text === STAFF_LEADS_LABEL || text === "/leads") {
+    await mechReply(chatId, undefined, "Заявки видит владелец и администратор.");
     return;
   }
 
@@ -282,7 +289,7 @@ async function handleMechanicCallback(
     return;
   }
 
-  if (data === "cal:today" || data === "cal:tomorrow") {
+  if (data === "mch:today" || data === "cal:today" || data === "cal:tomorrow") {
     await sendStaffDay(chatId, data === "cal:tomorrow" ? 1 : 0, actor.mechanicId);
     return;
   }

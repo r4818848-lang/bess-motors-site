@@ -21,19 +21,27 @@ const I18nContext = createContext<I18nContextValue | null>(null);
 
 const LOCALES: Locale[] = ["pl", "ru", "en", "uk"];
 
-function readStoredLocale(): Locale {
-  if (typeof window === "undefined") return "pl";
+function readStoredLocale(): Locale | null {
+  if (typeof window === "undefined") return null;
   const saved = localStorage.getItem("bess-locale") as Locale | null;
-  return saved && LOCALES.includes(saved) ? saved : "pl";
+  return saved && LOCALES.includes(saved) ? saved : null;
+}
+
+function browserLocale(): Locale {
+  const code = (navigator.languages?.[0] || navigator.language || "").toLowerCase();
+  if (code.startsWith("ru")) return "ru";
+  if (code.startsWith("uk") || code.startsWith("ua")) return "uk";
+  if (code.startsWith("en")) return "en";
+  return "pl";
 }
 
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>("pl");
 
   useEffect(() => {
-    const saved = readStoredLocale();
-    setLocaleState(saved);
-    document.documentElement.lang = saved;
+    const next = readStoredLocale() ?? browserLocale();
+    setLocaleState(next);
+    document.documentElement.lang = next;
   }, []);
 
   const setLocale = useCallback((l: Locale) => {

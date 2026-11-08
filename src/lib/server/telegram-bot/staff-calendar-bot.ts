@@ -24,13 +24,18 @@ export function calendarSiteOrigin(): string {
   }
 }
 
-export function calendarAppUrl(aptId?: string): string {
+export function calendarAppUrl(aptId?: string, extra?: { create?: boolean; leadId?: string }): string {
   const url = new URL("/telegram/calendar", calendarSiteOrigin());
   if (aptId && /^[A-Za-z0-9_-]{1,80}$/.test(aptId)) url.searchParams.set("apt", aptId);
+  if (extra?.create) url.searchParams.set("new", "1");
+  if (extra?.leadId && /^[A-Za-z0-9_-]{1,80}$/.test(extra.leadId)) url.searchParams.set("lead", extra.leadId);
   return url.toString();
 }
 
 export const CALENDAR_REPLY_LABEL = "📅 Календарь";
+export const STAFF_TODAY_LABEL = "🚗 Сегодня";
+export const STAFF_LEADS_LABEL = "📥 Заявки";
+export const STAFF_NEW_LABEL = "➕ Новая запись";
 
 export const CALENDAR_OPEN_TEXT =
   "📅 <b>Календарь сервиса</b>\n\nЗаписи из CRM. Время приезда проверяется на сервере.";
@@ -90,7 +95,13 @@ export function formatStaffDay(
   mechanicId?: string
 ): string {
   const rows = db.appointments
-    .filter((apt) => apt.date === dateKey && apt.appointmentStatus !== "cancelled")
+    .filter(
+      (apt) =>
+        apt.date === dateKey &&
+        !apt.calendarHidden &&
+        apt.appointmentStatus !== "cancelled" &&
+        apt.appointmentStatus !== "completed"
+    )
     .filter((apt) => !mechanicId || apt.mechanicId === mechanicId)
     .sort((a, b) => a.time.localeCompare(b.time));
   const calls = mechanicId

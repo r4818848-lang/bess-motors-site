@@ -260,7 +260,8 @@ export async function setStaffBotCommands(chatId: number): Promise<void> {
     scope: { type: "chat", chat_id: chatId },
     commands: [
       { command: "calendar", description: "Календарь записей" },
-      { command: "today", description: "Визиты на сегодня" },
+      { command: "today", description: "Приезды на сегодня" },
+      { command: "leads", description: "Заявки" },
       { command: "menu", description: "Меню" },
       { command: "find", description: "Поиск" },
     ],

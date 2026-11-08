@@ -378,6 +378,8 @@ export interface AppSettings {
   blockedBookingSlots?: string[];
   lunchBreakStart?: string;
   lunchBreakEnd?: string;
+  /** Local date of the last morning arrival digest, Europe/Warsaw. */
+  morningDigestDate?: string;
 }
 
 export interface PasswordResetRecord {
@@ -443,6 +445,51 @@ export interface CallRequest extends MarketingAttributionFields {
   escalatedAt?: string;
 }
 
+export type SiteLocale = "pl" | "uk" | "ru" | "en";
+export type VisitState = "expected" | "arrived" | "no_show";
+export type LeadStatus = "new" | "processing" | "booked" | "no_answer" | "declined" | "done";
+
+export interface LeadServiceQuote {
+  id?: string;
+  label: string;
+  priceText: string;
+}
+
+export interface LeadContact {
+  id: string;
+  kind: "call" | "sms" | "no_answer" | "callback" | "decline" | "done" | "booked";
+  at: string;
+  note?: string;
+  managerId?: string;
+}
+
+export interface ServiceLead {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
+  make: string;
+  model: string;
+  plate: string;
+  vin: string;
+  services: LeadServiceQuote[];
+  totalText: string;
+  desiredDate: string;
+  desiredTime: string;
+  siteLocale: SiteLocale;
+  source: string;
+  sourceUrl: string;
+  status: LeadStatus;
+  managerId: string;
+  contacts: LeadContact[];
+  appointmentId?: string;
+  clientRequestId?: string;
+  notifyStatus: "pending" | "sent";
+  notifyAttempts: number;
+}
+
 export interface Appointment extends MarketingAttributionFields {
   id: string;
   userId: string;
@@ -476,6 +523,18 @@ export interface Appointment extends MarketingAttributionFields {
   clientRequestId?: string;
   updatedAt?: string;
   adminReminder?: AdminReminderState;
+  /** Client leaves the car. Arrival time does not occupy the mechanic. */
+  leavesCar?: boolean;
+  /** Expected handover date when the car stays. */
+  pickupDate?: string;
+  /** Explicit mechanic work start. Empty means the stay is not a work block. */
+  workStart?: string;
+  workMinutes?: number;
+  visitState?: VisitState;
+  /** Hidden from the arrival calendar. The CRM row stays. */
+  calendarHidden?: boolean;
+  siteLocale?: SiteLocale;
+  leadId?: string;
 }
 
 export interface WarehouseItem {
@@ -765,6 +824,7 @@ export interface Database {
   workOrders: WorkOrder[];
   appointments: Appointment[];
   callRequests: CallRequest[];
+  leads: ServiceLead[];
   vehicleHistory: VehicleHistoryEntry[];
   warehouse: WarehouseItem[];
   monthlyParts: MonthlyPartEntry[];
@@ -788,6 +848,7 @@ const defaultDb: Database = {
   vehicles: [],
   workOrders: [],
   callRequests: [],
+  leads: [],
   vehicleHistory: [],
   appointments: [],
   expenses: [
@@ -943,6 +1004,7 @@ export function mergeStoredDb(parsed: Partial<Database>): Database {
     workOrders: (parsed.workOrders ?? defaultDb.workOrders).map(migrateWorkOrder),
     appointments: (parsed.appointments ?? defaultDb.appointments).map(migrateAppointment),
     callRequests: parsed.callRequests ?? defaultDb.callRequests,
+    leads: parsed.leads ?? defaultDb.leads,
     vehicleHistory: parsed.vehicleHistory ?? defaultDb.vehicleHistory,
     vehicles: (parsed.vehicles ?? defaultDb.vehicles).map(migrateVehicle),
     expenses: parsed.expenses ?? defaultDb.expenses,

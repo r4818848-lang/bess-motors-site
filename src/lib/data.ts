@@ -10,26 +10,24 @@ export const mechanics = [
 ];
 
 /**
- * Clock labels from weekday open through weekday close.
- * Bookable starts are narrower: see bookingStartTimes (Saturday ends 14:00,
- * and a visit must finish by closing). CRM still uses this grid.
+ * Arrival times a client can choose. The workshop still works
+ * Mon–Fri 09:00–18:00 and Sat 09:00–14:00; those hours stay in businessConfig.
  */
 export const WORKSHOP_OPEN = businessConfig.openingHours.opens;
 export const WORKSHOP_CLOSE = businessConfig.openingHours.closes;
 
 export const timeSlots = [
-  "08:00",
   "09:00",
+  "09:30",
   "10:00",
+  "10:30",
   "11:00",
+  "11:30",
   "12:00",
+  "12:30",
   "13:00",
-  "14:00",
-  "15:00",
-  "16:00",
-  "17:00",
-  "18:00",
-].filter((t) => t >= WORKSHOP_OPEN && t <= WORKSHOP_CLOSE);
+  "13:30",
+];
 
 export const reviews = [
   { name: "Michał K.", car: "BMW M340i", text: "Stage 2 + downpipe — +80 KM. Profesjonalizm na najwyższym poziomie!", rating: 5 },

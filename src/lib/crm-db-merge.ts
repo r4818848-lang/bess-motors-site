@@ -61,6 +61,7 @@ function mergeCloudRecords(local: Database, remote: Database): Database {
       (e) => normalizeIsoTimestamp(e.createdAt)
     ),
     callRequests: mergeById(local.callRequests ?? [], remote.callRequests ?? []),
+    leads: mergeById(local.leads ?? [], remote.leads ?? []),
     vehicleHistory: mergeById(local.vehicleHistory ?? [], remote.vehicleHistory ?? []),
     notifications: mergeById(local.notifications ?? [], remote.notifications ?? []),
     clientRatings: mergeById(local.clientRatings ?? [], remote.clientRatings ?? []),
@@ -129,6 +130,7 @@ function applyPullRemoteDeletions(
   const vehicleIds = ids(remote.vehicles);
   const aptIds = ids(remote.appointments);
   const callIds = ids(remote.callRequests ?? []);
+  const leadIds = ids(remote.leads ?? []);
   const partIds = ids(remote.monthlyParts ?? []);
   const invoicePartIds = ids(remote.monthlyInvoiceParts ?? []);
   const consumableIds = ids(remote.monthlyConsumables ?? []);
@@ -161,6 +163,13 @@ function applyPullRemoteDeletions(
     }),
     // Call requests: strict membership — staff delete must not resurrect new website leads
     callRequests: (base.callRequests ?? []).filter((c) => callIds.has(c.id)),
+    leads: (base.leads ?? []).filter((lead) => {
+      if (leadIds.has(lead.id)) return true;
+      return (
+        mergeTimestampMs(normalizeIsoTimestamp(lead.updatedAt || lead.createdAt)) >
+        mergeTimestampMs(syncCutoff)
+      );
+    }),
     vehicleHistory: (base.vehicleHistory ?? []).filter(
       (h) => keptUserIds.has(h.userId) && vehicleIds.has(h.vehicleId)
     ),
@@ -233,6 +242,7 @@ function applySnapshotMembership(
   const orderIds = ids(incoming.workOrders);
   const aptIds = ids(incoming.appointments);
   const callIds = ids(incoming.callRequests ?? []);
+  const leadIds = ids(incoming.leads ?? []);
   const partIds = ids(incoming.monthlyParts ?? []);
   const invoicePartIds = ids(incoming.monthlyInvoiceParts ?? []);
   const consumableIds = ids(incoming.monthlyConsumables ?? []);
@@ -272,6 +282,14 @@ function applySnapshotMembership(
     }),
     // Call requests: strict membership — staff delete must not resurrect new website leads
     callRequests: (base.callRequests ?? []).filter((c) => callIds.has(c.id)),
+    leads: (base.leads ?? []).filter((lead) => {
+      if (leadIds.has(lead.id)) return true;
+      if (!syncCutoff) return false;
+      return (
+        mergeTimestampMs(normalizeIsoTimestamp(lead.updatedAt || lead.createdAt)) >
+        mergeTimestampMs(syncCutoff)
+      );
+    }),
     monthlyParts: (base.monthlyParts ?? []).filter((p) => {
       if (partIds.has(p.id)) return true;
       if (!syncCutoff) return false;

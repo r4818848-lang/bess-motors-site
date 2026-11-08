@@ -6,6 +6,7 @@ import {
 } from "@/lib/server/booking-slot-validation";
 import { cloudGetCrmStore } from "@/lib/server/crm-cloud";
 import { cloudMutateCrmStore } from "@/lib/server/crm-cloud-mutate";
+import { upsertWebsiteLead } from "@/lib/service-leads";
 import { normalizePhone } from "@/lib/server/normalize-phone";
 import type { Appointment } from "@/lib/store";
 import { notifyAdminTelegram } from "@/lib/server/admin-telegram";
@@ -101,8 +102,46 @@ export async function POST(req: Request) {
     apt.vehicleId = vehicleId;
 
     const idx = db.appointments.findIndex((a) => a.id === apt.id);
-    if (idx >= 0) db.appointments[idx] = apt;
+    const duplicate =
+      idx < 0
+        ? db.appointments.find(
+            (item) =>
+              item.clientPhone === apt.clientPhone &&
+              item.date === apt.date &&
+              item.time === apt.time &&
+              item.appointmentStatus !== "cancelled" &&
+              !item.calendarHidden
+          )
+        : undefined;
+    if (duplicate) {
+      apt.id = duplicate.id;
+      apt.userId = duplicate.userId;
+      apt.vehicleId = duplicate.vehicleId;
+    } else if (idx >= 0) db.appointments[idx] = apt;
     else db.appointments.push(apt);
+
+    const vehicle = db.vehicles.find((item) => item.id === apt.vehicleId);
+    const saved = upsertWebsiteLead(db, {
+      id: `lead-${apt.id.replace(/^apt-/, "")}`,
+      clientRequestId: apt.clientRequestId || apt.id,
+      phone: apt.clientPhone ?? "",
+      name: apt.clientName,
+      make: vehicle?.make,
+      model: vehicle?.model,
+      plate: apt.clientPlate,
+      vin: vehicle?.vin,
+      serviceId: apt.serviceIds[0],
+      serviceLabel: apt.problemText || apt.comment,
+      desiredDate: apt.date,
+      desiredTime: apt.time,
+      siteLocale: apt.siteLocale,
+      source: apt.source || "website",
+    });
+    if (!saved.lead.appointmentId) {
+      saved.lead.status = "booked";
+      saved.lead.appointmentId = apt.id;
+      saved.lead.updatedAt = new Date().toISOString();
+    }
   });
 
   if (!crmPut.ok) {
@@ -129,11 +168,19 @@ export async function POST(req: Request) {
       apt.clientName ? `Imię: <b>${escapeHtml(apt.clientName)}</b>` : null,
       apt.clientPhone ? `Telefon: <b>${escapeHtml(apt.clientPhone)}</b>` : null,
       apt.comment ? `Komentarz: ${escapeHtml(apt.comment).slice(0, 500)}` : null,
+      `Язык сайта: ${(apt.siteLocale ?? "pl").toUpperCase()}`,
     ]
       .filter(Boolean)
       .join("\n")
   );
-  if (!telegramOk) {
+  if (telegramOk) {
+    await cloudMutateCrmStore((db) => {
+      const row = (db.leads ?? []).find(
+        (item) => item.appointmentId === apt.id || item.clientRequestId === apt.id
+      );
+      if (row) row.notifyStatus = "sent";
+    });
+  } else {
     console.warn("[telegram] notify failed (check TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID)");
   }
 

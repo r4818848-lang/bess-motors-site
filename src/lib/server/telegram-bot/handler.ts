@@ -75,11 +75,15 @@ import { handleClientTelegramUpdate } from "./client-handler";
 import { handleMechanicTelegramUpdate, mechanicDashKeyboard } from "./mechanic-handler";
 import { isAdminTelegramChat, resolveMechanicActor } from "./telegram-actor";
 import {
+  STAFF_LEADS_LABEL,
+  STAFF_NEW_LABEL,
+  STAFF_TODAY_LABEL,
   isCalendarOpenText,
   publishStaffCalendarMenu,
   sendCalendarOpenPrompt,
   sendStaffDay,
 } from "./staff-calendar-bot";
+import { handleLeadCallback, sendLeadInbox } from "./staff-leads-bot";
 import {
   formatUnsignedList,
   remindClientToSign,
@@ -346,15 +350,21 @@ async function handleMessage(msg: TelegramMessage): Promise<void> {
     return;
   }
 
-  if (isCalendarOpenText(text)) {
+  if (isCalendarOpenText(text) || text === STAFF_NEW_LABEL) {
     await clearTelegramSession(chatKey);
     await sendCalendarOpenPrompt(chatId);
     return;
   }
 
-  if (text === "/today") {
+  if (text === "/today" || text === STAFF_TODAY_LABEL) {
     await clearTelegramSession(chatKey);
     await sendStaffDay(chatId, 0);
+    return;
+  }
+
+  if (text === "/leads" || text === STAFF_LEADS_LABEL) {
+    await clearTelegramSession(chatKey);
+    await sendLeadInbox(chatId, "new");
     return;
   }
 
@@ -544,6 +554,8 @@ async function handleCallback(cb: TelegramCallback): Promise<void> {
   await answerCallbackQuery(cb.id);
 
   const chatKey = String(chatId);
+
+  if (await handleLeadCallback(chatId, data)) return;
 
   if (data === "menu") {
     await showMainMenu(chatId, messageId);
