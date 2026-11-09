@@ -94,6 +94,9 @@ export function WorkScheduler({
   const [reason, setReason] = useState("");
   const [notice, setNotice] = useState("");
   const [open, setOpen] = useState(false);
+  const [initData, setInitData] = useState("");
+  const [reservationId, setReservationId] = useState("");
+  const [expectedVersion, setExpectedVersion] = useState("");
   const operation = catalog.find((item) => item.operationCode === selected) ?? catalog[0];
   const planned = operation ? planOperationMinutes(operation, { reservePct: settings.reservePct }) : null;
   const found = useMemo(() => searchOperations(catalog, query), [catalog, query]);
@@ -114,6 +117,7 @@ export function WorkScheduler({
         // The Telegram SDK is injected asynchronously on iOS. A one-shot read can miss initData.
         const launch = await waitForTelegramInitData(() => readTelegramWebApp(window));
         if (stop) return;
+        setInitData(launch.initData ?? "");
         const response = await fetch(`/api/internal/schedule/board?mode=${mode}`, {
           headers: launch.initData ? { "x-telegram-init-data": launch.initData } : {},
           cache: "no-store",
@@ -214,11 +218,41 @@ export function WorkScheduler({
     setNotice(conflict.code === "resource" ? `Подъёмник занят. Свободный мастер или другое время: ${names || "нет"}` : `Мастер занят. Свободный мастер или другое время: ${names || "нет"}`);
   }
 
+  function authHeaders(): HeadersInit {
+    return { "content-type": "application/json", ...(initData ? { "x-telegram-init-data": initData } : {}) };
+  }
+
+  async function suggestOnServer() {
+    const response = await fetch("/api/internal/schedule/plan", {
+      method: "POST",
+      headers: authHeaders(),
+      body: JSON.stringify({
+        date,
+        start,
+        operationCodes: operation ? [operation.operationCode] : [],
+        mechanicId,
+        source: snapshot.source,
+        resourceIds: [lift],
+      }),
+    });
+    const body = (await response.json().catch(() => null)) as { refusal?: string | null; plan?: { minutes?: number; explanation?: string }; options?: { label: string; start?: string }[]; crmWritten?: boolean } | null;
+    if (body?.crmWritten) {
+      setNotice("Сервер сообщил запись. Это ошибка, бронь не подтверждена.");
+      return;
+    }
+    if (!response.ok) {
+      setNotice(body?.refusal || "Сервер не подобрал время. Запись не создана.");
+      return;
+    }
+    const options = (body?.options ?? []).map((item) => item.label).join(", ");
+    setNotice(`Серверная норма ${body?.plan?.minutes ?? "?"} мин. ${body?.plan?.explanation ?? ""} Варианты: ${options || "в этот день нет свободного окна"}. Ничего не записано.`);
+  }
+
   async function book(event: FormEvent) {
     event.preventDefault();
     const response = await fetch("/api/internal/schedule/reservations", {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers: authHeaders(),
       body: JSON.stringify({
         action: "create",
         idempotencyKey: crypto.randomUUID(),
@@ -234,16 +268,60 @@ export function WorkScheduler({
     });
     const body = (await response.json().catch(() => null)) as { error?: string } | null;
     if (response.status === 409) setNotice(`Сервер отказал: ${body?.error ?? "conflict"}. Запись не создана.`);
-    else if (response.status === 403) setNotice(body?.error === "forbidden" ? "Нельзя изменить чужую работу." : "Запись в боевую CRM выключена.");
+    else if (response.status === 403) setNotice(body?.error === "owner_only" ? "В этом режиме сохраняет только владелец." : body?.error === "forbidden" ? "Нельзя изменить чужую работу." : "Запись в боевую CRM выключена.");
     else if (response.status === 503) setNotice(body?.error === "crm_unavailable" ? "CRM недоступна. Запись не создана." : "Нужна отдельная тестовая база. Боевая база не используется.");
     else if (response.ok) setNotice("Бронь записана только в тестовую базу. Клиент и заказ-наряд не создавались.");
     else setNotice("Сервер не принял бронь.");
   }
 
+  async function changeReservation(action: "move" | "cancel") {
+    if (!reservationId || !expectedVersion) {
+      setNotice("Для переноса и отмены нужны номер брони и версия.");
+      return;
+    }
+    if (action === "cancel" && !window.confirm("Отменить бронь? История клиента сохранится.")) return;
+    const response = await fetch("/api/internal/schedule/reservations", {
+      method: "POST",
+      headers: authHeaders(),
+      body: JSON.stringify({
+        action,
+        reservationId,
+        expectedVersion: Number(expectedVersion),
+        date,
+        start,
+        mechanicId,
+        operationCode: operation?.operationCode,
+        resourceIds: [lift],
+        parts,
+        reason,
+      }),
+    });
+    const body = (await response.json().catch(() => null)) as { error?: string; crmWritten?: boolean } | null;
+    if (body?.crmWritten) setNotice("Сервер сообщил запись в CRM. Это ошибка, изменение не подтверждено.");
+    else if (response.ok) setNotice(action === "cancel" ? "Бронь отменена в тестовой базе. История сохранена." : "Бронь перенесена в тестовой базе.");
+    else if (response.status === 409) setNotice(`Конфликт версии или занятости: ${body?.error ?? "conflict"}.`);
+    else if (response.status === 403) setNotice("Недостаточно прав для изменения брони.");
+    else setNotice("Изменение не выполнено. Боевая CRM не менялась.");
+  }
+
+  async function showHistory() {
+    const response = await fetch(`/api/internal/schedule/history?appointmentId=${encodeURIComponent(reservationId)}`, {
+      headers: initData ? { "x-telegram-init-data": initData } : {},
+      cache: "no-store",
+    });
+    const body = (await response.json().catch(() => null)) as { entries?: { action: string; version: number; actorId: string }[]; error?: string } | null;
+    if (!response.ok) {
+      setNotice(response.status === 503 ? "Журнал доступен только в локальной базе." : "Журнал изменений недоступен.");
+      return;
+    }
+    const lines = (body?.entries ?? []).map((entry) => `${entry.action} v${entry.version} ${entry.actorId}`).join("; ");
+    setNotice(lines || "Изменений пока нет.");
+  }
+
   async function saveSettings() {
     const response = await fetch("/api/internal/schedule/settings", {
       method: "PUT",
-      headers: { "content-type": "application/json" },
+      headers: authHeaders(),
       body: JSON.stringify(settings),
     });
     if (response.ok) setNotice("Отображаемые имена и ресурсы сохранены в тестовой базе. Внутренние ID не изменились.");
@@ -432,6 +510,7 @@ export function WorkScheduler({
 
       {!readOnly && open && operation && planned && (
         <form className="mt-4 space-y-3 rounded-2xl bg-zinc-900 p-4" data-testid="scheduler-form" onSubmit={(event) => void book(event)}>
+          <p className="text-sm text-amber-200">Запись принимает только владелец и только в локальной базе. Боевая CRM этим экраном не открывается. mech-2 автоматически не назначается.</p>
           <label className="block text-sm">Время приезда
             <input className="mt-1 h-12 w-full rounded-xl bg-zinc-950 px-3 text-base" value={arrival} onChange={(event) => setArrival(event.target.value)} />
           </label>
@@ -480,7 +559,19 @@ export function WorkScheduler({
           <label className="flex min-h-12 items-center gap-3 text-base"><input className="h-5 w-5" type="checkbox" checked={leavesCar} onChange={(event) => setLeavesCar(event.target.checked)} />Оставляет автомобиль</label>
           <div className="grid grid-cols-2 gap-2">
             <button type="button" data-testid="scheduler-check" className="min-h-12 rounded-xl bg-zinc-800 font-semibold" onClick={check}>Проверить доступность</button>
-            <button type="submit" className="min-h-12 rounded-xl bg-white font-semibold text-black">Забронировать</button>
+            <button type="button" className="min-h-12 rounded-xl bg-zinc-800 font-semibold" onClick={() => void suggestOnServer()}>Подобрать на сервере</button>
+            <button type="submit" className="col-span-2 min-h-12 rounded-xl bg-white font-semibold text-black">Забронировать</button>
+          </div>
+          <label className="block text-sm">Номер брони
+            <input className="mt-1 h-12 w-full rounded-xl bg-zinc-950 px-3 text-base" value={reservationId} onChange={(event) => setReservationId(event.target.value)} />
+          </label>
+          <label className="block text-sm">Версия
+            <input className="mt-1 h-12 w-full rounded-xl bg-zinc-950 px-3 text-base" value={expectedVersion} onChange={(event) => setExpectedVersion(event.target.value)} inputMode="numeric" />
+          </label>
+          <div className="grid grid-cols-3 gap-2">
+            <button type="button" className="min-h-12 rounded-xl bg-zinc-800 text-sm font-semibold" onClick={() => void changeReservation("move")}>Перенести</button>
+            <button type="button" className="min-h-12 rounded-xl bg-zinc-800 text-sm font-semibold" onClick={() => void changeReservation("cancel")}>Отменить</button>
+            <button type="button" className="min-h-12 rounded-xl bg-zinc-800 text-sm font-semibold" onClick={() => void showHistory()}>История</button>
           </div>
           {notice && <p data-testid="scheduler-notice" className="text-sm">{notice}</p>}
         </form>
