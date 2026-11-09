@@ -1,10 +1,12 @@
 # Обратимое переключение календаря
 
-Этот файл — план отдельного запуска. Сейчас он не выполнен. `SMART_WORK_SCHEDULER` выключен, `scheduler_runtime.unified_calendar` по умолчанию `false`, а `schedulerUnifiedCalendarWired()` в приложении всегда возвращает `false`.
+Этот файл описывает отдельный запуск. Запуск не выполнен: `SMART_WORK_SCHEDULER` выключен, на рабочей базе `unified_calendar` не включается, а `schedulerUnifiedCalendarWired()` в приложении всегда возвращает `false`.
+
+Шесть путей записи уже вызывают `withUnifiedCrm`. Если локальная копия недоступна или `scheduler_runtime.unified_calendar = false`, выполняется прежний код. Если на `bess_crm_copy_test` флаг включён, изменение занятости идёт одной транзакцией PostgreSQL, без второго REST upsert. Vercel production и preview к этой базе не подключаются.
 
 ## Что уже подготовлено
 
-`commitLiveCalendar` в `src/lib/smart-scheduler/live-crm.ts` обновляет существующие `crm_store` и `appointments` в одной транзакции PostgreSQL. Функция отказывается работать с любой базой, кроме локальной копии `bess_crm_copy_test`. Боевые функции записи не изменены и продолжают работать по-старому.
+`withUnifiedCrm` в `src/lib/server/unified-calendar.ts` держит `crm_store` и `appointments` в одной транзакции. Приезд остаётся в `time`, начало ремонта — в `workStart`, выдача — в `pickupDate`. Стоянка без окна работы механика пост не занимает. Если две поверхности расходятся, запись отклоняется и причина возвращается вызывающему коду. Внешнее уведомление ставится в `scheduler_notification_log` и отправляется после commit; повтор того же ключа не отправляет его снова.
 
 Включить подготовленный механизм на копии может только суперпользователь:
 
@@ -20,18 +22,18 @@ select public.scheduler_set_unified_calendar(false);
 
 Роли `scheduler_staff` и `scheduler_mechanic` не могут вызвать эту функцию и не могут создать себе сессию owner/admin. Пока функция выключена, `commitLiveCalendar` не пишет ни одной строки.
 
-## Пути записи, которые отдельный запуск должен перевести вместе
+## Шесть путей
 
-Пока каждый из них пишет `crm_store` и `appointments` двумя шагами. Их нельзя переключать по одному.
+Пока `unified_calendar = false`, каждый путь пишет по-старому. При `true` на копии тот же обработчик пишет обе поверхности одной транзакцией и не вызывает второй upsert.
 
-| Путь | Где | Что делает сейчас |
-|---|---|---|
-| Календарь Mini App | `commitStaffAppointment` | `patchCrmIfUnchanged`, затем отдельный upsert записи. Режимы create, update, cancel, arrive, noshow, remove. |
-| Сайт, запись клиента | `src/app/api/appointments/route.ts` POST | Сначала JSON CRM, затем строка `appointments`. |
-| Удаление администратором | тот же файл, DELETE | Удаляет только строку `appointments`. |
-| Запись клиента в Telegram | `createTelegramBooking` | `mutateCrm`, затем upsert. |
-| Перенос клиентом | `rescheduleAppointment` | Чтение и запись JSON, затем upsert. |
-| Быстрая запись администратора | `createQuickAppointment` | `mutateCrm`, затем upsert. |
+| Путь | Где | При выключенном флаге | При включённом флаге |
+|---|---|---|---|
+| Календарь Mini App | `commitStaffAppointment` | `patchCrmIfUnchanged`, затем отдельный upsert. | Одна транзакция. Режимы create, update, cancel, arrive, noshow, remove. |
+| Сайт, запись клиента | `src/app/api/appointments/route.ts` POST | Сначала JSON CRM, затем строка `appointments`. | Одна транзакция, без второго upsert. |
+| Удаление администратором | тот же файл, DELETE | Удаление строки, затем отдельное удаление из JSON. | Строка и JSON удаляются вместе. |
+| Запись клиента в Telegram | `createTelegramBooking` | `mutateCrm`, затем upsert. | Одна транзакция. |
+| Перенос клиентом | `rescheduleAppointment` | Запись JSON, затем upsert. | Одна транзакция. `time` и `workStart` не меняются, если их не передавали. |
+| Быстрая запись администратора | `createQuickAppointment` | `mutateCrm`, затем upsert. | Одна транзакция. |
 
 Остальные вызовы `mutateCrm` и `cloudPutCrmStore` меняют клиентов, язык, фото и уведомления. Они не занимают пост и в этот переключатель не входят. Их не нужно переписывать вместе с календарём.
 

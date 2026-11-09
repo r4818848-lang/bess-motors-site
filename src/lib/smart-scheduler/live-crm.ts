@@ -19,6 +19,12 @@ export type LiveCalendarInput = {
   workStart: string;
   workMinutes: number;
   resourceId?: string;
+  arrivalTime?: string;
+  pickupDate?: string;
+  clientPhone?: string;
+  clientName?: string;
+  userId?: string;
+  vehicleId?: string;
   hours: WorkshopHours;
   actor: BookingActor;
   crmToken?: string;
@@ -38,6 +44,9 @@ type StoredDoc = CrmAppointmentDoc & {
   source?: string;
   createdAt?: string;
   visitState?: string;
+  pickupDate?: string;
+  clientPhone?: string;
+  clientName?: string;
 };
 
 function empty(error: string, status: 403 | 409 | 503 = 409): BookResult {
@@ -200,9 +209,9 @@ export async function commitLiveCalendar(client: Client, input: LiveCalendarInpu
     if (input.failpoint === "after-store") throw new Error("partial_live_write");
     await client.query(
       `insert into appointments (id, client_phone, user_id, doc)
-       values ($1, '', 'guest', $2::jsonb)
-       on conflict (id) do update set doc = excluded.doc`,
-      [replacement.id, JSON.stringify(replacement)]
+       values ($1, $2, $3, $4::jsonb)
+       on conflict (id) do update set client_phone = excluded.client_phone, user_id = excluded.user_id, doc = excluded.doc`,
+      [replacement.id, replacement.clientPhone || "", replacement.userId || "", JSON.stringify(replacement)]
     );
     if (input.kind === "scheduler" && input.operation) {
       await writeSchedulerRows(client, input, replacement, resourceIds);
@@ -225,23 +234,26 @@ function nextDocument(existing: StoredDoc | undefined, input: LiveCalendarInput,
   return {
     ...(existing ?? {}),
     id: input.appointmentId,
-    userId: existing?.userId || "guest",
-    vehicleId: existing?.vehicleId || "",
+    userId: input.userId ?? existing?.userId ?? "",
+    vehicleId: input.vehicleId ?? existing?.vehicleId ?? "",
     serviceIds: existing?.serviceIds?.length ? existing.serviceIds : ["otherReason"],
     date: input.date,
-    time: input.workStart,
+    time: input.arrivalTime ?? existing?.time ?? "",
     mechanicId: input.mechanicId,
     repairStatus: existing?.repairStatus || "received",
-    appointmentStatus: "scheduled",
+    appointmentStatus: existing?.appointmentStatus && input.action !== "create" ? existing.appointmentStatus : "scheduled",
     comment: existing?.comment || "",
     source: existing?.source || (input.kind === "scheduler" ? "manual" : "telegram"),
     createdAt: existing?.createdAt || new Date().toISOString(),
     workStart: input.workStart,
     workMinutes: input.workMinutes,
-    resourceId: resourceIds[0] ?? "",
-    resourceIds: resourceIds.length ? resourceIds : undefined,
-    calendarHidden: false,
-    visitState: "expected",
+    pickupDate: input.pickupDate ?? existing?.pickupDate,
+    clientPhone: input.clientPhone ?? existing?.clientPhone,
+    clientName: input.clientName ?? existing?.clientName,
+    resourceId: resourceIds[0] ?? existing?.resourceId ?? "",
+    resourceIds: resourceIds.length ? resourceIds : existing?.resourceIds,
+    calendarHidden: input.action === "create" ? false : existing?.calendarHidden ?? false,
+    visitState: existing?.visitState || "expected",
   };
 }
 
@@ -292,7 +304,7 @@ async function occupiedBlocks(client: Client, docs: StoredDoc[], hours: Workshop
 async function replaceOccupancy(client: Client, docs: StoredDoc[], hours: WorkshopHours): Promise<void> {
   await client.query("delete from scheduler_crm_occupancy");
   for (const doc of docs) {
-    if (!activeDoc(doc)) continue;
+    if (!activeDoc(doc) || !doc.workStart || !doc.workMinutes || !doc.mechanicId) continue;
     const split = blocksFor(doc, hours);
     if (!split.ok) throw new Error("crm_diverged");
     for (const [index, block] of split.blocks.entries()) {

@@ -1,3 +1,4 @@
+import { evaluateArrivalTime } from "@/lib/arrival-window";
 import { normalizePhone } from "@/lib/auth";
 import { handleAppointmentNotification } from "@/lib/client-notifications";
 import { ensureClientForBooking } from "@/lib/create-work-order-from-booking";
@@ -5,6 +6,7 @@ import { assertBookingSlotAvailable } from "@/lib/server/booking-slot-validation
 import { cloudUpsertAppointment } from "@/lib/server/appointments-cloud";
 import { notifyAdminTelegram } from "@/lib/server/telegram-api";
 import type { Appointment } from "@/lib/store";
+import { safeExternalNotify, withUnifiedCrm } from "@/lib/server/unified-calendar";
 import { loadCrmFromCloud, mutateCrm } from "./crm-actions";
 import { getClientServiceLabel } from "./client-services";
 import type { BotLocale } from "./client-i18n";
@@ -60,7 +62,12 @@ export async function createTelegramBooking(params: {
   comment?: string;
   telegramProfile?: TelegramProfile;
   locale?: BotLocale;
+  workStart?: string;
+  workMinutes?: number;
+  pickupDate?: string;
 }): Promise<{ ok: boolean; error?: string }> {
+  const unified = await createTelegramBookingUnified(params);
+  if (unified) return unified;
   const slotCheck = await assertBookingSlotAvailable({
     date: params.date,
     time: params.time,
@@ -120,6 +127,57 @@ export async function createTelegramBooking(params: {
   }
   await notifyAdminNewBooking(created, "booking");
   return { ok: true };
+}
+
+async function createTelegramBookingUnified(params: {
+  serviceId: string;
+  date: string;
+  time: string;
+  clientName: string;
+  clientPhone: string;
+  comment?: string;
+  telegramProfile?: TelegramProfile;
+  locale?: BotLocale;
+  workStart?: string;
+  workMinutes?: number;
+  pickupDate?: string;
+}): Promise<{ ok: boolean; error?: string } | null> {
+  const aptId = `apt-tg-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+  const outcome = await withUnifiedCrm(async (db) => {
+    const arrival = evaluateArrivalTime({ date: params.date, time: params.time });
+    if (!arrival.ok) return { abort: { error: arrival.error, status: 400 } };
+    const { userId, vehicleId } = ensureClientForBooking(db, params.clientName, params.clientPhone);
+    if (params.telegramProfile) tryLinkTelegramOnBooking(db, userId, params.telegramProfile, params.locale);
+    const apt: Appointment = {
+      id: aptId,
+      userId,
+      vehicleId,
+      serviceIds: [params.serviceId],
+      date: params.date,
+      time: params.time,
+      workStart: params.workStart,
+      workMinutes: params.workMinutes,
+      pickupDate: params.pickupDate,
+      mechanicId: db.mechanics[0]?.id ?? "mech-1",
+      repairStatus: "received",
+      appointmentStatus: "scheduled",
+      comment: params.comment?.trim() ? `[Telegram] ${params.comment.trim()}` : "Запись через Telegram",
+      clientName: params.clientName.trim(),
+      clientPhone: params.clientPhone.trim(),
+      source: "telegram",
+      marketing: { utmSource: "telegram" },
+      createdAt: new Date().toISOString(),
+    };
+    db.appointments.push(apt);
+    handleAppointmentNotification(db, apt, "scheduled");
+    return { value: apt, eventKey: `telegram-booking:${aptId}` };
+  }, { notify: async (previous, next) => {
+    await safeExternalNotify(previous, next);
+    const apt = next.appointments.find((item) => item.id === aptId);
+    if (apt) await notifyAdminNewBooking(apt, "booking");
+  } });
+  if (!outcome.handled) return null;
+  return outcome.ok ? { ok: true } : { ok: false, error: outcome.reason ? `${outcome.error}: ${outcome.reason}` : outcome.error };
 }
 
 export async function createTelegramCallRequest(params: {

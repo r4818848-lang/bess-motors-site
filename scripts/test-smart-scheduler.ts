@@ -394,6 +394,7 @@ void (async () => {
   assert.match(liveCrm, /bess_crm_copy_test/);
   assert.match(liveCrm, /insert into crm_store/);
   assert.match(liveCrm, /insert into appointments/);
+  assert.doesNotMatch(liveCrm, /time:\s*input\.workStart/);
   assert.doesNotMatch(liveCrm, /scheduler_store_appointments|scheduler_row_appointments/);
   const schedulerSource = readFileSync(join(process.cwd(), "src/lib/smart-scheduler/schedule.ts"), "utf8");
   assert.doesNotMatch(schedulerSource, /250\s*zł|price\s*:/);

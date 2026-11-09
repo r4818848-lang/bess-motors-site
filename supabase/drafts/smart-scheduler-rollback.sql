@@ -12,6 +12,7 @@ drop table if exists public.scheduler_crm_occupancy cascade;
 drop table if exists public.scheduler_crm_snapshot cascade;
 drop table if exists public.scheduler_row_appointments cascade;
 drop table if exists public.scheduler_store_appointments cascade;
+drop table if exists public.scheduler_notification_log cascade;
 drop table if exists public.scheduler_runtime cascade;
 drop table if exists public.scheduler_actor_sessions cascade;
 drop table if exists public.scheduler_approvals cascade;

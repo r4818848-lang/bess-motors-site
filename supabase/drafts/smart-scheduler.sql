@@ -145,6 +145,13 @@ create table if not exists public.scheduler_runtime (
 
 insert into public.scheduler_runtime (id) values ('main') on conflict (id) do nothing;
 
+create table if not exists public.scheduler_notification_log (
+  event_key text primary key,
+  status text not null check (status in ('pending', 'sent')),
+  send_count integer not null default 0,
+  created_at timestamptz not null default now()
+);
+
 -- Local stand-ins for tests. They are not the production CRM.
 -- Live mode reads the existing crm_store and appointments instead.
 create table if not exists public.scheduler_store_appointments (
@@ -621,6 +628,7 @@ alter table public.scheduler_row_appointments enable row level security;
 alter table public.scheduler_crm_snapshot enable row level security;
 alter table public.scheduler_crm_occupancy enable row level security;
 alter table public.scheduler_runtime enable row level security;
+alter table public.scheduler_notification_log enable row level security;
 
 alter table public.scheduler_operations force row level security;
 alter table public.scheduler_overlap_rules force row level security;
@@ -640,6 +648,7 @@ alter table public.scheduler_row_appointments force row level security;
 alter table public.scheduler_crm_snapshot force row level security;
 alter table public.scheduler_crm_occupancy force row level security;
 alter table public.scheduler_runtime force row level security;
+alter table public.scheduler_notification_log force row level security;
 
 revoke all on table public.scheduler_operations from public, scheduler_anon;
 revoke all on table public.scheduler_overlap_rules from public, scheduler_anon;
@@ -659,6 +668,7 @@ revoke all on table public.scheduler_row_appointments from public, scheduler_ano
 revoke all on table public.scheduler_crm_snapshot from public, scheduler_anon, scheduler_mechanic;
 revoke all on table public.scheduler_crm_occupancy from public, scheduler_anon, scheduler_mechanic;
 revoke all on table public.scheduler_runtime from public, scheduler_anon, scheduler_mechanic, scheduler_staff;
+revoke all on table public.scheduler_notification_log from public, scheduler_anon, scheduler_mechanic, scheduler_staff;
 
 do $$
 declare role_name text;
@@ -671,7 +681,7 @@ begin
         'scheduler_shifts','scheduler_time_off','scheduler_breaks','scheduler_reservations',
         'scheduler_holds','scheduler_resource_holds','scheduler_actuals','scheduler_approvals','scheduler_actor_sessions',
         'scheduler_store_appointments','scheduler_row_appointments','scheduler_crm_snapshot','scheduler_crm_occupancy',
-        'scheduler_runtime'
+        'scheduler_runtime','scheduler_notification_log'
       ] loop
         execute format('revoke all on table public.%I from %I', table_name, role_name);
       end loop;
