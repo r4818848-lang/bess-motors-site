@@ -1,12 +1,16 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { spawnSync } from "node:child_process";
+import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { POST } from "../src/app/api/call-request/route";
 import { GET } from "../src/app/api/telegram/cron/lead-notices/route";
 import { mergeServerCloudMutation } from "../src/lib/crm-db-merge";
 import { installCrmCloudForTests } from "../src/lib/server/crm-cloud";
 import { installTelegramSenderForTests } from "../src/lib/server/telegram-api";
-import { deliverPendingLeadNotices } from "../src/lib/server/telegram-cron/lead-notifications";
-import { reminderDeliveryEnabled } from "../src/lib/server/cron-auth";
+import { runAppointmentReminders } from "../src/lib/server/telegram-cron/appointment-reminders";
+import { classifyLeadNotice, deliverPendingLeadNotices } from "../src/lib/server/telegram-cron/lead-notifications";
+import { leadNoticeDeliveryEnabled, reminderDeliveryEnabled } from "../src/lib/server/cron-auth";
 import {
   acceptWebsiteInquiry,
   claimLeadNotice,
@@ -22,6 +26,7 @@ const savedEnv = {
   cron: process.env.CRON_SECRET,
   reminder: process.env.REMINDER_DELIVERY,
   vercel: process.env.VERCEL_ENV,
+  leadNotice: process.env.LEAD_NOTICE_DELIVERY,
 };
 
 function restoreEnv(): void {
@@ -35,6 +40,7 @@ function restoreEnv(): void {
   assign("CRON_SECRET", savedEnv.cron);
   assign("REMINDER_DELIVERY", savedEnv.reminder);
   assign("VERCEL_ENV", savedEnv.vercel);
+  assign("LEAD_NOTICE_DELIVERY", savedEnv.leadNotice);
   installCrmCloudForTests(null);
   installTelegramSenderForTests(null);
 }
@@ -87,6 +93,7 @@ async function main(): Promise<void> {
   const vercel = readFileSync("vercel.json", "utf8");
   const reminders = readFileSync("src/lib/server/telegram-cron/appointment-reminders.ts", "utf8");
   assert.match(vercel, /\/api\/telegram\/cron\/lead-notices/);
+  assert.match(reminders, /leadNoticeDeliveryEnabled\(\)/);
   assert.match(reminders, /deliverPendingLeadNotices/);
 
   process.env.TELEGRAM_BOT_TOKEN = "123456:test-token";
@@ -321,10 +328,76 @@ async function main(): Promise<void> {
     delete process.env.VERCEL_ENV;
     process.env.REMINDER_DELIVERY = "live";
     assert.equal(reminderDeliveryEnabled(), true);
+    process.env.VERCEL_ENV = "production";
+    process.env.CRON_SECRET = "lead-notice-test-secret";
+    process.env.LEAD_NOTICE_DELIVERY = "disabled";
+    assert.equal(reminderDeliveryEnabled(), true);
+    assert.equal(leadNoticeDeliveryEnabled(), false);
+    const paused = await GET(new Request("http://local/api/telegram/cron/lead-notices", {
+      headers: { authorization: "Bearer lead-notice-test-secret" },
+    }));
+    assert.equal(paused.status, 200);
+    assert.equal((await paused.json()).delivery, "skipped");
+    const quiet: string[] = [];
+    delete process.env.VERCEL_ENV;
+    installTelegramSenderForTests(async () => {
+      quiet.push("sent");
+      return 1;
+    });
+    installCrmCloudForTests(createCasStore(emptyDb()));
+    const held = acceptWebsiteInquiry(emptyDb(), inquiry, new Date("2026-11-09T11:00:00.000Z"), []).lead;
+    held.notifyStatus = "pending";
+    const reminderDb = emptyDb();
+    reminderDb.leads = [held];
+    await runAppointmentReminders(reminderDb, new Date("2026-11-09T12:00:00.000Z"));
+    assert.equal(quiet.length, 0);
+    delete process.env.LEAD_NOTICE_DELIVERY;
+    assert.equal(leadNoticeDeliveryEnabled(), true);
     passed.push("cron");
   }
 
-  assert.deepEqual(passed.sort(), ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "cron"].sort());
+  {
+    const now = new Date("2026-11-09T12:00:00.000Z");
+    const base = acceptWebsiteInquiry(emptyDb(), inquiry, now, []).lead;
+    const older = new Date(now.getTime() - 25 * 60 * 60 * 1000).toISOString();
+    const samples: ServiceLead[] = [
+      ...Array.from({ length: 40 }, (_, index) => ({ ...base, id: `sent-${index}`, createdAt: older, notifyStatus: "sent" as const, notifyRecipients: undefined })),
+      ...Array.from({ length: 20 }, (_, index) => ({ ...base, id: `old-pending-${index}`, createdAt: older, notifyStatus: "pending" as const, notifyAttempts: 1 })),
+      ...Array.from({ length: 10 }, (_, index) => ({ ...base, id: `old-sending-${index}`, createdAt: older, updatedAt: older, notifyStatus: "sending" as const, notifyAttempts: 1 })),
+      ...Array.from({ length: 15 }, (_, index) => ({ ...base, id: `recent-sent-${index}`, createdAt: now.toISOString(), notifyStatus: "sent" as const, notifyRecipients: undefined })),
+      { ...base, id: "recent-pending", createdAt: now.toISOString(), notifyStatus: "pending", notifyAttempts: 0, notifyRecipients: undefined },
+    ];
+    const counts = { deliver: 0, historical_sent: 0, too_old: 0 };
+    for (const lead of samples) {
+      const decision = classifyLeadNotice(lead, now);
+      if (decision === "deliver" || decision === "historical_sent" || decision === "too_old") counts[decision] += 1;
+    }
+    assert.equal(counts.deliver, 1);
+    assert.equal(counts.historical_sent, 15);
+    assert.equal(counts.too_old, 70);
+    const dir = mkdtempSync(join(tmpdir(), "lead-audit-"));
+    const file = join(dir, "leads.json");
+    writeFileSync(file, JSON.stringify({ leads: samples }));
+    const tsx = join(process.cwd(), "node_modules", ".bin", "tsx");
+    const refused = spawnSync(tsx, ["scripts/audit-lead-notices.ts", file], {
+      cwd: process.cwd(),
+      env: { ...process.env, SUPABASE_URL: "https://example.supabase.co" },
+      encoding: "utf8",
+    });
+    assert.equal(refused.status, 3);
+    const audited = spawnSync(tsx, ["scripts/audit-lead-notices.ts", file], {
+      cwd: process.cwd(),
+      env: { ...process.env, SUPABASE_URL: "" },
+      encoding: "utf8",
+    });
+    assert.equal(audited.status, 0, audited.stderr);
+    const report = JSON.parse(audited.stdout) as { sends: number; counts: { too_old: number } };
+    assert.equal(report.sends, 1);
+    assert.equal(report.counts.too_old, 70);
+    passed.push("historical");
+  }
+
+  assert.deepEqual(passed.sort(), ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "cron", "historical"].sort());
   console.log("lead notices ok", passed.join(" "));
 }
 

@@ -21,6 +21,7 @@ import {
   productionAdminChatIds,
   sendAdminArrivalMessage,
 } from "./admin-arrival-reminders";
+import { leadNoticeDeliveryEnabled } from "@/lib/server/cron-auth";
 import { deliverPendingLeadNotices } from "./lead-notifications";
 
 function reminderLocale(user: User): BotLocale {
@@ -164,7 +165,7 @@ export async function runAppointmentReminders(
     await saveReminderFields(beforeAdmin, db);
   }
 
-  await deliverPendingLeadNotices(now);
+  if (leadNoticeDeliveryEnabled()) await deliverPendingLeadNotices(now);
 
   const warsaw = warsawParts(now);
   const digestDate = warsawTodayKey(now);

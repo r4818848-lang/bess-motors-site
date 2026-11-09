@@ -18,21 +18,44 @@ export function productionLeadChatIds(): string[] {
   return cfg ? [...cfg.adminChatIds] : [];
 }
 
-export function leadNeedsNotice(lead: ServiceLead, now: Date): boolean {
+export type LeadNoticeDecision =
+  | "deliver"
+  | "historical_sent"
+  | "already_sent"
+  | "too_old"
+  | "lease_active"
+  | "attempts_exhausted";
+
+/** Read-only reason a lead would or would not be sent. Does not write CRM. */
+export function classifyLeadNotice(lead: ServiceLead, now: Date): LeadNoticeDecision {
   const age = now.getTime() - Date.parse(lead.createdAt);
-  if (!Number.isFinite(age) || age < 0 || age > RETRY_WINDOW_MS) return false;
+  if (!Number.isFinite(age) || age < 0 || age > RETRY_WINDOW_MS) return "too_old";
   const rows = lead.notifyRecipients ?? [];
   if (rows.length > 0) {
-    return rows.some((row) => {
-      if (row.status === "sent" || row.attempts >= MAX_ATTEMPTS) return false;
-      if (row.status === "sending" && row.leaseUntil && Date.parse(row.leaseUntil) > now.getTime()) return false;
-      return true;
-    });
+    let pending = false;
+    let leased = false;
+    for (const row of rows) {
+      if (row.status === "sent") continue;
+      if (row.attempts >= MAX_ATTEMPTS) continue;
+      if (row.status === "sending" && row.leaseUntil && Date.parse(row.leaseUntil) > now.getTime()) {
+        leased = true;
+        continue;
+      }
+      pending = true;
+    }
+    if (pending) return "deliver";
+    if (leased) return "lease_active";
+    if (rows.every((row) => row.status === "sent")) return "already_sent";
+    return "attempts_exhausted";
   }
-  if (lead.notifyStatus === "sent") return false;
-  if (leadNoticeLeaseActive(lead, now)) return false;
-  if ((lead.notifyAttempts ?? 0) >= MAX_ATTEMPTS) return false;
-  return true;
+  if (lead.notifyStatus === "sent") return "historical_sent";
+  if (leadNoticeLeaseActive(lead, now)) return "lease_active";
+  if ((lead.notifyAttempts ?? 0) >= MAX_ATTEMPTS) return "attempts_exhausted";
+  return "deliver";
+}
+
+export function leadNeedsNotice(lead: ServiceLead, now: Date): boolean {
+  return classifyLeadNotice(lead, now) === "deliver";
 }
 
 export async function finishClaimedLeadNotice(
