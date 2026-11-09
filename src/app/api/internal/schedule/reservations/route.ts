@@ -5,7 +5,7 @@ import { workshopHours } from "@/lib/businessConfig";
 import { guardScheduler, isGuardError, mechanicMayPlan } from "@/lib/smart-scheduler/access";
 import type { BookingActor } from "@/lib/smart-scheduler/booking-rules";
 import { parseOperationCatalog } from "@/lib/smart-scheduler/catalog";
-import { schedulerTestWritesEnabled } from "@/lib/smart-scheduler/flag";
+import { schedulerOwnerWritePilotEnabled, schedulerTestWritesEnabled } from "@/lib/smart-scheduler/flag";
 import { crmSurfacesMatch, type CrmAppointmentDoc } from "@/lib/smart-scheduler/crm-reconcile";
 import { readCloudAppointmentDocs } from "@/lib/smart-scheduler/crm-surfaces";
 import { cancelInDatabase, commitUnifiedWorkshopWrite, connectSchedulerDatabase, issueCrmSnapshot, moveInDatabase, openActorSession, schedulerDatabaseUrl } from "@/lib/smart-scheduler/postgres";
@@ -46,8 +46,12 @@ async function confirmedCrm(client: { query: (sql: string) => Promise<{ rows: { 
 export async function POST(req: Request) {
   const actor = await guardScheduler(req, { allowTestBoard: true });
   if (isGuardError(actor)) return actor;
-  if (!schedulerTestWritesEnabled()) {
+  const ownerPilot = schedulerOwnerWritePilotEnabled();
+  if (!schedulerTestWritesEnabled() && !ownerPilot) {
     return NextResponse.json({ ok: false, error: "test_writes_disabled", persisted: false, crmWritten: false }, { status: 403 });
+  }
+  if (ownerPilot && !schedulerTestWritesEnabled() && actor.role !== "owner") {
+    return NextResponse.json({ ok: false, error: "owner_only", persisted: false, crmWritten: false }, { status: 403 });
   }
   if (!schedulerDatabaseUrl()) {
     return NextResponse.json({ ok: false, error: "database_required", persisted: false, crmWritten: false }, { status: 503 });
@@ -57,6 +61,9 @@ export async function POST(req: Request) {
   }
   const body = (await req.json().catch(() => null)) as Body | null;
   if (!body) return NextResponse.json({ ok: false, error: "invalid", persisted: false, crmWritten: false }, { status: 400 });
+  if (ownerPilot && !schedulerTestWritesEnabled() && body.mechanicId === "mech-2") {
+    return NextResponse.json({ ok: false, error: "mechanic_not_confirmed", persisted: false, crmWritten: false }, { status: 409 });
+  }
   if (actor.role !== "owner" && actor.role !== "admin" && actor.role !== "mechanic") {
     return NextResponse.json({ ok: false, error: "forbidden", persisted: false, crmWritten: false }, { status: 403 });
   }

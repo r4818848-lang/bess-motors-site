@@ -31,9 +31,21 @@ export function schedulerUnifiedModeRequired(): boolean {
   return process.env.SCHEDULER_UNIFIED_CALENDAR === "on";
 }
 
+/**
+ * Local owner-only write door. It does not turn on CRM writes, the unified
+ * calendar, or test writes. Production and preview ignore the variable.
+ * The read-only pilot wins, so a viewing deployment cannot start saving.
+ */
+export function schedulerOwnerWritePilotEnabled(): boolean {
+  if (process.env.SCHEDULER_OWNER_WRITE_PILOT !== "local") return false;
+  if (process.env.VERCEL_ENV === "production" || process.env.VERCEL_ENV === "preview") return false;
+  if (schedulerReadOnlyPilotEnabled()) return false;
+  return true;
+}
+
 /** The scheduler page can render. The read-only pilot does not enable writes. */
 export function schedulerPageOpen(): boolean {
-  return smartWorkSchedulerEnabled() || schedulerReadOnlyPilotEnabled();
+  return smartWorkSchedulerEnabled() || schedulerReadOnlyPilotEnabled() || schedulerOwnerWritePilotEnabled();
 }
 
 /**

@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { workshopHours } from "@/lib/businessConfig";
 import { parseOperationCatalog } from "@/lib/smart-scheduler/catalog";
-import { schedulerPageOpen, schedulerReadOnlyPilotEnabled, smartWorkSchedulerEnabled } from "@/lib/smart-scheduler/flag";
+import { schedulerOwnerWritePilotEnabled, schedulerPageOpen, schedulerReadOnlyPilotEnabled, smartWorkSchedulerEnabled } from "@/lib/smart-scheduler/flag";
 import type { OverlapRule } from "@/lib/smart-scheduler/schedule";
 import { WorkScheduler } from "@/components/scheduler/WorkScheduler";
 
@@ -19,5 +19,6 @@ export default function SmartSchedulerPage() {
   if (!schedulerPageOpen()) notFound();
   const csv = readFileSync(join(process.cwd(), "data/smart-scheduler/bess_operation_seed.csv"), "utf8");
   const rules = JSON.parse(readFileSync(join(process.cwd(), "data/smart-scheduler/overlap-rules.json"), "utf8")) as OverlapRule[];
-  return <WorkScheduler catalog={parseOperationCatalog(csv)} hours={workshopHours()} rules={rules} readOnly={!smartWorkSchedulerEnabled() || schedulerReadOnlyPilotEnabled()} allowTestMode={process.env.VERCEL_ENV !== "production"} />;
+  const ownerWrite = schedulerOwnerWritePilotEnabled();
+  return <WorkScheduler catalog={parseOperationCatalog(csv)} hours={workshopHours()} rules={rules} readOnly={!ownerWrite && (!smartWorkSchedulerEnabled() || schedulerReadOnlyPilotEnabled())} allowTestMode={process.env.VERCEL_ENV !== "production" && !ownerWrite} />;
 }

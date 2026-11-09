@@ -229,6 +229,16 @@ create table if not exists public.scheduler_resource_holds (
   check (start_at < end_at)
 );
 
+create table if not exists public.scheduler_change_log (
+  id text primary key,
+  appointment_id text not null,
+  action text not null,
+  actor_id text not null,
+  version integer not null,
+  reason text not null default '',
+  created_at timestamptz not null default now()
+);
+
 create table if not exists public.scheduler_actuals (
   id text primary key,
   operation_code text not null,
@@ -674,6 +684,7 @@ alter table public.scheduler_breaks enable row level security;
 alter table public.scheduler_reservations enable row level security;
 alter table public.scheduler_holds enable row level security;
 alter table public.scheduler_resource_holds enable row level security;
+alter table public.scheduler_change_log enable row level security;
 alter table public.scheduler_actuals enable row level security;
 alter table public.scheduler_approvals enable row level security;
 alter table public.scheduler_actor_sessions enable row level security;
@@ -694,6 +705,7 @@ alter table public.scheduler_breaks force row level security;
 alter table public.scheduler_reservations force row level security;
 alter table public.scheduler_holds force row level security;
 alter table public.scheduler_resource_holds force row level security;
+alter table public.scheduler_change_log force row level security;
 alter table public.scheduler_actuals force row level security;
 alter table public.scheduler_approvals force row level security;
 alter table public.scheduler_actor_sessions force row level security;
@@ -714,6 +726,7 @@ revoke all on table public.scheduler_breaks from public, scheduler_anon;
 revoke all on table public.scheduler_reservations from public, scheduler_anon;
 revoke all on table public.scheduler_holds from public, scheduler_anon;
 revoke all on table public.scheduler_resource_holds from public, scheduler_anon;
+revoke all on table public.scheduler_change_log from public, scheduler_anon, scheduler_mechanic;
 revoke all on table public.scheduler_actuals from public, scheduler_anon;
 revoke all on table public.scheduler_approvals from public, scheduler_anon, scheduler_mechanic;
 revoke all on table public.scheduler_actor_sessions from public, scheduler_anon, scheduler_mechanic;
@@ -743,7 +756,7 @@ begin
       foreach table_name in array array[
         'scheduler_operations','scheduler_overlap_rules','scheduler_resources','scheduler_display_names',
         'scheduler_shifts','scheduler_time_off','scheduler_breaks','scheduler_reservations',
-        'scheduler_holds','scheduler_resource_holds','scheduler_actuals','scheduler_approvals','scheduler_actor_sessions',
+        'scheduler_holds','scheduler_resource_holds','scheduler_change_log','scheduler_actuals','scheduler_approvals','scheduler_actor_sessions',
         'scheduler_store_appointments','scheduler_row_appointments','scheduler_crm_snapshot','scheduler_crm_occupancy',
         'scheduler_runtime','scheduler_notification_log'
       ] loop
@@ -763,6 +776,7 @@ grant select, insert, update, delete on table public.scheduler_breaks to schedul
 grant select, insert, update, delete on table public.scheduler_reservations to scheduler_staff;
 grant select, insert, update, delete on table public.scheduler_holds to scheduler_staff;
 grant select, insert, update, delete on table public.scheduler_resource_holds to scheduler_staff;
+grant select, insert on table public.scheduler_change_log to scheduler_staff;
 grant select, insert, update, delete on table public.scheduler_actuals to scheduler_staff;
 grant select, insert, update, delete on table public.scheduler_approvals to scheduler_staff;
 revoke insert, update, delete on table public.scheduler_actor_sessions from scheduler_staff;
@@ -784,6 +798,10 @@ drop policy if exists scheduler_staff_resource_holds on public.scheduler_resourc
 create policy scheduler_staff_resource_holds on public.scheduler_resource_holds for all to scheduler_staff using (true) with check (true);
 drop policy if exists scheduler_staff_reservations on public.scheduler_reservations;
 create policy scheduler_staff_reservations on public.scheduler_reservations for all to scheduler_staff using (true) with check (true);
+drop policy if exists scheduler_staff_change_log on public.scheduler_change_log;
+create policy scheduler_staff_change_log on public.scheduler_change_log for select to scheduler_staff using (true);
+drop policy if exists scheduler_staff_change_insert on public.scheduler_change_log;
+create policy scheduler_staff_change_insert on public.scheduler_change_log for insert to scheduler_staff with check (true);
 drop policy if exists scheduler_staff_approvals on public.scheduler_approvals;
 create policy scheduler_staff_approvals on public.scheduler_approvals for all to scheduler_staff using (true) with check (true);
 drop policy if exists scheduler_staff_crm on public.scheduler_crm_occupancy;
