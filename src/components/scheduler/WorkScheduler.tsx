@@ -262,7 +262,7 @@ export function WorkScheduler({
       <p className="mt-1 max-w-3xl text-sm text-zinc-400" data-testid={snapshot.source === "fixture" ? "scheduler-test-banner" : "scheduler-live-banner"}>{message}</p>
       {weekdayIndexFromDateKey(date) === 0 && <p className="mt-2 text-sm text-zinc-300">Воскресенье закрыто.</p>}
       {snapshot.mechanics.some((mechanic) => !mechanic.confirmed) && (
-        <p className="mt-2 text-xs text-amber-200" data-testid="scheduler-identity">{snapshot.mechanics.find((mechanic) => !mechanic.confirmed)?.note} Имя в CRM: {snapshot.mechanics.find((mechanic) => !mechanic.confirmed)?.crmName || "не задано"}.</p>
+        <p className="mt-2 text-xs text-amber-200" data-testid="scheduler-identity">{snapshot.mechanics.find((mechanic) => !mechanic.confirmed)?.note}</p>
       )}
       {!showSchedule && <p className="mt-3 rounded-2xl bg-red-950 px-3 py-3 text-sm" data-testid="scheduler-crm-error">{message}</p>}
       {overlaps.map((warning) => <p key={warning} className="mt-2 text-sm text-amber-200" data-testid="scheduler-overlap">{warning}</p>)}

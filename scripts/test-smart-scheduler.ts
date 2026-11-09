@@ -203,14 +203,21 @@ assert.deepEqual(fuel ? selectRequiredResources(fuel, ["ac-1"], defaultScheduler
 
 const sergeyColumn = mechanicColumn({ id: "mech-1", name: "Siergiej" });
 const secondColumn = mechanicColumn({ id: "mech-2", name: "Piotr Nowak" });
+const andreyName = mechanicColumn({ id: "mech-2", name: "Andrzej" });
 assert.equal(sergeyColumn.confirmed, true);
 assert.equal(sergeyColumn.id, "mech-1");
 assert.equal(sergeyColumn.label, "Сергей");
+assert.equal(sergeyColumn.crmName, "Siergiej");
+assert.equal(mechanicColumn({ id: "mech-1", name: "Другое имя" }).label, "Сергей");
 assert.equal(secondColumn.confirmed, false);
 assert.equal(secondColumn.id, "mech-2");
 assert.equal(secondColumn.crmName, "Piotr Nowak");
-assert.equal(secondColumn.label, "Механик 2 · имя уточняется");
+assert.equal(secondColumn.label, "Механик 2");
+assert.equal(andreyName.label, "Механик 2");
+assert.equal(andreyName.confirmed, false);
+assert.equal(andreyName.crmName, "Andrzej");
 assert.equal(mayAutoAssignMechanic(secondColumn, "live"), false);
+assert.equal(mayAutoAssignMechanic(andreyName, "live"), false);
 assert.equal(mayAutoAssignMechanic(secondColumn, "fixture"), true);
 assert.equal(mayAutoAssignMechanic(sergeyColumn, "live"), true);
 assert.equal(effectiveMode(oil, undefined, true), "APPROVAL");
@@ -224,8 +231,18 @@ assert.deepEqual(selectRequiredResources(oil, ["lift-1", "ac-1"], confirmedResou
 assert.equal(canAutoBook({ operation: oil, parts: "available", resources: confirmedResources, resourceIds: ["lift-1"] }).reason, "ok");
 const localEquipment = localTestSchedulerSettings();
 assert.equal(localEquipment.resources.every((item) => item.status === "available" && item.confirmed), true);
+for (const id of ["lift-1", "lift-2", "tyre-1", "balancer-1", "ac-1", "diag-1"]) {
+  const resource = localEquipment.resources.find((item) => item.id === id);
+  assert.equal(resource?.status, "available");
+  assert.equal(resource?.confirmed, true);
+}
+assert.equal(localEquipment.resources.filter((item) => item.kind === "lift").every((item) => item.udtPermitConfirmed !== true), true);
 assert.equal(resourceReady(localEquipment.resources, "lift-1"), false);
+assert.equal(resourceReady(localEquipment.resources, "lift-2"), false);
 assert.equal(resourceReady(localEquipment.resources, "tyre-1"), true);
+assert.equal(resourceReady(localEquipment.resources, "balancer-1"), true);
+assert.equal(resourceReady(localEquipment.resources, "ac-1"), true);
+assert.equal(resourceReady(localEquipment.resources, "diag-1"), true);
 assert.equal(defaultSchedulerSettings.resources.every((item) => item.status === "maintenance"), true);
 assert.equal(excludedFromAuto({ ...oil, operationNameRu: "Замена ремня ГРМ", operationNamePl: "Rozrząd" }), true);
 assert.equal(excludedFromAuto(byCode.get("DI-014") ?? oil), true);
@@ -245,6 +262,7 @@ const monday = upcomingMonday(new Date("2026-11-08T12:00:00Z"));
 assert.equal(monday, "2026-11-09");
 const snapshot = syntheticSnapshot(new Date("2026-11-08T12:00:00Z"), hours);
 assert.equal(snapshot.writable, false);
+assert.deepEqual(snapshot.mechanics.map((item) => item.label), ["Сергей", "Механик 2"]);
 assert.equal(snapshot.appointments.some((item) => item.date === monday), true);
 assert.equal(snapshot.date, "2026-11-08");
 const link = linkExistingWorkOrder({ appointmentId: "fix-oil", appointments: snapshot.appointments });
@@ -289,6 +307,24 @@ assert.equal(workOverlapWarnings([
   { id: "b", mechanicId: "mech-2", date: "2026-12-01", workStart: "11:00", workMinutes: 60, lift: "lift-2", plate: "WX2" },
 ]).length, 0);
 assert.equal(JSON.stringify(liveBoard).includes("WX1001"), false);
+const namedBoard = assembleBoard({
+  mode: "live",
+  actor: { role: "owner", canEdit: true },
+  now: new Date("2026-11-09T08:00:00Z"),
+  hours,
+  crm: {
+    mechanics: [{ id: "mech-1", name: "Siergiej" }, { id: "mech-2", name: "Piotr Nowak" }],
+    appointments: [{ id: "live-1", date: "2026-11-09", time: "09:00", mechanicId: "mech-1", workStart: "11:20", workMinutes: 45, clientPlate: "WX5001" }],
+    workOrders: [],
+  },
+  settings: defaultSchedulerSettings,
+});
+assert.deepEqual(namedBoard.snapshot.mechanics.map((item) => item.label), ["Сергей", "Механик 2"]);
+assert.equal(namedBoard.snapshot.mechanics.find((item) => item.id === "mech-2")?.confirmed, false);
+assert.equal(namedBoard.snapshot.appointments[0]?.arrivalTime, "09:00");
+assert.equal(namedBoard.snapshot.appointments[0]?.workStart, "11:20");
+assert.equal(JSON.stringify(namedBoard.snapshot.mechanics.map((item) => item.label)).includes("Piotr"), false);
+assert.equal(JSON.stringify(namedBoard.snapshot.mechanics.map((item) => item.label)).includes("Андрей"), false);
 const mechanicBoard = assembleBoard({ mode: "test", actor: { role: "mechanic", mechanicId: "mech-1", canEdit: false }, now: new Date("2026-11-08T12:00:00Z"), hours, crm: null, settings: defaultSchedulerSettings });
 assert.equal(mechanicBoard.snapshot.appointments.every((item) => item.mechanicId === "mech-1"), true);
 assert.equal(JSON.stringify(mechanicBoard).includes("WX1002"), false);
