@@ -5,7 +5,11 @@ import { Client } from "pg";
 import { evaluateArrivalTime } from "../src/lib/arrival-window";
 import { issueTokenForUser } from "../src/lib/auth";
 import type { Database, User } from "../src/lib/store";
+import { workshopHours } from "../src/lib/businessConfig";
 import { connectLiveCrmCopy } from "../src/lib/smart-scheduler/live-crm";
+import { openActorSession } from "../src/lib/smart-scheduler/postgres";
+import { retryPendingNotifications } from "../src/lib/smart-scheduler/notification-outbox";
+import { splitWorkBlocks } from "../src/lib/smart-scheduler/schedule";
 import { POST, DELETE } from "../src/app/api/appointments/route";
 import { commitStaffAppointment } from "../src/lib/server/staff-calendar-commit";
 import { createQuickAppointment } from "../src/lib/server/telegram-bot/admin-quick-apt";
@@ -16,6 +20,10 @@ delete process.env.VERCEL_ENV;
 delete process.env.SUPABASE_URL;
 delete process.env.JWT_SECRET;
 delete process.env.SCHEDULER_COPY_FAILPOINT;
+delete process.env.SCHEDULER_UNIFIED_CALENDAR;
+delete process.env.SCHEDULER_CRM_COPY_URL;
+delete process.env.SCHEDULER_CRM_URL;
+delete process.env.SCHEDULER_PRODUCTION_DB_PERMIT;
 
 const results: Record<string, string> = {};
 
@@ -107,7 +115,7 @@ async function main(): Promise<void> {
   const { date, now } = staffPlan();
   const morning = new Date(now.getTime());
 
-  const off = await createTelegramBooking({
+  const offTelegram = await createTelegramBooking({
     serviceId: "diagnostic",
     date,
     time: "09:00",
@@ -116,12 +124,78 @@ async function main(): Promise<void> {
     workStart: "11:20",
     workMinutes: 60,
   });
-  assert.equal(off.ok, false);
-  assert.equal(await countId(admin, "missing-off"), 0);
+  const offQuick = await createQuickAppointment({ phone: "+48111000090", date, time: "10:00", comment: "off", clientName: "Off Quick" });
+  const offMove = await rescheduleAppointment("apt-missing", 1);
+  const offStaff = await commitStaffAppointment({
+    mode: "create",
+    clientRequestId: "req-off",
+    clientName: "Off Staff",
+    clientPhone: "48111000091",
+    date,
+    time: "09:00",
+    mechanicId: "mech-1",
+  }, morning);
+  const offPost = await POST(new Request("http://127.0.0.1/api/appointments", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      id: "apt-off-web",
+      userId: "",
+      vehicleId: "",
+      serviceIds: ["diagnostic"],
+      date,
+      time: "10:30",
+      mechanicId: "mech-1",
+      repairStatus: "received",
+      appointmentStatus: "scheduled",
+      comment: "off",
+      clientName: "Off Web",
+      clientPhone: "48111000092",
+      source: "website",
+      createdAt: new Date().toISOString(),
+    }),
+  }));
+  const offToken = await issueTokenForUser({ id: "admin-test", role: "admin", name: "Admin", phone: "" } as User);
+  const offDelete = await DELETE(new Request("http://127.0.0.1/api/appointments?id=apt-off-web", {
+    method: "DELETE",
+    headers: { authorization: `Bearer ${offToken}` },
+  }));
+  assert.equal(offTelegram.ok, false);
+  assert.equal(offQuick.ok, false);
+  assert.equal(offMove.ok, false);
+  assert.equal(offStaff.ok, false);
+  assert.notEqual(offPost.status, 200);
+  assert.notEqual(offDelete.status, 200);
+  assert.equal(await countId(admin, "apt-off-web"), 0);
   const beforeOn = await admin.query<{ n: number }>("select count(*)::int as n from appointments");
   assert.equal(beforeOn.rows[0].n, 0);
-  results.switchOff = "прежний отказ, копия не изменена";
+  results.switchOff = "шесть путей при выключенном флаге не пишут копию";
 
+  const sentinel = {
+    id: "apt-sentinel",
+    userId: "client-kept",
+    vehicleId: "v-kept",
+    serviceIds: ["diagnostic"],
+    date: "2020-01-02",
+    time: "09:00",
+    clientName: "Sentinel",
+    clientPhone: "+48000000099",
+    mechanicId: "mech-1",
+    repairStatus: "received",
+    appointmentStatus: "completed",
+    comment: "не трогать",
+    source: "manual",
+    createdAt: "2020-01-01T00:00:00.000Z",
+  };
+  const sentinelJson = JSON.stringify(sentinel);
+  await admin.query("update crm_store set doc = jsonb_set(doc, '{appointments}', $1::jsonb) where id = 'main'", [JSON.stringify([sentinel])]);
+  await admin.query(
+    "insert into appointments (id, client_phone, user_id, doc, created_at) values ($1, $2, $3, $4::jsonb, $5::timestamptz)",
+    [sentinel.id, sentinel.clientPhone, sentinel.userId, sentinelJson, "2020-01-01T00:00:00.000Z"]
+  );
+  const sentinelBefore = await admin.query<{ ctid: string; created_at: Date }>("select ctid::text as ctid, created_at from appointments where id = 'apt-sentinel'");
+
+  process.env.SCHEDULER_UNIFIED_CALENDAR = "on";
   await admin.query("select scheduler_set_unified_calendar(true)");
 
   const created = await commitStaffAppointment({
@@ -415,6 +489,227 @@ async function main(): Promise<void> {
   assert.equal(await countId(admin, "req-rollback"), 0);
   results.rollback = "after-store откатился, число строк не изменилось";
 
+  const sentinelAfter = await admin.query<{ ctid: string; created_at: Date; client_phone: string; user_id: string; comment: string }>(
+    "select ctid::text as ctid, created_at, client_phone, user_id, doc->>'comment' as comment from appointments where id = 'apt-sentinel'"
+  );
+  assert.equal(sentinelAfter.rows[0].ctid, sentinelBefore.rows[0].ctid);
+  assert.equal(sentinelAfter.rows[0].created_at.toISOString(), sentinelBefore.rows[0].created_at.toISOString());
+  assert.equal(sentinelAfter.rows[0].client_phone, "+48000000099");
+  assert.equal(sentinelAfter.rows[0].user_id, "client-kept");
+  assert.equal(sentinelAfter.rows[0].comment, "не трогать");
+  results.preserve = "чужая строка, created_at и телефон не перезаписаны";
+
+  const resourceDate = "2026-12-01";
+  const shared = await commitStaffAppointment({
+    mode: "create",
+    clientRequestId: "req-two-resources",
+    clientName: "Nina Testowa",
+    clientPhone: "48111000021",
+    plate: "WX0021",
+    serviceIds: ["diagnostic"],
+    date: resourceDate,
+    time: "09:00",
+    workStart: "10:00",
+    workMinutes: 60,
+    mechanicId: "mech-1",
+    resourceIds: ["lift-1", "tyre-1"],
+    durationMinutes: 30,
+  }, new Date(morning.getTime() + 20));
+  assert.equal(shared.ok, true);
+  if (shared.ok) {
+    const stored = shared.appointment as typeof shared.appointment & { resourceId?: string; resourceIds?: string[] };
+    assert.equal(stored.resourceId, "lift-1");
+    assert.deepEqual(stored.resourceIds, ["lift-1", "tyre-1"]);
+  }
+  const blockedResource = await commitStaffAppointment({
+    mode: "create",
+    clientRequestId: "req-shared-tyre",
+    clientName: "Ola Testowa",
+    clientPhone: "48111000022",
+    plate: "WX0022",
+    serviceIds: ["diagnostic"],
+    date: resourceDate,
+    time: "09:30",
+    workStart: "10:00",
+    workMinutes: 60,
+    mechanicId: "mech-2",
+    resourceIds: ["tyre-1"],
+    durationMinutes: 30,
+  }, new Date(morning.getTime() + 21));
+  assert.equal(blockedResource.ok, false);
+  const otherResource = await commitStaffAppointment({
+    mode: "create",
+    clientRequestId: "req-balancer",
+    clientName: "Piotr Testowy",
+    clientPhone: "48111000023",
+    plate: "WX0023",
+    serviceIds: ["diagnostic"],
+    date: resourceDate,
+    time: "10:00",
+    workStart: "11:00",
+    workMinutes: 60,
+    mechanicId: "mech-2",
+    resourceId: "balancer-1",
+    durationMinutes: 30,
+  }, new Date(morning.getTime() + 22));
+  assert.equal(otherResource.ok, true);
+  results.resources = "два ресурса пересекаются, третий ресурс свободен";
+
+  const parkedWork = await commitStaffAppointment({
+    mode: "create",
+    clientRequestId: "req-hold-update",
+    clientName: "Roma Testowa",
+    clientPhone: "48111000024",
+    plate: "WX0024",
+    serviceIds: ["diagnostic"],
+    date: resourceDate,
+    time: "12:00",
+    workStart: "16:00",
+    workMinutes: 60,
+    mechanicId: "mech-2",
+    durationMinutes: 30,
+  }, new Date(morning.getTime() + 23));
+  assert.equal(parkedWork.ok, true);
+  if (!parkedWork.ok) return;
+  const hold = splitWorkBlocks({
+    id: "hold-existing",
+    date: resourceDate,
+    start: "14:00",
+    minutes: 60,
+    hours: workshopHours(),
+    mechanicId: "mech-2",
+    resourceIds: ["lift-2"],
+    operationCode: "MA-001",
+  });
+  assert.equal(hold.ok, true);
+  if (!hold.ok) return;
+  const actor = await openActorSession(admin, { role: "owner", staffId: "owner-1", canEdit: true });
+  await admin.query("select set_config('app.actor_session', $1, false)", [actor.sessionId]);
+  await admin.query(
+    "insert into scheduler_reservations (id, idempotency_key, request_fingerprint, operation_code, mechanic_id, parts_status) values ('res-existing', 'res-existing', 'res-existing', 'MA-001', 'mech-2', 'available')"
+  );
+  await admin.query(
+    "insert into scheduler_holds (id, reservation_id, mechanic_id, operation_code, start_at, end_at, active) values ('hold-existing', 'res-existing', 'mech-2', 'MA-001', to_timestamp($1 / 1000.0), to_timestamp($2 / 1000.0), true)",
+    [hold.blocks[0].startMs, hold.blocks[0].endMs]
+  );
+  const movedIntoHold = await commitStaffAppointment({
+    mode: "update",
+    id: parkedWork.appointment.id,
+    clientName: "Roma Testowa",
+    clientPhone: "48111000024",
+    date: resourceDate,
+    time: "12:00",
+    workStart: "14:00",
+    workMinutes: 60,
+    mechanicId: "mech-2",
+    durationMinutes: 30,
+  }, new Date(morning.getTime() + 24));
+  assert.equal(movedIntoHold.ok, false);
+  const commentOnly = await commitStaffAppointment({
+    mode: "update",
+    id: parkedWork.appointment.id,
+    clientName: "Roma Testowa",
+    clientPhone: "48111000024",
+    comment: "комментарий без переноса",
+    date: resourceDate,
+    time: "12:00",
+    workStart: "16:00",
+    workMinutes: 60,
+    mechanicId: "mech-2",
+    durationMinutes: 30,
+  }, new Date(morning.getTime() + 25));
+  assert.equal(commentOnly.ok, true);
+  const holdStill = await admin.query<{ n: number }>("select count(*)::int as n from scheduler_holds where id = 'hold-existing' and active");
+  assert.equal(holdStill.rows[0].n, 1);
+  results.schedulerHold = "перенос в бронь планировщика отклонён, комментарий сохранён";
+
+  await admin.query("insert into scheduler_notification_log (event_key, status) values ('retry-demo', 'pending')");
+  let attempts = 0;
+  const firstRetry = await retryPendingNotifications(admin, async () => {
+    attempts += 1;
+    throw new Error("provider down");
+  });
+  assert.equal(firstRetry, 0);
+  assert.equal(attempts, 1);
+  const pending = await admin.query<{ status: string; attempt_count: number; history: number }>(
+    "select status, attempt_count, jsonb_array_length(error_history) as history from scheduler_notification_log where event_key = 'retry-demo'"
+  );
+  assert.equal(pending.rows[0].status, "pending");
+  assert.equal(pending.rows[0].attempt_count, 1);
+  assert.equal(pending.rows[0].history, 1);
+  await admin.query("update scheduler_notification_log set next_attempt_at = now() where event_key = 'retry-demo'");
+  const secondRetry = await retryPendingNotifications(admin, async () => {
+    attempts += 1;
+  });
+  assert.equal(secondRetry, 1);
+  const sent = await admin.query<{ status: string; send_count: number }>("select status, send_count from scheduler_notification_log where event_key = 'retry-demo'");
+  assert.equal(sent.rows[0].status, "sent");
+  assert.equal(sent.rows[0].send_count, 1);
+  const third = await retryPendingNotifications(admin, async () => {
+    attempts += 1;
+  });
+  assert.equal(third, 0);
+  assert.equal(attempts, 2);
+  results.notifyRetry = "повтор после сбоя один раз, затем статус sent";
+
+  await admin.query(
+    "insert into scheduler_notification_log (event_key, status, attempt_count, locked_until) values ('retry-stale', 'sending', 1, now() - interval '1 minute')"
+  );
+  const recovered = await retryPendingNotifications(admin, async () => undefined);
+  assert.equal(recovered, 1);
+  const stale = await admin.query<{ status: string }>("select status from scheduler_notification_log where event_key = 'retry-stale'");
+  assert.equal(stale.rows[0].status, "sent");
+  results.restart = "просроченная отправка подхвачена после перезапуска";
+
+  await admin.query("insert into scheduler_notification_log (event_key, status) values ('race-note', 'pending')");
+  const claimLeft = new Client({ connectionString: "postgresql://ubuntu@/bess_crm_copy_test?host=/var/run/postgresql" });
+  const claimRight = new Client({ connectionString: "postgresql://ubuntu@/bess_crm_copy_test?host=/var/run/postgresql" });
+  await claimLeft.connect();
+  await claimRight.connect();
+  const [claimedLeft, claimedRight] = await Promise.all([
+    claimLeft.query("select event_key from scheduler_claim_notification('left', 'race-note')"),
+    claimRight.query("select event_key from scheduler_claim_notification('right', 'race-note')"),
+  ]);
+  assert.equal((claimedLeft.rowCount ?? 0) + (claimedRight.rowCount ?? 0), 1);
+  await claimLeft.end();
+  await claimRight.end();
+  results.claim = "два соединения забрали одно уведомление";
+
+  await admin.query("begin");
+  await admin.query("set local role scheduler_reader");
+  const readable = await admin.query<{ n: number }>("select count(*)::int as n from appointments");
+  const visibleResources = await admin.query<{ n: number }>("select count(*)::int as n from scheduler_resources");
+  assert.ok(readable.rows[0].n > 0);
+  assert.ok(visibleResources.rows[0].n >= 6);
+  let readerDenied = false;
+  try {
+    await admin.query("insert into appointments (id, client_phone, user_id, doc) values ('apt-reader', '', '', '{}'::jsonb)");
+  } catch (error) {
+    readerDenied = typeof error === "object" && error !== null && "code" in error && error.code === "42501";
+  }
+  await admin.query("rollback");
+  assert.equal(readerDenied, true);
+  results.readOnly = "роль чтения видит расписание и не может писать";
+
+  process.env.SCHEDULER_CRM_COPY_URL = "postgresql://ubuntu@127.0.0.1:1/bess_crm_copy_test";
+  const disconnected = await commitStaffAppointment({
+    mode: "create",
+    clientRequestId: "req-down",
+    clientName: "Disconnect",
+    clientPhone: "48111000031",
+    date: resourceDate,
+    time: "13:00",
+    workStart: "13:00",
+    workMinutes: 30,
+    mechanicId: "mech-1",
+  }, new Date(morning.getTime() + 31));
+  delete process.env.SCHEDULER_CRM_COPY_URL;
+  assert.equal(disconnected.ok, false);
+  if (!disconnected.ok) assert.equal(disconnected.status, 503);
+  const disconnectedDoc = await load(admin);
+  assert.equal(disconnectedDoc.appointments.some((item) => item.clientRequestId === "req-down"), false);
+  results.disconnect = "при включённом режиме сбой базы вернул 503 и ничего не записал";
+
   await admin.query("update appointments set doc = jsonb_set(doc, '{workStart}', '\"12:05\"') where client_phone like '%111000002'");
   const refused = await commitStaffAppointment({
     mode: "create",
@@ -435,6 +730,7 @@ async function main(): Promise<void> {
   assert.equal(await countId(admin, "req-diverged"), 0);
   results.diverge = "сохранение запрещено, причина показана";
 
+  delete process.env.SCHEDULER_UNIFIED_CALENDAR;
   await admin.query("select scheduler_set_unified_calendar(false)");
   const offAgain = await createTelegramBooking({
     serviceId: "diagnostic",

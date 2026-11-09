@@ -63,7 +63,7 @@ async function main() {
   await admin.query(`
     drop table if exists public.scheduler_resource_holds, public.scheduler_holds, public.scheduler_crm_occupancy,
       public.scheduler_crm_snapshot, public.scheduler_row_appointments, public.scheduler_store_appointments,
-      public.scheduler_runtime, public.scheduler_actor_sessions, public.scheduler_approvals, public.scheduler_reservations,
+      public.scheduler_runtime, public.scheduler_notification_log, public.scheduler_actor_sessions, public.scheduler_approvals, public.scheduler_reservations,
       public.scheduler_actuals, public.scheduler_breaks, public.scheduler_time_off, public.scheduler_shifts,
       public.scheduler_display_names, public.scheduler_resources, public.scheduler_overlap_rules, public.scheduler_operations cascade
   `);

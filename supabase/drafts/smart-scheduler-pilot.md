@@ -16,7 +16,7 @@
 
 `scheduler_store_appointments` и `scheduler_row_appointments` остаются только тестовыми зеркалами. Боевой путь их не подставляет вместо CRM.
 
-Пока переключатель выключен, боевой `commitStaffAppointment` не вызывает этот путь и не меняет живые записи. Обратимое включение описано в `supabase/drafts/smart-scheduler-switch.md`.
+Шесть путей уже вызывают `withUnifiedCrm`. Пока SQL-флаг выключен, выполняется прежний код. Если процесс явно включил `SCHEDULER_UNIFIED_CALENDAR=on`, а транзакционная база недоступна, сохранение возвращает 503 и ничего не пишет. Адрес боевой Supabase по-прежнему отвергается: `productionCrmUrl()` в этом выпуске всегда пустой. Просмотр расписания не требует права записи: роль `scheduler_reader` имеет только `SELECT`, а ответ доски календаря помечен `writeRequired: false`. Обратимое включение описано в `supabase/drafts/smart-scheduler-switch.md`.
 
 ## Миграция
 

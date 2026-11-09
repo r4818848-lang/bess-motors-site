@@ -20,6 +20,23 @@ export function schedulerUnifiedCalendarWired(): boolean {
   return false;
 }
 
+/**
+ * Process-level confirmation that the SQL switch is the writer.
+ * When this is on and the transactional database cannot be reached, calendar writes return 503
+ * instead of falling through to the old two-step save. Vercel never activates it.
+ * Production does not set this variable.
+ */
+export function schedulerUnifiedModeRequired(): boolean {
+  if (process.env.VERCEL_ENV === "production" || process.env.VERCEL_ENV === "preview") return false;
+  return process.env.SCHEDULER_UNIFIED_CALENDAR === "on";
+}
+
+/** View the schedule without a write grant. Off unless a local pilot sets it. It never enables writes. */
+export function schedulerReadOnlyPilotEnabled(): boolean {
+  if (process.env.VERCEL_ENV === "production" || process.env.VERCEL_ENV === "preview") return false;
+  return process.env.SCHEDULER_READ_ONLY_PILOT === "local";
+}
+
 /** Local screenshot and TEST board only. Never on preview or production. */
 export function schedulerTestBoardOpen(): boolean {
   if (!smartWorkSchedulerEnabled()) return false;

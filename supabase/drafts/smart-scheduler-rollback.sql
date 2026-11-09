@@ -33,6 +33,7 @@ drop function if exists public.scheduler_release_interval(text);
 drop function if exists public.scheduler_mirror_interval(text, text, text, timestamptz, timestamptz);
 drop function if exists public.scheduler_assert_crm(text);
 drop function if exists public.scheduler_issue_snapshot(boolean);
+drop function if exists public.scheduler_claim_notification(text, text);
 drop function if exists public.scheduler_set_unified_calendar(boolean);
 drop function if exists public.scheduler_guard_session();
 drop function if exists public.scheduler_live_digest(text);

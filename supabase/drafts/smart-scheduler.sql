@@ -22,6 +22,11 @@ do $$ begin
 exception when duplicate_object then null;
 end $$;
 
+do $$ begin
+  create role scheduler_reader nologin nobypassrls;
+exception when duplicate_object then null;
+end $$;
+
 create table if not exists public.scheduler_operations (
   operation_code text primary key,
   operation_name_ru text not null,
@@ -147,9 +152,18 @@ insert into public.scheduler_runtime (id) values ('main') on conflict (id) do no
 
 create table if not exists public.scheduler_notification_log (
   event_key text primary key,
-  status text not null check (status in ('pending', 'sent')),
+  status text not null check (status in ('pending', 'sending', 'sent', 'failed')),
   send_count integer not null default 0,
-  created_at timestamptz not null default now()
+  attempt_count integer not null default 0,
+  max_attempts integer not null default 5,
+  next_attempt_at timestamptz not null default now(),
+  locked_by text,
+  locked_until timestamptz,
+  last_error text,
+  error_history jsonb not null default '[]'::jsonb,
+  delivered_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
 );
 
 -- Local stand-ins for tests. They are not the production CRM.
@@ -407,6 +421,43 @@ begin
     ) lines;
   end if;
   return digest;
+end $$;
+
+create or replace function public.scheduler_claim_notification(worker text, target_key text default null)
+returns setof public.scheduler_notification_log
+language plpgsql
+set search_path = public
+as $$
+declare
+  claimed public.scheduler_notification_log%rowtype;
+begin
+  if current_user in ('scheduler_staff', 'scheduler_mechanic', 'scheduler_anon', 'scheduler_reader', 'anon', 'authenticated') then
+    raise exception 'forbidden_session' using errcode = '42501';
+  end if;
+  select * into claimed
+  from public.scheduler_notification_log
+  where (
+      status in ('pending', 'failed')
+      or (status = 'sending' and locked_until is not null and locked_until < now())
+    )
+    and next_attempt_at <= now()
+    and attempt_count < max_attempts
+    and (target_key is null or event_key = target_key)
+  order by created_at
+  for update skip locked
+  limit 1;
+  if not found then
+    return;
+  end if;
+  update public.scheduler_notification_log
+  set status = 'sending',
+      locked_by = worker,
+      locked_until = now() + interval '30 seconds',
+      attempt_count = attempt_count + 1,
+      updated_at = now()
+  where event_key = claimed.event_key
+  returning * into claimed;
+  return next claimed;
 end $$;
 
 create or replace function public.scheduler_set_unified_calendar(enabled boolean) returns void
@@ -668,7 +719,17 @@ revoke all on table public.scheduler_row_appointments from public, scheduler_ano
 revoke all on table public.scheduler_crm_snapshot from public, scheduler_anon, scheduler_mechanic;
 revoke all on table public.scheduler_crm_occupancy from public, scheduler_anon, scheduler_mechanic;
 revoke all on table public.scheduler_runtime from public, scheduler_anon, scheduler_mechanic, scheduler_staff;
-revoke all on table public.scheduler_notification_log from public, scheduler_anon, scheduler_mechanic, scheduler_staff;
+revoke all on table public.scheduler_notification_log from public, scheduler_anon, scheduler_mechanic, scheduler_staff, scheduler_reader;
+
+do $$ begin
+  if to_regclass('public.crm_store') is not null then
+    execute 'grant select on table public.crm_store to scheduler_reader';
+  end if;
+  if to_regclass('public.appointments') is not null then
+    execute 'grant select on table public.appointments to scheduler_reader';
+  end if;
+  execute 'grant select on table public.scheduler_holds, public.scheduler_resources, public.scheduler_reservations to scheduler_reader';
+end $$;
 
 do $$
 declare role_name text;
@@ -728,6 +789,10 @@ drop policy if exists scheduler_staff_sessions on public.scheduler_actor_session
 create policy scheduler_staff_sessions on public.scheduler_actor_sessions for select to scheduler_staff using (true);
 drop policy if exists scheduler_staff_runtime on public.scheduler_runtime;
 create policy scheduler_staff_runtime on public.scheduler_runtime for select to scheduler_staff using (true);
+drop policy if exists scheduler_reader_holds on public.scheduler_holds;
+create policy scheduler_reader_holds on public.scheduler_holds for select to scheduler_reader using (true);
+drop policy if exists scheduler_reader_resources on public.scheduler_resources;
+create policy scheduler_reader_resources on public.scheduler_resources for select to scheduler_reader using (true);
 drop policy if exists scheduler_mechanic_own_session on public.scheduler_actor_sessions;
 create policy scheduler_mechanic_own_session on public.scheduler_actor_sessions for select to scheduler_mechanic
   using (
@@ -780,7 +845,8 @@ revoke all on function public.scheduler_issue_snapshot(boolean) from public;
 revoke all on function public.scheduler_assert_crm(text) from public;
 revoke all on function public.scheduler_mirror_interval(text, text, text, timestamptz, timestamptz) from public;
 revoke all on function public.scheduler_release_interval(text) from public;
-revoke all on function public.scheduler_set_unified_calendar(boolean) from public, scheduler_staff, scheduler_mechanic, scheduler_anon;
+revoke all on function public.scheduler_set_unified_calendar(boolean) from public, scheduler_staff, scheduler_mechanic, scheduler_anon, scheduler_reader;
+revoke all on function public.scheduler_claim_notification(text, text) from public, scheduler_staff, scheduler_mechanic, scheduler_anon, scheduler_reader;
 revoke all on function public.scheduler_guard_session() from public;
 revoke all on function public.scheduler_live_digest(text) from public;
 revoke all on function public.scheduler_live_crm_enabled() from public;

@@ -1,7 +1,10 @@
 import { workshopHours } from "@/lib/businessConfig";
 import type { Appointment, Database } from "@/lib/store";
-import { canonicalCrmLines, crmSurfacesMatch, type CrmAppointmentDoc } from "@/lib/smart-scheduler/crm-reconcile";
+import { planCrmConnection } from "@/lib/smart-scheduler/crm-connection";
+import { canonicalCrmLines, compatibleResourceFields, crmSurfacesMatch, resourceIdsForOccupancy, type CrmAppointmentDoc } from "@/lib/smart-scheduler/crm-reconcile";
+import { schedulerUnifiedModeRequired } from "@/lib/smart-scheduler/flag";
 import { connectLiveCrmCopy, liveCrmCopyUrl } from "@/lib/smart-scheduler/live-crm";
+import { deliverNotification } from "@/lib/smart-scheduler/notification-outbox";
 import { rangesOverlap, splitWorkBlocks } from "@/lib/smart-scheduler/schedule";
 import type { Client } from "pg";
 
@@ -19,16 +22,23 @@ type Mutation<T> = { value: T; eventKey?: string } | { abort: UnifiedAbort };
  * callers keep their existing cloud path. When it is on, the mutator runs inside one
  * PostgreSQL transaction against crm_store and appointments. Production Vercel never connects.
  */
+function unavailable(reason: string): UnifiedOutcome<never> {
+  return { handled: true, ok: false, error: "crm_unavailable", status: 503, reason };
+}
+
 export async function withUnifiedCrm<T>(
   mutate: (db: Database) => Promise<Mutation<T>>,
   options?: { notify?: (previous: Database, next: Database) => Promise<void> }
 ): Promise<UnifiedOutcome<T>> {
-  if (!liveCrmCopyUrl()) return { handled: false };
+  const required = schedulerUnifiedModeRequired();
+  const plan = planCrmConnection(liveCrmCopyUrl());
+  if (plan.mode === "legacy") return { handled: false };
+  if (plan.mode === "refused") return required ? unavailable("Транзакционная база не разрешена.") : { handled: false };
   let client: Client;
   try {
     client = await connectLiveCrmCopy();
   } catch {
-    return { handled: false };
+    return required ? unavailable("Не удалось подключиться к транзакционной базе.") : { handled: false };
   }
   try {
     let enabled = false;
@@ -36,10 +46,14 @@ export async function withUnifiedCrm<T>(
       const runtime = await client.query<{ unified_calendar: boolean }>("select unified_calendar from scheduler_runtime where id = 'main'");
       enabled = Boolean(runtime.rows[0]?.unified_calendar);
     } catch {
-      return { handled: false };
+      return required ? unavailable("Не удалось прочитать переключатель календаря.") : { handled: false };
     }
     if (!enabled) return { handled: false };
-    return await runTransaction(client, mutate, options?.notify);
+    try {
+      return await runTransaction(client, mutate, options?.notify);
+    } catch {
+      return unavailable("Транзакция календаря не выполнена. Запись не сохранена.");
+    }
   } finally {
     await client.end();
   }
@@ -58,7 +72,9 @@ async function runTransaction<T>(
       await client.query("rollback");
       return { handled: true, ok: false, error: "crm_unavailable", status: 503, reason: "В копии нет crm_store." };
     }
-    const rows = await client.query<{ doc: CrmAppointmentDoc }>("select doc from appointments");
+    const rows = await client.query<{ id: string; client_phone: string; user_id: string; doc: Appointment; created_at: string }>(
+      "select id, client_phone, user_id, doc, created_at from appointments"
+    );
     const db = asDatabase(store.rows[0].doc);
     const rowDocs = rows.rows.map((row) => row.doc).filter(Boolean);
     if (!crmSurfacesMatch(db.appointments, rowDocs)) {
@@ -92,14 +108,7 @@ async function runTransaction<T>(
     const saved = { ...db, currentUserId: null };
     await client.query("update crm_store set doc = $1::jsonb, updated_at = now() where id = 'main'", [JSON.stringify(saved)]);
     if (process.env.SCHEDULER_COPY_FAILPOINT === "after-store") throw new Error("partial_live_write");
-    await client.query("delete from appointments");
-    for (const appointment of saved.appointments) {
-      await client.query(
-        `insert into appointments (id, client_phone, user_id, doc, created_at)
-         values ($1, $2, $3, $4::jsonb, coalesce($5::timestamptz, now()))`,
-        [appointment.id, appointment.clientPhone || "", appointment.userId || "", JSON.stringify(appointment), appointment.createdAt || null]
-      );
-    }
+    await syncAppointmentRows(client, rows.rows, saved.appointments);
     await refreshOccupancy(client, saved.appointments);
     const matched = await client.query<{ store: string; row: string }>("select scheduler_live_digest('store') as store, scheduler_live_digest('row') as row");
     if (matched.rows[0]?.store !== matched.rows[0]?.row) throw new Error("crm_diverged");
@@ -113,12 +122,11 @@ async function runTransaction<T>(
       notifyThisCommit = (claimed.rowCount ?? 0) > 0;
     }
     await client.query("commit");
-    if (notifyThisCommit && notify) {
+    if (notifyThisCommit && notify && mutation.eventKey) {
       try {
-        await notify(previous, saved);
-        await client.query("update scheduler_notification_log set status = 'sent', send_count = send_count + 1 where event_key = $1", [mutation.eventKey]);
+        await deliverNotification(client, mutation.eventKey, () => notify(previous, saved));
       } catch {
-        /* The booking stays committed. A pending log row can be sent later. */
+        /* The booking stays committed. A pending or failed log row can be retried. */
       }
     }
     return { handled: true, ok: true, value: mutation.value, notified: notifyThisCommit };
@@ -156,6 +164,60 @@ function asDatabase(value: unknown): Database {
   };
 }
 
+type StoredRow = { id: string; client_phone: string; user_id: string; doc: Appointment; created_at: string };
+
+async function syncAppointmentRows(client: Client, existing: StoredRow[], next: Appointment[]): Promise<void> {
+  const previous = new Map(existing.map((row) => [row.id, row]));
+  const seen = new Set<string>();
+  for (const appointment of next) {
+    seen.add(appointment.id);
+    const row = previous.get(appointment.id);
+    if (!row) {
+      applyResourceCompatibility(appointment);
+      await client.query(
+        `insert into appointments (id, client_phone, user_id, doc, created_at)
+         values ($1, $2, $3, $4::jsonb, coalesce($5::timestamptz, now()))`,
+        [appointment.id, appointment.clientPhone || "", appointment.userId || "", JSON.stringify(appointment), appointment.createdAt || null]
+      );
+      continue;
+    }
+    if (sameDoc(row.doc, appointment)) continue;
+    if (row.doc.createdAt) appointment.createdAt = row.doc.createdAt;
+    applyResourceCompatibility(appointment);
+    await client.query(
+      `update appointments
+       set doc = $4::jsonb,
+           client_phone = case when client_phone is distinct from $2 then $2 else client_phone end,
+           user_id = case when user_id is distinct from $3 then $3 else user_id end
+       where id = $1`,
+      [appointment.id, appointment.clientPhone || "", appointment.userId || "", JSON.stringify(appointment)]
+    );
+  }
+  const removed = existing.filter((row) => !seen.has(row.id)).map((row) => row.id);
+  if (removed.length) await client.query("delete from appointments where id = any($1::text[])", [removed]);
+}
+
+function sameDoc(left: Appointment, right: Appointment): boolean {
+  return stable(left) === stable(right);
+}
+
+function stable(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map((item) => stable(item)).join(",")}]`;
+  if (value && typeof value === "object") {
+    const record = value as Record<string, unknown>;
+    const keys = Object.keys(record).filter((key) => record[key] !== undefined).sort();
+    return `{${keys.map((key) => `${JSON.stringify(key)}:${stable(record[key])}`).join(",")}}`;
+  }
+  return JSON.stringify(value) ?? "null";
+}
+
+function applyResourceCompatibility(appointment: Appointment): void {
+  const extra = appointment as Appointment & { resourceId?: string; resourceIds?: string[] };
+  const fields = compatibleResourceFields(extra.resourceId, extra.resourceIds);
+  extra.resourceId = fields.resourceId;
+  extra.resourceIds = fields.resourceIds;
+}
+
 function divergenceReason(storeDocs: CrmAppointmentDoc[], rowDocs: CrmAppointmentDoc[]): string {
   const left = canonicalCrmLines(storeDocs);
   const right = canonicalCrmLines(rowDocs);
@@ -168,7 +230,7 @@ function occupy(appointments: Appointment[]): { ok: true; blocks: { startMs: num
   for (const appointment of appointments) {
     if (appointment.appointmentStatus === "cancelled" || appointment.appointmentStatus === "completed" || appointment.visitState === "no_show" || appointment.calendarHidden) continue;
     if (!appointment.workStart || !appointment.workMinutes || !appointment.mechanicId) continue;
-    const resourceId = (appointment as Appointment & { resourceId?: string }).resourceId;
+    const extra = appointment as Appointment & { resourceId?: string; resourceIds?: string[] };
     const split = splitWorkBlocks({
       id: appointment.id,
       date: appointment.date,
@@ -176,7 +238,7 @@ function occupy(appointments: Appointment[]): { ok: true; blocks: { startMs: num
       minutes: appointment.workMinutes,
       hours,
       mechanicId: appointment.mechanicId,
-      resourceIds: resourceId ? [resourceId] : [],
+      resourceIds: resourceIdsForOccupancy(extra),
       operationCode: "legacy",
     });
     if (!split.ok) return { ok: false, error: split.error, reason: "Интервал работы не помещается в график." };

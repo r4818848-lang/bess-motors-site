@@ -7,6 +7,7 @@ import {
   type LunchWindow,
 } from "@/lib/staff-calendar";
 import { workshopHours } from "@/lib/businessConfig";
+import { compatibleResourceFields } from "@/lib/smart-scheduler/crm-reconcile";
 import type { Appointment, AppointmentStatus, Database, Vehicle } from "@/lib/store";
 import { cloudGetCrmStore, patchCrmIfUnchanged } from "@/lib/server/crm-cloud";
 import { cloudUpsertAppointment } from "@/lib/server/appointments-cloud";
@@ -42,6 +43,8 @@ export type StaffAppointmentInput = {
   pickupDate?: string;
   workStart?: string;
   workMinutes?: number;
+  resourceId?: string;
+  resourceIds?: string[];
   leadId?: string;
   siteLocale?: Appointment["siteLocale"];
 };
@@ -262,6 +265,12 @@ async function fillAppointment(
   apt.pickupDate = draft.pickupDate;
   apt.workStart = workStart || undefined;
   apt.workMinutes = workMinutes && workMinutes > 0 ? workMinutes : undefined;
+  if (input.resourceId !== undefined || input.resourceIds !== undefined) {
+    const resources = compatibleResourceFields(input.resourceId, input.resourceIds);
+    const stored = apt as Appointment & { resourceId?: string; resourceIds?: string[] };
+    stored.resourceId = resources.resourceId;
+    stored.resourceIds = resources.resourceIds;
+  }
   apt.leadId = input.leadId ?? apt.leadId;
   apt.siteLocale = input.siteLocale ?? apt.siteLocale;
   apt.visitState = apt.visitState ?? "expected";

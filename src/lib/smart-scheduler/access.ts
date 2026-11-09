@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { schedulerTestBoardOpen, smartWorkSchedulerEnabled } from "@/lib/smart-scheduler/flag";
+import { schedulerReadOnlyPilotEnabled, schedulerTestBoardOpen, smartWorkSchedulerEnabled } from "@/lib/smart-scheduler/flag";
 import { verifyToken } from "@/lib/server/verify-session";
 import { verifyTelegramWebAppInitData } from "@/lib/server/telegram-webapp-auth";
 import { resolveStaffCalendarActor } from "@/lib/server/staff-calendar-access";
@@ -10,8 +10,9 @@ export function mechanicMayPlan(actor: { role: string; mechanicId?: string; canE
   return actor.role === "mechanic" && Boolean(actor.mechanicId) && actor.mechanicId === mechanicId;
 }
 
-export async function guardScheduler(req: Request, options?: { allowTestBoard?: boolean }): Promise<NextResponse | { role: string; mechanicId?: string; canEdit: boolean; staffId: string }> {
-  if (!smartWorkSchedulerEnabled()) {
+export async function guardScheduler(req: Request, options?: { allowTestBoard?: boolean; readOnly?: boolean }): Promise<NextResponse | { role: string; mechanicId?: string; canEdit: boolean; staffId: string }> {
+  const readOnlyPilot = Boolean(options?.readOnly && schedulerReadOnlyPilotEnabled());
+  if (!smartWorkSchedulerEnabled() && !readOnlyPilot) {
     return NextResponse.json({ ok: false, error: "disabled" }, { status: 404 });
   }
   const initData = req.headers.get("x-telegram-init-data");
@@ -20,16 +21,16 @@ export async function guardScheduler(req: Request, options?: { allowTestBoard?: 
     if (!auth.ok) return NextResponse.json({ ok: false, error: auth.error }, { status: 401 });
     const actor = await resolveStaffCalendarActor(auth.user.id);
     if (!actor) return NextResponse.json({ ok: false, error: "forbidden" }, { status: 403 });
-    return { role: actor.role, mechanicId: actor.mechanicId, canEdit: actor.canEdit, staffId: `tg:${auth.user.id}` };
+    return { role: actor.role, mechanicId: actor.mechanicId, canEdit: readOnlyPilot ? false : actor.canEdit, staffId: `tg:${auth.user.id}` };
   }
   const header = req.headers.get("authorization");
   if (header?.startsWith("Bearer ")) {
     const session = await verifyToken(header.slice("Bearer ".length).trim());
     if (!session || session.role === "client") return NextResponse.json({ ok: false, error: "forbidden" }, { status: 403 });
-    if (session.role === "admin") return { role: "admin", canEdit: true, staffId: session.sub };
+    if (session.role === "admin") return { role: "admin", canEdit: readOnlyPilot ? false : true, staffId: session.sub };
     return { role: "mechanic", mechanicId: session.sub, canEdit: false, staffId: session.sub };
   }
-  if (options?.allowTestBoard && schedulerTestBoardOpen()) return { role: "owner", canEdit: true, staffId: "test-board" };
+  if (options?.allowTestBoard && schedulerTestBoardOpen() && !readOnlyPilot) return { role: "owner", canEdit: true, staffId: "test-board" };
   return NextResponse.json({ ok: false, error: "missing" }, { status: 401 });
 }
 
