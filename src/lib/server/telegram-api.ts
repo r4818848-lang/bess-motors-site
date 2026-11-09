@@ -140,8 +140,16 @@ export async function setTelegramWebhook(
   };
 }
 
-type TelegramSendTest = (chatId: string, text: string) => Promise<number | null>;
+type TelegramSendTest = (chatId: string, text: string) => Promise<number | null | { messageId: null; error: string }>;
 let telegramSendTest: TelegramSendTest | null = null;
+let telegramSendError: string | undefined;
+
+/** Error from the latest sendTelegramMessage that returned null. */
+export function consumeTelegramSendError(): string | undefined {
+  const error = telegramSendError;
+  telegramSendError = undefined;
+  return error;
+}
 
 /** Test double for sendMessage. Refused on Vercel so production still calls Telegram. */
 export function installTelegramSenderForTests(send: TelegramSendTest | null): void {
@@ -149,6 +157,7 @@ export function installTelegramSenderForTests(send: TelegramSendTest | null): vo
     throw new Error("telegram_test_transport_refused");
   }
   telegramSendTest = send;
+  telegramSendError = undefined;
 }
 
 export async function sendTelegramMessage(
@@ -156,7 +165,15 @@ export async function sendTelegramMessage(
   text: string,
   replyMarkup?: TelegramReplyMarkup | { remove_keyboard: true }
 ): Promise<number | null> {
-  if (telegramSendTest) return telegramSendTest(String(chatId), text);
+  if (telegramSendTest) {
+    const sent = await telegramSendTest(String(chatId), text);
+    if (sent && typeof sent === "object") {
+      telegramSendError = sent.error || "telegram_send_failed";
+      return null;
+    }
+    telegramSendError = sent == null ? "telegram_send_failed" : undefined;
+    return sent;
+  }
   const payload: Record<string, unknown> = {
     chat_id: chatId,
     text,
@@ -166,8 +183,17 @@ export async function sendTelegramMessage(
   if (replyMarkup) payload.reply_markup = replyMarkup;
 
   const res = await telegramRequest("sendMessage", payload);
-  const messageId = (res?.result as { message_id?: number } | undefined)?.message_id;
-  return messageId ?? null;
+  if (!res?.ok) {
+    telegramSendError = res?.description || "telegram_send_failed";
+    return null;
+  }
+  const messageId = (res.result as { message_id?: number } | undefined)?.message_id;
+  if (messageId == null) {
+    telegramSendError = "telegram_send_failed";
+    return null;
+  }
+  telegramSendError = undefined;
+  return messageId;
 }
 
 export type EditTelegramMessageResult = {

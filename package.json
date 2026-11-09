@@ -14,6 +14,8 @@
     "checkup": "npm run audit && npm run build",
     "checkup:full": "npm run audit && npm run build && npm run test:e2e",
     "test:e2e": "playwright test && playwright test -c playwright.readonly.config.ts",
+    "test:lead-notices": "tsx scripts/test-lead-notices.ts && tsx scripts/test-lead-notice-cas.ts",
+    "test:unit": "tsx scripts/test-arrival-leads.ts && tsx scripts/test-workshop-schedule.ts && tsx scripts/test-staff-calendar.ts && tsx scripts/test-smart-scheduler.ts && tsx scripts/test-launch-readiness.ts && tsx scripts/test-scheduler-readonly-auth.ts",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:report": "playwright show-report",
@@ -58,6 +60,7 @@
     "eslint-config-next": "^15.1.0",
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.16",
+    "tsx": "^4.23.15",
     "typescript": "^5.7.0"
   }
 }

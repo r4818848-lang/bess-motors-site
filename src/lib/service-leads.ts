@@ -109,13 +109,24 @@ function serviceLabelOf(lead: ServiceLead): string {
   return lead.services[0]?.label ?? "";
 }
 
-/** Same person, source and request still open. A new VIN or another service stays a separate lead. */
+function inquiryClosed(lead: ServiceLead): boolean {
+  return lead.status === "declined" || lead.status === "done" || lead.status === "booked";
+}
+
+/** An open inquiry can absorb a retry. A closed or day-old row does not block the next one. */
+function inquiryCurrent(lead: ServiceLead, now: Date): boolean {
+  if (inquiryClosed(lead)) return false;
+  const age = now.getTime() - Date.parse(lead.createdAt);
+  return Number.isFinite(age) && age >= 0 && age <= OPEN_LEAD_WINDOW_MS;
+}
+
+/** Same person, source and request still open. A new VIN, another service, or a later day stays a separate lead. */
 function sameLead(lead: ServiceLead, input: IncomingLead, now: Date): boolean {
-  if (input.clientRequestId && lead.clientRequestId === input.clientRequestId) return true;
-  if (input.id && (lead.id === input.id || lead.clientRequestId === input.id)) return true;
-  const age = now.getTime() - new Date(lead.createdAt).getTime();
-  if (!Number.isFinite(age) || age < 0 || age > OPEN_LEAD_WINDOW_MS) return false;
-  if (lead.status === "declined" || lead.status === "done" || lead.status === "booked") return false;
+  const requestHit =
+    Boolean(input.clientRequestId && lead.clientRequestId === input.clientRequestId) ||
+    Boolean(input.id && (lead.id === input.id || lead.clientRequestId === input.id));
+  if (requestHit) return inquiryCurrent(lead, now);
+  if (!inquiryCurrent(lead, now)) return false;
   const vin = normalizedVin(input.vin);
   const label = (input.serviceLabel ?? input.services?.[0]?.label ?? "").trim();
   const existingLabel = serviceLabelOf(lead);
@@ -127,17 +138,18 @@ function sameLead(lead: ServiceLead, input: IncomingLead, now: Date): boolean {
   );
 }
 
-function inquiryClosed(lead: ServiceLead): boolean {
-  return lead.status === "declined" || lead.status === "done" || lead.status === "booked";
-}
-
 function openInquiryId(db: Database, input: IncomingLead, now: Date): string {
   const base = websiteInquiryId(input, now);
   const taken = (db.leads ?? []).filter((lead) => lead.id === base || lead.id.startsWith(`${base}-`));
-  const open = taken.find((lead) => !inquiryClosed(lead));
+  const open = taken.find((lead) => inquiryCurrent(lead, now));
   if (open) return open.id;
-  if (taken.length === 0) return base;
-  return `${base}-${taken.length + 1}`;
+  let candidate = base;
+  let n = 2;
+  while (taken.some((lead) => lead.id === candidate)) {
+    candidate = `${base}-${n}`;
+    n += 1;
+  }
+  return candidate;
 }
 
 /** Stable id for one open request, including two POSTs that have not seen each other yet. */
@@ -166,6 +178,13 @@ export function upsertWebsiteLead(db: Database, input: IncomingLead): { lead: Se
   const existing = db.leads.find((lead) => sameLead(lead, input, now));
   if (existing) return { lead: existing, created: false };
 
+  const baseId = input.id || input.clientRequestId || `lead-${now.getTime()}`;
+  let id = baseId;
+  let suffix = 2;
+  while (db.leads.some((lead) => lead.id === id)) {
+    id = `${baseId}-${suffix}`;
+    suffix += 1;
+  }
   const names = splitName(input.name ?? "");
   const services = input.services?.length
     ? input.services.map((item) => quoteSubmittedLine(item.id, item.label ?? "", item.quantity))
@@ -173,7 +192,7 @@ export function upsertWebsiteLead(db: Database, input: IncomingLead): { lead: Se
       ? [quoteService(input.serviceId, input.serviceLabel ?? "")]
       : [];
   const lead: ServiceLead = {
-    id: input.id || input.clientRequestId || `lead-${now.getTime()}`,
+    id,
     createdAt: now.toISOString(),
     updatedAt: now.toISOString(),
     firstName: names.firstName,
@@ -196,7 +215,7 @@ export function upsertWebsiteLead(db: Database, input: IncomingLead): { lead: Se
     managerId: "",
     contacts: [],
     clientRequestId: input.clientRequestId || input.id,
-    notifyEventId: leadNoticeEventId(input.id || input.clientRequestId || `lead-${now.getTime()}`),
+    notifyEventId: leadNoticeEventId(id),
     notifyStatus: "pending",
     notifyAttempts: 0,
   };
@@ -252,6 +271,8 @@ function noticeStillOpen(lead: ServiceLead, now: Date): boolean {
 /** Reserve delivery for each admin chat that has not been sent. A live lease is left alone. */
 export function claimLeadNotice(lead: ServiceLead, now: Date, chatIds: string[]): LeadNoticeClaim[] {
   if (!noticeStillOpen(lead, now)) return [];
+  // A lead already marked sent before per-chat rows existed must not be opened again.
+  if ((lead.notifyRecipients ?? []).length === 0 && lead.notifyStatus === "sent") return [];
   const wanted = [...new Set(chatIds.map((id) => id.trim()).filter(Boolean))];
   if (wanted.length === 0) return [];
   lead.notifyRecipients = lead.notifyRecipients ?? [];
@@ -282,7 +303,8 @@ export function completeLeadNotice(
   token: string,
   delivered: boolean,
   now: Date,
-  messageId?: number
+  messageId?: number,
+  error?: string
 ): "applied" | "stale" {
   const row = (lead.notifyRecipients ?? []).find((item) => item.chatId === chatId);
   if (!row || !token || row.claimToken !== token) return "stale";
@@ -291,10 +313,12 @@ export function completeLeadNotice(
     row.status = "sent";
     row.sentAt = now.toISOString();
     row.leaseUntil = undefined;
+    row.lastError = undefined;
     if (messageId != null) row.messageId = messageId;
   } else {
     row.status = "pending";
     row.leaseUntil = undefined;
+    row.lastError = error?.trim() || "telegram_send_failed";
   }
   refreshLeadNotice(lead, now);
   return "applied";

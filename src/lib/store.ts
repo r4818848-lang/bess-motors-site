@@ -474,6 +474,8 @@ export interface LeadNoticeRecipient {
   leaseUntil?: string;
   messageId?: number;
   sentAt?: string;
+  /** Last Telegram or transport error for this chat. Cleared after a confirmed send. */
+  lastError?: string;
 }
 
 export interface ServiceLead {

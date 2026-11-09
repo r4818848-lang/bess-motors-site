@@ -1,6 +1,6 @@
 import { cloudGetCrmStore } from "@/lib/server/crm-cloud";
 import { cloudMutateCrmStore } from "@/lib/server/crm-cloud-mutate";
-import { getTelegramConfig, sendTelegramMessage } from "@/lib/server/telegram-api";
+import { consumeTelegramSendError, getTelegramConfig, sendTelegramMessage } from "@/lib/server/telegram-api";
 import {
   claimLeadNotice,
   completeLeadNotice,
@@ -44,10 +44,13 @@ export async function finishClaimedLeadNotice(
   const delivered: string[] = [];
   const failed: string[] = [];
   const messageIds = new Map<string, number>();
+  const errors = new Map<string, string>();
   for (const claim of claims) {
     const messageId = await sendTelegramMessage(claim.chatId, text);
-    if (messageId == null) failed.push(claim.chatId);
-    else {
+    if (messageId == null) {
+      failed.push(claim.chatId);
+      errors.set(claim.chatId, consumeTelegramSendError() ?? "telegram_send_failed");
+    } else {
       delivered.push(claim.chatId);
       messageIds.set(claim.chatId, messageId);
     }
@@ -63,7 +66,8 @@ export async function finishClaimedLeadNotice(
           claim.token,
           delivered.includes(claim.chatId),
           now,
-          messageIds.get(claim.chatId)
+          messageIds.get(claim.chatId),
+          errors.get(claim.chatId)
         );
       }
     }, { skipAutomation: true });

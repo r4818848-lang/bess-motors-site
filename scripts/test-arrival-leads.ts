@@ -27,7 +27,7 @@ import {
   upsertWebsiteLead,
 } from "../src/lib/service-leads";
 import { mergeStoredDb, type Appointment, type Database, type ServiceLead } from "../src/lib/store";
-import { warsawCivilToUtc } from "../src/lib/workshop-schedule";
+import { bookingStartTimes, warsawCivilToUtc, warsawParts } from "../src/lib/workshop-schedule";
 import { workshopHours } from "../src/lib/businessConfig";
 import { adminReplyKeyboard, mainMenuKeyboard } from "../src/lib/server/telegram-bot/keyboards";
 
@@ -56,6 +56,35 @@ assert.deepEqual(arrivalTimes("2026-11-15", past), []);
 
 assert.equal(warsawCivilToUtc("2026-01-12", "09:00")?.toISOString(), "2026-01-12T08:00:00.000Z");
 assert.equal(warsawCivilToUtc("2026-07-13", "09:00")?.toISOString(), "2026-07-13T07:00:00.000Z");
+assert.equal(warsawCivilToUtc("2026-03-29", "02:30"), null);
+assert.equal(warsawParts(new Date("2026-03-29T00:30:00.000Z")).dateKey, "2026-03-29");
+assert.equal(warsawParts(new Date("2026-03-29T00:30:00.000Z")).minutes, 90);
+assert.equal(warsawParts(new Date("2026-03-29T01:30:00.000Z")).minutes, 210);
+assert.equal(warsawCivilToUtc("2026-10-25", "02:30")?.toISOString(), "2026-10-25T01:30:00.000Z");
+assert.equal(warsawParts(new Date("2026-10-25T00:30:00.000Z")).minutes, 150);
+assert.equal(warsawParts(new Date("2026-10-25T01:30:00.000Z")).minutes, 150);
+const fridayAfternoon = new Date("2026-11-13T16:00:00.000Z");
+assert.equal(warsawParts(fridayAfternoon).minutes, 17 * 60);
+const pastSlot = evaluateArrivalTime({ date: "2026-11-13", time: "16:30", now: fridayAfternoon });
+assert.equal(pastSlot.ok, false);
+assert.equal(pastSlot.ok ? "" : pastSlot.error, "slot_in_past");
+assert.equal(evaluateArrivalTime({ date: "2026-11-13", time: "17:30", now: fridayAfternoon }).ok, true);
+assert.equal(arrivalTimes("2026-11-13", fridayAfternoon).includes("16:30"), false);
+assert.equal(arrivalTimes("2026-11-13", fridayAfternoon).includes("17:30"), true);
+const legacy = bookingStartTimes("2026-11-13", hours, 60, past);
+assert.equal(legacy.includes("17:30"), false);
+assert.equal(legacy.includes("09:30"), false);
+assert.equal(arrivalTimes("2026-11-13", past).includes("09:30"), true);
+const publicSources = [
+  "src/app/api/appointments/availability/route.ts",
+  "src/components/booking/BookingQuoteFlow.tsx",
+  "src/lib/booking-form-mode.ts",
+  "src/lib/server/telegram-bot/client-keyboards.ts",
+  "src/lib/server/booking-slot-validation.ts",
+];
+for (const file of publicSources) {
+  assert.doesNotMatch(readFileSync(file, "utf8"), /bookingStartTimes/);
+}
 assert.equal(isMorningDigestHour(new Date("2026-01-12T07:00:00.000Z")), true);
 assert.equal(isMorningDigestHour(new Date("2026-07-13T06:00:00.000Z")), true);
 assert.equal(isMorningDigestHour(new Date("2026-01-12T06:00:00.000Z")), false);
@@ -321,5 +350,47 @@ assert.equal(failedDb.leads.length, 1);
 assert.equal(failedDb.callRequests.length, 1);
 assert.equal(leadNeedsNotice(failedPost.lead, threeMinutes), true);
 assert.equal(claimLeadNotice(failedPost.lead, threeMinutes, chats).length, 2);
+
+const springSunday = evaluateArrivalTime({ date: "2026-03-29", time: "10:00", now: new Date("2026-03-01T08:00:00.000Z") });
+assert.equal(springSunday.ok, false);
+assert.equal(springSunday.ok ? "" : springSunday.error, "closed_sunday");
+assert.equal(evaluateArrivalTime({ date: "2026-03-30", time: "09:00", now: new Date("2026-03-01T08:00:00.000Z") }).ok, true);
+
+const bookedDb = mergeStoredDb({ leads: [], callRequests: [] });
+const booked = acceptWebsiteInquiry(bookedDb, { ...inquiry, clientRequestId: "browser-tab" }, past, chats);
+applyLeadAction(booked.lead, "booked", past);
+const nextVisit = acceptWebsiteInquiry(bookedDb, { ...inquiry, clientRequestId: "browser-tab" }, new Date(past.getTime() + 60_000), chats);
+assert.equal(nextVisit.created, true);
+assert.notEqual(nextVisit.lead.id, booked.lead.id);
+assert.equal(nextVisit.decision, "send");
+assert.equal(bookedDb.leads.length, 2);
+
+const laterDay = new Date(past.getTime() + 25 * 60 * 60 * 1000);
+const stillOpen = acceptWebsiteInquiry(mergeStoredDb({ leads: [], callRequests: [] }), { ...inquiry, clientRequestId: "browser-tab" }, past, chats);
+const dayLater = acceptWebsiteInquiry(
+  mergeStoredDb({ leads: [structuredClone(stillOpen.lead)], callRequests: [] }),
+  { ...inquiry, clientRequestId: "browser-tab" },
+  laterDay,
+  chats
+);
+assert.equal(dayLater.created, true);
+assert.notEqual(dayLater.lead.id, stillOpen.lead.id);
+
+const historical = mergeStoredDb({
+  leads: [{
+    ...booked.lead,
+    id: "lead-old-sent",
+    status: "new",
+    notifyStatus: "sent",
+    notifyAttempts: 1,
+    notifyRecipients: undefined,
+    createdAt: past.toISOString(),
+    updatedAt: past.toISOString(),
+  }],
+});
+assert.equal(claimLeadNotice(historical.leads[0], threeMinutes, chats).length, 0);
+assert.equal(historical.leads[0].notifyStatus, "sent");
+assert.equal(historical.leads[0].notifyRecipients, undefined);
+assert.equal(leadNeedsNotice(historical.leads[0], threeMinutes), false);
 
 console.log("arrival and leads ok");
