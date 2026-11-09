@@ -161,7 +161,9 @@ async function blockedBySchedule(client: Client, mechanicId: string, date: strin
 }
 
 async function loadResources(client: Client): Promise<ResourceSetting[]> {
-  const result = await client.query<ResourceSetting>("select id, kind, label, status, confirmed from scheduler_resources");
+  const result = await client.query<ResourceSetting>(
+    `select id, kind, label, status, confirmed, udt_permit_confirmed as "udtPermitConfirmed" from scheduler_resources`
+  );
   return result.rows;
 }
 
@@ -611,7 +613,9 @@ export async function commitUnifiedWorkshopWrite(client: Client, input: Paramete
 }
 
 export async function loadResourceSettings(client: Client): Promise<ResourceSetting[]> {
-  const result = await client.query<ResourceSetting>("select id, kind, label, status, confirmed from scheduler_resources");
+  const result = await client.query<ResourceSetting>(
+    `select id, kind, label, status, confirmed, udt_permit_confirmed as "udtPermitConfirmed" from scheduler_resources`
+  );
   const order = ["lift-1", "lift-2", "tyre-1", "balancer-1", "ac-1", "diag-1"];
   return order.flatMap((id) => result.rows.filter((row) => row.id === id));
 }
@@ -667,7 +671,10 @@ export async function saveOwnerSettings(client: Client, settings: import("@/lib/
   try {
     for (const resource of settings.resources) {
       if (!known.has(resource.id) || !statuses.has(resource.status)) throw new Error("invalid_resource");
-      await client.query("update scheduler_resources set status = $2, confirmed = $3 where id = $1", [resource.id, resource.status, resource.confirmed]);
+      await client.query(
+        "update scheduler_resources set status = $2, confirmed = $3, udt_permit_confirmed = $4 where id = $1",
+        [resource.id, resource.status, resource.confirmed, resource.kind === "lift" && resource.udtPermitConfirmed === true]
+      );
     }
     await client.query("delete from scheduler_display_names");
     for (const [mechanicId, displayName] of Object.entries(settings.displayNames)) {

@@ -82,7 +82,7 @@ async function main() {
   await admin.query(readFileSync(join(process.cwd(), "supabase/crm_store.sql"), "utf8"));
   await admin.query(readFileSync(join(process.cwd(), "supabase/appointments.sql"), "utf8"));
   await admin.query(readFileSync(join(process.cwd(), "supabase/drafts/smart-scheduler.sql"), "utf8"));
-  await admin.query("update scheduler_resources set status = 'available', confirmed = true where id in ('lift-1', 'lift-2')");
+  await admin.query("update scheduler_resources set status = 'available', confirmed = true, udt_permit_confirmed = true where id in ('lift-1', 'lift-2')");
   const owner: BookingActor = await openActorSession(admin, { role: "owner", staffId: "owner-1", canEdit: true });
 
   const warsaw = await admin.query<{ work_date: string; work_clock: string }>("select * from scheduler_warsaw_parts('2026-11-10 23:30:00+00')");

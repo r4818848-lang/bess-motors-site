@@ -32,8 +32,9 @@ export async function withUnifiedCrm<T>(
 ): Promise<UnifiedOutcome<T>> {
   const required = schedulerUnifiedModeRequired();
   const plan = planCrmConnection(liveCrmCopyUrl());
-  if (plan.mode === "legacy") return { handled: false };
-  if (plan.mode === "refused") return required ? unavailable("Транзакционная база не разрешена.") : { handled: false };
+  if (plan.mode !== "transactional") {
+    return required ? unavailable("Транзакционная база не разрешена.") : { handled: false };
+  }
   let client: Client;
   try {
     client = await connectLiveCrmCopy();
@@ -48,7 +49,7 @@ export async function withUnifiedCrm<T>(
     } catch {
       return required ? unavailable("Не удалось прочитать переключатель календаря.") : { handled: false };
     }
-    if (!enabled) return { handled: false };
+    if (!enabled) return required ? unavailable("Единый календарь включён в процессе, но SQL-переключатель выключен. Старая запись не запущена.") : { handled: false };
     try {
       return await runTransaction(client, mutate, options?.notify);
     } catch {

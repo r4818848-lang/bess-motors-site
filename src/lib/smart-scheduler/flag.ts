@@ -31,7 +31,12 @@ export function schedulerUnifiedModeRequired(): boolean {
   return process.env.SCHEDULER_UNIFIED_CALENDAR === "on";
 }
 
-/** View the schedule without a write grant. Off unless a local pilot sets it. It never enables writes. */
+/** The scheduler page can render. The read-only pilot does not enable writes. */
+export function schedulerPageOpen(): boolean {
+  return smartWorkSchedulerEnabled() || schedulerReadOnlyPilotEnabled();
+}
+
+/** View the schedule without a write grant. Off unless a local pilot sets it. It never enables writes. Vercel stays closed. */
 export function schedulerReadOnlyPilotEnabled(): boolean {
   if (process.env.VERCEL_ENV === "production" || process.env.VERCEL_ENV === "preview") return false;
   return process.env.SCHEDULER_READ_ONLY_PILOT === "local";

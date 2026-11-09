@@ -61,7 +61,8 @@ create table if not exists public.scheduler_resources (
   kind text not null,
   label text not null,
   status text not null check (status in ('available', 'broken', 'maintenance')),
-  confirmed boolean not null default false
+  confirmed boolean not null default false,
+  udt_permit_confirmed boolean not null default false
 );
 
 create table if not exists public.scheduler_display_names (
@@ -660,6 +661,8 @@ insert into public.scheduler_resources (id, kind, label, status, confirmed) valu
   ('ac-1', 'ac_station', 'Станция кондиционера', 'maintenance', false),
   ('diag-1', 'diagnostic_device', 'Диагностическое оборудование', 'maintenance', false)
 on conflict (id) do nothing;
+
+alter table public.scheduler_resources add column if not exists udt_permit_confirmed boolean not null default false;
 
 alter table public.scheduler_operations enable row level security;
 alter table public.scheduler_overlap_rules enable row level security;

@@ -27,6 +27,7 @@ export type SchedulerAppointment = {
 export type SchedulerSnapshot = {
   source: "fixture" | "live";
   writable: false;
+  crmConnected: boolean;
   date: string;
   mechanics: MechanicColumn[];
   appointments: SchedulerAppointment[];
@@ -122,6 +123,7 @@ export function syntheticSnapshot(now: Date, hours: WorkshopHours): SchedulerSna
   return {
     source: "fixture",
     writable: false,
+    crmConnected: false,
     date: warsawParts(now).dateKey,
     mechanics: PROFILES.map(mechanicColumn),
     appointments,
@@ -134,6 +136,7 @@ export function emptyLiveSnapshot(now: Date): SchedulerSnapshot {
   return {
     source: "live",
     writable: false,
+    crmConnected: false,
     date: warsawParts(now).dateKey,
     mechanics: PROFILES.map(mechanicColumn),
     appointments: [],

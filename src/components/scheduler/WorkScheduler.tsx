@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import type { Operation } from "@/lib/smart-scheduler/catalog";
 import { emptyLiveSnapshot, type SchedulerSnapshot } from "@/lib/smart-scheduler/fixture";
+import { mayAutoAssignMechanic } from "@/lib/smart-scheduler/identity";
+import { workOverlapWarnings } from "@/lib/smart-scheduler/overlaps";
 import { searchOperations } from "@/lib/smart-scheduler/search";
 import {
   breakHolds,
@@ -18,7 +20,7 @@ import {
 import { canAutoBook } from "@/lib/smart-scheduler/policy";
 import { scheduledBreaks, type ResourceStatus, type SchedulerSettings } from "@/lib/smart-scheduler/settings";
 import { addDateKeyDays } from "@/lib/staff-calendar";
-import { bindTelegramViewport, calendarFrame, type CalendarFrame } from "@/lib/telegram-webapp-client";
+import { bindTelegramViewport, calendarFrame, readTelegramWebApp, type CalendarFrame } from "@/lib/telegram-webapp-client";
 import { clockToMinutes, weekdayIndexFromDateKey, type WorkshopHours } from "@/lib/workshop-schedule";
 
 const OPEN = 9 * 60;
@@ -44,6 +46,14 @@ function weekDates(date: string): string[] {
   return Array.from({ length: 6 }, (_, index) => addDateKeyDays(monday, index) ?? monday);
 }
 
+function monthDates(date: string): string[] {
+  const [yearText, monthText] = date.split("-");
+  const year = Number(yearText);
+  const month = Number(monthText);
+  const count = new Date(year, month, 0).getDate();
+  return Array.from({ length: count }, (_, index) => `${yearText}-${monthText}-${String(index + 1).padStart(2, "0")}`);
+}
+
 const STATUS: Record<ResourceStatus, string> = {
   available: "Доступен",
   broken: "Не работает",
@@ -54,19 +64,21 @@ export function WorkScheduler({
   catalog,
   hours,
   rules,
+  readOnly = false,
 }: {
   catalog: Operation[];
   hours: WorkshopHours;
   rules: OverlapRule[];
+  readOnly?: boolean;
 }) {
   const [frame, setFrame] = useState<CalendarFrame>(() => calendarFrame({}));
   const [mode, setMode] = useState<"live" | "test">("live");
   const [snapshot, setSnapshot] = useState<SchedulerSnapshot>(() => emptyLiveSnapshot(new Date()));
   const [settings, setSettings] = useState<SchedulerSettings>(snapshot.settings);
-  const [message, setMessage] = useState("Реальные записи не подключены. Синтетические автомобили не показаны.");
+  const [message, setMessage] = useState("Ошибка подключения к CRM. Расписание не загружено.");
   const [canConfigure, setCanConfigure] = useState(false);
   const [date, setDate] = useState(snapshot.date);
-  const [view, setView] = useState<"day" | "week">("day");
+  const [view, setView] = useState<"day" | "week" | "month">("day");
   const [filter, setFilter] = useState("all");
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState("MA-001");
@@ -84,29 +96,40 @@ export function WorkScheduler({
   const planned = operation ? planOperationMinutes(operation, { reservePct: settings.reservePct }) : null;
   const found = useMemo(() => searchOperations(catalog, query), [catalog, query]);
   const visibleMechanics = snapshot.mechanics.filter((mechanic) => filter === "all" || mechanic.id === filter);
-  const days = view === "week" ? weekDates(date) : [date];
+  const days = view === "week" ? weekDates(date) : view === "month" ? monthDates(date) : [date];
+  const overlaps = useMemo(
+    () => workOverlapWarnings(snapshot.appointments.map((item) => ({ id: item.id, mechanicId: item.mechanicId, date: item.date, workStart: item.workStart, workMinutes: item.workMinutes, lift: item.lift, plate: item.plate }))),
+    [snapshot.appointments]
+  );
+  const showSchedule = snapshot.source === "fixture" || snapshot.crmConnected;
 
   useEffect(() => bindTelegramViewport(setFrame) ?? undefined, []);
 
   useEffect(() => {
     let stop = false;
-    fetch(`/api/internal/schedule/board?mode=${mode}`)
-      .then((response) => response.json())
-      .then((body: { snapshot?: SchedulerSnapshot; message?: string; canConfigure?: boolean }) => {
-        if (stop || !body.snapshot) return;
+    const initData = typeof window === "undefined" ? "" : readTelegramWebApp(window).initData;
+    fetch(`/api/internal/schedule/board?mode=${mode}`, { headers: initData ? { "x-telegram-init-data": initData } : {} })
+      .then(async (response) => ({ ok: response.ok, body: await response.json().catch(() => null) as { snapshot?: SchedulerSnapshot; message?: string; canConfigure?: boolean; error?: string } | null }))
+      .then(({ ok, body }) => {
+        if (stop) return;
+        if (!ok || !body?.snapshot) {
+          setSnapshot((current) => ({ ...current, source: "live", crmConnected: false, appointments: [], crmHolds: [] }));
+          setMessage(body?.error === "missing" ? "Нужна авторизация сотрудника. Расписание не загружено." : "Ошибка подключения к CRM. Расписание не загружено.");
+          return;
+        }
         setSnapshot(body.snapshot);
         setSettings(body.snapshot.settings);
         setMessage(body.message ?? "");
-        setCanConfigure(Boolean(body.canConfigure));
+        setCanConfigure(Boolean(body.canConfigure) && !readOnly);
         setDate(body.snapshot.appointments[0]?.date ?? body.snapshot.date);
       })
       .catch(() => {
-        if (!stop) setMessage("Сервер расписания не ответил. Синтетические автомобили не показаны.");
+        if (!stop) setMessage("Ошибка подключения к CRM. Расписание не загружено.");
       });
     return () => {
       stop = true;
     };
-  }, [mode]);
+  }, [mode, readOnly]);
 
   function blocksFor(day: string, mechanic: string) {
     return snapshot.appointments.flatMap((item) => {
@@ -127,6 +150,11 @@ export function WorkScheduler({
   }
 
   function check() {
+    const selectedMechanic = snapshot.mechanics.find((item) => item.id === mechanicId);
+    if (snapshot.source === "live" && selectedMechanic && !mayAutoAssignMechanic(selectedMechanic, "live")) {
+      setNotice("Реальные работы на этого сотрудника автоматически не назначаются, пока личность не подтверждена.");
+      return;
+    }
     if (!operation || !planned?.minutes) {
       setNotice("Для этой операции нет подтверждённой нормы.");
       return;
@@ -164,7 +192,7 @@ export function WorkScheduler({
       start,
       minutes: duration.minutes,
       mechanicId,
-      mechanicIds: snapshot.mechanics.map((item) => item.id),
+      mechanicIds: snapshot.mechanics.filter((item) => mayAutoAssignMechanic(item, snapshot.source)).map((item) => item.id),
       resourceIds: [lift],
       hours,
       occupied,
@@ -234,8 +262,10 @@ export function WorkScheduler({
       <p className="mt-1 max-w-3xl text-sm text-zinc-400" data-testid={snapshot.source === "fixture" ? "scheduler-test-banner" : "scheduler-live-banner"}>{message}</p>
       {weekdayIndexFromDateKey(date) === 0 && <p className="mt-2 text-sm text-zinc-300">Воскресенье закрыто.</p>}
       {snapshot.mechanics.some((mechanic) => !mechanic.confirmed) && (
-        <p className="mt-2 text-xs text-amber-200">{snapshot.mechanics.find((mechanic) => !mechanic.confirmed)?.note}</p>
+        <p className="mt-2 text-xs text-amber-200" data-testid="scheduler-identity">{snapshot.mechanics.find((mechanic) => !mechanic.confirmed)?.note} Имя в CRM: {snapshot.mechanics.find((mechanic) => !mechanic.confirmed)?.crmName || "не задано"}.</p>
       )}
+      {!showSchedule && <p className="mt-3 rounded-2xl bg-red-950 px-3 py-3 text-sm" data-testid="scheduler-crm-error">{message}</p>}
+      {overlaps.map((warning) => <p key={warning} className="mt-2 text-sm text-amber-200" data-testid="scheduler-overlap">{warning}</p>)}
       <div className="mt-4 flex flex-wrap gap-2">
         <button type="button" className="min-h-12 rounded-xl bg-zinc-900 px-3 text-sm" onClick={() => setDate(addDateKeyDays(date, -1) ?? date)}>Предыдущий</button>
         <label className="min-h-12 rounded-xl bg-zinc-900 px-3 text-sm">
@@ -245,11 +275,12 @@ export function WorkScheduler({
         <button type="button" className="min-h-12 rounded-xl bg-zinc-900 px-3 text-sm" onClick={() => setDate(addDateKeyDays(date, 1) ?? date)}>Следующий</button>
         <button type="button" className={`min-h-12 rounded-xl px-3 text-sm ${view === "day" ? "bg-white text-black" : "bg-zinc-900"}`} onClick={() => setView("day")}>День</button>
         <button type="button" className={`min-h-12 rounded-xl px-3 text-sm ${view === "week" ? "bg-white text-black" : "bg-zinc-900"}`} onClick={() => setView("week")}>Неделя</button>
+        <button type="button" data-testid="scheduler-month" className={`min-h-12 rounded-xl px-3 text-sm ${view === "month" ? "bg-white text-black" : "bg-zinc-900"}`} onClick={() => setView("month")}>Месяц</button>
         <button type="button" data-testid="scheduler-filter-all" className={`min-h-12 rounded-xl px-3 text-sm ${filter === "all" ? "bg-white text-black" : "bg-zinc-900"}`} onClick={() => setFilter("all")}>Все</button>
         {snapshot.mechanics.map((mechanic) => (
           <button key={mechanic.id} type="button" data-testid={`scheduler-filter-${mechanic.id}`} className={`min-h-12 rounded-xl px-3 text-sm ${filter === mechanic.id ? "bg-white text-black" : "bg-zinc-900"}`} onClick={() => setFilter(mechanic.id)}>{mechanic.label}</button>
         ))}
-        <button type="button" data-testid="scheduler-new" className="min-h-12 rounded-xl bg-red-700 px-4 text-sm font-semibold" onClick={() => setOpen(true)}>Новая запись</button>
+        {!readOnly && <button type="button" data-testid="scheduler-new" className="min-h-12 rounded-xl bg-red-700 px-4 text-sm font-semibold" onClick={() => setOpen(true)}>Новая запись</button>}
         <button type="button" data-testid="scheduler-mode-live" className={`min-h-12 rounded-xl px-3 text-sm ${mode === "live" ? "bg-white text-black" : "bg-zinc-900"}`} onClick={() => setMode("live")}>Реальные записи</button>
         <button type="button" data-testid="scheduler-mode-test" className={`min-h-12 rounded-xl px-3 text-sm ${mode === "test" ? "bg-white text-black" : "bg-zinc-900"}`} onClick={() => setMode("test")}>TEST</button>
       </div>
@@ -298,6 +329,7 @@ export function WorkScheduler({
                     {Object.entries(STATUS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
                   </select>
                   <label className="flex items-center gap-2 text-sm"><input className="h-5 w-5" type="checkbox" checked={resource.confirmed} onChange={(event) => setSettings((current) => ({ ...current, resources: current.resources.map((item) => item.id === resource.id ? { ...item, confirmed: event.target.checked } : item) }))} />AUTO</label>
+                  {resource.kind === "lift" && <label className="flex items-center gap-2 text-sm"><input className="h-5 w-5" type="checkbox" checked={resource.udtPermitConfirmed === true} onChange={(event) => setSettings((current) => ({ ...current, resources: current.resources.map((item) => item.id === resource.id ? { ...item, udtPermitConfirmed: event.target.checked } : item) }))} />UDT</label>}
                 </span>
               </label>
             ))}
@@ -306,8 +338,21 @@ export function WorkScheduler({
         </section>
       )}
 
-      {view === "day" && (
-        <div className="mt-4 hidden gap-3 md:grid" style={{ gridTemplateColumns: `4rem repeat(${visibleMechanics.length}, minmax(0, 1fr))` }}>
+      {showSchedule && view === "month" && (
+        <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4" data-testid="scheduler-month-grid">
+          {days.map((day) => (
+            <section key={day} className="rounded-2xl bg-zinc-900 p-2 text-xs">
+              <h2 className="font-semibold">{day}{weekdayIndexFromDateKey(day) === 0 ? " · закрыто" : ""}</h2>
+              {visibleMechanics.map((mechanic) => blocksFor(day, mechanic.id).map(({ item, block }) => (
+                <p key={block.id}>{mechanic.label}: {item.arrivalTime} приезд, {block.start}–{block.end}, {item.vehicle} {item.plate}, {item.lift || "пост"}</p>
+              )))}
+            </section>
+          ))}
+        </div>
+      )}
+
+      {showSchedule && view === "day" && (
+        <div className="mt-4 grid gap-3 overflow-x-auto" style={{ gridTemplateColumns: `4rem repeat(${visibleMechanics.length}, minmax(220px, 1fr))` }} data-testid="scheduler-day-columns">
           <div className="relative h-[720px] text-xs text-zinc-500">
             {Array.from({ length: 10 }, (_, index) => <span key={index} className="absolute left-0" style={{ top: `${(index / 9) * 100}%` }}>{`${String(9 + index).padStart(2, "0")}:00`}</span>)}
           </div>
@@ -322,6 +367,7 @@ export function WorkScheduler({
                 return (
                   <article key={block.id} data-testid={`scheduler-card-${item.id}`} className={`absolute inset-x-2 overflow-hidden rounded-xl px-2 py-1 text-[11px] leading-tight ${COLORS[item.category] ?? "bg-zinc-800"}`} style={box}>
                     <p className="font-semibold">{block.start}–{block.end} · {item.lift || "пост"}</p>
+                    <p>Приезд {item.arrivalTime}</p>
                     <p>{item.vehicle} · {item.plate}</p>
                     <p>{item.operationName}</p>
                     <p className="text-zinc-300">{mechanic.label}</p>
@@ -333,7 +379,8 @@ export function WorkScheduler({
         </div>
       )}
 
-      <div className={view === "day" ? "mt-4 space-y-2 md:hidden" : "mt-4 space-y-3"}>
+      {showSchedule && (
+      <div className={view === "week" ? "mt-4 space-y-3" : "hidden"}>
         {days.map((day) => (
           <section key={day}>
             {view === "week" && <h2 className="mb-2 text-sm font-semibold">{day}</h2>}
@@ -349,8 +396,28 @@ export function WorkScheduler({
           </section>
         ))}
       </div>
+      )}
 
-      {open && operation && planned && (
+      {readOnly && operation && planned && (
+        <section className="mt-4 space-y-2 rounded-2xl bg-zinc-900 p-4" data-testid="scheduler-readonly-search">
+          <p className="text-sm font-semibold">Подсказка нормы, без записи</p>
+          <label className="block text-sm">Найти работу
+            <input data-testid="scheduler-search" className="mt-1 h-12 w-full rounded-xl bg-zinc-950 px-3 text-base" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="колодки, olej, klock" />
+          </label>
+          {query && found.mode === "groups" && (
+            <div className="flex flex-wrap gap-2">
+              {found.groups.map((group) => <button key={group.label} type="button" className="min-h-12 rounded-xl bg-zinc-800 px-3 text-sm" onClick={() => setSelected(group.codes[0] ?? selected)}>{group.label}</button>)}
+            </div>
+          )}
+          {query && found.mode === "operations" && found.hits.slice(0, 6).map((hit) => (
+            <button key={hit.code} type="button" className="block min-h-12 w-full rounded-xl bg-zinc-800 px-3 text-left text-sm" onClick={() => setSelected(hit.code)}>{hit.nameRu} / {hit.namePl}</button>
+          ))}
+          <p className="text-sm">{operation.operationNameRu} / {operation.operationNamePl}</p>
+          <p className="text-sm text-zinc-300">Норма {planned.minutes ?? "вручную"} мин. Источник: {planned.source}. {planned.explanation}</p>
+        </section>
+      )}
+
+      {!readOnly && open && operation && planned && (
         <form className="mt-4 space-y-3 rounded-2xl bg-zinc-900 p-4" data-testid="scheduler-form" onSubmit={(event) => void book(event)}>
           <label className="block text-sm">Время приезда
             <input className="mt-1 h-12 w-full rounded-xl bg-zinc-950 px-3 text-base" value={arrival} onChange={(event) => setArrival(event.target.value)} />

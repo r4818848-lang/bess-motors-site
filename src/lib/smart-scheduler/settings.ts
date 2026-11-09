@@ -6,6 +6,8 @@ export type ResourceSetting = {
   label: string;
   status: ResourceStatus;
   confirmed: boolean;
+  /** Lifts need a current UDT permit. Absent or false blocks automatic booking. */
+  udtPermitConfirmed?: boolean;
 };
 
 export type MechanicBreak = {
@@ -57,7 +59,27 @@ export const defaultSchedulerSettings: SchedulerSettings = {
 
 export function resourceReady(resources: ResourceSetting[], id: string): boolean {
   const resource = resources.find((item) => item.id === id);
-  return resource?.confirmed === true && resource.status === "available";
+  if (!resource || resource.confirmed !== true || resource.status !== "available") return false;
+  if (resource.kind === "lift" && resource.udtPermitConfirmed !== true) return false;
+  return true;
+}
+
+/**
+ * Owner-confirmed equipment for the local test database only.
+ * Production defaults stay in defaultSchedulerSettings: maintenance and unconfirmed.
+ * UDT permits are not confirmed here, so lifts are not cleared for automatic booking.
+ */
+export function localTestSchedulerSettings(): SchedulerSettings {
+  return {
+    ...defaultSchedulerSettings,
+    displayNames: {},
+    resources: defaultSchedulerSettings.resources.map((resource) => ({
+      ...resource,
+      status: "available",
+      confirmed: true,
+      udtPermitConfirmed: false,
+    })),
+  };
 }
 
 export function scheduledBreaks(settings: SchedulerSettings): MechanicBreak[] {

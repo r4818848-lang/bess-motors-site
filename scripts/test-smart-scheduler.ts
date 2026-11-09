@@ -8,7 +8,9 @@ import { warsawCivilToUtc, warsawParts } from "../src/lib/workshop-schedule";
 import { assertUniqueCatalog, parseOperationCatalog } from "../src/lib/smart-scheduler/catalog";
 import { canonicalCrmDigest, canonicalCrmLines, compatibleResourceFields, crmSurfacesMatch, resourceIdsForOccupancy } from "../src/lib/smart-scheduler/crm-reconcile";
 import { planCrmConnection, productionCrmUrl } from "../src/lib/smart-scheduler/crm-connection";
-import { schedulerCrmWritesEnabled, schedulerReadOnlyPilotEnabled, schedulerTestWritesEnabled, schedulerUnifiedCalendarWired, schedulerUnifiedModeRequired, smartWorkSchedulerEnabled } from "../src/lib/smart-scheduler/flag";
+import { schedulerCrmWritesEnabled, schedulerPageOpen, schedulerReadOnlyPilotEnabled, schedulerTestWritesEnabled, schedulerUnifiedCalendarWired, schedulerUnifiedModeRequired, smartWorkSchedulerEnabled } from "../src/lib/smart-scheduler/flag";
+import { mayAutoAssignMechanic, mechanicColumn } from "../src/lib/smart-scheduler/identity";
+import { workOverlapWarnings } from "../src/lib/smart-scheduler/overlaps";
 import { notificationRetryDelayMs } from "../src/lib/smart-scheduler/notification-outbox";
 import { searchOperations } from "../src/lib/smart-scheduler/search";
 import {
@@ -33,12 +35,10 @@ import { schedulerDatabaseUrl } from "../src/lib/smart-scheduler/postgres";
 import { visibleToActor, responseLeaksSecrets } from "../src/lib/smart-scheduler/visibility";
 import { assembleBoard } from "../src/lib/smart-scheduler/board";
 import { syntheticSnapshot, upcomingMonday } from "../src/lib/smart-scheduler/fixture";
-import { mechanicColumn } from "../src/lib/smart-scheduler/identity";
+import { defaultSchedulerSettings, localTestSchedulerSettings, resourceReady } from "../src/lib/smart-scheduler/settings";
 import { cancelOnLedger, linkExistingWorkOrder, moveOnLedger, reserveOnLedger, resetSchedulerLedger, schedulerLedgerSnapshot } from "../src/lib/smart-scheduler/ledger";
 import { canAutoBook, excludedFromAuto } from "../src/lib/smart-scheduler/policy";
 import { applyRunflatOnce, breakHolds, resolveDuration, suggestSlots } from "../src/lib/smart-scheduler/schedule";
-import { defaultSchedulerSettings } from "../src/lib/smart-scheduler/settings";
-
 const hours = workshopHours();
 const catalog = parseOperationCatalog(readFileSync(join(process.cwd(), "data/smart-scheduler/bess_operation_seed.csv"), "utf8"));
 assertUniqueCatalog(catalog);
@@ -208,15 +208,25 @@ assert.equal(sergeyColumn.id, "mech-1");
 assert.equal(sergeyColumn.label, "Сергей");
 assert.equal(secondColumn.confirmed, false);
 assert.equal(secondColumn.id, "mech-2");
-assert.equal(secondColumn.label, "Piotr Nowak");
+assert.equal(secondColumn.crmName, "Piotr Nowak");
+assert.equal(secondColumn.label, "Механик 2 · имя уточняется");
+assert.equal(mayAutoAssignMechanic(secondColumn, "live"), false);
+assert.equal(mayAutoAssignMechanic(secondColumn, "fixture"), true);
+assert.equal(mayAutoAssignMechanic(sergeyColumn, "live"), true);
 assert.equal(effectiveMode(oil, undefined, true), "APPROVAL");
 assert.equal(canAutoBook({ operation: oil, parts: "unknown", resources: defaultSchedulerSettings.resources, resourceIds: ["lift-1"] }).auto, false);
 assert.equal(defaultSchedulerSettings.resources.every((item) => item.confirmed === false && item.status === "maintenance"), true);
 assert.equal(defaultSchedulerSettings.schedules.every((item) => item.breaks.length === 0 && item.shiftStart == null), true);
 assert.equal(canAutoBook({ operation: oil, parts: "available", resources: defaultSchedulerSettings.resources, resourceIds: ["lift-1"] }).reason, "equipment");
-const confirmedResources = defaultSchedulerSettings.resources.map((item) => ({ ...item, status: "available" as const, confirmed: true }));
+const confirmedResources = defaultSchedulerSettings.resources.map((item) => ({ ...item, status: "available" as const, confirmed: true, udtPermitConfirmed: item.kind === "lift" }));
+assert.equal(canAutoBook({ operation: oil, parts: "available", resources: confirmedResources.map((item) => ({ ...item, udtPermitConfirmed: false })), resourceIds: ["lift-1"] }).reason, "equipment");
 assert.deepEqual(selectRequiredResources(oil, ["lift-1", "ac-1"], confirmedResources), { ok: true, resourceIds: ["lift-1"] });
 assert.equal(canAutoBook({ operation: oil, parts: "available", resources: confirmedResources, resourceIds: ["lift-1"] }).reason, "ok");
+const localEquipment = localTestSchedulerSettings();
+assert.equal(localEquipment.resources.every((item) => item.status === "available" && item.confirmed), true);
+assert.equal(resourceReady(localEquipment.resources, "lift-1"), false);
+assert.equal(resourceReady(localEquipment.resources, "tyre-1"), true);
+assert.equal(defaultSchedulerSettings.resources.every((item) => item.status === "maintenance"), true);
 assert.equal(excludedFromAuto({ ...oil, operationNameRu: "Замена ремня ГРМ", operationNamePl: "Rozrząd" }), true);
 assert.equal(excludedFromAuto(byCode.get("DI-014") ?? oil), true);
 assert.equal(canAutoBook({ operation: byCode.get("DI-014") ?? tube, parts: "available", resources: defaultSchedulerSettings.resources, resourceIds: ["diag-1"] }).auto, false);
@@ -267,7 +277,17 @@ assert.equal(visibleToActor({ role: "admin", canEdit: true }, withVin.appointmen
 assert.equal(visibleToActor({ role: "owner", canEdit: true }, withVin.appointments).length, 2);
 const liveBoard = assembleBoard({ mode: "live", actor: { role: "owner", canEdit: true }, now: new Date("2026-11-08T12:00:00Z"), hours, crm: null, settings: defaultSchedulerSettings });
 assert.equal(liveBoard.snapshot.appointments.length, 0);
+assert.equal(liveBoard.snapshot.crmConnected, false);
+assert.match(liveBoard.message, /Ошибка подключения к CRM/);
 assert.equal(liveBoard.snapshot.source, "live");
+assert.deepEqual(workOverlapWarnings([
+  { id: "a", mechanicId: "mech-1", date: "2026-12-01", workStart: "11:00", workMinutes: 60, lift: "lift-1", plate: "WX1" },
+  { id: "b", mechanicId: "mech-1", date: "2026-12-01", workStart: "11:30", workMinutes: 30, lift: "lift-2", plate: "WX2" },
+]), ["Пересечение механика mech-1: WX1 и WX2. Записи не изменены."]);
+assert.equal(workOverlapWarnings([
+  { id: "a", mechanicId: "mech-1", date: "2026-12-01", workStart: "11:00", workMinutes: 60, lift: "lift-1", plate: "WX1" },
+  { id: "b", mechanicId: "mech-2", date: "2026-12-01", workStart: "11:00", workMinutes: 60, lift: "lift-2", plate: "WX2" },
+]).length, 0);
 assert.equal(JSON.stringify(liveBoard).includes("WX1001"), false);
 const mechanicBoard = assembleBoard({ mode: "test", actor: { role: "mechanic", mechanicId: "mech-1", canEdit: false }, now: new Date("2026-11-08T12:00:00Z"), hours, crm: null, settings: defaultSchedulerSettings });
 assert.equal(mechanicBoard.snapshot.appointments.every((item) => item.mechanicId === "mech-1"), true);
@@ -313,6 +333,7 @@ void (async () => {
   assert.equal(splitWorkBlocks({ id: "sunday", date: "2026-11-15", start: "10:00", minutes: 15, hours, mechanicId: "mech-1", resourceIds: [], operationCode: "x" }).ok, false);
   const savedWrites = process.env.SCHEDULER_TEST_WRITES;
   const savedVercel = process.env.VERCEL_ENV;
+  const savedFlag = process.env.SMART_WORK_SCHEDULER;
   process.env.SMART_WORK_SCHEDULER = "true";
   process.env.SCHEDULER_TEST_WRITES = "local";
   delete process.env.VERCEL_ENV;
@@ -323,7 +344,6 @@ void (async () => {
   else process.env.SCHEDULER_TEST_WRITES = savedWrites;
   if (savedVercel === undefined) delete process.env.VERCEL_ENV;
   else process.env.VERCEL_ENV = savedVercel;
-  const savedFlag = process.env.SMART_WORK_SCHEDULER;
   delete process.env.SMART_WORK_SCHEDULER;
   assert.equal(smartWorkSchedulerEnabled(), false);
   const disabled = await guardScheduler(new Request("http://local/api/internal/operations"));
@@ -373,9 +393,20 @@ void (async () => {
   assert.doesNotMatch(draft, /store_digest text := public\.scheduler_surface_digest/);
   assert.doesNotMatch(draft, /grant execute on function public\.scheduler_open_session\(text, text, text\) to scheduler_staff/);
   assert.match(draft, /revoke all on function public\.scheduler_open_session\(text, text, text\) from public, scheduler_staff/);
+  delete process.env.SMART_WORK_SCHEDULER;
+  delete process.env.SCHEDULER_READ_ONLY_PILOT;
+  delete process.env.SCHEDULER_UNIFIED_CALENDAR;
   assert.equal(schedulerUnifiedCalendarWired(), false);
   assert.equal(schedulerUnifiedModeRequired(), false);
   assert.equal(schedulerReadOnlyPilotEnabled(), false);
+  assert.equal(schedulerPageOpen(), false);
+  process.env.SCHEDULER_READ_ONLY_PILOT = "local";
+  assert.equal(schedulerPageOpen(), true);
+  assert.equal(smartWorkSchedulerEnabled(), false);
+  assert.equal(schedulerTestWritesEnabled(), false);
+  assert.equal(schedulerUnifiedModeRequired(), false);
+  delete process.env.SCHEDULER_READ_ONLY_PILOT;
+  assert.equal(schedulerPageOpen(), false);
   assert.equal(schedulerTestWritesEnabled(), false);
   assert.equal(productionCrmUrl(), null);
   process.env.SCHEDULER_PRODUCTION_DB_PERMIT = "allow";

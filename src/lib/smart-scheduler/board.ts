@@ -28,7 +28,7 @@ export function assembleBoard(input: {
   if (!input.crm) {
     return {
       snapshot: withDisplayNames(emptyLiveSnapshot(input.now), input.settings),
-      message: "Реальные записи не подключены. Синтетические автомобили не показаны.",
+      message: "Ошибка подключения к CRM. Расписание не загружено. Свободный день не показан.",
     };
   }
   const read = readOnlyAppointments(input.crm, input.hours);
@@ -59,11 +59,12 @@ export function assembleBoard(input: {
     snapshot: {
       ...snapshot,
       source: "live",
+      crmConnected: true,
       appointments,
       crmHolds: read.holds.filter((hold) => allowed.has(hold.mechanicId)),
       mechanics: snapshot.mechanics.map((mechanic) => {
         const crmName = names.get(mechanic.id);
-        return crmName && !input.settings.displayNames[mechanic.id] ? { ...mechanic, crmName, label: mechanic.id === "mech-1" ? mechanic.label : crmName } : mechanic;
+        return crmName ? { ...mechanic, crmName } : mechanic;
       }),
     },
     message: "Записи прочитаны с сервера. Браузер не получает служебный ключ базы.",

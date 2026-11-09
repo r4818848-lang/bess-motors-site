@@ -16,7 +16,9 @@
 
 `scheduler_store_appointments` и `scheduler_row_appointments` остаются только тестовыми зеркалами. Боевой путь их не подставляет вместо CRM.
 
-Шесть путей уже вызывают `withUnifiedCrm`. Пока SQL-флаг выключен, выполняется прежний код. Если процесс явно включил `SCHEDULER_UNIFIED_CALENDAR=on`, а транзакционная база недоступна, сохранение возвращает 503 и ничего не пишет. Адрес боевой Supabase по-прежнему отвергается: `productionCrmUrl()` в этом выпуске всегда пустой. Просмотр расписания не требует права записи: роль `scheduler_reader` имеет только `SELECT`, а ответ доски календаря помечен `writeRequired: false`. Обратимое включение описано в `supabase/drafts/smart-scheduler-switch.md`.
+Шесть путей уже вызывают `withUnifiedCrm`. Пока единый режим полностью выключен, выполняется прежний код. Если процесс включил `SCHEDULER_UNIFIED_CALENDAR=on`, а план подключения отклонён, база недоступна или SQL-флаг `unified_calendar` выключен, сохранение возвращает 503 и не вызывает старую двухшаговую запись. Адрес боевой Supabase по-прежнему отвергается: `productionCrmUrl()` в этом выпуске всегда пустой.
+
+Просмотр `/telegram/scheduler` включается отдельно переменной `SCHEDULER_READ_ONLY_PILOT=local`. Она не включает `SMART_WORK_SCHEDULER`, запись в PostgreSQL и `unified_calendar`. На Vercel production и preview страница остаётся закрытой даже при этой переменной. Новые таблицы в боевой Supabase для просмотра не нужны: доска читает существующий серверный CRM. Роль `scheduler_reader` имеет только `SELECT`. Обратимое включение записи описано в `supabase/drafts/smart-scheduler-switch.md`.
 
 ## Миграция
 

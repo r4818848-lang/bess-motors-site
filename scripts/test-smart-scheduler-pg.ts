@@ -16,10 +16,12 @@ import {
   connectSchedulerDatabase,
   issueCrmSnapshot,
   moveInDatabase,
+  loadResourceSettings,
   openActorSession,
   recordApproval,
   saveDisplayName,
 } from "../src/lib/smart-scheduler/postgres";
+import { resourceReady } from "../src/lib/smart-scheduler/settings";
 import type { Client } from "pg";
 
 process.env.SCHEDULER_DATABASE_URL = "postgresql://ubuntu@/bess_scheduler_test?host=/var/run/postgresql";
@@ -90,7 +92,28 @@ async function main() {
   assert.equal(blocked.error, "equipment");
   assert.equal(blocked.persisted, false);
 
-  await admin.query("update scheduler_resources set status = 'available', confirmed = true where id in ('lift-1', 'lift-2')");
+  await admin.query("update scheduler_resources set status = 'available', confirmed = true");
+  const ownerConfirmed = await loadResourceSettings(admin);
+  assert.equal(ownerConfirmed.every((item) => item.status === "available" && item.confirmed), true);
+  assert.equal(ownerConfirmed.filter((item) => item.kind === "lift").every((item) => item.udtPermitConfirmed !== true), true);
+  assert.equal(resourceReady(ownerConfirmed, "lift-1"), false);
+  assert.equal(resourceReady(ownerConfirmed, "lift-2"), false);
+  assert.equal(resourceReady(ownerConfirmed, "tyre-1"), true);
+  const withoutPermit = await bookFresh(admin, {
+    idempotencyKey: "lift-without-udt",
+    date: monday,
+    start: "11:00",
+    minutes: 45,
+    mechanicId: "mech-1",
+    resourceIds: ["lift-1"],
+    operation: oilOperation,
+    parts: "available",
+    hours,
+  });
+  assert.equal(withoutPermit.error, "equipment");
+  assert.equal(withoutPermit.persisted, false);
+  await admin.query("update scheduler_resources set status = 'maintenance', confirmed = false where id not in ('lift-1', 'lift-2')");
+  await admin.query("update scheduler_resources set status = 'available', confirmed = true, udt_permit_confirmed = true where id in ('lift-1', 'lift-2')");
   const missingParts = await bookFresh(admin, {
     idempotencyKey: "missing-parts",
     date: monday,

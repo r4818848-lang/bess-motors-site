@@ -9,6 +9,12 @@ export type MechanicColumn = {
 const SERGEY = /siergiej|sergey|сергей|сергей/i;
 const ANDREY = /andrzej|andrey|андрей/i;
 
+/** Synthetic tests may use both mechanics. Live auto-assignment waits for a confirmed identity. */
+export function mayAutoAssignMechanic(mechanic: { confirmed: boolean }, source: "live" | "fixture"): boolean {
+  if (source === "fixture") return true;
+  return mechanic.confirmed;
+}
+
 export function mechanicColumn(profile: { id: string; name: string }): MechanicColumn {
   const name = profile.name.trim();
   if (profile.id === "mech-1" && SERGEY.test(name)) {
@@ -21,9 +27,9 @@ export function mechanicColumn(profile: { id: string; name: string }): MechanicC
     return {
       id: profile.id,
       crmName: name,
-      label: name || "mech-2",
+      label: "Механик 2 · имя уточняется",
       confirmed: false,
-      note: "Имя «Андрей» для mech-2 не подтверждено. ID не переименован.",
+      note: "Личность mech-2 не подтверждена. ID, учётная запись и история заказов не переименованы. Реальные работы автоматически не назначаются.",
     };
   }
   return {

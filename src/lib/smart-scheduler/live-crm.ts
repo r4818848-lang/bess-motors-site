@@ -155,7 +155,9 @@ export async function commitLiveCalendar(client: Client, input: LiveCalendarInpu
         await client.query("rollback");
         return empty("manual");
       }
-      const resources = await client.query<ResourceSetting>("select id, kind, label, status, confirmed from scheduler_resources");
+      const resources = await client.query<ResourceSetting>(
+        `select id, kind, label, status, confirmed, udt_permit_confirmed as "udtPermitConfirmed" from scheduler_resources`
+      );
       const selected = selectRequiredResources(input.operation, resourceIds, resources.rows);
       if (!selected.ok) {
         await client.query("rollback");

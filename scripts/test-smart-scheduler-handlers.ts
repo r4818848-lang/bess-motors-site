@@ -730,8 +730,39 @@ async function main(): Promise<void> {
   assert.equal(await countId(admin, "req-diverged"), 0);
   results.diverge = "сохранение запрещено, причина показана";
 
-  delete process.env.SCHEDULER_UNIFIED_CALENDAR;
   await admin.query("select scheduler_set_unified_calendar(false)");
+  const sqlOff = await commitStaffAppointment({
+    mode: "create",
+    clientRequestId: "req-sql-off",
+    clientName: "Sql Off",
+    clientPhone: "48111000041",
+    date: resourceDate,
+    time: "13:30",
+    workStart: "13:30",
+    workMinutes: 30,
+    mechanicId: "mech-1",
+  }, new Date(morning.getTime() + 41));
+  assert.equal(sqlOff.ok, false);
+  if (!sqlOff.ok) assert.equal(sqlOff.status, 503);
+  assert.equal((await load(admin)).appointments.some((item) => item.clientRequestId === "req-sql-off"), false);
+  process.env.SCHEDULER_CRM_URL = "postgresql://db.example.supabase.co/postgres";
+  const refusedHost = await commitStaffAppointment({
+    mode: "create",
+    clientRequestId: "req-refused-host",
+    clientName: "Refused Host",
+    clientPhone: "48111000042",
+    date: resourceDate,
+    time: "13:30",
+    workStart: "13:30",
+    workMinutes: 30,
+    mechanicId: "mech-1",
+  }, new Date(morning.getTime() + 42));
+  delete process.env.SCHEDULER_CRM_URL;
+  assert.equal(refusedHost.ok, false);
+  if (!refusedHost.ok) assert.equal(refusedHost.status, 503);
+  results.failClosed = "включённый процесс не ушёл в старую запись";
+
+  delete process.env.SCHEDULER_UNIFIED_CALENDAR;
   const offAgain = await createTelegramBooking({
     serviceId: "diagnostic",
     date: slot.date,
