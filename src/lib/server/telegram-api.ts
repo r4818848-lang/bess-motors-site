@@ -140,11 +140,23 @@ export async function setTelegramWebhook(
   };
 }
 
+type TelegramSendTest = (chatId: string, text: string) => Promise<number | null>;
+let telegramSendTest: TelegramSendTest | null = null;
+
+/** Test double for sendMessage. Refused on Vercel so production still calls Telegram. */
+export function installTelegramSenderForTests(send: TelegramSendTest | null): void {
+  if (process.env.VERCEL_ENV === "production" || process.env.VERCEL_ENV === "preview") {
+    throw new Error("telegram_test_transport_refused");
+  }
+  telegramSendTest = send;
+}
+
 export async function sendTelegramMessage(
   chatId: number | string,
   text: string,
   replyMarkup?: TelegramReplyMarkup | { remove_keyboard: true }
 ): Promise<number | null> {
+  if (telegramSendTest) return telegramSendTest(String(chatId), text);
   const payload: Record<string, unknown> = {
     chat_id: chatId,
     text,

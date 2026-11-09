@@ -1,6 +1,6 @@
 import { calcLineTotal } from "@/lib/booking-cart";
 import { getPriceItem } from "@/lib/price-list";
-import type { CallRequest, Database, LeadContact, LeadStatus, ServiceLead, SiteLocale } from "@/lib/store";
+import type { CallRequest, Database, LeadContact, LeadNoticeRecipient, LeadStatus, ServiceLead, SiteLocale } from "@/lib/store";
 import { warsawParts } from "@/lib/workshop-schedule";
 
 const LOCALES: SiteLocale[] = ["pl", "uk", "ru", "en"];
@@ -205,32 +205,99 @@ export function upsertWebsiteLead(db: Database, input: IncomingLead): { lead: Se
   return { lead, created: true };
 }
 
+export type LeadNoticeClaim = { chatId: string; token: string };
+
 export function leadNoticeLeaseActive(lead: ServiceLead, now: Date): boolean {
+  const rows = lead.notifyRecipients ?? [];
+  if (rows.length > 0) return rows.some((row) => recipientLeaseActive(row, now));
   if (lead.notifyStatus !== "sending") return false;
   const age = now.getTime() - Date.parse(lead.updatedAt);
   return Number.isFinite(age) && age >= 0 && age < LEAD_NOTICE_LEASE_MS;
 }
 
-/** Reserve the single Telegram event. A second caller, including another Vercel instance, gets "skip". */
-export function claimLeadNotice(lead: ServiceLead, now: Date): "send" | "skip" {
-  lead.notifyEventId = leadNoticeEventId(lead.id);
-  if (lead.notifyStatus === "sent") return "skip";
-  if (leadNoticeLeaseActive(lead, now)) return "skip";
-  if ((lead.notifyAttempts ?? 0) >= LEAD_NOTICE_MAX_ATTEMPTS) return "skip";
-  const age = now.getTime() - Date.parse(lead.createdAt);
-  if (!Number.isFinite(age) || age < 0 || age > LEAD_NOTICE_RETRY_MS) return "skip";
-  lead.notifyStatus = "sending";
-  lead.notifyAttempts = (lead.notifyAttempts ?? 0) + 1;
-  lead.updatedAt = now.toISOString();
-  return "send";
+function recipientLeaseActive(row: LeadNoticeRecipient, now: Date): boolean {
+  if (row.status !== "sending" || !row.leaseUntil) return false;
+  const until = Date.parse(row.leaseUntil);
+  return Number.isFinite(until) && until > now.getTime();
 }
 
-/** Telegram failure returns the event to pending so a later attempt can send it once. */
-export function completeLeadNotice(lead: ServiceLead, delivered: boolean, now: Date): void {
-  if (lead.notifyStatus === "sent") return;
+function newClaimToken(): string {
+  const cryptoApi = globalThis.crypto;
+  if (cryptoApi?.randomUUID) return cryptoApi.randomUUID();
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`;
+}
+
+function touchLead(lead: ServiceLead, now: Date): void {
+  const previous = Date.parse(lead.updatedAt);
+  const next = Number.isFinite(previous) ? Math.max(now.getTime(), previous + 1) : now.getTime();
+  lead.updatedAt = new Date(next).toISOString();
+}
+
+function refreshLeadNotice(lead: ServiceLead, now: Date): void {
+  const rows = lead.notifyRecipients ?? [];
   lead.notifyEventId = leadNoticeEventId(lead.id);
-  lead.notifyStatus = delivered ? "sent" : "pending";
-  lead.updatedAt = now.toISOString();
+  lead.notifyAttempts = rows.reduce((max, row) => Math.max(max, row.attempts), 0);
+  if (rows.length === 0) return;
+  if (rows.every((row) => row.status === "sent")) lead.notifyStatus = "sent";
+  else if (rows.some((row) => recipientLeaseActive(row, now))) lead.notifyStatus = "sending";
+  else lead.notifyStatus = "pending";
+  touchLead(lead, now);
+}
+
+function noticeStillOpen(lead: ServiceLead, now: Date): boolean {
+  const age = now.getTime() - Date.parse(lead.createdAt);
+  return Number.isFinite(age) && age >= 0 && age <= LEAD_NOTICE_RETRY_MS;
+}
+
+/** Reserve delivery for each admin chat that has not been sent. A live lease is left alone. */
+export function claimLeadNotice(lead: ServiceLead, now: Date, chatIds: string[]): LeadNoticeClaim[] {
+  if (!noticeStillOpen(lead, now)) return [];
+  const wanted = [...new Set(chatIds.map((id) => id.trim()).filter(Boolean))];
+  if (wanted.length === 0) return [];
+  lead.notifyRecipients = lead.notifyRecipients ?? [];
+  const claims: LeadNoticeClaim[] = [];
+  for (const chatId of wanted) {
+    let row = lead.notifyRecipients.find((item) => item.chatId === chatId);
+    if (!row) {
+      row = { chatId, status: "pending", attempts: 0, claimToken: "" };
+      lead.notifyRecipients.push(row);
+    }
+    if (row.status === "sent") continue;
+    if (recipientLeaseActive(row, now)) continue;
+    if (row.attempts >= LEAD_NOTICE_MAX_ATTEMPTS) continue;
+    row.claimToken = newClaimToken();
+    row.status = "sending";
+    row.attempts += 1;
+    row.leaseUntil = new Date(now.getTime() + LEAD_NOTICE_LEASE_MS).toISOString();
+    claims.push({ chatId, token: row.claimToken });
+  }
+  refreshLeadNotice(lead, now);
+  return claims;
+}
+
+/** Apply a result only when the token is still the current claim. A stale attempt cannot finish a newer one. */
+export function completeLeadNotice(
+  lead: ServiceLead,
+  chatId: string,
+  token: string,
+  delivered: boolean,
+  now: Date,
+  messageId?: number
+): "applied" | "stale" {
+  const row = (lead.notifyRecipients ?? []).find((item) => item.chatId === chatId);
+  if (!row || !token || row.claimToken !== token) return "stale";
+  if (row.status === "sent") return "applied";
+  if (delivered) {
+    row.status = "sent";
+    row.sentAt = now.toISOString();
+    row.leaseUntil = undefined;
+    if (messageId != null) row.messageId = messageId;
+  } else {
+    row.status = "pending";
+    row.leaseUntil = undefined;
+  }
+  refreshLeadNotice(lead, now);
+  return "applied";
 }
 
 export type WebsiteInquiryInput = IncomingLead & {
@@ -244,8 +311,9 @@ export type WebsiteInquiryInput = IncomingLead & {
 export function acceptWebsiteInquiry(
   db: Database,
   input: WebsiteInquiryInput,
-  now = input.now ?? new Date()
-): { lead: ServiceLead; created: boolean; callCreated: boolean; decision: "send" | "skip" } {
+  now = input.now ?? new Date(),
+  chatIds: string[] = []
+): { lead: ServiceLead; created: boolean; callCreated: boolean; decision: "send" | "skip"; claims: LeadNoticeClaim[] } {
   const saved = upsertWebsiteLead(db, { ...input, id: openInquiryId(db, input, now), now });
   db.callRequests = db.callRequests ?? [];
   const callId = `call-${saved.lead.id}`;
@@ -267,11 +335,13 @@ export function acceptWebsiteInquiry(
     };
     db.callRequests.push(call);
   }
+  const claims = saved.created ? claimLeadNotice(saved.lead, now, chatIds) : [];
   return {
     lead: saved.lead,
     created: saved.created,
     callCreated: saved.created && !callExists,
-    decision: saved.created ? claimLeadNotice(saved.lead, now) : "skip",
+    decision: claims.length > 0 ? "send" : "skip",
+    claims,
   };
 }
 

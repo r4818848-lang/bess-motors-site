@@ -8,10 +8,10 @@ import {
 import { cloudGetCrmStore } from "@/lib/server/crm-cloud";
 import { cloudMutateCrmStore } from "@/lib/server/crm-cloud-mutate";
 import { safeExternalNotify, withUnifiedCrm } from "@/lib/server/unified-calendar";
-import { claimLeadNotice, completeLeadNotice, upsertWebsiteLead } from "@/lib/service-leads";
+import { finishClaimedLeadNotice, productionLeadChatIds, releaseClaimedLeadNotice } from "@/lib/server/telegram-cron/lead-notifications";
+import { claimLeadNotice, upsertWebsiteLead, type LeadNoticeClaim } from "@/lib/service-leads";
 import { normalizePhone } from "@/lib/server/normalize-phone";
 import type { Appointment, Database } from "@/lib/store";
-import { notifyAdminTelegram } from "@/lib/server/admin-telegram";
 import {
   cloudDeleteAppointment,
   cloudListAppointmentsByPhone,
@@ -91,10 +91,14 @@ export async function POST(req: Request) {
     );
   }
 
+  let bookingClaims: LeadNoticeClaim[] = [];
+  let noticeLeadId = "";
   const crmPut = await cloudMutateCrmStore(async (db) => {
     await applyWebsiteBooking(db, apt);
     const row = bookingLead(db, apt);
-    return row ? claimLeadNotice(row, new Date()) : "skip";
+    noticeLeadId = row?.id ?? "";
+    bookingClaims = row ? claimLeadNotice(row, new Date(), productionLeadChatIds()) : [];
+    return bookingClaims.length > 0 ? "send" : "skip";
   });
 
   if (!crmPut.ok) {
@@ -108,12 +112,7 @@ export async function POST(req: Request) {
   const tablePut = await cloudUpsertAppointment(apt);
   if (!tablePut.ok) {
     console.error("[booking] appointments table sync failed", apt.id, tablePut.error);
-    if (crmPut.result === "send") {
-      await cloudMutateCrmStore((db) => {
-        const row = bookingLead(db, apt);
-        if (row) completeLeadNotice(row, false, new Date());
-      }, { skipAutomation: true });
-    }
+    if (crmPut.result === "send" && noticeLeadId) await releaseClaimedLeadNotice(noticeLeadId, bookingClaims);
     return NextResponse.json(
       { ok: false, error: tablePut.error ?? "appointments_sync_failed", crmSynced: true },
       { status: 502 }
@@ -121,12 +120,8 @@ export async function POST(req: Request) {
   }
 
   if (crmPut.result === "send") {
-    const telegramOk = await notifyAdminTelegram(bookingNotice(apt));
-    await cloudMutateCrmStore((db) => {
-      const row = bookingLead(db, apt);
-      if (row) completeLeadNotice(row, telegramOk, new Date());
-    }, { skipAutomation: true });
-    if (!telegramOk) {
+    const notice = await finishClaimedLeadNotice(noticeLeadId, bookingNotice(apt), bookingClaims);
+    if (notice.failed.length > 0) {
       console.warn("[telegram] notify failed (check TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID)");
     }
   }
@@ -265,7 +260,8 @@ async function applyWebsiteBooking(db: Database, apt: Appointment): Promise<void
 }
 
 async function saveWebsiteBookingUnified(apt: Appointment): Promise<NextResponse | null> {
-  let decision: "send" | "skip" = "skip";
+  let bookingClaims: LeadNoticeClaim[] = [];
+  let noticeLeadId = "";
   const outcome = await withUnifiedCrm(async (db) => {
     const arrival = evaluateArrivalTime({ date: apt.date, time: apt.time });
     if (!arrival.ok) return { abort: { error: arrival.error, status: 400 } };
@@ -273,17 +269,14 @@ async function saveWebsiteBookingUnified(apt: Appointment): Promise<NextResponse
     const previous = structuredClone(db);
     await applyWebsiteBooking(db, apt);
     const row = bookingLead(db, apt);
-    decision = row ? claimLeadNotice(row, new Date()) : "skip";
+    noticeLeadId = row?.id ?? "";
+    bookingClaims = row ? claimLeadNotice(row, new Date(), productionLeadChatIds()) : [];
     runCrmAutomation(db, previous);
     return { value: apt, eventKey: `web:${apt.id}` };
   }, { notify: async (previous, next) => {
     await safeExternalNotify(previous, next);
-    if (decision !== "send") return;
-    const telegramOk = await notifyAdminTelegram(bookingNotice(apt));
-    await cloudMutateCrmStore((db) => {
-      const row = bookingLead(db, apt);
-      if (row) completeLeadNotice(row, telegramOk, new Date());
-    }, { skipAutomation: true });
+    if (bookingClaims.length === 0 || !noticeLeadId) return;
+    await finishClaimedLeadNotice(noticeLeadId, bookingNotice(apt), bookingClaims);
   } });
   if (!outcome.handled) return null;
   if (!outcome.ok) {

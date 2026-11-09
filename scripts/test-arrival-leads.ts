@@ -253,6 +253,7 @@ if (savedKey === undefined) delete process.env.SUPABASE_SERVICE_ROLE_KEY;
 else process.env.SUPABASE_SERVICE_ROLE_KEY = savedKey;
 assert.equal(getSupabaseConfig(), null);
 
+const chats = ["1001", "1002"];
 const inquiry = {
   phone: "+48500111222",
   name: "Anna",
@@ -264,10 +265,11 @@ const inquiry = {
 const empty = mergeStoredDb({ leads: [], callRequests: [] });
 const leftInquiry = structuredClone(empty);
 const rightInquiry = structuredClone(empty);
-const firstPost = acceptWebsiteInquiry(leftInquiry, inquiry, past);
-const secondPost = acceptWebsiteInquiry(rightInquiry, { ...inquiry, clientRequestId: "other-tab" }, past);
+const firstPost = acceptWebsiteInquiry(leftInquiry, inquiry, past, chats);
+const secondPost = acceptWebsiteInquiry(rightInquiry, { ...inquiry, clientRequestId: "other-tab" }, past, chats);
 assert.equal(firstPost.decision, "send");
 assert.equal(secondPost.decision, "send");
+assert.equal(firstPost.claims.length, 2);
 assert.equal(firstPost.lead.id, secondPost.lead.id);
 assert.equal(firstPost.lead.notifyEventId, leadNoticeEventId(firstPost.lead.id));
 assert.equal(secondPost.lead.notifyEventId, firstPost.lead.notifyEventId);
@@ -285,11 +287,22 @@ assert.equal(repeatedForm.decision, "skip");
 assert.equal(leftInquiry.leads.length, 1);
 assert.equal(leftInquiry.callRequests.length, 1);
 assert.equal(leadNeedsNotice(leftInquiry.leads[0], threeMinutes), true);
-const cronRetry = claimLeadNotice(leftInquiry.leads[0], threeMinutes);
-assert.equal(cronRetry, "send");
-assert.equal(claimLeadNotice(leftInquiry.leads[0], new Date(threeMinutes.getTime() + 1000)), "skip");
-completeLeadNotice(leftInquiry.leads[0], true, new Date(threeMinutes.getTime() + 2000));
-const afterSent = acceptWebsiteInquiry(leftInquiry, inquiry, new Date(threeMinutes.getTime() + 5000));
+const expired = claimLeadNotice(leftInquiry.leads[0], threeMinutes, chats);
+assert.equal(expired.length, 2);
+assert.equal(completeLeadNotice(leftInquiry.leads[0], chats[0], firstPost.claims[0].token, true, threeMinutes), "stale");
+assert.equal(leftInquiry.leads[0].notifyStatus, "sending");
+assert.equal(claimLeadNotice(leftInquiry.leads[0], new Date(threeMinutes.getTime() + 1000), chats).length, 0);
+assert.equal(completeLeadNotice(leftInquiry.leads[0], expired[0].chatId, expired[0].token, true, new Date(threeMinutes.getTime() + 2000)), "applied");
+assert.equal(completeLeadNotice(leftInquiry.leads[0], expired[1].chatId, expired[1].token, false, new Date(threeMinutes.getTime() + 2000)), "applied");
+assert.equal(leftInquiry.leads[0].notifyStatus, "pending");
+assert.equal(leftInquiry.leads[0].notifyRecipients?.find((row) => row.chatId === chats[0])?.status, "sent");
+assert.equal(leftInquiry.leads[0].notifyRecipients?.find((row) => row.chatId === chats[1])?.status, "pending");
+const retryFailed = claimLeadNotice(leftInquiry.leads[0], new Date(threeMinutes.getTime() + 3000), chats);
+assert.deepEqual(retryFailed.map((claim) => claim.chatId), [chats[1]]);
+assert.equal(completeLeadNotice(leftInquiry.leads[0], retryFailed[0].chatId, retryFailed[0].token, true, new Date(threeMinutes.getTime() + 4000), 77), "applied");
+assert.equal(leftInquiry.leads[0].notifyStatus, "sent");
+assert.equal(leftInquiry.leads[0].notifyRecipients?.find((row) => row.chatId === chats[1])?.messageId, 77);
+const afterSent = acceptWebsiteInquiry(leftInquiry, inquiry, new Date(threeMinutes.getTime() + 5000), chats);
 assert.equal(afterSent.decision, "skip");
 assert.equal(afterSent.lead.notifyStatus, "sent");
 assert.equal(leadNeedsNotice(afterSent.lead, new Date(threeMinutes.getTime() + 5000)), false);
@@ -297,14 +310,16 @@ assert.equal(leftInquiry.leads.length, 1);
 assert.equal(leftInquiry.callRequests.length, 1);
 
 const failedDb = mergeStoredDb({ leads: [], callRequests: [] });
-const failedPost = acceptWebsiteInquiry(failedDb, inquiry, past);
+const failedPost = acceptWebsiteInquiry(failedDb, inquiry, past, chats);
 assert.equal(failedPost.decision, "send");
-completeLeadNotice(failedPost.lead, false, new Date(past.getTime() + 5000));
+for (const claim of failedPost.claims) {
+  assert.equal(completeLeadNotice(failedPost.lead, claim.chatId, claim.token, false, new Date(past.getTime() + 5000)), "applied");
+}
 assert.equal(failedPost.lead.notifyStatus, "pending");
-assert.equal(acceptWebsiteInquiry(failedDb, inquiry, threeMinutes).decision, "skip");
+assert.equal(acceptWebsiteInquiry(failedDb, inquiry, threeMinutes, chats).decision, "skip");
 assert.equal(failedDb.leads.length, 1);
 assert.equal(failedDb.callRequests.length, 1);
 assert.equal(leadNeedsNotice(failedPost.lead, threeMinutes), true);
-assert.equal(claimLeadNotice(failedPost.lead, threeMinutes), "send");
+assert.equal(claimLeadNotice(failedPost.lead, threeMinutes, chats).length, 2);
 
 console.log("arrival and leads ok");

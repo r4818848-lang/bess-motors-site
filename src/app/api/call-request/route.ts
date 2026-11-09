@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { cloudMutateCrmStore } from "@/lib/server/crm-cloud-mutate";
-import { notifyAdminTelegram } from "@/lib/server/admin-telegram";
 import { normalizePhone } from "@/lib/server/normalize-phone";
-import { acceptWebsiteInquiry, completeLeadNotice, formatLeadMessage, normalizeSiteLocale } from "@/lib/service-leads";
+import { finishClaimedLeadNotice, productionLeadChatIds } from "@/lib/server/telegram-cron/lead-notifications";
+import { acceptWebsiteInquiry, formatLeadMessage, normalizeSiteLocale, type LeadNoticeClaim } from "@/lib/service-leads";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -63,6 +63,7 @@ export async function POST(req: Request) {
   const source = /^[a-z0-9_-]{1,40}$/.test(requestedSource) ? requestedSource : "website";
 
   const saved: { leadId: string | null } = { leadId: null };
+  let claims: LeadNoticeClaim[] = [];
   const put = await cloudMutateCrmStore((db) => {
     const accepted = acceptWebsiteInquiry(db, {
       clientRequestId: (body.clientRequestId ?? "").trim() || undefined,
@@ -81,9 +82,11 @@ export async function POST(req: Request) {
       source,
       sourceUrl: body.sourceUrl,
       comment,
-    });
+    }, new Date(), productionLeadChatIds());
     saved.leadId = accepted.lead.id;
-    return accepted.decision;
+    claims = accepted.claims;
+    if (!accepted.created) return "skip";
+    return accepted.claims.length > 0 ? "send" : "saved";
   });
   if (!put.ok) {
     console.error("[call-request] CRM save failed", put.error);
@@ -94,20 +97,21 @@ export async function POST(req: Request) {
   }
 
   let telegramOk = false;
-  if (put.result === "send" && saved.leadId) {
+  if (put.result === "send" && saved.leadId && claims.length > 0) {
     const leadId = saved.leadId;
     const { cloudGetCrmStore } = await import("@/lib/server/crm-cloud");
     const snap = await cloudGetCrmStore();
     const lead = snap?.doc?.leads?.find((item) => item.id === leadId);
-    telegramOk = await notifyAdminTelegram(lead ? formatLeadMessage(lead) : `<b>Новая заявка</b>\nID: <code>${leadId}</code>`);
-    await cloudMutateCrmStore((db) => {
-      const row = (db.leads ?? []).find((item) => item.id === leadId);
-      if (row) completeLeadNotice(row, telegramOk, new Date());
-    }, { skipAutomation: true });
+    const notice = await finishClaimedLeadNotice(
+      leadId,
+      lead ? formatLeadMessage(lead) : `<b>Новая заявка</b>\nID: <code>${leadId}</code>`,
+      claims
+    );
+    telegramOk = notice.failed.length === 0 && notice.delivered.length === claims.length;
     if (!telegramOk) {
       console.warn("[call-request] telegram notify failed (check TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID)");
     }
   }
 
-  return NextResponse.json({ ok: true, cloud: true, telegramOk, duplicate: put.result !== "send" });
+  return NextResponse.json({ ok: true, cloud: true, telegramOk, duplicate: put.result === "skip" });
 }
