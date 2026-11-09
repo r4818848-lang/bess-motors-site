@@ -5,6 +5,7 @@ import {
   STAFF_NEW_LABEL,
   STAFF_TODAY_LABEL,
   calendarAppUrl,
+  smartSchedulerReadonlyRow,
 } from "./staff-calendar-bot";
 import type { ReportPeriod } from "@/lib/crm-analytics";
 import type { ExpenseCategory, RepairStatus } from "@/lib/store";
@@ -22,9 +23,11 @@ const STATUSES: RepairStatus[] = [
 ];
 
 export function mainMenuKeyboard(): InlineKeyboardMarkup {
+  const smart = smartSchedulerReadonlyRow();
   return {
     inline_keyboard: [
       [{ text: CALENDAR_REPLY_LABEL, web_app: { url: calendarAppUrl() } }],
+      ...(smart ? [smart] : []),
       [{ text: STAFF_LEADS_LABEL, callback_data: "leads:new" }],
       [{ text: STAFF_TODAY_LABEL, callback_data: "cal:today" }],
       [{ text: STAFF_NEW_LABEL, web_app: { url: calendarAppUrl(undefined, { create: true }) } }],

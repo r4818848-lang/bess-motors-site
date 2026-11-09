@@ -1,4 +1,5 @@
 import { formatWarsawDateKey } from "@/lib/date-key";
+import { schedulerReadOnlyPilotEnabled } from "@/lib/smart-scheduler/flag";
 import { addDateKeyDays } from "@/lib/staff-calendar";
 import { cleanEnvValue } from "@/lib/server/supabase-config";
 import {
@@ -32,6 +33,12 @@ export function calendarAppUrl(aptId?: string, extra?: { create?: boolean; leadI
   return url.toString();
 }
 
+/** Staff-only Mini App entry. The existing editable calendar remains unchanged. */
+export function smartSchedulerReadonlyRow(): InlineKeyboardMarkup["inline_keyboard"][number] | null {
+  if (!schedulerReadOnlyPilotEnabled()) return null;
+  return [{ text: "🧠 План работ · просмотр", web_app: { url: new URL("/telegram/scheduler", calendarSiteOrigin()).toString() } }];
+}
+
 export const CALENDAR_REPLY_LABEL = "📅 Календарь";
 export const STAFF_TODAY_LABEL = "🚗 Сегодня";
 export const STAFF_LEADS_LABEL = "📥 Заявки";
@@ -51,6 +58,8 @@ export function calendarOpenKeyboard(aptId?: string): InlineKeyboardMarkup {
     rows.push([{ text: "Открыть запись", web_app: { url: calendarAppUrl(aptId) } }]);
   }
   rows.push([{ text: "📅 Календарь", web_app: { url: calendarAppUrl() } }]);
+  const smart = smartSchedulerReadonlyRow();
+  if (smart) rows.push(smart);
   return { inline_keyboard: rows };
 }
 
