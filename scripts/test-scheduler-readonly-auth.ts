@@ -10,6 +10,8 @@ import {
   smartWorkSchedulerEnabled,
 } from "../src/lib/smart-scheduler/flag";
 import { installCrmCloudForTests } from "../src/lib/server/crm-cloud";
+import { mainMenuKeyboard } from "../src/lib/server/telegram-bot/keyboards";
+import { calendarOpenKeyboard } from "../src/lib/server/telegram-bot/staff-calendar-bot";
 
 const keys = [
   "TELEGRAM_BOT_TOKEN",
@@ -74,6 +76,10 @@ async function main(): Promise<void> {
   assert.equal(schedulerUnifiedCalendarWired(), false);
   assert.equal(schedulerReadOnlyPilotEnabled(), false);
   assert.equal(schedulerPageOpen(), false);
+  // The regular calendar link must remain intact, and the new entry hidden by default.
+  assert.equal(JSON.stringify(mainMenuKeyboard()).includes("/telegram/scheduler"), false);
+  assert.equal(JSON.stringify(calendarOpenKeyboard()).includes("/telegram/scheduler"), false);
+  assert.equal(JSON.stringify(mainMenuKeyboard()).includes("/telegram/calendar"), true);
 
   process.env.SCHEDULER_READ_ONLY_PILOT = "local";
   process.env.VERCEL_ENV = "preview";
@@ -87,9 +93,16 @@ async function main(): Promise<void> {
   process.env.SCHEDULER_CRM_SOURCE = "cloud";
   assert.equal(schedulerReadOnlyPilotEnabled(), true);
   assert.equal(schedulerPageOpen(), true);
+  const menu = mainMenuKeyboard().inline_keyboard.flat();
+  const smartLinks = menu.filter((row) => row.web_app?.url.endsWith("/telegram/scheduler"));
+  assert.equal(smartLinks.length, 1);
+  assert.match(smartLinks[0].text, /просмотр/);
+  assert.equal(menu.some((row) => row.web_app?.url.endsWith("/telegram/calendar")), true);
+  assert.equal(calendarOpenKeyboard().inline_keyboard.flat().filter((row) => row.web_app?.url.endsWith("/telegram/scheduler")).length, 1);
   assert.equal(schedulerTestWritesEnabled(), false);
   process.env.SMART_WORK_SCHEDULER = "true";
   assert.equal(schedulerReadOnlyPilotEnabled(), false);
+  assert.equal(JSON.stringify(mainMenuKeyboard()).includes("/telegram/scheduler"), false);
   delete process.env.SMART_WORK_SCHEDULER;
 
   process.env.TELEGRAM_BOT_TOKEN = "123456:scheduler-readonly-test";
