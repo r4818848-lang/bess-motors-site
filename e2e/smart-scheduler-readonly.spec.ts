@@ -60,6 +60,7 @@ test("read-only calendar shows Сергей and Механик 2", async ({ page
   await expect(page.getByText("Piotr Nowak")).toHaveCount(0);
   await expect(page.getByText("Андрей")).toHaveCount(0);
 
+  expect((await request.get("/api/internal/schedule/board?mode=live")).status()).toBe(401);
   expect((await request.post("/api/internal/schedule/reservations", { data: {} })).status()).toBe(404);
   expect((await request.put("/api/internal/schedule/settings", { data: {} })).status()).toBe(404);
   expect((await request.post("/api/internal/schedule/approvals", { data: {} })).status()).toBe(404);

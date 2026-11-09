@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { workshopHours } from "@/lib/businessConfig";
 import { guardScheduler, isGuardError } from "@/lib/smart-scheduler/access";
 import { assembleBoard } from "@/lib/smart-scheduler/board";
-import { schedulerTestBoardOpen, smartWorkSchedulerEnabled } from "@/lib/smart-scheduler/flag";
+import { schedulerReadOnlyPilotEnabled, schedulerTestBoardOpen, smartWorkSchedulerEnabled } from "@/lib/smart-scheduler/flag";
 import { connectSchedulerDatabase, loadSchedulerSettings, schedulerDatabaseUrl } from "@/lib/smart-scheduler/postgres";
 import { defaultSchedulerSettings } from "@/lib/smart-scheduler/settings";
 import { responseLeaksSecrets } from "@/lib/smart-scheduler/visibility";
@@ -22,6 +22,9 @@ async function settingsOrDefault() {
 
 export async function GET(req: Request) {
   const mode = new URL(req.url).searchParams.get("mode") === "test" ? "test" : "live";
+  if (mode === "test" && process.env.VERCEL_ENV === "production") {
+    return NextResponse.json({ ok: false, error: "disabled" }, { status: 404 });
+  }
   const actor = await guardScheduler(req, { allowTestBoard: mode === "test", readOnly: true });
   if (isGuardError(actor)) {
     if (mode === "live" && schedulerTestBoardOpen()) {
@@ -29,6 +32,9 @@ export async function GET(req: Request) {
       return NextResponse.json({ ok: true, mode: "live", canConfigure: true, writable: false, message: empty.message, snapshot: empty.snapshot });
     }
     return actor;
+  }
+  if (mode === "live" && process.env.SCHEDULER_CRM_SOURCE !== "cloud") {
+    return NextResponse.json({ ok: false, error: "crm_unavailable", writable: false }, { status: 503, headers: { "Cache-Control": "private, no-store" } });
   }
   const settings = await settingsOrDefault();
   let crm = null;
@@ -44,10 +50,10 @@ export async function GET(req: Request) {
   return NextResponse.json({
     ok: true,
     mode,
-    canConfigure: actor.role === "owner" && smartWorkSchedulerEnabled(),
+    canConfigure: actor.role === "owner" && smartWorkSchedulerEnabled() && !schedulerReadOnlyPilotEnabled(),
     writable: false,
     writeRequired: false,
     message: board.message,
     snapshot: board.snapshot,
-  });
+  }, { headers: { "Cache-Control": "private, no-store" } });
 }

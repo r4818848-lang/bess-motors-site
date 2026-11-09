@@ -20,7 +20,7 @@ import {
 import { canAutoBook } from "@/lib/smart-scheduler/policy";
 import { scheduledBreaks, type ResourceStatus, type SchedulerSettings } from "@/lib/smart-scheduler/settings";
 import { addDateKeyDays } from "@/lib/staff-calendar";
-import { bindTelegramViewport, calendarFrame, readTelegramWebApp, type CalendarFrame } from "@/lib/telegram-webapp-client";
+import { bindTelegramViewport, calendarFrame, readTelegramWebApp, waitForTelegramInitData, type CalendarFrame } from "@/lib/telegram-webapp-client";
 import { clockToMinutes, weekdayIndexFromDateKey, type WorkshopHours } from "@/lib/workshop-schedule";
 
 const OPEN = 9 * 60;
@@ -65,11 +65,13 @@ export function WorkScheduler({
   hours,
   rules,
   readOnly = false,
+  allowTestMode = true,
 }: {
   catalog: Operation[];
   hours: WorkshopHours;
   rules: OverlapRule[];
   readOnly?: boolean;
+  allowTestMode?: boolean;
 }) {
   const [frame, setFrame] = useState<CalendarFrame>(() => calendarFrame({}));
   const [mode, setMode] = useState<"live" | "test">("live");
@@ -107,14 +109,23 @@ export function WorkScheduler({
 
   useEffect(() => {
     let stop = false;
-    const initData = typeof window === "undefined" ? "" : readTelegramWebApp(window).initData;
-    fetch(`/api/internal/schedule/board?mode=${mode}`, { headers: initData ? { "x-telegram-init-data": initData } : {} })
-      .then(async (response) => ({ ok: response.ok, body: await response.json().catch(() => null) as { snapshot?: SchedulerSnapshot; message?: string; canConfigure?: boolean; error?: string } | null }))
-      .then(({ ok, body }) => {
+    async function loadBoard() {
+      try {
+        // The Telegram SDK is injected asynchronously on iOS. A one-shot read can miss initData.
+        const launch = await waitForTelegramInitData(() => readTelegramWebApp(window));
         if (stop) return;
-        if (!ok || !body?.snapshot) {
+        const response = await fetch(`/api/internal/schedule/board?mode=${mode}`, {
+          headers: launch.initData ? { "x-telegram-init-data": launch.initData } : {},
+          cache: "no-store",
+        });
+        const body = await response.json().catch(() => null) as { snapshot?: SchedulerSnapshot; message?: string; canConfigure?: boolean; error?: string } | null;
+        if (stop) return;
+        if (!response.ok || !body?.snapshot) {
           setSnapshot((current) => ({ ...current, source: "live", crmConnected: false, appointments: [], crmHolds: [] }));
-          setMessage(body?.error === "missing" ? "Нужна авторизация сотрудника. Расписание не загружено." : "Ошибка подключения к CRM. Расписание не загружено.");
+          setCanConfigure(false);
+          setMessage(response.status === 401 ? "Откройте календарь кнопкой Mini App из Telegram сотрудника." :
+            response.status === 403 ? "Нет доступа к расписанию. Этот Telegram не назначен сотруднику." :
+            "Ошибка подключения к CRM. Расписание не загружено.");
           return;
         }
         setSnapshot(body.snapshot);
@@ -122,13 +133,15 @@ export function WorkScheduler({
         setMessage(body.message ?? "");
         setCanConfigure(Boolean(body.canConfigure) && !readOnly);
         setDate(body.snapshot.appointments[0]?.date ?? body.snapshot.date);
-      })
-      .catch(() => {
-        if (!stop) setMessage("Ошибка подключения к CRM. Расписание не загружено.");
-      });
-    return () => {
-      stop = true;
-    };
+      } catch {
+        if (!stop) {
+          setCanConfigure(false);
+          setMessage("Ошибка подключения к CRM. Расписание не загружено.");
+        }
+      }
+    }
+    void loadBoard();
+    return () => { stop = true; };
   }, [mode, readOnly]);
 
   function blocksFor(day: string, mechanic: string) {
@@ -282,7 +295,7 @@ export function WorkScheduler({
         ))}
         {!readOnly && <button type="button" data-testid="scheduler-new" className="min-h-12 rounded-xl bg-red-700 px-4 text-sm font-semibold" onClick={() => setOpen(true)}>Новая запись</button>}
         <button type="button" data-testid="scheduler-mode-live" className={`min-h-12 rounded-xl px-3 text-sm ${mode === "live" ? "bg-white text-black" : "bg-zinc-900"}`} onClick={() => setMode("live")}>Реальные записи</button>
-        <button type="button" data-testid="scheduler-mode-test" className={`min-h-12 rounded-xl px-3 text-sm ${mode === "test" ? "bg-white text-black" : "bg-zinc-900"}`} onClick={() => setMode("test")}>TEST</button>
+        {allowTestMode && <button type="button" data-testid="scheduler-mode-test" className={`min-h-12 rounded-xl px-3 text-sm ${mode === "test" ? "bg-white text-black" : "bg-zinc-900"}`} onClick={() => setMode("test")}>TEST</button>}
       </div>
       {canConfigure && (
         <section className="mt-4 space-y-3 rounded-2xl bg-zinc-900 p-4" data-testid="scheduler-settings">

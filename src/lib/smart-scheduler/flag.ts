@@ -36,10 +36,20 @@ export function schedulerPageOpen(): boolean {
   return smartWorkSchedulerEnabled() || schedulerReadOnlyPilotEnabled();
 }
 
-/** View the schedule without a write grant. Off unless a local pilot sets it. It never enables writes. Vercel stays closed. */
+/**
+ * Staff-only, read-only calendar gate. Default is closed on every deployment.
+ * The production opt-in is separate from SMART_WORK_SCHEDULER and all write switches.
+ * Preview never opens. No migration or scheduler DB role is required for reads.
+ */
 export function schedulerReadOnlyPilotEnabled(): boolean {
-  if (process.env.VERCEL_ENV === "production" || process.env.VERCEL_ENV === "preview") return false;
-  return process.env.SCHEDULER_READ_ONLY_PILOT === "local";
+  const mode = process.env.SCHEDULER_READ_ONLY_PILOT;
+  const environment = process.env.VERCEL_ENV;
+  if (mode === "local") return environment !== "production" && environment !== "preview";
+  if (mode !== "production-readonly" || environment !== "production") return false;
+  return !smartWorkSchedulerEnabled()
+    && process.env.SCHEDULER_UNIFIED_CALENDAR !== "on"
+    && !process.env.SCHEDULER_TEST_WRITES
+    && process.env.SCHEDULER_CRM_SOURCE === "cloud";
 }
 
 /** Local screenshot and TEST board only. Never on preview or production. */
