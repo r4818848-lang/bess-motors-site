@@ -465,6 +465,19 @@ export interface LeadContact {
   managerId?: string;
 }
 
+export interface LeadNoticeRecipient {
+  chatId: string;
+  status: "pending" | "sending" | "sent";
+  attempts: number;
+  /** Fencing token. A late writer must present the current token. */
+  claimToken: string;
+  leaseUntil?: string;
+  messageId?: number;
+  sentAt?: string;
+  /** Last Telegram or transport error for this chat. Cleared after a confirmed send. */
+  lastError?: string;
+}
+
 export interface ServiceLead {
   id: string;
   createdAt: string;
@@ -488,6 +501,10 @@ export interface ServiceLead {
   contacts: LeadContact[];
   appointmentId?: string;
   clientRequestId?: string;
+  /** One delivery event for this lead. Retries reuse it; a second chat message does not get a new one. */
+  notifyEventId?: string;
+  /** Per admin chat. The lead is sent only when every recipient here is sent. */
+  notifyRecipients?: LeadNoticeRecipient[];
   notifyStatus: "pending" | "sending" | "sent";
   notifyAttempts: number;
 }

@@ -1,6 +1,7 @@
 import { calcLineTotal } from "@/lib/booking-cart";
 import { getPriceItem } from "@/lib/price-list";
-import type { Database, LeadContact, LeadStatus, ServiceLead, SiteLocale } from "@/lib/store";
+import type { CallRequest, Database, LeadContact, LeadNoticeRecipient, LeadStatus, ServiceLead, SiteLocale } from "@/lib/store";
+import { warsawParts } from "@/lib/workshop-schedule";
 
 const LOCALES: SiteLocale[] = ["pl", "uk", "ru", "en"];
 
@@ -90,19 +91,84 @@ export type IncomingLead = {
   now?: Date;
 };
 
+const OPEN_LEAD_WINDOW_MS = 24 * 60 * 60 * 1000;
+export const LEAD_NOTICE_LEASE_MS = 2 * 60 * 1000;
+const LEAD_NOTICE_RETRY_MS = 24 * 60 * 60 * 1000;
+const LEAD_NOTICE_MAX_ATTEMPTS = 5;
+
+export function leadNoticeEventId(leadId: string): string {
+  return `lead-notice:${leadId}`;
+}
+
+function normalizedVin(value: string | undefined): string {
+  const vin = (value ?? "").replace(/\s/g, "").toUpperCase();
+  return vin.length === 17 ? vin : "";
+}
+
+function serviceLabelOf(lead: ServiceLead): string {
+  return lead.services[0]?.label ?? "";
+}
+
+function inquiryClosed(lead: ServiceLead): boolean {
+  return lead.status === "declined" || lead.status === "done" || lead.status === "booked";
+}
+
+/** An open inquiry can absorb a retry. A closed or day-old row does not block the next one. */
+function inquiryCurrent(lead: ServiceLead, now: Date): boolean {
+  if (inquiryClosed(lead)) return false;
+  const age = now.getTime() - Date.parse(lead.createdAt);
+  return Number.isFinite(age) && age >= 0 && age <= OPEN_LEAD_WINDOW_MS;
+}
+
+/** Same person, source and request still open. A new VIN, another service, or a later day stays a separate lead. */
 function sameLead(lead: ServiceLead, input: IncomingLead, now: Date): boolean {
-  if (input.clientRequestId && lead.clientRequestId === input.clientRequestId) return true;
-  if (input.id && lead.id === input.id) return true;
-  const age = now.getTime() - new Date(lead.createdAt).getTime();
+  const requestHit =
+    Boolean(input.clientRequestId && lead.clientRequestId === input.clientRequestId) ||
+    Boolean(input.id && (lead.id === input.id || lead.clientRequestId === input.id));
+  if (requestHit) return inquiryCurrent(lead, now);
+  if (!inquiryCurrent(lead, now)) return false;
+  const vin = normalizedVin(input.vin);
+  const label = (input.serviceLabel ?? input.services?.[0]?.label ?? "").trim();
+  const existingLabel = serviceLabelOf(lead);
   return (
-    age >= 0 &&
-    age < 2 * 60 * 1000 &&
     lead.phone === input.phone &&
     lead.source === (input.source || "website") &&
-    lead.desiredDate === (input.desiredDate ?? "") &&
-    lead.desiredTime === (input.desiredTime ?? "") &&
-    lead.status !== "declined"
+    (!vin || !lead.vin || vin === lead.vin) &&
+    (!label || !existingLabel || label === existingLabel)
   );
+}
+
+function openInquiryId(db: Database, input: IncomingLead, now: Date): string {
+  const base = websiteInquiryId(input, now);
+  const taken = (db.leads ?? []).filter((lead) => lead.id === base || lead.id.startsWith(`${base}-`));
+  const open = taken.find((lead) => inquiryCurrent(lead, now));
+  if (open) return open.id;
+  let candidate = base;
+  let n = 2;
+  while (taken.some((lead) => lead.id === candidate)) {
+    candidate = `${base}-${n}`;
+    n += 1;
+  }
+  return candidate;
+}
+
+/** Stable id for one open request, including two POSTs that have not seen each other yet. */
+export function websiteInquiryId(input: IncomingLead, now: Date): string {
+  if (input.id) return input.id;
+  const day = warsawParts(now).dateKey;
+  const raw = [
+    input.phone,
+    input.source || "website",
+    normalizedVin(input.vin),
+    (input.serviceLabel ?? input.services?.[0]?.label ?? "").trim(),
+    day,
+  ].join("|");
+  let hash = 2166136261;
+  for (let i = 0; i < raw.length; i++) {
+    hash ^= raw.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return `lead-${(hash >>> 0).toString(16).padStart(8, "0")}-${day.replace(/-/g, "")}`;
 }
 
 /** Save one lead. A repeated request returns the existing row. */
@@ -112,6 +178,13 @@ export function upsertWebsiteLead(db: Database, input: IncomingLead): { lead: Se
   const existing = db.leads.find((lead) => sameLead(lead, input, now));
   if (existing) return { lead: existing, created: false };
 
+  const baseId = input.id || input.clientRequestId || `lead-${now.getTime()}`;
+  let id = baseId;
+  let suffix = 2;
+  while (db.leads.some((lead) => lead.id === id)) {
+    id = `${baseId}-${suffix}`;
+    suffix += 1;
+  }
   const names = splitName(input.name ?? "");
   const services = input.services?.length
     ? input.services.map((item) => quoteSubmittedLine(item.id, item.label ?? "", item.quantity))
@@ -119,7 +192,7 @@ export function upsertWebsiteLead(db: Database, input: IncomingLead): { lead: Se
       ? [quoteService(input.serviceId, input.serviceLabel ?? "")]
       : [];
   const lead: ServiceLead = {
-    id: input.id || input.clientRequestId || `lead-${now.getTime()}`,
+    id,
     createdAt: now.toISOString(),
     updatedAt: now.toISOString(),
     firstName: names.firstName,
@@ -142,11 +215,158 @@ export function upsertWebsiteLead(db: Database, input: IncomingLead): { lead: Se
     managerId: "",
     contacts: [],
     clientRequestId: input.clientRequestId || input.id,
+    notifyEventId: leadNoticeEventId(id),
     notifyStatus: "pending",
     notifyAttempts: 0,
   };
+  lead.notifyEventId = leadNoticeEventId(lead.id);
   db.leads.push(lead);
   return { lead, created: true };
+}
+
+export type LeadNoticeClaim = { chatId: string; token: string };
+
+export function leadNoticeLeaseActive(lead: ServiceLead, now: Date): boolean {
+  const rows = lead.notifyRecipients ?? [];
+  if (rows.length > 0) return rows.some((row) => recipientLeaseActive(row, now));
+  if (lead.notifyStatus !== "sending") return false;
+  const age = now.getTime() - Date.parse(lead.updatedAt);
+  return Number.isFinite(age) && age >= 0 && age < LEAD_NOTICE_LEASE_MS;
+}
+
+function recipientLeaseActive(row: LeadNoticeRecipient, now: Date): boolean {
+  if (row.status !== "sending" || !row.leaseUntil) return false;
+  const until = Date.parse(row.leaseUntil);
+  return Number.isFinite(until) && until > now.getTime();
+}
+
+function newClaimToken(): string {
+  const cryptoApi = globalThis.crypto;
+  if (cryptoApi?.randomUUID) return cryptoApi.randomUUID();
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`;
+}
+
+function touchLead(lead: ServiceLead, now: Date): void {
+  const previous = Date.parse(lead.updatedAt);
+  const next = Number.isFinite(previous) ? Math.max(now.getTime(), previous + 1) : now.getTime();
+  lead.updatedAt = new Date(next).toISOString();
+}
+
+function refreshLeadNotice(lead: ServiceLead, now: Date): void {
+  const rows = lead.notifyRecipients ?? [];
+  lead.notifyEventId = leadNoticeEventId(lead.id);
+  lead.notifyAttempts = rows.reduce((max, row) => Math.max(max, row.attempts), 0);
+  if (rows.length === 0) return;
+  if (rows.every((row) => row.status === "sent")) lead.notifyStatus = "sent";
+  else if (rows.some((row) => recipientLeaseActive(row, now))) lead.notifyStatus = "sending";
+  else lead.notifyStatus = "pending";
+  touchLead(lead, now);
+}
+
+function noticeStillOpen(lead: ServiceLead, now: Date): boolean {
+  const age = now.getTime() - Date.parse(lead.createdAt);
+  return Number.isFinite(age) && age >= 0 && age <= LEAD_NOTICE_RETRY_MS;
+}
+
+/** Reserve delivery for each admin chat that has not been sent. A live lease is left alone. */
+export function claimLeadNotice(lead: ServiceLead, now: Date, chatIds: string[]): LeadNoticeClaim[] {
+  if (!noticeStillOpen(lead, now)) return [];
+  // A lead already marked sent before per-chat rows existed must not be opened again.
+  if ((lead.notifyRecipients ?? []).length === 0 && lead.notifyStatus === "sent") return [];
+  const wanted = [...new Set(chatIds.map((id) => id.trim()).filter(Boolean))];
+  if (wanted.length === 0) return [];
+  lead.notifyRecipients = lead.notifyRecipients ?? [];
+  const claims: LeadNoticeClaim[] = [];
+  for (const chatId of wanted) {
+    let row = lead.notifyRecipients.find((item) => item.chatId === chatId);
+    if (!row) {
+      row = { chatId, status: "pending", attempts: 0, claimToken: "" };
+      lead.notifyRecipients.push(row);
+    }
+    if (row.status === "sent") continue;
+    if (recipientLeaseActive(row, now)) continue;
+    if (row.attempts >= LEAD_NOTICE_MAX_ATTEMPTS) continue;
+    row.claimToken = newClaimToken();
+    row.status = "sending";
+    row.attempts += 1;
+    row.leaseUntil = new Date(now.getTime() + LEAD_NOTICE_LEASE_MS).toISOString();
+    claims.push({ chatId, token: row.claimToken });
+  }
+  refreshLeadNotice(lead, now);
+  return claims;
+}
+
+/** Apply a result only when the token is still the current claim. A stale attempt cannot finish a newer one. */
+export function completeLeadNotice(
+  lead: ServiceLead,
+  chatId: string,
+  token: string,
+  delivered: boolean,
+  now: Date,
+  messageId?: number,
+  error?: string
+): "applied" | "stale" {
+  const row = (lead.notifyRecipients ?? []).find((item) => item.chatId === chatId);
+  if (!row || !token || row.claimToken !== token) return "stale";
+  if (row.status === "sent") return "applied";
+  if (delivered) {
+    row.status = "sent";
+    row.sentAt = now.toISOString();
+    row.leaseUntil = undefined;
+    row.lastError = undefined;
+    if (messageId != null) row.messageId = messageId;
+  } else {
+    row.status = "pending";
+    row.leaseUntil = undefined;
+    row.lastError = error?.trim() || "telegram_send_failed";
+  }
+  refreshLeadNotice(lead, now);
+  return "applied";
+}
+
+export type WebsiteInquiryInput = IncomingLead & {
+  serviceId?: string;
+  serviceLabel?: string;
+  comment?: string;
+  priority?: "normal" | "urgent";
+};
+
+/** One open inquiry: one lead, one call request, and at most one reserved notification. */
+export function acceptWebsiteInquiry(
+  db: Database,
+  input: WebsiteInquiryInput,
+  now = input.now ?? new Date(),
+  chatIds: string[] = []
+): { lead: ServiceLead; created: boolean; callCreated: boolean; decision: "send" | "skip"; claims: LeadNoticeClaim[] } {
+  const saved = upsertWebsiteLead(db, { ...input, id: openInquiryId(db, input, now), now });
+  db.callRequests = db.callRequests ?? [];
+  const callId = `call-${saved.lead.id}`;
+  const callExists = db.callRequests.some((call) => call.id === callId);
+  if (!callExists && saved.created) {
+    const call: CallRequest = {
+      id: callId,
+      phone: input.phone,
+      clientName: input.name?.trim() || undefined,
+      serviceId: input.serviceId ?? "",
+      serviceLabel: input.serviceLabel ?? serviceLabelOf(saved.lead),
+      comment: input.comment ?? "",
+      userId: "guest",
+      status: "needs_call",
+      source: "website",
+      createdAt: now.toISOString(),
+      priority: input.priority ?? "normal",
+      marketing: input.source && input.source !== "website" ? { utmSource: input.source } : undefined,
+    };
+    db.callRequests.push(call);
+  }
+  const claims = saved.created ? claimLeadNotice(saved.lead, now, chatIds) : [];
+  return {
+    lead: saved.lead,
+    created: saved.created,
+    callCreated: saved.created && !callExists,
+    decision: claims.length > 0 ? "send" : "skip",
+    claims,
+  };
 }
 
 export type LeadAction = "confirm_call" | "confirm_sms" | "no_answer" | "callback" | "decline" | "done" | "booked";

@@ -13,6 +13,10 @@
       "schedule": "*/5 * * * *"
     },
     {
+      "path": "/api/telegram/cron/lead-notices",
+      "schedule": "*/5 * * * *"
+    },
+    {
       "path": "/api/telegram/cron/morning-arrivals",
       "schedule": "0 6,7 * * *"
     },

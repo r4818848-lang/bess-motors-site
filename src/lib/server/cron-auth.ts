@@ -24,6 +24,15 @@ export function reminderDeliveryEnabled(): boolean {
 }
 
 /**
+ * Retry of website lead notices. Disabled on its own leaves appointment
+ * reminders and a new customer's immediate Telegram message running.
+ */
+export function leadNoticeDeliveryEnabled(): boolean {
+  if (cleanEnvValue(process.env.LEAD_NOTICE_DELIVERY) === "disabled") return false;
+  return reminderDeliveryEnabled();
+}
+
+/**
  * Calendar writes reach the shared CRM.
  * Production can save. Preview cannot. A local server can save only with
  * STAFF_CALENDAR_WRITES=local, so a laptop holding production keys does not

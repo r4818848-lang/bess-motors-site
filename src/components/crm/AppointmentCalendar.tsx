@@ -14,6 +14,7 @@ import {
 } from "@/lib/store";
 import { createWorkOrderFromAppointment } from "@/lib/create-work-order-from-booking";
 import { syncAppointmentToCloud } from "@/lib/appointment-cloud-sync";
+import { arrivalTimesForDate } from "@/lib/arrival-window";
 import {
   WORK_HOURS,
   CalendarView,
@@ -232,10 +233,11 @@ export function AppointmentCalendar({
     className?: string;
   }) => (
     <div
-      className={`min-h-[52px] border-b border-bm-border/30 p-0.5 ${className}`}
+      className={`min-h-[52px] border-b border-bm-border/30 p-0.5 ${arrivalTimesForDate(date).includes(time) ? "" : "opacity-40"} ${className}`}
       onDragOver={(e) => e.preventDefault()}
       onDrop={(e) => {
         e.preventDefault();
+        if (!arrivalTimesForDate(date).includes(time)) return;
         const id = e.dataTransfer.getData("aptId") || dragId;
         if (id) moveAppointment(id, date, time);
       }}
@@ -327,7 +329,7 @@ export function AppointmentCalendar({
               <div className="p-3 border-b border-bm-border bg-bm-red/10 font-display text-sm uppercase">
                 {cursor.toLocaleDateString(undefined, { weekday: "long", dateStyle: "long" })}
               </div>
-              {WORK_HOURS.map((time) => {
+              {[...new Set([...arrivalTimesForDate(formatDateKey(cursor)), ...appointments.filter((item) => item.date === formatDateKey(cursor)).map((item) => item.time)])].sort().map((time) => {
                 const dk = formatDateKey(cursor);
                 const slotApts = aptsBySlot(dk, time);
                 return (
@@ -491,7 +493,10 @@ export function AppointmentCalendar({
                         value={selected.time}
                         onChange={(e) => updateSelected({ time: e.target.value })}
                       >
-                        {WORK_HOURS.map((h) => (
+                        {(arrivalTimesForDate(selected.date).includes(selected.time)
+                          ? arrivalTimesForDate(selected.date)
+                          : [selected.time, ...arrivalTimesForDate(selected.date)]
+                        ).map((h) => (
                           <option key={h} value={h}>
                             {h}
                           </option>

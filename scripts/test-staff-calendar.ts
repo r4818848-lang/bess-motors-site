@@ -80,24 +80,36 @@ assert.equal(
 );
 assert.equal(
   evaluateStaffArrival({
-    date: monday,
-    time: "17:00",
+    date: "2026-11-13",
+    time: "17:30",
     durationMinutes: 120,
     hours,
     lunch,
+    now: new Date("2026-11-01T07:00:00.000Z"),
+  }).ok,
+  true
+);
+assert.equal(
+  evaluateStaffArrival({
+    date: "2026-11-13",
+    time: "18:00",
+    durationMinutes: 30,
+    hours,
+    lunch,
+    now: new Date("2026-11-01T07:00:00.000Z"),
   }).ok,
   false
 );
 assert.equal(
   evaluateStaffArrival({
-    date: monday,
-    time: "17:00",
+    date: saturday,
+    time: "13:30",
     durationMinutes: 120,
-    allowMultiDay: true,
     hours,
     lunch,
+    now: new Date("2026-11-01T07:00:00.000Z"),
   }).ok,
-  false
+  true
 );
 assert.equal(
   evaluateStaffArrival({

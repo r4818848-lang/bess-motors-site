@@ -1,0 +1,92 @@
+﻿operation_code,operation_name_ru,operation_name_pl,category,base_labor_hours,min_labor_hours,max_labor_hours,required_resources,booking_mode,overlap_group,vehicle_conditions,source,updated_at,reference_calendar_minutes
+MA-001,Замена масла двигателя + фильтр,Wymiana oleju silnikowego i filtra,MA,0.5,,,"mechanic,lift",AUTO,oil_service,,user_screenshots_2026-11-08,2026-11-08,45
+MA-002,Замена масла без фильтра,Wymiana oleju bez filtra,MA,0.4,,,"mechanic,lift",AUTO,oil_service,,user_screenshots_2026-11-08,2026-11-08,30
+MA-003,Замена масляного фильтра отдельно,Wymiana filtra oleju osobno,MA,0.25,,,"mechanic,lift",AUTO,oil_service,,user_screenshots_2026-11-08,2026-11-08,30
+MA-004,Воздушный фильтр двигателя,Wymiana filtra powietrza silnika,MA,0.2,,,mechanic,AUTO,maintenance,,user_screenshots_2026-11-08,2026-11-08,15
+MA-005,Салонный фильтр,Wymiana filtra kabinowego,MA,0.25,,,mechanic,AUTO,maintenance,,user_screenshots_2026-11-08,2026-11-08,30
+MA-006,"Топливный фильтр, бензин",Wymiana filtra paliwa benzyna,MA,0.5,,,mechanic,APPROVAL,maintenance,,user_screenshots_2026-11-08,2026-11-08,45
+MA-007,"Топливный фильтр, дизель",Wymiana filtra paliwa diesel,MA,0.75,,,mechanic,APPROVAL,maintenance,,user_screenshots_2026-11-08,2026-11-08,60
+MA-008,"Свечи зажигания, комплект 4 шт.",Wymiana świec zapłonowych komplet 4 szt.,MA,0.75,,,mechanic,APPROVAL,ignition,,user_screenshots_2026-11-08,2026-11-08,60
+MA-009,"Свечи накаливания, комплект 4 шт.",Wymiana świec żarowych komplet 4 szt.,MA,1.5,,,mechanic,APPROVAL,ignition,,user_screenshots_2026-11-08,2026-11-08,120
+MA-010,Замена антифриза,Wymiana płynu chłodniczego,MA,1.0,,,"mechanic,lift",AUTO,cooling,,user_screenshots_2026-11-08,2026-11-08,75
+MA-011,Замена тормозной жидкости,Wymiana płynu hamulcowego,MA,0.75,,,"mechanic,lift",AUTO,brake_service,,user_screenshots_2026-11-08,2026-11-08,60
+MA-012,Замена жидкости ГУР,Wymiana płynu wspomagania kierownicy,MA,0.75,,,mechanic,APPROVAL,steering,,user_screenshots_2026-11-08,2026-11-08,60
+MA-013,Замена приводного ремня,Wymiana paska osprzętu,MA,0.75,,,mechanic,APPROVAL,belt,,user_screenshots_2026-11-08,2026-11-08,60
+MA-014,Замена ремня и натяжителя,Wymiana paska osprzętu i napinacza,MA,1.25,,,mechanic,APPROVAL,belt,,user_screenshots_2026-11-08,2026-11-08,90
+MA-015,Комплексное ТО (масло + 3 фильтра),Przegląd pakietowy olej i 3 filtry,MA,1.25,,,"mechanic,lift",AUTO,oil_service,,user_screenshots_2026-11-08,2026-11-08,105
+MA-016,Проверка жидкостей и уровней,Kontrola płynów eksploatacyjnych,MA,0.25,,,mechanic,AUTO,inspection,,user_screenshots_2026-11-08,2026-11-08,15
+MA-017,Сброс сервисного интервала,Kasowanie inspekcji serwisowej,MA,0.15,,,"mechanic,diagnostic_device",AUTO,inspection,,user_screenshots_2026-11-08,2026-11-08,15
+BR-001,"Передние колодки, ось",Wymiana klocków hamulcowych przód oś,BR,0.75,,,"mechanic,lift",AUTO,front_brakes,,user_screenshots_2026-11-08,2026-11-08,60
+BR-002,"Задние колодки, ось",Wymiana klocków hamulcowych tył oś,BR,1.0,,,"mechanic,lift",APPROVAL,rear_brakes,,user_screenshots_2026-11-08,2026-11-08,75
+BR-003,Передние диски + колодки,Wymiana tarcz i klocków przód,BR,1.25,,,"mechanic,lift",AUTO,front_brakes,,user_screenshots_2026-11-08,2026-11-08,90
+BR-004,Задние диски + колодки,Wymiana tarcz i klocków tył,BR,1.5,,,"mechanic,lift",APPROVAL,rear_brakes,,user_screenshots_2026-11-08,2026-11-08,120
+BR-005,"Диски + колодки, обе оси",Wymiana tarcz i klocków obie osie,BR,2.5,,,"mechanic,lift",APPROVAL,all_brakes,,user_screenshots_2026-11-08,2026-11-08,180
+BR-006,"Обслуживание направляющих, ось",Serwis prowadnic zacisków oś,BR,0.75,,,"mechanic,lift",APPROVAL,brake_service,,user_screenshots_2026-11-08,2026-11-08,60
+BR-007,"Замена суппорта, 1 шт.",Wymiana zacisku hamulcowego 1 szt.,BR,1.0,,,"mechanic,lift",APPROVAL,brake_service,,user_screenshots_2026-11-08,2026-11-08,75
+BR-008,"Ремонт суппорта, 1 шт.",Regeneracja zacisku 1 szt.,BR,1.5,,,"mechanic,lift",APPROVAL,brake_service,,user_screenshots_2026-11-08,2026-11-08,120
+BR-009,Замена тормозного шланга,Wymiana przewodu elastycznego hamulca,BR,0.75,,,"mechanic,lift",APPROVAL,brake_service,,user_screenshots_2026-11-08,2026-11-08,60
+BR-010,Замена тормозной трубки,Wymiana sztywnego przewodu hamulcowego,BR, ,,,"mechanic,lift",MANUAL,brake_service,,user_screenshots_2026-11-08,2026-11-08, 
+BR-011,Прокачка тормозов,Odpowietrzanie hamulców,BR,0.5,,,"mechanic,lift",AUTO,brake_service,,user_screenshots_2026-11-08,2026-11-08,45
+BR-012,Замена троса ручника,Wymiana linki hamulca ręcznego,BR,1.5,,,"mechanic,lift",APPROVAL,rear_brakes,,user_screenshots_2026-11-08,2026-11-08,120
+BR-013,Обслуживание электронного ручника,Serwis elektrycznego hamulca postojowego,BR,0.5,,,"mechanic,diagnostic_device,lift",APPROVAL,rear_brakes,,user_screenshots_2026-11-08,2026-11-08,45
+BR-014,Проверка тормозной системы,Kontrola układu hamulcowego,BR,0.5,,,"mechanic,lift",AUTO,inspection,,user_screenshots_2026-11-08,2026-11-08,45
+SU-001,"Стойка стабилизатора, 1 шт.",Łącznik stabilizatora 1 szt.,SU,0.4,,,"mechanic,lift",AUTO,stabilizer,,user_screenshots_2026-11-08,2026-11-08,30
+SU-002,"Стойки стабилизатора, 2 шт.",Łączniki stabilizatora 2 szt.,SU,0.75,,,"mechanic,lift",AUTO,stabilizer,,user_screenshots_2026-11-08,2026-11-08,60
+SU-003,"Втулки стабилизатора, 2 шт.",Tuleje stabilizatora 2 szt.,SU,1.25,,,"mechanic,lift",APPROVAL,stabilizer,,user_screenshots_2026-11-08,2026-11-08,90
+SU-004,"Передний рычаг, 1 шт.",Wahacz przedni 1 szt.,SU,1.0,,,"mechanic,lift",APPROVAL,front_suspension,,user_screenshots_2026-11-08,2026-11-08,75
+SU-005,"Передние рычаги, 2 шт.",Wahacze przednie 2 szt.,SU,1.75,,,"mechanic,lift",APPROVAL,front_suspension,,user_screenshots_2026-11-08,2026-11-08,135
+SU-006,"Сайлентблок рычага, 1 шт.",Tuleja wahacza 1 szt.,SU,1.25,,,"mechanic,lift,press",APPROVAL,front_suspension,,user_screenshots_2026-11-08,2026-11-08,90
+SU-007,"Шаровая опора, 1 шт.",Sworzeń wahacza 1 szt.,SU,0.75,,,"mechanic,lift",APPROVAL,front_suspension,,user_screenshots_2026-11-08,2026-11-08,60
+SU-008,"Рулевой наконечник, 1 шт.",Końcówka drążka kierowniczego 1 szt.,SU,0.5,,,"mechanic,lift",APPROVAL,steering_side,,user_screenshots_2026-11-08,2026-11-08,45
+SU-009,"Рулевая тяга, 1 шт.",Drążek kierowniczy 1 szt.,SU,0.75,,,"mechanic,lift",APPROVAL,steering_side,,user_screenshots_2026-11-08,2026-11-08,60
+SU-010,"Передний амортизатор, 1 шт.",Amortyzator przedni 1 szt.,SU,1.25,,,"mechanic,lift,spring_compressor",APPROVAL,front_strut,,user_screenshots_2026-11-08,2026-11-08,90
+SU-011,"Передние амортизаторы, пара",Amortyzatory przednie para,SU,2.25,,,"mechanic,lift,spring_compressor",APPROVAL,front_strut,,user_screenshots_2026-11-08,2026-11-08,165
+SU-012,"Задние амортизаторы, пара",Amortyzatory tylne para,SU,1.5,,,"mechanic,lift",APPROVAL,rear_suspension,,user_screenshots_2026-11-08,2026-11-08,120
+SU-013,"Передняя пружина, 1 шт.",Sprężyna przednia 1 szt.,SU,1.5,,,"mechanic,lift,spring_compressor",APPROVAL,front_strut,,user_screenshots_2026-11-08,2026-11-08,120
+SU-014,Ступичный подшипник передний,Łożysko koła przedniego,SU,1.5,,,"mechanic,lift,press",APPROVAL,wheel_hub,,user_screenshots_2026-11-08,2026-11-08,120
+SU-015,Ступичный подшипник задний,Łożysko koła tylnego,SU,1.25,,,"mechanic,lift,press",APPROVAL,wheel_hub,,user_screenshots_2026-11-08,2026-11-08,90
+SU-016,Передняя ступица в сборе,Piasta przednia komplet,SU,1.0,,,"mechanic,lift",APPROVAL,wheel_hub,,user_screenshots_2026-11-08,2026-11-08,75
+SU-017,"Рулевая рейка, снятие/установка",Przekładnia kierownicza demontaż/montaż,SU,4.0,,,"mechanic,lift",MANUAL,steering,,user_screenshots_2026-11-08,2026-11-08,300
+SU-018,"Подрамник, снятие/установка",Rama pomocnicza demontaż/montaż,SU,3.0,,,"mechanic,lift",MANUAL,subframe,,user_screenshots_2026-11-08,2026-11-08,240
+SU-019,Диагностика подвески,Diagnostyka zawieszenia,SU,0.5,,,"mechanic,lift",AUTO,inspection,,user_screenshots_2026-11-08,2026-11-08,45
+AC-001,Обслуживание кондиционера R134a,Serwis klimatyzacji R134a,AC,0.75,,,"mechanic,ac_station",AUTO,ac_service,,user_screenshots_2026-11-08,2026-11-08,60
+AC-002,Обслуживание R1234yf,Serwis klimatyzacji R1234yf,AC,0.75,,,"mechanic,ac_station",APPROVAL,ac_service,,user_screenshots_2026-11-08,2026-11-08,60
+AC-003,Проверка герметичности,Test szczelności klimatyzacji,AC,0.75,,,"mechanic,ac_station",AUTO,ac_service,,user_screenshots_2026-11-08,2026-11-08,60
+AC-004,Диагностика кондиционера,Diagnostyka klimatyzacji,AC,0.75,,,"mechanic,ac_station",AUTO,ac_service,,user_screenshots_2026-11-08,2026-11-08,60
+AC-005,УФ-поиск утечки,Lokalizacja wycieku UV,AC,1.0,,,"mechanic,ac_station",APPROVAL,ac_service,,user_screenshots_2026-11-08,2026-11-08,75
+AC-006,Озонирование салона,Ozonowanie wnętrza,AC,0.5,,,ozone_machine,AUTO,interior_cleaning,,user_screenshots_2026-11-08,2026-11-08,45
+AC-007,Дезинфекция кондиционера,Dezynfekcja klimatyzacji,AC,0.5,,,mechanic,AUTO,ac_service,,user_screenshots_2026-11-08,2026-11-08,45
+AC-008,Компрессор кондиционера,Wymiana sprężarki klimatyzacji,AC,2.5,,,"mechanic,lift,ac_station",APPROVAL,ac_compressor,,user_screenshots_2026-11-08,2026-11-08,195
+AC-009,Конденсор кондиционера,Wymiana skraplacza klimatyzacji,AC,2.0,,,"mechanic,lift,ac_station",APPROVAL,ac_condenser,,user_screenshots_2026-11-08,2026-11-08,150
+AC-010,Осушитель кондиционера,Wymiana osuszacza klimatyzacji,AC,1.25,,,"mechanic,ac_station",APPROVAL,ac_service,,user_screenshots_2026-11-08,2026-11-08,90
+AC-011,Трубка кондиционера,Wymiana przewodu klimatyzacji,AC,1.5,,,"mechanic,lift,ac_station",APPROVAL,ac_service,,user_screenshots_2026-11-08,2026-11-08,120
+AC-012,Электровентилятор отопителя,Wymiana dmuchawy nagrzewnicy,AC,2.0,,,mechanic,APPROVAL,heating,,user_screenshots_2026-11-08,2026-11-08,150
+DI-001,Считывание ошибок OBD,Odczyt błędów OBD,DI,0.3,,,"mechanic,diagnostic_device",AUTO,diagnostic,,user_screenshots_2026-11-08,2026-11-08,30
+DI-002,Компьютерная диагностика,Diagnostyka komputerowa,DI,0.5,,,"mechanic,diagnostic_device",AUTO,diagnostic,,user_screenshots_2026-11-08,2026-11-08,45
+DI-003,Полная диагностика авто,Kompleksowa diagnostyka pojazdu,DI,1.5,,,"mechanic,diagnostic_device",APPROVAL,diagnostic,,user_screenshots_2026-11-08,2026-11-08,120
+DI-004,Диагностика перед покупкой,Diagnostyka przed zakupem,DI,2.0,,,"mechanic,diagnostic_device,lift",APPROVAL,diagnostic,,user_screenshots_2026-11-08,2026-11-08,150
+DI-005,Диагностика двигателя,Diagnostyka silnika,DI,1.0,,,"mechanic,diagnostic_device",APPROVAL,diagnostic,,user_screenshots_2026-11-08,2026-11-08,75
+DI-006,Диагностика тормозов,Diagnostyka hamulców,DI,0.5,,,"mechanic,lift",AUTO,inspection,,user_screenshots_2026-11-08,2026-11-08,45
+DI-007,Диагностика подвески,Diagnostyka zawieszenia,DI,0.5,,,"mechanic,lift",AUTO,inspection,,user_screenshots_2026-11-08,2026-11-08,45
+DI-008,Диагностика турбины,Diagnostyka turbosprężarki,DI,1.0,,,"mechanic,diagnostic_device",APPROVAL,diagnostic,,user_screenshots_2026-11-08,2026-11-08,75
+DI-009,"Проверка компрессии, 4 цилиндра",Pomiar kompresji 4 cylindry,DI,1.5,,,"mechanic,compression_tester",APPROVAL,diagnostic,,user_screenshots_2026-11-08,2026-11-08,120
+DI-010,Эндоскопия двигателя,Endoskopia silnika,DI,1.5,,,"mechanic,endoscope",APPROVAL,diagnostic,,user_screenshots_2026-11-08,2026-11-08,120
+DI-011,Проверка герметичности дымогенератором,Próba szczelności dymownicą,DI,1.0,,,"mechanic,smoke_machine",APPROVAL,diagnostic,,user_screenshots_2026-11-08,2026-11-08,75
+DI-012,CO2-тест системы охлаждения,Test CO2 układu chłodzenia,DI,0.5,,,"mechanic,co2_tester",AUTO,diagnostic,,user_screenshots_2026-11-08,2026-11-08,45
+DI-013,Диагностика утечки тока,Diagnoza poboru prądu spoczynkowego,DI,1.5,,,"mechanic,multimeter",APPROVAL,diagnostic,,user_screenshots_2026-11-08,2026-11-08,120
+DI-014,Диагностика сложной неисправности,Diagnostyka złożonej usterki,DI, ,,,"mechanic,diagnostic_device",MANUAL,diagnostic,,user_screenshots_2026-11-08,2026-11-08,120
+TY-001,"Полный шиномонтаж R13–R15, 4 колеса",Wymiana opon R13–R15 komplet,TY,0.75,,,"mechanic,tyre_machine,balancer",AUTO,tyres,,user_screenshots_2026-11-08,2026-11-08,60
+TY-002,"Полный шиномонтаж R16, 4 колеса",Wymiana opon R16 komplet,TY,0.85,,,"mechanic,tyre_machine,balancer",AUTO,tyres,,user_screenshots_2026-11-08,2026-11-08,75
+TY-003,"Полный шиномонтаж R17, 4 колеса",Wymiana opon R17 komplet,TY,1.0,,,"mechanic,tyre_machine,balancer",AUTO,tyres,,user_screenshots_2026-11-08,2026-11-08,75
+TY-004,"Полный шиномонтаж R18, 4 колеса",Wymiana opon R18 komplet,TY,1.0,,,"mechanic,tyre_machine,balancer",AUTO,tyres,,user_screenshots_2026-11-08,2026-11-08,75
+TY-005,"Полный шиномонтаж R19, 4 колеса",Wymiana opon R19 komplet,TY,1.25,,,"mechanic,tyre_machine,balancer",AUTO,tyres,,user_screenshots_2026-11-08,2026-11-08,90
+TY-006,"Полный шиномонтаж R20, 4 колеса",Wymiana opon R20 komplet,TY,1.5,,,"mechanic,tyre_machine,balancer",AUTO,tyres,,user_screenshots_2026-11-08,2026-11-08,120
+TY-007,"Полный шиномонтаж R21, 4 колеса",Wymiana opon R21 komplet,TY,1.75,,,"mechanic,tyre_machine,balancer",AUTO,tyres,,user_screenshots_2026-11-08,2026-11-08,135
+TY-008,"Полный шиномонтаж R22, 4 колеса",Wymiana opon R22 komplet,TY,2.0,,,"mechanic,tyre_machine,balancer",AUTO,tyres,,user_screenshots_2026-11-08,2026-11-08,150
+TY-009,Перестановка 4 колёс в сборе,Przełożenie 4 kół kompletnych,TY,0.5,,,"mechanic,lift",AUTO,tyres,,user_screenshots_2026-11-08,2026-11-08,45
+TY-010,Перестановка + балансировка 4 колёс,Przełożenie i wyważenie 4 kół,TY,0.75,,,"mechanic,lift,balancer",AUTO,tyres,,user_screenshots_2026-11-08,2026-11-08,60
+TY-011,Балансировка 4 снятых колёс,Wyważenie 4 zdjętych kół,TY,0.5,,,"mechanic,balancer",AUTO,tyres,,user_screenshots_2026-11-08,2026-11-08,45
+TY-012,Ремонт одного прокола,Naprawa przebicia opony,TY,0.5,,,"mechanic,tyre_machine",AUTO,tyres,,user_screenshots_2026-11-08,2026-11-08,45
+TY-013,Проверка давления 4 колёс,Kontrola ciśnienia w 4 kołach,TY,0.15,,,mechanic,AUTO,tyres,,user_screenshots_2026-11-08,2026-11-08,15
+TY-014,"Замена вентиля, 1 шт.",Wymiana zaworu koła 1 szt.,TY,0.25,,,"mechanic,tyre_machine",AUTO,tyres,,user_screenshots_2026-11-08,2026-11-08,30
+TY-015,Диагностика TPMS,Diagnostyka TPMS,TY,0.5,,,"mechanic,tpms_device",AUTO,tyres,,user_screenshots_2026-11-08,2026-11-08,45

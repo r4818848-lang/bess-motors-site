@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import {
+  leadNoticeDeliveryEnabled,
   reminderDeliveryEnabled,
   cronAuthorized,
   staffCalendarMutationsEnabled,
@@ -154,6 +155,7 @@ const previousEnv = {
   REMINDER_DELIVERY: process.env.REMINDER_DELIVERY,
   CRON_SECRET: process.env.CRON_SECRET,
   NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
+  LEAD_NOTICE_DELIVERY: process.env.LEAD_NOTICE_DELIVERY,
 };
 delete process.env.VERCEL_ENV;
 delete process.env.REMINDER_DELIVERY;
@@ -166,6 +168,11 @@ assert.equal(reminderDeliveryEnabled(), false);
 process.env.VERCEL_ENV = "production";
 process.env.REMINDER_DELIVERY = "disabled";
 assert.equal(reminderDeliveryEnabled(), false);
+process.env.REMINDER_DELIVERY = "live";
+process.env.LEAD_NOTICE_DELIVERY = "disabled";
+assert.equal(reminderDeliveryEnabled(), true);
+assert.equal(leadNoticeDeliveryEnabled(), false);
+delete process.env.LEAD_NOTICE_DELIVERY;
 
 const writesEnv = process.env.STAFF_CALENDAR_WRITES;
 delete process.env.STAFF_CALENDAR_WRITES;
@@ -221,6 +228,8 @@ process.env.VERCEL_ENV = previousEnv.VERCEL_ENV;
 process.env.REMINDER_DELIVERY = previousEnv.REMINDER_DELIVERY;
 process.env.CRON_SECRET = previousEnv.CRON_SECRET;
 process.env.NEXT_PUBLIC_SITE_URL = previousEnv.NEXT_PUBLIC_SITE_URL;
+if (previousEnv.LEAD_NOTICE_DELIVERY === undefined) delete process.env.LEAD_NOTICE_DELIVERY;
+else process.env.LEAD_NOTICE_DELIVERY = previousEnv.LEAD_NOTICE_DELIVERY;
 
 console.log("launch readiness ok");
 }

@@ -1,0 +1,24 @@
+[
+  {
+    "ruleId": "pkg-service",
+    "primaryOperations": ["MA-001"],
+    "secondaryOperations": ["MA-003", "MA-004", "MA-005", "MA-006", "MA-007"],
+    "minSecondary": 3,
+    "resultOperation": "MA-015",
+    "sharedDisassemblyMinutes": null,
+    "approved": false,
+    "active": true,
+    "source": "catalog_package"
+  },
+  {
+    "ruleId": "tie-rod-side",
+    "primaryOperations": ["SU-008"],
+    "secondaryOperations": ["SU-009"],
+    "minSecondary": 1,
+    "resultOperation": null,
+    "sharedDisassemblyMinutes": null,
+    "approved": false,
+    "active": true,
+    "source": "needs_owner_numbers"
+  }
+]

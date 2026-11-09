@@ -6,7 +6,10 @@
 
 export const WORKSHOP_TIME_ZONE = "Europe/Warsaw";
 
-/** Public booking grid step. One slot is one hour unless a longer job is requested. */
+/**
+ * Legacy duration grid. A one-hour visit cannot start at 17:30, so this list is shorter
+ * than the client arrival grid. Public forms, the bot and the API use arrival-window.ts.
+ */
 export const BOOKING_SLOT_STEP_MINUTES = 60;
 
 /** Used when the request does not name a longer published job. */

@@ -43,7 +43,6 @@ import { useAuth } from "@/lib/auth/session-context";
 import { BookingCalendar } from "@/components/booking/BookingCalendar";
 import { formatDateKey } from "@/lib/appointments";
 import { formatDisplayDateKey } from "@/lib/display-date";
-import { timeSlots } from "@/lib/data";
 import { Button } from "@/components/ui/Button";
 import { siteConfig } from "@/lib/site";
 import { CarProblemWizard } from "@/components/booking/CarProblemWizard";

@@ -14,8 +14,12 @@ import {
 import { findMechanicConflict } from "../src/lib/staff-calendar";
 import { leadNeedsNotice } from "../src/lib/server/telegram-cron/lead-notifications";
 import {
+  acceptWebsiteInquiry,
   applyLeadAction,
+  claimLeadNotice,
+  completeLeadNotice,
   formatLeadMessage,
+  leadNoticeEventId,
   normalizeSiteLocale,
   quoteSubmittedLine,
   quoteService,
@@ -23,7 +27,7 @@ import {
   upsertWebsiteLead,
 } from "../src/lib/service-leads";
 import { mergeStoredDb, type Appointment, type Database, type ServiceLead } from "../src/lib/store";
-import { warsawCivilToUtc } from "../src/lib/workshop-schedule";
+import { bookingStartTimes, warsawCivilToUtc, warsawParts } from "../src/lib/workshop-schedule";
 import { workshopHours } from "../src/lib/businessConfig";
 import { adminReplyKeyboard, mainMenuKeyboard } from "../src/lib/server/telegram-bot/keyboards";
 
@@ -32,17 +36,55 @@ const lunch = { start: "13:00", end: "14:00" };
 const past = new Date("2026-11-08T06:00:00.000Z");
 
 assert.equal(evaluateArrivalTime({ date: "2026-11-09", time: "09:00", now: past }).ok, true);
-assert.equal(evaluateArrivalTime({ date: "2026-11-09", time: "13:30", now: past }).ok, true);
-assert.equal(evaluateArrivalTime({ date: "2026-11-09", time: "14:00", now: past }).ok, false);
+assert.equal(evaluateArrivalTime({ date: "2026-11-13", time: "17:30", now: past }).ok, true);
+const fridayClose = evaluateArrivalTime({ date: "2026-11-13", time: "18:00", now: past });
+assert.equal(fridayClose.ok, false);
+assert.equal(fridayClose.ok ? "" : fridayClose.error, "after_close");
+assert.equal(evaluateArrivalTime({ date: "2026-11-14", time: "13:30", now: past }).ok, true);
+const saturdayClose = evaluateArrivalTime({ date: "2026-11-14", time: "14:00", now: past });
+assert.equal(saturdayClose.ok, false);
+assert.equal(saturdayClose.ok ? "" : saturdayClose.error, "after_close");
 assert.equal(evaluateArrivalTime({ date: "2026-11-09", time: "09:15", now: past }).ok, false);
-assert.equal(evaluateArrivalTime({ date: "2026-11-15", time: "10:00", now: past }).ok, false);
-assert.deepEqual(arrivalTimes("2026-11-09", past), [
-  "09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30",
-]);
+const sunday = evaluateArrivalTime({ date: "2026-11-15", time: "10:00", now: past });
+assert.equal(sunday.ok, false);
+assert.equal(sunday.ok ? "" : sunday.error, "closed_sunday");
+assert.equal(arrivalTimes("2026-11-13", past).at(-1), "17:30");
+assert.equal(arrivalTimes("2026-11-13", past).includes("18:00"), false);
+assert.equal(arrivalTimes("2026-11-14", past).at(-1), "13:30");
+assert.equal(arrivalTimes("2026-11-14", past).includes("14:00"), false);
 assert.deepEqual(arrivalTimes("2026-11-15", past), []);
 
 assert.equal(warsawCivilToUtc("2026-01-12", "09:00")?.toISOString(), "2026-01-12T08:00:00.000Z");
 assert.equal(warsawCivilToUtc("2026-07-13", "09:00")?.toISOString(), "2026-07-13T07:00:00.000Z");
+assert.equal(warsawCivilToUtc("2026-03-29", "02:30"), null);
+assert.equal(warsawParts(new Date("2026-03-29T00:30:00.000Z")).dateKey, "2026-03-29");
+assert.equal(warsawParts(new Date("2026-03-29T00:30:00.000Z")).minutes, 90);
+assert.equal(warsawParts(new Date("2026-03-29T01:30:00.000Z")).minutes, 210);
+assert.equal(warsawCivilToUtc("2026-10-25", "02:30")?.toISOString(), "2026-10-25T01:30:00.000Z");
+assert.equal(warsawParts(new Date("2026-10-25T00:30:00.000Z")).minutes, 150);
+assert.equal(warsawParts(new Date("2026-10-25T01:30:00.000Z")).minutes, 150);
+const fridayAfternoon = new Date("2026-11-13T16:00:00.000Z");
+assert.equal(warsawParts(fridayAfternoon).minutes, 17 * 60);
+const pastSlot = evaluateArrivalTime({ date: "2026-11-13", time: "16:30", now: fridayAfternoon });
+assert.equal(pastSlot.ok, false);
+assert.equal(pastSlot.ok ? "" : pastSlot.error, "slot_in_past");
+assert.equal(evaluateArrivalTime({ date: "2026-11-13", time: "17:30", now: fridayAfternoon }).ok, true);
+assert.equal(arrivalTimes("2026-11-13", fridayAfternoon).includes("16:30"), false);
+assert.equal(arrivalTimes("2026-11-13", fridayAfternoon).includes("17:30"), true);
+const legacy = bookingStartTimes("2026-11-13", hours, 60, past);
+assert.equal(legacy.includes("17:30"), false);
+assert.equal(legacy.includes("09:30"), false);
+assert.equal(arrivalTimes("2026-11-13", past).includes("09:30"), true);
+const publicSources = [
+  "src/app/api/appointments/availability/route.ts",
+  "src/components/booking/BookingQuoteFlow.tsx",
+  "src/lib/booking-form-mode.ts",
+  "src/lib/server/telegram-bot/client-keyboards.ts",
+  "src/lib/server/booking-slot-validation.ts",
+];
+for (const file of publicSources) {
+  assert.doesNotMatch(readFileSync(file, "utf8"), /bookingStartTimes/);
+}
 assert.equal(isMorningDigestHour(new Date("2026-01-12T07:00:00.000Z")), true);
 assert.equal(isMorningDigestHour(new Date("2026-07-13T06:00:00.000Z")), true);
 assert.equal(isMorningDigestHour(new Date("2026-01-12T06:00:00.000Z")), false);
@@ -239,5 +281,116 @@ else process.env.SUPABASE_URL = savedUrl;
 if (savedKey === undefined) delete process.env.SUPABASE_SERVICE_ROLE_KEY;
 else process.env.SUPABASE_SERVICE_ROLE_KEY = savedKey;
 assert.equal(getSupabaseConfig(), null);
+
+const chats = ["1001", "1002"];
+const inquiry = {
+  phone: "+48500111222",
+  name: "Anna",
+  vin: "WVWZZZ3CZWE123456",
+  serviceLabel: "Wyceń po VIN",
+  source: "vin_quote",
+  sourceUrl: "https://www.bess-motors.com/",
+};
+const empty = mergeStoredDb({ leads: [], callRequests: [] });
+const leftInquiry = structuredClone(empty);
+const rightInquiry = structuredClone(empty);
+const firstPost = acceptWebsiteInquiry(leftInquiry, inquiry, past, chats);
+const secondPost = acceptWebsiteInquiry(rightInquiry, { ...inquiry, clientRequestId: "other-tab" }, past, chats);
+assert.equal(firstPost.decision, "send");
+assert.equal(secondPost.decision, "send");
+assert.equal(firstPost.claims.length, 2);
+assert.equal(firstPost.lead.id, secondPost.lead.id);
+assert.equal(firstPost.lead.notifyEventId, leadNoticeEventId(firstPost.lead.id));
+assert.equal(secondPost.lead.notifyEventId, firstPost.lead.notifyEventId);
+const raced = mergeServerCloudMutation(leftInquiry, rightInquiry);
+assert.equal(raced.leads.length, 1);
+assert.equal(raced.callRequests.length, 1);
+const duringLease = new Date(past.getTime() + 60_000);
+const whileSending = acceptWebsiteInquiry(structuredClone(leftInquiry), inquiry, duringLease);
+assert.equal(whileSending.decision, "skip");
+assert.equal(whileSending.created, false);
+assert.equal(leadNeedsNotice(leftInquiry.leads[0], duringLease), false);
+const threeMinutes = new Date(past.getTime() + 3 * 60 * 1000);
+const repeatedForm = acceptWebsiteInquiry(structuredClone(leftInquiry), inquiry, threeMinutes);
+assert.equal(repeatedForm.decision, "skip");
+assert.equal(leftInquiry.leads.length, 1);
+assert.equal(leftInquiry.callRequests.length, 1);
+assert.equal(leadNeedsNotice(leftInquiry.leads[0], threeMinutes), true);
+const expired = claimLeadNotice(leftInquiry.leads[0], threeMinutes, chats);
+assert.equal(expired.length, 2);
+assert.equal(completeLeadNotice(leftInquiry.leads[0], chats[0], firstPost.claims[0].token, true, threeMinutes), "stale");
+assert.equal(leftInquiry.leads[0].notifyStatus, "sending");
+assert.equal(claimLeadNotice(leftInquiry.leads[0], new Date(threeMinutes.getTime() + 1000), chats).length, 0);
+assert.equal(completeLeadNotice(leftInquiry.leads[0], expired[0].chatId, expired[0].token, true, new Date(threeMinutes.getTime() + 2000)), "applied");
+assert.equal(completeLeadNotice(leftInquiry.leads[0], expired[1].chatId, expired[1].token, false, new Date(threeMinutes.getTime() + 2000)), "applied");
+assert.equal(leftInquiry.leads[0].notifyStatus, "pending");
+assert.equal(leftInquiry.leads[0].notifyRecipients?.find((row) => row.chatId === chats[0])?.status, "sent");
+assert.equal(leftInquiry.leads[0].notifyRecipients?.find((row) => row.chatId === chats[1])?.status, "pending");
+const retryFailed = claimLeadNotice(leftInquiry.leads[0], new Date(threeMinutes.getTime() + 3000), chats);
+assert.deepEqual(retryFailed.map((claim) => claim.chatId), [chats[1]]);
+assert.equal(completeLeadNotice(leftInquiry.leads[0], retryFailed[0].chatId, retryFailed[0].token, true, new Date(threeMinutes.getTime() + 4000), 77), "applied");
+assert.equal(leftInquiry.leads[0].notifyStatus, "sent");
+assert.equal(leftInquiry.leads[0].notifyRecipients?.find((row) => row.chatId === chats[1])?.messageId, 77);
+const afterSent = acceptWebsiteInquiry(leftInquiry, inquiry, new Date(threeMinutes.getTime() + 5000), chats);
+assert.equal(afterSent.decision, "skip");
+assert.equal(afterSent.lead.notifyStatus, "sent");
+assert.equal(leadNeedsNotice(afterSent.lead, new Date(threeMinutes.getTime() + 5000)), false);
+assert.equal(leftInquiry.leads.length, 1);
+assert.equal(leftInquiry.callRequests.length, 1);
+
+const failedDb = mergeStoredDb({ leads: [], callRequests: [] });
+const failedPost = acceptWebsiteInquiry(failedDb, inquiry, past, chats);
+assert.equal(failedPost.decision, "send");
+for (const claim of failedPost.claims) {
+  assert.equal(completeLeadNotice(failedPost.lead, claim.chatId, claim.token, false, new Date(past.getTime() + 5000)), "applied");
+}
+assert.equal(failedPost.lead.notifyStatus, "pending");
+assert.equal(acceptWebsiteInquiry(failedDb, inquiry, threeMinutes, chats).decision, "skip");
+assert.equal(failedDb.leads.length, 1);
+assert.equal(failedDb.callRequests.length, 1);
+assert.equal(leadNeedsNotice(failedPost.lead, threeMinutes), true);
+assert.equal(claimLeadNotice(failedPost.lead, threeMinutes, chats).length, 2);
+
+const springSunday = evaluateArrivalTime({ date: "2026-03-29", time: "10:00", now: new Date("2026-03-01T08:00:00.000Z") });
+assert.equal(springSunday.ok, false);
+assert.equal(springSunday.ok ? "" : springSunday.error, "closed_sunday");
+assert.equal(evaluateArrivalTime({ date: "2026-03-30", time: "09:00", now: new Date("2026-03-01T08:00:00.000Z") }).ok, true);
+
+const bookedDb = mergeStoredDb({ leads: [], callRequests: [] });
+const booked = acceptWebsiteInquiry(bookedDb, { ...inquiry, clientRequestId: "browser-tab" }, past, chats);
+applyLeadAction(booked.lead, "booked", past);
+const nextVisit = acceptWebsiteInquiry(bookedDb, { ...inquiry, clientRequestId: "browser-tab" }, new Date(past.getTime() + 60_000), chats);
+assert.equal(nextVisit.created, true);
+assert.notEqual(nextVisit.lead.id, booked.lead.id);
+assert.equal(nextVisit.decision, "send");
+assert.equal(bookedDb.leads.length, 2);
+
+const laterDay = new Date(past.getTime() + 25 * 60 * 60 * 1000);
+const stillOpen = acceptWebsiteInquiry(mergeStoredDb({ leads: [], callRequests: [] }), { ...inquiry, clientRequestId: "browser-tab" }, past, chats);
+const dayLater = acceptWebsiteInquiry(
+  mergeStoredDb({ leads: [structuredClone(stillOpen.lead)], callRequests: [] }),
+  { ...inquiry, clientRequestId: "browser-tab" },
+  laterDay,
+  chats
+);
+assert.equal(dayLater.created, true);
+assert.notEqual(dayLater.lead.id, stillOpen.lead.id);
+
+const historical = mergeStoredDb({
+  leads: [{
+    ...booked.lead,
+    id: "lead-old-sent",
+    status: "new",
+    notifyStatus: "sent",
+    notifyAttempts: 1,
+    notifyRecipients: undefined,
+    createdAt: past.toISOString(),
+    updatedAt: past.toISOString(),
+  }],
+});
+assert.equal(claimLeadNotice(historical.leads[0], threeMinutes, chats).length, 0);
+assert.equal(historical.leads[0].notifyStatus, "sent");
+assert.equal(historical.leads[0].notifyRecipients, undefined);
+assert.equal(leadNeedsNotice(historical.leads[0], threeMinutes), false);
 
 console.log("arrival and leads ok");

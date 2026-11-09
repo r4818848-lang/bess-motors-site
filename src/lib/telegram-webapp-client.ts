@@ -227,7 +227,9 @@ export const telegramLaunchHeadScript = `(function(){
   }
   try {
     var path = location.pathname || "";
-    if (path !== "/telegram/calendar" && path.indexOf("/telegram/calendar/") !== 0) return;
+    var calendar = path === "/telegram/calendar" || path.indexOf("/telegram/calendar/") === 0;
+    var scheduler = path === "/telegram/scheduler" || path.indexOf("/telegram/scheduler/") === 0;
+    if (!calendar && !scheduler) return;
     var hash = "";
     try { hash = location.hash.toString(); } catch (e) {}
     if (hash.indexOf("tgWebAppData=") >= 0) {

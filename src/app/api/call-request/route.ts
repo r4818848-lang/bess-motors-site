@@ -1,19 +1,11 @@
 import { NextResponse } from "next/server";
 import { cloudMutateCrmStore } from "@/lib/server/crm-cloud-mutate";
-import { notifyAdminTelegram } from "@/lib/server/admin-telegram";
 import { normalizePhone } from "@/lib/server/normalize-phone";
-import { formatLeadMessage, normalizeSiteLocale, upsertWebsiteLead } from "@/lib/service-leads";
-import type { ServiceLead } from "@/lib/store";
+import { finishClaimedLeadNotice, productionLeadChatIds } from "@/lib/server/telegram-cron/lead-notifications";
+import { acceptWebsiteInquiry, formatLeadMessage, normalizeSiteLocale, type LeadNoticeClaim } from "@/lib/service-leads";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
-
-function escapeHtml(s: string): string {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
-}
 
 function normalizeVin(raw: string | undefined): string {
   return (raw ?? "").replace(/\s/g, "").toUpperCase();
@@ -29,6 +21,7 @@ export async function POST(req: Request) {
     vin?: string;
     vehicleLabel?: string;
     source?: string;
+    clientRequestId?: string;
     siteLocale?: string;
     sourceUrl?: string;
     plate?: string;
@@ -69,38 +62,11 @@ export async function POST(req: Request) {
   const requestedSource = (body.source ?? "website").trim().toLowerCase();
   const source = /^[a-z0-9_-]{1,40}$/.test(requestedSource) ? requestedSource : "website";
 
-  const entry = {
-    id: `call-${Date.now()}`,
-    phone,
-    clientName,
-    userId: "guest",
-    serviceId: body.serviceId ?? "diagnostic",
-    serviceLabel,
-    comment,
-    status: "needs_call" as const,
-    source: "website" as const,
-    marketing:
-      source === "mini_quote" ||
-      source === "vin_quote" ||
-      source === "phone_only_booking"
-        ? { utmSource: source }
-        : undefined,
-    createdAt: new Date().toISOString(),
-  };
-
-  const savedLead: { current: ServiceLead | null } = { current: null };
+  const saved: { leadId: string | null } = { leadId: null };
+  let claims: LeadNoticeClaim[] = [];
   const put = await cloudMutateCrmStore((db) => {
-    db.callRequests = db.callRequests ?? [];
-    const recent = db.callRequests.some(
-      (call) =>
-        call.phone === phone &&
-        call.serviceLabel === serviceLabel &&
-        Date.now() - Date.parse(call.createdAt) < 2 * 60 * 1000
-    );
-    if (!recent) db.callRequests.push(entry);
-    const saved = upsertWebsiteLead(db, {
-      id: entry.id.replace(/^call-/, "lead-"),
-      clientRequestId: entry.id,
+    const accepted = acceptWebsiteInquiry(db, {
+      clientRequestId: (body.clientRequestId ?? "").trim() || undefined,
       phone,
       name: clientName,
       make: body.make || vehicleLabel,
@@ -115,8 +81,12 @@ export async function POST(req: Request) {
       siteLocale: normalizeSiteLocale(body.siteLocale),
       source,
       sourceUrl: body.sourceUrl,
-    });
-    savedLead.current = saved.lead;
+      comment,
+    }, new Date(), productionLeadChatIds());
+    saved.leadId = accepted.lead.id;
+    claims = accepted.claims;
+    if (!accepted.created) return "skip";
+    return accepted.claims.length > 0 ? "send" : "saved";
   });
   if (!put.ok) {
     console.error("[call-request] CRM save failed", put.error);
@@ -126,33 +96,22 @@ export async function POST(req: Request) {
     );
   }
 
-  const lead = savedLead.current;
-  const telegramOk = await notifyAdminTelegram(
-    lead ? formatLeadMessage(lead) :
-    [
-      source === "vin_quote"
-        ? "<b>Wyceń po VIN — nowe zapytanie</b>"
-        : "<b>Nowe zapytanie ze strony</b>",
-      `Tel: <b>${escapeHtml(phone)}</b>`,
-      `Imię: <b>${escapeHtml(clientName)}</b>`,
-      vin.length === 17 ? `VIN: <code>${escapeHtml(vin)}</code>` : "<i>VIN: brak</i>",
-      vehicleLabel ? `Auto: <b>${escapeHtml(vehicleLabel)}</b>` : null,
-      `Usługa: ${escapeHtml(serviceLabel)}`,
-      source !== "website" ? `Źródło: ${escapeHtml(source)}` : null,
-      comment ? `Opis:\n${escapeHtml(comment).slice(0, 800)}` : null,
-    ]
-      .filter(Boolean)
-      .join("\n")
-  );
-  if (telegramOk && lead) {
-    const sentId = lead.id;
-    await cloudMutateCrmStore((db) => {
-      const row = (db.leads ?? []).find((item) => item.id === sentId);
-      if (row) row.notifyStatus = "sent";
-    });
-  } else {
-    console.warn("[call-request] telegram notify failed (check TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID)");
+  let telegramOk = false;
+  if (put.result === "send" && saved.leadId && claims.length > 0) {
+    const leadId = saved.leadId;
+    const { cloudGetCrmStore } = await import("@/lib/server/crm-cloud");
+    const snap = await cloudGetCrmStore();
+    const lead = snap?.doc?.leads?.find((item) => item.id === leadId);
+    const notice = await finishClaimedLeadNotice(
+      leadId,
+      lead ? formatLeadMessage(lead) : `<b>Новая заявка</b>\nID: <code>${leadId}</code>`,
+      claims
+    );
+    telegramOk = notice.failed.length === 0 && notice.delivered.length === claims.length;
+    if (!telegramOk) {
+      console.warn("[call-request] telegram notify failed (check TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID)");
+    }
   }
 
-  return NextResponse.json({ ok: true, cloud: true, telegramOk });
+  return NextResponse.json({ ok: true, cloud: true, telegramOk, duplicate: put.result === "skip" });
 }

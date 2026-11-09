@@ -5,12 +5,28 @@ export { isSupabaseConfigured };
 
 const ROW_ID = "main";
 
+type CrmCloudTestIo = {
+  get(): Promise<CrmCloudSnapshot | null>;
+  patch(doc: Database, expectedUpdatedAt: string): Promise<"ok" | "stale" | "error">;
+};
+
+let crmCloudTestIo: CrmCloudTestIo | null = null;
+
+/** Test double for the CRM compare-and-swap. Refused on Vercel so production keeps Supabase. */
+export function installCrmCloudForTests(io: CrmCloudTestIo | null): void {
+  if (process.env.VERCEL_ENV === "production" || process.env.VERCEL_ENV === "preview") {
+    throw new Error("crm_test_transport_refused");
+  }
+  crmCloudTestIo = io;
+}
+
 export type CrmCloudSnapshot = {
   doc: Database;
   updatedAt: string;
 };
 
 export async function cloudGetCrmStore(): Promise<CrmCloudSnapshot | null> {
+  if (crmCloudTestIo) return crmCloudTestIo.get();
   const cfg = getSupabaseConfig();
   if (!cfg) return null;
 
@@ -82,6 +98,7 @@ export async function patchCrmIfUnchanged(
   doc: Database,
   expectedUpdatedAt: string
 ): Promise<"ok" | "stale" | "error"> {
+  if (crmCloudTestIo) return crmCloudTestIo.patch(doc, expectedUpdatedAt);
   const cfg = getSupabaseConfig();
   if (!cfg || !expectedUpdatedAt) return "error";
   try {

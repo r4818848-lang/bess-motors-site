@@ -7,9 +7,11 @@ import {
   type LunchWindow,
 } from "@/lib/staff-calendar";
 import { workshopHours } from "@/lib/businessConfig";
+import { compatibleResourceFields } from "@/lib/smart-scheduler/crm-reconcile";
 import type { Appointment, AppointmentStatus, Database, Vehicle } from "@/lib/store";
 import { cloudGetCrmStore, patchCrmIfUnchanged } from "@/lib/server/crm-cloud";
 import { cloudUpsertAppointment } from "@/lib/server/appointments-cloud";
+import { safeExternalNotify, withUnifiedCrm } from "@/lib/server/unified-calendar";
 import { normalizePhone } from "@/lib/server/normalize-phone";
 import { applyLeadAction } from "@/lib/service-leads";
 
@@ -41,6 +43,8 @@ export type StaffAppointmentInput = {
   pickupDate?: string;
   workStart?: string;
   workMinutes?: number;
+  resourceId?: string;
+  resourceIds?: string[];
   leadId?: string;
   siteLocale?: Appointment["siteLocale"];
 };
@@ -67,6 +71,9 @@ export async function commitStaffAppointment(
   input: StaffAppointmentInput,
   now = new Date()
 ): Promise<StaffCommitResult> {
+  const unified = await commitStaffUnified(input, now);
+  if (unified) return unified;
+
   for (let attempt = 0; attempt < 3; attempt++) {
     const snap = await cloudGetCrmStore();
     if (!snap?.doc) return { ok: false, error: "cloud_empty", status: 503 };
@@ -90,6 +97,24 @@ export async function commitStaffAppointment(
   }
 
   return { ok: false, error: "conflict", status: 409 };
+}
+
+async function commitStaffUnified(input: StaffAppointmentInput, now: Date): Promise<StaffCommitResult | null> {
+  const outcome = await withUnifiedCrm<Appointment>(async (db) => {
+    const previous = structuredClone(db);
+    const built = await applyStaffChange(db, input, now);
+    if (!built.ok) return { abort: { error: built.error, status: built.status } };
+    runCrmAutomation(db, previous);
+    const saved = db.appointments.find((item) => item.id === built.appointment.id);
+    if (!saved) return { abort: { error: "not_found", status: 404 } };
+    const eventKey = input.mode === "create"
+      ? `staff-create:${input.clientRequestId || saved.id}`
+      : `staff:${saved.id}:${input.mode}:${saved.updatedAt ?? ""}`;
+    return { value: saved, eventKey };
+  }, { notify: safeExternalNotify });
+  if (!outcome.handled) return null;
+  if (!outcome.ok) return { ok: false, error: outcome.reason ? `${outcome.error}: ${outcome.reason}` : outcome.error, status: outcome.status };
+  return { ok: true, appointment: outcome.value, rowSynced: true };
 }
 
 async function applyStaffChange(
@@ -240,6 +265,12 @@ async function fillAppointment(
   apt.pickupDate = draft.pickupDate;
   apt.workStart = workStart || undefined;
   apt.workMinutes = workMinutes && workMinutes > 0 ? workMinutes : undefined;
+  if (input.resourceId !== undefined || input.resourceIds !== undefined) {
+    const resources = compatibleResourceFields(input.resourceId, input.resourceIds);
+    const stored = apt as Appointment & { resourceId?: string; resourceIds?: string[] };
+    stored.resourceId = resources.resourceId;
+    stored.resourceIds = resources.resourceIds;
+  }
   apt.leadId = input.leadId ?? apt.leadId;
   apt.siteLocale = input.siteLocale ?? apt.siteLocale;
   apt.visitState = apt.visitState ?? "expected";
