@@ -1,6 +1,7 @@
 import { calcLineTotal } from "@/lib/booking-cart";
 import { getPriceItem } from "@/lib/price-list";
-import type { Database, LeadContact, LeadStatus, ServiceLead, SiteLocale } from "@/lib/store";
+import type { CallRequest, Database, LeadContact, LeadStatus, ServiceLead, SiteLocale } from "@/lib/store";
+import { warsawParts } from "@/lib/workshop-schedule";
 
 const LOCALES: SiteLocale[] = ["pl", "uk", "ru", "en"];
 
@@ -90,19 +91,72 @@ export type IncomingLead = {
   now?: Date;
 };
 
+const OPEN_LEAD_WINDOW_MS = 24 * 60 * 60 * 1000;
+export const LEAD_NOTICE_LEASE_MS = 2 * 60 * 1000;
+const LEAD_NOTICE_RETRY_MS = 24 * 60 * 60 * 1000;
+const LEAD_NOTICE_MAX_ATTEMPTS = 5;
+
+export function leadNoticeEventId(leadId: string): string {
+  return `lead-notice:${leadId}`;
+}
+
+function normalizedVin(value: string | undefined): string {
+  const vin = (value ?? "").replace(/\s/g, "").toUpperCase();
+  return vin.length === 17 ? vin : "";
+}
+
+function serviceLabelOf(lead: ServiceLead): string {
+  return lead.services[0]?.label ?? "";
+}
+
+/** Same person, source and request still open. A new VIN or another service stays a separate lead. */
 function sameLead(lead: ServiceLead, input: IncomingLead, now: Date): boolean {
   if (input.clientRequestId && lead.clientRequestId === input.clientRequestId) return true;
-  if (input.id && lead.id === input.id) return true;
+  if (input.id && (lead.id === input.id || lead.clientRequestId === input.id)) return true;
   const age = now.getTime() - new Date(lead.createdAt).getTime();
+  if (!Number.isFinite(age) || age < 0 || age > OPEN_LEAD_WINDOW_MS) return false;
+  if (lead.status === "declined" || lead.status === "done" || lead.status === "booked") return false;
+  const vin = normalizedVin(input.vin);
+  const label = (input.serviceLabel ?? input.services?.[0]?.label ?? "").trim();
+  const existingLabel = serviceLabelOf(lead);
   return (
-    age >= 0 &&
-    age < 2 * 60 * 1000 &&
     lead.phone === input.phone &&
     lead.source === (input.source || "website") &&
-    lead.desiredDate === (input.desiredDate ?? "") &&
-    lead.desiredTime === (input.desiredTime ?? "") &&
-    lead.status !== "declined"
+    (!vin || !lead.vin || vin === lead.vin) &&
+    (!label || !existingLabel || label === existingLabel)
   );
+}
+
+function inquiryClosed(lead: ServiceLead): boolean {
+  return lead.status === "declined" || lead.status === "done" || lead.status === "booked";
+}
+
+function openInquiryId(db: Database, input: IncomingLead, now: Date): string {
+  const base = websiteInquiryId(input, now);
+  const taken = (db.leads ?? []).filter((lead) => lead.id === base || lead.id.startsWith(`${base}-`));
+  const open = taken.find((lead) => !inquiryClosed(lead));
+  if (open) return open.id;
+  if (taken.length === 0) return base;
+  return `${base}-${taken.length + 1}`;
+}
+
+/** Stable id for one open request, including two POSTs that have not seen each other yet. */
+export function websiteInquiryId(input: IncomingLead, now: Date): string {
+  if (input.id) return input.id;
+  const day = warsawParts(now).dateKey;
+  const raw = [
+    input.phone,
+    input.source || "website",
+    normalizedVin(input.vin),
+    (input.serviceLabel ?? input.services?.[0]?.label ?? "").trim(),
+    day,
+  ].join("|");
+  let hash = 2166136261;
+  for (let i = 0; i < raw.length; i++) {
+    hash ^= raw.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return `lead-${(hash >>> 0).toString(16).padStart(8, "0")}-${day.replace(/-/g, "")}`;
 }
 
 /** Save one lead. A repeated request returns the existing row. */
@@ -142,11 +196,83 @@ export function upsertWebsiteLead(db: Database, input: IncomingLead): { lead: Se
     managerId: "",
     contacts: [],
     clientRequestId: input.clientRequestId || input.id,
+    notifyEventId: leadNoticeEventId(input.id || input.clientRequestId || `lead-${now.getTime()}`),
     notifyStatus: "pending",
     notifyAttempts: 0,
   };
+  lead.notifyEventId = leadNoticeEventId(lead.id);
   db.leads.push(lead);
   return { lead, created: true };
+}
+
+export function leadNoticeLeaseActive(lead: ServiceLead, now: Date): boolean {
+  if (lead.notifyStatus !== "sending") return false;
+  const age = now.getTime() - Date.parse(lead.updatedAt);
+  return Number.isFinite(age) && age >= 0 && age < LEAD_NOTICE_LEASE_MS;
+}
+
+/** Reserve the single Telegram event. A second caller, including another Vercel instance, gets "skip". */
+export function claimLeadNotice(lead: ServiceLead, now: Date): "send" | "skip" {
+  lead.notifyEventId = leadNoticeEventId(lead.id);
+  if (lead.notifyStatus === "sent") return "skip";
+  if (leadNoticeLeaseActive(lead, now)) return "skip";
+  if ((lead.notifyAttempts ?? 0) >= LEAD_NOTICE_MAX_ATTEMPTS) return "skip";
+  const age = now.getTime() - Date.parse(lead.createdAt);
+  if (!Number.isFinite(age) || age < 0 || age > LEAD_NOTICE_RETRY_MS) return "skip";
+  lead.notifyStatus = "sending";
+  lead.notifyAttempts = (lead.notifyAttempts ?? 0) + 1;
+  lead.updatedAt = now.toISOString();
+  return "send";
+}
+
+/** Telegram failure returns the event to pending so a later attempt can send it once. */
+export function completeLeadNotice(lead: ServiceLead, delivered: boolean, now: Date): void {
+  if (lead.notifyStatus === "sent") return;
+  lead.notifyEventId = leadNoticeEventId(lead.id);
+  lead.notifyStatus = delivered ? "sent" : "pending";
+  lead.updatedAt = now.toISOString();
+}
+
+export type WebsiteInquiryInput = IncomingLead & {
+  serviceId?: string;
+  serviceLabel?: string;
+  comment?: string;
+  priority?: "normal" | "urgent";
+};
+
+/** One open inquiry: one lead, one call request, and at most one reserved notification. */
+export function acceptWebsiteInquiry(
+  db: Database,
+  input: WebsiteInquiryInput,
+  now = input.now ?? new Date()
+): { lead: ServiceLead; created: boolean; callCreated: boolean; decision: "send" | "skip" } {
+  const saved = upsertWebsiteLead(db, { ...input, id: openInquiryId(db, input, now), now });
+  db.callRequests = db.callRequests ?? [];
+  const callId = `call-${saved.lead.id}`;
+  const callExists = db.callRequests.some((call) => call.id === callId);
+  if (!callExists && saved.created) {
+    const call: CallRequest = {
+      id: callId,
+      phone: input.phone,
+      clientName: input.name?.trim() || undefined,
+      serviceId: input.serviceId ?? "",
+      serviceLabel: input.serviceLabel ?? serviceLabelOf(saved.lead),
+      comment: input.comment ?? "",
+      userId: "guest",
+      status: "needs_call",
+      source: "website",
+      createdAt: now.toISOString(),
+      priority: input.priority ?? "normal",
+      marketing: input.source && input.source !== "website" ? { utmSource: input.source } : undefined,
+    };
+    db.callRequests.push(call);
+  }
+  return {
+    lead: saved.lead,
+    created: saved.created,
+    callCreated: saved.created && !callExists,
+    decision: saved.created ? claimLeadNotice(saved.lead, now) : "skip",
+  };
 }
 
 export type LeadAction = "confirm_call" | "confirm_sms" | "no_answer" | "callback" | "decline" | "done" | "booked";

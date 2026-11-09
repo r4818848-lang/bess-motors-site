@@ -8,7 +8,7 @@ import {
 import { cloudGetCrmStore } from "@/lib/server/crm-cloud";
 import { cloudMutateCrmStore } from "@/lib/server/crm-cloud-mutate";
 import { safeExternalNotify, withUnifiedCrm } from "@/lib/server/unified-calendar";
-import { upsertWebsiteLead } from "@/lib/service-leads";
+import { claimLeadNotice, completeLeadNotice, upsertWebsiteLead } from "@/lib/service-leads";
 import { normalizePhone } from "@/lib/server/normalize-phone";
 import type { Appointment, Database } from "@/lib/store";
 import { notifyAdminTelegram } from "@/lib/server/admin-telegram";
@@ -93,6 +93,8 @@ export async function POST(req: Request) {
 
   const crmPut = await cloudMutateCrmStore(async (db) => {
     await applyWebsiteBooking(db, apt);
+    const row = bookingLead(db, apt);
+    return row ? claimLeadNotice(row, new Date()) : "skip";
   });
 
   if (!crmPut.ok) {
@@ -106,33 +108,27 @@ export async function POST(req: Request) {
   const tablePut = await cloudUpsertAppointment(apt);
   if (!tablePut.ok) {
     console.error("[booking] appointments table sync failed", apt.id, tablePut.error);
+    if (crmPut.result === "send") {
+      await cloudMutateCrmStore((db) => {
+        const row = bookingLead(db, apt);
+        if (row) completeLeadNotice(row, false, new Date());
+      }, { skipAutomation: true });
+    }
     return NextResponse.json(
       { ok: false, error: tablePut.error ?? "appointments_sync_failed", crmSynced: true },
       { status: 502 }
     );
   }
 
-  const telegramOk = await notifyAdminTelegram(
-    [
-      "<b>Nowa rezerwacja online</b>",
-      `Data: <b>${apt.date}</b> ${apt.time}`,
-      apt.clientName ? `Imię: <b>${escapeHtml(apt.clientName)}</b>` : null,
-      apt.clientPhone ? `Telefon: <b>${escapeHtml(apt.clientPhone)}</b>` : null,
-      apt.comment ? `Komentarz: ${escapeHtml(apt.comment).slice(0, 500)}` : null,
-      `Язык сайта: ${(apt.siteLocale ?? "pl").toUpperCase()}`,
-    ]
-      .filter(Boolean)
-      .join("\n")
-  );
-  if (telegramOk) {
+  if (crmPut.result === "send") {
+    const telegramOk = await notifyAdminTelegram(bookingNotice(apt));
     await cloudMutateCrmStore((db) => {
-      const row = (db.leads ?? []).find(
-        (item) => item.appointmentId === apt.id || item.clientRequestId === apt.id
-      );
-      if (row) row.notifyStatus = "sent";
-    });
-  } else {
-    console.warn("[telegram] notify failed (check TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID)");
+      const row = bookingLead(db, apt);
+      if (row) completeLeadNotice(row, telegramOk, new Date());
+    }, { skipAutomation: true });
+    if (!telegramOk) {
+      console.warn("[telegram] notify failed (check TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID)");
+    }
   }
 
   try {
@@ -189,6 +185,24 @@ export async function GET(req: Request) {
   }
 
   return NextResponse.json({ error: "forbidden" }, { status: 403 });
+}
+
+function bookingNotice(apt: Appointment): string {
+  return [
+    "<b>Nowa rezerwacja online</b>",
+    `Data: <b>${apt.date}</b> ${apt.time}`,
+    apt.clientName ? `Imię: <b>${escapeHtml(apt.clientName)}</b>` : null,
+    apt.clientPhone ? `Telefon: <b>${escapeHtml(apt.clientPhone)}</b>` : null,
+    apt.comment ? `Komentarz: ${escapeHtml(apt.comment).slice(0, 500)}` : null,
+    `Язык сайта: ${(apt.siteLocale ?? "pl").toUpperCase()}`,
+  ].filter(Boolean).join("\n");
+}
+
+function bookingLead(db: Database, apt: Appointment) {
+  const requestId = apt.clientRequestId || apt.id;
+  return (db.leads ?? []).find(
+    (item) => item.appointmentId === apt.id || item.clientRequestId === requestId || item.id === `lead-${apt.id.replace(/^apt-/, "")}`
+  );
 }
 
 async function applyWebsiteBooking(db: Database, apt: Appointment): Promise<void> {
@@ -251,22 +265,25 @@ async function applyWebsiteBooking(db: Database, apt: Appointment): Promise<void
 }
 
 async function saveWebsiteBookingUnified(apt: Appointment): Promise<NextResponse | null> {
+  let decision: "send" | "skip" = "skip";
   const outcome = await withUnifiedCrm(async (db) => {
     const arrival = evaluateArrivalTime({ date: apt.date, time: apt.time });
     if (!arrival.ok) return { abort: { error: arrival.error, status: 400 } };
     const { runCrmAutomation } = await import("@/lib/crm-automation");
     const previous = structuredClone(db);
     await applyWebsiteBooking(db, apt);
+    const row = bookingLead(db, apt);
+    decision = row ? claimLeadNotice(row, new Date()) : "skip";
     runCrmAutomation(db, previous);
     return { value: apt, eventKey: `web:${apt.id}` };
   }, { notify: async (previous, next) => {
     await safeExternalNotify(previous, next);
-    await notifyAdminTelegram([
-      "<b>Nowa rezerwacja online</b>",
-      `Data: <b>${apt.date}</b> ${apt.time}`,
-      apt.clientName ? `Imię: <b>${escapeHtml(apt.clientName)}</b>` : null,
-      apt.clientPhone ? `Telefon: <b>${escapeHtml(apt.clientPhone)}</b>` : null,
-    ].filter(Boolean).join("\n"));
+    if (decision !== "send") return;
+    const telegramOk = await notifyAdminTelegram(bookingNotice(apt));
+    await cloudMutateCrmStore((db) => {
+      const row = bookingLead(db, apt);
+      if (row) completeLeadNotice(row, telegramOk, new Date());
+    }, { skipAutomation: true });
   } });
   if (!outcome.handled) return null;
   if (!outcome.ok) {

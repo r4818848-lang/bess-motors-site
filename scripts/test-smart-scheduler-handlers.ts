@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { Client } from "pg";
-import { evaluateArrivalTime } from "../src/lib/arrival-window";
+import { arrivalTimes } from "../src/lib/arrival-window";
 import { issueTokenForUser } from "../src/lib/auth";
 import type { Database, User } from "../src/lib/store";
 import { workshopHours } from "../src/lib/businessConfig";
@@ -41,12 +41,12 @@ function staffPlan(): { date: string; now: Date } {
 }
 
 function publicSlot(): { date: string; time: string } | null {
-  const today = new Date().toISOString().slice(0, 10);
-  for (let offset = 0; offset < 2; offset++) {
+  const now = new Date();
+  const today = now.toISOString().slice(0, 10);
+  for (let offset = 0; offset < 3; offset++) {
     const date = addDays(today, offset);
-    for (const time of ["09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30"]) {
-      if (evaluateArrivalTime({ date, time }).ok) return { date, time };
-    }
+    const time = arrivalTimes(date, now)[0];
+    if (time) return { date, time };
   }
   return null;
 }

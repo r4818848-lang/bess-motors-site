@@ -1,6 +1,5 @@
-import { workshopHours } from "@/lib/businessConfig";
 import { formatLocalDateKey, formatWarsawDateKey, parseDateKey } from "@/lib/date-key";
-import { bookingStartTimes } from "@/lib/workshop-schedule";
+import { arrivalTimes } from "@/lib/arrival-window";
 import { formatDisplayDateKey } from "@/lib/display-date";
 import { getPriceItem } from "@/lib/price-list";
 import { serviceBasePriceId } from "@/lib/service-price-map";
@@ -76,16 +75,15 @@ export function decodeTimeSlot(encoded: string): string {
   return encoded;
 }
 
-/** Next dates that still have a start finishing by closing time (Warsaw). */
+/** Next dates that still have a client arrival slot (Warsaw). */
 export function nextBookableDates(count = 12, now = new Date()): string[] {
   const dates: string[] = [];
   const cursor = parseDateKey(formatWarsawDateKey(now));
-  const hours = workshopHours();
   let guard = 0;
 
   while (dates.length < count && guard < count + 21) {
     const key = formatLocalDateKey(cursor);
-    if (bookingStartTimes(key, hours, undefined, now).length > 0) {
+    if (arrivalTimes(key, now).length > 0) {
       dates.push(key);
     }
     cursor.setDate(cursor.getDate() + 1);

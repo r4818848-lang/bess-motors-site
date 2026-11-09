@@ -5,7 +5,7 @@ import { isOpenAt } from "@/lib/workshop-schedule";
  * UI, JSON-LD and SEO copy should derive from here.
  *
  * Hours confirmed 2026-11-08: Mon–Fri 09:00–18:00, Sat 09:00–14:00, Sun closed.
- * Booking slots use Europe/Warsaw and must finish by closing time.
+ * Client arrival uses Europe/Warsaw and the last slot is 30 minutes before closing.
  */
 
 export const businessConfig = {

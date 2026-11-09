@@ -488,6 +488,8 @@ export interface ServiceLead {
   contacts: LeadContact[];
   appointmentId?: string;
   clientRequestId?: string;
+  /** One delivery event for this lead. Retries reuse it; a second chat message does not get a new one. */
+  notifyEventId?: string;
   notifyStatus: "pending" | "sending" | "sent";
   notifyAttempts: number;
 }

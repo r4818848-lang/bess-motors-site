@@ -1,4 +1,5 @@
 import { businessConfig } from "@/lib/businessConfig";
+import { arrivalTimesForDate } from "@/lib/arrival-window";
 
 export { popularServices, serviceCategories, serviceFlows } from "./services-catalog";
 export type { ServiceId } from "./services-catalog";
@@ -10,24 +11,13 @@ export const mechanics = [
 ];
 
 /**
- * Arrival times a client can choose. The workshop still works
- * Mon–Fri 09:00–18:00 and Sat 09:00–14:00; those hours stay in businessConfig.
+ * Weekday arrival times. Saturday is shorter and Sunday is closed;
+ * use arrivalTimesForDate when the date is known.
  */
 export const WORKSHOP_OPEN = businessConfig.openingHours.opens;
 export const WORKSHOP_CLOSE = businessConfig.openingHours.closes;
 
-export const timeSlots = [
-  "09:00",
-  "09:30",
-  "10:00",
-  "10:30",
-  "11:00",
-  "11:30",
-  "12:00",
-  "12:30",
-  "13:00",
-  "13:30",
-];
+export const timeSlots = arrivalTimesForDate("2026-11-09");
 
 export const reviews = [
   { name: "Michał K.", car: "BMW M340i", text: "Stage 2 + downpipe — +80 KM. Profesjonalizm na najwyższym poziomie!", rating: 5 },

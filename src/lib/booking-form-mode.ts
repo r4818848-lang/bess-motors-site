@@ -1,4 +1,4 @@
-import { timeSlots } from "@/lib/data";
+import { arrivalTimesForDate } from "@/lib/arrival-window";
 import type { ServiceId } from "@/lib/services-catalog";
 
 export const AC_BOOKING_SERVICE_IDS = ["acRefill", "acRepair"] as const;
@@ -35,9 +35,9 @@ export function isPhoneContactValid(phone: string): boolean {
 export function pickFirstAvailableSlot(
   dateStr: string,
   isSlotAvailable: (date: string, time: string) => boolean,
-  slots: readonly string[] = timeSlots
+  slots?: readonly string[]
 ): string | null {
-  for (const slot of slots) {
+  for (const slot of slots ?? arrivalTimesForDate(dateStr)) {
     if (isSlotAvailable(dateStr, slot)) return slot;
   }
   return null;

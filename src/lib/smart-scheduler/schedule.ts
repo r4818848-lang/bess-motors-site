@@ -1,5 +1,5 @@
 import type { Operation } from "@/lib/smart-scheduler/catalog";
-import { evaluateArrivalTime } from "@/lib/arrival-window";
+import { arrivalBounds, evaluateArrivalTime } from "@/lib/arrival-window";
 import {
   clockToMinutes,
   minutesToClock,
@@ -369,10 +369,12 @@ export function evaluatePlannerArrival(input: { date: string; time: string; manu
   const weekday = weekdayIndexFromDateKey(input.date);
   if (weekday == null) return { ok: false, error: "invalid_date" };
   if (weekday === 0) return { ok: false, error: "closed_sunday" };
+  const bounds = arrivalBounds(input.date);
+  if (!bounds) return { ok: false, error: "closed_sunday" };
   const start = clockToMinutes(input.time);
   if (start == null || start % 5 !== 0) return { ok: false, error: "invalid_time" };
-  if (start < 9 * 60) return { ok: false, error: "before_open" };
-  if (start > 13 * 60 + 30) return { ok: false, error: "after_close" };
+  if (start < bounds.first) return { ok: false, error: "before_open" };
+  if (start > bounds.last) return { ok: false, error: "after_close" };
   const today = warsawParts(input.now ?? new Date());
   if (input.date < today.dateKey || (input.date === today.dateKey && start < today.minutes)) {
     return { ok: false, error: "slot_in_past" };

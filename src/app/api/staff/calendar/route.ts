@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { workshopHours } from "@/lib/businessConfig";
+import { arrivalSchedule } from "@/lib/arrival-window";
 import { addDateKeyDays, canStaff, weekdayWindowLabel } from "@/lib/staff-calendar";
 import { staffCalendarMutationsEnabled } from "@/lib/server/cron-auth";
 import { verifyTelegramWebAppInitData } from "@/lib/server/telegram-webapp-auth";
@@ -135,7 +136,7 @@ export async function POST(req: Request) {
       today,
       tomorrow: addDateKeyDays(today, 1),
       hours: workshopHours(),
-      arrival: { from: "09:00", to: "13:30", step: 30, sundayClosed: true },
+      arrival: arrivalSchedule(),
       todayWindow: weekdayWindowLabel(today, workshopHours()),
       mechanics: db.mechanics.map((mechanic) => ({ id: mechanic.id, name: mechanic.name })),
     });

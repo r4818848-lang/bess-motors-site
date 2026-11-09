@@ -1,8 +1,7 @@
 import type { InlineKeyboardMarkup, ReplyKeyboardMarkup } from "@/lib/server/telegram-api";
 import { formatWarsawDateKey } from "@/lib/date-key";
 import { formatDisplayDateKey } from "@/lib/display-date";
-import { workshopHours } from "@/lib/businessConfig";
-import { bookingStartTimes } from "@/lib/workshop-schedule";
+import { arrivalTimes } from "@/lib/arrival-window";
 import { siteConfig } from "@/lib/site";
 import {
   BOT_LOCALES,
@@ -317,7 +316,7 @@ export function clientDateKeyboard(locale: BotLocale): InlineKeyboardMarkup {
 
 export function clientTimeKeyboard(locale: BotLocale, date: string, now = new Date()): InlineKeyboardMarkup {
   const L = getClientBotLabels(locale);
-  const times = bookingStartTimes(date, workshopHours(), undefined, now);
+  const times = arrivalTimes(date, now);
   const rows: InlineKeyboardMarkup["inline_keyboard"] = [];
   for (let i = 0; i < times.length; i += 3) {
     const chunk = times.slice(i, i + 3);

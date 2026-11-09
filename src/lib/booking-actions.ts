@@ -21,11 +21,17 @@ function savedSiteLocale(): "pl" | "ru" | "en" | "uk" {
   return "pl";
 }
 
-function newCallRequestId(): string {
-  if (typeof crypto !== "undefined" && crypto.randomUUID) {
-    return `call-${crypto.randomUUID()}`;
-  }
-  return `call-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+const inquiryIds = new Map<string, string>();
+
+function stableInquiryId(phone: string, source: string, serviceLabel: string, vin: string): string {
+  const key = [phone, source, serviceLabel, vin].join("|");
+  const existing = inquiryIds.get(key);
+  if (existing) return existing;
+  const id = typeof crypto !== "undefined" && crypto.randomUUID
+    ? crypto.randomUUID()
+    : `web-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+  inquiryIds.set(key, id);
+  return id;
 }
 
 export async function createCallRequest(params: {
@@ -49,6 +55,7 @@ export async function createCallRequest(params: {
     return { ok: false, cloudOk: false, error: "phone" };
   }
 
+  const clientRequestId = stableInquiryId(phone, params.source ?? "website", params.serviceLabel, params.vin ?? "");
   try {
     const res = await fetch("/api/call-request", {
       method: "POST",
@@ -68,6 +75,7 @@ export async function createCallRequest(params: {
         desiredTime: params.desiredTime,
         services: params.services,
         source: params.source,
+        clientRequestId,
         siteLocale: savedSiteLocale(),
         sourceUrl: typeof window !== "undefined" ? window.location.href : "",
       }),
@@ -87,8 +95,9 @@ export async function createCallRequest(params: {
       ? db.users.find((u) => u.id === db.currentUserId)
       : null;
     const marketing = getStoredAttribution() ?? undefined;
-    db.callRequests.push({
-      id: newCallRequestId(),
+    const localId = `call-${clientRequestId}`;
+    if (!db.callRequests.some((call) => call.id === localId)) db.callRequests.push({
+      id: localId,
       phone,
       clientName: params.clientName,
       userId: user?.id ?? "guest",

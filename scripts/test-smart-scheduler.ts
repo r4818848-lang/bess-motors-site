@@ -127,10 +127,15 @@ assert.deepEqual(friday.map((item) => `${item.date} ${item.start}-${item.end}`),
 const saturday = job("weekend", "mech-1", "13:30", 60, [], "2026-11-14");
 assert.deepEqual(saturday.map((item) => item.date), ["2026-11-14", "2026-11-16"]);
 
-assert.equal(evaluateArrivalTime({ date: "2026-11-09", time: "13:30", now: new Date("2026-11-01T08:00:00Z") }).ok, true);
+assert.equal(evaluateArrivalTime({ date: "2026-11-13", time: "17:30", now: new Date("2026-11-01T08:00:00Z") }).ok, true);
+assert.equal(evaluateArrivalTime({ date: "2026-11-13", time: "18:00", now: new Date("2026-11-01T08:00:00Z") }).ok, false);
+assert.equal(evaluateArrivalTime({ date: "2026-11-14", time: "13:30", now: new Date("2026-11-01T08:00:00Z") }).ok, true);
+assert.equal(evaluateArrivalTime({ date: "2026-11-15", time: "10:00", now: new Date("2026-11-01T08:00:00Z") }).ok, false);
 assert.equal(evaluateArrivalTime({ date: "2026-11-09", time: "11:20", now: new Date("2026-11-01T08:00:00Z") }).ok, false);
 assert.equal(evaluatePlannerArrival({ date: "2026-11-09", time: "11:20", manual: true, now: new Date("2026-11-01T08:00:00Z") }).ok, true);
-assert.equal(evaluatePlannerArrival({ date: "2026-11-09", time: "14:00", manual: true, now: new Date("2026-11-01T08:00:00Z") }).ok, false);
+assert.equal(evaluatePlannerArrival({ date: "2026-11-13", time: "17:30", manual: true, now: new Date("2026-11-01T08:00:00Z") }).ok, true);
+assert.equal(evaluatePlannerArrival({ date: "2026-11-13", time: "18:00", manual: true, now: new Date("2026-11-01T08:00:00Z") }).ok, false);
+assert.equal(evaluatePlannerArrival({ date: "2026-11-14", time: "14:00", manual: true, now: new Date("2026-11-01T08:00:00Z") }).ok, false);
 assert.equal(evaluatePlannerArrival({ date: "2026-11-09", time: "11:20", now: new Date("2026-11-01T08:00:00Z") }).ok, false);
 
 assert.equal(effectiveMode(oil, "delayed", true), "APPROVAL");

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { arrivalTimesForDate } from "@/lib/arrival-window";
 import { addDateKeyDays } from "@/lib/staff-calendar";
 import {
   bindTelegramViewport,
@@ -43,7 +44,11 @@ type Session = {
   mechanics: { id: string; name: string }[];
 };
 
-const SLOTS = ["09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30"];
+function arrivalChoices(date: string, current?: string): string[] {
+  const slots = arrivalTimesForDate(date);
+  if (current && !slots.includes(current)) return [current, ...slots];
+  return slots;
+}
 
 const COPY = {
   ru: {
@@ -295,6 +300,7 @@ export function StaffCalendarApp() {
   const [rows, setRows] = useState<Card[]>([]);
   const [selected, setSelected] = useState<Card | null>(null);
   const [moving, setMoving] = useState(false);
+  const [moveDate, setMoveDate] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -393,7 +399,7 @@ export function StaffCalendarApp() {
             plate: lead.plate,
             problemText: lead.services.map((item) => item.label).join(", "),
             date: lead.desiredDate || next.today,
-            time: SLOTS.includes(lead.desiredTime) ? lead.desiredTime : "09:00",
+            time: arrivalTimesForDate(lead.desiredDate || next.today).includes(lead.desiredTime) ? lead.desiredTime : (arrivalTimesForDate(lead.desiredDate || next.today)[0] ?? "09:00"),
             leadId: lead.id,
             clientRequestId: lead.id,
           }));
@@ -551,10 +557,14 @@ export function StaffCalendarApp() {
           <input className={fieldClass} placeholder={text.car} value={form.car} onChange={(event) => setForm({ ...form, car: event.target.value })} />
           <input className={fieldClass} placeholder={text.plate} value={form.plate} onChange={(event) => setForm({ ...form, plate: event.target.value })} />
           <input className={fieldClass} placeholder={text.service} value={form.problemText} onChange={(event) => setForm({ ...form, problemText: event.target.value })} />
-          <label className="block text-xs text-zinc-400">{text.date}<input type="date" className={fieldClass} value={form.date} onChange={(event) => setForm({ ...form, date: event.target.value })} required /></label>
+          <label className="block text-xs text-zinc-400">{text.date}<input type="date" className={fieldClass} value={form.date} onChange={(event) => {
+            const date = event.target.value;
+            const slots = arrivalTimesForDate(date);
+            setForm({ ...form, date, time: slots.includes(form.time) ? form.time : slots[0] ?? "" });
+          }} required /></label>
           <label className="block text-xs text-zinc-400">{text.time}
             <select className={fieldClass} value={form.time} onChange={(event) => setForm({ ...form, time: event.target.value })}>
-              {SLOTS.map((slot) => <option key={slot}>{slot}</option>)}
+              {arrivalChoices(form.date, form.time).map((slot) => <option key={slot}>{slot}</option>)}
             </select>
           </label>
           <label className="block text-xs text-zinc-400">{text.mechanic}
@@ -581,14 +591,14 @@ export function StaffCalendarApp() {
             <div className="mt-4 grid grid-cols-2 gap-2">
               <button type="button" className={`${actionClass} bg-white text-black`} onClick={() => mutate("arrive").catch((err: Error) => setError(err.message))}>{text.arrived}</button>
               <button type="button" className={`${actionClass} bg-zinc-800`} onClick={() => mutate("noshow").catch((err: Error) => setError(err.message))}>{text.missed}</button>
-              <button type="button" data-testid="telegram-move" className={`${actionClass} bg-zinc-800`} onClick={() => setMoving(true)}>{text.move}</button>
+              <button type="button" data-testid="telegram-move" className={`${actionClass} bg-zinc-800`} onClick={() => { setMoveDate(selected.date); setMoving(true); }}>{text.move}</button>
               <button type="button" data-testid="telegram-remove" className={`${actionClass} bg-red-950`} onClick={() => setConfirmDelete(true)}>{text.remove}</button>
             </div>
           )}
           {moving && (
             <form className="mt-3 space-y-2" onSubmit={(event) => { event.preventDefault(); const data = new FormData(event.currentTarget); mutate("update", { date: data.get("date"), time: data.get("time"), clientName: selected.clientName, clientPhone: selected.clientPhone, mechanicId: selected.mechanicId }).catch((err: Error) => setError(err.message)); }}>
-              <input name="date" type="date" defaultValue={selected.date} className={fieldClass} required />
-              <select name="time" defaultValue={selected.time} className={fieldClass}>{SLOTS.map((slot) => <option key={slot}>{slot}</option>)}</select>
+              <input name="date" type="date" value={moveDate || selected.date} className={fieldClass} required onChange={(event) => setMoveDate(event.target.value)} />
+              <select key={moveDate || selected.date} name="time" defaultValue={arrivalTimesForDate(moveDate || selected.date).includes(selected.time) ? selected.time : arrivalTimesForDate(moveDate || selected.date)[0]} className={fieldClass}>{arrivalTimesForDate(moveDate || selected.date).map((slot) => <option key={slot}>{slot}</option>)}</select>
               <button className="min-h-12 w-full rounded-xl bg-white font-semibold text-black" type="submit">{text.save}</button>
             </form>
           )}
