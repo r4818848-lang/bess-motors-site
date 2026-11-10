@@ -35,6 +35,7 @@ const keys = [
   "SCHEDULER_READ_ONLY_PILOT",
   "SCHEDULER_CRM_SOURCE",
   "SCHEDULER_DATABASE_URL",
+  "SCHEDULER_CRM_COPY_URL",
   "SMART_WORK_SCHEDULER",
   "SCHEDULER_UNIFIED_CALENDAR",
   "SCHEDULER_TEST_WRITES",
@@ -102,6 +103,10 @@ async function main(): Promise<void> {
   assert.equal(combined.minutes, 90);
   assert.match(combined.explanation, /пакет/);
   assert.ok(combined.minutes < 60 + 90);
+  const partial = planCombinedJob([pads, unknown], rules);
+  assert.equal(partial.minutes, null);
+  assert.equal(partial.source, "unconfirmed");
+  assert.equal(partial.normTrusted, false);
 
   const missing = planCombinedJob([unknown], rules);
   assert.equal(missing.minutes, null);
@@ -211,6 +216,7 @@ async function main(): Promise<void> {
   assert.equal(schedulerPageOpen(), true);
   assert.equal(schedulerCrmWritesEnabled(), false);
 
+  process.env.SCHEDULER_CRM_COPY_URL = "postgresql://ubuntu@/not-the-copy?host=/var/run/postgresql";
   process.env.TELEGRAM_BOT_TOKEN = "123456:workshop-test";
   process.env.TELEGRAM_CHAT_ID = "77";
   process.env.TELEGRAM_ADMIN_CHAT_IDS = "88";
@@ -248,7 +254,10 @@ async function main(): Promise<void> {
     headers: { "content-type": "application/json", "x-telegram-init-data": signedInitData(77) },
     body: JSON.stringify({ action: "create", idempotencyKey: "mech2", date: "2026-11-13", start: "09:00", mechanicId: "mech-2", operationCode: "BR-001" }),
   }));
-  assert.equal(unconfirmed.status, 503);
+  const unconfirmedBody = await unconfirmed.json() as { error?: string; crmWritten?: boolean };
+  assert.equal(unconfirmed.status, 409);
+  assert.equal(unconfirmedBody.error, "mechanic_not_confirmed");
+  assert.equal(unconfirmedBody.crmWritten, false);
 
   process.env.SCHEDULER_DATABASE_URL = "postgresql://ubuntu@/bess_scheduler_test?host=/var/run/postgresql";
   const refusedMechanic = await reservations(new Request("http://local/reservations", {
@@ -265,11 +274,21 @@ async function main(): Promise<void> {
   const planned = await plan(new Request("http://local/plan", {
     method: "POST",
     headers: { "content-type": "application/json", "x-telegram-init-data": signedInitData(77) },
-    body: JSON.stringify({ date: "2026-11-13", start: "17:30", operationCodes: ["BR-001", "BR-003"], mechanicId: "mech-1", source: "live" }),
+    body: JSON.stringify({
+      date: "2026-11-13",
+      start: "17:30",
+      operationCodes: ["BR-001", "BR-003"],
+      mechanicId: "mech-1",
+      source: "fixture",
+      mechanicConfirmed: true,
+      occupied: [{ id: "fake", mechanicId: "mech-1", resourceIds: ["lift-1"], startMs: 0, endMs: 9e15, operationCode: "x", active: true }],
+    }),
   }));
-  const plannedBody = await planned.json() as { persisted?: boolean; crmWritten?: boolean; plan?: { minutes?: number } };
-  assert.equal(planned.status, 200);
+  const plannedBody = await planned.json() as { persisted?: boolean; crmWritten?: boolean; error?: string; options?: unknown[]; plan?: { minutes?: number } };
+  assert.equal(planned.status, 503);
+  assert.equal(plannedBody.error, "occupancy_unavailable");
   assert.equal(plannedBody.plan?.minutes, 90);
+  assert.deepEqual(plannedBody.options, []);
   assert.equal(plannedBody.persisted, false);
   assert.equal(plannedBody.crmWritten, false);
 

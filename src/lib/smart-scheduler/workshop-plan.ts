@@ -50,12 +50,24 @@ export function planCombinedJob(operations: Operation[], rules: OverlapRule[] = 
       const planned = planOperationMinutes(operation);
       if (planned.minutes == null) {
         unconfirmed = true;
-        notes.push(`${operation.operationNameRu}: нормы нет, время задаёт владелец.`);
+        notes.push(`${operation.operationNameRu}: подтверждённой нормы нет. Сумма остальных операций не резервируется.`);
         continue;
       }
-      if (planned.source !== "reference") estimate = true;
+      if (planned.source !== "reference") {
+        estimate = true;
+        notes.push(`${operation.operationNameRu}: ${planned.minutes} мин — оценка, не заводская норма.`);
+      }
       minutes += planned.minutes;
     }
+  }
+  if (unconfirmed) {
+    return {
+      minutes: null,
+      source: "unconfirmed",
+      normTrusted: false,
+      explanation: `${notes.join(" ")} Окончательное время задаёт владелец.`,
+      operationCodes: codes,
+    };
   }
   const overlap = explainOverlap(codes, active, rules);
   const savings = overlap.reduce((total, item) => total + item.savingsMinutes, 0);
