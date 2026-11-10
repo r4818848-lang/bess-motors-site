@@ -350,7 +350,16 @@ export function mergeServerCloudMutation(
   mutated: Database
 ): Database {
   const merged = mergeCloudRecords(mutated, existing);
-  return { ...applySnapshotMembership(merged, mutated), currentUserId: null };
+  return {
+    ...applySnapshotMembership(merged, mutated),
+    // Server mutators edit a fresh clone of the CAS snapshot. The generic
+    // merge prefers the old snapshot's settings and would silently undo
+    // morningDigestDate and cronHoldUntil when those keys already existed.
+    // Use the mutated settings: patchCrmIfUnchanged provides CAS protection
+    // and cloudMutateCrmStore retries with a fresh snapshot on conflict.
+    settings: mutated.settings,
+    currentUserId: null,
+  };
 }
 
 /** Merge incoming PUT with cloud: newer fields per id; deletions only with sync marker */

@@ -8,7 +8,8 @@ import { GET } from "../src/app/api/telegram/cron/lead-notices/route";
 import { mergeServerCloudMutation } from "../src/lib/crm-db-merge";
 import { installCrmCloudForTests } from "../src/lib/server/crm-cloud";
 import { installTelegramSenderForTests } from "../src/lib/server/telegram-api";
-import { runAppointmentReminders } from "../src/lib/server/telegram-cron/appointment-reminders";
+import { reserveMorningDigest, runAppointmentReminders } from "../src/lib/server/telegram-cron/appointment-reminders";
+import { tryClaimCronJob } from "../src/lib/server/crm-cloud-mutate";
 import { classifyLeadNotice, deliverPendingLeadNotices } from "../src/lib/server/telegram-cron/lead-notifications";
 import { leadNoticeDeliveryEnabled, reminderDeliveryEnabled } from "../src/lib/server/cron-auth";
 import {
@@ -104,6 +105,30 @@ async function main(): Promise<void> {
   process.env.REMINDER_DELIVERY = "live";
 
   const passed: string[] = [];
+
+  // Regression: yesterday's saved digest date must advance and suppress
+  // every subsequent five-minute cron run. The same server-side CAS merge
+  // must retain new cron leases without erasing unrelated leases.
+  {
+    const db = emptyDb();
+    db.settings.morningDigestDate = "2026-11-09";
+    db.settings.cronHoldUntil = { unrelated: "2026-11-09T13:00:00.000Z" };
+    const store = createCasStore(db);
+    installCrmCloudForTests(store);
+    assert.equal(await reserveMorningDigest("2026-11-10"), true);
+    assert.equal(store.current().settings.morningDigestDate, "2026-11-10");
+    assert.equal(await reserveMorningDigest("2026-11-10"), false);
+    const now = new Date("2026-11-10T07:05:00.000Z");
+    assert.equal(await tryClaimCronJob("appointment-reminders", 240_000, now), true);
+    assert.equal(await tryClaimCronJob("appointment-reminders", 240_000, now), false);
+    assert.equal(store.current().settings.cronHoldUntil?.unrelated, "2026-11-09T13:00:00.000Z");
+    assert.ok(Date.parse(store.current().settings.cronHoldUntil?.["appointment-reminders"] ?? "") > now.getTime());
+    const race = await Promise.all([reserveMorningDigest("2026-11-11"), reserveMorningDigest("2026-11-11")]);
+    assert.deepEqual(race.sort(), [false, true]);
+    assert.equal(store.current().settings.morningDigestDate, "2026-11-11");
+    passed.push("morning-digest-dedup");
+    passed.push("cron-lease-persist");
+  }
 
   // A, N. One form post is one lead and one notice. Opening the form again does not send another.
   {
@@ -397,7 +422,7 @@ async function main(): Promise<void> {
     passed.push("historical");
   }
 
-  assert.deepEqual(passed.sort(), ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "cron", "historical"].sort());
+  assert.deepEqual(passed.sort(), ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "cron", "cron-lease-persist", "historical", "morning-digest-dedup"].sort());
   console.log("lead notices ok", passed.join(" "));
 }
 
