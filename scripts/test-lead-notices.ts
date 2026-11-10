@@ -357,7 +357,8 @@ async function main(): Promise<void> {
   }
 
   {
-    const now = new Date("2026-11-09T12:00:00.000Z");
+    // Keep the subprocess audit fixture inside the 24-hour retry window on every CI date.
+    const now = new Date();
     const base = acceptWebsiteInquiry(emptyDb(), inquiry, now, []).lead;
     const older = new Date(now.getTime() - 25 * 60 * 60 * 1000).toISOString();
     const samples: ServiceLead[] = [

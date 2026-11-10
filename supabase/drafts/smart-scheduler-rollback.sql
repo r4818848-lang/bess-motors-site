@@ -18,6 +18,7 @@ drop table if exists public.scheduler_actor_sessions cascade;
 drop table if exists public.scheduler_approvals cascade;
 drop table if exists public.scheduler_reservations cascade;
 drop table if exists public.scheduler_actuals cascade;
+drop table if exists public.scheduler_change_log cascade;
 drop table if exists public.scheduler_breaks cascade;
 drop table if exists public.scheduler_time_off cascade;
 drop table if exists public.scheduler_shifts cascade;

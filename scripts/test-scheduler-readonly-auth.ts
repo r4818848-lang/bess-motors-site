@@ -61,6 +61,7 @@ function clearFlags(): void {
   delete process.env.SCHEDULER_TEST_WRITES;
   delete process.env.SCHEDULER_TEST_BOARD;
   delete process.env.SCHEDULER_READ_ONLY_PILOT;
+  delete process.env.SCHEDULER_OWNER_WRITE_PILOT;
   delete process.env.SCHEDULER_CRM_SOURCE;
   delete process.env.SCHEDULER_DATABASE_URL;
   delete process.env.VERCEL_ENV;

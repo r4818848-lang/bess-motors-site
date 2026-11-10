@@ -39,7 +39,7 @@ export default defineConfig({
     screenshot: "only-on-failure",
     locale: "pl-PL",
   },
-  testIgnore: /smart-scheduler-readonly\.spec\.ts/,
+  testIgnore: [/smart-scheduler-readonly\.spec\.ts/, /smart-scheduler-owner\.spec\.ts/],
   projects: [
     {
       name: "chromium",

@@ -15,8 +15,8 @@ export type BookResult = {
   id?: string;
   replayed?: boolean;
   persisted: boolean;
-  crmWritten: false;
-  createdClient: false;
+  crmWritten: boolean;
+  createdClient: boolean;
   createdOrder: false;
   workOrderId: string | null;
   version?: number;
@@ -63,6 +63,13 @@ export async function applySchedulerSchema(client: Client): Promise<void> {
 
 function empty(result: { error: string; status?: 403 | 409 | 503 }): BookResult {
   return { status: result.status ?? 409, error: result.error, persisted: false, crmWritten: false, createdClient: false, createdOrder: false, workOrderId: null };
+}
+
+async function recordChange(client: Client, input: { appointmentId: string; action: string; actorId: string; version: number; reason?: string }): Promise<void> {
+  await client.query(
+    "insert into scheduler_change_log (id, appointment_id, action, actor_id, version, reason) values ($1,$2,$3,$4,$5,$6)",
+    [`chg-${crypto.randomUUID()}`, input.appointmentId, input.action, input.actorId || "unknown", input.version, input.reason ?? ""]
+  );
 }
 
 function hoursReady(hours: WorkshopHours | undefined): boolean {
@@ -303,6 +310,7 @@ export async function bookInDatabase(client: Client, input: {
       }
     }
     await writeMirrors(client, id, split.blocks);
+    await recordChange(client, { appointmentId: input.appointmentId || id, action: "create", actorId: input.actor?.staffId || input.actor?.id || "", version: 1 });
     if (schedulerCrmWritesEnabled()) throw new Error("crm_writes_are_disabled");
     await client.query("commit");
     return { status: 200, id, persisted: true, crmWritten: false, createdClient: false, createdOrder: false, workOrderId: input.workOrderId ?? null, version: 1 };
@@ -431,6 +439,7 @@ export async function moveInDatabase(client: Client, input: {
       }
     }
     await writeMirrors(client, input.reservationId, split.blocks);
+    await recordChange(client, { appointmentId: input.reservationId, action: "move", actorId: input.actor?.staffId || input.actor?.id || "", version: input.expectedVersion + 1 });
     if (schedulerCrmWritesEnabled()) throw new Error("crm_writes_are_disabled");
     await client.query("commit");
     return { status: 200, id: input.reservationId, persisted: true, crmWritten: false, createdClient: false, createdOrder: false, workOrderId: current.rows[0].work_order_id, version: input.expectedVersion + 1 };
@@ -472,6 +481,7 @@ export async function cancelInDatabase(client: Client, reservationId: string, ex
       await client.query("rollback");
       return empty({ error: "version_conflict" });
     }
+    await recordChange(client, { appointmentId: reservationId, action: "cancel", actorId: actor.staffId || actor.id, version: expectedVersion + 1 });
     if (schedulerCrmWritesEnabled()) throw new Error("crm_writes_are_disabled");
     await client.query("commit");
     return { status: 200, id: reservationId, persisted: true, crmWritten: false, createdClient: false, createdOrder: false, workOrderId: current.rows[0].work_order_id, version: expectedVersion + 1 };
