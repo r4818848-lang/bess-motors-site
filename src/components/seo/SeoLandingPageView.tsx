@@ -96,10 +96,10 @@ export function SeoLandingPageView({ page }: Props) {
     page.slug === "wymiana-opon-warszawa";
 
   const tireWhatsAppMessage = {
-    pl: "Dzień dobry! Chcę umówić wymianę opon w BESS MOTORS.\\nSamochód: \\nRozmiar opon: R\\nPreferowany termin: ",
-    ru: "Здравствуйте! Хочу записаться на шиномонтаж в BESS MOTORS.\\nАвтомобиль: \\nРазмер шин: R\\nЖелаемые дата и время: ",
-    en: "Hello! I'd like to book a tyre change at BESS MOTORS.\\nCar: \\nTyre size: R\\nPreferred date/time: ",
-    uk: "Добрий день! Хочу записатися на шиномонтаж у BESS MOTORS.\\nАвто: \\nРозмір шин: R\\nБажані дата і час: ",
+    pl: "Dzień dobry! Chcę umówić wymianę opon w BESS MOTORS.\nSamochód: \nRozmiar opon: R\nPreferowany termin: ",
+    ru: "Здравствуйте! Хочу записаться на шиномонтаж в BESS MOTORS.\nАвтомобиль: \nРазмер шин: R\nЖелаемые дата и время: ",
+    en: "Hello! I'd like to book a tyre change at BESS MOTORS.\nCar: \nTyre size: R\nPreferred date/time: ",
+    uk: "Добрий день! Хочу записатися на шиномонтаж у BESS MOTORS.\nАвто: \nРозмір шин: R\nБажані дата і час: ",
   }[locale];
 
   return (
