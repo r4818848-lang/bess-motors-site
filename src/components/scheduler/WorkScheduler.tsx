@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import type { Operation } from "@/lib/smart-scheduler/catalog";
 import { emptyLiveSnapshot, type SchedulerSnapshot } from "@/lib/smart-scheduler/fixture";
 import { mayAutoAssignMechanic } from "@/lib/smart-scheduler/identity";
@@ -97,6 +97,16 @@ export function WorkScheduler({
   const [initData, setInitData] = useState("");
   const [reservationId, setReservationId] = useState("");
   const [expectedVersion, setExpectedVersion] = useState("");
+  const [clientName, setClientName] = useState("");
+  const [clientPhone, setClientPhone] = useState("");
+  const [make, setMake] = useState("");
+  const [model, setModel] = useState("");
+  const [vin, setVin] = useState("");
+  const [plate, setPlate] = useState("");
+  const [comment, setComment] = useState("");
+  const [confirmClient, setConfirmClient] = useState(false);
+  const [confirmVehicle, setConfirmVehicle] = useState(false);
+  const idempotencyRef = useRef("");
   const operation = catalog.find((item) => item.operationCode === selected) ?? catalog[0];
   const planned = operation ? planOperationMinutes(operation, { reservePct: settings.reservePct }) : null;
   const found = useMemo(() => searchOperations(catalog, query), [catalog, query]);
@@ -235,9 +245,9 @@ export function WorkScheduler({
         resourceIds: [lift],
       }),
     });
-    const body = (await response.json().catch(() => null)) as { refusal?: string | null; plan?: { minutes?: number; explanation?: string }; options?: { label: string; start?: string }[]; crmWritten?: boolean } | null;
+    const body = (await response.json().catch(() => null)) as { refusal?: string | null; plan?: { minutes?: number; explanation?: string; normTrusted?: boolean }; options?: { label: string }[]; crmWritten?: boolean; error?: string } | null;
     if (body?.crmWritten) {
-      setNotice("Сервер сообщил запись. Это ошибка, бронь не подтверждена.");
+      setNotice("Подбор не должен ничего записывать.");
       return;
     }
     if (!response.ok) {
@@ -245,28 +255,48 @@ export function WorkScheduler({
       return;
     }
     const options = (body?.options ?? []).map((item) => item.label).join(", ");
-    setNotice(`Серверная норма ${body?.plan?.minutes ?? "?"} мин. ${body?.plan?.explanation ?? ""} Варианты: ${options || "в этот день нет свободного окна"}. Ничего не записано.`);
+    const trust = body?.plan?.normTrusted ? "Справочная норма." : "Время не является заводской нормой.";
+    setNotice(`Сервер: ${body?.plan?.minutes ?? "?"} мин. ${trust} ${body?.plan?.explanation ?? ""} Варианты: ${options || "нет"}. Ничего не записано.`);
   }
 
   async function book(event: FormEvent) {
     event.preventDefault();
+    if (!idempotencyRef.current) idempotencyRef.current = crypto.randomUUID();
     const response = await fetch("/api/internal/schedule/reservations", {
       method: "POST",
       headers: authHeaders(),
       body: JSON.stringify({
         action: "create",
-        idempotencyKey: crypto.randomUUID(),
+        idempotencyKey: idempotencyRef.current,
         date,
         start,
+        arrivalTime: arrival,
         mechanicId,
         operationCode: operation?.operationCode,
         resourceIds: [lift],
         parts,
         durationMinutes: customMinutes ? Number(customMinutes) : undefined,
         reason,
+        clientName,
+        clientPhone,
+        vin,
+        plate,
+        make,
+        model,
+        serviceIds: ["otherReason"],
+        comment,
+        confirmNewClient: confirmClient,
+        confirmNewVehicle: confirmVehicle,
       }),
     });
-    const body = (await response.json().catch(() => null)) as { error?: string } | null;
+    const body = (await response.json().catch(() => null)) as { error?: string; id?: string; version?: number; crmWritten?: boolean; replayed?: boolean } | null;
+    if (response.ok) {
+      if (body?.id) setReservationId(body.id);
+      if (body?.version != null) setExpectedVersion(String(body.version));
+      idempotencyRef.current = "";
+      setNotice(body?.replayed ? "Повтор того же ключа. Вторая запись не создана." : "Запись сохранена в копии CRM и в плане работ одной транзакцией.");
+      return;
+    }
     if (response.status === 409) setNotice(`Сервер отказал: ${body?.error ?? "conflict"}. Запись не создана.`);
     else if (response.status === 403) setNotice(body?.error === "owner_only" ? "В этом режиме сохраняет только владелец." : body?.error === "forbidden" ? "Нельзя изменить чужую работу." : "Запись в боевую CRM выключена.");
     else if (response.status === 503) setNotice(body?.error === "crm_unavailable" ? "CRM недоступна. Запись не создана." : "Нужна отдельная тестовая база. Боевая база не используется.");
@@ -296,9 +326,13 @@ export function WorkScheduler({
         reason,
       }),
     });
-    const body = (await response.json().catch(() => null)) as { error?: string; crmWritten?: boolean } | null;
-    if (body?.crmWritten) setNotice("Сервер сообщил запись в CRM. Это ошибка, изменение не подтверждено.");
-    else if (response.ok) setNotice(action === "cancel" ? "Бронь отменена в тестовой базе. История сохранена." : "Бронь перенесена в тестовой базе.");
+    const body = (await response.json().catch(() => null)) as { error?: string; crmWritten?: boolean; version?: number } | null;
+    if (response.ok && body?.crmWritten) {
+      if (body.version != null) setExpectedVersion(String(body.version));
+      setNotice(action === "cancel" ? "Запись отменена в копии CRM. История сохранена." : "Запись перенесена в копии CRM.");
+      return;
+    }
+    if (response.ok) setNotice(action === "cancel" ? "Отмена не подтвердила запись CRM." : "Перенос не подтвердил запись CRM.");
     else if (response.status === 409) setNotice(`Конфликт версии или занятости: ${body?.error ?? "conflict"}.`);
     else if (response.status === 403) setNotice("Недостаточно прав для изменения брони.");
     else setNotice("Изменение не выполнено. Боевая CRM не менялась.");
@@ -510,9 +544,32 @@ export function WorkScheduler({
 
       {!readOnly && open && operation && planned && (
         <form className="mt-4 space-y-3 rounded-2xl bg-zinc-900 p-4" data-testid="scheduler-form" onSubmit={(event) => void book(event)}>
-          <p className="text-sm text-amber-200">Запись принимает только владелец и только в локальной базе. Боевая CRM этим экраном не открывается. mech-2 автоматически не назначается.</p>
+          <p className="text-sm text-amber-200">Сохраняет только владелец, одной транзакцией в локальную копию CRM. Боевая база не открывается. mech-2 автоматически не назначается. Новый клиент и автомобиль создаются только после отметки.</p>
+          <label className="block text-sm">Имя
+            <input data-testid="scheduler-client-name" className="mt-1 h-12 w-full rounded-xl bg-zinc-950 px-3 text-base" value={clientName} onChange={(event) => setClientName(event.target.value)} />
+          </label>
+          <label className="block text-sm">Телефон
+            <input data-testid="scheduler-client-phone" className="mt-1 h-12 w-full rounded-xl bg-zinc-950 px-3 text-base" value={clientPhone} onChange={(event) => setClientPhone(event.target.value)} inputMode="tel" />
+          </label>
+          <label className="flex min-h-12 items-center gap-3 text-base"><input data-testid="scheduler-confirm-client" className="h-5 w-5" type="checkbox" checked={confirmClient} onChange={(event) => setConfirmClient(event.target.checked)} />Создать нового клиента, если телефон не найден</label>
+          <label className="block text-sm">Марка
+            <input data-testid="scheduler-make" className="mt-1 h-12 w-full rounded-xl bg-zinc-950 px-3 text-base" value={make} onChange={(event) => setMake(event.target.value)} />
+          </label>
+          <label className="block text-sm">Модель
+            <input data-testid="scheduler-model" className="mt-1 h-12 w-full rounded-xl bg-zinc-950 px-3 text-base" value={model} onChange={(event) => setModel(event.target.value)} />
+          </label>
+          <label className="block text-sm">VIN
+            <input data-testid="scheduler-vin" className="mt-1 h-12 w-full rounded-xl bg-zinc-950 px-3 text-base" value={vin} onChange={(event) => setVin(event.target.value)} />
+          </label>
+          <label className="block text-sm">Госномер
+            <input data-testid="scheduler-plate" className="mt-1 h-12 w-full rounded-xl bg-zinc-950 px-3 text-base" value={plate} onChange={(event) => setPlate(event.target.value)} />
+          </label>
+          <label className="flex min-h-12 items-center gap-3 text-base"><input data-testid="scheduler-confirm-vehicle" className="h-5 w-5" type="checkbox" checked={confirmVehicle} onChange={(event) => setConfirmVehicle(event.target.checked)} />Создать новый автомобиль, если VIN и номер не найдены</label>
+          <label className="block text-sm">Комментарий
+            <input data-testid="scheduler-comment" className="mt-1 h-12 w-full rounded-xl bg-zinc-950 px-3 text-base" value={comment} onChange={(event) => setComment(event.target.value)} />
+          </label>
           <label className="block text-sm">Время приезда
-            <input className="mt-1 h-12 w-full rounded-xl bg-zinc-950 px-3 text-base" value={arrival} onChange={(event) => setArrival(event.target.value)} />
+            <input data-testid="scheduler-arrival" className="mt-1 h-12 w-full rounded-xl bg-zinc-950 px-3 text-base" value={arrival} onChange={(event) => setArrival(event.target.value)} />
           </label>
           <label className="block text-sm">Найти работу
             <input data-testid="scheduler-search" className="mt-1 h-12 w-full rounded-xl bg-zinc-950 px-3 text-base" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="колодки, olej, klock" />
@@ -545,7 +602,7 @@ export function WorkScheduler({
             </select>
           </label>
           <label className="block text-sm">Запчасти
-            <select className="mt-1 h-12 w-full rounded-xl bg-zinc-950 px-3 text-base" value={parts} onChange={(event) => setParts(event.target.value as "available" | "unknown")}>
+            <select data-testid="scheduler-parts" className="mt-1 h-12 w-full rounded-xl bg-zinc-950 px-3 text-base" value={parts} onChange={(event) => setParts(event.target.value as "available" | "unknown")}>
               <option value="unknown">Неизвестно</option>
               <option value="available">В наличии</option>
             </select>
@@ -559,19 +616,19 @@ export function WorkScheduler({
           <label className="flex min-h-12 items-center gap-3 text-base"><input className="h-5 w-5" type="checkbox" checked={leavesCar} onChange={(event) => setLeavesCar(event.target.checked)} />Оставляет автомобиль</label>
           <div className="grid grid-cols-2 gap-2">
             <button type="button" data-testid="scheduler-check" className="min-h-12 rounded-xl bg-zinc-800 font-semibold" onClick={check}>Проверить доступность</button>
-            <button type="button" className="min-h-12 rounded-xl bg-zinc-800 font-semibold" onClick={() => void suggestOnServer()}>Подобрать на сервере</button>
-            <button type="submit" className="col-span-2 min-h-12 rounded-xl bg-white font-semibold text-black">Забронировать</button>
+            <button type="button" data-testid="scheduler-suggest" className="min-h-12 rounded-xl bg-zinc-800 font-semibold" onClick={() => void suggestOnServer()}>Подобрать на сервере</button>
+            <button type="submit" data-testid="scheduler-book" className="col-span-2 min-h-12 rounded-xl bg-white font-semibold text-black">Забронировать</button>
           </div>
-          <label className="block text-sm">Номер брони
-            <input className="mt-1 h-12 w-full rounded-xl bg-zinc-950 px-3 text-base" value={reservationId} onChange={(event) => setReservationId(event.target.value)} />
+          <label className="block text-sm">Номер записи
+            <input data-testid="scheduler-reservation" className="mt-1 h-12 w-full rounded-xl bg-zinc-950 px-3 text-base" value={reservationId} onChange={(event) => setReservationId(event.target.value)} />
           </label>
           <label className="block text-sm">Версия
-            <input className="mt-1 h-12 w-full rounded-xl bg-zinc-950 px-3 text-base" value={expectedVersion} onChange={(event) => setExpectedVersion(event.target.value)} inputMode="numeric" />
+            <input data-testid="scheduler-version" className="mt-1 h-12 w-full rounded-xl bg-zinc-950 px-3 text-base" value={expectedVersion} onChange={(event) => setExpectedVersion(event.target.value)} inputMode="numeric" />
           </label>
           <div className="grid grid-cols-3 gap-2">
-            <button type="button" className="min-h-12 rounded-xl bg-zinc-800 text-sm font-semibold" onClick={() => void changeReservation("move")}>Перенести</button>
-            <button type="button" className="min-h-12 rounded-xl bg-zinc-800 text-sm font-semibold" onClick={() => void changeReservation("cancel")}>Отменить</button>
-            <button type="button" className="min-h-12 rounded-xl bg-zinc-800 text-sm font-semibold" onClick={() => void showHistory()}>История</button>
+            <button type="button" data-testid="scheduler-move" className="min-h-12 rounded-xl bg-zinc-800 text-sm font-semibold" onClick={() => void changeReservation("move")}>Перенести</button>
+            <button type="button" data-testid="scheduler-cancel" className="min-h-12 rounded-xl bg-zinc-800 text-sm font-semibold" onClick={() => void changeReservation("cancel")}>Отменить</button>
+            <button type="button" data-testid="scheduler-history" className="min-h-12 rounded-xl bg-zinc-800 text-sm font-semibold" onClick={() => void showHistory()}>История</button>
           </div>
           {notice && <p data-testid="scheduler-notice" className="text-sm">{notice}</p>}
         </form>
