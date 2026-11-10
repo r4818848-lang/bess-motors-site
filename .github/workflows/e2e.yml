@@ -65,3 +65,52 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 7
+
+  scheduler-copy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_HOST_AUTH_METHOD: trust
+          POSTGRES_USER: ubuntu
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Unified CRM writer
+        env:
+          SCHEDULER_CRM_COPY_URL: postgresql://ubuntu@localhost:5432/bess_crm_copy_test
+          SCHEDULER_DATABASE_URL: postgresql://ubuntu@localhost:5432/bess_scheduler_test
+          SCHEDULER_ADMIN_URL: postgresql://ubuntu@localhost:5432/postgres
+        run: npm run test:scheduler-copy
+
+      - name: Install Playwright browser
+        run: npx playwright install chromium --with-deps
+
+      - name: Build
+        run: npm run build
+
+      - name: iPhone owner cycle on the copy
+        env:
+          CI: "true"
+          TELEGRAM_BOT_TOKEN: 123456:scheduler-owner-e2e
+          SCHEDULER_CRM_COPY_URL: postgresql://ubuntu@localhost:5432/bess_crm_copy_test
+        run: npx playwright test -c playwright.scheduler.config.ts
