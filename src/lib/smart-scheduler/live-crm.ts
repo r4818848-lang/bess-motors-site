@@ -92,7 +92,7 @@ function resolveParty(input: LiveCalendarInput, users: CrmUser[], vehicles: CrmV
     };
     vehicles = [...vehicles, vehicle];
   }
-  if (vehicle && user && vehicle.userId !== user.id) user = users.find((item) => item.id === vehicle?.userId) ?? user;
+  if (vehicle && user && vehicle.userId !== user.id) return { error: "client_vehicle_mismatch" };
   return { users, vehicles, userId: user?.id ?? input.userId ?? "", vehicleId: vehicle?.id ?? input.vehicleId ?? "", createdClient };
 }
 
@@ -201,7 +201,7 @@ export async function commitLiveCalendar(client: Client, input: LiveCalendarInpu
     const doc = store.rows[0]?.doc ?? { appointments: [] };
     const appointments = Array.isArray(doc.appointments) ? doc.appointments : [];
     const index = appointments.findIndex((item) => item.id === input.appointmentId);
-    if (input.action === "create" && index >= 0) {
+    if (input.action === "create" && index >= 0 && input.kind !== "scheduler") {
       await client.query("rollback");
       return empty("conflict");
     }
@@ -261,6 +261,10 @@ export async function commitLiveCalendar(client: Client, input: LiveCalendarInpu
           await client.query("commit");
           return { status: 200, id: prior.rows[0].appointment_id, replayed: true, persisted: true, crmWritten: false, createdClient: false, createdOrder: false, workOrderId: null, version: prior.rows[0].version };
         }
+      }
+      if (input.action === "create" && index >= 0) {
+        await client.query("rollback");
+        return empty("conflict");
       }
       if (input.action !== "create") {
         const version = await client.query<{ version: number }>("select version from scheduler_reservations where id = $1 and active for update", [`res-${input.appointmentId}`]);

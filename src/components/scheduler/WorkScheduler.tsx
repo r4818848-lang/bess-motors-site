@@ -297,7 +297,9 @@ export function WorkScheduler({
       setNotice(body?.replayed ? "Повтор того же ключа. Вторая запись не создана." : "Запись сохранена в копии CRM и в плане работ одной транзакцией.");
       return;
     }
-    if (response.status === 409) setNotice(`Сервер отказал: ${body?.error ?? "conflict"}. Запись не создана.`);
+    if (response.status === 409 && body?.error === "client_vehicle_mismatch") setNotice("Этот автомобиль принадлежит другому клиенту. Обе записи сохранены, новая бронь не создана.");
+    else if (response.status === 409 && body?.error === "idempotency_mismatch") setNotice("Этот ключ уже использован для другой брони. Повтор не записан.");
+    else if (response.status === 409) setNotice(`Сервер отказал: ${body?.error ?? "conflict"}. Запись не создана.`);
     else if (response.status === 403) setNotice(body?.error === "owner_only" ? "В этом режиме сохраняет только владелец." : body?.error === "forbidden" ? "Нельзя изменить чужую работу." : "Запись в боевую CRM выключена.");
     else if (response.status === 503) setNotice(body?.error === "crm_unavailable" ? "CRM недоступна. Запись не создана." : "Нужна отдельная тестовая база. Боевая база не используется.");
     else if (response.ok) setNotice("Бронь записана только в тестовую базу. Клиент и заказ-наряд не создавались.");

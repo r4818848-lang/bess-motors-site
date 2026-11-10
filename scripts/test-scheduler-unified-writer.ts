@@ -123,7 +123,36 @@ async function main(): Promise<void> {
   assert.equal(replay.status, 200);
   assert.equal(replay.replayed, true);
   assert.equal(replay.crmWritten, false);
+  assert.equal(replay.id, "apt-copy-1");
   assert.equal((await surface(admin, "apt-copy-other")).row, 0);
+  assert.equal((await admin.query("select count(*)::int as n from appointments")).rows[0].n, 1);
+
+  const sameId = await commitSchedulerToCrm(input(owner, {
+    appointmentId: "apt-copy-1",
+    idempotencyKey: "copy-1",
+    clientName: "Тест Копия",
+    clientPhone: "48500100200",
+    confirmNewClient: true,
+    vin: "WAUZZZTESTVIN0001",
+    plate: "WX 12345",
+    confirmNewVehicle: true,
+  }));
+  assert.equal(sameId.status, 200);
+  assert.equal(sameId.replayed, true);
+  assert.equal(sameId.id, "apt-copy-1");
+  assert.equal(sameId.crmWritten, false);
+  assert.equal((await admin.query("select count(*)::int as n from appointments where id = 'apt-copy-1'")).rows[0].n, 1);
+  assert.equal((await admin.query("select count(*)::int as n from scheduler_reservations where idempotency_key = 'copy-1'")).rows[0].n, 1);
+
+  const changedKey = await commitSchedulerToCrm(input(owner, {
+    appointmentId: "apt-copy-1",
+    idempotencyKey: "copy-1",
+    workStart: "11:30",
+  }));
+  assert.equal(changedKey.status, 409);
+  assert.equal(changedKey.error, "idempotency_mismatch");
+  assert.equal(changedKey.crmWritten, false);
+  assert.equal((await admin.query<{ start: string }>("select doc->>'workStart' as start from appointments where id = 'apt-copy-1'")).rows[0].start, "10:00");
   assert.equal((await admin.query("select count(*)::int as n from appointments")).rows[0].n, 1);
 
   const again = await commitSchedulerToCrm(input(owner, {
@@ -143,6 +172,44 @@ async function main(): Promise<void> {
   assert.equal(vehicleCount.rows[0].n, 1);
   const orders = await admin.query<{ n: number }>("select coalesce(jsonb_array_length(doc->'workOrders'), 0)::int as n from crm_store where id = 'main'");
   assert.equal(orders.rows[0].n, 0);
+
+  const secondClient = await commitSchedulerToCrm(input(owner, {
+    appointmentId: "apt-owner-b",
+    idempotencyKey: "owner-b",
+    date: "2026-12-22",
+    clientName: "Второй Клиент",
+    clientPhone: "+48 500 100 201",
+    confirmNewClient: true,
+    make: "BMW",
+    model: "X3",
+    vin: "WBASECONDVIN0001",
+    plate: "WX 22222",
+    confirmNewVehicle: true,
+  }));
+  assert.equal(secondClient.status, 200);
+  assert.equal(secondClient.createdClient, true);
+  const mismatch = await commitSchedulerToCrm(input(owner, {
+    appointmentId: "apt-mismatch",
+    idempotencyKey: "mismatch",
+    date: "2026-12-23",
+    clientName: "Тест Копия",
+    clientPhone: "48500100200",
+    vin: "WBASECONDVIN0001",
+    plate: "WX 22222",
+  }));
+  assert.equal(mismatch.status, 409);
+  assert.equal(mismatch.error, "client_vehicle_mismatch");
+  assert.equal(mismatch.crmWritten, false);
+  assert.equal((await surface(admin, "apt-mismatch")).row, 0);
+  const owners = await admin.query<{ vin: string; user_id: string }>(
+    "select item->>'vin' as vin, item->>'userId' as user_id from crm_store, lateral jsonb_array_elements(doc->'vehicles') item where item->>'vin' in ('WAUZZZTESTVIN0001', 'WBASECONDVIN0001') order by item->>'vin'"
+  );
+  assert.deepEqual(owners.rows.map((item) => [item.vin, item.user_id]), [
+    ["WAUZZZTESTVIN0001", "user-48500100200"],
+    ["WBASECONDVIN0001", "user-48500100201"],
+  ]);
+  const clientCount = await admin.query<{ n: number }>("select count(*)::int as n from crm_store, lateral jsonb_array_elements(doc->'users') item");
+  assert.equal(clientCount.rows[0].n, 2);
 
   const [createA, createB] = await Promise.all([
     commitSchedulerToCrm(input(owner, { appointmentId: "apt-race-a", idempotencyKey: "race-a", date: "2026-12-19", workStart: "10:00" })),
