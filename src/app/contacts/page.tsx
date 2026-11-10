@@ -1,11 +1,14 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
+import { useRef, useState, type FormEvent } from "react";
 import { MapPin, Phone, Mail, Clock, MessageCircle } from "lucide-react";
 import { WORKSHOP_HERO_PHOTO } from "@/lib/workshop-photos";
 import { useI18n } from "@/lib/i18n/context";
 import { siteConfig } from "@/lib/site";
 import { PhoneLink } from "@/components/analytics/PhoneLink";
+import { trackLead } from "@/lib/gtag";
 import { SocialContactLink } from "@/components/analytics/SocialContactLink";
 import { Card } from "@/components/ui/Card";
 import { OfflinePriceBanner } from "@/components/pwa/OfflinePriceBanner";
@@ -15,8 +18,70 @@ import { WORKSHOP_DIRECTIONS_URL, WORKSHOP_MAP_EMBED } from "@/lib/maps";
 import { gbpKeyPricesPl } from "@/lib/google-business-facts";
 import { workshopTelegramChatUrl, workshopWhatsAppChatUrl } from "@/lib/chat-cta";
 
+const sendingLabels = {
+  pl: "Wysyłanie…",
+  ru: "Отправляем…",
+  en: "Sending…",
+  uk: "Надсилаємо…",
+} as const;
+
+const privacyLabels = {
+  pl: "Polityka prywatności",
+  ru: "Политика конфиденциальности",
+  en: "Privacy policy",
+  uk: "Політика конфіденційності",
+} as const;
+
 export default function ContactsPage() {
   const { t, locale } = useI18n();
+  const [submission, setSubmission] = useState<"idle" | "sending" | "success" | "error">("idle");
+  const clientRequestIdRef = useRef<string | null>(null);
+
+  async function submitContact(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (submission === "sending") return;
+
+    const form = event.currentTarget;
+    const values = new FormData(form);
+    const clientName = String(values.get("clientName") ?? "").trim();
+    const phone = String(values.get("phone") ?? "").trim();
+    const email = String(values.get("email") ?? "").trim();
+    const message = String(values.get("message") ?? "").trim();
+    if (!clientName || !phone || !message) return;
+
+    // Stable across retries: duplicate submissions must not create duplicate CRM leads.
+    if (!clientRequestIdRef.current) {
+      clientRequestIdRef.current = crypto.randomUUID();
+    }
+
+    setSubmission("sending");
+    try {
+      const response = await fetch("/api/call-request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          clientName,
+          phone,
+          serviceLabel: "Formularz kontaktowy",
+          comment: [message, email ? `E-mail: ${email}` : ""].filter(Boolean).join("\n"),
+          source: "contacts_form",
+          sourceUrl: "/contacts",
+          siteLocale: locale,
+          clientRequestId: clientRequestIdRef.current,
+        }),
+      });
+      const result = await response.json().catch(() => null);
+      if (!response.ok || !result?.ok) throw new Error("lead_not_saved");
+
+      // Count a conversion only after CRM persistence succeeds, without sending any PII.
+      trackLead("call_request", { source: "contacts_form" });
+      clientRequestIdRef.current = null;
+      form.reset();
+      setSubmission("success");
+    } catch {
+      setSubmission("error");
+    }
+  }
 
   const items = [
     { icon: MapPin, label: t.contacts.address, value: siteConfig.address, href: undefined },
@@ -108,20 +173,25 @@ export default function ContactsPage() {
           </div>
 
           <Card glow>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                alert(t.contacts.messageSent);
-              }}
-              className="space-y-4"
-            >
-              <input className="input-premium" placeholder={t.contacts.name} required />
-              <input className="input-premium" type="email" placeholder={t.contacts.email} required />
-              <input className="input-premium" placeholder={t.cabinet.phone} />
-              <textarea className="input-premium min-h-[120px]" placeholder={t.contacts.message} required />
-              <Button type="submit" className="w-full">
-                {t.contacts.send}
+            <form onSubmit={submitContact} className="space-y-4" onChange={() => {
+              if (submission === "success" || submission === "error") setSubmission("idle");
+            }}>
+              <input className="input-premium" name="clientName" autoComplete="name" placeholder={t.contacts.name} required maxLength={120} />
+              <input className="input-premium" name="phone" type="tel" autoComplete="tel" placeholder={t.cabinet.phone} required minLength={9} maxLength={32} />
+              <input className="input-premium" name="email" type="email" autoComplete="email" placeholder={t.contacts.email} maxLength={254} />
+              <textarea className="input-premium min-h-[120px]" name="message" placeholder={t.contacts.message} required maxLength={2500} />
+              <p className="text-xs text-bm-muted">
+                <Link href="/privacy" className="underline hover:text-bm-red">{privacyLabels[locale]}</Link>
+              </p>
+              <Button type="submit" className="w-full" disabled={submission === "sending"}>
+                {submission === "sending" ? sendingLabels[locale] : t.contacts.send}
               </Button>
+              {submission === "success" && (
+                <p role="status" className="text-sm text-green-400">{t.contacts.messageSent}</p>
+              )}
+              {submission === "error" && (
+                <p role="alert" className="text-sm text-bm-red">{t.homeLead.callbackError}</p>
+              )}
             </form>
           </Card>
         </div>
