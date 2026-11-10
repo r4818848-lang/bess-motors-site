@@ -11,6 +11,8 @@ import { useI18n } from "@/lib/i18n/context";
 import { ServiceIcon } from "@/components/icons/ServiceIcon";
 import { PhoneLink } from "@/components/analytics/PhoneLink";
 import { BookingLink } from "@/components/analytics/BookingLink";
+import { SocialContactLink } from "@/components/analytics/SocialContactLink";
+import { whatsappContactUrl } from "@/lib/whatsapp";
 import { LazySmartBookingModal } from "@/components/booking/LazySmartBookingModal";
 import { Card } from "@/components/ui/Card";
 import { useMetaViewContent } from "@/hooks/useMetaViewContent";
@@ -89,6 +91,16 @@ export function SeoLandingPageView({ page }: Props) {
       : `${pageLoc.title} — Warszawa`;
 
   const isExtraSeoPage = EXTRA_SEO_SERVICE_PAGES.some((p) => p.slug === page.slug);
+  const isTireLanding = page.slug === TIRE_AD_LANDING_SLUG ||
+    page.slug === "wulkanizacja-warszawa" ||
+    page.slug === "wymiana-opon-warszawa";
+
+  const tireWhatsAppMessage = {
+    pl: "Dzień dobry! Chcę umówić wymianę opon w BESS MOTORS.\\nSamochód: \\nRozmiar opon: R\\nPreferowany termin: ",
+    ru: "Здравствуйте! Хочу записаться на шиномонтаж в BESS MOTORS.\\nАвтомобиль: \\nРазмер шин: R\\nЖелаемые дата и время: ",
+    en: "Hello! I'd like to book a tyre change at BESS MOTORS.\\nCar: \\nTyre size: R\\nPreferred date/time: ",
+    uk: "Добрий день! Хочу записатися на шиномонтаж у BESS MOTORS.\\nАвто: \\nРозмір шин: R\\nБажані дата і час: ",
+  }[locale];
 
   return (
     <>
@@ -121,6 +133,24 @@ export function SeoLandingPageView({ page }: Props) {
             ) : null}
             <div className="mt-6 h-1 w-24 bg-bm-red shadow-neon-sm mx-auto" />
           </motion.div>
+
+          {isTireLanding && isCallbackLandingSlug(page.slug) ? (
+            <CallbackRequestCta
+              className="mt-7"
+              source={`tire_callback_${page.slug}`}
+              serviceId="tires"
+              serviceLabel={pageLoc.title}
+              labels={{
+                title: t.homeLead.callbackTitle,
+                subtitle: t.homeLead.callbackSubtitle,
+                phonePlaceholder: t.cabinet.phone,
+                submit: t.homeLead.callbackSubmit,
+                done: t.homeLead.callbackDone,
+                error: t.homeLead.callbackError,
+                commentDefault: t.homeLead.callbackComment.replace("{page}", page.slug),
+              }}
+            />
+          ) : null}
 
           {getModelHeroForSlug(page.slug) ? (
             <ModelServiceHero slug={page.slug} />
@@ -195,13 +225,24 @@ export function SeoLandingPageView({ page }: Props) {
               <Phone size={18} />
               {t.stickyBar.call}
             </PhoneLink>
-            <Link
-              href="/#wyceń-po-vin"
-              className="btn-outline inline-flex justify-center items-center gap-2"
-            >
-              <FileSearch size={18} />
-              {t.hero.ctaVin}
-            </Link>
+            {isTireLanding ? (
+              <SocialContactLink
+                kind="whatsapp"
+                href={whatsappContactUrl(tireWhatsAppMessage)}
+                trackSource={`landing_tire_${page.slug}`}
+                className="btn-outline inline-flex justify-center items-center gap-2"
+              >
+                {t.homeLead.chatWhatsapp}
+              </SocialContactLink>
+            ) : (
+              <Link
+                href="/#wyceń-po-vin"
+                className="btn-outline inline-flex justify-center items-center gap-2"
+              >
+                <FileSearch size={18} />
+                {t.hero.ctaVin}
+              </Link>
+            )}
           </div>
 
           <p className="mt-4 text-center text-sm text-bm-muted">
@@ -216,7 +257,7 @@ export function SeoLandingPageView({ page }: Props) {
             {siteConfig.address}
           </p>
 
-          {isCallbackLandingSlug(page.slug) ? (
+          {isCallbackLandingSlug(page.slug) && !isTireLanding ? (
             <CallbackRequestCta
               className="mt-8"
               source={`landing_5min_${page.slug}`}
