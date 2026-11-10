@@ -15,8 +15,8 @@ export type BookResult = {
   id?: string;
   replayed?: boolean;
   persisted: boolean;
-  crmWritten: false;
-  createdClient: false;
+  crmWritten: boolean;
+  createdClient: boolean;
   createdOrder: false;
   workOrderId: string | null;
   version?: number;

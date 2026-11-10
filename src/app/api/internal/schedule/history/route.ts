@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { guardScheduler, isGuardError } from "@/lib/smart-scheduler/access";
 import { schedulerPageOpen } from "@/lib/smart-scheduler/flag";
-import { connectSchedulerDatabase, schedulerDatabaseUrl } from "@/lib/smart-scheduler/postgres";
+import { connectLiveCrmCopy, liveCrmCopyUrl } from "@/lib/smart-scheduler/live-crm";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -16,13 +16,13 @@ export async function GET(req: Request) {
   if (actor.role !== "owner" && actor.role !== "admin") {
     return NextResponse.json({ ok: false, error: "forbidden", persisted: false, crmWritten: false }, { status: 403 });
   }
-  if (!schedulerDatabaseUrl()) {
+  if (!liveCrmCopyUrl()) {
     return NextResponse.json({ ok: false, error: "database_required", persisted: false, crmWritten: false }, { status: 503 });
   }
   const appointmentId = new URL(req.url).searchParams.get("appointmentId")?.trim() ?? "";
   let client;
   try {
-    client = await connectSchedulerDatabase();
+    client = await connectLiveCrmCopy();
   } catch {
     return NextResponse.json({ ok: false, error: "database_required", persisted: false, crmWritten: false }, { status: 503 });
   }

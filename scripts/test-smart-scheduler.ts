@@ -410,7 +410,8 @@ void (async () => {
   assert.doesNotMatch(seed, /\+48\d/);
   const route = readFileSync(join(process.cwd(), "src/app/api/internal/schedule/reservations/route.ts"), "utf8");
   assert.doesNotMatch(route, /body\.store|request\.store|body\.approval|reserveOnLedger|moveOnLedger|cancelOnLedger/);
-  assert.match(route, /commitUnifiedWorkshopWrite/);
+  assert.match(route, /commitSchedulerToCrm/);
+  assert.doesNotMatch(route, /loadCrmFromCloud/);
   assert.match(route, /expectedVersion/);
   const postgres = readFileSync(join(process.cwd(), "src/lib/smart-scheduler/postgres.ts"), "utf8");
   assert.match(postgres, /bookInDatabase/);
@@ -502,8 +503,9 @@ void (async () => {
   assert.match(readFileSync(join(process.cwd(), "src/app/api/internal/schedule/board/route.ts"), "utf8"), /writeRequired: false/);
   assert.doesNotMatch(legacyCalendar, /commitLiveCalendar|live-crm/);
   assert.doesNotMatch(readFileSync(join(process.cwd(), "src/app/api/appointments/route.ts"), "utf8"), /commitLiveCalendar|live-crm/);
-  assert.doesNotMatch(route, /count\(\*\)|commitLiveCalendar/);
-  assert.match(route, /crmSurfacesMatch/);
+  assert.doesNotMatch(route, /count\(\*\)|commitLiveCalendar|loadCrmFromCloud/);
+  assert.match(route, /commitSchedulerToCrm/);
+  assert.match(readFileSync(join(process.cwd(), "src/lib/smart-scheduler/live-crm.ts"), "utf8"), /scheduler_live_digest/);
   const sameCountDifferentWork = crmSurfacesMatch(
     [{ id: "a", mechanicId: "mech-1", date: "2026-12-01", workStart: "11:00", workMinutes: 45, resourceId: "lift-1", appointmentStatus: "scheduled" }, { id: "b", mechanicId: "mech-2", date: "2026-12-01", workStart: "12:00", workMinutes: 30, resourceId: "", appointmentStatus: "scheduled" }],
     [{ id: "b", mechanicId: "mech-2", date: "2026-12-01", workStart: "12:00", workMinutes: 30, resourceId: "", appointmentStatus: "scheduled" }, { id: "a", mechanicId: "mech-1", date: "2026-12-01", workStart: "11:30", workMinutes: 45, resourceId: "lift-1", appointmentStatus: "scheduled" }]

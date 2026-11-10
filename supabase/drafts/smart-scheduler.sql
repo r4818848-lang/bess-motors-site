@@ -258,7 +258,7 @@ do $$ begin
       mechanic_id with =,
       tstzrange(start_at, end_at, '[)') with &&
     ) where (active and mechanic_id <> '');
-exception when duplicate_object then null;
+exception when duplicate_object or duplicate_table then null;
 end $$;
 
 do $$ begin
@@ -268,7 +268,7 @@ do $$ begin
       resource_id with =,
       tstzrange(start_at, end_at, '[)') with &&
     ) where (active);
-exception when duplicate_object then null;
+exception when duplicate_object or duplicate_table then null;
 end $$;
 
 create or replace function public.scheduler_lock_workshop() returns void

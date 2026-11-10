@@ -147,7 +147,8 @@ async function main() {
     crmToken: await freshToken(admin),
   }));
   assert.equal(booked.status, 200);
-  assert.equal(booked.crmWritten, false);
+  assert.equal(booked.crmWritten, true);
+  assert.equal(booked.createdOrder, false);
   assert.deepEqual(await surfaceCount(admin, "apt-afternoon"), { store: 1, row: 1 });
   assert.equal(await admin.query("select count(*)::int as n from scheduler_store_appointments").then((result) => result.rows[0].n), 0);
   assert.equal(await admin.query("select count(*)::int as n from scheduler_row_appointments").then((result) => result.rows[0].n), 0);
