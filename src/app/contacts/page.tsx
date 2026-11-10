@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useRef, useState, type FormEvent } from "react";
 import { MapPin, Phone, Mail, Clock, MessageCircle } from "lucide-react";
 import { WORKSHOP_HERO_PHOTO } from "@/lib/workshop-photos";
@@ -180,7 +181,7 @@ export default function ContactsPage() {
               <input className="input-premium" name="email" type="email" autoComplete="email" placeholder={t.contacts.email} maxLength={254} />
               <textarea className="input-premium min-h-[120px]" name="message" placeholder={t.contacts.message} required maxLength={2500} />
               <p className="text-xs text-bm-muted">
-                <a href="/privacy" className="underline hover:text-bm-red">{privacyLabels[locale]}</a>
+                <Link href="/privacy" className="underline hover:text-bm-red">{privacyLabels[locale]}</Link>
               </p>
               <Button type="submit" className="w-full" disabled={submission === "sending"}>
                 {submission === "sending" ? sendingLabels[locale] : t.contacts.send}
