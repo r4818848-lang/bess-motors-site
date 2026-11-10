@@ -382,7 +382,8 @@ async function main(): Promise<void> {
   }
 
   {
-    const now = new Date("2026-11-09T12:00:00.000Z");
+    // Keep this retry-window fixture relative to the current CI run date.
+    const now = new Date();
     const base = acceptWebsiteInquiry(emptyDb(), inquiry, now, []).lead;
     const older = new Date(now.getTime() - 25 * 60 * 60 * 1000).toISOString();
     const samples: ServiceLead[] = [
