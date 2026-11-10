@@ -422,7 +422,7 @@ async function main(): Promise<void> {
     passed.push("historical");
   }
 
-  assert.deepEqual(passed.sort(), ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "cron", "historical"].sort());
+  assert.deepEqual(passed.sort(), ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "cron", "cron-lease-persist", "historical", "morning-digest-dedup"].sort());
   console.log("lead notices ok", passed.join(" "));
 }
 
