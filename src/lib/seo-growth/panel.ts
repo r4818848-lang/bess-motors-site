@@ -11,7 +11,8 @@ export type PanelSnapshot = {
   searchConsole: { status: "NO_DATA" | "IMPORTED"; clicks: MeasuredValue; impressions: MeasuredValue; ctr: MeasuredValue; position: MeasuredValue };
   bookings: { status: "NO_DATA"; value: null };
   gbp: { api: "UNAVAILABLE"; mapsRank: "NO_DATA"; draftCount: number };
-  queue: { drafts: number; review: number; approved: number; published: number; archived: number };
+  caseStorage: "READY" | "STORAGE_NOT_CONFIGURED" | "STORAGE_UNAVAILABLE";
+  queue: { drafts: number; review: number; approved: number; published: number; archived: number } | null;
   integrationErrors: string[];
   measured: string[];
   recommendations: string[];
@@ -28,6 +29,7 @@ export function buildPanelSnapshot(input: {
   actions: SeoAction[];
   gscTotals: { clicks: number; impressions: number; ctr: number; position: number } | null;
   gscAvailable: boolean;
+  caseStorage?: PanelSnapshot["caseStorage"];
 }): PanelSnapshot {
   const gsc = describeSearchConsoleAccess(input.env);
   const gbp = describeGbpAccess(input.env);
@@ -41,6 +43,7 @@ export function buildPanelSnapshot(input: {
     if (story.status === "archived") counts.archived += 1;
   }
   const totals = input.gscAvailable ? input.gscTotals : null;
+  const caseStorage = input.caseStorage ?? "READY";
   return {
     searchConsole: {
       status: totals ? "IMPORTED" : "NO_DATA",
@@ -51,7 +54,8 @@ export function buildPanelSnapshot(input: {
     },
     bookings: { status: "NO_DATA", value: null },
     gbp: { api: gbp.api, mapsRank: MAPS_RANK_STATUS.status, draftCount: gbpDrafts().length },
-    queue: counts,
+    caseStorage,
+    queue: caseStorage === "READY" ? counts : null,
     integrationErrors: [
       gbp.reason,
       gsc.reason,
@@ -77,7 +81,7 @@ export function weeklyReport(snapshot: PanelSnapshot): { measured: string[]; hyp
       snapshot.searchConsole.impressions.status === "MEASURED"
         ? `Wyświetlenia z importu: ${snapshot.searchConsole.impressions.value}.`
         : "Wyświetlenia organiczne: NO_DATA.",
-      `Opublikowane case: ${snapshot.queue.published}.`,
+      `Opublikowane case: ${snapshot.queue ? snapshot.queue.published : snapshot.caseStorage}.`,
       "Zapisy, przyjazdy i opłacone zlecenia: NO_DATA w tym panelu. Nie bierzemy ich z CRM.",
       "Pozycja Maps: NO_DATA.",
     ],

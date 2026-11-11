@@ -12,7 +12,7 @@ import { seoLandingSlugs } from "@/lib/seo-landing-pages";
 import { blogPosts } from "@/lib/blog-posts";
 import { listPublishedCases } from "@/lib/seo-growth/case-store";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const siteUrl = getSiteUrl();
 
   const seen = new Set<string>();
@@ -66,10 +66,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
     add(`/${slug}`, "weekly", priority);
   }
 
-  const publishedCases = listPublishedCases();
-  if (publishedCases.length > 0) {
-    add("/realizacje", "weekly", 0.6);
-    for (const story of publishedCases) add(`/realizacje/${story.id}`, "monthly", 0.5);
+  try {
+    const publishedCases = await listPublishedCases();
+    if (publishedCases.ok && publishedCases.cases.length > 0) {
+      add("/realizacje", "weekly", 0.6);
+      for (const story of publishedCases.cases) add(`/realizacje/${story.id}`, "monthly", 0.5);
+    }
+  } catch {
+    // A storage outage must not drop the rest of the sitemap.
   }
 
   for (const post of blogPosts) {

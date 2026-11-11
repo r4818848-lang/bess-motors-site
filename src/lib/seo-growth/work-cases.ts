@@ -37,6 +37,9 @@ export type WorkCase = {
   notesPl: string;
   serviceId: CaseServiceId;
   photoIds: string[];
+  /** Owner confirmed this frame hides plates, faces and other identifiers. A text scan does not. */
+  reviewedPhotoIds: string[];
+  version: number;
   publishedAt: string | null;
   createdAt: string;
   updatedAt: string;
@@ -83,6 +86,7 @@ export function publishBlockers(story: WorkCase): string[] {
   if (!story.make.trim() || !story.model.trim()) blockers.push("missing_vehicle");
   if (!story.problemPl.trim() || !story.diagnosisPl.trim() || !story.workPl.trim()) blockers.push("missing_work");
   if (story.photoIds.length === 0) blockers.push("missing_photo");
+  if (story.photoIds.some((id) => !story.reviewedPhotoIds.includes(id))) blockers.push("photo_not_reviewed");
   if (!serviceHref(story.serviceId)) blockers.push("unknown_service");
   const personal = findPersonalData(caseText(story));
   if (personal) blockers.push(personal);

@@ -6,21 +6,34 @@ import { caseTitle, serviceHref } from "@/lib/seo-growth/work-cases";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "Realizacje serwisu | BESS MOTORS",
-  description: "Opublikowane naprawy warsztatu BESS MOTORS w Warszawie. Szkice nie są widoczne.",
-  alternates: { canonical: "/realizacje" },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const published = await listPublishedCases();
+  const index = published.ok && published.cases.length > 0;
+  return {
+    title: "Realizacje serwisu | BESS MOTORS",
+    description: "Opublikowane naprawy warsztatu BESS MOTORS w Warszawie. Szkice nie są widoczne.",
+    alternates: { canonical: "/realizacje" },
+    robots: { index, follow: index },
+  };
+}
 
-export default function RealizacjePage() {
-  const stories = listPublishedCases();
-  if (stories.length === 0) notFound();
+export default async function RealizacjePage() {
+  const published = await listPublishedCases();
+  if (!published.ok && published.error === "STORAGE_UNAVAILABLE") {
+    return (
+      <main className="mx-auto max-w-3xl px-4 py-16">
+        <h1 className="font-display text-3xl uppercase">Realizacje</h1>
+        <p className="mt-4">STORAGE_UNAVAILABLE</p>
+      </main>
+    );
+  }
+  if (!published.ok || published.cases.length === 0) notFound();
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-16">
       <h1 className="font-display text-3xl uppercase">Realizacje</h1>
       <ul className="mt-8 space-y-8">
-        {stories.map((story) => {
+        {published.cases.map((story) => {
           const href = serviceHref(story.serviceId);
           return (
             <li key={story.id} className="border border-white/10 rounded-xl p-4">

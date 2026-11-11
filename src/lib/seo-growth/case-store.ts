@@ -1,205 +1,122 @@
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import path from "node:path";
-import { randomUUID } from "node:crypto";
+import { existsSync } from "node:fs";
+import { isSupabaseConfigured } from "@/lib/server/supabase-config";
 import {
-  canTransition,
-  caseText,
-  findPersonalData,
-  isPublicCase,
-  publishBlockers,
-  type CaseServiceId,
-  type WorkCase,
-  type WorkCaseStatus,
-} from "@/lib/seo-growth/work-cases";
-import { inspectImage, type SafeImage } from "@/lib/seo-growth/image-safety";
+  createMemoryCaseStore,
+  unconfiguredCaseStore,
+  type CaseInput,
+  type CaseRepository,
+  type SeoAction,
+} from "@/lib/seo-growth/case-memory";
+import { createSupabaseCaseRepository } from "@/lib/seo-growth/case-supabase";
+import { prepareCaseImage } from "@/lib/seo-growth/image-safety";
+import { findPersonalData, caseText, type WorkCase, type WorkCaseStatus } from "@/lib/seo-growth/work-cases";
 
-export type SeoAction = {
-  at: string;
-  actor: "admin";
-  action: string;
-  caseId: string | null;
-  note: string;
-};
+export type { SeoAction, CaseInput };
 
-type PhotoRecord = { caseId: string; mime: SafeImage["mime"]; bytes: string };
+let testRepository: CaseRepository | null = null;
 
-type StoreFile = {
-  cases: WorkCase[];
-  photos: Record<string, PhotoRecord>;
-  actions: SeoAction[];
-};
-
-function emptyStore(): StoreFile {
-  return { cases: [], photos: {}, actions: [] };
-}
-
-export function seoStoreDirectory(): string {
-  const custom = process.env.SEO_CASE_STORE_DIR?.trim();
-  return custom || path.join(process.cwd(), "data", "seo-private");
-}
-
-function storeFile(): string {
-  return path.join(seoStoreDirectory(), "store.json");
-}
-
-function readStore(): StoreFile {
-  try {
-    const parsed = JSON.parse(readFileSync(storeFile(), "utf8")) as StoreFile;
-    if (!parsed || !Array.isArray(parsed.cases) || !parsed.photos || !Array.isArray(parsed.actions)) return emptyStore();
-    return parsed;
-  } catch {
-    return emptyStore();
+/** Tests only. Production and Vercel preview keep the real repository. */
+export function installCaseStoreForTests(repository: CaseRepository | null): void {
+  if (process.env.VERCEL_ENV === "production" || process.env.VERCEL_ENV === "preview") {
+    throw new Error("seo_case_test_store_refused");
   }
+  testRepository = repository;
 }
 
-function writeStore(store: StoreFile): void {
-  const dir = seoStoreDirectory();
-  mkdirSync(dir, { recursive: true });
-  writeFileSync(storeFile(), JSON.stringify(store));
+export function repositoryForEnv(env: Record<string, string | undefined>): CaseRepository {
+  if (testRepository && env === process.env) return testRepository;
+  if (env.SEO_CASE_STORAGE !== "supabase") return unconfiguredCaseStore();
+  if (!isSupabaseConfigured()) return unconfiguredCaseStore();
+  return createSupabaseCaseRepository();
 }
 
-export type CaseInput = {
-  make: string;
-  model: string;
-  generation?: string;
-  year?: string;
-  engine?: string;
-  problemPl: string;
-  diagnosisPl: string;
-  workPl: string;
-  notesPl?: string;
-  serviceId: CaseServiceId;
-};
-
-function clean(value: string | undefined): string {
-  return (value ?? "").trim().slice(0, 2000);
+export function caseRepository(): CaseRepository {
+  if (testRepository) return testRepository;
+  return repositoryForEnv(process.env);
 }
 
-export function listCases(): WorkCase[] {
-  return readStore().cases;
+export function caseStorageStatus(env: Record<string, string | undefined> = process.env): "STORAGE_NOT_CONFIGURED" | "READY" {
+  if (env.SEO_CASE_STORAGE === "supabase" && isSupabaseConfigured()) return "READY";
+  if (testRepository) return "READY";
+  return "STORAGE_NOT_CONFIGURED";
 }
 
-export function listPublishedCases(): WorkCase[] {
-  return listCases().filter(isPublicCase);
+function personalReason(input: CaseInput): string | null {
+  return findPersonalData(
+    caseText({
+      make: input.make ?? "",
+      model: input.model ?? "",
+      generation: input.generation ?? "",
+      year: input.year ?? "",
+      engine: input.engine ?? "",
+      problemPl: input.problemPl ?? "",
+      diagnosisPl: input.diagnosisPl ?? "",
+      workPl: input.workPl ?? "",
+      notesPl: input.notesPl ?? "",
+    })
+  );
 }
 
-export function getCase(id: string): WorkCase | null {
-  return listCases().find((item) => item.id === id) ?? null;
+export async function listCases(): Promise<{ ok: true; cases: WorkCase[] } | { ok: false; error: string }> {
+  const result = await caseRepository().listCases();
+  return result.ok ? { ok: true, cases: result.value } : result;
 }
 
-export function listActions(): SeoAction[] {
-  return readStore().actions;
+export async function listPublishedCases(): Promise<{ ok: true; cases: WorkCase[] } | { ok: false; error: string }> {
+  const result = await caseRepository().listPublished();
+  return result.ok ? { ok: true, cases: result.value } : { ok: false, error: result.error };
 }
 
-function log(store: StoreFile, action: string, caseId: string | null, note: string): void {
-  store.actions.push({ at: new Date().toISOString(), actor: "admin", action, caseId, note });
+export async function getCase(id: string): Promise<{ ok: true; story: WorkCase } | { ok: false; error: string }> {
+  const result = await caseRepository().getCase(id);
+  return result.ok ? { ok: true, story: result.value } : result;
 }
 
-export function createCase(input: CaseInput): { ok: true; story: WorkCase } | { ok: false; reason: string } {
-  const story: WorkCase = {
-    id: randomUUID(),
-    status: "draft",
-    make: clean(input.make),
-    model: clean(input.model),
-    generation: clean(input.generation),
-    year: clean(input.year),
-    engine: clean(input.engine),
-    problemPl: clean(input.problemPl),
-    diagnosisPl: clean(input.diagnosisPl),
-    workPl: clean(input.workPl),
-    notesPl: clean(input.notesPl),
-    serviceId: input.serviceId,
-    photoIds: [],
-    publishedAt: null,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    history: [{ at: new Date().toISOString(), action: "create", from: null, to: "draft" }],
-  };
-  const personal = findPersonalData(caseText(story));
-  if (personal) return { ok: false, reason: personal };
-  const store = readStore();
-  store.cases.push(story);
-  log(store, "create_case", story.id, "draft");
-  writeStore(store);
-  return { ok: true, story };
+export async function listActions(): Promise<{ ok: true; actions: SeoAction[] } | { ok: false; error: string }> {
+  const result = await caseRepository().listActions();
+  return result.ok ? { ok: true, actions: result.value } : result;
 }
 
-export function updateCase(id: string, input: Partial<CaseInput>): { ok: true; story: WorkCase } | { ok: false; reason: string } {
-  const store = readStore();
-  const story = store.cases.find((item) => item.id === id);
-  if (!story) return { ok: false, reason: "not_found" };
-  if (story.status === "archived") return { ok: false, reason: "archived" };
-  const next = { ...story };
-  for (const key of ["make", "model", "generation", "year", "engine", "problemPl", "diagnosisPl", "workPl", "notesPl"] as const) {
-    if (input[key] !== undefined) next[key] = clean(input[key]);
-  }
-  if (input.serviceId) next.serviceId = input.serviceId;
-  const personal = findPersonalData(caseText(next));
-  if (personal) return { ok: false, reason: personal };
-  if (next.status === "published" && publishBlockers({ ...next, status: "approved" }).length > 0) {
-    return { ok: false, reason: "would_unpublish" };
-  }
-  next.updatedAt = new Date().toISOString();
-  next.history = [...story.history, { at: next.updatedAt, action: "edit", from: story.status, to: story.status }];
-  Object.assign(story, next);
-  log(store, "edit_case", id, story.status);
-  writeStore(store);
-  return { ok: true, story };
+export async function createCase(input: CaseInput, idempotencyKey: string | null = null) {
+  const personal = personalReason(input);
+  if (personal) return { ok: false as const, error: personal };
+  const result = await caseRepository().createCase(input, idempotencyKey);
+  return result.ok ? { ok: true as const, story: result.value, replayed: result.replayed === true } : { ok: false as const, error: result.error };
 }
 
-export function transitionCase(id: string, to: WorkCaseStatus): { ok: true; story: WorkCase } | { ok: false; reason: string } {
-  const store = readStore();
-  const story = store.cases.find((item) => item.id === id);
-  if (!story) return { ok: false, reason: "not_found" };
-  if (!canTransition(story.status, to)) return { ok: false, reason: "forbidden_transition" };
-  if (to === "published") {
-    const blockers = publishBlockers(story);
-    if (blockers.length > 0) return { ok: false, reason: blockers.join(",") };
-    story.publishedAt = new Date().toISOString();
-  }
-  if (to === "archived") story.publishedAt = story.publishedAt;
-  const from = story.status;
-  story.status = to;
-  story.updatedAt = new Date().toISOString();
-  story.history = [...story.history, { at: story.updatedAt, action: "transition", from, to }];
-  log(store, "transition_case", id, `${from}->${to}`);
-  writeStore(store);
-  return { ok: true, story };
+export async function updateCase(id: string, version: number, input: Partial<CaseInput>) {
+  const result = await caseRepository().updateCase(id, version, input);
+  return result.ok ? { ok: true as const, story: result.value } : { ok: false as const, error: result.error };
 }
 
-export function attachPhoto(caseId: string, bytes: Uint8Array): { ok: true; photoId: string } | { ok: false; reason: string } {
-  const checked = inspectImage(bytes);
-  if (!checked.ok) return checked;
-  const store = readStore();
-  const story = store.cases.find((item) => item.id === caseId);
-  if (!story) return { ok: false, reason: "not_found" };
-  if (story.status === "archived") return { ok: false, reason: "archived" };
-  const photoId = randomUUID();
-  store.photos[photoId] = {
-    caseId,
-    mime: checked.image.mime,
-    bytes: Buffer.from(checked.image.bytes).toString("base64"),
-  };
-  story.photoIds = [...story.photoIds, photoId];
-  story.updatedAt = new Date().toISOString();
-  story.history = [...story.history, { at: story.updatedAt, action: "edit", from: story.status, to: story.status }];
-  log(store, "attach_photo", caseId, checked.image.mime);
-  writeStore(store);
-  return { ok: true, photoId };
+export async function transitionCase(id: string, version: number, to: WorkCaseStatus) {
+  const result = await caseRepository().transitionCase(id, version, to);
+  return result.ok ? { ok: true as const, story: result.value } : { ok: false as const, error: result.error };
 }
 
-export function publicPhoto(caseId: string, photoId: string): { mime: string; bytes: Buffer } | null {
-  const story = getCase(caseId);
-  if (!story || !isPublicCase(story) || !story.photoIds.includes(photoId)) return null;
-  const photo = readStore().photos[photoId];
-  if (!photo || photo.caseId !== caseId) return null;
-  return { mime: photo.mime, bytes: Buffer.from(photo.bytes, "base64") };
+export async function attachPhoto(caseId: string, version: number, bytes: Uint8Array, idempotencyKey: string | null = null) {
+  const image = await prepareCaseImage(bytes);
+  if (!image.ok) return { ok: false as const, error: image.reason };
+  const result = await caseRepository().attachPhoto(caseId, version, image.image, idempotencyKey);
+  return result.ok ? { ok: true as const, photoId: result.value.photoId, story: result.value.story, replayed: result.replayed === true } : { ok: false as const, error: result.error };
 }
 
-export function recordOwnerDecision(action: string, note: string, caseId: string | null = null): SeoAction {
-  const store = readStore();
-  const entry: SeoAction = { at: new Date().toISOString(), actor: "admin", action, caseId, note: note.slice(0, 300) };
-  store.actions.push(entry);
-  writeStore(store);
-  return entry;
+export async function reviewPhoto(caseId: string, photoId: string, version: number) {
+  const result = await caseRepository().reviewPhoto(caseId, photoId, version);
+  return result.ok ? { ok: true as const, story: result.value } : { ok: false as const, error: result.error };
 }
+
+export async function publicPhoto(caseId: string, photoId: string) {
+  return caseRepository().publicPhoto(caseId, photoId);
+}
+
+export async function recordOwnerDecision(action: string, note: string, caseId: string | null = null) {
+  const result = await caseRepository().record(action, note, caseId);
+  return result.ok ? { ok: true as const, entry: result.value } : { ok: false as const, error: result.error };
+}
+
+export function localCaseFileExists(): boolean {
+  return existsSync("data/seo-private/store.json");
+}
+
+export { createMemoryCaseStore };

@@ -1,4 +1,9 @@
+import { createCanvas, loadImage } from "@napi-rs/canvas";
+
 const MAX_BYTES = 4 * 1024 * 1024;
+const MIN_SIDE = 32;
+const MAX_SIDE = 8000;
+const OUTPUT_SIDE = 2000;
 
 export type SafeImage = {
   mime: "image/jpeg" | "image/png" | "image/webp";
@@ -128,4 +133,55 @@ export function inspectImage(bytes: Uint8Array): ImageCheck {
 export function imageContainsExif(bytes: Uint8Array): boolean {
   const text = Buffer.from(bytes).toString("latin1");
   return text.includes("Exif") || text.includes("eXIf");
+}
+
+function hasDecodablePayload(bytes: Uint8Array, mime: SafeImage["mime"]): boolean {
+  if (mime === "image/png") return Buffer.from(bytes).includes(Buffer.from("IDAT"));
+  if (mime === "image/webp") {
+    const text = Buffer.from(bytes).toString("latin1");
+    return text.includes("VP8 ") || text.includes("VP8L") || text.includes("VP8X");
+  }
+  let i = 2;
+  let sawFrame = false;
+  while (i + 3 < bytes.length) {
+    if (bytes[i] !== 0xff) return false;
+    const marker = bytes[i + 1];
+    if (marker === 0xda) return sawFrame && bytes.length - i > 8;
+    if (marker >= 0xc0 && marker <= 0xcf && marker !== 0xc4 && marker !== 0xc8 && marker !== 0xcc) sawFrame = true;
+    if (marker === 0x00 || marker === 0x01 || (marker >= 0xd0 && marker <= 0xd9)) {
+      i += 2;
+      continue;
+    }
+    const length = (bytes[i + 2] << 8) + bytes[i + 3];
+    if (length < 2 || i + 2 + length > bytes.length) return false;
+    i += 2 + length;
+  }
+  return false;
+}
+
+/** Decode and write a new JPEG. Metadata from the original file is not copied. */
+export async function prepareCaseImage(bytes: Uint8Array): Promise<ImageCheck> {
+  const checked = inspectImage(bytes);
+  if (!checked.ok) return checked;
+  if (!hasDecodablePayload(checked.image.bytes, checked.image.mime)) return { ok: false, reason: "decode_failed" };
+  try {
+    const img = await loadImage(Buffer.from(checked.image.bytes));
+    if (img.width < MIN_SIDE || img.height < MIN_SIDE || img.width > MAX_SIDE || img.height > MAX_SIDE) {
+      return { ok: false, reason: "bad_dimensions" };
+    }
+    const scale = Math.min(1, OUTPUT_SIDE / Math.max(img.width, img.height));
+    const width = Math.max(1, Math.round(img.width * scale));
+    const height = Math.max(1, Math.round(img.height * scale));
+    const canvas = createCanvas(width, height);
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, width, height);
+    ctx.drawImage(img, 0, 0, width, height);
+    const encoded = new Uint8Array(canvas.toBuffer("image/jpeg", 85));
+    if (encoded.length === 0 || encoded.length > MAX_BYTES) return { ok: false, reason: "too_large" };
+    if (imageContainsExif(encoded)) return { ok: false, reason: "metadata_remained" };
+    return { ok: true, image: { mime: "image/jpeg", bytes: encoded } };
+  } catch {
+    return { ok: false, reason: "decode_failed" };
+  }
 }

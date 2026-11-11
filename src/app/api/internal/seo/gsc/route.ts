@@ -1,10 +1,7 @@
-import { mkdirSync, writeFileSync } from "node:fs";
-import path from "node:path";
 import { NextResponse } from "next/server";
 import { requireSeoAdmin } from "@/lib/server/seo-access";
 import { buildGscReport, periodFromTables } from "@/lib/gsc-import";
 import { describePeriodWindow, periodsAreComparable, rollupQueries, validateGscExport } from "@/lib/gsc-analysis";
-import { seoStoreDirectory } from "@/lib/seo-growth/case-store";
 import { recordOwnerDecision } from "@/lib/seo-growth/case-store";
 
 export const dynamic = "force-dynamic";
@@ -29,22 +26,11 @@ export async function POST(req: Request) {
   const report = buildGscReport({ env: {}, current, previous });
   const period = periodFromTables(current);
   const previousPeriod = periodFromTables(previous);
-  const summary = period?.totals
-    ? {
-        clicks: period.totals.clicks,
-        impressions: period.totals.impressions,
-        ctr: period.totals.impressions > 0 ? period.totals.clicks / period.totals.impressions : 0,
-        position: period.dates.length > 0 ? period.dates.reduce((sum, row) => sum + row.position, 0) / period.dates.length : 0,
-      }
-    : null;
-  if (summary) {
-    const dir = seoStoreDirectory();
-    mkdirSync(dir, { recursive: true });
-    writeFileSync(path.join(dir, "gsc-summary.json"), JSON.stringify(summary));
-  }
-  recordOwnerDecision("import_gsc", `rows:${current.reduce((sum, table) => sum + table.rows.length, 0)}`, null);
+  const decision = await recordOwnerDecision("import_gsc", `rows:${current.reduce((sum, table) => sum + table.rows.length, 0)}`, null);
   return NextResponse.json({
-    status: summary ? "IMPORTED" : "NO_DATA",
+    status: period?.totals ? "IMPORTED" : "NO_DATA",
+    persisted: decision.ok,
+    decision: decision.ok ? "STORED" : decision.error,
     checks: currentChecks.map(({ table, ...check }) => ({ ...check, kind: table.kind, rows: table.rows.length })),
     window: describePeriodWindow(period),
     comparison: periodsAreComparable(period, previousPeriod),

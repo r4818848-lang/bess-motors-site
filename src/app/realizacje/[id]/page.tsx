@@ -12,7 +12,8 @@ type Params = { params: Promise<{ id: string }> };
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { id } = await params;
-  const story = getCase(id);
+  const loaded = await getCase(id);
+  const story = loaded.ok ? loaded.story : null;
   if (!story || !isPublicCase(story)) return { robots: { index: false, follow: false } };
   const title = caseTitle(story);
   const description = `${story.problemPl} ${story.workPl}`.replace(/\s+/g, " ").slice(0, 160);
@@ -29,7 +30,16 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 
 export default async function RealizacjaPage({ params }: Params) {
   const { id } = await params;
-  const story = getCase(id);
+  const loaded = await getCase(id);
+  if (!loaded.ok && loaded.error === "STORAGE_UNAVAILABLE") {
+    return (
+      <main className="mx-auto max-w-3xl px-4 py-16">
+        <h1 className="font-display text-3xl uppercase">Realizacje</h1>
+        <p>STORAGE_UNAVAILABLE</p>
+      </main>
+    );
+  }
+  const story = loaded.ok ? loaded.story : null;
   if (!story || !isPublicCase(story)) notFound();
   const href = serviceHref(story.serviceId);
   const title = caseTitle(story);

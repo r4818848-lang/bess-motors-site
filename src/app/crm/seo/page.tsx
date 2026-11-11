@@ -1,15 +1,16 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { isAdminAuthenticated } from "@/lib/auth";
 import { CASE_SERVICES } from "@/lib/seo-growth/work-cases";
 import type { PanelSnapshot } from "@/lib/seo-growth/panel";
 
 type Payload = {
+  storage: string;
   snapshot: PanelSnapshot;
   weekly: { measured: string[]; hypotheses: string[] };
-  cases: { id: string; status: string; make: string; model: string; workPl: string }[];
+  cases: { id: string; version: number; status: string; make: string; model: string; workPl: string; photoIds: string[] }[] | null;
 };
 
 function token(): string {
@@ -20,6 +21,8 @@ export default function SeoControlPage() {
   const [allowed, setAllowed] = useState(false);
   const [data, setData] = useState<Payload | null>(null);
   const [error, setError] = useState("");
+  const draftKey = useRef("");
+  const [confirmed, setConfirmed] = useState<Record<string, boolean>>({});
   const [form, setForm] = useState({
     make: "",
     model: "",
@@ -46,9 +49,10 @@ export default function SeoControlPage() {
 
   async function createDraft(event: FormEvent) {
     event.preventDefault();
+    if (!draftKey.current) draftKey.current = crypto.randomUUID();
     const res = await fetch("/api/internal/seo/cases", {
       method: "POST",
-      headers: { authorization: `Bearer ${token()}`, "content-type": "application/json" },
+      headers: { authorization: `Bearer ${token()}`, "content-type": "application/json", "idempotency-key": draftKey.current },
       body: JSON.stringify(form),
     });
     if (!res.ok) {
@@ -56,6 +60,7 @@ export default function SeoControlPage() {
       return;
     }
     setError("");
+    draftKey.current = "";
     await load();
   }
 
@@ -75,6 +80,7 @@ export default function SeoControlPage() {
   return (
     <main className="mx-auto max-w-3xl px-4 py-16">
       <h1 className="font-display text-3xl uppercase">SEO</h1>
+      <p className="mt-2">Katalog napraw: {data?.storage ?? "STORAGE_NOT_CONFIGURED"}</p>
       <p className="mt-2 text-sm text-bm-muted">
         Liczby poniżej są z importu albo mają status NO_DATA. Rekomendacje nie zmieniają strony.
       </p>
@@ -91,8 +97,7 @@ export default function SeoControlPage() {
           <p>Google Business Profile API: {snapshot.gbp.api}</p>
           <p>Pozycja Maps: {snapshot.gbp.mapsRank}</p>
           <p>
-            Kolejka: szkice {snapshot.queue.drafts}, recenzja {snapshot.queue.review}, zatwierdzone {snapshot.queue.approved},
-            opublikowane {snapshot.queue.published}
+            Kolejka: {snapshot.queue ? `szkice ${snapshot.queue.drafts}, recenzja ${snapshot.queue.review}, zatwierdzone ${snapshot.queue.approved}, opublikowane ${snapshot.queue.published}` : snapshot.caseStorage}
           </p>
           <h2 className="pt-4 text-lg">Błędy integracji</h2>
           <ul>
@@ -128,12 +133,12 @@ export default function SeoControlPage() {
             </option>
           ))}
         </select>
-        <button className="btn-primary" type="submit">
+        <button className="btn-primary" type="submit" disabled={data?.storage !== "READY"}>
           Zapisz szkic
         </button>
       </form>
       <ul className="mt-8 space-y-4">
-        {data?.cases.map((story) => (
+        {(data?.cases ?? []).map((story) => (
           <li key={story.id} className="rounded border border-white/10 p-3">
             <p>
               {story.status}: {story.make} {story.model} — {story.workPl}
@@ -148,7 +153,7 @@ export default function SeoControlPage() {
                     await fetch("/api/internal/seo/cases", {
                       method: "POST",
                       headers: { authorization: `Bearer ${token()}`, "content-type": "application/json" },
-                      body: JSON.stringify({ id: story.id, to }),
+                      body: JSON.stringify({ id: story.id, to, version: story.version }),
                     });
                     await load();
                   }}
@@ -167,6 +172,7 @@ export default function SeoControlPage() {
                     if (!file) return;
                     const body = new FormData();
                     body.set("caseId", story.id);
+                    body.set("version", String(story.version));
                     body.set("file", file);
                     await fetch("/api/internal/seo/media", {
                       method: "POST",
@@ -177,6 +183,30 @@ export default function SeoControlPage() {
                   }}
                 />
               </label>
+              <label className="text-sm">
+                <input
+                  className="mr-2"
+                  type="checkbox"
+                  checked={confirmed[story.id] === true}
+                  onChange={(event) => setConfirmed({ ...confirmed, [story.id]: event.target.checked })}
+                />
+                Potwierdzam, że na zdjęciu nie widać tablic, twarzy ani VIN
+              </label>
+              <button
+                className="btn-outline"
+                type="button"
+                disabled={confirmed[story.id] !== true || story.photoIds.length === 0}
+                onClick={async () => {
+                  await fetch("/api/internal/seo/cases", {
+                    method: "POST",
+                    headers: { authorization: `Bearer ${token()}`, "content-type": "application/json" },
+                    body: JSON.stringify({ id: story.id, photoId: story.photoIds[0], version: story.version }),
+                  });
+                  await load();
+                }}
+              >
+                Zatwierdź zdjęcie
+              </button>
             </div>
           </li>
         ))}
