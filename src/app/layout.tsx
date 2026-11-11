@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { Inter, Orbitron } from "next/font/google";
+import { Inter } from "next/font/google";
 
 import "./globals.css";
 
@@ -24,9 +24,12 @@ import { telegramLaunchHeadScript } from "@/lib/telegram-webapp-client";
 
 
 
-const inter = Inter({ subsets: ["latin", "cyrillic"], variable: "--font-inter" });
-
-const orbitron = Orbitron({ subsets: ["latin"], variable: "--font-orbitron" });
+const inter = Inter({
+  subsets: ["latin", "cyrillic"],
+  variable: "--font-inter",
+  display: "swap",
+  adjustFontFallback: true,
+});
 
 
 
@@ -60,7 +63,7 @@ export const metadata: Metadata = {
     ],
   },
   robots: { index: true, follow: true, googleBot: { index: true, follow: true } },
-  icons: { icon: "/images/logo.png", apple: "/images/logo.png" },
+  icons: { icon: "/icons/favicon-48.png", apple: "/icons/apple-touch-180.png" },
   ...(googleSiteVerification
     ? { verification: { google: googleSiteVerification } }
     : {}),
@@ -110,7 +113,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
   return (
 
-    <html lang="pl" className={`${inter.variable} ${orbitron.variable}`} suppressHydrationWarning>
+    <html lang="pl" className={inter.variable} suppressHydrationWarning>
 
       <head>
         <script dangerouslySetInnerHTML={{ __html: telegramLaunchHeadScript }} />

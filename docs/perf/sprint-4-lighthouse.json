@@ -1,0 +1,483 @@
+{
+  "environment": {
+    "date": "2026-11-11",
+    "next": "15.5.18",
+    "lighthouse": "12.8.2",
+    "chrome": "156.0.8078.47",
+    "server": "next start -H 127.0.0.1 -p 3456",
+    "formFactor": "mobile",
+    "screen": {
+      "width": 412,
+      "height": 823,
+      "deviceScaleFactor": 1.75
+    },
+    "throttlingMethod": "simulate",
+    "throttling": {
+      "rttMs": 150,
+      "throughputKbps": 1638.4,
+      "cpuSlowdownMultiplier": 4,
+      "requestLatencyMs": 562.5,
+      "downloadThroughputKbps": 1474.56
+    },
+    "cache": "cold each run, Lighthouse resets storage",
+    "runsPerUrl": 3,
+    "fieldData": "none — these are lab numbers, not CrUX and not INP"
+  },
+  "pages": {
+    "booking": {
+      "path": "/booking",
+      "baseline": [
+        {
+          "run": 1,
+          "score": 90,
+          "fcp": 1367,
+          "lcp": 3617,
+          "tbt": 52,
+          "cls": 0,
+          "si": 1367,
+          "ttfb": 4,
+          "js": 338325,
+          "img": 146645,
+          "font": 165417,
+          "css": 21074
+        },
+        {
+          "run": 2,
+          "score": 90,
+          "fcp": 1365,
+          "lcp": 3615,
+          "tbt": 45,
+          "cls": 0,
+          "si": 1365,
+          "ttfb": 3,
+          "js": 338325,
+          "img": 146645,
+          "font": 165417,
+          "css": 21074
+        },
+        {
+          "run": 3,
+          "score": 90,
+          "fcp": 1365,
+          "lcp": 3615,
+          "tbt": 58,
+          "cls": 0,
+          "si": 1365,
+          "ttfb": 4,
+          "js": 338325,
+          "img": 146645,
+          "font": 165417,
+          "css": 21074
+        }
+      ],
+      "after": [
+        {
+          "run": 1,
+          "score": 89,
+          "fcp": 1365,
+          "lcp": 3615,
+          "tbt": 71,
+          "cls": 0,
+          "si": 1365,
+          "ttfb": 4,
+          "js": 339524,
+          "img": 24322,
+          "font": 153349,
+          "css": 20989
+        },
+        {
+          "run": 2,
+          "score": 92,
+          "fcp": 1367,
+          "lcp": 3317,
+          "tbt": 59,
+          "cls": 0,
+          "si": 1367,
+          "ttfb": 4,
+          "js": 339524,
+          "img": 24318,
+          "font": 153349,
+          "css": 20989
+        },
+        {
+          "run": 3,
+          "score": 92,
+          "fcp": 1367,
+          "lcp": 3317,
+          "tbt": 61,
+          "cls": 0,
+          "si": 1367,
+          "ttfb": 4,
+          "js": 339524,
+          "img": 24318,
+          "font": 153349,
+          "css": 20989
+        }
+      ]
+    },
+    "home": {
+      "path": "/",
+      "baseline": [
+        {
+          "run": 1,
+          "score": 80,
+          "fcp": 1520,
+          "lcp": 5079,
+          "tbt": 74,
+          "cls": 0.0498,
+          "si": 1520,
+          "ttfb": 9,
+          "js": 338325,
+          "img": 319707,
+          "font": 165417,
+          "css": 21074
+        },
+        {
+          "run": 2,
+          "score": 84,
+          "fcp": 1518,
+          "lcp": 4383,
+          "tbt": 71,
+          "cls": 0.0498,
+          "si": 1518,
+          "ttfb": 6,
+          "js": 338325,
+          "img": 319697,
+          "font": 165417,
+          "css": 21074
+        },
+        {
+          "run": 3,
+          "score": 84,
+          "fcp": 1518,
+          "lcp": 4383,
+          "tbt": 50,
+          "cls": 0.0498,
+          "si": 1518,
+          "ttfb": 5,
+          "js": 338325,
+          "img": 319697,
+          "font": 165417,
+          "css": 21074
+        }
+      ],
+      "after": [
+        {
+          "run": 1,
+          "score": 83,
+          "fcp": 1524,
+          "lcp": 4691,
+          "tbt": 62,
+          "cls": 0.0498,
+          "si": 1524,
+          "ttfb": 15,
+          "js": 339524,
+          "img": 152608,
+          "font": 153349,
+          "css": 20989
+        },
+        {
+          "run": 2,
+          "score": 83,
+          "fcp": 1521,
+          "lcp": 4685,
+          "tbt": 41,
+          "cls": 0.0498,
+          "si": 1521,
+          "ttfb": 9,
+          "js": 339524,
+          "img": 152598,
+          "font": 153349,
+          "css": 20989
+        },
+        {
+          "run": 3,
+          "score": 86,
+          "fcp": 1519,
+          "lcp": 4082,
+          "tbt": 56,
+          "cls": 0.0498,
+          "si": 1519,
+          "ttfb": 5,
+          "js": 339524,
+          "img": 152598,
+          "font": 153349,
+          "css": 20989
+        }
+      ]
+    },
+    "opony": {
+      "path": "/opony",
+      "baseline": [
+        {
+          "run": 1,
+          "score": 75,
+          "fcp": 1518,
+          "lcp": 7416,
+          "tbt": 106,
+          "cls": 0.0061,
+          "si": 1658,
+          "ttfb": 4,
+          "js": 685244,
+          "img": 146645,
+          "font": 165417,
+          "css": 21074
+        },
+        {
+          "run": 2,
+          "score": 76,
+          "fcp": 1515,
+          "lcp": 6969,
+          "tbt": 80,
+          "cls": 0.034,
+          "si": 1515,
+          "ttfb": 5,
+          "js": 685244,
+          "img": 146645,
+          "font": 165417,
+          "css": 21074
+        },
+        {
+          "run": 3,
+          "score": 76,
+          "fcp": 1518,
+          "lcp": 6679,
+          "tbt": 84,
+          "cls": 0.0334,
+          "si": 1590,
+          "ttfb": 5,
+          "js": 685244,
+          "img": 146645,
+          "font": 165417,
+          "css": 21074
+        }
+      ],
+      "after": [
+        {
+          "run": 1,
+          "score": 76,
+          "fcp": 1516,
+          "lcp": 6283,
+          "tbt": 90,
+          "cls": 0.0483,
+          "si": 1516,
+          "ttfb": 5,
+          "js": 682847,
+          "img": 10272,
+          "font": 153349,
+          "css": 20989
+        },
+        {
+          "run": 2,
+          "score": 76,
+          "fcp": 1517,
+          "lcp": 6289,
+          "tbt": 86,
+          "cls": 0.0483,
+          "si": 1517,
+          "ttfb": 5,
+          "js": 682847,
+          "img": 10270,
+          "font": 153349,
+          "css": 20989
+        },
+        {
+          "run": 3,
+          "score": 75,
+          "fcp": 1518,
+          "lcp": 6748,
+          "tbt": 102,
+          "cls": 0.0483,
+          "si": 1518,
+          "ttfb": 6,
+          "js": 682847,
+          "img": 10270,
+          "font": 153349,
+          "css": 20989
+        }
+      ]
+    },
+    "wulkanizacja": {
+      "path": "/wulkanizacja-warszawa",
+      "baseline": [
+        {
+          "run": 1,
+          "score": 79,
+          "fcp": 1517,
+          "lcp": 5578,
+          "tbt": 64,
+          "cls": 0.0231,
+          "si": 1562,
+          "ttfb": 4,
+          "js": 508293,
+          "img": 325014,
+          "font": 165417,
+          "css": 21074
+        },
+        {
+          "run": 2,
+          "score": 80,
+          "fcp": 1520,
+          "lcp": 5283,
+          "tbt": 76,
+          "cls": 0.0224,
+          "si": 1766,
+          "ttfb": 6,
+          "js": 508293,
+          "img": 325010,
+          "font": 165417,
+          "css": 21074
+        },
+        {
+          "run": 3,
+          "score": 83,
+          "fcp": 1515,
+          "lcp": 4685,
+          "tbt": 57,
+          "cls": 0.0228,
+          "si": 1855,
+          "ttfb": 4,
+          "js": 508293,
+          "img": 325010,
+          "font": 165417,
+          "css": 21074
+        }
+      ],
+      "after": [
+        {
+          "run": 1,
+          "score": 84,
+          "fcp": 1527,
+          "lcp": 4524,
+          "tbt": 51,
+          "cls": 0.0244,
+          "si": 1527,
+          "ttfb": 15,
+          "js": 505896,
+          "img": 109504,
+          "font": 153349,
+          "css": 20989
+        },
+        {
+          "run": 2,
+          "score": 84,
+          "fcp": 1519,
+          "lcp": 4531,
+          "tbt": 58,
+          "cls": 0.0244,
+          "si": 1519,
+          "ttfb": 5,
+          "js": 505896,
+          "img": 109496,
+          "font": 153349,
+          "css": 20989
+        },
+        {
+          "run": 3,
+          "score": 84,
+          "fcp": 1517,
+          "lcp": 4528,
+          "tbt": 53,
+          "cls": 0.0244,
+          "si": 1517,
+          "ttfb": 6,
+          "js": 505896,
+          "img": 109496,
+          "font": 153349,
+          "css": 20989
+        }
+      ]
+    },
+    "wymiana": {
+      "path": "/wymiana-opon-warszawa",
+      "baseline": [
+        {
+          "run": 1,
+          "score": 79,
+          "fcp": 1520,
+          "lcp": 5583,
+          "tbt": 63,
+          "cls": 0.0226,
+          "si": 1723,
+          "ttfb": 8,
+          "js": 508293,
+          "img": 325012,
+          "font": 165417,
+          "css": 21074
+        },
+        {
+          "run": 2,
+          "score": 80,
+          "fcp": 1517,
+          "lcp": 5278,
+          "tbt": 61,
+          "cls": 0.0226,
+          "si": 1562,
+          "ttfb": 7,
+          "js": 508293,
+          "img": 325010,
+          "font": 165417,
+          "css": 21074
+        },
+        {
+          "run": 3,
+          "score": 79,
+          "fcp": 1514,
+          "lcp": 5573,
+          "tbt": 56,
+          "cls": 0.0588,
+          "si": 1540,
+          "ttfb": 4,
+          "js": 508293,
+          "img": 325010,
+          "font": 165417,
+          "css": 21074
+        }
+      ],
+      "after": [
+        {
+          "run": 1,
+          "score": 85,
+          "fcp": 1520,
+          "lcp": 4302,
+          "tbt": 56,
+          "cls": 0.0598,
+          "si": 1520,
+          "ttfb": 10,
+          "js": 505896,
+          "img": 109496,
+          "font": 153349,
+          "css": 20989
+        },
+        {
+          "run": 2,
+          "score": 83,
+          "fcp": 1516,
+          "lcp": 4485,
+          "tbt": 48,
+          "cls": 0.0598,
+          "si": 1516,
+          "ttfb": 4,
+          "js": 505896,
+          "img": 109496,
+          "font": 153349,
+          "css": 20989
+        },
+        {
+          "run": 3,
+          "score": 83,
+          "fcp": 1516,
+          "lcp": 4526,
+          "tbt": 52,
+          "cls": 0.0598,
+          "si": 1516,
+          "ttfb": 6,
+          "js": 505896,
+          "img": 109496,
+          "font": 153349,
+          "css": 20989
+        }
+      ]
+    }
+  }
+}

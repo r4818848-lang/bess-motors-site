@@ -25,8 +25,9 @@ export function TirePromoPhotoStrip({ className = "" }: { className?: string }) 
             alt={photo.alt[lang] ?? photo.alt.pl}
             fill
             className="object-cover"
-            sizes="(max-width: 640px) 100vw, 33vw"
+            sizes={i === 0 ? "(max-width: 640px) 92vw, 33vw" : "(max-width: 640px) 46vw, 33vw"}
             priority={i === 0}
+            fetchPriority={i === 0 ? "high" : "low"}
           />
         </div>
       ))}

@@ -11,9 +11,16 @@ type Props = {
   heroFirst?: boolean;
   /** Max photos to show (homepage uses 3–5) */
   limit?: number;
+  /** Preload the first photo only when it is the page's actual LCP image. */
+  priorityFirst?: boolean;
 };
 
-export function WorkshopPhotosGrid({ className, heroFirst = false, limit }: Props) {
+export function WorkshopPhotosGrid({
+  className,
+  heroFirst = false,
+  limit,
+  priorityFirst = false,
+}: Props) {
   const { t } = useI18n();
   const photos = t.workshopPhotos;
   const list = limit ? WORKSHOP_PHOTOS.slice(0, limit) : WORKSHOP_PHOTOS;
@@ -43,7 +50,8 @@ export function WorkshopPhotosGrid({ className, heroFirst = false, limit }: Prop
               fill
               sizes={isHero ? "(max-width: 1024px) 100vw, 50vw" : "(max-width: 640px) 100vw, 25vw"}
               className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-              priority={index === 0}
+              priority={priorityFirst && index === 0}
+              fetchPriority={priorityFirst && index === 0 ? "high" : "low"}
             />
             <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent px-3 py-3 pt-10">
               <p className="text-sm font-semibold text-white">{meta.caption}</p>

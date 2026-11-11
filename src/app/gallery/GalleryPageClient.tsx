@@ -94,7 +94,7 @@ export default function GalleryPageClient({
             <div>
               <h2 className="font-display text-xl uppercase text-glow mb-2">{t.workshopGallery.title}</h2>
               <p className="text-sm text-bm-muted mb-6 max-w-2xl">{t.workshopGallery.subtitle}</p>
-              <WorkshopPhotosGrid heroFirst />
+              <WorkshopPhotosGrid heroFirst priorityFirst />
             </div>
             <InstagramReelsSection showHeader />
           </div>
