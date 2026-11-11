@@ -162,6 +162,15 @@ Production не деплоился, cron не менялся.
 
 Кнопка «Umów wizytę» остаётся в первом гидрационном дереве. Отложенную гидрацию лендинга не возвращал.
 
+Проверки `881b99adb892d117452d2d32455d5d414e0e8a08`, 11 ноября 2026, около 17:11 по Варшаве:
+
+- `unit` пройден за 1 мин 12 с, `e2e` за 2 мин 14 с. [Run](https://github.com/r4818848-lang/bess-motors-site/actions/runs/43055551136).
+- Vercel Preview `bess-motors-site` — success: https://bess-motors-site-iwujvjsid-bess-motors-projects.vercel.app
+- Vercel Preview `bess-motors` — success: https://bess-motors-kcrnz9a2x-bess-motors-projects.vercel.app
+- Vercel Preview `bess-motors-site-5dyd` — success: https://bess-motors-site-5dyd-njf06fw3d-bess-motors-projects.vercel.app
+
+Production не деплоился.
+
 ## Что ещё можно ускорить
 
 1. Симулированный LCP главной всё ещё около 3,7 с: в очереди остаются latin Inter 48 КБ и баннер около 43 КБ. Дальше резать байты баннера или критический CSS, не пряча фото.
