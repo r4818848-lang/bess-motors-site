@@ -97,7 +97,11 @@
 - `npm run build` — код выхода 0.
 - `npm run test:e2e` — 123 passed, затем readonly 1 passed.
 
-CI и Vercel Preview дописываются после открытия PR. Production не деплоился, cron не менялся.
+PR: https://github.com/r4818848-lang/bess-motors-site/pull/35
+
+Коммит с оптимизациями: `4466fd9e094381af6d421c0b8a5060ec36bd9834`.
+
+CI и Vercel Preview на этом PR ещё считаются. Production не деплоился, cron не менялся.
 
 ## Что ещё можно ускорить
 
