@@ -563,8 +563,20 @@ export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
     ],
   },
   opony: {
+    bookServiceId: "tires",
     faqDuration: L("Wymiana 4 kół: 45–90 min.", "Замена 4 колёс: 45–90 мин.", "Replacement of 4 wheels: 45–90 min.", "Заміна 4-х коліс: 45–90 хв."),
     galleryTags: ["opon", "tire", "wulkan", "шин"],
+    education: [
+      {
+        title: L("Cztery różne potrzeby, jeden warsztat", "Четыре разные задачи, одна мастерская", "Four jobs, one workshop", "Чотири різні задачі, одна майстерня"),
+        body: L(
+          "Wymiana kompletu, sezonowa zmiana zima/lato, samo wyważanie i naprawa przebicia to osobne usługi. Każda ma własną stronę i własną pozycję cennika. Adres zawsze ten sam: Aleja Krakowska 48/52, Warszawa.",
+          "Замена комплекта, сезонная смена, только балансировка и ремонт прокола — разные услуги. Адрес один: Aleja Krakowska 48/52.",
+          "A full change, a seasonal swap, balancing alone and a puncture repair are separate jobs and separate prices. The address is always Aleja Krakowska 48/52, Warsaw.",
+          "Заміна комплекту, сезонна зміна, лише балансування і ремонт проколу — різні послуги. Адреса одна."
+        ),
+      },
+    ],
   },
   bmw: {
     bookServiceId: "diagnostic",

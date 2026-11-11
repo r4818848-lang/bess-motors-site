@@ -35,8 +35,8 @@ export function TirePromoBanner() {
               Sezonowa wymiana opon od {TIRE_PROMO_FROM_ZL} zł
             </h2>
             <p className="mt-3 text-sm text-bm-silver max-w-xl leading-relaxed">
-              Komplet 4 kół z wyważaniem — {TIRE_PROMO_SUMMARY_SHORT_PL}. Umów termin
-              online w BESS MOTORS (Włochy).
+              Komplet 4 kół z wyważaniem — {TIRE_PROMO_SUMMARY_SHORT_PL}. Jeden warsztat
+              przy Alei Krakowskiej 48/52, dla kierowców z całej Warszawy.
             </p>
             <div className="mt-6 flex flex-col sm:flex-row flex-wrap gap-3">
               <BookingLink

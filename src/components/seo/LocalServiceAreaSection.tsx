@@ -1,11 +1,7 @@
 import Link from "next/link";
 import { MapPin, Navigation } from "lucide-react";
 import { siteConfig } from "@/lib/site";
-import {
-  LOCAL_SERVICE_RADIUS_KM,
-  localAreaDescriptionPl,
-  localDistrictsPl,
-} from "@/lib/seo-local";
+import { localDistrictsPl } from "@/lib/seo-local";
 
 const LOCAL_LANDING_LINKS = [
   { href: "/warszawa-wlochy", label: "Włochy / Okęcie" },
@@ -40,19 +36,24 @@ export function LocalServiceAreaSection({ variant = "full" }: Props) {
                   : "font-display text-2xl md:text-3xl font-bold uppercase text-glow"
               }
             >
-              Serwis samochodowy — Warszawa i okolice ({LOCAL_SERVICE_RADIUS_KM} km)
+              Jeden warsztat w Warszawie
             </h2>
             <p className="mt-2 text-sm text-bm-muted leading-relaxed max-w-3xl">
-              {localAreaDescriptionPl()}
+              BESS MOTORS stoi przy Alei Krakowskiej 48/52 w dzielnicy Włochy. Nie mamy
+              drugiego punktu. Na wulkanizację i pozostałe usługi przyjeżdżają tu kierowcy
+              z Włoch, Okęcia, Rakowa, Ochoty, Ursusa, Mokotowa, Służewca, Woli i Bemowa,
+              z dalszych dzielnic Warszawy oraz z Raszyna, Michałowic, Piastowa, Pruszkowa,
+              Janek i Ożarowa Mazowieckiego. Z Okęcia zwykle ok. 5 minut. Innych czasów
+              dojazdu nie publikujemy.
             </p>
           </div>
         </div>
 
         <p className="text-xs uppercase tracking-wide text-bm-muted mb-2">
-          Dzielnice w zasięgu dojazdu
+          Najbliższe strony dojazdu, nie osobne warsztaty
         </p>
         <ul className="flex flex-wrap gap-2 mb-6">
-          {localDistrictsPl.map((d) => (
+          {localDistrictsPl.slice(0, 6).map((d) => (
             <li
               key={d}
               className="text-xs px-3 py-1 rounded-full border border-bm-border/60 bg-bm-card/50 text-bm-muted"
@@ -72,8 +73,14 @@ export function LocalServiceAreaSection({ variant = "full" }: Props) {
               Mechanik {link.label}
             </Link>
           ))}
+          <Link href="/wulkanizacja-warszawa" className="text-sm text-bm-red hover:underline font-medium">
+            Wulkanizacja Warszawa
+          </Link>
+          <Link href="/wymiana-opon-warszawa" className="text-sm text-bm-red hover:underline font-medium">
+            Wymiana opon — cena
+          </Link>
           <a
-            href={siteConfig.googleMapsReviewsUrl}
+            href={siteConfig.googleMapsDirectionsUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1.5 text-sm btn-outline px-4 py-2"

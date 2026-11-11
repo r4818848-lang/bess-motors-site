@@ -140,12 +140,12 @@ export const seoLandingPages: SeoLandingPage[] = [
   },
   {
     slug: "opony",
-    title: "Wulkanizacja",
-    line1: "Wymiana i wyważanie opon",
-    line2: "Szybka obsługa bez kolejek",
-    metaTitle: "Wulkanizacja Warszawa — wymiana opon Włochy",
+    title: "Wulkanizacja Warszawa",
+    line1: "Wymiana, sezon, wyważanie i naprawa przebicia",
+    line2: "Jeden warsztat — Aleja Krakowska 48/52",
+    metaTitle: "Wulkanizacja Warszawa — wymiana opon",
     metaDescription:
-      "Wulkanizacja Warszawa Włochy: wymiana i wyważanie opon od 140 zł za komplet. BESS MOTORS, Aleja Krakowska 48/52. Zapytaj o termin.",
+      "Wulkanizacja Warszawa: wymiana opon, sezonowa zmiana, wyważanie i naprawa przebicia. Jeden warsztat, Aleja Krakowska 48/52. Cennik na stronie.",
     serviceId: "tires",
     icon: "Circle",
   },
