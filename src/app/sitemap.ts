@@ -1,4 +1,6 @@
 import type { MetadataRoute } from "next";
+
+export const dynamic = "force-dynamic";
 import {
   getSiteUrl,
   publicSitemapPaths,
@@ -8,6 +10,7 @@ import {
 } from "@/lib/seo";
 import { seoLandingSlugs } from "@/lib/seo-landing-pages";
 import { blogPosts } from "@/lib/blog-posts";
+import { listPublishedCases } from "@/lib/seo-growth/case-store";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const siteUrl = getSiteUrl();
@@ -61,6 +64,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
                             ? 0.75
                             : 0.8;
     add(`/${slug}`, "weekly", priority);
+  }
+
+  const publishedCases = listPublishedCases();
+  if (publishedCases.length > 0) {
+    add("/realizacje", "weekly", 0.6);
+    for (const story of publishedCases) add(`/realizacje/${story.id}`, "monthly", 0.5);
   }
 
   for (const post of blogPosts) {

@@ -31,6 +31,7 @@ __MACOSX/
 *.pem
 .env*.local
 /data/gsc/
+/data/seo-private/
 
 # debug
 npm-debug.log*
