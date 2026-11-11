@@ -77,6 +77,19 @@ test("tyre landing heading is visible in the first HTML", async ({ request }) =>
 test("saved cookie choice keeps the dialog closed", async ({ page, request }) => {
   const html = await (await request.get("/")).text();
   expect(html).not.toContain("cookie-consent-layer");
+  expect(html).toContain("data-cookie-dialog");
+  expect(html).toContain("We use cookies");
+  expect(html).toContain("/fonts/inter-latin.woff2");
+  expect(html).toContain("/fonts/inter-polish.woff2");
+  expect(html).not.toMatch(/rel="preload"[^>]*inter-cyrillic/);
   await page.goto("/");
   await expect(page.getByRole("dialog")).toHaveCount(0);
+});
+
+test("tyre catalog paints the cookie choice in the first HTML", async ({ request }) => {
+  const html = await (await request.get("/opony")).text();
+  expect(html).toContain("data-cookie-dialog");
+  expect(html).toContain("We use cookies");
+  const dialogTag = html.match(/<div[^>]*data-cookie-dialog[^>]*>/)?.[0] ?? "";
+  expect(dialogTag).not.toContain("backdrop-blur");
 });
