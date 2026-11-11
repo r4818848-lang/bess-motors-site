@@ -11,7 +11,10 @@ import {
 } from "../src/lib/server/telegram-cron/admin-arrival-reminders";
 import { calendarAppUrl, calendarSiteOrigin } from "../src/lib/server/telegram-bot/staff-calendar-bot";
 import { staffRoleFromIds } from "../src/lib/server/staff-calendar-access";
-import type { Appointment, Database } from "../src/lib/store";
+import { installCrmCloudForTests } from "../src/lib/server/crm-cloud";
+import { installTelegramSenderForTests } from "../src/lib/server/telegram-api";
+import { runAppointmentReminders } from "../src/lib/server/telegram-cron/appointment-reminders";
+import { mergeStoredDb, type Appointment, type Database } from "../src/lib/store";
 
 function appointment(patch: Partial<Appointment> = {}): Appointment {
   return {
@@ -223,6 +226,61 @@ const admins = new Set(["111", "222"]);
 assert.equal(staffRoleFromIds("111", owners, admins), "owner");
 assert.equal(staffRoleFromIds("222", owners, admins), "admin");
 assert.equal(staffRoleFromIds("333", owners, admins), null);
+
+const noticeEnv = process.env.VERCEL_ENV;
+const noticeToken = process.env.TELEGRAM_BOT_TOKEN;
+const noticeChat = process.env.TELEGRAM_CHAT_ID;
+const noticeAdmins = process.env.TELEGRAM_ADMIN_CHAT_IDS;
+const noticeOwners = process.env.TELEGRAM_OWNER_CHAT_ID;
+const noticeLeads = process.env.LEAD_NOTICE_DELIVERY;
+delete process.env.VERCEL_ENV;
+process.env.TELEGRAM_BOT_TOKEN = "123456:arrival-once";
+process.env.TELEGRAM_CHAT_ID = "1001";
+delete process.env.TELEGRAM_ADMIN_CHAT_IDS;
+delete process.env.TELEGRAM_OWNER_CHAT_ID;
+process.env.LEAD_NOTICE_DELIVERY = "disabled";
+{
+  let doc = mergeStoredDb({
+    appointments: [appointment({ id: "apt-once", updatedAt: "2026-07-01T08:00:00.000Z" })],
+  });
+  let revision = "2026-07-13T00:00:00.000Z";
+  installCrmCloudForTests({
+    get: async () => ({ doc: structuredClone(doc), updatedAt: revision }),
+    patch: async (next, expected) => {
+      if (expected !== revision) return "stale";
+      doc = structuredClone(next);
+      revision = new Date(Date.parse(revision) + 1).toISOString();
+      return "ok";
+    },
+  });
+  const texts: string[] = [];
+  installTelegramSenderForTests(async (_chatId, text) => {
+    texts.push(text);
+    return texts.length;
+  });
+  const dueAt = new Date("2026-07-13T05:00:00.000Z");
+  await runAppointmentReminders(structuredClone(doc), dueAt);
+  assert.equal(texts.length, 1);
+  assert.match(texts[0] ?? "", /Через 2 часа приедет клиент/);
+  assert.equal(doc.appointments.find((item) => item.id === "apt-once")?.adminReminder?.status, "sent");
+  await runAppointmentReminders(structuredClone(doc), new Date(dueAt.getTime() + 5 * 60 * 1000));
+  await runAppointmentReminders(structuredClone(doc), new Date(dueAt.getTime() + 40 * 60 * 1000));
+  assert.equal(texts.length, 1);
+  installCrmCloudForTests(null);
+  installTelegramSenderForTests(null);
+}
+if (noticeEnv === undefined) delete process.env.VERCEL_ENV;
+else process.env.VERCEL_ENV = noticeEnv;
+if (noticeToken === undefined) delete process.env.TELEGRAM_BOT_TOKEN;
+else process.env.TELEGRAM_BOT_TOKEN = noticeToken;
+if (noticeChat === undefined) delete process.env.TELEGRAM_CHAT_ID;
+else process.env.TELEGRAM_CHAT_ID = noticeChat;
+if (noticeAdmins === undefined) delete process.env.TELEGRAM_ADMIN_CHAT_IDS;
+else process.env.TELEGRAM_ADMIN_CHAT_IDS = noticeAdmins;
+if (noticeOwners === undefined) delete process.env.TELEGRAM_OWNER_CHAT_ID;
+else process.env.TELEGRAM_OWNER_CHAT_ID = noticeOwners;
+if (noticeLeads === undefined) delete process.env.LEAD_NOTICE_DELIVERY;
+else process.env.LEAD_NOTICE_DELIVERY = noticeLeads;
 
 process.env.VERCEL_ENV = previousEnv.VERCEL_ENV;
 process.env.REMINDER_DELIVERY = previousEnv.REMINDER_DELIVERY;

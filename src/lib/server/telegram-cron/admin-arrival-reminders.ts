@@ -42,11 +42,13 @@ export async function deliverAdminArrivalReminders(input: {
   for (const apt of db.appointments) {
     const plan = planAdminReminder(apt, now);
     if (plan.action === "cancel") {
+      apt.updatedAt = now.toISOString();
       apt.adminReminder = { ...(apt.adminReminder ?? {}), status: "cancelled" };
       cancelled += 1;
       continue;
     }
     if (plan.action !== "send") continue;
+    apt.updatedAt = now.toISOString();
     apt.adminReminder = {
       ...(apt.adminReminder ?? {}),
       status: "sending",
@@ -88,10 +90,12 @@ export async function deliverAdminArrivalReminders(input: {
     }
     const pending = [...targets].filter((id) => !delivered.has(id));
     const complete = targets.size > 0 && pending.length === 0;
+    const finishedAt = new Date(now.getTime() + 1).toISOString();
+    apt.updatedAt = finishedAt;
     apt.adminReminder = {
       ...apt.adminReminder,
       status: complete ? "sent" : "failed",
-      sentAt: complete ? now.toISOString() : apt.adminReminder?.sentAt,
+      sentAt: complete ? finishedAt : apt.adminReminder?.sentAt,
       lastError: lastError || (targets.size === 0 ? "no_admin_chat" : undefined),
     };
     if (complete) sent += 1;

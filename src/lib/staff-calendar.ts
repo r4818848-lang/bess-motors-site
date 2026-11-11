@@ -294,7 +294,7 @@ export function planAdminReminder(
 ):
   | { action: "skip" }
   | { action: "cancel" }
-  | { action: "send"; kind: "two_hour" | "soon"; dueAt: string } {
+  | { action: "send"; kind: "two_hour"; dueAt: string } {
   const state = apt.adminReminder;
   if (
     apt.calendarHidden ||
@@ -313,18 +313,17 @@ export function planAdminReminder(
 
   const arrival = warsawCivilToUtc(apt.date, apt.time);
   if (!arrival) return { action: "skip" };
-  if (now.getTime() >= arrival.getTime()) return { action: "skip" };
-
-  const due = new Date(arrival.getTime() - 2 * 60 * 60 * 1000);
+  const twoHoursMs = 2 * 60 * 60 * 1000;
+  const due = new Date(arrival.getTime() - twoHoursMs);
   const createdMs = apt.createdAt ? Date.parse(apt.createdAt) : Number.NaN;
-  const remaining = arrival.getTime() - now.getTime();
-  const bookedInsideWindow = Number.isFinite(createdMs) && createdMs > due.getTime();
-  const soon = bookedInsideWindow || remaining < 100 * 60 * 1000;
-  if (!soon && now.getTime() < due.getTime()) return { action: "skip" };
+  if (Number.isFinite(createdMs) && createdMs > due.getTime()) return { action: "skip" };
+  const elapsed = now.getTime() - due.getTime();
+  // One cron tick is 5 minutes. 20 minutes covers a late tick without a second notice later.
+  if (elapsed < 0 || elapsed >= 20 * 60 * 1000) return { action: "skip" };
 
   return {
     action: "send",
-    kind: soon ? "soon" : "two_hour",
+    kind: "two_hour",
     dueAt: due.toISOString(),
   };
 }

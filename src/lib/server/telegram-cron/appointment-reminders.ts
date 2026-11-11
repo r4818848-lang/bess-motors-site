@@ -43,6 +43,13 @@ async function saveReminderFields(before: Database, after: Database): Promise<vo
         const nextStatus = apt.adminReminder.status;
         if (liveStatus === "sent" || (nextStatus === "sending" && liveStatus === "sending")) continue;
         row.adminReminder = apt.adminReminder;
+        const previousMs = Date.parse(row.updatedAt ?? "");
+        const requestedMs = Date.parse(apt.updatedAt ?? "");
+        const baseMs = Math.max(
+          Number.isFinite(previousMs) ? previousMs : 0,
+          Number.isFinite(requestedMs) ? requestedMs : 0
+        );
+        row.updatedAt = new Date(baseMs + 1).toISOString();
       }
     }
   }, { skipAutomation: true });
