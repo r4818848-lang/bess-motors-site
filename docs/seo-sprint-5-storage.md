@@ -115,4 +115,4 @@ where id = 'seo-case-photos'
 - Playwright на `127.0.0.1:3456`: 125 passed, 4 skipped. Readonly: 1 passed
 - `/realizacje` без флага: 404. Sitemap собирается и не содержит `/realizacje`
 
-GitHub Actions и Vercel Preview этого коммита дописываются после push. Merge не делается.
+Код хранения: `109cde9cdc1a25fcf1b7a4d5887102170a550f9a`. GitHub Actions и Vercel Preview дописываются после push. Merge не делается.
