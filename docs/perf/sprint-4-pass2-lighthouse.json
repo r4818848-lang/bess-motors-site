@@ -1,0 +1,730 @@
+{
+  "environment": {
+    "date": "2026-11-11",
+    "note": "Same Lighthouse 12.8.2, Chrome 156, next start 127.0.0.1:3456, mobile simulate Slow 4G as sprint 4. Five runs. Within-session baseline is the branch before the font and cookie edits.",
+    "runsPerUrl": 5
+  },
+  "baselineSameSession": {
+    "home": [
+      {
+        "run": 1,
+        "score": 86,
+        "fcp": 1514,
+        "lcp": 4076,
+        "tbt": 69,
+        "cls": 0.04977152739278427,
+        "si": 1514,
+        "ttfb": 6,
+        "js": 339746,
+        "img": 152608,
+        "font": 153349,
+        "css": 20989,
+        "lcpSnippet": "<img alt=\"BESS MOTORS — serwis samochodowy Warszawa Włochy\" fetchpriority=\"high\" decoding=\"async\" data-nimg=\"fill\" class=\"object-cover object-[72%_42%] sm:object-[75%_40%]\" style=\"",
+        "phases": {
+          "timeToFirstByte": 8,
+          "resourceLoadDelay": 25,
+          "resourceLoadDuration": 21,
+          "elementRenderDelay": 116
+        }
+      },
+      {
+        "run": 2,
+        "score": 86,
+        "fcp": 1523,
+        "lcp": 4093,
+        "tbt": 70,
+        "cls": 0.04977152739278427,
+        "si": 1523,
+        "ttfb": 11,
+        "js": 339746,
+        "img": 152598,
+        "font": 153349,
+        "css": 20989,
+        "lcpSnippet": "<img alt=\"BESS MOTORS — serwis samochodowy Warszawa Włochy\" fetchpriority=\"high\" decoding=\"async\" data-nimg=\"fill\" class=\"object-cover object-[72%_42%] sm:object-[75%_40%]\" style=\"",
+        "phases": {
+          "timeToFirstByte": 14,
+          "resourceLoadDelay": 18,
+          "resourceLoadDuration": 22,
+          "elementRenderDelay": 134
+        }
+      },
+      {
+        "run": 3,
+        "score": 85,
+        "fcp": 1525,
+        "lcp": 4159,
+        "tbt": 78,
+        "cls": 0.04977152739278427,
+        "si": 1525,
+        "ttfb": 5,
+        "js": 339746,
+        "img": 152598,
+        "font": 153349,
+        "css": 20989,
+        "lcpSnippet": "<img alt=\"BESS MOTORS — serwis samochodowy Warszawa Włochy\" fetchpriority=\"high\" decoding=\"async\" data-nimg=\"fill\" class=\"object-cover object-[72%_42%] sm:object-[75%_40%]\" style=\"",
+        "phases": {
+          "timeToFirstByte": 7,
+          "resourceLoadDelay": 30,
+          "resourceLoadDuration": 20,
+          "elementRenderDelay": 169
+        }
+      },
+      {
+        "run": 4,
+        "score": 86,
+        "fcp": 1516,
+        "lcp": 4079,
+        "tbt": 55,
+        "cls": 0.04977152739278427,
+        "si": 1516,
+        "ttfb": 7,
+        "js": 339746,
+        "img": 152598,
+        "font": 153349,
+        "css": 20989,
+        "lcpSnippet": "<img alt=\"BESS MOTORS — serwis samochodowy Warszawa Włochy\" fetchpriority=\"high\" decoding=\"async\" data-nimg=\"fill\" class=\"object-cover object-[72%_42%] sm:object-[75%_40%]\" style=\"",
+        "phases": {
+          "timeToFirstByte": 9,
+          "resourceLoadDelay": 11,
+          "resourceLoadDuration": 7,
+          "elementRenderDelay": 124
+        }
+      },
+      {
+        "run": 5,
+        "score": 86,
+        "fcp": 1516,
+        "lcp": 4080,
+        "tbt": 62,
+        "cls": 0.04977152739278427,
+        "si": 1516,
+        "ttfb": 5,
+        "js": 339746,
+        "img": 152598,
+        "font": 153349,
+        "css": 20989,
+        "lcpSnippet": "<img alt=\"BESS MOTORS — serwis samochodowy Warszawa Włochy\" fetchpriority=\"high\" decoding=\"async\" data-nimg=\"fill\" class=\"object-cover object-[72%_42%] sm:object-[75%_40%]\" style=\"",
+        "phases": {
+          "timeToFirstByte": 7,
+          "resourceLoadDelay": 19,
+          "resourceLoadDuration": 19,
+          "elementRenderDelay": 108
+        }
+      }
+    ],
+    "opony": [
+      {
+        "run": 1,
+        "score": 75,
+        "fcp": 1519,
+        "lcp": 6757,
+        "tbt": 120,
+        "cls": 0.04831388173824463,
+        "si": 1519,
+        "ttfb": 12,
+        "js": 682847,
+        "img": 10270,
+        "font": 153349,
+        "css": 20989,
+        "lcpSnippet": "<p class=\"text-sm text-bm-muted mt-3 leading-relaxed\">",
+        "phases": {
+          "timeToFirstByte": 14,
+          "elementRenderDelay": 368
+        }
+      },
+      {
+        "run": 2,
+        "score": 77,
+        "fcp": 1516,
+        "lcp": 6134,
+        "tbt": 88,
+        "cls": 0.04831388173824463,
+        "si": 1516,
+        "ttfb": 4,
+        "js": 682847,
+        "img": 10270,
+        "font": 153349,
+        "css": 20989,
+        "lcpSnippet": "<p class=\"text-sm text-bm-muted mt-3 leading-relaxed\">",
+        "phases": {
+          "timeToFirstByte": 6,
+          "elementRenderDelay": 322
+        }
+      },
+      {
+        "run": 3,
+        "score": 75,
+        "fcp": 1519,
+        "lcp": 6751,
+        "tbt": 92,
+        "cls": 0.04831390904236797,
+        "si": 1519,
+        "ttfb": 5,
+        "js": 682847,
+        "img": 10270,
+        "font": 153349,
+        "css": 20989,
+        "lcpSnippet": "<p class=\"text-sm text-bm-muted mt-3 leading-relaxed\">",
+        "phases": {
+          "timeToFirstByte": 6,
+          "elementRenderDelay": 321
+        }
+      },
+      {
+        "run": 4,
+        "score": 75,
+        "fcp": 1516,
+        "lcp": 7036,
+        "tbt": 94,
+        "cls": 0.04831388173824463,
+        "si": 1516,
+        "ttfb": 6,
+        "js": 682847,
+        "img": 10272,
+        "font": 153349,
+        "css": 20989,
+        "lcpSnippet": "<p class=\"text-sm text-bm-muted mt-3 leading-relaxed\">",
+        "phases": {
+          "timeToFirstByte": 7,
+          "elementRenderDelay": 347
+        }
+      },
+      {
+        "run": 5,
+        "score": 75,
+        "fcp": 1525,
+        "lcp": 6767,
+        "tbt": 105,
+        "cls": 0.04831388173824463,
+        "si": 1525,
+        "ttfb": 11,
+        "js": 682847,
+        "img": 10270,
+        "font": 153349,
+        "css": 20989,
+        "lcpSnippet": "<p class=\"text-sm text-bm-muted mt-3 leading-relaxed\">",
+        "phases": {
+          "timeToFirstByte": 14,
+          "elementRenderDelay": 345
+        }
+      }
+    ]
+  },
+  "after": {
+    "home": [
+      {
+        "run": 1,
+        "score": 89,
+        "fcp": 1079,
+        "lcp": 3724,
+        "tbt": 76,
+        "cls": 0.04977152739278427,
+        "si": 1079,
+        "ttfb": 17,
+        "js": 339754,
+        "img": 152608,
+        "font": 73777,
+        "css": 20301,
+        "lcpSnippet": "<img alt=\"BESS MOTORS — serwis samochodowy Warszawa Włochy\" fetchpriority=\"high\" decoding=\"sync\" data-nimg=\"fill\" class=\"object-cover object-[72%_42%] sm:object-[75%_40%]\" style=\"p",
+        "phases": {
+          "timeToFirstByte": 20,
+          "resourceLoadDelay": 44,
+          "resourceLoadDuration": 109,
+          "elementRenderDelay": 65
+        }
+      },
+      {
+        "run": 2,
+        "score": 89,
+        "fcp": 1067,
+        "lcp": 3703,
+        "tbt": 65,
+        "cls": 0.04977152739278427,
+        "si": 1067,
+        "ttfb": 6,
+        "js": 339754,
+        "img": 152598,
+        "font": 73777,
+        "css": 20301,
+        "lcpSnippet": "<img alt=\"BESS MOTORS — serwis samochodowy Warszawa Włochy\" fetchpriority=\"high\" decoding=\"sync\" data-nimg=\"fill\" class=\"object-cover object-[72%_42%] sm:object-[75%_40%]\" style=\"p",
+        "phases": {
+          "timeToFirstByte": 8,
+          "resourceLoadDelay": 14,
+          "resourceLoadDuration": 17,
+          "elementRenderDelay": 127
+        }
+      },
+      {
+        "run": 3,
+        "score": 85,
+        "fcp": 1062,
+        "lcp": 4287,
+        "tbt": 92,
+        "cls": 0.04977152739278427,
+        "si": 1062,
+        "ttfb": 5,
+        "js": 339754,
+        "img": 152598,
+        "font": 73777,
+        "css": 20301,
+        "lcpSnippet": "<img alt=\"BESS MOTORS — serwis samochodowy Warszawa Włochy\" fetchpriority=\"high\" decoding=\"sync\" data-nimg=\"fill\" class=\"object-cover object-[72%_42%] sm:object-[75%_40%]\" style=\"p",
+        "phases": {
+          "timeToFirstByte": 6,
+          "resourceLoadDelay": 9,
+          "resourceLoadDuration": 14,
+          "elementRenderDelay": 123
+        }
+      },
+      {
+        "run": 4,
+        "score": 89,
+        "fcp": 1071,
+        "lcp": 3634,
+        "tbt": 69,
+        "cls": 0.04977152739278427,
+        "si": 1071,
+        "ttfb": 6,
+        "js": 339754,
+        "img": 152598,
+        "font": 73777,
+        "css": 20301,
+        "lcpSnippet": "<img alt=\"BESS MOTORS — serwis samochodowy Warszawa Włochy\" fetchpriority=\"high\" decoding=\"sync\" data-nimg=\"fill\" class=\"object-cover object-[72%_42%] sm:object-[75%_40%]\" style=\"p",
+        "phases": {
+          "timeToFirstByte": 8,
+          "resourceLoadDelay": 20,
+          "resourceLoadDuration": 15,
+          "elementRenderDelay": 118
+        }
+      },
+      {
+        "run": 5,
+        "score": 89,
+        "fcp": 1067,
+        "lcp": 3628,
+        "tbt": 67,
+        "cls": 0.04977152739278427,
+        "si": 1067,
+        "ttfb": 6,
+        "js": 339754,
+        "img": 152598,
+        "font": 73777,
+        "css": 20301,
+        "lcpSnippet": "<img alt=\"BESS MOTORS — serwis samochodowy Warszawa Włochy\" fetchpriority=\"high\" decoding=\"sync\" data-nimg=\"fill\" class=\"object-cover object-[72%_42%] sm:object-[75%_40%]\" style=\"p",
+        "phases": {
+          "timeToFirstByte": 8,
+          "resourceLoadDelay": 9,
+          "resourceLoadDuration": 13,
+          "elementRenderDelay": 111
+        }
+      }
+    ],
+    "opony": [
+      {
+        "run": 1,
+        "score": 91,
+        "fcp": 1071,
+        "lcp": 3266,
+        "tbt": 144,
+        "cls": 0.04831388173824463,
+        "si": 1071,
+        "ttfb": 7,
+        "js": 682872,
+        "img": 10270,
+        "font": 73777,
+        "css": 20301,
+        "lcpSnippet": "<span data-cc=\"en\">",
+        "phases": {
+          "timeToFirstByte": 9,
+          "elementRenderDelay": 168
+        }
+      },
+      {
+        "run": 2,
+        "score": 89,
+        "fcp": 1066,
+        "lcp": 3616,
+        "tbt": 88,
+        "cls": 0.04831390904236797,
+        "si": 1066,
+        "ttfb": 4,
+        "js": 682872,
+        "img": 10270,
+        "font": 73777,
+        "css": 20301,
+        "lcpSnippet": "<span data-cc=\"en\">",
+        "phases": {
+          "timeToFirstByte": 6,
+          "elementRenderDelay": 141
+        }
+      },
+      {
+        "run": 3,
+        "score": 89,
+        "fcp": 1067,
+        "lcp": 3629,
+        "tbt": 98,
+        "cls": 0.04831388173824463,
+        "si": 1067,
+        "ttfb": 4,
+        "js": 682872,
+        "img": 10270,
+        "font": 73777,
+        "css": 20301,
+        "lcpSnippet": "<span data-cc=\"en\">",
+        "phases": {
+          "timeToFirstByte": 6,
+          "elementRenderDelay": 161
+        }
+      },
+      {
+        "run": 4,
+        "score": 89,
+        "fcp": 1073,
+        "lcp": 3623,
+        "tbt": 122,
+        "cls": 0.04831388173824463,
+        "si": 1073,
+        "ttfb": 6,
+        "js": 682872,
+        "img": 10272,
+        "font": 73777,
+        "css": 20301,
+        "lcpSnippet": "<span data-cc=\"en\">",
+        "phases": {
+          "timeToFirstByte": 8,
+          "elementRenderDelay": 156
+        }
+      },
+      {
+        "run": 5,
+        "score": 89,
+        "fcp": 1074,
+        "lcp": 3573,
+        "tbt": 144,
+        "cls": 0.04831388173824463,
+        "si": 1074,
+        "ttfb": 13,
+        "js": 682872,
+        "img": 10270,
+        "font": 73777,
+        "css": 20301,
+        "lcpSnippet": "<span data-cc=\"en\">",
+        "phases": {
+          "timeToFirstByte": 15,
+          "elementRenderDelay": 188
+        }
+      }
+    ],
+    "wulkanizacja": [
+      {
+        "run": 1,
+        "score": 84,
+        "fcp": 1069,
+        "lcp": 4558,
+        "tbt": 58,
+        "cls": 0.02439879247564753,
+        "si": 1069,
+        "ttfb": 5,
+        "js": 505918,
+        "img": 109502,
+        "font": 73777,
+        "css": 20301,
+        "lcpSnippet": "<img alt=\"Audi Q5 — wymiana opon BESS MOTORS Warszawa Włochy\" fetchpriority=\"high\" decoding=\"sync\" data-nimg=\"fill\" class=\"object-cover\" style=\"position: absolute; height: 100%; wi",
+        "phases": {
+          "timeToFirstByte": 7,
+          "resourceLoadDelay": 10,
+          "resourceLoadDuration": 17,
+          "elementRenderDelay": 150
+        }
+      },
+      {
+        "run": 2,
+        "score": 87,
+        "fcp": 1073,
+        "lcp": 4020,
+        "tbt": 50,
+        "cls": 0.02439879247564753,
+        "si": 1073,
+        "ttfb": 2,
+        "js": 505918,
+        "img": 109496,
+        "font": 73777,
+        "css": 20301,
+        "lcpSnippet": "<img alt=\"Audi Q5 — wymiana opon BESS MOTORS Warszawa Włochy\" fetchpriority=\"high\" decoding=\"sync\" data-nimg=\"fill\" class=\"object-cover\" style=\"position: absolute; height: 100%; wi",
+        "phases": {
+          "timeToFirstByte": 6,
+          "resourceLoadDelay": 37,
+          "resourceLoadDuration": 14,
+          "elementRenderDelay": 141
+        }
+      },
+      {
+        "run": 3,
+        "score": 87,
+        "fcp": 1063,
+        "lcp": 4142,
+        "tbt": 63,
+        "cls": 0.02439879247564753,
+        "si": 1063,
+        "ttfb": 5,
+        "js": 505918,
+        "img": 109496,
+        "font": 73777,
+        "css": 20301,
+        "lcpSnippet": "<img alt=\"Audi Q5 — wymiana opon BESS MOTORS Warszawa Włochy\" fetchpriority=\"high\" decoding=\"sync\" data-nimg=\"fill\" class=\"object-cover\" style=\"position: absolute; height: 100%; wi",
+        "phases": {
+          "timeToFirstByte": 6,
+          "resourceLoadDelay": 23,
+          "resourceLoadDuration": 13,
+          "elementRenderDelay": 125
+        }
+      },
+      {
+        "run": 4,
+        "score": 87,
+        "fcp": 1068,
+        "lcp": 4011,
+        "tbt": 55,
+        "cls": 0.02439879247564753,
+        "si": 1068,
+        "ttfb": 6,
+        "js": 505918,
+        "img": 109496,
+        "font": 73777,
+        "css": 20301,
+        "lcpSnippet": "<img alt=\"Audi Q5 — wymiana opon BESS MOTORS Warszawa Włochy\" fetchpriority=\"high\" decoding=\"sync\" data-nimg=\"fill\" class=\"object-cover\" style=\"position: absolute; height: 100%; wi",
+        "phases": {
+          "timeToFirstByte": 8,
+          "resourceLoadDelay": 19,
+          "resourceLoadDuration": 10,
+          "elementRenderDelay": 144
+        }
+      },
+      {
+        "run": 5,
+        "score": 86,
+        "fcp": 1071,
+        "lcp": 4153,
+        "tbt": 76,
+        "cls": 0.02439879247564753,
+        "si": 1071,
+        "ttfb": 10,
+        "js": 505918,
+        "img": 109496,
+        "font": 73777,
+        "css": 20301,
+        "lcpSnippet": "<img alt=\"Audi Q5 — wymiana opon BESS MOTORS Warszawa Włochy\" fetchpriority=\"high\" decoding=\"sync\" data-nimg=\"fill\" class=\"object-cover\" style=\"position: absolute; height: 100%; wi",
+        "phases": {
+          "timeToFirstByte": 12,
+          "resourceLoadDelay": 29,
+          "resourceLoadDuration": 15,
+          "elementRenderDelay": 137
+        }
+      }
+    ],
+    "wymiana": [
+      {
+        "run": 1,
+        "score": 85,
+        "fcp": 1070,
+        "lcp": 4152,
+        "tbt": 65,
+        "cls": 0.0598471434379124,
+        "si": 1070,
+        "ttfb": 5,
+        "js": 505918,
+        "img": 109498,
+        "font": 73777,
+        "css": 20301,
+        "lcpSnippet": "<img alt=\"Audi Q5 — wymiana opon BESS MOTORS Warszawa Włochy\" fetchpriority=\"high\" decoding=\"sync\" data-nimg=\"fill\" class=\"object-cover\" style=\"position: absolute; height: 100%; wi",
+        "phases": {
+          "timeToFirstByte": 7,
+          "resourceLoadDelay": 23,
+          "resourceLoadDuration": 17,
+          "elementRenderDelay": 123
+        }
+      },
+      {
+        "run": 2,
+        "score": 86,
+        "fcp": 1065,
+        "lcp": 4005,
+        "tbt": 79,
+        "cls": 0.0598471434379124,
+        "si": 1065,
+        "ttfb": 4,
+        "js": 505918,
+        "img": 109496,
+        "font": 73777,
+        "css": 20301,
+        "lcpSnippet": "<img alt=\"Audi Q5 — wymiana opon BESS MOTORS Warszawa Włochy\" fetchpriority=\"high\" decoding=\"sync\" data-nimg=\"fill\" class=\"object-cover\" style=\"position: absolute; height: 100%; wi",
+        "phases": {
+          "timeToFirstByte": 8,
+          "resourceLoadDelay": 12,
+          "resourceLoadDuration": 8,
+          "elementRenderDelay": 144
+        }
+      },
+      {
+        "run": 3,
+        "score": 86,
+        "fcp": 1063,
+        "lcp": 4143,
+        "tbt": 47,
+        "cls": 0.0598471434379124,
+        "si": 1063,
+        "ttfb": 4,
+        "js": 505918,
+        "img": 109496,
+        "font": 73777,
+        "css": 20301,
+        "lcpSnippet": "<img alt=\"Audi Q5 — wymiana opon BESS MOTORS Warszawa Włochy\" fetchpriority=\"high\" decoding=\"sync\" data-nimg=\"fill\" class=\"object-cover\" style=\"position: absolute; height: 100%; wi",
+        "phases": {
+          "timeToFirstByte": 6,
+          "resourceLoadDelay": 35,
+          "resourceLoadDuration": 12,
+          "elementRenderDelay": 127
+        }
+      },
+      {
+        "run": 4,
+        "score": 87,
+        "fcp": 1067,
+        "lcp": 4008,
+        "tbt": 50,
+        "cls": 0.0598471434379124,
+        "si": 1067,
+        "ttfb": 5,
+        "js": 505918,
+        "img": 109502,
+        "font": 73777,
+        "css": 20301,
+        "lcpSnippet": "<img alt=\"Audi Q5 — wymiana opon BESS MOTORS Warszawa Włochy\" fetchpriority=\"high\" decoding=\"sync\" data-nimg=\"fill\" class=\"object-cover\" style=\"position: absolute; height: 100%; wi",
+        "phases": {
+          "timeToFirstByte": 6,
+          "resourceLoadDelay": 25,
+          "resourceLoadDuration": 15,
+          "elementRenderDelay": 118
+        }
+      },
+      {
+        "run": 5,
+        "score": 86,
+        "fcp": 1065,
+        "lcp": 4145,
+        "tbt": 49,
+        "cls": 0.0598471434379124,
+        "si": 1065,
+        "ttfb": 5,
+        "js": 505918,
+        "img": 109496,
+        "font": 73777,
+        "css": 20301,
+        "lcpSnippet": "<img alt=\"Audi Q5 — wymiana opon BESS MOTORS Warszawa Włochy\" fetchpriority=\"high\" decoding=\"sync\" data-nimg=\"fill\" class=\"object-cover\" style=\"position: absolute; height: 100%; wi",
+        "phases": {
+          "timeToFirstByte": 7,
+          "resourceLoadDelay": 22,
+          "resourceLoadDuration": 14,
+          "elementRenderDelay": 112
+        }
+      }
+    ],
+    "booking": [
+      {
+        "run": 1,
+        "score": 95,
+        "fcp": 913,
+        "lcp": 2944,
+        "tbt": 32,
+        "cls": 0,
+        "si": 913,
+        "ttfb": 6,
+        "js": 339754,
+        "img": 24318,
+        "font": 54751,
+        "css": 20301,
+        "lcpSnippet": "<h1 class=\"font-display text-4xl font-bold uppercase text-glow\">",
+        "phases": {
+          "timeToFirstByte": 9,
+          "elementRenderDelay": 111
+        }
+      },
+      {
+        "run": 2,
+        "score": 95,
+        "fcp": 912,
+        "lcp": 2943,
+        "tbt": 34,
+        "cls": 0,
+        "si": 912,
+        "ttfb": 6,
+        "js": 339754,
+        "img": 24318,
+        "font": 54751,
+        "css": 20301,
+        "lcpSnippet": "<h1 class=\"font-display text-4xl font-bold uppercase text-glow\">",
+        "phases": {
+          "timeToFirstByte": 8,
+          "elementRenderDelay": 93
+        }
+      },
+      {
+        "run": 3,
+        "score": 95,
+        "fcp": 909,
+        "lcp": 2939,
+        "tbt": 31,
+        "cls": 0,
+        "si": 909,
+        "ttfb": 3,
+        "js": 339754,
+        "img": 24318,
+        "font": 54751,
+        "css": 20301,
+        "lcpSnippet": "<h1 class=\"font-display text-4xl font-bold uppercase text-glow\">",
+        "phases": {
+          "timeToFirstByte": 6,
+          "elementRenderDelay": 107
+        }
+      },
+      {
+        "run": 4,
+        "score": 95,
+        "fcp": 912,
+        "lcp": 2943,
+        "tbt": 34,
+        "cls": 0,
+        "si": 912,
+        "ttfb": 3,
+        "js": 339754,
+        "img": 24320,
+        "font": 54751,
+        "css": 20301,
+        "lcpSnippet": "<h1 class=\"font-display text-4xl font-bold uppercase text-glow\">",
+        "phases": {
+          "timeToFirstByte": 5,
+          "elementRenderDelay": 116
+        }
+      },
+      {
+        "run": 5,
+        "score": 95,
+        "fcp": 909,
+        "lcp": 2985,
+        "tbt": 44,
+        "cls": 0,
+        "si": 909,
+        "ttfb": 4,
+        "js": 339754,
+        "img": 24320,
+        "font": 54751,
+        "css": 20301,
+        "lcpSnippet": "<h1 class=\"font-display text-4xl font-bold uppercase text-glow\">",
+        "phases": {
+          "timeToFirstByte": 5,
+          "elementRenderDelay": 74
+        }
+      }
+    ]
+  }
+}

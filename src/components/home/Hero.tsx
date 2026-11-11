@@ -23,6 +23,7 @@ export function Hero() {
           fill
           priority
           fetchPriority="high"
+          decoding="sync"
           className="object-cover object-[72%_42%] sm:object-[75%_40%]"
           sizes="100vw"
           quality={75}

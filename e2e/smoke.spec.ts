@@ -55,3 +55,41 @@ test("main navigation pages respond 200", async ({ page }) => {
     await expect(page.locator("body")).toBeVisible();
   }
 });
+
+test("homepage preloads only the hero image", async ({ request }) => {
+  const html = await (await request.get("/")).text();
+  const imagePreloads = [...html.matchAll(/<link rel="preload" as="image"[^>]*>/g)].map((m) => m[0]);
+  expect(imagePreloads.some((tag) => tag.includes("banner.png"))).toBeTruthy();
+  expect(imagePreloads.some((tag) => tag.includes("exterior.png"))).toBeFalsy();
+  expect(imagePreloads.some((tag) => tag.includes("tire-audi"))).toBeFalsy();
+  expect(html).not.toContain("Orbitron");
+  expect(html).not.toMatch(/<link rel="preload" as="image"[^>]*logo\.png/);
+});
+
+test("tyre landing heading is visible in the first HTML", async ({ request }) => {
+  const html = await (await request.get("/wulkanizacja-warszawa")).text();
+  expect(html).toContain("Wulkanizacja");
+  expect(html).not.toContain("opacity:0");
+  expect(html).toContain("tire-audi-q5-bess.jpg");
+  expect(html).toContain('id="zapis-opony"');
+});
+
+test("saved cookie choice keeps the dialog closed", async ({ page, request }) => {
+  const html = await (await request.get("/")).text();
+  expect(html).not.toContain("cookie-consent-layer");
+  expect(html).toContain("data-cookie-dialog");
+  expect(html).toContain("We use cookies");
+  expect(html).toContain("/fonts/inter-latin.woff2");
+  expect(html).toContain("/fonts/inter-polish.woff2");
+  expect(html).not.toMatch(/rel="preload"[^>]*inter-cyrillic/);
+  await page.goto("/");
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+});
+
+test("tyre catalog paints the cookie choice in the first HTML", async ({ request }) => {
+  const html = await (await request.get("/opony")).text();
+  expect(html).toContain("data-cookie-dialog");
+  expect(html).toContain("We use cookies");
+  const dialogTag = html.match(/<div[^>]*data-cookie-dialog[^>]*>/)?.[0] ?? "";
+  expect(dialogTag).not.toContain("backdrop-blur");
+});

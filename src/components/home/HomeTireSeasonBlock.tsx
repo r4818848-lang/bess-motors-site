@@ -84,7 +84,7 @@ export function HomeTireSeasonBlock() {
                 fill
                 className="object-cover"
                 sizes="(max-width: 1024px) 100vw, 45vw"
-                priority
+                fetchPriority="low"
               />
             </div>
             <div className="relative aspect-[4/3] rounded-xl overflow-hidden border border-white/10">
@@ -94,6 +94,7 @@ export function HomeTireSeasonBlock() {
                 fill
                 className="object-cover"
                 sizes="(max-width: 1024px) 50vw, 22vw"
+                fetchPriority="low"
               />
             </div>
             <div className="relative aspect-[4/3] rounded-xl overflow-hidden border border-white/10">
@@ -103,6 +104,7 @@ export function HomeTireSeasonBlock() {
                 fill
                 className="object-cover"
                 sizes="(max-width: 1024px) 50vw, 22vw"
+                fetchPriority="low"
               />
             </div>
           </div>

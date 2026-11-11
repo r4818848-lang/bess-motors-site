@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
 
-import { Inter, Orbitron } from "next/font/google";
-
 import "./globals.css";
 
 import { Providers } from "./providers";
@@ -21,12 +19,6 @@ import {
 } from "@/lib/seo";
 import { buildPageMetadata, DEFAULT_OG_IMAGE } from "@/lib/seo-metadata";
 import { telegramLaunchHeadScript } from "@/lib/telegram-webapp-client";
-
-
-
-const inter = Inter({ subsets: ["latin", "cyrillic"], variable: "--font-inter" });
-
-const orbitron = Orbitron({ subsets: ["latin"], variable: "--font-orbitron" });
 
 
 
@@ -60,7 +52,7 @@ export const metadata: Metadata = {
     ],
   },
   robots: { index: true, follow: true, googleBot: { index: true, follow: true } },
-  icons: { icon: "/images/logo.png", apple: "/images/logo.png" },
+  icons: { icon: "/icons/favicon-48.png", apple: "/icons/apple-touch-180.png" },
   ...(googleSiteVerification
     ? { verification: { google: googleSiteVerification } }
     : {}),
@@ -102,6 +94,17 @@ const criticalCss = `
   .text-bm-red{color:#e10600!important}
   .text-bm-muted{color:#888!important}
   .font-display{font-weight:700;letter-spacing:.05em}
+  [data-cookie-dialog] [data-cc]{display:none}
+  [data-cookie-dialog] [data-cc="pl"]{display:block}
+  html[data-cc-lang="en"] [data-cookie-dialog] [data-cc]{display:none}
+  html[data-cc-lang="en"] [data-cookie-dialog] [data-cc="en"]{display:block}
+  html[data-cc-lang="ru"] [data-cookie-dialog] [data-cc]{display:none}
+  html[data-cc-lang="ru"] [data-cookie-dialog] [data-cc="ru"]{display:block}
+  html[data-cc-lang="uk"] [data-cookie-dialog] [data-cc]{display:none}
+  html[data-cc-lang="uk"] [data-cookie-dialog] [data-cc="uk"]{display:block}
+  html[data-cookie-consent] [data-cookie-dialog]{display:none!important}
+  [data-cookie-dialog] [data-cc="ru"],[data-cookie-dialog] [data-cc="uk"]{font-family:system-ui,sans-serif}
+  html[data-cc-lang="ru"] [data-cookie-dialog] [data-cc="ru"],html[data-cc-lang="uk"] [data-cookie-dialog] [data-cc="uk"]{font-family:Inter,"Inter Fallback",system-ui,sans-serif}
 `;
 
 
@@ -110,10 +113,20 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
   return (
 
-    <html lang="pl" className={`${inter.variable} ${orbitron.variable}`} suppressHydrationWarning>
+    <html lang="pl" suppressHydrationWarning>
 
       <head>
+        <link rel="preload" href="/fonts/inter-latin.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
+        <link rel="preload" href="/fonts/inter-polish.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{var consent=localStorage.getItem("bess-cookie-consent");if(consent==="granted"||consent==="denied")document.documentElement.setAttribute("data-cookie-consent",consent);var saved=localStorage.getItem("bess-locale");var code=(saved||navigator.language||"").toLowerCase();var lang="pl";if(code.indexOf("ru")===0)lang="ru";else if(code.indexOf("uk")===0||code.indexOf("ua")===0)lang="uk";else if(code.indexOf("en")===0)lang="en";document.documentElement.setAttribute("data-cc-lang",lang);}catch(e){}`,
+          }}
+        />
         <script dangerouslySetInnerHTML={{ __html: telegramLaunchHeadScript }} />
+        <noscript>
+          <style>{`[data-cookie-dialog]{display:none !important}`}</style>
+        </noscript>
         <meta
           name="facebook-domain-verification"
           content={facebookDomainVerification}

@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
 import { Calendar, ChevronRight, MapPin, Phone, FileSearch, Navigation } from "lucide-react";
 import type { SeoLandingPage } from "@/lib/seo-landing-pages";
 import type { ServiceId } from "@/lib/services-catalog";
@@ -21,10 +20,10 @@ import { ServiceLandingPrice } from "@/components/seo/landing/ServiceLandingPric
 import { ServiceLandingSteps } from "@/components/seo/landing/ServiceLandingSteps";
 import { ServiceLandingEducation } from "@/components/seo/landing/ServiceLandingEducation";
 import { ServiceLandingPhotos } from "@/components/seo/landing/ServiceLandingPhotos";
-import { ServiceWorkVideo, BookingWorkVideoTeaser } from "@/components/gallery/OurWorksSection";
+import { ServiceWorkVideo } from "@/components/gallery/OurWorksSection";
 import { ServiceLandingMap } from "@/components/seo/landing/ServiceLandingMap";
-import { ServiceLandingBottomCta } from "@/components/seo/landing/ServiceLandingBottomCta";
 import { ServiceLandingReviews } from "@/components/seo/landing/ServiceLandingReviews";
+import { ServiceLandingBottomCta } from "@/components/seo/landing/ServiceLandingBottomCta";
 import { ServiceLandingPackageOffer } from "@/components/seo/landing/ServiceLandingPackageOffer";
 import { SeoLandingRelatedLinks } from "@/components/seo/landing/SeoLandingRelatedLinks";
 import { AcPromoAccentPills } from "@/components/home/AcPromoAccentPills";
@@ -110,11 +109,7 @@ export function SeoLandingPageView({ page }: Props) {
         <div className="mx-auto max-w-5xl px-4 lg:px-8">
           <SeoLandingBreadcrumbs serviceTitle={pageLoc.title} serviceHref={`/${page.slug}`} />
 
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center"
-          >
+          <div className="text-center">
             <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl metallic text-bm-red mb-6 shadow-neon-sm">
               <ServiceIcon name={page.icon} size={32} />
             </div>
@@ -134,7 +129,7 @@ export function SeoLandingPageView({ page }: Props) {
               </p>
             ) : null}
             <div className="mt-6 h-1 w-24 bg-bm-red shadow-neon-sm mx-auto" />
-          </motion.div>
+          </div>
 
           {getModelHeroForSlug(page.slug) ? (
             <ModelServiceHero slug={page.slug} />
@@ -144,12 +139,7 @@ export function SeoLandingPageView({ page }: Props) {
             <TirePromoPhotoStrip className="mt-10" />
           ) : null}
 
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15 }}
-            className="mt-12 grid sm:grid-cols-2 gap-4"
-          >
+          <div className="mt-12 grid sm:grid-cols-2 gap-4">
             <Card
               glow
               className="flex gap-3 items-start cursor-pointer hover:border-bm-red/40 transition-colors"
@@ -177,7 +167,7 @@ export function SeoLandingPageView({ page }: Props) {
                 </PhoneLink>
               </div>
             </Card>
-          </motion.div>
+          </div>
 
           <div className="mt-10 flex flex-col sm:flex-row flex-wrap gap-3 justify-center">
             {tireQuick ? (
