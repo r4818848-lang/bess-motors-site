@@ -7,7 +7,7 @@ import { periodFromTables } from "../src/lib/gsc-import";
 import { describeGbpAccess, gbpDrafts, MAPS_RANK_STATUS } from "../src/lib/seo-growth/gbp";
 import { imageContainsExif, prepareCaseImage } from "../src/lib/seo-growth/image-safety";
 import { createMemoryCaseStore } from "../src/lib/seo-growth/case-memory";
-import { createSupabaseCaseRepository } from "../src/lib/seo-growth/case-supabase";
+import { createSupabaseCaseRepository, isPrivateCasePhotoPath } from "../src/lib/seo-growth/case-supabase";
 import {
   attachPhoto,
   createCase,
@@ -85,11 +85,18 @@ assert.equal(claimConversionSlot("booking:1", memory), true);
 assert.equal(claimConversionSlot("booking:1", memory), false);
 
 async function runCaseStore() {
-const sql = readFileSync("supabase/drafts/seo-cases.sql", "utf8");
-assert.equal(sql.includes("public.crm_store"), false);
-assert.match(sql, /bytea/);
+const sql = readFileSync("supabase/migrations/20261111190000_seo_case_private_storage.sql", "utf8").toLowerCase();
+assert.equal(sql.includes("crm_store"), false);
+assert.equal(sql.includes("appointments"), false);
+assert.equal(sql.includes("bytea"), false);
+assert.equal(sql.includes("security definer"), false);
+assert.match(sql, /security invoker/);
 assert.match(sql, /for update/);
+assert.match(sql, /seo-case-photos/);
+assert.match(sql, /as restrictive/);
 assert.match(sql, /revoke all on function/);
+assert.equal(isPrivateCasePhotoPath("../secret.jpg"), false);
+assert.equal(isPrivateCasePhotoPath("11111111-1111-4111-8111-111111111111/22222222-2222-4222-8222-222222222222.jpg"), true);
 
 const closed = repositoryForEnv({});
 const refused = await closed.createCase(
@@ -111,6 +118,80 @@ const missing = await missingRpc.listCases();
 assert.equal(missing.ok, false);
 if (!missing.ok) assert.equal(missing.error, "STORAGE_NOT_CONFIGURED");
 assert.equal(JSON.stringify(missing).includes(secret), false);
+
+const caseId = "11111111-1111-4111-8111-111111111111";
+const photoId = "22222222-2222-4222-8222-222222222222";
+const storagePath = `${caseId}/${photoId}.jpg`;
+const storyRow = {
+  id: caseId,
+  version: 2,
+  status: "draft" as const,
+  body: {
+    make: "Audi",
+    model: "Q5",
+    generation: "",
+    year: "2018",
+    engine: "",
+    problemPl: "Bicie",
+    diagnosisPl: "Klocki",
+    workPl: "Wymiana",
+    notesPl: "",
+    serviceId: "brakes" as const,
+    photoIds: [photoId],
+    reviewedPhotoIds: [],
+    publishedAt: null,
+    createdAt: "2026-11-11T00:00:00.000Z",
+    updatedAt: "2026-11-11T00:00:00.000Z",
+    history: [],
+  },
+};
+const calls: string[] = [];
+let storageFails = false;
+let publicPath = "../secret.jpg";
+const storageRepo = createSupabaseCaseRepository({
+  config: { url: "https://example.supabase.co", key: secret },
+  fetchImpl: async (url, init) => {
+    const target = String(url);
+    const rpcBody = target.endsWith("/rpc/seo_case_apply")
+      ? (JSON.parse(String(init?.body)) as { op: string; payload: { byteSize?: number } })
+      : null;
+    calls.push(`${init?.method ?? "GET"} ${target} ${rpcBody?.op ?? ""}`.trim());
+    if (target.includes("/object/public/")) return new Response("public", { status: 500 });
+    if (rpcBody) {
+      const body = rpcBody;
+      assert.equal(JSON.stringify(body).includes(secret), false);
+      if (body.op === "attach_photo") {
+        return Response.json({ ok: true, story: storyRow, photoId, storagePath, stored: false, byteSize: body.payload.byteSize });
+      }
+      if (body.op === "confirm_photo") return Response.json({ ok: true, story: storyRow, photoId, storagePath, stored: true });
+      if (body.op === "public_photo") return Response.json({ ok: true, mime: "image/jpeg", storagePath: publicPath });
+      return Response.json({ ok: false, error: "invalid" });
+    }
+    if (target === `https://example.supabase.co/storage/v1/object/seo-case-photos/${storagePath}`) {
+      if (storageFails) return new Response("down", { status: 503 });
+      return new Response(Buffer.from([0xff, 0xd8, 0xff, 0xd9, 0x00]), { status: 200 });
+    }
+    return new Response("missing", { status: 404 });
+  },
+});
+const sample = { mime: "image/jpeg" as const, bytes: Uint8Array.from([0xff, 0xd8, 0xff, 0xd9, 0x11]) };
+const storedPhoto = await storageRepo.attachPhoto(caseId, 1, sample, "photo-real");
+assert.equal(storedPhoto.ok, true);
+assert.equal(calls.filter((call) => call.includes("/object/public/")).length, 0);
+assert.equal(calls.filter((call) => call.startsWith("POST https://example.supabase.co/storage/v1/object/seo-case-photos/")).length, 1);
+assert.equal(calls.filter((call) => call.includes("attach_photo") || call.includes("confirm_photo")).length, 2);
+const blockedPath = await storageRepo.publicPhoto(caseId, photoId);
+assert.equal(blockedPath.ok, false);
+assert.equal(calls.some((call) => call.startsWith("GET ")), false);
+publicPath = storagePath;
+const served = await storageRepo.publicPhoto(caseId, photoId);
+assert.equal(served.ok, true);
+if (served.ok) assert.equal(served.value.bytes.length, 5);
+storageFails = true;
+const down = await storageRepo.attachPhoto(caseId, 1, sample, "photo-down");
+assert.equal(down.ok, false);
+if (!down.ok) assert.equal(down.error, "STORAGE_UNAVAILABLE");
+assert.equal(calls.filter((call) => call.includes("confirm_photo")).length, 1);
 
 const canvas = createCanvas(48, 48);
 const ctx = canvas.getContext("2d");

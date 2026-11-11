@@ -5,15 +5,53 @@ import type { SafeImage } from "@/lib/seo-growth/image-safety";
 
 type FetchLike = (url: string, init?: RequestInit) => Promise<Response>;
 
+const BUCKET = "seo-case-photos";
+const PHOTO_PATH = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.jpg$/i;
+
+const KNOWN_ERRORS = new Set([
+  "STORAGE_NOT_CONFIGURED",
+  "STORAGE_UNAVAILABLE",
+  "conflict",
+  "not_found",
+  "forbidden",
+  "forbidden_transition",
+  "invalid",
+  "unknown_service",
+  "too_many_photos",
+  "too_large",
+  "not_stored",
+  "missing_photo",
+  "missing_vehicle",
+  "missing_work",
+  "photo_not_reviewed",
+  "unconfirmed_year",
+]);
+
+export function isPrivateCasePhotoPath(path: string): boolean {
+  return PHOTO_PATH.test(path) && !path.includes("..") && !path.includes("\\") && !path.includes("//");
+}
+
 function storyFromRow(row: { id: string; version: number; status: WorkCase["status"]; body: Omit<WorkCase, "id" | "version" | "status"> }): WorkCase {
   return { ...row.body, id: row.id, version: row.version, status: row.status };
 }
 
-export function createSupabaseCaseRepository(options?: { fetchImpl?: FetchLike; config?: { url: string; key: string } | null }): CaseRepository {
+function knownError(value: unknown): string {
+  return typeof value === "string" && KNOWN_ERRORS.has(value) ? value : "STORAGE_UNAVAILABLE";
+}
+
+export function createSupabaseCaseRepository(options?: {
+  fetchImpl?: FetchLike;
+  config?: { url: string; key: string } | null;
+}): CaseRepository {
   const fetchImpl = options?.fetchImpl ?? fetch;
   const config = options?.config === undefined ? getSupabaseConfig() : options.config;
 
-  async function call(op: string, payload: unknown, expectedVersion: number | null, idempotencyKey: string | null): Promise<StoreSuccess<Record<string, unknown>> | StoreFailure> {
+  async function call(
+    op: string,
+    payload: unknown,
+    expectedVersion: number | null,
+    idempotencyKey: string | null
+  ): Promise<StoreSuccess<Record<string, unknown>> | StoreFailure> {
     if (!config) return { ok: false, error: "STORAGE_NOT_CONFIGURED" };
     let response: Response;
     try {
@@ -30,10 +68,12 @@ export function createSupabaseCaseRepository(options?: { fetchImpl?: FetchLike; 
           expected_version: expectedVersion,
           idempotency_key: idempotencyKey,
         }),
+        redirect: "manual",
       });
     } catch {
       return { ok: false, error: "STORAGE_UNAVAILABLE" };
     }
+    if (response.status >= 300 && response.status < 400) return { ok: false, error: "STORAGE_UNAVAILABLE" };
     const text = await response.text();
     if (response.status === 404 || text.includes("PGRST202") || text.includes("Could not find the function")) {
       return { ok: false, error: "STORAGE_NOT_CONFIGURED" };
@@ -45,11 +85,62 @@ export function createSupabaseCaseRepository(options?: { fetchImpl?: FetchLike; 
     } catch {
       return { ok: false, error: "STORAGE_UNAVAILABLE" };
     }
-    if (body.ok !== true) return { ok: false, error: typeof body.error === "string" ? body.error : "STORAGE_UNAVAILABLE" };
+    if (body.ok !== true) return { ok: false, error: knownError(body.error) };
     return { ok: true, value: body, replayed: body.replayed === true };
   }
 
-  const unavailable = async (): Promise<StoreFailure> => ({ ok: false, error: "STORAGE_UNAVAILABLE" });
+  function objectUrl(path: string): string | null {
+    if (!config || !isPrivateCasePhotoPath(path)) return null;
+    const [caseId, file] = path.split("/");
+    return `${config.url}/storage/v1/object/${BUCKET}/${caseId}/${file}`;
+  }
+
+  async function upload(path: string, bytes: Uint8Array): Promise<StoreFailure | { ok: true }> {
+    const url = objectUrl(path);
+    if (!config || !url) return { ok: false, error: "invalid" };
+    let response: Response;
+    try {
+      response = await fetchImpl(url, {
+        method: "POST",
+        headers: {
+          apikey: config.key,
+          Authorization: `Bearer ${config.key}`,
+          "Content-Type": "image/jpeg",
+          "x-upsert": "true",
+        },
+        body: Buffer.from(bytes),
+        redirect: "manual",
+      });
+    } catch {
+      return { ok: false, error: "STORAGE_UNAVAILABLE" };
+    }
+    if (response.status === 404) return { ok: false, error: "STORAGE_NOT_CONFIGURED" };
+    if (response.status >= 300 && response.status < 400) return { ok: false, error: "STORAGE_UNAVAILABLE" };
+    if (!response.ok) return { ok: false, error: "STORAGE_UNAVAILABLE" };
+    return { ok: true };
+  }
+
+  async function download(path: string): Promise<StoreSuccess<Buffer> | StoreFailure> {
+    const url = objectUrl(path);
+    if (!config || !url) return { ok: false, error: "not_found" };
+    let response: Response;
+    try {
+      response = await fetchImpl(url, {
+        headers: {
+          apikey: config.key,
+          Authorization: `Bearer ${config.key}`,
+        },
+        redirect: "manual",
+      });
+    } catch {
+      return { ok: false, error: "STORAGE_UNAVAILABLE" };
+    }
+    if (response.status === 404) return { ok: false, error: "not_found" };
+    if (!response.ok || (response.status >= 300 && response.status < 400)) return { ok: false, error: "STORAGE_UNAVAILABLE" };
+    const bytes = Buffer.from(await response.arrayBuffer());
+    if (bytes.length < 1 || bytes.length > 4 * 1024 * 1024) return { ok: false, error: "STORAGE_UNAVAILABLE" };
+    return { ok: true, value: bytes };
+  }
 
   return {
     kind: "supabase",
@@ -57,14 +148,17 @@ export function createSupabaseCaseRepository(options?: { fetchImpl?: FetchLike; 
     async listCases() {
       const result = await call("list", {}, null, null);
       if (!result.ok) return result;
-      const rows = Array.isArray(result.value.cases) ? result.value.cases : [];
+      const rows = Array.isArray(result.value.cases) ? result.value.cases : null;
+      if (!rows) return { ok: false, error: "STORAGE_UNAVAILABLE" };
       return { ok: true, value: rows.map((row) => storyFromRow(row as never)) };
     },
     async listPublished() {
-      const listed = await this.listCases();
-      if (!listed.ok) return listed;
+      const result = await call("list_published", {}, null, null);
+      if (!result.ok) return result;
+      const rows = Array.isArray(result.value.cases) ? result.value.cases : null;
+      if (!rows) return { ok: false, error: "STORAGE_UNAVAILABLE" };
       const { isPublicCase } = await import("@/lib/seo-growth/work-cases");
-      return { ok: true, value: listed.value.filter(isPublicCase) };
+      return { ok: true, value: rows.map((row) => storyFromRow(row as never)).filter(isPublicCase) };
     },
     async getCase(id) {
       const listed = await this.listCases();
@@ -75,11 +169,11 @@ export function createSupabaseCaseRepository(options?: { fetchImpl?: FetchLike; 
     async listActions() {
       const result = await call("actions", {}, null, null);
       if (!result.ok) return result;
-      const rows = Array.isArray(result.value.actions) ? (result.value.actions as SeoAction[]) : [];
+      const rows = Array.isArray(result.value.actions) ? (result.value.actions as SeoAction[]) : null;
+      if (!rows) return { ok: false, error: "STORAGE_UNAVAILABLE" };
       return { ok: true, value: rows };
     },
     async createCase(input: CaseInput, idempotencyKey) {
-      const now = new Date().toISOString();
       const result = await call(
         "create",
         {
@@ -93,8 +187,6 @@ export function createSupabaseCaseRepository(options?: { fetchImpl?: FetchLike; 
           workPl: input.workPl,
           notesPl: input.notesPl ?? "",
           serviceId: input.serviceId,
-          createdAt: now,
-          updatedAt: now,
         },
         null,
         idempotencyKey
@@ -103,20 +195,7 @@ export function createSupabaseCaseRepository(options?: { fetchImpl?: FetchLike; 
       return { ok: true, value: storyFromRow(result.value.story as never), replayed: result.replayed };
     },
     async updateCase(id, version, input) {
-      const current = await this.getCase(id);
-      if (!current.ok) return current;
-      const at = new Date().toISOString();
-      const next = {
-        ...current.value,
-        ...input,
-        id: current.value.id,
-        version: current.value.version,
-        status: current.value.status,
-        updatedAt: at,
-        history: [...current.value.history, { at, action: "edit" as const, from: current.value.status, to: current.value.status }],
-      };
-      const { id: _id, version: _version, status, ...body } = next;
-      const result = await call("update", { id, status, body }, version, null);
+      const result = await call("update", { id, ...input }, version, null);
       if (!result.ok) return result;
       return { ok: true, value: storyFromRow(result.value.story as never) };
     },
@@ -129,30 +208,32 @@ export function createSupabaseCaseRepository(options?: { fetchImpl?: FetchLike; 
         const blockers = publishBlockers(current.value);
         if (blockers.length) return { ok: false, error: blockers.join(",") };
       }
-      const at = new Date().toISOString();
-      const body = {
-        ...current.value,
-        publishedAt: to === "published" ? at : current.value.publishedAt,
-        updatedAt: at,
-        history: [...current.value.history, { at, action: "transition" as const, from: current.value.status, to }],
-      };
-      const { id: _id, version: _version, status: _status, ...rest } = body;
-      const result = await call("transition", { id, status: to, body: rest }, version, null);
+      const result = await call("transition", { id, status: to }, version, null);
       if (!result.ok) return result;
       return { ok: true, value: storyFromRow(result.value.story as never) };
     },
     async attachPhoto(caseId, version, image: SafeImage, idempotencyKey) {
-      const result = await call(
-        "attach_photo",
-        { id: caseId, bytes: Buffer.from(image.bytes).toString("base64") },
-        version,
-        idempotencyKey
-      );
-      if (!result.ok) return result;
+      const reserved = await call("attach_photo", { id: caseId, byteSize: image.bytes.byteLength }, version, idempotencyKey);
+      if (!reserved.ok) return reserved;
+      const path = typeof reserved.value.storagePath === "string" ? reserved.value.storagePath : "";
+      const photoId = typeof reserved.value.photoId === "string" ? reserved.value.photoId : "";
+      if (!isPrivateCasePhotoPath(path) || path.split("/")[0] !== caseId) return { ok: false, error: "invalid" };
+      if (reserved.value.byteSize !== image.bytes.byteLength) return { ok: false, error: "invalid" };
+      if (reserved.value.stored !== true) {
+        const uploaded = await upload(path, image.bytes);
+        if (!uploaded.ok) return uploaded;
+        const confirmed = await call("confirm_photo", { id: caseId, photoId }, null, idempotencyKey);
+        if (!confirmed.ok) return confirmed;
+        return {
+          ok: true,
+          value: { photoId, story: storyFromRow(confirmed.value.story as never) },
+          replayed: reserved.replayed,
+        };
+      }
       return {
         ok: true,
-        value: { photoId: String(result.value.photoId), story: storyFromRow(result.value.story as never) },
-        replayed: result.replayed,
+        value: { photoId, story: storyFromRow(reserved.value.story as never) },
+        replayed: true,
       };
     },
     async reviewPhoto(caseId, photoId, version) {
@@ -163,15 +244,17 @@ export function createSupabaseCaseRepository(options?: { fetchImpl?: FetchLike; 
     async publicPhoto(caseId, photoId) {
       const result = await call("public_photo", { caseId, photoId }, null, null);
       if (!result.ok) return result;
-      return { ok: true, value: { mime: String(result.value.mime), bytes: Buffer.from(String(result.value.bytes), "base64") } };
+      const path = typeof result.value.storagePath === "string" ? result.value.storagePath : "";
+      if (path.split("/")[0] !== caseId || path.split("/")[1] !== `${photoId}.jpg`) return { ok: false, error: "not_found" };
+      const bytes = await download(path);
+      if (!bytes.ok) return bytes;
+      return { ok: true, value: { mime: "image/jpeg", bytes: bytes.value } };
     },
     async record(action, note, caseId) {
       const result = await call("record", { action, note, caseId }, null, null);
       if (!result.ok) return result;
       return { ok: true, value: { at: new Date().toISOString(), actor: "admin", action, caseId, note } };
     },
-    failNext() {
-      void unavailable;
-    },
+    failNext() {},
   };
 }
