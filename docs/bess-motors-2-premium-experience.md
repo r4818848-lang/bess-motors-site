@@ -119,4 +119,10 @@ LCP главной по-прежнему фото баннера, не SVG.
 
 Pull Request: https://github.com/r4818848-lang/bess-motors-site/pull/38
 
-GitHub Actions и три Vercel Preview на момент этой записи ещё не завершены. Итог проверок сюда не вписан, пока они не закончатся.
+Проверка `bc9510d` (11 ноября 2026, 22:44 по Варшаве):
+
+- e2e — успешно.
+- unit — ошибка. Аудит шапки искал отдельный `page.tsx` и не узнавал реальные адреса общего маршрута `[slug]`: `/wulkanizacja-warszawa`, `/wymiana-oleju`, `/hamulce`, `/diagnostyka`, `/klimatyzacja`, `/zawieszenie`, `/silnik`.
+- Vercel Preview Ready: [bess-motors](https://bess-motors-git-feat-bess-motors-2-c8e1f7-bess-motors-projects.vercel.app), [bess-motors-site](https://bess-motors-site-git-feat-bess-moto-fdba1d-bess-motors-projects.vercel.app), [bess-motors-site-5dyd](https://bess-motors-site-5dyd-git-feat-bess-cbf27b-bess-motors-projects.vercel.app).
+
+Следующий коммит учит аудит принимать slug, который уже опубликован в `src/lib`. Итог этой новой проверки сюда ещё не вписан.
