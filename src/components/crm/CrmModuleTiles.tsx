@@ -10,6 +10,7 @@ import {
   Archive,
   Package,
   BarChart3,
+  Search,
   Wallet,
   History,
   Plus,
@@ -28,6 +29,7 @@ const tiles: { href: string; icon: typeof FileText; label: (c: ReturnType<typeof
   { href: "/crm?tab=warehouse", icon: Package, label: (t) => t.crm.warehouse },
   { href: "/crm?tab=reports", icon: BarChart3, label: (t) => t.wo.reports },
   { href: "/crm?tab=expenses", icon: Wallet, label: (t) => t.wo.internalExpenses },
+  { href: "/crm/seo", icon: Search, label: () => "SEO" },
 ];
 
 export function CrmModuleTiles() {

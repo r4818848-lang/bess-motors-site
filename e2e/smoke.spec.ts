@@ -86,6 +86,18 @@ test("saved cookie choice keeps the dialog closed", async ({ page, request }) =>
   await expect(page.getByRole("dialog")).toHaveCount(0);
 });
 
+test("seo panel and unpublished cases stay private", async ({ page, request }) => {
+  const api = await request.get("/api/internal/seo");
+  expect(api.status()).toBe(401);
+  const body = await api.text();
+  expect(body).not.toMatch(/791/);
+  const missing = await request.get("/realizacje");
+  expect(missing.status()).toBe(404);
+  await page.goto("/crm/seo");
+  await expect(page.getByRole("heading", { name: "Konto klienta" })).toBeVisible();
+  await expect(page.getByText("Logowanie do CRM")).toBeVisible();
+});
+
 test("tyre catalog paints the cookie choice in the first HTML", async ({ request }) => {
   const html = await (await request.get("/opony")).text();
   expect(html).toContain("data-cookie-dialog");
