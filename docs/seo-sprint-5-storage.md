@@ -115,4 +115,12 @@ where id = 'seo-case-photos'
 - Playwright на `127.0.0.1:3456`: 125 passed, 4 skipped. Readonly: 1 passed
 - `/realizacje` без флага: 404. Sitemap собирается и не содержит `/realizacje`
 
-Код хранения: `109cde9cdc1a25fcf1b7a4d5887102170a550f9a`. GitHub Actions и Vercel Preview дописываются после push. Merge не делается.
+Код хранения: `109cde9cdc1a25fcf1b7a4d5887102170a550f9a`.
+
+GitHub Actions для `927955f1ec46a67a65633f5e13931eb3dc8e3841` зелёные: `unit` 1 мин 41 с, `e2e` 3 мин 28 с. Три preview в статусе success, 19:29 по Варшаве:
+
+- [bess-motors](https://bess-motors-q0d7y7rpn-bess-motors-projects.vercel.app)
+- [bess-motors-site](https://bess-motors-site-2hdu29qnn-bess-motors-projects.vercel.app)
+- [bess-motors-site-5dyd](https://bess-motors-site-5dyd-m9ghoefma-bess-motors-projects.vercel.app)
+
+Merge не делается. Флаг и SQL на production не включались.
