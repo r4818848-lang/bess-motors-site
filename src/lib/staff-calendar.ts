@@ -5,7 +5,8 @@
  * Unassigned visits share one implicit resource and do not block a named mechanic.
  */
 
-import type { AdminReminderState, Appointment, AppointmentStatus } from "@/lib/store";
+import type { Appointment, AppointmentStatus } from "@/lib/store";
+import { planArrivalReminder } from "@/lib/arrival-reminder";
 import { evaluateArrivalTime, type ArrivalError } from "@/lib/arrival-window";
 import {
   clockToMinutes,
@@ -283,50 +284,32 @@ export function invalidAppointmentChange(
 
 export function planAdminReminder(
   apt: {
+    id?: string;
     date: string;
     time: string;
     appointmentStatus: string;
+    visitState?: string;
+    repairStatus?: string;
     createdAt?: string;
-    adminReminder?: AdminReminderState;
     calendarHidden?: boolean;
   },
   now: Date
-):
-  | { action: "skip" }
-  | { action: "cancel" }
-  | { action: "send"; kind: "two_hour" | "soon"; dueAt: string } {
-  const state = apt.adminReminder;
-  if (
-    apt.calendarHidden ||
-    apt.appointmentStatus === "cancelled" ||
-    apt.appointmentStatus === "completed"
-  ) {
-    if (state?.status === "sent" || state?.status === "cancelled") return { action: "skip" };
-    return { action: "cancel" };
-  }
-  if (state?.status === "sent" || state?.status === "cancelled") return { action: "skip" };
-  if ((state?.attempts ?? 0) >= 5) return { action: "skip" };
-  if (state?.status === "sending" && state.sendingAt) {
-    const age = now.getTime() - Date.parse(state.sendingAt);
-    if (Number.isFinite(age) && age >= 0 && age < 2 * 60 * 1000) return { action: "skip" };
-  }
-
-  const arrival = warsawCivilToUtc(apt.date, apt.time);
-  if (!arrival) return { action: "skip" };
-  if (now.getTime() >= arrival.getTime()) return { action: "skip" };
-
-  const due = new Date(arrival.getTime() - 2 * 60 * 60 * 1000);
-  const createdMs = apt.createdAt ? Date.parse(apt.createdAt) : Number.NaN;
-  const remaining = arrival.getTime() - now.getTime();
-  const bookedInsideWindow = Number.isFinite(createdMs) && createdMs > due.getTime();
-  const soon = bookedInsideWindow || remaining < 100 * 60 * 1000;
-  if (!soon && now.getTime() < due.getTime()) return { action: "skip" };
-
-  return {
-    action: "send",
-    kind: soon ? "soon" : "two_hour",
-    dueAt: due.toISOString(),
-  };
+): { action: "skip"; reason: string } | { action: "send"; kind: "two_hour"; dueAt: string } {
+  const plan = planArrivalReminder(
+    {
+      id: apt.id ?? "",
+      date: apt.date,
+      time: apt.time,
+      appointmentStatus: apt.appointmentStatus,
+      visitState: apt.visitState,
+      repairStatus: apt.repairStatus,
+      calendarHidden: apt.calendarHidden,
+      createdAt: apt.createdAt,
+    },
+    now
+  );
+  if (plan.reason || !plan.dueAt) return { action: "skip", reason: plan.reason ?? "invalid_time" };
+  return { action: "send", kind: "two_hour", dueAt: plan.dueAt };
 }
 
 export function weekdayWindowLabel(dateKey: string, hours: WorkshopHours): string | null {

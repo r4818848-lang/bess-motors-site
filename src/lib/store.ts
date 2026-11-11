@@ -382,6 +382,31 @@ export interface AppSettings {
   morningDigestDate?: string;
   /** Short lease so only one Vercel project sends a shared cron job. */
   cronHoldUntil?: Record<string, string>;
+  /**
+   * Owner notice "Скоро приедет клиент", one row per visit and clock time.
+   * No row means pending. A row is the lock: claimed, sent, failed and
+   * suppressed are all terminal for another send.
+   */
+  arrivalReminderClaims?: Record<string, ArrivalReminderClaim>;
+}
+
+/**
+ * Durable lock for the owner arrival reminder.
+ * failed stays terminal: Telegram may have accepted the message even when
+ * the HTTP response was lost, so a retry can deliver a second copy.
+ */
+export interface ArrivalReminderClaim {
+  key: string;
+  appointmentId: string;
+  reminderType: "admin_two_hour";
+  scheduledAt: string;
+  date: string;
+  time: string;
+  status: "claimed" | "sent" | "failed" | "suppressed";
+  claimedAt: string;
+  sentAt?: string;
+  attemptCount: number;
+  dedupeReason?: string;
 }
 
 export interface PasswordResetRecord {

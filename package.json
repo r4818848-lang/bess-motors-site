@@ -16,7 +16,7 @@
     "test:e2e": "playwright test && playwright test -c playwright.readonly.config.ts",
     "test:lead-notices": "tsx scripts/test-lead-notices.ts && tsx scripts/test-lead-notice-cas.ts",
     "check:release-env": "tsx scripts/check-release-env.ts",
-    "test:unit": "tsx scripts/test-arrival-leads.ts && tsx scripts/test-workshop-schedule.ts && tsx scripts/test-staff-calendar.ts && tsx scripts/test-smart-scheduler.ts && tsx scripts/test-launch-readiness.ts && tsx scripts/test-scheduler-readonly-auth.ts",
+    "test:unit": "tsx scripts/test-arrival-leads.ts && tsx scripts/test-workshop-schedule.ts && tsx scripts/test-staff-calendar.ts && tsx scripts/test-arrival-reminder.ts && tsx scripts/test-smart-scheduler.ts && tsx scripts/test-launch-readiness.ts && tsx scripts/test-scheduler-readonly-auth.ts",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:report": "playwright show-report",
