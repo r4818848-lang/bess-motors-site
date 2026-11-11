@@ -6,9 +6,10 @@ import { useSearchParams } from "next/navigation";
 import { Check, Phone } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { PhoneLink } from "@/components/analytics/PhoneLink";
-import { trackLead } from "@/lib/gtag";
+import { trackBookingRequestSubmitSuccess, trackCallbackSubmitSuccess } from "@/lib/gtag";
 import { trackGoogleAdsBookingConversion } from "@/lib/google-ads";
 import { trackMetaLead, trackMetaSchedule } from "@/lib/meta-pixel";
+import { claimConversionSlot, conversionDedupeKey, planThankYouConversions } from "@/lib/conversion-count";
 import { ThankYouExtras } from "@/components/booking/ThankYouExtras";
 import { ThankYouSummary } from "@/components/booking/ThankYouSummary";
 import { PwaInstallHint } from "@/components/pwa/PwaInstallHint";
@@ -25,11 +26,18 @@ function ThankYouContent() {
   const [snapshot, setSnapshot] = useState<SubmissionSnapshot | null>(null);
 
   useEffect(() => {
-    setSnapshot(loadSubmissionSnapshot());
-    trackLead("booking", { source: "thank_you_page" });
-    trackGoogleAdsBookingConversion({ event_label: "thank_you_page" });
-    trackMetaLead("thank_you_page");
-    trackMetaSchedule("thank_you_page");
+    const saved = loadSubmissionSnapshot();
+    setSnapshot(saved);
+    const firstTime = saved
+      ? claimConversionSlot(conversionDedupeKey(saved.kind, saved.submittedAt), sessionStorage)
+      : false;
+    for (const event of planThankYouConversions(saved, firstTime)) {
+      if (event === "booking_request_submit_success") trackBookingRequestSubmitSuccess("thank_you_page");
+      if (event === "google_ads_booking") trackGoogleAdsBookingConversion({ event_label: "thank_you_page" });
+      if (event === "meta_schedule") trackMetaSchedule("thank_you_page");
+      if (event === "callback_submit_success") trackCallbackSubmitSuccess("thank_you_page");
+      if (event === "meta_lead") trackMetaLead("thank_you_page");
+    }
   }, []);
 
   const title =

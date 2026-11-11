@@ -7,7 +7,6 @@ import { useI18n } from "@/lib/i18n/context";
 import { createCallRequest } from "@/lib/booking-actions";
 import { Button } from "@/components/ui/Button";
 import { useAuth } from "@/lib/auth/session-context";
-import { trackLead } from "@/lib/gtag";
 import { saveSubmissionSnapshot, THANK_YOU_PATH } from "@/lib/submission-thank-you";
 import { isPhoneContactValid, resolveBookingClientName } from "@/lib/booking-form-mode";
 import { oilBrakePromoBookingNote, OIL_BRAKE_PROMO_CODE, isOilBrakePromoItem } from "@/lib/oil-brake-promo";
@@ -128,7 +127,6 @@ export function PhoneOnlyBookingForm({
         })),
         estimatedTotal,
       });
-      trackLead("booking", { source: trackSource, serviceId, mode: "phone_only" });
       onDone?.();
       router.push(THANK_YOU_PATH);
     } finally {
@@ -138,7 +136,7 @@ export function PhoneOnlyBookingForm({
   };
 
   return (
-    <div className={`space-y-5 ${className}`}>
+    <div className={`space-y-5 ${className}`} data-track-source={trackSource}>
       <div className="text-center">
         <h2 className="font-display text-xl sm:text-2xl font-bold uppercase text-glow">
           {title ?? q.phoneOnlyTitle}

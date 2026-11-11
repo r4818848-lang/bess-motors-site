@@ -59,7 +59,7 @@ export function HomeTireSeasonBlock() {
             </p>
             <div className="mt-6 flex flex-col sm:flex-row flex-wrap gap-3">
               <BookingLink
-                href={TIRE_AD_LANDING_PATH}
+                href={`${TIRE_AD_LANDING_PATH}#zapis-opony`}
                 trackSource="home_tires_season"
                 className="btn-primary inline-flex items-center justify-center gap-2 text-sm"
               >

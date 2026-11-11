@@ -1,3 +1,5 @@
+import { analyticsConsentGranted } from "@/lib/analytics-consent";
+
 /** Meta Pixel ID — override via NEXT_PUBLIC_META_PIXEL_ID in Vercel */
 export const META_PIXEL_ID =
   process.env.NEXT_PUBLIC_META_PIXEL_ID?.trim() || "1670736437497545";
@@ -30,6 +32,7 @@ function getFbq(): FbqFn | null {
 
 /** Low-level send — same as fbq('track', event) in console */
 export function fireFbq(event: string, params?: Record<string, unknown>): void {
+  if (!analyticsConsentGranted()) return;
   const fbq = getFbq();
   if (!fbq) return;
   try {

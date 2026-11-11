@@ -1147,6 +1147,7 @@ const pl = {
     call: "Zadzwoń",
     whatsapp: "WA",
     book: "Umów",
+    route: "Trasa do warsztatu",
   },
   reviewsExt: {
     googleCta: "Opinie w Google",
@@ -3129,6 +3130,7 @@ const ru: TranslationKeys = {
     call: "Звонок",
     whatsapp: "WA",
     book: "Запись",
+    route: "Маршрут в сервис",
   },
   reviewsExt: {
     googleCta: "Отзывы в Google",
@@ -4937,7 +4939,7 @@ const en: TranslationKeys = {
       comment: "Notes",
     },
   },
-  stickyBar: { call: "Call", whatsapp: "WA", book: "Book" },
+  stickyBar: { call: "Call", whatsapp: "WA", book: "Book", route: "Route to the workshop" },
   reviewsExt: { googleCta: "Google reviews" },
   notifExt: {
     carReadyTitle: "Your car is ready!",

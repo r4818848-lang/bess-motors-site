@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Calendar, ChevronRight, MapPin, Phone, FileSearch } from "lucide-react";
+import { Calendar, ChevronRight, MapPin, Phone, FileSearch, Navigation } from "lucide-react";
 import type { SeoLandingPage } from "@/lib/seo-landing-pages";
 import type { ServiceId } from "@/lib/services-catalog";
 import { siteConfig } from "@/lib/site";
@@ -37,6 +37,10 @@ import {
 import { isBrandSeoLandingSlug } from "@/lib/seo-brand-slugs";
 import { CallbackRequestCta } from "@/components/callback/CallbackRequestCta";
 import { isCallbackLandingSlug } from "@/lib/callback-landing-slugs";
+import { TireQuickBookForm } from "@/components/booking/TireQuickBookForm";
+import { isTireQuickBookSlug, TIRE_QUICK_FORM_ID } from "@/lib/tire-quick-book";
+import { WORKSHOP_DIRECTIONS_URL } from "@/lib/maps";
+import { trackBookingOpen, trackGetDirectionsClick } from "@/lib/gtag";
 import { EXTRA_SEO_SERVICE_PAGES } from "@/lib/seo-extra-service-pages";
 import { TirePromoPhotoStrip } from "@/components/seo/landing/TirePromoPhotoStrip";
 import { ModelServiceHero } from "@/components/seo/landing/ModelServiceHero";
@@ -63,12 +67,22 @@ export function SeoLandingPageView({ page }: Props) {
     }
   }, [bookServiceId]);
 
+  const tireQuick = isTireQuickBookSlug(page.slug);
+  const bookFromPage = () => {
+    trackBookingOpen(`landing_${page.slug}`);
+    if (tireQuick) {
+      document.getElementById(TIRE_QUICK_FORM_ID)?.scrollIntoView({ behavior: "smooth" });
+      return;
+    }
+    openBooking();
+  };
+
   const scrollToMap = () => {
     document.getElementById("landing-map-heading")?.scrollIntoView({ behavior: "smooth" });
   };
 
   useEffect(() => {
-    if (!bookServiceId || scrollPromptShown) return;
+    if (tireQuick || !bookServiceId || scrollPromptShown) return;
     const onScroll = () => {
       const nearBottom =
         window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 120;
@@ -80,7 +94,7 @@ export function SeoLandingPageView({ page }: Props) {
     };
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
-  }, [bookServiceId, scrollPromptShown]);
+  }, [bookServiceId, scrollPromptShown, tireQuick]);
 
   const heroTitle =
     pageLoc.title.toLowerCase().includes("warszawa") ||
@@ -165,14 +179,27 @@ export function SeoLandingPageView({ page }: Props) {
             </Card>
           </motion.div>
 
-          <div className="mt-10 flex flex-col sm:flex-row gap-3 justify-center">
-            {bookServiceId ? (
+          <div className="mt-10 flex flex-col sm:flex-row flex-wrap gap-3 justify-center">
+            {tireQuick ? (
+              <a
+                href={`#${TIRE_QUICK_FORM_ID}`}
+                className="btn-primary inline-flex justify-center items-center gap-2 min-h-12"
+                onClick={() => trackBookingOpen(`landing_${page.slug}`)}
+              >
+                <Calendar size={18} />
+                {t.hero.ctaBook}
+                <ChevronRight size={18} />
+              </a>
+            ) : bookServiceId ? (
               <button
                 type="button"
                 className="btn-primary inline-flex justify-center items-center gap-2"
                 data-fbq-track="InitiateCheckout"
                 data-fbq-params={JSON.stringify({ content_name: `landing_${page.slug}` })}
-                onClick={openBooking}
+                onClick={() => {
+                  trackBookingOpen(`landing_${page.slug}`);
+                  openBooking();
+                }}
               >
                 <Calendar size={18} />
                 {t.cabinet.bookVisit}
@@ -190,11 +217,21 @@ export function SeoLandingPageView({ page }: Props) {
             )}
             <PhoneLink
               trackSource={`landing_${page.slug}`}
-              className="btn-outline inline-flex justify-center items-center gap-2"
+              className="btn-outline inline-flex justify-center items-center gap-2 min-h-12"
             >
               <Phone size={18} />
               {t.stickyBar.call}
             </PhoneLink>
+            <a
+              href={WORKSHOP_DIRECTIONS_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => trackGetDirectionsClick(`landing_${page.slug}`)}
+              className="btn-outline inline-flex justify-center items-center gap-2 min-h-12"
+            >
+              <Navigation size={18} />
+              {t.stickyBar.route}
+            </a>
             <Link
               href="/#wyceń-po-vin"
               className="btn-outline inline-flex justify-center items-center gap-2"
@@ -215,6 +252,8 @@ export function SeoLandingPageView({ page }: Props) {
             {" · "}
             {siteConfig.address}
           </p>
+
+          {tireQuick ? <TireQuickBookForm source={`landing_${page.slug}`} /> : null}
 
           {isCallbackLandingSlug(page.slug) ? (
             <CallbackRequestCta
@@ -243,7 +282,7 @@ export function SeoLandingPageView({ page }: Props) {
               <ServiceLandingSteps
                 serviceId={contentServiceId}
                 slug={page.slug}
-                onBook={bookServiceId ? openBooking : undefined}
+                onBook={bookServiceId || tireQuick ? bookFromPage : undefined}
               />
               <ServiceLandingEducation serviceId={contentServiceId} slug={page.slug} />
               <ServiceWorkVideo serviceId={contentServiceId} className="mt-12" />
@@ -260,7 +299,7 @@ export function SeoLandingPageView({ page }: Props) {
               <ServiceLandingBottomCta
                 slug={page.slug}
                 serviceId={bookServiceId ?? contentServiceId}
-                onBook={bookServiceId ? openBooking : undefined}
+                onBook={bookServiceId || tireQuick ? bookFromPage : undefined}
               />
             </>
           ) : (

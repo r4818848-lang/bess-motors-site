@@ -452,7 +452,7 @@ export const EXTRA_SEO_SERVICE_PROFILES_BATCH2: Record<string, SlugLandingProfil
     faqExtra: [
       {
         q: L("Czy trzeba umawiać wizytę?", "Нужна запись?", "Do I need an appointment?", "Потрібен запис?"),
-        a: L("Tak — rezerwacja skraca oczekiwanie. Zadzwoń +48 791 257 229 lub umów online.", "Да — запись сокращает ожидание. Звоните +48 791 257 229 или онлайн.", "Yes — booking shortens waiting. Call +48 791 257 229 or book online.", "Так — запис скорочує очікування. Телефонуйте +48 791 257 229 або онлайн."),
+        a: L("Tak — na tej stronie jest krótki zapis: usługa, rozmiar R, data, godzina i telefon. Można też zadzwonić +48 791 257 229.", "Да — на странице короткая запись: услуга, размер R, дата, время и телефон. Можно позвонить +48 791 257 229.", "Yes — this page has a short form: service, R size, date, time and phone. Or call +48 791 257 229.", "Так — на сторінці короткий запис: послуга, розмір R, дата, час і телефон. Можна зателефонувати +48 791 257 229."),
       },
       {
         q: L("Czy wyważacie po każdej wymianie?", "Балансируете после замены?", "Do you balance after every change?", "Балансируете після заміни?"),
@@ -528,10 +528,10 @@ export const EXTRA_SEO_SERVICE_PROFILES_BATCH2: Record<string, SlugLandingProfil
       {
         title: L("Jak umówić wizytę", "Как записаться", "How to book", "Як записатися"),
         body: L(
-          "Kliknij „Umów wizytę” na tej stronie, zostaw telefon w formularzu zwrotnym albo zadzwoń +48 791 257 229. Potwierdzimy wolny termin po kontakcie.",
-          "Нажмите «Записаться» на этой странице, оставьте телефон в форме или звоните +48 791 257 229.",
-          "Tap Book a visit on this page, leave your number for a callback, or call +48 791 257 229.",
-          "Натисніть «Записатися» на цій сторінці або телефонуйте +48 791 257 229."
+          "Na tej stronie jest krótki zapis: usługa, rozmiar R, data, godzina i telefon. Można też zadzwonić +48 791 257 229.",
+          "На странице короткая запись: услуга, размер R, дата, время и телефон. Можно позвонить +48 791 257 229.",
+          "This page has a short form: service, R size, date, time and phone. Or call +48 791 257 229.",
+          "На сторінці короткий запис: послуга, розмір R, дата, час і телефон. Можна зателефонувати +48 791 257 229."
         ),
       },
       {

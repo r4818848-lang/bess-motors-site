@@ -3,8 +3,9 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useI18n } from "@/lib/i18n/context";
+import { ANALYTICS_CONSENT_EVENT, ANALYTICS_CONSENT_KEY } from "@/lib/analytics-consent";
 
-const CONSENT_KEY = "bess-cookie-consent";
+const CONSENT_KEY = ANALYTICS_CONSENT_KEY;
 
 declare global {
   interface Window {
@@ -12,8 +13,13 @@ declare global {
   }
 }
 
-function grantAnalyticsConsent(): void {
-  if (typeof window.gtag === "function") {
+function publishConsent(value: "granted" | "denied"): void {
+  try {
+    localStorage.setItem(CONSENT_KEY, value);
+  } catch {
+    /* ignore */
+  }
+  if (value === "granted" && typeof window.gtag === "function") {
     window.gtag("consent", "update", {
       ad_storage: "granted",
       ad_user_data: "granted",
@@ -21,6 +27,7 @@ function grantAnalyticsConsent(): void {
       analytics_storage: "granted",
     });
   }
+  window.dispatchEvent(new Event(ANALYTICS_CONSENT_EVENT));
 }
 
 export function CookieConsent() {
@@ -32,7 +39,7 @@ export function CookieConsent() {
     try {
       const saved = localStorage.getItem(CONSENT_KEY);
       if (saved === "granted") {
-        grantAnalyticsConsent();
+        publishConsent("granted");
         return;
       }
       if (saved !== "denied") {
@@ -53,21 +60,12 @@ export function CookieConsent() {
   }, [visible]);
 
   const accept = () => {
-    try {
-      localStorage.setItem(CONSENT_KEY, "granted");
-    } catch {
-      /* ignore */
-    }
-    grantAnalyticsConsent();
+    publishConsent("granted");
     setVisible(false);
   };
 
   const reject = () => {
-    try {
-      localStorage.setItem(CONSENT_KEY, "denied");
-    } catch {
-      /* ignore */
-    }
+    publishConsent("denied");
     setVisible(false);
   };
 

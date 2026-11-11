@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import type { ComponentProps } from "react";
+import type { ComponentProps, MouseEvent } from "react";
+import { trackBookingOpen } from "@/lib/gtag";
 
 type BookingLinkProps = Omit<ComponentProps<typeof Link>, "href"> & {
   href?: ComponentProps<typeof Link>["href"];
@@ -15,6 +16,10 @@ export function BookingLink({
   href = "/booking",
   ...props
 }: BookingLinkProps) {
+  const handleClick = (event: MouseEvent<HTMLAnchorElement>) => {
+    trackBookingOpen(trackSource);
+    onClick?.(event);
+  };
   return (
     <Link
       href={href}
@@ -23,7 +28,7 @@ export function BookingLink({
         trackSource ? JSON.stringify({ content_name: trackSource }) : undefined
       }
       {...props}
-      onClick={onClick}
+      onClick={handleClick}
     />
   );
 }

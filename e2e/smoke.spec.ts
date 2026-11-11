@@ -19,10 +19,21 @@ test("home page loads with brand and booking CTA", async ({ page }) => {
   await expect(page.getByRole("link", { name: /Umów|Zapisz|booking/i }).first()).toBeVisible();
 });
 
-test("Yandex Metrika counter is present on public pages", async ({ page }) => {
+test("optional analytics stay unloaded when consent is denied", async ({ page }) => {
   await page.goto("/");
   const html = await page.content();
-  expect(html).toMatch(/mc\.yandex\.ru\/metrika\/tag\.js/);
+  expect(html).not.toMatch(/mc\.yandex\.ru\/metrika\/tag\.js/);
+  expect(html).not.toMatch(/googletagmanager\.com\/gtm\.js/);
+  expect(html).not.toMatch(/fbevents\.js/);
+});
+
+test("optional analytics load after consent", async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem("bess-cookie-consent", "granted");
+  });
+  await page.goto("/");
+  await expect.poll(async () => page.content()).toMatch(/mc\.yandex\.ru\/metrika\/tag\.js/);
+  const html = await page.content();
   expect(html).toMatch(/109683484/);
 });
 
