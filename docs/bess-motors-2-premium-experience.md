@@ -117,4 +117,6 @@ LCP главной по-прежнему фото баннера, не SVG.
 
 Код сцен и интерфейса: `d48d2f9f4cb85ec0e9ee9b9641a0129d03471fd1`.
 
-Ссылка на PR дописывается после открытия. GitHub Actions и Vercel Preview на момент коммита ещё не завершены.
+Pull Request: https://github.com/r4818848-lang/bess-motors-site/pull/38
+
+GitHub Actions и три Vercel Preview на момент этой записи ещё не завершены. Итог проверок сюда не вписан, пока они не закончатся.
