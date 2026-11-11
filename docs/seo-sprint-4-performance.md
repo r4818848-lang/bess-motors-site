@@ -101,13 +101,17 @@ PR: https://github.com/r4818848-lang/bess-motors-site/pull/35
 
 Коммит с оптимизациями: `4466fd9e094381af6d421c0b8a5060ec36bd9834`.
 
-CI на коммите `0e5bb7fa2ee706e82b99823e35d5aa5f96845142`:
+Коммит CI: `fa109a066e4f457e05308f9b72749877ba8bc2c0`. На `0e5bb7f` e2e дважды упал до тестов: `playwright install --with-deps` не резолвил `azure.archive.ubuntu.com` и не скачал дополнительные шрифты. Библиотеки Chromium на `ubuntu-latest` уже стояли, скриншотных тестов нет, поэтому `fa109a0` ставит браузер без `--with-deps`.
 
-- `unit` прошёл.
-- `e2e` дважды упал до тестов. `npx playwright install chromium --with-deps` не скачал дополнительные шрифты: DNS не резолвил `azure.archive.ubuntu.com`. Библиотеки Chromium на `ubuntu-latest` уже были установлены. Сами тесты не запускались.
-- Три Vercel Preview (`bess-motors`, `bess-motors-site`, `bess-motors-site-5dyd`) для этого коммита завершились успешно.
+Проверки `fa109a0`, 11 ноября 2026, 16:21–16:24 по Варшаве:
 
-Следующий коммит ставит браузер без `--with-deps`, чтобы job не зависел от зеркала Azure. Скриншотных тестов в наборе нет. Production не деплоился, cron не менялся.
+- `unit` — пройден, 50 с. [Run](https://github.com/r4818848-lang/bess-motors-site/actions/runs/43047633694).
+- `e2e` — пройден, 2 мин 57 с. Тот же run.
+- Vercel Preview `bess-motors-site` — success: https://bess-motors-site-seiskamon-bess-motors-projects.vercel.app
+- Vercel Preview `bess-motors` — success: https://bess-motors-hwlzmqdt5-bess-motors-projects.vercel.app
+- Vercel Preview `bess-motors-site-5dyd` — success: https://bess-motors-site-5dyd-q34ddnfc2-bess-motors-projects.vercel.app
+
+Production не деплоился, cron не менялся.
 
 ## Что ещё можно ускорить
 
