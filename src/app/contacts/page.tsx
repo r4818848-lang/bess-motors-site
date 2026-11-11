@@ -128,7 +128,7 @@ export default function ContactsPage() {
 
         <div className="mt-10 rounded-2xl overflow-hidden border border-bm-border/50 min-h-[360px]">
           <iframe
-            title="BESS MOTORS — mapa, 5 min od Okęcia"
+            title="BESS MOTORS — mapa, orientacyjnie ok. 5 min od Okęcia"
             src={WORKSHOP_MAP_EMBED}
             className="w-full h-[360px] md:h-[420px] border-0"
             loading="lazy"

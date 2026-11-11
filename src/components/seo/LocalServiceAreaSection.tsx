@@ -43,8 +43,8 @@ export function LocalServiceAreaSection({ variant = "full" }: Props) {
               drugiego punktu. Na wulkanizację i pozostałe usługi przyjeżdżają tu kierowcy
               z Włoch, Okęcia, Rakowa, Ochoty, Ursusa, Mokotowa, Służewca, Woli i Bemowa,
               z dalszych dzielnic Warszawy oraz z Raszyna, Michałowic, Piastowa, Pruszkowa,
-              Janek i Ożarowa Mazowieckiego. Z Okęcia zwykle ok. 5 minut. Innych czasów
-              dojazdu nie publikujemy.
+              Janek i Ożarowa Mazowieckiego. Z Okęcia orientacyjnie około 5 minut — to czas
+              przejazdu, nie gwarancja. Innych czasów dojazdu nie publikujemy.
             </p>
           </div>
         </div>

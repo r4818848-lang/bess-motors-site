@@ -13,7 +13,6 @@ import {
   TIRE_PROMO_LADDER,
   TIRE_PROMO_NOTE_PL,
   TIRE_PROMO_SUMMARY_SHORT_PL,
-  TIRE_UNCONFIRMED,
 } from "@/lib/tire-promo-prices";
 
 const L = (pl: string, ru: string, en?: string, uk?: string): LocalizedText => ({
@@ -363,10 +362,10 @@ export const EXTRA_SEO_SERVICE_PAGES_BATCH2: SeoLandingPage[] = [
     slug: "mechanik-warszawa-okecie",
     title: "Mechanik samochodowy Warszawa Okęcie",
     line1: "Blisko lotniska — Aleja Krakowska 48/52",
-    line2: "Ok. 5 min od Okęcia · parking przy serwisie",
+    line2: "Orientacyjnie ok. 5 min od Okęcia · parking przy serwisie",
     metaTitle: "Mechanik Warszawa Okęcie",
     metaDescription:
-      "Mechanik Warszawa Okęcie — BESS MOTORS przy Alei Krakowskiej 48/52 (Włochy), ok. 5 min od Okęcia. Diagnostyka, olej, hamulce, opony. Umów wizytę.",
+      "Mechanik Warszawa Okęcie — BESS MOTORS przy Alei Krakowskiej 48/52 (Włochy). Z Okęcia orientacyjnie ok. 5 min, bez gwarancji czasu dojazdu. Diagnostyka, olej, hamulce, opony. Umów wizytę.",
     serviceId: "diagnostic",
     icon: "Gauge",
   },
@@ -404,28 +403,28 @@ export const EXTRA_SEO_SERVICE_PROFILES_BATCH2: Record<string, SlugLandingProfil
       {
         title: L("Rozmiary kół i ograniczenia", "Размеры колёс", "Wheel sizes and limits", "Розміри коліс"),
         body: L(
-          `W cenniku są komplety R13–R23. R24 (${TIRE_UNCONFIRMED.r24ChangeFromZl} zł, cena „od”) bierzemy tylko po potwierdzeniu, że rozmiar wejdzie na maszynę. Nie publikujemy maksymalnej szerokości opony ani limitu RunFlat — podaj rozmiar przy zapisie, zanim przyjedziesz.`,
-          `В прайсе комплекты R13–R23. R24 (${TIRE_UNCONFIRMED.r24ChangeFromZl} zł, «от») только после подтверждения размера.`,
-          `The price list covers sets R13–R23. R24 (${TIRE_UNCONFIRMED.r24ChangeFromZl} zł, from-price) only after we confirm the size fits the machine.`,
-          `У прайсі комплекти R13–R23. R24 лише після підтвердження розміру.`
+          "W cenniku są komplety R13–R23. R24 nie jest w ofercie publicznej: nie podajemy ceny i nie obiecujemy przyjęcia, dopóki warsztat nie sprawdzi maszyny. Podaj rozmiar przy zapisie.",
+          "В прайсе комплекты R13–R23. R24 нет в публичном предложении: цену не называем и приём не обещаем, пока сервис не проверит станок. Размер укажите при записи.",
+          "The price list covers sets R13–R23. R24 is not a public offer: we do not quote a price or promise to accept it until the workshop checks the machine. Tell us the size when you book.",
+          "У прайсі комплекти R13–R23. R24 немає в публічній пропозиції: ціну не називаємо і прийом не обіцяємо, доки сервіс не перевірить верстат."
         ),
       },
       {
         title: L("RunFlat, TPMS i przechowywanie", "RunFlat, TPMS и хранение", "RunFlat, TPMS and storage", "RunFlat, TPMS і зберігання"),
         body: L(
-          `RunFlat i profil 35 lub niższy: dopłata ${TIRE_PROMO_EXTRAS.runFlatPerWheelZl} zł/koło. TPMS ${TIRE_PROMO_EXTRAS.tpmsPerWheelZl} zł/koło, utylizacja ${TIRE_PROMO_EXTRAS.disposalPerWheelZl} zł/koło, wentyl ${TIRE_PROMO_EXTRAS.valveReplaceZl} zł. Sezonowe przechowywanie kompletu jest w cenniku od ${TIRE_PROMO_EXTRAS.storageSetFromZl} zł. Czas, miejsce i warunki magazynu potwierdzamy przy zapisie — nie opisujemy ich, dopóki warsztat ich nie zatwierdzi.`,
-          `RunFlat +${TIRE_PROMO_EXTRAS.runFlatPerWheelZl} zł/колесо. Хранение комплекта от ${TIRE_PROMO_EXTRAS.storageSetFromZl} zł — условия подтверждаем при записи.`,
-          `RunFlat +${TIRE_PROMO_EXTRAS.runFlatPerWheelZl} zł/wheel. Storage from ${TIRE_PROMO_EXTRAS.storageSetFromZl} zł — conditions confirmed when you book.`,
-          `RunFlat +${TIRE_PROMO_EXTRAS.runFlatPerWheelZl} zł/колесо. Зберігання від ${TIRE_PROMO_EXTRAS.storageSetFromZl} zł.`
+          `RunFlat: dopłata ${TIRE_PROMO_EXTRAS.runFlatPerWheelZl} zł/koło. Dopłaty za niski profil nie publikujemy. TPMS ${TIRE_PROMO_EXTRAS.tpmsPerWheelZl} zł/koło, utylizacja ${TIRE_PROMO_EXTRAS.disposalPerWheelZl} zł/koło, wentyl ${TIRE_PROMO_EXTRAS.valveReplaceZl} zł. Przechowywanie opon bez felg: ${TIRE_PROMO_EXTRAS.storageLooseSeasonZl} zł za sezon. Koła na felgach: ${TIRE_PROMO_EXTRAS.storageRimsSeasonZl} zł za sezon. Czas, miejsce i warunki magazynu potwierdzamy przy zapisie.`,
+          `RunFlat +${TIRE_PROMO_EXTRAS.runFlatPerWheelZl} zł/колесо. Доплату за низкий профиль не публикуем. Хранение шин без дисков: ${TIRE_PROMO_EXTRAS.storageLooseSeasonZl} zł за сезон. Колёса на дисках: ${TIRE_PROMO_EXTRAS.storageRimsSeasonZl} zł за сезон.`,
+          `RunFlat +${TIRE_PROMO_EXTRAS.runFlatPerWheelZl} zł/wheel. We do not publish a low-profile surcharge. Tyres off the rims: ${TIRE_PROMO_EXTRAS.storageLooseSeasonZl} zł per season. Wheels on rims: ${TIRE_PROMO_EXTRAS.storageRimsSeasonZl} zł per season.`,
+          `RunFlat +${TIRE_PROMO_EXTRAS.runFlatPerWheelZl} zł/колесо. Доплату за низький профіль не публікуємо. Шини без дисків: ${TIRE_PROMO_EXTRAS.storageLooseSeasonZl} zł за сезон. Колеса на дисках: ${TIRE_PROMO_EXTRAS.storageRimsSeasonZl} zł за сезон.`
         ),
       },
       {
         title: L("Jak dojechać do warsztatu", "Как доехать", "How to get here", "Як доїхати"),
         body: L(
-          "Wjazd z Alei Krakowskiej, parking przy serwisie na czas wizyty. Z Okęcia i lotniska Chopina zwykle ok. 5 minut. Z Rakowa, Ochoty, Ursusa, Mokotowa, Służewca, Woli i Bemowa, a także z Raszyna, Michałowic, Piastowa, Pruszkowa, Janek i Ożarowa Mazowieckiego jedzie się do tego samego adresu. Nie podajemy minut dojazdu, których nie mierzyliśmy. Trasa: przycisk mapy na stronie kontaktu.",
-          "Въезд с Aleja Krakowska, парковка у сервиса. С Okęcie обычно около 5 минут. Из остальных районов Варшавы и ближних городов — на этот же адрес. Минуты в пути публикуем только там, где они уже проверены.",
-          "Entrance from Aleja Krakowska, parking at the workshop. Okęcie is usually about 5 minutes. Other Warsaw districts and nearby towns use the same address. We do not publish drive times we have not measured.",
-          "Заїзд з Aleja Krakowska, парковка біля сервісу. З Okęcie зазвичай близько 5 хвилин."
+          "Wjazd z Alei Krakowskiej, parking przy serwisie na czas wizyty. Z Okęcia i lotniska Chopina orientacyjnie około 5 minut — to czas przejazdu, nie gwarancja. Z Rakowa, Ochoty, Ursusa, Mokotowa, Służewca, Woli i Bemowa, a także z Raszyna, Michałowic, Piastowa, Pruszkowa, Janek i Ożarowa Mazowieckiego jedzie się do tego samego adresu. Nie podajemy minut dojazdu, których nie mierzyliśmy. Trasa: przycisk mapy na stronie kontaktu.",
+          "Въезд с Aleja Krakowska, парковка у сервиса. С Okęcie ориентировочно около 5 минут — это время в пути, не гарантия. Из остальных районов Варшавы и ближних городов — на этот же адрес. Минуты в пути публикуем только там, где они уже проверены.",
+          "Entrance from Aleja Krakowska, parking at the workshop. Okęcie is about 5 minutes as a rough drive time, not a guarantee. Other Warsaw districts and nearby towns use the same address. We do not publish drive times we have not measured.",
+          "Заїзд з Aleja Krakowska, парковка біля сервісу. З Okęcie орієнтовно близько 5 хвилин — це час у дорозі, не гарантія."
         ),
       },
       {
@@ -462,10 +461,10 @@ export const EXTRA_SEO_SERVICE_PROFILES_BATCH2: Record<string, SlugLandingProfil
       {
         q: L("Macie przechowywanie opon?", "Есть хранение шин?", "Do you store tyres?", "Есть хранение шин?"),
         a: L(
-          `W cenniku jest sezonowe przechowywanie kompletu od ${TIRE_PROMO_EXTRAS.storageSetFromZl} zł. Czas, miejsce i warunki magazynu potwierdzamy przy zapisie.`,
-          `В прайсе хранение комплекта от ${TIRE_PROMO_EXTRAS.storageSetFromZl} zł. Срок и условия склада подтверждаем при записи.`,
-          `Seasonal set storage is on the price list from ${TIRE_PROMO_EXTRAS.storageSetFromZl} zł. Duration and storage conditions are confirmed when you book.`,
-          `У прайсі зберігання комплекту від ${TIRE_PROMO_EXTRAS.storageSetFromZl} zł. Умови підтверджуємо при записі.`
+          `Opony bez felg: ${TIRE_PROMO_EXTRAS.storageLooseSeasonZl} zł za sezon. Koła na felgach: ${TIRE_PROMO_EXTRAS.storageRimsSeasonZl} zł za sezon. Czas, miejsce i warunki magazynu potwierdzamy przy zapisie.`,
+          `Шины без дисков: ${TIRE_PROMO_EXTRAS.storageLooseSeasonZl} zł за сезон. Колёса на дисках: ${TIRE_PROMO_EXTRAS.storageRimsSeasonZl} zł за сезон. Срок и условия склада подтверждаем при записи.`,
+          `Tyres off the rims: ${TIRE_PROMO_EXTRAS.storageLooseSeasonZl} zł per season. Wheels on rims: ${TIRE_PROMO_EXTRAS.storageRimsSeasonZl} zł per season. Duration and storage conditions are confirmed when you book.`,
+          `Шини без дисків: ${TIRE_PROMO_EXTRAS.storageLooseSeasonZl} zł за сезон. Колеса на дисках: ${TIRE_PROMO_EXTRAS.storageRimsSeasonZl} zł за сезон. Умови підтверджуємо при записі.`
         ),
       },
     ],
@@ -2043,7 +2042,7 @@ export const EXTRA_SEO_SERVICE_PROFILES_BATCH2: Record<string, SlugLandingProfil
       },
       {
         q: L("Czy mogę przyjechać z Ocęcia?", "Можно с Okęcie?", "You can Okęcie?", "Можна с Okęcie?"),
-        a: L("Tak — jesteśmy przy Alei Krakowskiej 48/52, ok. 5 min od Okęcia.", "Да — Aleja Krakowska 48/52, ~5 мин от Okęcie.", "Yes — Aleja Krakowska 48/52, ~5 min Okęcie", "Так — Aleja Krakowska 48/52, ~5 мин от Okęcie."),
+        a: L("Tak — Aleja Krakowska 48/52. Z Okęcia orientacyjnie około 5 minut, to nie jest gwarantowany czas dojazdu.", "Да — Aleja Krakowska 48/52. С Okęcie ориентировочно около 5 минут, это не гарантия времени в пути.", "Yes — Aleja Krakowska 48/52. About 5 minutes from Okęcie as a rough drive time, not a guarantee.", "Так — Aleja Krakowska 48/52. З Okęcie орієнтовно близько 5 хвилин, це не гарантія часу в дорозі."),
       },
     ],
   },
@@ -2066,7 +2065,7 @@ export const EXTRA_SEO_SERVICE_PROFILES_BATCH2: Record<string, SlugLandingProfil
     education: [
       {
         title: L("Mechanik blisko Okęcia", "Механик рядом с Okęcie", "Okęcie", "Механик рядом с Okęcie"),
-        body: L("BESS MOTORS stoi przy Alei Krakowskiej 48/52 w dzielnicy Włochy — zwykle ok. 5 minut autem od Okęcia i lotniska Chopina. Parking przy serwisie.", "Aleja Krakowska 48/52, Włochy — около 5 минут от Okęcie и аэропорта.", "Aleja Krakowska 48/52, Włochy — 5 min Okęcie and", "Aleja Krakowska 48/52, Włochy — около 5 минут от Okęcie і аэропорта."),
+        body: L("BESS MOTORS stoi przy Alei Krakowskiej 48/52 w dzielnicy Włochy. Z Okęcia i lotniska Chopina orientacyjnie około 5 minut autem — to czas przejazdu, nie gwarancja. Parking przy serwisie.", "Aleja Krakowska 48/52, Włochy. С Okęcie и аэропорта ориентировочно около 5 минут — это время в пути, не гарантия. Парковка у сервиса.", "Aleja Krakowska 48/52, Włochy. About 5 minutes from Okęcie and the airport as a rough drive time, not a guarantee. Parking at the workshop.", "Aleja Krakowska 48/52, Włochy. З Okęcie та аеропорту орієнтовно близько 5 хвилин — це час у дорозі, не гарантія."),
       },
       {
         title: L("Jakie naprawy robimy", "Какие работы", "Labour", "Какие роботи"),

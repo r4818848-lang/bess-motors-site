@@ -733,7 +733,7 @@ Profesjonalny montaż, wyważanie kół i kontrola ciśnienia. Obsługujemy auta
 ✅ Wymiana kół / montaż opon
 ✅ Wyważanie na nowoczesnej maszynie
 ✅ Naprawa opony (wkręt, przebicie)
-✅ Sezonowe przechowanie opon
+✅ Sezonowe przechowanie: opony bez felg albo koła na felgach — kwoty w cenniku
 
 Zimówka czy lato — umów termin online i przyjedź bez czekania.
 
@@ -749,8 +749,7 @@ Zadbaj o bezpieczeństwo na drodze! 🛞`,
 ✅ Замена колёс / монтаж шин
 ✅ Балансировка на современном станке
 ✅ Ремонт шины (гвоздь, прокол)
-✅ Сезонное хранение шин
-✅ Развал-схождение
+✅ Сезонное хранение: шины без дисков или колёса на дисках — суммы в прайсе
 
 Зима или лето — запишитесь онлайн и приезжайте без ожидания.
 
@@ -766,7 +765,7 @@ Professional mounting, wheel balancing and pressure check. We service passenger 
 ✅ Wheel / tire change
 ✅ Balancing on modern equipment
 ✅ Tire repair (nail, puncture)
-✅ Seasonal tire storage
+✅ Seasonal storage: tyres off the rims or wheels on rims — prices on the price list
 
 Winter or summer — book online and skip the wait.
 

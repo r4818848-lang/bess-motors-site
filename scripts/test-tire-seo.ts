@@ -2,7 +2,7 @@
  * Warsaw tyre pages stay city-level, and public prices stay tied to the catalogue.
  */
 import assert from "node:assert/strict";
-import { getPriceItem } from "../src/lib/price-list";
+import { getPriceItem, isPublicPriceItem } from "../src/lib/price-list";
 import { seoLandingPages, seoLandingSlugs } from "../src/lib/seo-landing-pages";
 import { SITEMAP_LAST_MODIFIED, sitemapLastModifiedFor } from "../src/lib/seo";
 import { EXTRA_SEO_SERVICE_PROFILES_BATCH2 } from "../src/lib/seo-extra-service-pages-batch2";
@@ -53,18 +53,27 @@ for (const [id, now, was] of expected) {
 assert.equal(TIRE_PROMO_LADDER[0].nowZl, getPriceItem("tire_change_r13")?.basePrice);
 assert.equal(TIRE_PROMO_LADDER[0].wasZl, getPriceItem("tire_change_r13")?.listPrice);
 assert.equal(TIRE_PROMO_EXTRAS.punctureRepairZl, getPriceItem("puncture_repair")?.basePrice);
+assert.equal(TIRE_PROMO_EXTRAS.runFlatPerWheelZl, 15);
 assert.equal(TIRE_PROMO_EXTRAS.runFlatPerWheelZl, getPriceItem("runflat_surcharge")?.basePrice);
-assert.equal(TIRE_PROMO_EXTRAS.storageSetFromZl, getPriceItem("tire_storage")?.basePrice);
+assert.equal(TIRE_PROMO_EXTRAS.storageLooseSeasonZl, 250);
+assert.equal(TIRE_PROMO_EXTRAS.storageRimsSeasonZl, 300);
+assert.equal(TIRE_PROMO_EXTRAS.storageLooseSeasonZl, getPriceItem("tire_storage")?.basePrice);
+assert.equal(TIRE_PROMO_EXTRAS.storageRimsSeasonZl, getPriceItem("tire_storage_rims")?.basePrice);
 assert.equal(getPriceItem("tire_change_r24")?.priceFrom, true);
+assert.equal(isPublicPriceItem(getPriceItem("tire_change_r24")!), false);
+assert.equal(isPublicPriceItem(getPriceItem("wheel_balance_r24")!), false);
+assert.equal(isPublicPriceItem(getPriceItem("low_profile_surcharge")!), false);
+assert.equal(isPublicPriceItem(getPriceItem("tire_storage")!), true);
+assert.equal(isPublicPriceItem(getPriceItem("runflat_surcharge")!), true);
 assert.equal(
   sitemapLastModifiedFor("/blog/wulkanizacja-sezonowa").toISOString(),
   SITEMAP_LAST_MODIFIED.toISOString()
 );
 assert.equal(
   sitemapLastModifiedFor("/wulkanizacja-warszawa").toISOString(),
-  "2026-11-11T09:04:25.000Z"
+  "2026-11-11T11:30:00.000Z"
 );
-assert.equal(sitemapLastModifiedFor("/cennik").toISOString(), SITEMAP_LAST_MODIFIED.toISOString());
+assert.equal(sitemapLastModifiedFor("/cennik").toISOString(), "2026-11-11T11:30:00.000Z");
 
 for (const slug of ["wulkanizacja-warszawa", "wymiana-opon-warszawa", "sezonowa-wymiana-opon-warszawa"] as const) {
   const table = EXTRA_SEO_SERVICE_PROFILES_BATCH2[slug]?.price?.priceTable ?? [];
@@ -75,8 +84,13 @@ for (const slug of ["wulkanizacja-warszawa", "wymiana-opon-warszawa", "sezonowa-
 const hub = EXTRA_SEO_SERVICE_PROFILES_BATCH2["wulkanizacja-warszawa"];
 const hubText = (hub?.education ?? []).map((block) => block.body.pl).join("\n");
 assert.match(hubText, /Aleja Krakowska 48\/52/);
-assert.match(hubText, /R24/);
+assert.match(hubText, /R24 nie jest w ofercie publicznej/);
+assert.equal(hubText.includes("450"), false);
+assert.match(hubText, /250 zł za sezon/);
+assert.match(hubText, /300 zł za sezon/);
+assert.equal(/niski profil \(35/i.test(hubText), false);
 assert.match(hubText, /Okęcia/);
+assert.match(hubText, /nie gwarancja/);
 assert.equal(/Bemow[oa].{0,40}\d+ minut/i.test(hubText), false);
 
 console.log("tire seo checks passed");

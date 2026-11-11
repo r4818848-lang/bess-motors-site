@@ -63,9 +63,9 @@ function tireProfile(c: ModelServiceCase): SlugLandingProfile {
       priceFrom: true,
       materialsExtra: false,
       note: L(
-        `Cennik promocji: ${TIRE_PROMO_SUMMARY_SHORT_PL}. RunFlat / TPMS +${TIRE_PROMO_EXTRAS.runFlatPerWheelZl} zł/koło. ${c.label} — te same procedury i momenty dokręcenia.`,
-        `Акция: ${TIRE_PROMO_SUMMARY_SHORT_PL}. RunFlat / TPMS +${TIRE_PROMO_EXTRAS.runFlatPerWheelZl} zł/колесо.`,
-        `Promo: ${TIRE_PROMO_SUMMARY_SHORT_PL}. RunFlat / TPMS +${TIRE_PROMO_EXTRAS.runFlatPerWheelZl} zł/wheel.`,
+        `Cennik promocji: ${TIRE_PROMO_SUMMARY_SHORT_PL}. RunFlat +${TIRE_PROMO_EXTRAS.runFlatPerWheelZl} zł/koło, TPMS +${TIRE_PROMO_EXTRAS.tpmsPerWheelZl} zł/koło. ${c.label} — te same procedury i momenty dokręcenia.`,
+        `Акция: ${TIRE_PROMO_SUMMARY_SHORT_PL}. RunFlat +${TIRE_PROMO_EXTRAS.runFlatPerWheelZl} zł/колесо, TPMS +${TIRE_PROMO_EXTRAS.tpmsPerWheelZl} zł/колесо.`,
+        `Promo: ${TIRE_PROMO_SUMMARY_SHORT_PL}. RunFlat +${TIRE_PROMO_EXTRAS.runFlatPerWheelZl} zł/wheel, TPMS +${TIRE_PROMO_EXTRAS.tpmsPerWheelZl} zł/wheel.`,
         `Акція: ${TIRE_PROMO_SUMMARY_SHORT_PL}.`
       ),
       includes: [

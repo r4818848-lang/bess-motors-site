@@ -25,15 +25,22 @@ Cena promocyjna to `basePrice`. Cena regularna, przekreślona, to `listPrice`. O
 
 ## Co jest opublikowane, a czego nie wymyślamy
 
-Opublikowane już wcześniej i nadal używane: adres, telefon, godziny, parking przy serwisie, ok. 5 minut z Okęcia, komplet zwykle 45–90 minut, drabinka R13–R23, naprawa przebicia 60 zł, RunFlat i niski profil +25 zł/koło.
+Potwierdzone przez właściciela i wpisane do cennika: drabinka R13–R23, RunFlat +15 zł/koło, przechowywanie opon bez felg 250 zł/sezon, przechowywanie kół na felgach 300 zł/sezon, naprawa przebicia 60 zł. Z Okęcia orientacyjnie około 5 minut — to czas przejazdu, nie gwarancja. Adres, telefon, godziny i parking bez zmian. Komplet zwykle 45–90 minut.
 
-Do potwierdzenia przez warsztat, zanim pojawi się to jako obietnica:
+Nie publikujemy jako oferty:
 
-- czy R24 realnie wchodzi na maszynę (w cenniku jest „od” i „po potwierdzeniu”);
+- R24: pozycja zostaje w danych wewnętrznych, bez ceny i bez obietnicy przyjęcia na stronach;
+- dopłata za niski profil: kwota 25 zł nie jest potwierdzona, nie ma jej w publicznym cenniku;
+- geometria kół.
+
+Do osobnego potwierdzenia, zanim pojawi się to jako obietnica:
+
+- czy R24 realnie wchodzi na maszynę;
 - maksymalna szerokość opony i które RunFlat warsztat przyjmuje;
-- czas, miejsce i warunki sezonowego przechowywania (kwota 100 zł jest w cenniku);
-- minuty dojazdu z Bemowa, Woli, Ursusa, Pruszkowa i pozostałych miejsc poza już opublikowanym Okęciem;
-- osobny cennik SUV, jeśli miałby różnić się od rozmiaru R.
+- czas, miejsce i warunki magazynu (ceny sezonu już są);
+- minuty dojazdu z Bemowa, Woli, Ursusa, Pruszkowa i pozostałych miejsc;
+- osobny cennik SUV, jeśli miałby różnić się od rozmiaru R;
+- dopłata za niski profil, jeśli warsztat ją zatwierdzi.
 
 Geometrii kół nie oferujemy. Nie wraca na strony opon.
 

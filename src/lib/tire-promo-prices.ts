@@ -41,17 +41,16 @@ export const TIRE_PROMO_FROM_ZL = TIRE_PROMO_LADDER[0].nowZl;
 export const TIRE_PROMO_LADDER_HOME = TIRE_PROMO_LADDER.slice(0, 6);
 
 const runFlat = requireItem("runflat_surcharge");
-const lowProfile = requireItem("low_profile_surcharge");
 const disposal = requireItem("tire_disposal");
 const tpms = requireItem("tpms_sensor_service");
 const valve = requireItem("valve_replace");
 const puncture = requireItem("puncture_repair");
-const storage = requireItem("tire_storage");
+const storageLoose = requireItem("tire_storage");
+const storageRims = requireItem("tire_storage_rims");
 const rotateSmall = requireItem("wheel_rotate_13_17");
 
 export const TIRE_PROMO_EXTRAS = {
   runFlatPerWheelZl: runFlat.basePrice,
-  lowProfilePerWheelZl: lowProfile.basePrice,
   disposalPerWheelZl: disposal.basePrice,
   tpmsPerWheelZl: tpms.basePrice,
   valveReplaceZl: valve.basePrice,
@@ -59,14 +58,8 @@ export const TIRE_PROMO_EXTRAS = {
   /** Wheel rotation of an already assembled set, R13–R17. Not a balancing price. */
   rotateAssembledFromZl: rotateSmall.basePrice,
   balanceAssembledFromZl: rotateSmall.basePrice,
-  storageSetFromZl: storage.basePrice,
-  storagePriceFrom: storage.priceFrom === true,
-} as const;
-
-/** R24 exists in the catalogue only as a price to confirm before booking. */
-export const TIRE_UNCONFIRMED = {
-  r24ChangeFromZl: requireItem("tire_change_r24").basePrice,
-  r24PriceFrom: requireItem("tire_change_r24").priceFrom === true,
+  storageLooseSeasonZl: storageLoose.basePrice,
+  storageRimsSeasonZl: storageRims.basePrice,
 } as const;
 
 /** One-line PL summary for meta / SEO */
@@ -76,4 +69,4 @@ export const TIRE_PROMO_SUMMARY_SHORT_PL =
   `od ${TIRE_PROMO_FROM_ZL} zł (R13–R15), R16 ${TIRE_PROMO_LADDER[1].nowZl}, R17 ${TIRE_PROMO_LADDER[2].nowZl}, R18 ${TIRE_PROMO_LADDER[3].nowZl}, R19 ${TIRE_PROMO_LADDER[4].nowZl}, R20 ${TIRE_PROMO_LADDER[5].nowZl}`;
 
 export const TIRE_PROMO_NOTE_PL =
-  `Cena promocyjna kompletu 4 kół z wyważaniem: ${TIRE_PROMO_SUMMARY_SHORT_PL}. Przekreślona kwota w cenniku to cena regularna. R21–R23 są w tej samej tabeli. R24 tylko po potwierdzeniu rozmiaru. RunFlat +${TIRE_PROMO_EXTRAS.runFlatPerWheelZl} zł/koło, niski profil (35 i poniżej) +${TIRE_PROMO_EXTRAS.lowProfilePerWheelZl} zł/koło. Pełny cennik: /cennik#price-cat-tires.`;
+  `Cena promocyjna kompletu 4 kół z wyważaniem: ${TIRE_PROMO_SUMMARY_SHORT_PL}. Przekreślona kwota w cenniku to cena regularna. R21–R23 są w tej samej tabeli. R24 nie jest w ofercie publicznej. RunFlat +${TIRE_PROMO_EXTRAS.runFlatPerWheelZl} zł/koło. Przechowywanie opon bez felg ${TIRE_PROMO_EXTRAS.storageLooseSeasonZl} zł/sezon, kół na felgach ${TIRE_PROMO_EXTRAS.storageRimsSeasonZl} zł/sezon. Pełny cennik: /cennik#price-cat-tires.`;
