@@ -186,36 +186,28 @@ const visit = {
 };
 assert.equal(planAdminReminder(visit, new Date("2026-07-13T04:59:00.000Z")).action, "skip");
 assert.equal(planAdminReminder(visit, new Date("2026-07-13T05:00:00.000Z")).action, "send");
-const soon = planAdminReminder(
+const bookedLate = planAdminReminder(
   { ...visit, createdAt: "2026-07-13T06:30:00.000Z" },
   new Date("2026-07-13T06:30:00.000Z")
 );
-assert.equal(soon.action, "send");
-if (soon.action === "send") assert.equal(soon.kind, "soon");
-const movedInsideWindow = planAdminReminder(visit, new Date("2026-07-13T05:30:00.000Z"));
-assert.equal(movedInsideWindow.action, "send");
-if (movedInsideWindow.action === "send") assert.equal(movedInsideWindow.kind, "soon");
+assert.equal(bookedLate.action, "skip");
+const afterWindow = planAdminReminder(visit, new Date("2026-07-13T05:10:00.000Z"));
+assert.equal(afterWindow.action, "skip");
+const stillDue = planAdminReminder(visit, new Date("2026-07-13T05:09:00.000Z"));
+assert.equal(stillDue.action, "send");
+if (stillDue.action === "send") assert.equal(stillDue.kind, "two_hour");
 const onTheHour = planAdminReminder(visit, new Date("2026-07-13T05:00:00.000Z"));
 if (onTheHour.action === "send") assert.equal(onTheHour.kind, "two_hour");
 assert.equal(
-  planAdminReminder(
-    { ...visit, adminReminder: { status: "sent" } },
-    new Date("2026-07-13T05:10:00.000Z")
-  ).action,
+  planAdminReminder({ ...visit, visitState: "arrived" }, new Date("2026-07-13T05:05:00.000Z")).action,
   "skip"
 );
 assert.equal(
-  planAdminReminder(
-    { ...visit, appointmentStatus: "cancelled" },
-    new Date("2026-07-13T05:10:00.000Z")
-  ).action,
-  "cancel"
+  planAdminReminder({ ...visit, appointmentStatus: "cancelled" }, new Date("2026-07-13T05:05:00.000Z")).action,
+  "skip"
 );
 assert.equal(
-  planAdminReminder(
-    { ...visit, adminReminder: { status: "failed", attempts: 5 } },
-    new Date("2026-07-13T05:10:00.000Z")
-  ).action,
+  planAdminReminder({ ...visit, appointmentStatus: "in_progress" }, new Date("2026-07-13T05:05:00.000Z")).action,
   "skip"
 );
 

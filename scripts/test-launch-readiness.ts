@@ -11,7 +11,10 @@ import {
 } from "../src/lib/server/telegram-cron/admin-arrival-reminders";
 import { calendarAppUrl, calendarSiteOrigin } from "../src/lib/server/telegram-bot/staff-calendar-bot";
 import { staffRoleFromIds } from "../src/lib/server/staff-calendar-access";
-import type { Appointment, Database } from "../src/lib/store";
+import { installCrmCloudForTests } from "../src/lib/server/crm-cloud";
+import { installTelegramSenderForTests } from "../src/lib/server/telegram-api";
+import { runAppointmentReminders } from "../src/lib/server/telegram-cron/appointment-reminders";
+import { mergeStoredDb, type Appointment, type Database } from "../src/lib/store";
 
 function appointment(patch: Partial<Appointment> = {}): Appointment {
   return {
@@ -56,58 +59,58 @@ const due = new Date("2026-07-13T05:00:00.000Z");
 
 async function main(): Promise<void> {
 
+function memoryStore(db: Database) {
+  let chain = Promise.resolve();
+  return {
+    load: async () => db,
+    mutate: async (change: (live: Database) => void) => {
+      const run = chain.then(() => {
+        change(db);
+        return true;
+      });
+      chain = run.then(() => undefined, () => undefined);
+      return run;
+    },
+  };
+}
+
 async function run(db: Database, send: (chatId: string) => Promise<boolean>, now = due) {
   const calls: string[] = [];
-  const saves: number[] = [];
   const result = await deliverAdminArrivalReminders({
-    db,
     now,
     adminChatIds: ["1001"],
+    store: memoryStore(db),
     send: async (chatId) => {
       calls.push(chatId);
       return send(chatId);
     },
-    save: async () => {
-      saves.push(1);
-    },
   });
-  return { result, calls, saves };
+  return { result, calls };
 }
 
 const first = database(appointment());
 const sent = await run(first, async () => true);
 assert.equal(sent.result.sent, 1);
 assert.deepEqual(sent.calls, ["1001"]);
-assert.equal(first.appointments[0].adminReminder?.status, "sent");
-assert.ok((sent.saves.length ?? 0) >= 2);
+const firstClaim = Object.values(first.settings?.arrivalReminderClaims ?? {})[0];
+assert.equal(firstClaim?.status, "sent");
 
 const again = await run(first, async () => true);
 assert.equal(again.result.sent, 0);
 assert.deepEqual(again.calls, []);
 
 const flakyDb = database(appointment({ id: "apt-flaky" }));
-let attempts = 0;
-const failed = await run(flakyDb, async () => {
-  attempts += 1;
-  return false;
-});
+const failed = await run(flakyDb, async () => false);
 assert.equal(failed.result.failed, 1);
-assert.equal(flakyDb.appointments[0].adminReminder?.status, "failed");
-assert.equal(flakyDb.appointments[0].adminReminder?.attempts, 1);
+assert.equal(failed.calls.length, 1);
 const recovered = await run(flakyDb, async () => true);
-assert.equal(recovered.result.sent, 1);
-assert.equal(recovered.calls.length, 1);
-const noThird = await run(flakyDb, async () => true);
-assert.deepEqual(noThird.calls, []);
+assert.equal(recovered.result.sent, 0);
+assert.deepEqual(recovered.calls, []);
 
 const cancelDb = database(appointment({ id: "apt-cancel", appointmentStatus: "cancelled" }));
 const cancelled = await run(cancelDb, async () => true);
-assert.equal(cancelled.result.cancelled, 1);
+assert.equal(cancelled.result.sent, 0);
 assert.deepEqual(cancelled.calls, []);
-assert.equal(cancelDb.appointments[0].adminReminder?.status, "cancelled");
-const cancelAgain = await run(cancelDb, async () => true);
-assert.equal(cancelAgain.result.cancelled, 0);
-assert.deepEqual(cancelAgain.calls, []);
 
 const moved = database(appointment({ id: "apt-move" }));
 await run(moved, async () => true);
@@ -124,31 +127,28 @@ const mechanicDb = database(appointment({ id: "apt-mech", notifyMechanic: true }
 const both = await run(mechanicDb, async () => true);
 assert.deepEqual(both.calls.sort(), ["1001", "9001"]);
 
-const exhausted = database(
-  appointment({
-    id: "apt-stop",
-    adminReminder: { status: "failed", attempts: 5, deliveredChatIds: [] },
-  })
-);
-const stopped = await run(exhausted, async () => true);
-assert.deepEqual(stopped.calls, []);
-assert.equal(stopped.result.sent, 0);
-
-const inflight = database(
-  appointment({
-    id: "apt-lock",
-    adminReminder: {
-      status: "sending",
-      attempts: 1,
-      sendingAt: new Date(due.getTime() - 30_000).toISOString(),
-      deliveredChatIds: [],
+const held = database(appointment({ id: "apt-lock" }));
+held.settings = {
+  ...(held.settings ?? {}),
+  arrivalReminderClaims: {
+    "apt-lock|admin_two_hour|2026-07-13|09:00": {
+      key: "apt-lock|admin_two_hour|2026-07-13|09:00",
+      appointmentId: "apt-lock",
+      reminderType: "admin_two_hour",
+      scheduledAt: due.toISOString(),
+      date: "2026-07-13",
+      time: "09:00",
+      status: "claimed",
+      claimedAt: new Date(due.getTime() - 30_000).toISOString(),
+      attemptCount: 1,
     },
-  })
-);
-const locked = await run(inflight, async () => true);
+  },
+} as Database["settings"];
+const locked = await run(held, async () => true);
 assert.deepEqual(locked.calls, []);
-const afterLock = await run(inflight, async () => true, new Date(due.getTime() + 3 * 60 * 1000));
-assert.equal(afterLock.result.sent, 1);
+const afterLock = await run(held, async () => true, new Date(due.getTime() + 3 * 60 * 1000));
+assert.equal(afterLock.result.sent, 0);
+assert.deepEqual(afterLock.calls, []);
 
 const previousEnv = {
   VERCEL_ENV: process.env.VERCEL_ENV,
@@ -223,6 +223,63 @@ const admins = new Set(["111", "222"]);
 assert.equal(staffRoleFromIds("111", owners, admins), "owner");
 assert.equal(staffRoleFromIds("222", owners, admins), "admin");
 assert.equal(staffRoleFromIds("333", owners, admins), null);
+
+const noticeEnv = process.env.VERCEL_ENV;
+const noticeToken = process.env.TELEGRAM_BOT_TOKEN;
+const noticeChat = process.env.TELEGRAM_CHAT_ID;
+const noticeAdmins = process.env.TELEGRAM_ADMIN_CHAT_IDS;
+const noticeOwners = process.env.TELEGRAM_OWNER_CHAT_ID;
+const noticeLeads = process.env.LEAD_NOTICE_DELIVERY;
+delete process.env.VERCEL_ENV;
+process.env.TELEGRAM_BOT_TOKEN = "123456:arrival-once";
+process.env.TELEGRAM_CHAT_ID = "1001";
+delete process.env.TELEGRAM_ADMIN_CHAT_IDS;
+delete process.env.TELEGRAM_OWNER_CHAT_ID;
+process.env.LEAD_NOTICE_DELIVERY = "disabled";
+{
+  let doc = mergeStoredDb({
+    appointments: [appointment({ id: "apt-once", updatedAt: "2026-07-01T08:00:00.000Z" })],
+  });
+  let revision = "2026-07-13T00:00:00.000Z";
+  installCrmCloudForTests({
+    get: async () => ({ doc: structuredClone(doc), updatedAt: revision }),
+    patch: async (next, expected) => {
+      if (expected !== revision) return "stale";
+      doc = structuredClone(next);
+      revision = new Date(Date.parse(revision) + 1).toISOString();
+      return "ok";
+    },
+  });
+  const texts: string[] = [];
+  installTelegramSenderForTests(async (_chatId, text) => {
+    texts.push(text);
+    return texts.length;
+  });
+  const dueAt = new Date("2026-07-13T05:00:00.000Z");
+  await runAppointmentReminders(structuredClone(doc), dueAt);
+  assert.equal(texts.length, 1);
+  assert.match(texts[0] ?? "", /Скоро приедет клиент/);
+  const claim = Object.values(doc.settings.arrivalReminderClaims ?? {})[0];
+  assert.equal(claim?.status, "sent");
+  assert.equal(claim?.attemptCount, 1);
+  await runAppointmentReminders(structuredClone(doc), new Date(dueAt.getTime() + 5 * 60 * 1000));
+  await runAppointmentReminders(structuredClone(doc), new Date(dueAt.getTime() + 40 * 60 * 1000));
+  assert.equal(texts.length, 1);
+  installCrmCloudForTests(null);
+  installTelegramSenderForTests(null);
+}
+if (noticeEnv === undefined) delete process.env.VERCEL_ENV;
+else process.env.VERCEL_ENV = noticeEnv;
+if (noticeToken === undefined) delete process.env.TELEGRAM_BOT_TOKEN;
+else process.env.TELEGRAM_BOT_TOKEN = noticeToken;
+if (noticeChat === undefined) delete process.env.TELEGRAM_CHAT_ID;
+else process.env.TELEGRAM_CHAT_ID = noticeChat;
+if (noticeAdmins === undefined) delete process.env.TELEGRAM_ADMIN_CHAT_IDS;
+else process.env.TELEGRAM_ADMIN_CHAT_IDS = noticeAdmins;
+if (noticeOwners === undefined) delete process.env.TELEGRAM_OWNER_CHAT_ID;
+else process.env.TELEGRAM_OWNER_CHAT_ID = noticeOwners;
+if (noticeLeads === undefined) delete process.env.LEAD_NOTICE_DELIVERY;
+else process.env.LEAD_NOTICE_DELIVERY = noticeLeads;
 
 process.env.VERCEL_ENV = previousEnv.VERCEL_ENV;
 process.env.REMINDER_DELIVERY = previousEnv.REMINDER_DELIVERY;

@@ -342,6 +342,25 @@ export type MergeCloudPutOptions = {
 };
 
 /**
+ * Keep every arrival-notice lock. `primary` wins other settings keys and, for
+ * the same visit key, the newer claim row. Keys that only `fallback` has stay.
+ * An ordinary visit edit must not wipe a notice that already went out.
+ */
+function withArrivalClaims(
+  primary: Database["settings"] | undefined,
+  fallback: Database["settings"] | undefined
+): Database["settings"] {
+  const merged = { ...(fallback ?? {}), ...(primary ?? {}) } as Database["settings"];
+  const fallbackClaims = fallback?.arrivalReminderClaims;
+  const primaryClaims = primary?.arrivalReminderClaims;
+  if (!fallbackClaims && !primaryClaims) return merged;
+  return {
+    ...merged,
+    arrivalReminderClaims: { ...fallbackClaims, ...primaryClaims },
+  };
+}
+
+/**
  * Server-side CRM mutation (Telegram, API routes).
  * Merge field updates by id, then apply `mutated` membership so deletions stick.
  */
@@ -357,7 +376,9 @@ export function mergeServerCloudMutation(
     // morningDigestDate and cronHoldUntil when those keys already existed.
     // Use the mutated settings: patchCrmIfUnchanged provides CAS protection
     // and cloudMutateCrmStore retries with a fresh snapshot on conflict.
-    settings: mutated.settings,
+    // Arrival claims are unioned so an editor that saved a settings object
+    // from before the cron cannot erase a notice that was already locked.
+    settings: withArrivalClaims(mutated.settings, existing.settings),
     currentUserId: null,
   };
 }
@@ -369,6 +390,7 @@ export function mergeCloudDocuments(
   options?: MergeCloudPutOptions
 ): Database {
   const merged = mergeCloudIntoLocal(incoming, existing);
+  merged.settings = withArrivalClaims(existing.settings, incoming.settings);
   if (!options?.lastCloudSyncedAt?.trim()) {
     return merged;
   }
