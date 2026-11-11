@@ -1,13 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { Calendar, Phone, MessageCircle } from "lucide-react";
+import { Calendar, Phone, MessageCircle, Navigation } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { siteConfig } from "@/lib/site";
 import type { ServiceId } from "@/lib/services-catalog";
 import { PhoneLink } from "@/components/analytics/PhoneLink";
 import { SocialContactLink } from "@/components/analytics/SocialContactLink";
 import { workshopTelegramChatUrl, workshopWhatsAppChatUrl } from "@/lib/chat-cta";
+import { WORKSHOP_DIRECTIONS_URL } from "@/lib/maps";
+import { trackGetDirectionsClick } from "@/lib/gtag";
 
 type Props = {
   slug: string;
@@ -47,6 +49,16 @@ export function ServiceLandingBottomCta({ slug, serviceId, onBook }: Props) {
           <Phone size={18} />
           {t.stickyBar.call}
         </PhoneLink>
+        <a
+          href={WORKSHOP_DIRECTIONS_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={() => trackGetDirectionsClick(`landing_bottom_${slug}`)}
+          className="btn-outline inline-flex justify-center items-center gap-2"
+        >
+          <Navigation size={18} />
+          {t.stickyBar.route}
+        </a>
         <Link
           href="/#wyceń-po-vin"
           className="btn-outline inline-flex justify-center items-center gap-2"

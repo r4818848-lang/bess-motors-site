@@ -30,6 +30,7 @@ e2e/.auth/
 __MACOSX/
 *.pem
 .env*.local
+/data/gsc/
 
 # debug
 npm-debug.log*

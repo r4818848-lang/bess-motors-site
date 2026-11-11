@@ -18,6 +18,7 @@ export function googleAdsBookingConversionSendTo(): string | null {
 export function trackGoogleAdsBookingConversion(meta?: Record<string, unknown>): void {
   const sendTo = googleAdsBookingConversionSendTo();
   if (!sendTo) return;
+  // Ads conversion only. Do not also mark the GA4 event as a Google Ads conversion.
   fireGtag("conversion", {
     send_to: sendTo,
     ...meta,

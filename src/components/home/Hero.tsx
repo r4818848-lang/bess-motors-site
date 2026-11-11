@@ -1,11 +1,13 @@
 "use client";
 
 import Image from "next/image";
-import { ChevronRight, Phone, FileSearch } from "lucide-react";
+import { ChevronRight, Phone, FileSearch, Navigation } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { siteConfig } from "@/lib/site";
 import { PhoneLink } from "@/components/analytics/PhoneLink";
 import { BookingLink } from "@/components/analytics/BookingLink";
+import { WORKSHOP_DIRECTIONS_URL } from "@/lib/maps";
+import { trackGetDirectionsClick } from "@/lib/gtag";
 
 /** Calm hero — brand + CTAs (Final Polish v3 §6–7) */
 export function Hero() {
@@ -69,6 +71,16 @@ export function Hero() {
               <Phone size={16} />
               {h.ctaCall}
             </PhoneLink>
+            <a
+              href={WORKSHOP_DIRECTIONS_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => trackGetDirectionsClick("hero")}
+              className="btn-outline inline-flex items-center justify-center gap-2 uppercase tracking-wide"
+            >
+              <Navigation size={16} />
+              {t.stickyBar.route}
+            </a>
           </div>
         </div>
       </div>

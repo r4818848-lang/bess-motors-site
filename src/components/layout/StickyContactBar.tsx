@@ -48,6 +48,7 @@ export function StickyContactBar() {
           href={WORKSHOP_DIRECTIONS_URL}
           target="_blank"
           rel="noopener noreferrer"
+          aria-label={sc.route}
           onClick={() => trackGetDirectionsClick("sticky_bar")}
           className="flex items-center justify-center gap-1 min-h-[52px] py-3 text-[10px] font-bold uppercase text-white bg-bm-card border-r border-white/10"
         >
@@ -55,6 +56,7 @@ export function StickyContactBar() {
         </a>
         <BookingLink
           trackSource="sticky_bar"
+          aria-label={t.hero.ctaBook}
           className="flex items-center justify-center gap-1 min-h-[52px] py-3 text-[10px] font-bold uppercase text-white bg-bm-black"
         >
           <Calendar size={15} /> {sc.book}

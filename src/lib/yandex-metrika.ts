@@ -1,3 +1,5 @@
+import { analyticsConsentGranted } from "@/lib/analytics-consent";
+
 /** Yandex.Metrika counter — override via NEXT_PUBLIC_YANDEX_METRIKA_ID */
 export const YANDEX_METRIKA_ID = Number(
   process.env.NEXT_PUBLIC_YANDEX_METRIKA_ID ?? "109683484"
@@ -26,6 +28,7 @@ declare global {
 
 export function fireYmHit(url: string, title?: string): void {
   if (typeof window === "undefined" || !isYandexMetrikaEnabled()) return;
+  if (!analyticsConsentGranted()) return;
   if (typeof window.ym !== "function") return;
   window.ym(YANDEX_METRIKA_ID, "hit", url, {
     referer: document.referrer,

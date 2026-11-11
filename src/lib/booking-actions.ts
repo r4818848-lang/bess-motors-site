@@ -125,6 +125,8 @@ export async function createBookingAppointment(params: {
   clientName: string;
   clientPhone: string;
   clientPlate: string;
+  /** Stable id so a repeated submit updates the same visit instead of adding another. */
+  appointmentId?: string;
   estimatedTotal?: number;
   cartLines?: { itemId: string; label: string; lineTotal: number; priceFrom: boolean }[];
 }): Promise<{ ok: boolean; cloudOk: boolean; error?: "slot_taken" | "network" | "save" }> {
@@ -144,8 +146,11 @@ export async function createBookingAppointment(params: {
       db.currentUserId ?? undefined
     );
     const marketing = getStoredAttribution() ?? undefined;
+    const requestedId = params.appointmentId?.trim() ?? "";
+    const id = /^apt-[a-z0-9-]{8,80}$/i.test(requestedId) ? requestedId : newAppointmentId();
     const apt = {
-      id: newAppointmentId(),
+      id,
+      clientRequestId: id,
       userId,
       vehicleId,
       serviceIds: params.serviceIds.length ? params.serviceIds : [params.serviceId],

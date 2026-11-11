@@ -13,7 +13,6 @@ import { createCallRequest } from "@/lib/booking-actions";
 import { BookingLink } from "@/components/analytics/BookingLink";
 import { useAuth } from "@/lib/auth/session-context";
 import { Button } from "@/components/ui/Button";
-import { trackLead } from "@/lib/gtag";
 import { saveSubmissionSnapshot, THANK_YOU_PATH } from "@/lib/submission-thank-you";
 import {
   buildCartLine,
@@ -325,7 +324,6 @@ export function SmartBookingModal({ serviceId, onClose, onSuccess }: Props) {
         clientPhone: clientPhone.trim(),
         serviceLabel,
       });
-      trackLead("call_request", { source: "smart_booking_modal", serviceId });
       onSuccess?.("call");
       onClose();
       router.push(THANK_YOU_PATH);
