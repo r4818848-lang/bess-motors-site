@@ -4,6 +4,7 @@
 import assert from "node:assert/strict";
 import { getPriceItem } from "../src/lib/price-list";
 import { seoLandingPages, seoLandingSlugs } from "../src/lib/seo-landing-pages";
+import { SITEMAP_LAST_MODIFIED, sitemapLastModifiedFor } from "../src/lib/seo";
 import { EXTRA_SEO_SERVICE_PROFILES_BATCH2 } from "../src/lib/seo-extra-service-pages-batch2";
 import {
   TIRE_PROMO_EXTRAS,
@@ -55,6 +56,15 @@ assert.equal(TIRE_PROMO_EXTRAS.punctureRepairZl, getPriceItem("puncture_repair")
 assert.equal(TIRE_PROMO_EXTRAS.runFlatPerWheelZl, getPriceItem("runflat_surcharge")?.basePrice);
 assert.equal(TIRE_PROMO_EXTRAS.storageSetFromZl, getPriceItem("tire_storage")?.basePrice);
 assert.equal(getPriceItem("tire_change_r24")?.priceFrom, true);
+assert.equal(
+  sitemapLastModifiedFor("/blog/wulkanizacja-sezonowa").toISOString(),
+  SITEMAP_LAST_MODIFIED.toISOString()
+);
+assert.equal(
+  sitemapLastModifiedFor("/wulkanizacja-warszawa").toISOString(),
+  "2026-11-11T09:04:25.000Z"
+);
+assert.equal(sitemapLastModifiedFor("/cennik").toISOString(), SITEMAP_LAST_MODIFIED.toISOString());
 
 for (const slug of ["wulkanizacja-warszawa", "wymiana-opon-warszawa", "sezonowa-wymiana-opon-warszawa"] as const) {
   const table = EXTRA_SEO_SERVICE_PROFILES_BATCH2[slug]?.price?.priceTable ?? [];

@@ -4,15 +4,13 @@ import {
   publicSitemapPaths,
   sitemapExcludedSlugs,
   pendingNoIndexSlugs,
-  SITEMAP_LAST_MODIFIED,
+  sitemapLastModifiedFor,
 } from "@/lib/seo";
 import { seoLandingSlugs } from "@/lib/seo-landing-pages";
 import { blogPosts } from "@/lib/blog-posts";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const siteUrl = getSiteUrl();
-  const lastModified = SITEMAP_LAST_MODIFIED;
-  const tyreCopyRefresh = new Date("2026-11-11T08:00:00.000Z");
 
   const seen = new Set<string>();
   const entries: MetadataRoute.Sitemap = [];
@@ -25,15 +23,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     const key = path || "/";
     if (seen.has(key)) return;
     seen.add(key);
-    const tyreUrl =
-      key === "/" ||
-      key === "/contacts" ||
-      key.includes("opon") ||
-      key.includes("wulkan") ||
-      key.includes("wywaz");
     entries.push({
       url: `${siteUrl}${path}`,
-      lastModified: tyreUrl ? tyreCopyRefresh : lastModified,
+      lastModified: sitemapLastModifiedFor(path),
       changeFrequency,
       priority,
     });

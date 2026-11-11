@@ -28,6 +28,25 @@ export const pendingNoIndexSlugs = new Set(["chip-tuning-warszawa", "geometria"]
  */
 export const SITEMAP_LAST_MODIFIED = new Date("2026-11-08T08:00:00.000Z");
 
+/** Content commit ec1ec11. Only URLs edited in that commit use this date. */
+export const TIRE_COPY_LAST_MODIFIED = new Date("2026-11-11T09:04:25.000Z");
+
+export function sitemapLastModifiedFor(path: string): Date {
+  const key = path || "/";
+  if (key.startsWith("/blog/")) return SITEMAP_LAST_MODIFIED;
+  const changed =
+    key === "/" ||
+    key === "/contacts" ||
+    key === "/opony" ||
+    key === "/wulkanizacja-warszawa" ||
+    key === "/wymiana-opon-warszawa" ||
+    key === "/sezonowa-wymiana-opon-warszawa" ||
+    key === "/naprawa-opon-warszawa" ||
+    key === "/wywazanie-kol-warszawa" ||
+    key.startsWith("/wymiana-opon-");
+  return changed ? TIRE_COPY_LAST_MODIFIED : SITEMAP_LAST_MODIFIED;
+}
+
 export const HOME_SEO_TITLE =
   "Mechanik Warszawa Włochy | Warsztat Samochodowy BESS MOTORS";
 
