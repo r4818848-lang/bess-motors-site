@@ -8,6 +8,7 @@ import {
   morningDigestAlreadySent,
   warsawTodayKey,
 } from "@/lib/morning-digest";
+import { cloudGetCrmStore } from "@/lib/server/crm-cloud";
 import { cloudMutateCrmStore } from "@/lib/server/crm-cloud-mutate";
 import { sendTelegramMessage } from "@/lib/server/telegram-api";
 import { getClientBotLabels, type BotLocale } from "@/lib/server/telegram-bot/client-i18n";
@@ -157,19 +158,23 @@ export async function runAppointmentReminders(
     }
   }
 
-  const beforeAdmin = structuredClone(db);
   const admin = await deliverAdminArrivalReminders({
-    db,
     now,
     adminChatIds: productionAdminChatIds(),
-    send: sendAdminArrivalMessage,
-    save: async (snapshot) => {
-      await saveReminderFields(beforeAdmin, snapshot);
+    store: {
+      load: async () => (await cloudGetCrmStore())?.doc ?? null,
+      mutate: async (change) => {
+        const result = await cloudMutateCrmStore((live) => {
+          change(live);
+        }, { skipAutomation: true });
+        return result.ok;
+      },
     },
+    send: sendAdminArrivalMessage,
   });
 
-  if (clientDirty && admin.sent === 0 && admin.failed === 0 && admin.cancelled === 0) {
-    await saveReminderFields(beforeAdmin, db);
+  if (clientDirty && admin.sent === 0 && admin.failed === 0 && admin.suppressed === 0) {
+    await saveReminderFields(structuredClone(db), db);
   }
 
   if (leadNoticeDeliveryEnabled()) await deliverPendingLeadNotices(now);
@@ -188,6 +193,6 @@ export async function runAppointmentReminders(
     twoHour,
     adminReminders: admin.sent,
     adminFailed: admin.failed,
-    adminCancelled: admin.cancelled,
+    adminCancelled: admin.suppressed,
   };
 }

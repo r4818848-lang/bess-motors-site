@@ -288,6 +288,10 @@ async function fillAppointment(
 
   const slotChanged = previous.date !== apt.date || previous.time !== apt.time;
   if (slotChanged) {
+    // Client reminders follow the new clock time. The owner arrival lock
+    // lives in settings.arrivalReminderClaims and is keyed by date and time,
+    // so a comment or phone edit must not clear it, and the old clock time
+    // keeps the row that already blocked a second notice.
     apt.adminReminder = { status: "pending", attempts: 0, deliveredChatIds: [] };
     apt.reminder2hSentAt = undefined;
     apt.reminderDayBeforeSentAt = undefined;
