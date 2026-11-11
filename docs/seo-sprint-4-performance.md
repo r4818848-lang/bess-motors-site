@@ -101,7 +101,13 @@ PR: https://github.com/r4818848-lang/bess-motors-site/pull/35
 
 Коммит с оптимизациями: `4466fd9e094381af6d421c0b8a5060ec36bd9834`.
 
-CI и Vercel Preview на этом PR ещё считаются. Production не деплоился, cron не менялся.
+CI на коммите `0e5bb7fa2ee706e82b99823e35d5aa5f96845142`:
+
+- `unit` прошёл.
+- `e2e` дважды упал до тестов. `npx playwright install chromium --with-deps` не скачал дополнительные шрифты: DNS не резолвил `azure.archive.ubuntu.com`. Библиотеки Chromium на `ubuntu-latest` уже были установлены. Сами тесты не запускались.
+- Три Vercel Preview (`bess-motors`, `bess-motors-site`, `bess-motors-site-5dyd`) для этого коммита завершились успешно.
+
+Следующий коммит ставит браузер без `--with-deps`, чтобы job не зависел от зеркала Azure. Скриншотных тестов в наборе нет. Production не деплоился, cron не менялся.
 
 ## Что ещё можно ускорить
 
