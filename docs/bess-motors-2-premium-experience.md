@@ -113,4 +113,8 @@ LCP главной по-прежнему фото баннера, не SVG.
 
 ## 9. Коммиты и PR
 
-Ссылка на PR и SHA дописываются после публикации ветки `feat/bess-motors-2-premium-experience`.
+Ветка: `feat/bess-motors-2-premium-experience`.
+
+Код сцен и интерфейса: `d48d2f9f4cb85ec0e9ee9b9641a0129d03471fd1`.
+
+Ссылка на PR дописывается после открытия. GitHub Actions и Vercel Preview на момент коммита ещё не завершены.
