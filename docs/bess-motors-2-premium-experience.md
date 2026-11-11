@@ -109,7 +109,6 @@ LCP главной по-прежнему фото баннера, не SVG.
 - `/realizacje` BLOCKED.
 - Нет новых платных сервисов и новых ключей.
 - Desktop Lighthouse и полевые CrUX не измерялись.
-- CI и Vercel Preview фиксируются после push, в этом файле их ещё нет, пока проверки не завершились.
 
 ## 9. Коммиты и PR
 
@@ -117,12 +116,16 @@ LCP главной по-прежнему фото баннера, не SVG.
 
 Код сцен и интерфейса: `d48d2f9f4cb85ec0e9ee9b9641a0129d03471fd1`.
 
+Исправление аудита шапки: `f33ae6a786cef2fcb909cb3e21fcad03d5c4c1ce`.
+
 Pull Request: https://github.com/r4818848-lang/bess-motors-site/pull/38
 
-Проверка `bc9510d` (11 ноября 2026, 22:44 по Варшаве):
+Проверка `bc9510d` (11 ноября 2026, 22:44 по Варшаве) упала в unit: аудит шапки не узнавал реальные адреса общего маршрута `[slug]`. e2e при этом прошёл.
 
-- e2e — успешно.
-- unit — ошибка. Аудит шапки искал отдельный `page.tsx` и не узнавал реальные адреса общего маршрута `[slug]`: `/wulkanizacja-warszawa`, `/wymiana-oleju`, `/hamulce`, `/diagnostyka`, `/klimatyzacja`, `/zawieszenie`, `/silnik`.
-- Vercel Preview Ready: [bess-motors](https://bess-motors-git-feat-bess-motors-2-c8e1f7-bess-motors-projects.vercel.app), [bess-motors-site](https://bess-motors-site-git-feat-bess-moto-fdba1d-bess-motors-projects.vercel.app), [bess-motors-site-5dyd](https://bess-motors-site-5dyd-git-feat-bess-cbf27b-bess-motors-projects.vercel.app).
+Проверка `f33ae6a` завершилась без ошибок 11 ноября 2026, 22:50 по Варшаве. Прогон: https://github.com/r4818848-lang/bess-motors-site/actions/runs/43106194304. Unit занял 1 минуту 37 секунд, e2e — 2 минуты 50 секунд. Все 6 проверок GitHub зелёные.
 
-Следующий коммит учит аудит принимать slug, который уже опубликован в `src/lib`. Итог этой новой проверки сюда ещё не вписан.
+Три Vercel Preview для этой ветки в статусе Ready с 22:49 по Варшаве:
+
+- [bess-motors](https://bess-motors-git-feat-bess-motors-2-c8e1f7-bess-motors-projects.vercel.app)
+- [bess-motors-site](https://bess-motors-site-git-feat-bess-moto-fdba1d-bess-motors-projects.vercel.app)
+- [bess-motors-site-5dyd](https://bess-motors-site-5dyd-git-feat-bess-cbf27b-bess-motors-projects.vercel.app)
