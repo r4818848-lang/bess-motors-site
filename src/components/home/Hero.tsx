@@ -8,6 +8,7 @@ import { PhoneLink } from "@/components/analytics/PhoneLink";
 import { BookingLink } from "@/components/analytics/BookingLink";
 import { WORKSHOP_DIRECTIONS_URL } from "@/lib/maps";
 import { trackGetDirectionsClick } from "@/lib/gtag";
+import { DriveInCar } from "@/components/motion/ServiceMotion";
 
 /** Calm hero — brand + CTAs (Final Polish v3 §6–7) */
 export function Hero() {
@@ -36,13 +37,17 @@ export function Hero() {
           }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-bm-black via-transparent to-bm-black/40" />
+        <div className="bm-hero-sweep" />
       </div>
 
       <div className="relative z-10 mx-auto max-w-7xl px-4 lg:px-8 w-full py-8 sm:py-12">
+        <div className="grid items-end gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(280px,480px)] lg:items-center">
         <div className="max-w-2xl">
-          <h1 className="font-display font-bold tracking-tight text-[2.125rem] leading-[1.1] sm:text-5xl md:text-[3.5rem] text-white">
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-bm-red">BESS MOTORS</p>
+          <h1 className="mt-3 font-display font-bold tracking-tight text-[2.125rem] leading-[1.1] sm:text-5xl md:text-[3.5rem] text-white">
             {h.h1Short}
           </h1>
+          <div className="mt-4 h-1 w-16 bg-bm-red" />
 
           <p className="mt-4 text-base sm:text-lg text-white/90 max-w-xl leading-relaxed">
             {h.subtitleClean}
@@ -82,6 +87,10 @@ export function Hero() {
               <Navigation size={16} />
               {t.stickyBar.route}
             </a>
+          </div>
+        </div>
+          <div className="rounded-3xl border border-white/10 bg-[#0c0e12] p-2">
+            <DriveInCar className="pointer-events-none w-full" />
           </div>
         </div>
       </div>

@@ -415,6 +415,29 @@ export function BookingQuoteFlow({ onDone }: Props) {
         {bq.hourlyNote} <strong className="text-bm-red">{HOURLY_RATE_PLN} zł/h</strong>
       </p>
 
+      <ol className="mb-6 flex flex-col gap-2 text-sm text-bm-silver sm:flex-row sm:justify-center sm:gap-6" aria-label="Etapy zapisu">
+        {[
+          { id: "services", label: "Usługa" },
+          { id: "phone", label: "Telefon" },
+          { id: "done", label: "Potwierdzenie" },
+        ].map((item, index) => {
+          const active =
+            item.id === phase || (item.id === "phone" && phase === "acChoice");
+          return (
+            <li key={item.id} className="flex min-h-[44px] items-center gap-2" aria-current={active ? "step" : undefined}>
+              <span
+                className={`inline-flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${
+                  active ? "bg-bm-red text-white" : "border border-white/20"
+                }`}
+              >
+                {index + 1}
+              </span>
+              {item.label}
+            </li>
+          );
+        })}
+      </ol>
+
       <AnimatePresence mode="wait">
         {phase === "services" && (
           <motion.div

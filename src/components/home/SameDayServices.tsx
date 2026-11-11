@@ -96,7 +96,7 @@ export function SameDayServices() {
           {items.map((item) => (
             <li
               key={item.source}
-              className="rounded-xl border border-white/10 bg-bm-card p-5 flex flex-col transition-transform duration-200 hover:-translate-y-0.5"
+              className="bm-service-card rounded-xl border border-white/10 bg-bm-card p-5 flex flex-col transition-transform duration-200 hover:-translate-y-0.5"
             >
               <item.icon className="w-5 h-5 text-bm-red" aria-hidden />
               <p className="mt-3 font-semibold text-white leading-snug">{item.title}</p>

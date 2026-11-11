@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
 import { ServiceIcon } from "@/components/icons/ServiceIcon";
 import { useI18n } from "@/lib/i18n/context";
 import { publicPopularServices, type ServiceId } from "@/lib/services-catalog";
@@ -29,6 +28,15 @@ export default function ServicesPage() {
   const [submitError, setSubmitError] = useState("");
   const [sending, setSending] = useState(false);
   const [bookingService, setBookingService] = useState<ServiceId | null>(null);
+  const [query, setQuery] = useState("");
+  const needle = query.trim().toLowerCase();
+  const seoPages = EXTRA_SEO_SERVICE_PAGES.filter(
+    (page) => !needle || page.title.toLowerCase().includes(needle)
+  );
+  const popular = publicPopularServices.filter((cat) => {
+    const label = t.serviceItems[cat.id as keyof typeof t.serviceItems] ?? "";
+    return !needle || label.toLowerCase().includes(needle);
+  });
 
   const submitCustomRequest = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,7 +71,7 @@ export default function ServicesPage() {
     <>
       <div className="pt-28 pb-20">
         <div className="mx-auto max-w-7xl px-4 lg:px-8">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+          <div>
             <h1 className="font-display text-4xl md:text-5xl font-bold uppercase text-glow">
               {s.title}
             </h1>
@@ -75,7 +83,7 @@ export default function ServicesPage() {
             >
               {s.viewPriceList} →
             </Link>
-          </motion.div>
+          </div>
 
           <div className="mt-12 max-w-3xl">
             <CallbackRequestCta
@@ -87,11 +95,30 @@ export default function ServicesPage() {
           </div>
 
           <section className="mt-16">
-            <h2 className="font-display text-xl uppercase tracking-wide mb-6 text-bm-red">
+            <label className="block max-w-xl">
+              <span className="text-xs font-semibold uppercase tracking-wide text-bm-muted">Szukaj usługi</span>
+              <input
+                type="search"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Na przykład: wymiana oleju, hamulce, klimatyzacja"
+                className="input-premium mt-2 min-h-[44px] w-full"
+              />
+            </label>
+            <h2 className="mt-8 font-display text-xl uppercase tracking-wide mb-6 text-bm-red">
               Usługi — Warszawa
             </h2>
+            {seoPages.length === 0 && popular.length === 0 ? (
+              <p className="mb-8 text-sm text-bm-muted">
+                Nie znaleziono takiej usługi.{" "}
+                <Link href="/diagnostyka" className="text-bm-red underline">
+                  Umów diagnostykę
+                </Link>
+                , bez zgadywania usterki.
+              </p>
+            ) : null}
             <ul className="grid sm:grid-cols-2 gap-3 mb-12">
-              {EXTRA_SEO_SERVICE_PAGES.map((page) => (
+              {seoPages.map((page) => (
                 <li key={page.slug}>
                   <Link
                     href={`/${page.slug}`}
@@ -107,7 +134,7 @@ export default function ServicesPage() {
               {t.sections.popularServices}
             </h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-              {publicPopularServices.map((cat, i) => {
+              {popular.map((cat, i) => {
                 const label = t.serviceItems[cat.id as keyof typeof t.serviceItems];
                 const detailHref = serviceLandingHref(cat.id as ServiceId);
                 return (
@@ -115,7 +142,7 @@ export default function ServicesPage() {
                     key={cat.id}
                     delay={Math.min(i * 0.02, 0.3)}
                     glow
-                    className="cursor-pointer group flex flex-col"
+                    className="bm-service-card cursor-pointer group flex flex-col"
                     onClick={() => setBookingService(cat.id)}
                   >
                     <div className="flex h-12 w-12 items-center justify-center rounded-xl metallic text-bm-red mb-3 group-hover:shadow-neon transition-shadow">

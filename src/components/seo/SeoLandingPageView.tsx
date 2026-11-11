@@ -45,6 +45,7 @@ import { TirePromoPhotoStrip } from "@/components/seo/landing/TirePromoPhotoStri
 import { ModelServiceHero } from "@/components/seo/landing/ModelServiceHero";
 import { TIRE_AD_LANDING_SLUG } from "@/lib/tire-media";
 import { getModelHeroForSlug } from "@/lib/model-service-media";
+import { ServiceMotion } from "@/components/motion/ServiceMotion";
 
 type Props = {
   page: SeoLandingPage;
@@ -109,7 +110,9 @@ export function SeoLandingPageView({ page }: Props) {
         <div className="mx-auto max-w-5xl px-4 lg:px-8">
           <SeoLandingBreadcrumbs serviceTitle={pageLoc.title} serviceHref={`/${page.slug}`} />
 
-          <div className="text-center">
+          <div className="grid items-center gap-6 text-center lg:grid-cols-[minmax(220px,340px)_minmax(0,1fr)] lg:text-left">
+            <ServiceMotion slug={page.slug} serviceId={page.serviceId} />
+            <div>
             <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl metallic text-bm-red mb-6 shadow-neon-sm">
               <ServiceIcon name={page.icon} size={32} />
             </div>
@@ -128,7 +131,8 @@ export function SeoLandingPageView({ page }: Props) {
                 {sl.brandNotice}
               </p>
             ) : null}
-            <div className="mt-6 h-1 w-24 bg-bm-red shadow-neon-sm mx-auto" />
+            <div className="mt-6 h-1 w-24 bg-bm-red shadow-neon-sm mx-auto lg:mx-0" />
+            </div>
           </div>
 
           {getModelHeroForSlug(page.slug) ? (

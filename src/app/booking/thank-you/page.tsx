@@ -48,7 +48,7 @@ function ThankYouContent() {
   return (
     <div className="pt-28 pb-24 min-h-[70vh]">
       <div className="mx-auto max-w-lg px-4 text-center">
-        <Check className="w-20 h-20 text-bm-red mx-auto mb-6" />
+        <Check className="bm-confirm w-20 h-20 text-bm-red mx-auto mb-6" />
         <h1 className="font-display text-3xl font-bold uppercase text-glow">{title}</h1>
         <PwaInstallHint />
         <p className="text-bm-muted mt-4 leading-relaxed">

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Calendar, Clock, Phone, Download } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
@@ -57,6 +58,20 @@ function PriceRow({
 export function FullPriceListView() {
   const { locale, t } = useI18n();
   const contentLoc = contentLocale(locale);
+  const [query, setQuery] = useState("");
+  const needle = query.trim().toLowerCase();
+  const visibleCategories = publicPriceCategories
+    .map((cat) => {
+      const items = itemsByCategory(cat.id);
+      if (!needle) return { cat, items };
+      const catName = pickName(cat, locale).toLowerCase();
+      if (catName.includes(needle)) return { cat, items };
+      return {
+        cat,
+        items: items.filter((item) => itemLabel(item, locale).toLowerCase().includes(needle)),
+      };
+    })
+    .filter((row) => row.items.length > 0);
 
   const scrollToCategory = (id: PriceCategoryId) => {
     document.getElementById(`price-cat-${id}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -95,6 +110,16 @@ export function FullPriceListView() {
         </button>
       </div>
 
+      <label className="mb-4 block max-w-xl">
+        <span className="text-xs font-semibold uppercase tracking-wide text-bm-muted">Szukaj w cenniku</span>
+        <input
+          type="search"
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder="Na przykład: olej, opony, klocki"
+          className="input-premium mt-2 min-h-[44px] w-full"
+        />
+      </label>
       <p className="text-xs text-bm-muted mb-4">{t.priceList.jumpHint}</p>
       <div className="flex flex-wrap gap-2 mb-8 sticky top-20 z-30 py-2 bg-bm-black/90 backdrop-blur-sm -mx-1 px-1">
         {publicPriceCategories.map((cat) => (
@@ -102,7 +127,7 @@ export function FullPriceListView() {
             key={cat.id}
             type="button"
             onClick={() => scrollToCategory(cat.id)}
-            className="px-3 py-2 rounded-full text-[11px] font-bold uppercase tracking-wide border border-bm-border text-bm-muted hover:text-white hover:border-bm-red/40 transition-all"
+            className="min-h-[44px] px-3 py-2 rounded-full text-[11px] font-bold uppercase tracking-wide border border-bm-border text-bm-muted hover:text-white hover:border-bm-red/40 transition-all"
           >
             {pickName(cat, locale)}
           </button>
@@ -110,9 +135,12 @@ export function FullPriceListView() {
       </div>
 
       <div className="space-y-10 mb-10">
-        {publicPriceCategories.map((cat) => {
-          const items = itemsByCategory(cat.id);
-          if (!items.length) return null;
+        {visibleCategories.length === 0 ? (
+          <p className="text-sm text-bm-muted">
+            Brak pozycji o tej nazwie. Cena diagnostyki zależy od samochodu — umów wizytę, nie podajemy zgadywanej kwoty.
+          </p>
+        ) : null}
+        {visibleCategories.map(({ cat, items }) => {
           return (
             <motion.section
               key={cat.id}
