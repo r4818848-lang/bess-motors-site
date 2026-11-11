@@ -2,7 +2,6 @@ import { siteConfig } from "@/lib/site";
 import { SITE_NAP } from "@/lib/site-nap";
 import { getSiteUrl } from "@/lib/seo";
 import {
-  LOCAL_SERVICE_RADIUS_KM,
   schemaAreaServed,
   schemaGeoCoordinates,
 } from "@/lib/seo-local";
@@ -22,7 +21,7 @@ export function JsonLd() {
     name: SITE_NAP.name,
     legalName: SITE_NAP.legalName,
     description:
-      `Niezależny serwis samochodowy Warszawa Włochy (Aleja Krakowska 48/52) — obszar do ok. ${LOCAL_SERVICE_RADIUS_KM} km: Włochy, Ursynów, Mokotów, Ochota, Okęcie. Wymiana oleju, hamulce, nabijanie klimatyzacji, diagnostyka, wulkanizacja. Rezerwacja online.`,
+      `Niezależny serwis samochodowy w Warszawie. Warsztat stoi przy Alei Krakowskiej 48/52 (Włochy). Wulkanizacja i wymiana opon dla kierowców z całej Warszawy, a także diagnostyka, hamulce i klimatyzacja. Rezerwacja online.`,
     url: siteUrl,
     telephone: SITE_NAP.phoneDisplay,
     email: SITE_NAP.email,

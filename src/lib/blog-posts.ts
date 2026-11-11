@@ -1,3 +1,5 @@
+import { TIRE_PROMO_EXTRAS } from "@/lib/tire-promo-prices";
+
 export type BlogPost = {
   slug: string;
   title: string;
@@ -179,7 +181,7 @@ Warsztat:  Aleja Krakowska 48/52. Tel. +48 791 257 229.`,
     slug: "kiedy-zmieniac-opony-na-zimowe",
     title: "Kiedy zmieniać opony na zimowe w Warszawie?",
     date: "2026-10-21",
-    updatedAt: "2026-10-21",
+    updatedAt: "2026-11-11",
     excerpt:
       "Praktyczna reguła +7°C, ceny kompletu R13–R20 w BESS MOTORS i jak umówić wymianę opon we Włochach.",
     body: `Kiedy zmieniać opony na zimowe? W Polsce najczęściej przy temperaturach około +7°C — zwykle październik–listopad, zanim nocne przymrozki i śnieg.
@@ -195,7 +197,7 @@ Cennik wymiany kompletu w BESS MOTORS (promocja)
 • R19 — 280 zł (było 350)
 • R20 — 350 zł (było 400)
 • R21 — 390 zł · R22 — 400 zł · R23 — 450 zł
-RunFlat / TPMS +25 zł/koło, utylizacja 15 zł/koło. Naprawa przebicia: 60 zł robocizna.
+RunFlat +${TIRE_PROMO_EXTRAS.runFlatPerWheelZl} zł/koło, TPMS +${TIRE_PROMO_EXTRAS.tpmsPerWheelZl} zł/koło, utylizacja ${TIRE_PROMO_EXTRAS.disposalPerWheelZl} zł/koło. Naprawa przebicia: ${TIRE_PROMO_EXTRAS.punctureRepairZl} zł robocizna.
 
 Jak umówić
 Wejdź na stronę sezonowej wymiany opon (/sezonowa-wymiana-opon-warszawa) i kliknij „Umów wizytę” — albo zadzwoń +48 791 257 229. Potwierdzimy termin telefonicznie. Adres: Aleja Krakowska 48/52, Warszawa Włochy.`,

@@ -311,10 +311,10 @@ export const EXTRA_SEO_RU: Partial<Record<string, SeoText>> = {
   "mechanik-warszawa-okecie": {
     title: "Автомеханик Варшава Okęcie",
     line1: "Рядом с аэропортом — Aleja Krakowska 48/52",
-    line2: "Ок. 5 мин от Okęcie · парковка у сервиса",
+    line2: "Ориентировочно ок. 5 мин от Okęcie · парковка у сервиса",
     metaTitle: "Механик Варшава Okęcie",
     metaDescription:
-      "Механик Варшава Okęcie — BESS MOTORS на Aleja Krakowska 48/52 (Włochy), ~5 мин от Okęcie. Диагностика, масло, тормоза, шины.",
+      "Механик Варшава Okęcie — BESS MOTORS на Aleja Krakowska 48/52 (Włochy). С Okęcie ориентировочно ок. 5 мин, без гарантии времени в пути. Диагностика, масло, тормоза, шины.",
   },
 };
 
@@ -629,7 +629,7 @@ export const EXTRA_SEO_EN: Partial<Record<string, SeoText>> = {
     line2: "About 5 min from Okęcie · parking at the workshop",
     metaTitle: "Car mechanic Warsaw Okęcie",
     metaDescription:
-      "Car mechanic near Warsaw Okęcie — BESS MOTORS at Aleja Krakowska 48/52 (Włochy), ~5 min from Okęcie. Diagnostics, oil, brakes, tyres.",
+      "Car mechanic near Warsaw Okęcie — BESS MOTORS at Aleja Krakowska 48/52 (Włochy). About 5 min from Okęcie as a rough drive time, not a guarantee. Diagnostics, oil, brakes, tyres.",
   },
 };
 
@@ -941,9 +941,9 @@ export const EXTRA_SEO_UK: Partial<Record<string, SeoText>> = {
   "mechanik-warszawa-okecie": {
     title: "Автомеханік Варшава Okęcie",
     line1: "Поруч з аеропортом — Aleja Krakowska 48/52",
-    line2: "Бл. 5 хв від Okęcie · парковка біля сервісу",
+    line2: "Орієнтовно бл. 5 хв від Okęcie · парковка біля сервісу",
     metaTitle: "Механік Варшава Okęcie",
     metaDescription:
-      "Механік Варшава Okęcie — BESS MOTORS, Aleja Krakowska 48/52 (Włochy), ~5 хв від Okęcie. Діагностика, олива, гальма, шини.",
+      "Механік Варшава Okęcie — BESS MOTORS, Aleja Krakowska 48/52 (Włochy). З Okęcie орієнтовно бл. 5 хв, без гарантії часу в дорозі. Діагностика, олива, гальма, шини.",
   },
 };

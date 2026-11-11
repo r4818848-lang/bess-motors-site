@@ -27,10 +27,10 @@ const RELATED_SLUGS: Record<string, string[]> = {
   elektryka: ["diagnostyka", "check-engine", "klimatyzacja", "silnik", "bmw"],
   przeglad: ["wymiana-oleju", "hamulce", "diagnostyka", "opony", "zawieszenie"],
   opony: [
-    "wymiana-opon-audi-q5-warszawa",
-    "wymiana-opon-bmw-7-g70-warszawa",
     "wulkanizacja-warszawa",
     "wymiana-opon-warszawa",
+    "sezonowa-wymiana-opon-warszawa",
+    "naprawa-opon-warszawa",
     "wywazanie-kol-warszawa",
   ],
   bmw: [
@@ -50,10 +50,10 @@ const RELATED_SLUGS: Record<string, string[]> = {
   ],
   vag: ["serwis-audi", "wymiana-opon-audi-q5-warszawa", "diagnostyka", "wymiana-oleju", "zawieszenie"],
   kontakt: ["diagnostyka", "wymiana-oleju", "warszawa-wlochy", "hamulce", "opony"],
-  "warszawa-wlochy": ["warszawa-ursynow", "diagnostyka", "opony", "klimatyzacja", "wymiana-oleju"],
-  "warszawa-ursynow": ["warszawa-wlochy", "warszawa-mokotow", "diagnostyka", "hamulce", "klimatyzacja"],
-  "warszawa-mokotow": ["warszawa-wlochy", "warszawa-ursynow", "warszawa-ochota", "opony", "diagnostyka"],
-  "warszawa-ochota": ["warszawa-wlochy", "warszawa-mokotow", "hamulce", "klimatyzacja", "wymiana-oleju"],
+  "warszawa-wlochy": ["wulkanizacja-warszawa", "warszawa-ursynow", "diagnostyka", "opony", "wymiana-oleju"],
+  "warszawa-ursynow": ["wulkanizacja-warszawa", "warszawa-wlochy", "warszawa-mokotow", "diagnostyka", "wymiana-opon-warszawa"],
+  "warszawa-mokotow": ["wulkanizacja-warszawa", "warszawa-wlochy", "warszawa-ochota", "wymiana-opon-warszawa", "diagnostyka"],
+  "warszawa-ochota": ["wulkanizacja-warszawa", "warszawa-wlochy", "warszawa-mokotow", "wymiana-opon-warszawa", "wymiana-oleju"],
   "serwis-audi": [
     "wymiana-opon-audi-q5-warszawa",
     "wymiana-klockow-hamulcowych-audi-q5-warszawa",

@@ -1,5 +1,6 @@
 import type { ServiceId } from "@/lib/services-catalog";
 import { getPriceItem } from "@/lib/price-list";
+import { TIRE_PROMO_EXTRAS } from "@/lib/tire-promo-prices";
 import { serviceBasePriceId } from "@/lib/service-price-map";
 import { getSlugLandingProfile } from "@/lib/seo-landing-slug-profiles";
 
@@ -1048,10 +1049,10 @@ export const SERVICE_LANDING_FAQ_EXTRA: Partial<
     {
       q: { pl: "Czy przechowujecie opony?", ru: "Хранение шин?", en: "Do you store tires?", uk: "Зберігання шин?" },
       a: {
-        pl: "Tak — sezonowe przechowanie opon, zapytaj przy rezerwacji.",
-        ru: "Да — сезонное хранение, уточните при записи.",
-        en: "Yes — seasonal tyre storage, please ask when booking.",
-        uk: "Так — сезонне зберігання, вказуйте при записі.",
+        pl: `Tak. Opony bez felg: ${TIRE_PROMO_EXTRAS.storageLooseSeasonZl} zł za sezon. Koła na felgach: ${TIRE_PROMO_EXTRAS.storageRimsSeasonZl} zł za sezon.`,
+        ru: `Да. Шины без дисков: ${TIRE_PROMO_EXTRAS.storageLooseSeasonZl} zł за сезон. Колёса на дисках: ${TIRE_PROMO_EXTRAS.storageRimsSeasonZl} zł за сезон.`,
+        en: `Yes. Tyres off the rims: ${TIRE_PROMO_EXTRAS.storageLooseSeasonZl} zł per season. Wheels on rims: ${TIRE_PROMO_EXTRAS.storageRimsSeasonZl} zł per season.`,
+        uk: `Так. Шини без дисків: ${TIRE_PROMO_EXTRAS.storageLooseSeasonZl} zł за сезон. Колеса на дисках: ${TIRE_PROMO_EXTRAS.storageRimsSeasonZl} zł за сезон.`,
       },
     },
   ],
@@ -1193,7 +1194,6 @@ export function getServiceLandingPrice(
         "r21",
         "r22",
         "r23",
-        "r24",
       ] as const;
       const rows = sizes.map((size) => {
         const item = getPriceItem(`tire_change_${size}`);
@@ -1228,10 +1228,10 @@ export function getServiceLandingPrice(
             uk: "Очищення маточин, тиск, динамометричний ключ",
           },
           {
-            pl: "Dopłata RunFlat / niski profil: +25 zł / koło · TPMS +25 zł / koło · utylizacja 15 zł / koło",
-            ru: "Доплата RunFlat / низкий профиль: +25 zł / колесо · TPMS +25 zł · утилизация 15 zł",
-            en: "RunFlat / low-profile surcharge: +25 zł / wheel · TPMS +25 zł · disposal 15 zł",
-            uk: "Доплата RunFlat / низький профіль: +25 zł / колесо · TPMS +25 zł · утилізація 15 zł",
+            pl: `Dopłata RunFlat: +${TIRE_PROMO_EXTRAS.runFlatPerWheelZl} zł / koło · TPMS +${TIRE_PROMO_EXTRAS.tpmsPerWheelZl} zł / koło · utylizacja ${TIRE_PROMO_EXTRAS.disposalPerWheelZl} zł / koło`,
+            ru: `Доплата RunFlat: +${TIRE_PROMO_EXTRAS.runFlatPerWheelZl} zł / колесо · TPMS +${TIRE_PROMO_EXTRAS.tpmsPerWheelZl} zł · утилизация ${TIRE_PROMO_EXTRAS.disposalPerWheelZl} zł`,
+            en: `RunFlat surcharge: +${TIRE_PROMO_EXTRAS.runFlatPerWheelZl} zł / wheel · TPMS +${TIRE_PROMO_EXTRAS.tpmsPerWheelZl} zł · disposal ${TIRE_PROMO_EXTRAS.disposalPerWheelZl} zł`,
+            uk: `Доплата RunFlat: +${TIRE_PROMO_EXTRAS.runFlatPerWheelZl} zł / колесо · TPMS +${TIRE_PROMO_EXTRAS.tpmsPerWheelZl} zł · утилізація ${TIRE_PROMO_EXTRAS.disposalPerWheelZl} zł`,
           },
         ],
         priceTable: rows,

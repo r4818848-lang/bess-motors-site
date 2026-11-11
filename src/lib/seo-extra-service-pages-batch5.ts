@@ -25,9 +25,9 @@ function tirePage(c: ModelServiceCase): SeoLandingPage {
     slug: c.tireSlug,
     title: `Wymiana opon ${c.label} Warszawa`,
     line1: `Komplet od ${TIRE_PROMO_FROM_ZL} zł — zdjęcie z warsztatu`,
-    line2: `BESS MOTORS Włochy · ${c.label} · umów termin online`,
+    line2: `Aleja Krakowska 48/52 · ${c.label} · umów termin online`,
     metaTitle: `Wymiana opon ${c.label} Warszawa | od ${TIRE_PROMO_FROM_ZL} zł | BESS MOTORS`,
-    metaDescription: `Wymiana opon ${c.label} Warszawa Włochy — ${TIRE_PROMO_SUMMARY_SHORT_PL}. Prawdziwe zdjęcie z BESS MOTORS. Umów wizytę online lub +48 791 257 229.`,
+    metaDescription: `Wymiana opon ${c.label} Warszawa — ${TIRE_PROMO_SUMMARY_SHORT_PL}. Warsztat: Aleja Krakowska 48/52. Umów wizytę online lub +48 791 257 229.`,
     serviceId: "tires",
     icon: "Circle",
   };
@@ -63,9 +63,9 @@ function tireProfile(c: ModelServiceCase): SlugLandingProfile {
       priceFrom: true,
       materialsExtra: false,
       note: L(
-        `Cennik promocji: ${TIRE_PROMO_SUMMARY_SHORT_PL}. RunFlat / TPMS +${TIRE_PROMO_EXTRAS.runFlatPerWheelZl} zł/koło. ${c.label} — te same procedury i momenty dokręcenia.`,
-        `Акция: ${TIRE_PROMO_SUMMARY_SHORT_PL}. RunFlat / TPMS +${TIRE_PROMO_EXTRAS.runFlatPerWheelZl} zł/колесо.`,
-        `Promo: ${TIRE_PROMO_SUMMARY_SHORT_PL}. RunFlat / TPMS +${TIRE_PROMO_EXTRAS.runFlatPerWheelZl} zł/wheel.`,
+        `Cennik promocji: ${TIRE_PROMO_SUMMARY_SHORT_PL}. RunFlat +${TIRE_PROMO_EXTRAS.runFlatPerWheelZl} zł/koło, TPMS +${TIRE_PROMO_EXTRAS.tpmsPerWheelZl} zł/koło. ${c.label} — te same procedury i momenty dokręcenia.`,
+        `Акция: ${TIRE_PROMO_SUMMARY_SHORT_PL}. RunFlat +${TIRE_PROMO_EXTRAS.runFlatPerWheelZl} zł/колесо, TPMS +${TIRE_PROMO_EXTRAS.tpmsPerWheelZl} zł/колесо.`,
+        `Promo: ${TIRE_PROMO_SUMMARY_SHORT_PL}. RunFlat +${TIRE_PROMO_EXTRAS.runFlatPerWheelZl} zł/wheel, TPMS +${TIRE_PROMO_EXTRAS.tpmsPerWheelZl} zł/wheel.`,
         `Акція: ${TIRE_PROMO_SUMMARY_SHORT_PL}.`
       ),
       includes: [
@@ -76,10 +76,10 @@ function tireProfile(c: ModelServiceCase): SlugLandingProfile {
     education: [
       {
         title: L(
-          `Wymiana opon ${c.label} w Warszawie Włochy`,
-          `Шиномонтаж ${c.label} в Варшаве Włochy`,
-          `${c.label} tyre change in Warsaw Włochy`,
-          `Шиномонтаж ${c.label} у Варшаві Włochy`
+          `Wymiana opon ${c.label} w Warszawie`,
+          `Шиномонтаж ${c.label} в Варшаве`,
+          `${c.label} tyre change in Warsaw`,
+          `Шиномонтаж ${c.label} у Варшаві`
         ),
         body: L(
           `Na zdjęciu — realna obsługa ${c.label} w BESS MOTORS (Aleja Krakowska 48/52). Sezonowa wymiana, wyważanie, RunFlat i TPMS. Nie jesteśmy dealerem ${c.brand} — niezależny warsztat.`,
@@ -107,10 +107,10 @@ function tireProfile(c: ModelServiceCase): SlugLandingProfile {
           `Робите RunFlat на ${c.label}?`
         ),
         a: L(
-          `Tak — dopłata RunFlat ${TIRE_PROMO_EXTRAS.runFlatPerWheelZl} zł/koło. Przy zapisie podaj rozmiar R.`,
-          `Да — доплата RunFlat ${TIRE_PROMO_EXTRAS.runFlatPerWheelZl} zł/колесо.`,
-          `Yes — RunFlat surcharge ${TIRE_PROMO_EXTRAS.runFlatPerWheelZl} zł/wheel.`,
-          `Так — доплата RunFlat ${TIRE_PROMO_EXTRAS.runFlatPerWheelZl} zł/колесо.`
+          `Dopłata RunFlat wynosi ${TIRE_PROMO_EXTRAS.runFlatPerWheelZl} zł/koło. Przy zapisie podaj rozmiar R — potwierdzimy, czy wejdzie na maszynę.`,
+          `Доплата RunFlat ${TIRE_PROMO_EXTRAS.runFlatPerWheelZl} zł/колесо. Размер подтверждаем при записи.`,
+          `RunFlat surcharge is ${TIRE_PROMO_EXTRAS.runFlatPerWheelZl} zł/wheel. Tell us the size when you book so we can confirm it fits.`,
+          `Доплата RunFlat ${TIRE_PROMO_EXTRAS.runFlatPerWheelZl} zł/колесо. Розмір підтверджуємо при записі.`
         ),
       },
       {

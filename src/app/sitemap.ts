@@ -4,14 +4,13 @@ import {
   publicSitemapPaths,
   sitemapExcludedSlugs,
   pendingNoIndexSlugs,
-  SITEMAP_LAST_MODIFIED,
+  sitemapLastModifiedFor,
 } from "@/lib/seo";
 import { seoLandingSlugs } from "@/lib/seo-landing-pages";
 import { blogPosts } from "@/lib/blog-posts";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const siteUrl = getSiteUrl();
-  const lastModified = SITEMAP_LAST_MODIFIED;
 
   const seen = new Set<string>();
   const entries: MetadataRoute.Sitemap = [];
@@ -26,7 +25,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     seen.add(key);
     entries.push({
       url: `${siteUrl}${path}`,
-      lastModified,
+      lastModified: sitemapLastModifiedFor(path),
       changeFrequency,
       priority,
     });
@@ -39,7 +38,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
   for (const slug of seoLandingSlugs) {
     if (sitemapExcludedSlugs.has(slug) || pendingNoIndexSlugs.has(slug)) continue;
                 const priority =
-                  slug === "klimatyzacja" || slug === "serwis-klimatyzacji-warszawa"
+                  slug === "klimatyzacja" ||
+                  slug === "serwis-klimatyzacji-warszawa" ||
+                  slug === "wulkanizacja-warszawa" ||
+                  slug === "wymiana-opon-warszawa" ||
+                  slug === "sezonowa-wymiana-opon-warszawa" ||
+                  slug === "naprawa-opon-warszawa" ||
+                  slug === "wywazanie-kol-warszawa"
                     ? 0.95
                     : slug === "wymiana-oleju" ||
                         slug === "wymiana-oleju-warszawa" ||

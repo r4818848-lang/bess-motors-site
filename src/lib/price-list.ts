@@ -1369,12 +1369,13 @@ const priceListItemsCatalog: PriceListItem[] = [
     unit: "fixed",
   },
   {
+    // Internal only. Hidden from the public cennik: no promise that R24 is accepted.
     id: "tire_change_r24",
     categoryId: "tires",
-    namePl: "Wymiana opon komplet — R24 (po potwierdzeniu)",
-    nameRu: "Замена шин комплект — R24 (по подтверждению)",
-    nameEn: "Tyre change set — R24 (on confirmation)",
-    nameUk: "Заміна шин комплект — R24 (після підтвердження)",
+    namePl: "Wymiana opon komplet — R24 (nie w ofercie publicznej)",
+    nameRu: "Замена шин комплект — R24 (не в публичном прайсе)",
+    nameEn: "Tyre change set — R24 (not a public offer)",
+    nameUk: "Заміна шин комплект — R24 (немає в публічному прайсі)",
     basePrice: 450,
     listPrice: 550,
     unit: "fixed",
@@ -1387,12 +1388,14 @@ const priceListItemsCatalog: PriceListItem[] = [
     nameRu: "Доплата RunFlat",
     nameEn: "RunFlat surcharge",
     nameUk: "Доплата RunFlat",
-    basePrice: 25,
+    basePrice: 15,
     unit: "per_wheel",
     minQty: 1,
     maxQty: 4,
   },
   {
+    // 25 zł is not a confirmed public tariff. The row stays for internal history
+    // and is hidden from the cennik, booking and SEO until the owner sets a rate.
     id: "low_profile_surcharge",
     categoryId: "tires",
     namePl: "Dopłata niski profil (35 i poniżej)",
@@ -1451,10 +1454,10 @@ const priceListItemsCatalog: PriceListItem[] = [
   {
     id: "wheel_rotate_21_24",
     categoryId: "tires",
-    namePl: "Przestawienie kół w komplecie — R21–R24 (bez demontażu opon)",
-    nameRu: "Перестановка колёс в сборе — R21–R24 (без снятия шин)",
-    nameEn: "Wheel rotation set — R21–R24 (tyres stay on rims)",
-    nameUk: "Перестановка коліс у зборі — R21–R24 (без зняття шин)",
+    namePl: "Przestawienie kół w komplecie — R21–R23 (bez demontażu opon)",
+    nameRu: "Перестановка колёс в сборе — R21–R23 (без снятия шин)",
+    nameEn: "Wheel rotation set — R21–R23 (tyres stay on rims)",
+    nameUk: "Перестановка коліс у зборі — R21–R23 (без зняття шин)",
     basePrice: 140,
     unit: "fixed",
   },
@@ -1648,13 +1651,22 @@ const priceListItemsCatalog: PriceListItem[] = [
   {
     id: "tire_storage",
     categoryId: "tires",
-    namePl: "Sezonowe przechowywanie opon (komplet)",
-    nameRu: "Сезонное хранение шин (комплект)",
-    nameEn: "Seasonal tyre storage (set)",
-    nameUk: "Сезонне зберігання шин (комплект)",
-    basePrice: 100,
+    namePl: "Przechowywanie opon bez felg (sezon)",
+    nameRu: "Хранение шин без дисков (сезон)",
+    nameEn: "Tyre storage off the rims (per season)",
+    nameUk: "Зберігання шин без дисків (сезон)",
+    basePrice: 250,
     unit: "fixed",
-    priceFrom: true,
+  },
+  {
+    id: "tire_storage_rims",
+    categoryId: "tires",
+    namePl: "Przechowywanie kół na felgach (sezon)",
+    nameRu: "Хранение колёс на дисках (сезон)",
+    nameEn: "Wheel storage on rims (per season)",
+    nameUk: "Зберігання коліс на дисках (сезон)",
+    basePrice: 300,
+    unit: "fixed",
   },
   {
     id: "alignment",
@@ -1873,7 +1885,15 @@ export function getPriceItem(id: string): PriceListItem | undefined {
 export const PUBLIC_HIDDEN_CATEGORY_IDS = new Set<PriceCategoryId>(["chip"]);
 
 /** Line items hidden from cennik, PDF and the public price API. */
-export const PUBLIC_HIDDEN_PRICE_ITEM_IDS = new Set<string>(["alignment"]);
+export const PUBLIC_HIDDEN_PRICE_ITEM_IDS = new Set<string>([
+  "alignment",
+  // Not a confirmed public tariff.
+  "low_profile_surcharge",
+  // R24 stays in the catalogue as an internal constraint. It is not a public offer
+  // and has no public price until the workshop checks the machine.
+  "tire_change_r24",
+  "wheel_balance_r24",
+]);
 
 export function isPublicPriceCategory(id: PriceCategoryId): boolean {
   return !PUBLIC_HIDDEN_CATEGORY_IDS.has(id);

@@ -13,13 +13,13 @@ const root = path.resolve(__dirname, "..");
 
 /** Expect after site −15% promo where applicable; tires/AC excluded from promo */
 const EXPECTED = {
-  tire_change_r13: { price: 200, category: "tires" },
-  tire_change_r14: { price: 200, category: "tires" },
-  tire_change_r15: { price: 200, category: "tires" },
-  tire_change_r16: { price: 200, category: "tires" },
-  tire_change_r17: { price: 200, category: "tires" },
-  tire_change_r18: { price: 260, category: "tires" },
-  tire_change_r19: { price: 300, category: "tires" },
+  tire_change_r13: { price: 140, category: "tires" },
+  tire_change_r14: { price: 140, category: "tires" },
+  tire_change_r15: { price: 140, category: "tires" },
+  tire_change_r16: { price: 170, category: "tires" },
+  tire_change_r17: { price: 190, category: "tires" },
+  tire_change_r18: { price: 220, category: "tires" },
+  tire_change_r19: { price: 280, category: "tires" },
   tire_change_r20: { price: 350, category: "tires" },
   puncture_repair: { price: 60, category: "tires" },
   ac_r1234yf: { price: 100, category: "ac" },

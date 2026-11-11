@@ -28,11 +28,31 @@ export const pendingNoIndexSlugs = new Set(["chip-tuning-warszawa", "geometria"]
  */
 export const SITEMAP_LAST_MODIFIED = new Date("2026-11-08T08:00:00.000Z");
 
+/** Tyre copy and public tyre prices. Only URLs whose text or prices changed. */
+export const TIRE_COPY_LAST_MODIFIED = new Date("2026-11-11T11:30:00.000Z");
+
+export function sitemapLastModifiedFor(path: string): Date {
+  const key = path || "/";
+  if (key.startsWith("/blog/")) return SITEMAP_LAST_MODIFIED;
+  const changed =
+    key === "/" ||
+    key === "/contacts" ||
+    key === "/opony" ||
+    key === "/cennik" ||
+    key === "/wulkanizacja-warszawa" ||
+    key === "/wymiana-opon-warszawa" ||
+    key === "/sezonowa-wymiana-opon-warszawa" ||
+    key === "/naprawa-opon-warszawa" ||
+    key === "/wywazanie-kol-warszawa" ||
+    key.startsWith("/wymiana-opon-");
+  return changed ? TIRE_COPY_LAST_MODIFIED : SITEMAP_LAST_MODIFIED;
+}
+
 export const HOME_SEO_TITLE =
   "Mechanik Warszawa Włochy | Warsztat Samochodowy BESS MOTORS";
 
 export const HOME_SEO_DESCRIPTION =
-  "BESS MOTORS — serwis samochodowy Warszawa Włochy, Aleja Krakowska 48/52. Diagnostyka, hamulce, rozrząd, klimatyzacja i wymiana opon. Umów wizytę!";
+  "BESS MOTORS — warsztat samochodowy Warszawa, Aleja Krakowska 48/52 (Włochy). Wulkanizacja i wymiana opon dla całej Warszawy, diagnostyka, hamulce, klimatyzacja. Umów wizytę.";
 
 export const defaultSeoKeywords = [
   "BESS MOTORS",

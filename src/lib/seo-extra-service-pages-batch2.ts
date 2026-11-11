@@ -7,31 +7,46 @@ import type { SeoLandingPage } from "@/lib/seo-landing-pages";
 import type { LocalizedText } from "@/lib/service-landing-content";
 import type { SlugLandingProfile } from "@/lib/seo-landing-slug-profiles";
 import { getPriceItem } from "@/lib/price-list";
+import {
+  TIRE_PROMO_EXTRAS,
+  TIRE_PROMO_FROM_ZL,
+  TIRE_PROMO_LADDER,
+  TIRE_PROMO_NOTE_PL,
+  TIRE_PROMO_SUMMARY_SHORT_PL,
+} from "@/lib/tire-promo-prices";
 
 const L = (pl: string, ru: string, en?: string, uk?: string): LocalizedText => ({
   pl, ru, en, uk,
 });
 
+function tireSetPriceTable() {
+  return TIRE_PROMO_LADDER.map((row) => ({
+    label: L(`${row.label} — komplet, cena promocyjna`, `${row.label} — комплект, акция`, `${row.label} — set, promo`, `${row.label} — комплект, акція`),
+    priceZl: row.nowZl,
+    compareAtZl: row.wasZl,
+  }));
+}
+
 export const EXTRA_SEO_SERVICE_PAGES_BATCH2: SeoLandingPage[] = [
   {
     slug: "wulkanizacja-warszawa",
-    title: "Wulkanizacja i wymiana opon Warszawa",
-    line1: "R13–R15 140 zł · R16 170 · R17 190 · R18 220 · R19 280 · R20 350",
-    line2: "Warszawa Włochy — Aleja Krakowska 48/52",
-    metaTitle: "Wulkanizacja i wymiana opon Warszawa Włochy | BESS MOTORS",
+    title: "Wulkanizacja Warszawa",
+    line1: `Komplet od ${TIRE_PROMO_FROM_ZL} zł · ${TIRE_PROMO_SUMMARY_SHORT_PL}`,
+    line2: "Jeden warsztat: Aleja Krakowska 48/52 · cała Warszawa",
+    metaTitle: `Wulkanizacja Warszawa | wymiana opon od ${TIRE_PROMO_FROM_ZL} zł`,
     metaDescription:
-      "Wulkanizacja Warszawa Włochy — wymiana kompletu od 140 zł (R13–R15), R16 170 zł, R17 190 zł, R18 220 zł, R19 280 zł, R20 350 zł. Naprawa przebicia 60 zł. Zapytaj o termin.",
+      `Wulkanizacja Warszawa — wymiana kompletu ${TIRE_PROMO_SUMMARY_SHORT_PL}. Warsztat: Aleja Krakowska 48/52. Naprawa przebicia ${TIRE_PROMO_EXTRAS.punctureRepairZl} zł. Umów termin.`,
     serviceId: "tires",
     icon: "Circle",
   },
   {
     slug: "wymiana-opon-warszawa",
     title: "Wymiana opon Warszawa",
-    line1: "Komplet 4 kół z wyważaniem od 140 zł",
-    line2: "Zapytaj o najbliższy termin we Włochach",
-    metaTitle: "Wymiana opon Warszawa Włochy | od 140 zł komplet",
+    line1: `Cena kompletu od ${TIRE_PROMO_FROM_ZL} zł z wyważaniem`,
+    line2: "Cena promocyjna i regularna w jednym cenniku · Aleja Krakowska 48/52",
+    metaTitle: `Wymiana opon Warszawa | cena od ${TIRE_PROMO_FROM_ZL} zł`,
     metaDescription:
-      "Wymiana opon Warszawa Włochy — komplet R13–R15 140 zł, R16 170 zł, R17 190 zł, R18 220 zł, R19 280 zł, R20 350 zł. BESS MOTORS, Aleja Krakowska 48/52. Zapytaj o termin.",
+      `Wymiana opon Warszawa, cena kompletu: ${TIRE_PROMO_SUMMARY_SHORT_PL}. Cena regularna jest przekreślona w cenniku. Aleja Krakowska 48/52. Umów termin.`,
     serviceId: "tires",
     icon: "Circle",
   },
@@ -42,29 +57,29 @@ export const EXTRA_SEO_SERVICE_PAGES_BATCH2: SeoLandingPage[] = [
     line2: "Wyważanie opon na maszynie",
     metaTitle: "Wyważanie kół Warszawa",
     metaDescription:
-      "Wyważanie kół Warszawa Włochy — mniej wibracji, równe zużycie opon. BESS MOTORS, Aleja Krakowska 48/52. Umów wizytę.",
+      "Wyważanie kół Warszawa — osobno od wymiany opon, według rozmiaru w cenniku. W komplecie wymiany wyważanie jest wliczone. Aleja Krakowska 48/52.",
     serviceId: "tires",
     icon: "Circle",
   },
   {
     slug: "naprawa-opon-warszawa",
     title: "Naprawa opon Warszawa",
-    line1: "Naprawa przebicia — 60 zł robocizna",
-    line2: "Demontaż, naprawa, montaż i wyważanie",
-    metaTitle: "Naprawa przebicia opony Warszawa | 60 zł",
+    line1: `Naprawa przebicia — ${TIRE_PROMO_EXTRAS.punctureRepairZl} zł robocizna`,
+    line2: "Demontaż, naprawa, montaż i wyważanie · cała Warszawa",
+    metaTitle: `Naprawa opon Warszawa | przebicie ${TIRE_PROMO_EXTRAS.punctureRepairZl} zł`,
     metaDescription:
-      "Naprawa przebicia opony Warszawa — 60 zł (zdjęcie, demontaż, naprawa, montaż, wyważanie). BESS MOTORS Włochy. Zapytaj o termin.",
+      `Naprawa opon Warszawa — przebicie ${TIRE_PROMO_EXTRAS.punctureRepairZl} zł (zdjęcie, demontaż, naprawa, montaż, wyważanie). Bok opony oceniamy osobno. Aleja Krakowska 48/52.`,
     serviceId: "tires",
     icon: "Circle",
   },
   {
     slug: "sezonowa-wymiana-opon-warszawa",
     title: "Sezonowa wymiana opon Warszawa",
-    line1: "Komplet od 140 zł — umów termin online",
-    line2: "BESS MOTORS Włochy · zdjęcia z warsztatu · wyważanie w cenie",
-    metaTitle: "Sezonowa wymiana opon Warszawa Włochy | od 140 zł | BESS MOTORS",
+    line1: `Komplet od ${TIRE_PROMO_FROM_ZL} zł — umów termin online`,
+    line2: "Zima i lato · wyważanie w cenie kompletu · Aleja Krakowska 48/52",
+    metaTitle: `Sezonowa wymiana opon Warszawa | od ${TIRE_PROMO_FROM_ZL} zł`,
     metaDescription:
-      "Sezonowa wymiana opon Warszawa Włochy — komplet R13–R15 140 zł, R16 170, R17 190, R18 220, R19 280, R20 350. Wyważanie w cenie. Umów wizytę online lub zadzwoń +48 791 257 229.",
+      `Sezonowa wymiana opon Warszawa — ${TIRE_PROMO_SUMMARY_SHORT_PL}. Wyważanie w cenie kompletu. Warsztat: Aleja Krakowska 48/52. Umów wizytę.`,
     serviceId: "tires",
     icon: "Circle",
   },
@@ -347,10 +362,10 @@ export const EXTRA_SEO_SERVICE_PAGES_BATCH2: SeoLandingPage[] = [
     slug: "mechanik-warszawa-okecie",
     title: "Mechanik samochodowy Warszawa Okęcie",
     line1: "Blisko lotniska — Aleja Krakowska 48/52",
-    line2: "Ok. 5 min od Okęcia · parking przy serwisie",
+    line2: "Orientacyjnie ok. 5 min od Okęcia · parking przy serwisie",
     metaTitle: "Mechanik Warszawa Okęcie",
     metaDescription:
-      "Mechanik Warszawa Okęcie — BESS MOTORS przy Alei Krakowskiej 48/52 (Włochy), ok. 5 min od Okęcia. Diagnostyka, olej, hamulce, opony. Umów wizytę.",
+      "Mechanik Warszawa Okęcie — BESS MOTORS przy Alei Krakowskiej 48/52 (Włochy). Z Okęcia orientacyjnie ok. 5 min, bez gwarancji czasu dojazdu. Diagnostyka, olej, hamulce, opony. Umów wizytę.",
     serviceId: "diagnostic",
     icon: "Gauge",
   },
@@ -362,10 +377,12 @@ export const EXTRA_SEO_SERVICE_PROFILES_BATCH2: Record<string, SlugLandingProfil
     contentServiceId: "tires",
     faqDuration: L("Wymiana kompletu 4 kół zwykle 45–90 minut — zależnie od rozmiaru i dostępności terminu.", "Замена комплекта обычно 45–90 минут.", "A set of 4 usually takes 45–90 minutes — depending on size and slot availability.", "Заміна комплекта зазвичай 45–90 минут."),
     price: {
-          fromZl: getPriceItem("tire_change_r13")?.basePrice ?? 140,
+          fromZl: TIRE_PROMO_FROM_ZL,
+          compareAtZl: TIRE_PROMO_LADDER[0].wasZl,
           priceFrom: true,
           materialsExtra: false,
-          note: L("Cennik wymiany kompletu: R13–R15 140 zł, R16 170 zł, R17 190 zł, R18 220 zł, R19 280 zł, R20 350 zł. R21–R23 w cenniku. RunFlat / niski profil / TPMS +25 zł/koło. Szczegóły na /cennik.", "Прайс комплекта: R13–R15 140 zł, R16 170 zł, R17 190 zł, R18 220 zł, R19 280 zł, R20 350 zł. R21–R23 в прайсе. RunFlat / низкий профиль / TPMS +25 zł/колесо.", "Set change: R13–R15 140 zł, R16 170 zł, R17 190 zł, R18 220 zł, R19 280 zł, R20 350 zł. R21–R23 on the price list. RunFlat / low profile / TPMS +25 zł/wheel.", "Прайс комплекту: R13–R15 140 zł, R16 170 zł, R17 190 zł, R18 220 zł, R19 280 zł, R20 350 zł. R21+ / SUV — після підтвердження."),
+          note: L(TIRE_PROMO_NOTE_PL, TIRE_PROMO_NOTE_PL, TIRE_PROMO_NOTE_PL, TIRE_PROMO_NOTE_PL),
+          priceTable: tireSetPriceTable(),
           includes: [
             L("Demontaż i montaż opon + wyważanie", "Демонтаж и монтаж шин + балансировка", "Tyre demount/mount + balancing", "Демонтаж і монтаж шин + балансування"),
             L("Czyszczenie piast (gratis)", "Очистка ступиц (бесплатно)", "Hub cleaning (included)", "Очищення маточин (безкоштовно)"),
@@ -375,8 +392,40 @@ export const EXTRA_SEO_SERVICE_PROFILES_BATCH2: Record<string, SlugLandingProfil
         },
     education: [
       {
-        title: L("Wulkanizacja w Warszawie Włochy", "Шиномонтаж в Włochy", "Tyre fitting in Warsaw Włochy", "Шиномонтаж в Włochy"),
-        body: L("W BESS MOTORS robimy sezonową wymianę opon, wyważanie i naprawy przebić. Warsztat przy Alei Krakowskiej 48/52 — łatwy dojazd z Okęcia i południowej Warszawy.", "Сезонная замена, балансировка и ремонт проколов. Aleja Krakowska 48/52.", "At BESS MOTORS we do seasonal tyre changes, balancing and puncture repairs. Workshop at Aleja Krakowska 48/52 — easy from Okęcie and southern Warsaw.", "Сезонная заміна, балансування і ремонт проколов. Aleja Krakowska 48/52."),
+        title: L("Wulkanizacja w Warszawie", "Шиномонтаж в Варшаве", "Tyre fitting in Warsaw", "Шиномонтаж у Варшаві"),
+        body: L(
+          "Sezonowa wymiana, wyważanie i naprawa przebicia są osobnymi usługami, ale wykonujemy je w jednym warsztacie. Adres jest stały — Aleja Krakowska 48/52, 02-284 Warszawa (dzielnica Włochy). Kierowcy z całej Warszawy i najbliższych miejscowości przyjeżdżają tutaj.",
+          "Одна мастерская на Aleja Krakowska 48/52, 02-284 Warszawa (Włochy). Сюда приезжают со всей Варшавы.",
+          "One workshop at Aleja Krakowska 48/52, 02-284 Warsaw (Włochy). Drivers from across Warsaw come here.",
+          "Одна майстерня на Aleja Krakowska 48/52, 02-284 Warszawa (Włochy)."
+        ),
+      },
+      {
+        title: L("Rozmiary kół i ograniczenia", "Размеры колёс", "Wheel sizes and limits", "Розміри коліс"),
+        body: L(
+          "W cenniku są komplety R13–R23. R24 nie jest w ofercie publicznej: nie podajemy ceny i nie obiecujemy przyjęcia, dopóki warsztat nie sprawdzi maszyny. Podaj rozmiar przy zapisie.",
+          "В прайсе комплекты R13–R23. R24 нет в публичном предложении: цену не называем и приём не обещаем, пока сервис не проверит станок. Размер укажите при записи.",
+          "The price list covers sets R13–R23. R24 is not a public offer: we do not quote a price or promise to accept it until the workshop checks the machine. Tell us the size when you book.",
+          "У прайсі комплекти R13–R23. R24 немає в публічній пропозиції: ціну не називаємо і прийом не обіцяємо, доки сервіс не перевірить верстат."
+        ),
+      },
+      {
+        title: L("RunFlat, TPMS i przechowywanie", "RunFlat, TPMS и хранение", "RunFlat, TPMS and storage", "RunFlat, TPMS і зберігання"),
+        body: L(
+          `RunFlat: dopłata ${TIRE_PROMO_EXTRAS.runFlatPerWheelZl} zł/koło. Dopłaty za niski profil nie publikujemy. TPMS ${TIRE_PROMO_EXTRAS.tpmsPerWheelZl} zł/koło, utylizacja ${TIRE_PROMO_EXTRAS.disposalPerWheelZl} zł/koło, wentyl ${TIRE_PROMO_EXTRAS.valveReplaceZl} zł. Przechowywanie opon bez felg: ${TIRE_PROMO_EXTRAS.storageLooseSeasonZl} zł za sezon. Koła na felgach: ${TIRE_PROMO_EXTRAS.storageRimsSeasonZl} zł za sezon. Czas, miejsce i warunki magazynu potwierdzamy przy zapisie.`,
+          `RunFlat +${TIRE_PROMO_EXTRAS.runFlatPerWheelZl} zł/колесо. Доплату за низкий профиль не публикуем. Хранение шин без дисков: ${TIRE_PROMO_EXTRAS.storageLooseSeasonZl} zł за сезон. Колёса на дисках: ${TIRE_PROMO_EXTRAS.storageRimsSeasonZl} zł за сезон.`,
+          `RunFlat +${TIRE_PROMO_EXTRAS.runFlatPerWheelZl} zł/wheel. We do not publish a low-profile surcharge. Tyres off the rims: ${TIRE_PROMO_EXTRAS.storageLooseSeasonZl} zł per season. Wheels on rims: ${TIRE_PROMO_EXTRAS.storageRimsSeasonZl} zł per season.`,
+          `RunFlat +${TIRE_PROMO_EXTRAS.runFlatPerWheelZl} zł/колесо. Доплату за низький профіль не публікуємо. Шини без дисків: ${TIRE_PROMO_EXTRAS.storageLooseSeasonZl} zł за сезон. Колеса на дисках: ${TIRE_PROMO_EXTRAS.storageRimsSeasonZl} zł за сезон.`
+        ),
+      },
+      {
+        title: L("Jak dojechać do warsztatu", "Как доехать", "How to get here", "Як доїхати"),
+        body: L(
+          "Wjazd z Alei Krakowskiej, parking przy serwisie na czas wizyty. Z Okęcia i lotniska Chopina orientacyjnie około 5 minut — to czas przejazdu, nie gwarancja. Z Rakowa, Ochoty, Ursusa, Mokotowa, Służewca, Woli i Bemowa, a także z Raszyna, Michałowic, Piastowa, Pruszkowa, Janek i Ożarowa Mazowieckiego jedzie się do tego samego adresu. Nie podajemy minut dojazdu, których nie mierzyliśmy. Trasa: przycisk mapy na stronie kontaktu.",
+          "Въезд с Aleja Krakowska, парковка у сервиса. С Okęcie ориентировочно около 5 минут — это время в пути, не гарантия. Из остальных районов Варшавы и ближних городов — на этот же адрес. Минуты в пути публикуем только там, где они уже проверены.",
+          "Entrance from Aleja Krakowska, parking at the workshop. Okęcie is about 5 minutes as a rough drive time, not a guarantee. Other Warsaw districts and nearby towns use the same address. We do not publish drive times we have not measured.",
+          "Заїзд з Aleja Krakowska, парковка біля сервісу. З Okęcie орієнтовно близько 5 хвилин — це час у дорозі, не гарантія."
+        ),
       },
       {
         title: L("Kiedy jechać na wulkanizację?", "Когда ехать", "When to book tyre fitting?", "Коли ехать"),
@@ -391,8 +440,13 @@ export const EXTRA_SEO_SERVICE_PROFILES_BATCH2: Record<string, SlugLandingProfil
         body: L("Komplet zwykle 45–90 min. Ceny według rozmiaru — od pozycji w cenniku wulkanizacji. Olej i inne usługi nie są w tej cenie.", "45–90 мин. Цены по размеру в прайсе.", "A full set usually 45–90 min. Prices by size — see the tyre price list. Oil and other jobs are not included.", "45–90 мин. Ціни по размеру в прайсе."),
       },
       {
-        title: L("Dlaczego BESS MOTORS", "Почему BESS MOTORS", "Why BESS MOTORS", "Чому BESS MOTORS"),
-        body: L("Wycena przed naprawą, części dobierane po VIN, kontakt podczas prac i przejrzyste rozliczenie. Warsztat przy Alei Krakowskiej 48/52 (Warszawa Włochy) — blisko Okęcia.", "Смета до ремонта, детали по VIN, связь во время работ и прозрачный расчёт. Сервис на Aleja Krakowska 48/52 (Warszawa Włochy).", "Quote before repair, parts matched by VIN, updates during the job and clear billing. Workshop at Aleja Krakowska 48/52 (Warsaw Włochy) — near Okęcie.", "Кошторис до ремонту, деталі за VIN, зв’язок під час робіт і прозорий розрахунок. Сервіс на Aleja Krakowska 48/52 (Warszawa Włochy) — поруч з Okęcie."),
+        title: L("Co jest inną usługą", "Это другие услуги", "These are different jobs", "Це інші послуги"),
+        body: L(
+          "Wymiana kompletu, sezonowa zmiana, samo wyważanie i naprawa przebicia mają osobne strony i osobne pozycje cennika. Geometrii kół nie robimy. Szczegóły cen: /cennik#price-cat-tires.",
+          "Замена комплекта, сезонная смена, только балансировка и ремонт прокола — разные позиции прайса. Развал-схождение не делаем.",
+          "A full change, a seasonal swap, balancing alone and a puncture repair are separate price items. We do not do wheel alignment.",
+          "Заміна комплекту, сезонна зміна, лише балансування і ремонт проколу — різні позиції прайсу."
+        ),
       },
     ],
     faqExtra: [
@@ -406,7 +460,12 @@ export const EXTRA_SEO_SERVICE_PROFILES_BATCH2: Record<string, SlugLandingProfil
       },
       {
         q: L("Macie przechowywanie opon?", "Есть хранение шин?", "Do you store tyres?", "Есть хранение шин?"),
-        a: L("Tak — sezonowe przechowywanie; zapytaj przy rezerwacji.", "Да — сезонное хранение, уточните при записи.", "Yes — seasonal storage; ask when you book.", "Так — сезонное хранение, уточните при записи."),
+        a: L(
+          `Opony bez felg: ${TIRE_PROMO_EXTRAS.storageLooseSeasonZl} zł za sezon. Koła na felgach: ${TIRE_PROMO_EXTRAS.storageRimsSeasonZl} zł za sezon. Czas, miejsce i warunki magazynu potwierdzamy przy zapisie.`,
+          `Шины без дисков: ${TIRE_PROMO_EXTRAS.storageLooseSeasonZl} zł за сезон. Колёса на дисках: ${TIRE_PROMO_EXTRAS.storageRimsSeasonZl} zł за сезон. Срок и условия склада подтверждаем при записи.`,
+          `Tyres off the rims: ${TIRE_PROMO_EXTRAS.storageLooseSeasonZl} zł per season. Wheels on rims: ${TIRE_PROMO_EXTRAS.storageRimsSeasonZl} zł per season. Duration and storage conditions are confirmed when you book.`,
+          `Шини без дисків: ${TIRE_PROMO_EXTRAS.storageLooseSeasonZl} zł за сезон. Колеса на дисках: ${TIRE_PROMO_EXTRAS.storageRimsSeasonZl} zł за сезон. Умови підтверджуємо при записі.`
+        ),
       },
     ],
   },
@@ -421,15 +480,12 @@ export const EXTRA_SEO_SERVICE_PROFILES_BATCH2: Record<string, SlugLandingProfil
       "Сезонна заміна комплекту 4 коліс з балансуванням: зазвичай 45–90 хвилин."
     ),
     price: {
-      fromZl: getPriceItem("tire_change_r13")?.basePrice ?? 140,
+      fromZl: TIRE_PROMO_FROM_ZL,
+      compareAtZl: TIRE_PROMO_LADDER[0].wasZl,
       priceFrom: true,
       materialsExtra: false,
-      note: L(
-        "Cennik kompletu: R13–R15 140 zł, R16 170 zł, R17 190 zł, R18 220 zł, R19 280 zł, R20 350 zł. R21–R23 w cenniku. Naprawa przebicia 60 zł robocizna.",
-        "Прайс комплекта: R13–R15 140 zł, R16 170 zł, R17 190 zł, R18 220 zł, R19 280 zł, R20 350 zł. R21–R23 в прайсе. Ремонт прокола 60 zł.",
-        "Set prices: R13–R15 140 zł, R16 170 zł, R17 190 zł, R18 220 zł, R19 280 zł, R20 350 zł. R21–R23 on the price list. Puncture repair 60 zł labour.",
-        "Прайс комплекту: R13–R15 140 zł, R16 170 zł, R17 190 zł, R18 220 zł, R19 280 zł, R20 350 zł. R21–R23 у прайсі."
-      ),
+      priceTable: tireSetPriceTable(),
+      note: L(TIRE_PROMO_NOTE_PL, TIRE_PROMO_NOTE_PL, TIRE_PROMO_NOTE_PL, TIRE_PROMO_NOTE_PL),
       includes: [
         L("Sezonowa wymiana opon na 4 kołach", "Сезонная замена шин на 4 колёсах", "Seasonal tyre change on 4 wheels", "Сезонна заміна шин на 4 колісах"),
         L("Wyważanie + ciśnienie", "Балансировка + давление", "Balancing + pressure", "Балансування + тиск"),
@@ -439,10 +495,10 @@ export const EXTRA_SEO_SERVICE_PROFILES_BATCH2: Record<string, SlugLandingProfil
     education: [
       {
         title: L(
-          "Sezonowa wymiana opon w Warszawie Włochy",
-          "Сезонная замена шин в Варшаве Włochy",
-          "Seasonal tyre change in Warsaw Włochy",
-          "Сезонна заміна шин у Варшаві Włochy"
+          "Sezonowa wymiana opon w Warszawie",
+          "Сезонная замена шин в Варшаве",
+          "Seasonal tyre change in Warsaw",
+          "Сезонна заміна шин у Варшаві"
         ),
         body: L(
           "Zima lub lato — komplet z wyważaniem w BESS MOTORS przy Alei Krakowskiej 48/52. Na tej stronie od razu umówisz termin: przycisk „Umów wizytę” otwiera zapis online.",
@@ -501,10 +557,10 @@ export const EXTRA_SEO_SERVICE_PROFILES_BATCH2: Record<string, SlugLandingProfil
       {
         q: L("Ile kosztuje sezonowa wymiana?", "Сколько стоит сезонная замена?", "How much is a seasonal change?", "Скільки коштує сезонна заміна?"),
         a: L(
-          "R13–R15 140 zł, R16 170 zł, R17 190 zł, R18 220 zł, R19 280 zł, R20 350 zł za komplet z wyważaniem. R21–R23 w cenniku.",
-          "R13–R15 140 zł, R16 170 zł, R17 190 zł, R18 220 zł, R19 280 zł, R20 350 zł за комплект с балансировкой.",
-          "R13–R15 140 zł, R16 170 zł, R17 190 zł, R18 220 zł, R19 280 zł, R20 350 zł per set with balancing.",
-          "R13–R15 140 zł, R16 170 zł, R17 190 zł, R18 220 zł, R19 280 zł, R20 350 zł за комплект з балансуванням."
+          TIRE_PROMO_NOTE_PL,
+          TIRE_PROMO_NOTE_PL,
+          TIRE_PROMO_NOTE_PL,
+          TIRE_PROMO_NOTE_PL
         ),
       },
       {
@@ -524,10 +580,12 @@ export const EXTRA_SEO_SERVICE_PROFILES_BATCH2: Record<string, SlugLandingProfil
     contentServiceId: "tires",
     faqDuration: L("Wymiana 4 opon z wyważaniem: zwykle 45–90 minut.", "Замена 4 шин: обычно 45–90 минут.", "Tyre change for 4 with balancing: usually 45–90 minutes.", "Заміна 4 шин: зазвичай 45–90 минут."),
     price: {
-          fromZl: getPriceItem("tire_change_r13")?.basePrice ?? 140,
+          fromZl: TIRE_PROMO_FROM_ZL,
+          compareAtZl: TIRE_PROMO_LADDER[0].wasZl,
           priceFrom: true,
           materialsExtra: false,
-          note: L("Cennik wymiany kompletu: R13–R15 140 zł, R16 170 zł, R17 190 zł, R18 220 zł, R19 280 zł, R20 350 zł. R21–R23 w cenniku. RunFlat / niski profil +25 zł/koło.", "Прайс комплекта: R13–R15 140 zł, R16 170 zł, R17 190 zł, R18 220 zł, R19 280 zł, R20 350 zł. R21–R23 в прайсе.", "Set change: R13–R15 140 zł, R16 170 zł, R17 190 zł, R18 220 zł, R19 280 zł, R20 350 zł. R21–R23 on the price list.", "Прайс комплекту: R13–R15 140 zł, R16 170 zł, R17 190 zł, R18 220 zł, R19 280 zł, R20 350 zł."),
+          priceTable: tireSetPriceTable(),
+          note: L(TIRE_PROMO_NOTE_PL, TIRE_PROMO_NOTE_PL, TIRE_PROMO_NOTE_PL, TIRE_PROMO_NOTE_PL),
           includes: [
             L("Wymiana opon na komplecie 4 kół", "Замена шин на 4 колёсах", "Tyre change on a set of 4", "Заміна шин на 4 колісах"),
             L("Wyważanie", "Балансировка", "Balancing", "Балансування"),
@@ -563,7 +621,12 @@ export const EXTRA_SEO_SERVICE_PROFILES_BATCH2: Record<string, SlugLandingProfil
       },
       {
         q: L("Czy robicie RunFlat?", "Делаете RunFlat?", "Do you fit RunFlat?", "Делаете RunFlat?"),
-        a: L("Tak — montaż RunFlat jest w cenniku; dopytaj przy zapisie.", "Да — монтаж RunFlat в прайсе.", "Yes — RunFlat fitting is on the price list; ask when booking.", "Так — монтаж RunFlat в прайсе."),
+        a: L(
+          `Dopłata RunFlat to ${TIRE_PROMO_EXTRAS.runFlatPerWheelZl} zł/koło. Czy konkretny rozmiar wejdzie na maszynę, potwierdzamy po podaniu R przy zapisie.`,
+          `Доплата RunFlat ${TIRE_PROMO_EXTRAS.runFlatPerWheelZl} zł/колесо. Конкретный размер подтверждаем при записи.`,
+          `The RunFlat surcharge is ${TIRE_PROMO_EXTRAS.runFlatPerWheelZl} zł/wheel. We confirm the exact size fits the machine when you book.`,
+          `Доплата RunFlat ${TIRE_PROMO_EXTRAS.runFlatPerWheelZl} zł/колесо. Розмір підтверджуємо при записі.`
+        ),
       },
       {
         q: L("Ile trwa wymiana?", "Сколько длится?", "How long does it take?", "Сколько длится?"),
@@ -580,7 +643,12 @@ export const EXTRA_SEO_SERVICE_PROFILES_BATCH2: Record<string, SlugLandingProfil
           fromZl: getPriceItem("wheel_balance_r13")?.basePrice ?? 30,
           priceFrom: true,
           materialsExtra: false,
-          note: L("Wyważanie bez wymiany opon: R13–R16 30 zł/koło (120 zł komplet), R17–R18 35 zł (140 zł), R19–R20 40 zł (160 zł), R21–R24 50 zł (200 zł).", "Балансировка без замены: R13–R16 30 zł/колесо (120 zł комплект) … R21–R24 50 zł (200 zł).", "Balance only: R13–R16 30 zł/wheel (120 zł set) … R21–R24 50 zł (200 zł set).", "Балансування без заміни: R13–R16 30 zł/колесо (120 zł комплект) … R21–R24 50 zł (200 zł)."),
+          note: L(
+            `Wyważanie bez wymiany opon: R13–R16 ${getPriceItem("wheel_balance_r13")?.basePrice ?? "?"} zł/koło, R17–R18 ${getPriceItem("wheel_balance_r17")?.basePrice ?? "?"} zł/koło, R19–R20 ${getPriceItem("wheel_balance_r19")?.basePrice ?? "?"} zł/koło, R21–R23 ${getPriceItem("wheel_balance_r21")?.basePrice ?? "?"} zł/koło. W cenie kompletu wymiany opon wyważanie już jest.`,
+            `Балансировка без замены: от ${getPriceItem("wheel_balance_r13")?.basePrice ?? "?"} zł/колесо. В комплекте замены шин балансировка уже включена.`,
+            `Balancing without a tyre change starts at ${getPriceItem("wheel_balance_r13")?.basePrice ?? "?"} zł/wheel. A full tyre-change set already includes balancing.`,
+            `Балансування без заміни: від ${getPriceItem("wheel_balance_r13")?.basePrice ?? "?"} zł/колесо.`
+          ),
           includes: [
             L("Wyważanie na maszynie", "Балансировка на станке", "Machine balancing", "Балансування на станке"),
             L("Kontrola ciężarków", "Проверка грузиков", "Weight check", "Проверка грузиков"),
@@ -630,10 +698,15 @@ export const EXTRA_SEO_SERVICE_PROFILES_BATCH2: Record<string, SlugLandingProfil
     contentServiceId: "tires",
     faqDuration: L("Naprawa przebicia zwykle ok. 30–60 minut — jeśli opona nadaje się do naprawy.", "Ремонт прокола обычно 30–60 минут.", "Puncture repair usually about 30–60 minutes if the tyre can be repaired safely.", "Ремонт прокола зазвичай 30–60 минут."),
     price: {
-          fromZl: getPriceItem("puncture_repair")?.basePrice ?? 70,
-          priceFrom: true,
+          fromZl: TIRE_PROMO_EXTRAS.punctureRepairZl,
+          priceFrom: false,
           materialsExtra: false,
-          note: L("Naprawa przebicia 60 zł (robocizna) — w cenie: zdjęcie koła, demontaż opony, naprawa, montaż i wyważanie. Boczne uszkodzenia często wykluczają naprawę.", "Ремонт прокола 60 zł (работа) — в цене снятие, демонтаж, ремонт, монтаж и балансировка.", "Puncture repair 60 zł (labour) — includes wheel off, demount, repair, remount and balancing.", "Ремонт проколу 60 zł (робота) — у ціні зняття, демонтаж, ремонт, монтаж і балансування."),
+          note: L(
+            `Naprawa przebicia ${TIRE_PROMO_EXTRAS.punctureRepairZl} zł (robocizna) — w cenie: zdjęcie koła, demontaż opony, naprawa, montaż i wyważanie. Uszkodzenie boku często wyklucza naprawę. Boczne nacięcie w cenniku jest osobną pozycją „od” i wymaga oceny.`,
+            `Ремонт прокола ${TIRE_PROMO_EXTRAS.punctureRepairZl} zł — снятие, ремонт, монтаж и балансировка. Боковой порез оцениваем отдельно.`,
+            `Puncture repair ${TIRE_PROMO_EXTRAS.punctureRepairZl} zł labour, including wheel off, repair, refit and balancing. A sidewall cut is assessed separately.`,
+            `Ремонт проколу ${TIRE_PROMO_EXTRAS.punctureRepairZl} zł. Бічний поріз оцінюємо окремо.`
+          ),
           includes: [
             L("Demontaż koła i opony", "Демонтаж колеса и шины", "Wheel and tyre removal", "Демонтаж коліса і шины"),
             L("Naprawa przebicia (gdy możliwa)", "Ремонт прокола при возможности", "Puncture repair when possible", "Ремонт прокола при возможнасти"),
@@ -1969,7 +2042,7 @@ export const EXTRA_SEO_SERVICE_PROFILES_BATCH2: Record<string, SlugLandingProfil
       },
       {
         q: L("Czy mogę przyjechać z Ocęcia?", "Можно с Okęcie?", "You can Okęcie?", "Можна с Okęcie?"),
-        a: L("Tak — jesteśmy przy Alei Krakowskiej 48/52, ok. 5 min od Okęcia.", "Да — Aleja Krakowska 48/52, ~5 мин от Okęcie.", "Yes — Aleja Krakowska 48/52, ~5 min Okęcie", "Так — Aleja Krakowska 48/52, ~5 мин от Okęcie."),
+        a: L("Tak — Aleja Krakowska 48/52. Z Okęcia orientacyjnie około 5 minut, to nie jest gwarantowany czas dojazdu.", "Да — Aleja Krakowska 48/52. С Okęcie ориентировочно около 5 минут, это не гарантия времени в пути.", "Yes — Aleja Krakowska 48/52. About 5 minutes from Okęcie as a rough drive time, not a guarantee.", "Так — Aleja Krakowska 48/52. З Okęcie орієнтовно близько 5 хвилин, це не гарантія часу в дорозі."),
       },
     ],
   },
@@ -1992,7 +2065,7 @@ export const EXTRA_SEO_SERVICE_PROFILES_BATCH2: Record<string, SlugLandingProfil
     education: [
       {
         title: L("Mechanik blisko Okęcia", "Механик рядом с Okęcie", "Okęcie", "Механик рядом с Okęcie"),
-        body: L("BESS MOTORS stoi przy Alei Krakowskiej 48/52 w dzielnicy Włochy — zwykle ok. 5 minut autem od Okęcia i lotniska Chopina. Parking przy serwisie.", "Aleja Krakowska 48/52, Włochy — около 5 минут от Okęcie и аэропорта.", "Aleja Krakowska 48/52, Włochy — 5 min Okęcie and", "Aleja Krakowska 48/52, Włochy — около 5 минут от Okęcie і аэропорта."),
+        body: L("BESS MOTORS stoi przy Alei Krakowskiej 48/52 w dzielnicy Włochy. Z Okęcia i lotniska Chopina orientacyjnie około 5 minut autem — to czas przejazdu, nie gwarancja. Parking przy serwisie.", "Aleja Krakowska 48/52, Włochy. С Okęcie и аэропорта ориентировочно около 5 минут — это время в пути, не гарантия. Парковка у сервиса.", "Aleja Krakowska 48/52, Włochy. About 5 minutes from Okęcie and the airport as a rough drive time, not a guarantee. Parking at the workshop.", "Aleja Krakowska 48/52, Włochy. З Okęcie та аеропорту орієнтовно близько 5 хвилин — це час у дорозі, не гарантія."),
       },
       {
         title: L("Jakie naprawy robimy", "Какие работы", "Labour", "Какие роботи"),
@@ -2030,11 +2103,11 @@ export const EXTRA_SEO_SERVICE_PROFILES_BATCH2: Record<string, SlugLandingProfil
 };
 
 export const EXTRA_SEO_RELATED_BATCH2: Record<string, string[]> = {
-  "wulkanizacja-warszawa": ["sezonowa-wymiana-opon-warszawa", "wymiana-opon-warszawa", "wywazanie-kol-warszawa", "naprawa-opon-warszawa", "opony"],
-  "wymiana-opon-warszawa": ["sezonowa-wymiana-opon-warszawa", "wulkanizacja-warszawa", "wywazanie-kol-warszawa", "naprawa-opon-warszawa", "opony"],
+  "wulkanizacja-warszawa": ["wymiana-opon-warszawa", "sezonowa-wymiana-opon-warszawa", "naprawa-opon-warszawa", "wywazanie-kol-warszawa", "opony"],
+  "wymiana-opon-warszawa": ["wulkanizacja-warszawa", "sezonowa-wymiana-opon-warszawa", "naprawa-opon-warszawa", "wywazanie-kol-warszawa", "opony"],
   "sezonowa-wymiana-opon-warszawa": ["wymiana-opon-warszawa", "wulkanizacja-warszawa", "wywazanie-kol-warszawa", "naprawa-opon-warszawa", "opony"],
-  "wywazanie-kol-warszawa": ["wulkanizacja-warszawa", "wymiana-opon-warszawa", "naprawa-opon-warszawa"],
-  "naprawa-opon-warszawa": ["wulkanizacja-warszawa", "wymiana-opon-warszawa", "wywazanie-kol-warszawa", "opony"],
+  "wywazanie-kol-warszawa": ["wulkanizacja-warszawa", "wymiana-opon-warszawa", "sezonowa-wymiana-opon-warszawa", "naprawa-opon-warszawa"],
+  "naprawa-opon-warszawa": ["wulkanizacja-warszawa", "wymiana-opon-warszawa", "wywazanie-kol-warszawa", "sezonowa-wymiana-opon-warszawa", "opony"],
   "wymiana-klockow-hamulcowych-warszawa": ["hamulce-warszawa", "wymiana-tarcz-hamulcowych-warszawa", "wymiana-plynu-hamulcowego-warszawa", "hamulce"],
   "wymiana-tarcz-hamulcowych-warszawa": ["hamulce-warszawa", "wymiana-klockow-hamulcowych-warszawa", "wymiana-plynu-hamulcowego-warszawa", "hamulce"],
   "wymiana-plynu-hamulcowego-warszawa": ["hamulce-warszawa", "wymiana-klockow-hamulcowych-warszawa", "wymiana-tarcz-hamulcowych-warszawa", "hamulce"],

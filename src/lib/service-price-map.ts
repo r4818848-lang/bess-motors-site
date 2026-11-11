@@ -47,6 +47,7 @@ export const flowOptionPriceIds: Record<string, string | string[]> = {
   balance: "wheel_balance_r15",
   repair: "puncture_repair",
   storage: "tire_storage",
+  storageRims: "tire_storage_rims",
   runflat: "runflat_surcharge",
 
   suspDiag: "suspension_diag",
