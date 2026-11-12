@@ -17,6 +17,17 @@ import type { ServiceId } from "@/lib/services-catalog";
 
 type GalleryTab = "workshop" | "works" | "repairs";
 
+const GALLERY_SERVICE_IDS = new Set<ServiceId>([
+  "tires",
+  "oil",
+  "brakePads",
+  "acRefill",
+  "suspension",
+  "engine",
+  "clutch",
+  "electric",
+]);
+
 export default function GalleryPageClient({
   hideTitle = false,
 }: {
@@ -47,12 +58,26 @@ export default function GalleryPageClient({
     if (fromUrl === "works" || fromUrl === "repairs" || fromUrl === "workshop") {
       setTab(fromUrl);
     }
+    const service = searchParams.get("service");
+    if (service && GALLERY_SERVICE_IDS.has(service as ServiceId)) {
+      setServiceFilter(service as ServiceId);
+      if (fromUrl !== "workshop" && fromUrl !== "repairs") setTab("works");
+    }
   }, [searchParams]);
 
   const selectTab = (id: GalleryTab) => {
     setTab(id);
-    const url = id === "works" ? "/gallery?tab=works" : `/gallery?tab=${id}`;
+    const service = searchParams.get("service");
+    const serviceQuery =
+      service && GALLERY_SERVICE_IDS.has(service as ServiceId) ? `&service=${service}` : "";
+    const url = id === "works" ? `/gallery?tab=works${serviceQuery}` : `/gallery?tab=${id}${serviceQuery}`;
     window.history.replaceState(null, "", url);
+  };
+
+  const selectService = (id: ServiceId | "all") => {
+    setServiceFilter(id);
+    const serviceQuery = id === "all" ? "" : `&service=${id}`;
+    window.history.replaceState(null, "", `/gallery?tab=works${serviceQuery}`);
   };
 
   useEffect(() => {
@@ -121,7 +146,7 @@ export default function GalleryPageClient({
                   key={item.id}
                   type="button"
                   aria-pressed={serviceFilter === item.id}
-                  onClick={() => setServiceFilter(item.id)}
+                  onClick={() => selectService(item.id)}
                   className={clsx(
                     "min-h-[44px] rounded-full border px-4 text-sm",
                     serviceFilter === item.id

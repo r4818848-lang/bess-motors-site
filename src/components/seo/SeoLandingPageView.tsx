@@ -59,14 +59,13 @@ export function SeoLandingPageView({ page }: Props) {
   const bookServiceId = resolveLandingBookServiceId(page.slug, page.serviceId);
   const contentServiceId = resolveLandingContentServiceId(page.slug, page.serviceId);
   const [bookingService, setBookingService] = useState<ServiceId | null>(null);
+  const tireQuick = isTireQuickBookSlug(page.slug);
 
   const openBooking = useCallback(() => {
     if (bookServiceId) {
       setBookingService(bookServiceId);
     }
   }, [bookServiceId]);
-
-  const tireQuick = isTireQuickBookSlug(page.slug);
   const bookFromPage = () => {
     trackBookingOpen(`landing_${page.slug}`);
     if (tireQuick) {
@@ -86,7 +85,7 @@ export function SeoLandingPageView({ page }: Props) {
       ? pageLoc.title
       : `${pageLoc.title} — Warszawa`;
 
-  const isExtraSeoPage = EXTRA_SEO_SERVICE_PAGES.some((p) => p.slug === page.slug);
+  const isExtraSeoPage = EXTRA_SEO_SERVICE_PAGES.some((item) => item.slug === page.slug);
 
   return (
     <>
@@ -118,6 +117,14 @@ export function SeoLandingPageView({ page }: Props) {
             <div className="mt-6 h-1 w-24 bg-bm-red shadow-neon-sm mx-auto lg:mx-0" />
             </div>
           </div>
+
+          {contentServiceId ? (
+            <ServiceLandingPhotos
+              serviceId={contentServiceId}
+              slug={page.slug}
+              placement="under-motion"
+            />
+          ) : null}
 
           {getModelHeroForSlug(page.slug) ? (
             <ModelServiceHero slug={page.slug} />

@@ -277,7 +277,7 @@ export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
   },
   klimatyzacja: {
     faqDuration: L("Serwis klimy: 1–2 godziny.", "Кондиционер: 1–2 часа.", "Climate service: 1–2 hours.", "Кондиціонер: 1–2 години."),
-    galleryTags: ["klim", "ac", "chłodnic", "radiator", "радиатор"],
+    galleryTags: ["klim", "klima", "кондиц"],
     education: [
       {
         title: L("Nabijanie klimatyzacji — ceny", "Заправка кондиционера — цены", "Air Conditioning Charging — Prices", "Заправка кондиціонера — ціни"),
@@ -434,7 +434,7 @@ export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
     bookServiceId: "acRepair",
     contentServiceId: "acRepair",
     faqDuration: L("Naprawa klimatyzacji: zwykle 1 dzień — zależy od zakresu.", "Ремонт кондиционера: обычно 1 день — зависит от объёма.", "Air conditioning repair: usually 1 day — depends on the scope.", "Ремонт кондиціонера: зазвичай 1 день — залежить від обсягу."),
-    galleryTags: ["klim", "ac", "chłodnic", "radiator", "spawan", "радиатор"],
+    galleryTags: ["klim", "klima", "spawan", "кондиц"],
     education: [
       {
         title: L("Naprawa klimatyzacji samochodowej w Warszawie", "Ремонт автокондиционера в Варшаве", "Repair of car air conditioning in Warsaw", "Ремонт кондиціонерів у Варшаві"),
@@ -539,7 +539,7 @@ export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
       "We do not perform wheel alignment.",
       "Розвал-сходження не робимо."
     ),
-    galleryTags: ["geometr", "opon", "align", "развал"],
+    galleryTags: ["geometr", "align", "развал"],
   },
   silnik: {
     faqDuration: L("Zależy od zakresu — wycena po diagnostyce silnika.", "Зависит от объёма — смета после диагностики.", "It depends on the scope — pricing after engine diagnostics.", "Залежить від обсягу — оцінка після постановки діагнозу."),

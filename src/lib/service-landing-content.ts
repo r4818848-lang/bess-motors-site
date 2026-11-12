@@ -1448,7 +1448,7 @@ export function getServiceLandingFaq(
 
 /** Gallery filter hints for landing photo strip */
 export const SERVICE_LANDING_GALLERY_TAGS: Partial<Record<ServiceId, string[]>> = {
-  oil: ["olej", "oil", "serwis"],
+  oil: ["olej", "oil", "масл"],
   diagnostic: ["diagnost", "scan"],
   brakePads: ["hamulc", "brake"],
   chip: ["tuning", "chip"],
@@ -1456,8 +1456,8 @@ export const SERVICE_LANDING_GALLERY_TAGS: Partial<Record<ServiceId, string[]>> 
   suspension: ["zawies", "susp"],
   alignment: ["geomet", "zbież"],
   engine: ["silnik", "engine"],
-  acRefill: ["klim", "ac", "chłodnic", "radiator", "радиатор"],
-  acRepair: ["klim", "ac", "chłodnic", "radiator", "радиатор"],
+  acRefill: ["klim", "klima", "кондиц"],
+  acRepair: ["klim", "klima", "кондиц"],
   radiators: ["chłodnic", "radiator", "klim", "радиатор"],
   starterGen: ["alternator", "rozrusznik", "generat", "генератор"],
   electric: ["elektr", "alternator", "rozrusznik", "генератор"],

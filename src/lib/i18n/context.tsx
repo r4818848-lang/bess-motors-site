@@ -27,21 +27,19 @@ function readStoredLocale(): Locale | null {
   return saved && LOCALES.includes(saved) ? saved : null;
 }
 
-function browserLocale(): Locale {
-  const code = (navigator.languages?.[0] || navigator.language || "").toLowerCase();
-  if (code.startsWith("ru")) return "ru";
-  if (code.startsWith("uk") || code.startsWith("ua")) return "uk";
-  if (code.startsWith("en")) return "en";
-  return "pl";
-}
-
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>("pl");
 
   useEffect(() => {
-    const next = readStoredLocale() ?? browserLocale();
-    setLocaleState(next);
-    document.documentElement.lang = next;
+    // Polish is the rendered language. Do not follow navigator.language:
+    // that swap happens after paint and moves the hero (desktop CLS ~0.28).
+    const saved = readStoredLocale();
+    if (!saved || saved === "pl") {
+      document.documentElement.lang = "pl";
+      return;
+    }
+    setLocaleState(saved);
+    document.documentElement.lang = saved;
   }, []);
 
   const setLocale = useCallback((l: Locale) => {
