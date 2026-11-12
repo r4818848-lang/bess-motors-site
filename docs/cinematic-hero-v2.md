@@ -26,8 +26,18 @@ An original Blender sedan was modeled and rendered in this workspace. The stills
 
 ## What unblocks the drive-in
 
-1. The owner downloads a CC BY G90 (attribution required) or approves buying a specific commercial file, and confirms they accept the BMW trademark risk.
-2. Place the `.glb` or `.blend` in the repo or send it with the job.
-3. The arrival can then be rendered as WebM/MP4 (desktop and mobile) or played in a hero-only WebGL scene, with a still fallback for reduced motion.
+The preferred file is the JUSTGAME model the owner downloads themselves:
 
-Until that file exists, the first screen is a dark studio with the real H1, two actions, and text links for the phone, the route, and the VIN quote.
+https://sketchfab.com/3d-models/bmw-g90-m5-9dc9e5c88bec4faa94552fdd0b76ed21
+
+Checked again on 12 Nov 2026. The workspace has no `.glb`, `.gltf`, `.fbx`, `.blend`, or Sketchfab zip of that model. Sketchfab download still requires the owner's account. That login was not bypassed, and no asset was purchased.
+
+Place the archive at exactly one of these paths, then commit it on `feat/bess-cinematic-hero-v2` or attach it to the next run:
+
+- `assets/hero/source/bmw-g90-m5-justgame.glb`
+- `assets/hero/source/bmw-g90-m5-justgame.gltf` with its `.bin` and textures in the same folder
+- `assets/hero/source/bmw-g90-m5-justgame.zip`
+
+The next run opens that file in Blender and renders a front three-quarter, a side, and a rear three-quarter before any hero video. Integration happens only if the body, lights, textures, and separate wheels pass that review. CC BY still only covers the uploader's file license, not BMW trademarks.
+
+Until that file exists, the first screen stays the dark studio with the real H1, two actions, and text links for the phone, the route, and the VIN quote. No arrival video was rendered.

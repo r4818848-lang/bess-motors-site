@@ -33,6 +33,9 @@ __MACOSX/
 /data/gsc/
 /data/seo-private/
 
+# Hero render intermediates. The JUSTGAME source drop stays visible to git.
+/assets/hero/renders/
+
 # debug
 npm-debug.log*
 yarn-debug.log*
