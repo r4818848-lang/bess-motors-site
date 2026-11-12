@@ -51,7 +51,7 @@ CC BY 4.0 is the uploader's license for this 3D file. It is not a license from B
 - 7.85–11.15 s: GT3 enters from the right and stops near (6.4, 5.7), heading about -66°, behind-right. Centerline clearance about 3.5 m.
 - Hold to 12 s. Desktop camera 24 mm. Mobile camera is the same scene with a horizontal sensor fit so the portrait frame keeps all three cars.
 
-The review animatic is 24 fps, 12 seconds, no audio. Desktop frames are 1280×720. Mobile frames are 720×1280. Stills are 1600×900 and 900×1600. The films and stills are attached to PR #39. They are gitignored, the same way the GLBs are. Nothing here is merged or published.
+The review animatic is 24 fps, 12 seconds, no audio. Desktop frames are 1280×720. Mobile frames are 720×1280. Stills are 1600×900 and 900×1600. The frame sequences stay gitignored. Four review files are committed under `docs/review/` so they can be opened from the public pull request: the desktop film, the mobile film, and the two final stills. Nothing here is merged or published.
 
 ## Final CGI, after this animatic is accepted
 
