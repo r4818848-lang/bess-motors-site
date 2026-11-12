@@ -46,12 +46,22 @@ CC BY 4.0 is the uploader's license for this 3D file. It is not a license from B
 
 `scripts/cinematic-hero/render_lineup.py` is one Eevee scene. It is the review film, not the page.
 
-- 0.35–4.05 s: G90 enters from the right on a cubic Bezier, heading about -68° to -46°, and stops near (0.15, 0.35). Body yaw is the path tangent. Front wheels steer, then straighten. Wheel spin is arc length divided by the tire radius.
-- 4.45–7.45 s: M4 Widebody enters from the left and stops near (-5.15, 3.45), behind-left. Centerline clearance about 3.5 m.
-- 7.85–11.15 s: GT3 enters from the right and stops near (6.4, 5.7), heading about -66°, behind-right. Centerline clearance about 3.5 m.
-- Hold to 12 s. Desktop camera 24 mm. Mobile camera is the same scene with a horizontal sensor fit so the portrait frame keeps all three cars.
+The second pass tightens the group and lifts the studio. G90 stops near (0.05, 0.0), heading -38°. M4 Widebody stops near (-2.95, 2.25), heading -18°, about 0.85 m of body clearance. GT3 stops near (5.5, 2.9), heading -50°, about 0.8 m of body clearance. The previous parks were roughly twice as far apart. Body yaw is the path tangent. Front wheels steer, then straighten. Wheel spin is arc length divided by the tire radius.
 
-The review animatic is 24 fps, 12 seconds, no audio. Desktop frames are 1280×720. Mobile frames are 720×1280. Stills are 1600×900 and 900×1600. The frame sequences stay gitignored. Four review files are committed under `docs/review/` so they can be opened from the public pull request: the desktop film, the mobile film, and the two final stills. Nothing here is merged or published.
+- 0.15–3.35 s: G90 sweeps in from the right, from a near-profile heading of -82° into the hero three-quarter.
+- 3.55–6.05 s: M4 Widebody turns in from the left and settles behind-left.
+- 6.25–8.45 s: GT3 comes in from the right on its own arc and settles behind-right, nose at -50° so the side reads.
+- Hold to 9 s. Desktop lens 32 mm. Mobile lens 24 mm, camera lower, horizontal sensor fit so the flanks stay in frame.
+
+Wheel check in Blender: G90 has 11, 11, 11 and 9 visible meshes on the four hubs. M4 has a tire, rim, and brake on each hub (4 meshes). GT3 tires sit on the axle (spin shift 0). Meshes whose centres leave the hub by more than 5 cm stay hidden so a duplicate rim cannot orbit off the car. The dark first cut hid the M4's black tires and dark rims; the new kicker-free studio light and brighter rim roughness make them readable.
+
+Materials: G90 paint is a slightly lighter Black Sapphire with clearcoat. M4 glass, which the export stored as opaque, is transmission 0.92. M4 rims are metallic roughness 0.2. GT3 body panels, which were a flat roughness-0.5 albedo, get a clearcoat so the livery reads as paint. This Blender build does not register Cycles until the addon is enabled, and the addon rejects the script's own flags unless they are removed from argv first.
+
+The review animatic is 24 fps, 9 seconds, no audio, 1280×720. The frame sequences stay gitignored. Review files the owner can open are committed under `docs/review/`. Nothing here is merged or published.
+
+### GT3 livery, before any public frame
+
+The body atlas carries third-party marks that CC BY does not clear. Visible on the texture: Michelin, Goodyear, Monster Energy, WEC, 24h, Snap-on, D.I.D, Fastron, BMW Oman, plus BMW roundels, M stripes, M Motorsport and the number 46. Those need to be painted out or replaced before a production frame. The BMW marks themselves are not licensed by the model file.
 
 ## Final CGI, after this animatic is accepted
 
@@ -65,5 +75,5 @@ The review animatic is 24 fps, 12 seconds, no audio. Desktop frames are 1280×72
 
 - The homepage hero is unchanged: no `<video>`, no poster, no reduced-motion fallback.
 - No Lighthouse pass of a video hero.
-- No Cycles render. The 24 fps Eevee film is the review cut. Final CGI starts only after this blocking is accepted.
+- Cycles test stills exist at 40 samples, without a denoiser, because OpenImageDenoise is not built into this Blender. The 9-second film is still Eevee. A full 12-second CGI render waits for this blocking to be accepted.
 - No production deploy and no merge.

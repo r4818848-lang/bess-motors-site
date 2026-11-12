@@ -28,38 +28,38 @@ M4_REAR = ("TIRE_LR_44", "TIRE_RR_42")
 
 # Headings are degrees. 0 looks down -Y (toward the camera). Negative turns the
 # nose toward screen-left. The end heading is the tangent, so the car does not crab.
+# Parked body gaps are about 0.85 m: one group, not three separate cars.
 G90_PATH = {
-    "p0": (12.6, 4.6),
-    "h0": -68.0,
-    "p3": (0.15, 0.35),
-    "h3": -46.0,
-    "l1": 5.0,
-    "l2": 5.8,
-    "t0": 0.35,
-    "t1": 4.05,
+    "p0": (9.2, 1.6),
+    "h0": -82.0,
+    "p3": (0.05, 0.0),
+    "h3": -38.0,
+    "l1": 4.8,
+    "l2": 3.6,
+    "t0": 0.15,
+    "t1": 3.35,
 }
 M4_PATH = {
-    "p0": (-14.4, 5.4),
-    "h0": 84.0,
-    "p3": (-5.15, 3.45),
-    "h3": 58.0,
-    "l1": 4.6,
-    "l2": 4.2,
-    "t0": 4.45,
-    "t1": 7.45,
+    "p0": (-10.2, 1.4),
+    "h0": 62.0,
+    "p3": (-2.95, 2.25),
+    "h3": -18.0,
+    "l1": 4.2,
+    "l2": 3.0,
+    "t0": 3.55,
+    "t1": 6.05,
 }
-# Screen-right and behind the parked G90. The path stays on that side.
 GT3_PATH = {
-    "p0": (16.8, 7.6),
-    "h0": -82.0,
-    "p3": (6.4, 5.7),
-    "h3": -66.0,
-    "l1": 5.0,
-    "l2": 5.2,
-    "t0": 7.85,
-    "t1": 11.15,
+    "p0": (11.4, 5.2),
+    "h0": -74.0,
+    "p3": (5.5, 2.9),
+    "h3": -50.0,
+    "l1": 4.6,
+    "l2": 2.8,
+    "t0": 6.25,
+    "t1": 8.45,
 }
-DURATION = 12.0
+DURATION = 9.0
 FPS = 24
 
 
@@ -296,19 +296,19 @@ def spin_wheel(obj, rest, roll, steer):
 
 def add_spots(rig, prefix):
     spots = []
-    aim = Vector((0.0, -1.0, -0.08)).to_track_quat("-Z", "Y").to_euler()
+    aim = Vector((0.0, -1.0, -0.02)).to_track_quat("-Z", "Y").to_euler()
     for side, x in (("L", 0.72), ("R", -0.72)):
         light = bpy.data.lights.new(f"{prefix}_{side}", "SPOT")
         light.energy = 0.0
-        light.spot_size = math.radians(26)
-        light.spot_blend = 0.45
+        light.spot_size = math.radians(18)
+        light.spot_blend = 0.6
         light.color = (0.86, 0.91, 1.0)
         light.use_shadow = False
         obj = bpy.data.objects.new(light.name, light)
         bpy.context.scene.collection.objects.link(obj)
         obj.parent = rig
         obj.matrix_parent_inverse = Matrix.Identity(4)
-        obj.location = Vector((x, -2.15, 0.22))
+        obj.location = Vector((x, -2.05, 0.62))
         obj.rotation_mode = "XYZ"
         obj.rotation_euler = aim
         spots.append(light)
@@ -334,9 +334,23 @@ def studio(floor_z):
     world = bpy.data.worlds.new("Studio")
     bpy.context.scene.world = world
     world.use_nodes = True
-    bg = world.node_tree.nodes["Background"]
-    bg.inputs[0].default_value = (0.010, 0.011, 0.014, 1.0)
-    bg.inputs[1].default_value = 0.35
+    nodes = world.node_tree.nodes
+    links = world.node_tree.links
+    nodes.clear()
+    out = nodes.new("ShaderNodeOutputWorld")
+    bg = nodes.new("ShaderNodeBackground")
+    geom = nodes.new("ShaderNodeNewGeometry")
+    sep = nodes.new("ShaderNodeSeparateXYZ")
+    ramp = nodes.new("ShaderNodeValToRGB")
+    ramp.color_ramp.elements[0].position = 0.42
+    ramp.color_ramp.elements[0].color = (0.012, 0.013, 0.016, 1.0)
+    ramp.color_ramp.elements[1].position = 0.58
+    ramp.color_ramp.elements[1].color = (0.07, 0.074, 0.082, 1.0)
+    links.new(geom.outputs["Incoming"], sep.inputs["Vector"])
+    links.new(sep.outputs["Z"], ramp.inputs["Fac"])
+    links.new(ramp.outputs["Color"], bg.inputs["Color"])
+    bg.inputs["Strength"].default_value = 0.7
+    links.new(bg.outputs["Background"], out.inputs["Surface"])
 
     bpy.ops.mesh.primitive_plane_add(size=160, location=(0.0, 4.0, floor_z))
     floor = bpy.context.active_object
@@ -344,34 +358,39 @@ def studio(floor_z):
     mat = bpy.data.materials.new("Floor")
     mat.use_nodes = True
     node = mat.node_tree.nodes["Principled BSDF"]
-    node.inputs["Base Color"].default_value = (0.016, 0.017, 0.020, 1.0)
-    node.inputs["Roughness"].default_value = 0.55
+    node.inputs["Base Color"].default_value = (0.028, 0.029, 0.032, 1.0)
+    node.inputs["Roughness"].default_value = 0.46
     node.inputs["Metallic"].default_value = 0.0
+    node.inputs["Specular IOR Level"].default_value = 0.35
     floor.data.materials.append(mat)
 
-    def area(name, location, energy, color, size):
+    def area(name, location, energy, color, size, aim):
         light = bpy.data.lights.new(name, "AREA")
         light.energy = energy
         light.color = color
         light.size = size
+        light.use_shadow = name in {"Key", "Top"}
         obj = bpy.data.objects.new(name, light)
         bpy.context.scene.collection.objects.link(obj)
         obj.location = location
-        look_at(obj, Vector((0.0, 1.2, 0.6)))
+        look_at(obj, aim)
 
-    area("Key", Vector((2.4, -3.5, 7.2)), 420, (0.93, 0.95, 1.0), 10.0)
-    area("Fill", Vector((-6.5, -1.5, 3.4)), 110, (0.70, 0.76, 0.88), 8.0)
-    area("Rim", Vector((1.2, 8.0, 3.6)), 80, (0.75, 0.82, 1.0), 6.0)
+    aim = Vector((0.15, 1.1, 0.7))
+    area("Key", Vector((-1.6, -4.2, 6.2)), 1400, (1.0, 0.97, 0.94), 10.0, aim)
+    area("Fill", Vector((3.6, -2.8, 3.2)), 420, (0.86, 0.89, 0.96), 8.0, aim)
+    area("RimL", Vector((-4.6, 4.8, 3.4)), 260, (0.84, 0.88, 1.0), 5.5, Vector((-2.4, 1.8, 0.9)))
+    area("RimR", Vector((5.6, 4.6, 3.6)), 280, (1.0, 0.95, 0.9), 5.5, Vector((3.6, 1.8, 0.9)))
+    area("Top", Vector((0.2, 1.2, 7.6)), 380, (0.94, 0.95, 1.0), 14.0, aim)
     sun_data = bpy.data.lights.new("Sun", "SUN")
-    sun_data.energy = 2.4
+    sun_data.energy = 1.8
     sun_data.use_shadow = True
-    sun_data.angle = math.radians(7.0)
+    sun_data.angle = math.radians(8.0)
     sun = bpy.data.objects.new("Sun", sun_data)
     bpy.context.scene.collection.objects.link(sun)
-    sun.rotation_euler = (math.radians(54), 0.0, math.radians(24))
+    sun.rotation_euler = (math.radians(58), 0.0, math.radians(-18))
 
     cam_data = bpy.data.cameras.new("HeroCam")
-    cam_data.lens = 28
+    cam_data.lens = 35
     cam = bpy.data.objects.new("HeroCam", cam_data)
     bpy.context.scene.collection.objects.link(cam)
     bpy.context.scene.camera = cam
@@ -383,14 +402,19 @@ def frame_camera(kind):
     cam = bpy.data.objects["HeroCam"]
     if kind == "mobile":
         cam.data.sensor_fit = "HORIZONTAL"
-        cam.data.lens = 28
-        cam.location = Vector((0.4, -12.4, 2.35))
-        look_at(cam, Vector((0.5, 2.3, 0.58)))
-    else:
-        cam.data.sensor_fit = "AUTO"
         cam.data.lens = 24
-        cam.location = Vector((0.3, -10.6, 1.82))
-        look_at(cam, Vector((0.55, 1.9, 0.55)))
+        cam.location = Vector((0.1, -7.1, 0.78))
+        look_at(cam, Vector((0.2, 1.35, 0.92)))
+    elif kind == "wheels":
+        cam.data.sensor_fit = "HORIZONTAL"
+        cam.data.lens = 30
+        cam.location = Vector((-0.15, -7.6, 0.72))
+        look_at(cam, Vector((0.35, 1.2, 0.42)))
+    else:
+        cam.data.sensor_fit = "HORIZONTAL"
+        cam.data.lens = 32
+        cam.location = Vector((0.1, -8.6, 1.18))
+        look_at(cam, Vector((0.25, 1.25, 0.62)))
 
 
 def place(car, t, radius, wheelbase):
@@ -424,7 +448,7 @@ def place(car, t, radius, wheelbase):
     else:
         lamp = smooth((shaped((t - curve.t0) / (curve.t1 - curve.t0)) - 0.72) / 0.28)
     for light in car["spots"]:
-        light.energy = 420.0 * lamp
+        light.energy = 70.0 * lamp
     return steer, travelled
 
 
@@ -540,7 +564,10 @@ def build_gt3(new_objects, curve):
         empty.location = hub - rig.location
         empty.rotation_mode = "QUATERNION"
         empty.rotation_quaternion = Quaternion((1.0, 0.0, 0.0, 0.0))
-        for obj in members(hub):
+        bpy.context.view_layer.update()
+        found = members(hub)
+        print(f"GT3 HUB {name} members {len(found)} at {tuple(round(v, 2) for v in hub)}")
+        for obj in found:
             parent_keep(obj, empty)
         return empty
 
@@ -557,7 +584,7 @@ def build_gt3(new_objects, curve):
         bpy.context.view_layer.update()
         for child, old in before.items():
             shifted = (mesh_center(child)[0] - old).length
-            if shifted > 0.08:
+            if shifted > 0.05:
                 child.hide_render = True
                 STAY_HIDDEN.add(child)
             else:
@@ -579,19 +606,112 @@ def build_gt3(new_objects, curve):
     }
 
 
-def configure_scene(width, height, samples):
+def tune_named_materials():
+    """Glass was exported opaque, and the M4 rims were too dark to read."""
+    for mat in bpy.data.materials:
+        node = bsdf(mat)
+        if node is None:
+            continue
+        low = mat.name.lower()
+        if any(key in low for key in ("glass", "windsh", "window")):
+            node.inputs["Transmission Weight"].default_value = 0.92
+            node.inputs["Roughness"].default_value = 0.04
+            node.inputs["Metallic"].default_value = 0.0
+            if "IOR" in node.inputs:
+                node.inputs["IOR"].default_value = 1.45
+            if "Coat Weight" in node.inputs:
+                node.inputs["Coat Weight"].default_value = 0.15
+            mat.blend_method = "HASHED"
+            mat.use_screen_refraction = True
+            mat.show_transparent_back = False
+        if "tyre" in low or low.startswith("ext_tyre"):
+            if not node.inputs["Roughness"].is_linked:
+                node.inputs["Roughness"].default_value = 0.68
+            if "Specular IOR Level" in node.inputs and not node.inputs["Specular IOR Level"].is_linked:
+                node.inputs["Specular IOR Level"].default_value = 0.42
+        if low.startswith("ext_rim") or "lightsilver" in low:
+            node.inputs["Metallic"].default_value = 1.0
+            if not node.inputs["Roughness"].is_linked:
+                node.inputs["Roughness"].default_value = 0.2
+            if "Coat Weight" in node.inputs:
+                node.inputs["Coat Weight"].default_value = 0.35
+                node.inputs["Coat Roughness"].default_value = 0.08
+
+
+def coat_gt3_body(rig):
+    """The GT3 livery is a flat albedo. A clearcoat gives the panels volume."""
+    body = set()
+    for obj in bpy.context.scene.objects:
+        if obj.type != "MESH":
+            continue
+        parent = obj
+        while parent is not None and parent != rig:
+            parent = parent.parent
+        if parent != rig:
+            continue
+        _center, size = mesh_center(obj)
+        if max(size) < 1.15:
+            continue
+        for slot in obj.material_slots:
+            if slot.material:
+                body.add(slot.material)
+    for mat in body:
+        node = bsdf(mat)
+        if node is None:
+            continue
+        if "Coat Weight" in node.inputs:
+            node.inputs["Coat Weight"].default_value = 0.62
+            node.inputs["Coat Roughness"].default_value = 0.1
+        if not node.inputs["Roughness"].is_linked:
+            node.inputs["Roughness"].default_value = 0.34
+        if "Specular IOR Level" in node.inputs and not node.inputs["Specular IOR Level"].is_linked:
+            node.inputs["Specular IOR Level"].default_value = 0.5
+
+
+def visible_wheel_meshes(hub):
+    count = 0
+    for obj in bpy.context.scene.objects:
+        if obj.type != "MESH" or obj in STAY_HIDDEN or obj.hide_render:
+            continue
+        parent = obj.parent
+        under = False
+        while parent is not None:
+            if parent == hub:
+                under = True
+                break
+            parent = parent.parent
+        if under:
+            count += 1
+    return count
+
+
+def configure_scene(width, height, samples, cycles):
     scene = bpy.context.scene
-    scene.render.engine = "BLENDER_EEVEE"
     scene.render.resolution_x = width
     scene.render.resolution_y = height
     scene.render.film_transparent = False
-    scene.eevee.taa_render_samples = samples
-    scene.eevee.use_bloom = True
-    scene.eevee.bloom_intensity = 0.015
-    scene.eevee.use_ssr = True
     scene.view_settings.view_transform = "AgX"
-    scene.view_settings.look = "AgX - Medium High Contrast"
-    scene.view_settings.exposure = 0.12
+    scene.view_settings.look = "AgX - Base Contrast"
+    scene.view_settings.exposure = 0.2
+    if cycles:
+        # Cycles reads everything after "--" and exits on our flags.
+        if "--" in sys.argv:
+            sys.argv = sys.argv[: sys.argv.index("--")]
+        bpy.ops.preferences.addon_enable(module="cycles")
+        scene.render.engine = "CYCLES"
+        scene.cycles.samples = samples
+        scene.cycles.use_denoising = False
+        scene.cycles.device = "CPU"
+    else:
+        scene.render.engine = "BLENDER_EEVEE"
+        scene.eevee.taa_render_samples = samples
+        scene.eevee.use_bloom = True
+        scene.eevee.bloom_intensity = 0.02
+        scene.eevee.use_ssr = True
+        scene.eevee.use_ssr_refraction = True
+        scene.eevee.use_gtao = True
+        scene.eevee.gtao_distance = 0.45
+        scene.eevee.gtao_factor = 0.8
     return scene
 
 
@@ -620,14 +740,14 @@ def main():
         jobs.append(("animatic", "desktop"))
         if mobile:
             jobs.append(("animatic", "mobile"))
-    out = Path("/workspace/assets/hero/renders/lineup")
+    out = Path("/workspace/assets/hero/renders/lineup-v2")
     out.mkdir(parents=True, exist_ok=True)
 
     clear()
     g90_objects = import_new(G90_SRC)
-    paint("0.005", (0.011, 0.012, 0.014), 0.78, 0.22)
-    paint("0.002", (0.008, 0.008, 0.009), 0.35, 0.38, coat=0.4)
-    paint("0.003", (0.01, 0.01, 0.011), 0.05, 0.55, coat=0.0)
+    paint("0.005", (0.028, 0.030, 0.034), 0.86, 0.16)
+    paint("0.002", (0.012, 0.012, 0.014), 0.45, 0.32, coat=0.55)
+    paint("0.003", (0.016, 0.016, 0.018), 0.08, 0.48, coat=0.15)
     hide_orbiting_duplicates(G90_FRONT + G90_REAR)
     g90_wb = wheelbase("WHEEL_LF", "WHEEL_LR")
     g90 = build_car(g90_objects, "G90", G90_FRONT, G90_REAR, Curve(G90_PATH))
@@ -641,6 +761,11 @@ def main():
     gt3_objects = import_new(GT3_SRC)
     gt3 = build_gt3(gt3_objects, Curve(GT3_PATH))
     gt3_wb = gt3["wheelbase"]
+    tune_named_materials()
+    coat_gt3_body(gt3["rig"])
+    for label, car in (("g90", g90), ("m4", m4), ("gt3", gt3)):
+        counts = [visible_wheel_meshes(hub) for hub in car["front"] + car["rear"]]
+        print(f"WHEELS {label} {counts}")
     print(
         f"RADIUS g90={g90['radius']:.3f} m4={m4['radius']:.3f} gt3={gt3['radius']:.3f} "
         f"WB g90={g90_wb:.3f} m4={m4_wb:.3f} gt3={gt3_wb:.3f}"
@@ -665,37 +790,43 @@ def main():
     studio(0.0)
     keyframes = [
         ("00-empty", 0.0, True),
-        ("01-g90-arc", 2.15, False),
-        ("02-g90-center", 4.3, False),
-        ("03-m4-entry", 6.0, False),
-        ("04-both", 7.7, False),
-        ("05-gt3-entry", 9.5, False),
-        ("06-trio", 12.0, False),
+        ("01-g90-arc", 1.7, False),
+        ("02-g90-center", 3.5, False),
+        ("03-m4-entry", 4.8, False),
+        ("04-both", 6.2, False),
+        ("05-gt3-entry", 7.3, False),
+        ("06-trio", DURATION, False),
+        ("07-wheels", DURATION, False),
     ]
     if "--trio" in sys.argv:
-        keyframes = [("06-trio", 12.0, False)]
+        keyframes = [("06-trio", DURATION, False), ("07-wheels", DURATION, False)]
+    cycles = "--cycles" in sys.argv
     for job, view in jobs:
         frame_camera(view)
         if job == "preview":
-            shots = keyframes
-            scene = configure_scene(1280 if view == "desktop" else 720, 720 if view == "desktop" else 1280, 8)
+            shots = [shot for shot in keyframes if view == "desktop" or not shot[0].startswith("07")]
+            scene = configure_scene(1280 if view == "desktop" else 720, 720 if view == "desktop" else 1280, 16, False)
             folder = out / view
         elif job == "animatic":
             shots = [(f"frame_{i:03d}", i / FPS, i == 0) for i in range(int(DURATION * FPS))]
             if view == "desktop":
-                scene = configure_scene(1280, 720, 8)
+                scene = configure_scene(1280, 720, 8, False)
             else:
-                scene = configure_scene(720, 1280, 6)
+                scene = configure_scene(720, 1280, 8, False)
             folder = out / f"animatic-{view}"
         else:
-            shots = keyframes
+            shots = [shot for shot in keyframes if shot[0] in {"06-trio", "07-wheels"}]
+            if view == "mobile":
+                shots = [shot for shot in shots if shot[0] == "06-trio"]
+            samples = 40 if cycles else 24
             if view == "desktop":
-                scene = configure_scene(1600, 900, 20)
+                scene = configure_scene(1600, 900, samples, cycles)
             else:
-                scene = configure_scene(900, 1600, 16)
+                scene = configure_scene(900, 1600, samples, cycles)
             folder = out / f"stills-{view}"
         folder.mkdir(parents=True, exist_ok=True)
         for name, t, empty in shots:
+            frame_camera("wheels" if name.startswith("07") else view)
             hide_tree(g90["rig"], empty or t < G90_PATH["t0"])
             hide_tree(m4["rig"], empty or t < M4_PATH["t0"])
             hide_tree(gt3["rig"], empty or t < GT3_PATH["t0"])
