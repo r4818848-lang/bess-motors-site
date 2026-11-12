@@ -56,14 +56,16 @@ test("main navigation pages respond 200", async ({ page }) => {
   }
 });
 
-test("homepage preloads only the hero image", async ({ request }) => {
+test("homepage does not preload the old ad banner", async ({ request }) => {
   const html = await (await request.get("/")).text();
   const imagePreloads = [...html.matchAll(/<link rel="preload" as="image"[^>]*>/g)].map((m) => m[0]);
-  expect(imagePreloads.some((tag) => tag.includes("banner.png"))).toBeTruthy();
+  expect(imagePreloads.some((tag) => tag.includes("banner.png"))).toBeFalsy();
   expect(imagePreloads.some((tag) => tag.includes("exterior.png"))).toBeFalsy();
   expect(imagePreloads.some((tag) => tag.includes("tire-audi"))).toBeFalsy();
   expect(html).not.toContain("Orbitron");
   expect(html).not.toMatch(/<link rel="preload" as="image"[^>]*logo\.png/);
+  expect(html).toContain("Mechanik samochodowy Warszawa Włochy");
+  expect(html).not.toContain("bm-scene-hero");
 });
 
 test("tyre landing heading is visible in the first HTML", async ({ request }) => {

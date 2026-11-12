@@ -1,97 +1,87 @@
 "use client";
 
-import Image from "next/image";
-import { ChevronRight, Phone, FileSearch, Navigation } from "lucide-react";
+import Link from "next/link";
+import { ChevronRight, Phone, Navigation } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
-import { siteConfig } from "@/lib/site";
 import { PhoneLink } from "@/components/analytics/PhoneLink";
 import { BookingLink } from "@/components/analytics/BookingLink";
 import { WORKSHOP_DIRECTIONS_URL } from "@/lib/maps";
 import { trackGetDirectionsClick } from "@/lib/gtag";
-import { DriveInCar } from "@/components/motion/ServiceMotion";
+import { SITE_NAP } from "@/lib/site-nap";
 
-/** Calm hero — brand + CTAs (Final Polish v3 §6–7) */
+/**
+ * Full-bleed studio hero. The old ad banner and the boxed SVG car are gone.
+ * A licensed realistic sedan is not in this scene — see docs/cinematic-hero-v2.md.
+ */
 export function Hero() {
   const { t } = useI18n();
   const h = t.hero;
 
   return (
-    <section className="relative flex items-end sm:items-center overflow-hidden pt-2 pb-8 sm:pb-12 sm:min-h-[58vh]">
-      <div className="absolute inset-0 z-0" aria-hidden>
-        <Image
-          src={siteConfig.bannerImage}
-          alt="BESS MOTORS — serwis samochodowy Warszawa Włochy"
-          fill
-          priority
-          fetchPriority="high"
-          decoding="sync"
-          className="object-cover object-[72%_42%] sm:object-[75%_40%]"
-          sizes="100vw"
-          quality={75}
-        />
+    <section className="relative -mt-14 overflow-hidden pb-12 pt-24 sm:-mt-16 sm:flex sm:min-h-[100svh] sm:items-center sm:pb-16 sm:pt-28">
+      <div className="absolute inset-0" aria-hidden>
+        <div className="absolute inset-0 bg-[#07080b]" />
         <div
           className="absolute inset-0"
           style={{
             background:
-              "linear-gradient(105deg, rgba(8,8,8,0.94) 0%, rgba(8,8,8,0.78) 45%, rgba(8,8,8,0.35) 100%)",
+              "radial-gradient(ellipse 55% 70% at 78% 58%, rgba(186,196,210,0.16), transparent 62%), radial-gradient(ellipse 40% 45% at 12% 80%, rgba(225,6,0,0.16), transparent 70%)",
           }}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-bm-black via-transparent to-bm-black/40" />
-        <div className="bm-hero-sweep" />
+        <div
+          className="absolute inset-x-0 bottom-0 h-[42%]"
+          style={{
+            background:
+              "linear-gradient(180deg, transparent, rgba(255,255,255,0.035) 18%, rgba(255,255,255,0.02) 100%)",
+          }}
+        />
+        <div className="absolute inset-x-0 bottom-[28%] h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#07080b] via-[#07080b]/80 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#07080b] via-transparent to-[#07080b]/70" />
       </div>
 
-      <div className="relative z-10 mx-auto max-w-7xl px-4 lg:px-8 w-full py-8 sm:py-12">
-        <div className="grid items-end gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(280px,480px)] lg:items-center">
-        <div className="max-w-2xl">
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-bm-red">BESS MOTORS</p>
-          <h1 className="mt-3 font-display font-bold tracking-tight text-[2.125rem] leading-[1.1] sm:text-5xl md:text-[3.5rem] text-white">
-            {h.h1Short}
-          </h1>
-          <div className="mt-4 h-1 w-16 bg-bm-red" />
+      <div className="relative z-10 mx-auto w-full max-w-7xl px-4 pb-16 pt-28 lg:px-8 sm:pt-32">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-bm-red">BESS MOTORS</p>
+        <h1 className="mt-4 max-w-4xl font-display text-[2.15rem] font-semibold leading-[1.02] tracking-[-0.03em] text-white sm:text-6xl md:text-[4.25rem]">
+          {h.h1Short}
+        </h1>
+        <p className="mt-5 max-w-xl text-base leading-relaxed text-white/85 sm:text-lg">{h.subtitleClean}</p>
+        <p className="mt-3 max-w-xl text-sm text-white/55">{h.servicesLine}</p>
 
-          <p className="mt-4 text-base sm:text-lg text-white/90 max-w-xl leading-relaxed">
-            {h.subtitleClean}
-          </p>
-
-          <p className="mt-3 text-sm text-bm-silver">{h.servicesLine}</p>
-
-          <div className="mt-6 flex flex-col sm:flex-row flex-wrap gap-3">
-            <BookingLink
-              trackSource="hero"
-              className="btn-primary inline-flex items-center justify-center gap-2 uppercase tracking-wide"
-            >
-              {h.ctaBook}
-              <ChevronRight size={16} />
-            </BookingLink>
-            <a
-              href="#wyceń-po-vin"
-              className="btn-outline inline-flex items-center justify-center gap-2 uppercase tracking-wide"
-            >
-              <FileSearch size={16} />
-              {h.ctaVinShort}
-            </a>
-            <PhoneLink
-              trackSource="hero_cta"
-              className="btn-outline inline-flex items-center justify-center gap-2 uppercase tracking-wide"
-            >
-              <Phone size={16} />
-              {h.ctaCall}
-            </PhoneLink>
-            <a
-              href={WORKSHOP_DIRECTIONS_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={() => trackGetDirectionsClick("hero")}
-              className="btn-outline inline-flex items-center justify-center gap-2 uppercase tracking-wide"
-            >
-              <Navigation size={16} />
-              {t.stickyBar.route}
-            </a>
-          </div>
+        <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+          <BookingLink
+            trackSource="hero"
+            className="btn-primary inline-flex items-center justify-center gap-2 uppercase tracking-wide"
+          >
+            {h.ctaBook}
+            <ChevronRight size={16} />
+          </BookingLink>
+          <Link
+            href="/services"
+            className="btn-outline inline-flex items-center justify-center gap-2 uppercase tracking-wide"
+          >
+            {h.ctaExplore}
+          </Link>
         </div>
-          <div className="rounded-3xl border border-white/10 bg-[#0c0e12] p-2">
-            <DriveInCar className="pointer-events-none w-full" />
-          </div>
+
+        <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-white/70">
+          <PhoneLink trackSource="hero_cta" className="inline-flex items-center gap-2 hover:text-white">
+            <Phone size={14} aria-hidden />
+            {SITE_NAP.phoneDisplay}
+          </PhoneLink>
+          <a
+            href={WORKSHOP_DIRECTIONS_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => trackGetDirectionsClick("hero")}
+            className="inline-flex items-center gap-2 hover:text-white"
+          >
+            <Navigation size={14} aria-hidden />
+            {t.stickyBar.route}
+          </a>
+          <a href="#wyceń-po-vin" className="hover:text-white">
+            {h.ctaVinShort}
+          </a>
         </div>
       </div>
     </section>

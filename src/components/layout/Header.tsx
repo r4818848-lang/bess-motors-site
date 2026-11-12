@@ -98,7 +98,9 @@ export function Header() {
       <div
         className={clsx(
           "border-b transition-colors duration-200",
-          scrolled ? "border-white/10 bg-bm-black/80 backdrop-blur-md" : "border-transparent bg-bm-black/55"
+          scrolled || pathname !== "/"
+            ? "border-white/10 bg-bm-black/80 backdrop-blur-md"
+            : "border-transparent bg-transparent"
         )}
       >
       <div className="mx-auto flex h-14 sm:h-16 max-w-7xl items-center justify-between gap-3 px-4 lg:px-8">
