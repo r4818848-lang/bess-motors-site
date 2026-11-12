@@ -189,3 +189,5 @@ LCP главной по-прежнему фото баннера. Медиана
 `next build` (внутри него lint и проверка типов) прошёл. Новые предупреждения не появились. `npm run test:unit` прошёл, включая `test-service-landing-photos`. `validate:prices` — 150 строк, OK. `npm run test:e2e` при `PLAYWRIGHT_BASE_URL=http://127.0.0.1:3456`: 125 passed, 4 skipped, затем readonly-календарь 1 passed.
 
 CRM, Supabase, SQL, `SEO_CASE_STORAGE`, секреты и cron не менялись. Merge и production deploy не делались.
+
+Код этой правки: `e003ad7124916b034087455dfcaf51a67f05e398`. Проверка GitHub для этого SHA на момент отчёта ещё не завершена.
