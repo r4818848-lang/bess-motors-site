@@ -1,13 +1,12 @@
-"""Two-car studio animatic for the BESS hero.
+"""Three-car studio animatic for the BESS hero.
 
 G90 (JUST GAME, CC BY) arcs in from the right and stops in the center.
 M4 Widebody (VTDAT23, CC BY) then arcs in from the left and stops behind-left.
-The right-rear mark is reserved for a future M4 GT3. The VTX CC BY-NC-SA file
-is not imported. Blender 4.0 Eevee. Nose is local -Y, axle is local X.
+M4 GT3 EVO (MattDoesBlender, CC BY) arrives last from the right and stops behind-right.
+The VTX CC BY-NC-SA file is not imported. Blender 4.0 Eevee. Nose is local -Y, axle is local X.
 
   blender -b -P scripts/cinematic-hero/render_lineup.py -- --preview
-  blender -b -P scripts/cinematic-hero/render_lineup.py -- --animatic
-  blender -b -P scripts/cinematic-hero/render_lineup.py -- --stills
+  blender -b -P scripts/cinematic-hero/render_lineup.py -- --animatic --mobile
 """
 
 import math
@@ -19,6 +18,7 @@ from mathutils import Matrix, Quaternion, Vector
 
 G90_SRC = "/workspace/assets/hero/source/g90/bmw-g90-m5-justgame.glb"
 M4_SRC = "/workspace/assets/hero/source/m4-widebody/bmw-m4-widebody.glb"
+GT3_SRC = "/workspace/assets/hero/source/gt3-ccby/bmw-m4-gt3-evo-mattdoesblender.glb"
 # Forbidden in this shot: assets/hero/source/m4-gt3/bmw-m4-gt3-evo.glb (CC BY-NC-SA).
 
 G90_FRONT = ("WHEEL_LF", "WHEEL_RF")
@@ -48,19 +48,19 @@ M4_PATH = {
     "t0": 4.45,
     "t1": 7.45,
 }
-# Empty mark, screen-right and behind the parked G90, clear of both driven paths.
-# The entry below is reserved for a checked CC BY GT3. Nothing is spawned from it.
-GT3_SLOT = (4.55, 5.35)
-GT3_HEADING = -70.0
-GT3_ENTRY = {
-    "p0": (16.0, 8.2),
-    "h0": -80.0,
-    "p3": GT3_SLOT,
-    "h3": GT3_HEADING,
-    "l1": 4.5,
-    "l2": 4.0,
+# Screen-right and behind the parked G90. The path stays on that side.
+GT3_PATH = {
+    "p0": (16.8, 7.6),
+    "h0": -82.0,
+    "p3": (6.4, 5.7),
+    "h3": -66.0,
+    "l1": 5.0,
+    "l2": 5.2,
+    "t0": 7.85,
+    "t1": 11.15,
 }
-DURATION = 8.0
+DURATION = 12.0
+FPS = 24
 
 
 def clear():
@@ -375,9 +375,22 @@ def studio(floor_z):
     cam = bpy.data.objects.new("HeroCam", cam_data)
     bpy.context.scene.collection.objects.link(cam)
     bpy.context.scene.camera = cam
-    cam.location = Vector((0.15, -8.6, 1.48))
-    look_at(cam, Vector((-0.55, 1.15, 0.58)))
+    frame_camera("desktop")
     return cam
+
+
+def frame_camera(kind):
+    cam = bpy.data.objects["HeroCam"]
+    if kind == "mobile":
+        cam.data.sensor_fit = "HORIZONTAL"
+        cam.data.lens = 28
+        cam.location = Vector((0.4, -12.4, 2.35))
+        look_at(cam, Vector((0.5, 2.3, 0.58)))
+    else:
+        cam.data.sensor_fit = "AUTO"
+        cam.data.lens = 24
+        cam.location = Vector((0.3, -10.6, 1.82))
+        look_at(cam, Vector((0.55, 1.9, 0.55)))
 
 
 def place(car, t, radius, wheelbase):
@@ -443,6 +456,129 @@ def build_car(new_objects, rig_name, front_names, rear_names, curve):
     }
 
 
+def mesh_center(obj):
+    low = Vector((1e9, 1e9, 1e9))
+    high = Vector((-1e9, -1e9, -1e9))
+    for corner in obj.bound_box:
+        point = obj.matrix_world @ Vector(corner)
+        low = Vector((min(low.x, point.x), min(low.y, point.y), min(low.z, point.z)))
+        high = Vector((max(high.x, point.x), max(high.y, point.y), max(high.z, point.z)))
+    return (low + high) * 0.5, high - low
+
+
+def build_gt3(new_objects, curve):
+    """Stand the Y-up export on its wheels and rig the four tire clusters.
+
+    The download also contains an upside-down copy (mesh_132). That copy stays out.
+    """
+    for obj in list(new_objects):
+        if obj.name not in bpy.data.objects:
+            continue
+        if obj.type in {"LIGHT", "CAMERA"} or obj.name == "Cube" or obj.name.startswith("mesh_132"):
+            bpy.data.objects.remove(obj, do_unlink=True)
+    orient = bpy.data.objects.new("GT3Orient", None)
+    bpy.context.scene.collection.objects.link(orient)
+    orient.rotation_euler = (math.radians(90.0), 0.0, math.radians(180.0))
+    for obj in list(bpy.context.scene.objects):
+        if obj.parent is None and obj != orient and obj.name.startswith("mesh_135"):
+            obj.parent = orient
+    bpy.context.view_layer.update()
+    lowest = min(
+        (obj.matrix_world @ vertex.co).z
+        for obj in bpy.context.scene.objects
+        if obj.type == "MESH" and obj.name.startswith("mesh_135")
+        for vertex in obj.data.vertices
+    )
+    orient.location.z -= lowest - 0.012
+    bpy.context.view_layer.update()
+
+    tires = []
+    for obj in bpy.context.scene.objects:
+        if obj.type != "MESH" or not obj.name.startswith("mesh_135"):
+            continue
+        center, size = mesh_center(obj)
+        if abs(center.x) > 0.55 and 0.65 < size.z < 1.05 and 0.65 < size.y < 1.05 and center.z < 1.15:
+            tires.append((center, obj))
+    tires.sort(key=lambda item: len(item[1].data.polygons), reverse=True)
+    hubs = []
+    for center, _obj in tires:
+        if any((center.xy - hub.xy).length < 0.45 for hub in hubs):
+            continue
+        hubs.append(center)
+        if len(hubs) == 4:
+            break
+    if len(hubs) != 4:
+        raise RuntimeError(f"GT3 wheel hubs {len(hubs)}")
+    front_y = sorted(hub.y for hub in hubs)[1]
+    front_hubs = [hub for hub in hubs if hub.y <= front_y]
+    rear_hubs = [hub for hub in hubs if hub.y > front_y]
+
+    def members(hub):
+        found = []
+        for obj in bpy.context.scene.objects:
+            if obj.type != "MESH" or not obj.name.startswith("mesh_135"):
+                continue
+            center, size = mesh_center(obj)
+            if max(size) > 1.2:
+                continue
+            if (center.xy - hub.xy).length < 0.38 and abs(center.z - hub.z) < 0.45:
+                found.append(obj)
+        return found
+
+    rig = bpy.data.objects.new("GT3", None)
+    bpy.context.scene.collection.objects.link(rig)
+    anchor = sum(hubs, Vector((0.0, 0.0, 0.0))) / 4.0
+    rig.location = Vector((anchor.x, anchor.y, 0.45))
+    bpy.context.view_layer.update()
+    parent_keep(orient, rig)
+
+    def spin_empty(name, hub):
+        empty = bpy.data.objects.new(name, None)
+        bpy.context.scene.collection.objects.link(empty)
+        empty.parent = rig
+        empty.matrix_parent_inverse = Matrix.Identity(4)
+        empty.location = hub - rig.location
+        empty.rotation_mode = "QUATERNION"
+        empty.rotation_quaternion = Quaternion((1.0, 0.0, 0.0, 0.0))
+        for obj in members(hub):
+            parent_keep(obj, empty)
+        return empty
+
+    front = [spin_empty(f"GT3_F{index}", hub) for index, hub in enumerate(front_hubs)]
+    rear = [spin_empty(f"GT3_R{index}", hub) for index, hub in enumerate(rear_hubs)]
+    # A mesh whose centre leaves the hub is parented off the axle. Hide it.
+    radius = 0.35
+    for empty in front + rear:
+        before = {}
+        for child in bpy.context.scene.objects:
+            if child.parent == empty and child.type == "MESH":
+                before[child] = mesh_center(child)[0].copy()
+        empty.rotation_quaternion = Quaternion((1.0, 0.0, 0.0), 0.9)
+        bpy.context.view_layer.update()
+        for child, old in before.items():
+            shifted = (mesh_center(child)[0] - old).length
+            if shifted > 0.08:
+                child.hide_render = True
+                STAY_HIDDEN.add(child)
+            else:
+                zs = [(child.matrix_world @ vertex.co).z for vertex in child.data.vertices]
+                if zs and 0.55 < (max(zs) - min(zs)) < 0.9:
+                    radius = (max(zs) - min(zs)) * 0.5
+        empty.rotation_quaternion = Quaternion((1.0, 0.0, 0.0, 0.0))
+    bpy.context.view_layer.update()
+    return {
+        "rig": rig,
+        "front": front,
+        "rear": rear,
+        "rest": {obj.name: obj.rotation_quaternion.copy() for obj in front + rear},
+        "curve": curve,
+        "z": rig.location.z,
+        "radius": radius,
+        "spots": add_spots(rig, "GT3"),
+        "wheelbase": abs(front_hubs[0].y - rear_hubs[0].y),
+    }
+
+
 def configure_scene(width, height, samples):
     scene = bpy.context.scene
     scene.render.engine = "BLENDER_EEVEE"
@@ -469,15 +605,21 @@ def main():
     preview = "--preview" in sys.argv
     animatic = "--animatic" in sys.argv
     stills = "--stills" in sys.argv
+    mobile = "--mobile" in sys.argv
     if not (preview or animatic or stills):
         preview = True
     jobs = []
     if preview:
-        jobs.append("preview")
+        jobs.append(("preview", "desktop"))
+        jobs.append(("preview", "mobile"))
     if stills:
-        jobs.append("stills")
+        jobs.append(("stills", "desktop"))
+        if mobile:
+            jobs.append(("stills", "mobile"))
     if animatic:
-        jobs.append("animatic")
+        jobs.append(("animatic", "desktop"))
+        if mobile:
+            jobs.append(("animatic", "mobile"))
     out = Path("/workspace/assets/hero/renders/lineup")
     out.mkdir(parents=True, exist_ok=True)
 
@@ -496,57 +638,67 @@ def main():
     hide_orbiting_duplicates(M4_FRONT + M4_REAR)
     m4_wb = wheelbase("TIRE_LF_45", "TIRE_LR_44")
     m4 = build_car(m4_objects, "M4", M4_FRONT, M4_REAR, Curve(M4_PATH))
+    gt3_objects = import_new(GT3_SRC)
+    gt3 = build_gt3(gt3_objects, Curve(GT3_PATH))
+    gt3_wb = gt3["wheelbase"]
     print(
-        f"RADIUS g90={g90['radius']:.3f} m4={m4['radius']:.3f} "
-        f"WB g90={g90_wb:.3f} m4={m4_wb:.3f} "
-        f"PATH g90={g90['curve'].total:.2f}m m4={m4['curve'].total:.2f}m"
+        f"RADIUS g90={g90['radius']:.3f} m4={m4['radius']:.3f} gt3={gt3['radius']:.3f} "
+        f"WB g90={g90_wb:.3f} m4={m4_wb:.3f} gt3={gt3_wb:.3f}"
     )
-    print(f"GT3_SLOT {GT3_SLOT} heading {GT3_HEADING}")
-
-    # Clearance while the M4 is driving and the G90 is already parked.
     parked, parked_yaw, _ = g90["curve"].at_time(G90_PATH["t1"])
-    worst = 1e9
-    for i in range(25):
-        t = M4_PATH["t0"] + (M4_PATH["t1"] - M4_PATH["t0"]) * i / 24.0
+    m4_parked, m4_yaw, _ = m4["curve"].at_time(M4_PATH["t1"])
+    worst_m4 = 1e9
+    worst_gt3 = 1e9
+    for i in range(24):
+        t = M4_PATH["t0"] + (M4_PATH["t1"] - M4_PATH["t0"]) * i / 23.0
         pos, yaw, _ = m4["curve"].at_time(t)
-        gap = segment_gap(segment(parked, parked_yaw), segment(pos, yaw))
-        worst = min(worst, gap)
-    print(f"CLEARANCE centerline {worst:.2f} m")
+        worst_m4 = min(worst_m4, segment_gap(segment(parked, parked_yaw), segment(pos, yaw)))
+        t = GT3_PATH["t0"] + (GT3_PATH["t1"] - GT3_PATH["t0"]) * i / 23.0
+        pos, yaw, _ = gt3["curve"].at_time(t)
+        worst_gt3 = min(
+            worst_gt3,
+            segment_gap(segment(parked, parked_yaw), segment(pos, yaw)),
+            segment_gap(segment(m4_parked, m4_yaw), segment(pos, yaw)),
+        )
+    print(f"CLEARANCE m4 {worst_m4:.2f} gt3 {worst_gt3:.2f}")
 
     studio(0.0)
-    for job in jobs:
+    keyframes = [
+        ("00-empty", 0.0, True),
+        ("01-g90-arc", 2.15, False),
+        ("02-g90-center", 4.3, False),
+        ("03-m4-entry", 6.0, False),
+        ("04-both", 7.7, False),
+        ("05-gt3-entry", 9.5, False),
+        ("06-trio", 12.0, False),
+    ]
+    if "--trio" in sys.argv:
+        keyframes = [("06-trio", 12.0, False)]
+    for job, view in jobs:
+        frame_camera(view)
         if job == "preview":
-            shots = [
-                ("00-empty", 0.0, True),
-                ("01-g90-arc", 2.15, False),
-                ("02-g90-center", 4.25, False),
-                ("03-m4-entry", 5.85, False),
-                ("04-both", 8.0, False),
-                ("05-composition", 8.0, False),
-            ]
-            scene = configure_scene(1280, 720, 10)
-            folder = out
+            shots = keyframes
+            scene = configure_scene(1280 if view == "desktop" else 720, 720 if view == "desktop" else 1280, 8)
+            folder = out / view
         elif job == "animatic":
-            shots = [(f"frame_{i:03d}", i / 8.0, i == 0) for i in range(int(DURATION * 8))]
-            scene = configure_scene(960, 540, 6)
-            folder = out / "animatic"
-            folder.mkdir(parents=True, exist_ok=True)
+            shots = [(f"frame_{i:03d}", i / FPS, i == 0) for i in range(int(DURATION * FPS))]
+            if view == "desktop":
+                scene = configure_scene(1280, 720, 8)
+            else:
+                scene = configure_scene(720, 1280, 6)
+            folder = out / f"animatic-{view}"
         else:
-            shots = [
-                ("00-empty", 0.0, True),
-                ("01-g90-arc", 2.15, False),
-                ("02-g90-center", 4.25, False),
-                ("03-m4-entry", 5.85, False),
-                ("04-both", 8.0, False),
-                ("05-composition", 8.0, False),
-            ]
-            scene = configure_scene(1400, 788, 24)
-            folder = out / "stills"
-            folder.mkdir(parents=True, exist_ok=True)
-
+            shots = keyframes
+            if view == "desktop":
+                scene = configure_scene(1600, 900, 20)
+            else:
+                scene = configure_scene(900, 1600, 16)
+            folder = out / f"stills-{view}"
+        folder.mkdir(parents=True, exist_ok=True)
         for name, t, empty in shots:
             hide_tree(g90["rig"], empty or t < G90_PATH["t0"])
             hide_tree(m4["rig"], empty or t < M4_PATH["t0"])
+            hide_tree(gt3["rig"], empty or t < GT3_PATH["t0"])
             if not empty and t >= G90_PATH["t0"]:
                 steer, dist = place(g90, t, g90["radius"], g90_wb)
             else:
@@ -555,12 +707,18 @@ def main():
                 m4_steer, m4_dist = place(m4, t, m4["radius"], m4_wb)
             else:
                 m4_steer, m4_dist = 0.0, 0.0
+            if not empty and t >= GT3_PATH["t0"]:
+                gt3_steer, gt3_dist = place(gt3, t, gt3["radius"], gt3_wb)
+            else:
+                gt3_steer, gt3_dist = 0.0, 0.0
             bpy.context.view_layer.update()
             scene.render.filepath = str(folder / name)
             bpy.ops.render.render(write_still=True)
             print(
-                f"FRAME {job} {name} t={t:.2f} g90_steer={math.degrees(steer):.1f} "
-                f"g90_dist={dist:.2f} m4_steer={math.degrees(m4_steer):.1f} m4_dist={m4_dist:.2f}"
+                f"FRAME {job} {view} {name} t={t:.2f} "
+                f"g90={math.degrees(steer):.1f}/{dist:.1f} "
+                f"m4={math.degrees(m4_steer):.1f}/{m4_dist:.1f} "
+                f"gt3={math.degrees(gt3_steer):.1f}/{gt3_dist:.1f}"
             )
     print("DONE", out)
 

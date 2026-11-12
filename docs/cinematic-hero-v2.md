@@ -30,32 +30,36 @@ Blender 4.0.2 opened all three files. Packed images loaded. No texture was missi
 
 **M4 GT3 EVO.** 288 meshes, 20 materials, 45 images, and separate wheel objects. The imported size is about 0.021 × 0.050 × 0.014 m, roughly one hundred times too small. Scaled by 100 it measures 2.06 × 5.02 × 1.39 m, the images load, and the body is a recognisable GT3 with a wing and separate wheels. The license is CC BY-NC-SA. This model must not be encoded into the homepage, a preview that customers can open, or any other commercial page. Scaling it does not change that.
 
-## Alternative GT3, not in the shot
+## M4 GT3 EVO, MattDoesBlender
 
-Checked on 12 Nov 2026 via the public Sketchfab API, model `0feb1f9793c14b35971518a93a97d688`:
+The owner added `bmw-m4-gt3-evo.zip` (32.8 MB) to the same Drive folder. The archive is a Sketchfab source package dated 17 Jun 2025 21:29, which is the publish time of model `0feb1f9793c14b35971518a93a97d688`. Inside it, `BMW M4.glb` has 46 materials and 14 packed images. That matches the public Sketchfab record for MattDoesBlender's "BMW M4 GT3 EVO": CC BY 4.0, commercial use of the file allowed if the author is credited. The GLB JSON itself has no author or license field. It is not the VTX file: that file is still 9,302,992 bytes, SHA-256 `b7d79ca0…`, and it is not imported.
 
-https://sketchfab.com/3d-models/bmw-m4-gt3-evo-0feb1f9793c14b35971518a93a97d688
+Blender 4.0.2 reads the GLB. Length about 5.08 m, width about 2.09 m, tire radius about 0.35 m. The export is Y-up, so the script turns it onto the wheels. An upside-down second copy (`mesh_132`) is hidden. Wheel meshes are not named; the script clusters the four hubs and spins only the parts that stay on the axle.
 
-| Field | Value |
-| --- | --- |
-| Title | BMW M4 GT3 EVO |
-| Author | MattDoesBlender |
-| License | CC BY 4.0 (`by`). Sketchfab's own line: "Author must be credited. Commercial use is allowed." |
-| Published | 17 Jun 2025 |
-| Description | Empty. No extra restriction is written on the model. |
-| Price | None. Marked downloadable, not protected. |
+Saved, gitignored, at `assets/hero/source/gt3-ccby/bmw-m4-gt3-evo-mattdoesblender.glb`.
 
-This is a different file from MattDoesBlender's G90, which was CC BY-NC-SA. CC BY still is not a license from BMW AG. The file is not in this workspace and was not downloaded. The third mark stays empty until the owner supplies that GLB and it passes the same Blender check as the other two.
+### What the file license does not cover
+
+CC BY 4.0 is the uploader's license for this 3D file. It is not a license from BMW AG. It does not grant the BMW trademark, the roundel, the grille, or the vehicle design, and it does not allow the page to imply that BMW sponsors or supplied the film. The race livery also carries other brands. Those marks are not cleared by the model license. Attribution, if this film is later shown, has to name MattDoesBlender, JUST GAME, and VTDAT23, and link CC BY 4.0. The VTX model stays unused.
 
 ## Lineup animatic
 
-`scripts/cinematic-hero/render_lineup.py` is one Eevee scene and one camera. It is not a finished trilogy and it is not on the page.
+`scripts/cinematic-hero/render_lineup.py` is one Eevee scene. It is the review film, not the page.
 
-- 0.35–4.05 s: G90 enters from the right on a cubic Bezier, heading about -68° to -46°. The body yaw is the path tangent. Front wheels steer with the curvature, then straighten. Roll and brake pitch come from steer and deceleration. Wheel spin is arc length divided by the measured radius. Spots at the lamps ease on as it stops. Parked near (0.15, 0.35).
-- 4.45–7.45 s: M4 Widebody enters from the left on its own Bezier and stops near (-5.15, 3.45), heading about 58°, left and behind the G90. Centerline clearance while it moves is about 3.5 m.
-- The right-rear mark (4.55, 5.35), heading -70°, is empty. A reserved entry from (16.0, 8.2) is in the script and is not rendered. The VTX file is not imported.
+- 0.35–4.05 s: G90 enters from the right on a cubic Bezier, heading about -68° to -46°, and stops near (0.15, 0.35). Body yaw is the path tangent. Front wheels steer, then straighten. Wheel spin is arc length divided by the tire radius.
+- 4.45–7.45 s: M4 Widebody enters from the left and stops near (-5.15, 3.45), behind-left. Centerline clearance about 3.5 m.
+- 7.85–11.15 s: GT3 enters from the right and stops near (6.4, 5.7), heading about -66°, behind-right. Centerline clearance about 3.5 m.
+- Hold to 12 s. Desktop camera 24 mm. Mobile camera is the same scene with a horizontal sensor fit so the portrait frame keeps all three cars.
 
-The straight-line script `render_g90_arrival.py` now only points at this one. Renders stay in gitignored `assets/hero/renders/lineup/`. Quality stills are 1400×788. The animatic is 8 fps, 960×540, 8 seconds, no sound.
+The review animatic is 24 fps. Desktop frames are 1280×720. Mobile frames are 720×1280. Stills are 1600×900 and 900×1600. Nothing here is merged or published.
+
+## Final CGI, after this animatic is accepted
+
+- Keep this blocking, these paths, and both cameras. Re-render in Cycles rather than raising Eevee samples on the review film.
+- Desktop 1920×1080 and mobile 1080×1920, 24 fps, 12 s, AgX, denoised. A test frame should set the sample count; 128 samples with a denoiser is the starting point.
+- Replace the spotlight beams with the cars' own lamp geometry, and let the sun cast the contact shadows.
+- Read the GT3 livery at full size before any public frame. Third-party marks on the body are a separate clearance from CC BY.
+- Do not encode the VTX GLB. Do not commit any GLB. Put the attribution next to the player, not only in this note.
 
 ## Still not done
 
