@@ -139,9 +139,11 @@ Pull Request: https://github.com/r4818848-lang/bess-motors-site/pull/38
 
 Проверка `f33ae6a` завершилась без ошибок 11 ноября 2026, 22:50 по Варшаве. Прогон: https://github.com/r4818848-lang/bess-motors-site/actions/runs/43106194304. Unit занял 1 минуту 37 секунд, e2e — 2 минуты 50 секунд. Все 6 проверок GitHub зелёные.
 
-Полировка 12 ноября 2026, код `eaf0d893e35cb6750ef24125687ba0c2a3fdcabc`, пересобрала сцены, галерею и соседние страницы в том же PR. Локально после неё: `tsc` без ошибок, `next lint` внутри `next build` без новых ошибок, unit включая реестр медиа, lead-notices, validate:prices 150 строк, `npm run audit`, e2e 125 passed / 4 skipped и readonly-календарь 1 passed. CI и Vercel для этого коммита на момент записи отчёта ещё не завершены: статус ниже дополнится, когда проверка закончится. Предыдущие зелёные проверки относятся к `f33ae6a`, не к этой полировке.
+Полировка 12 ноября 2026, код `eaf0d893e35cb6750ef24125687ba0c2a3fdcabc`, пересобрала сцены, галерею и соседние страницы в том же PR. Локально после неё: `tsc` без ошибок, `next lint` внутри `next build` без новых ошибок, unit включая реестр медиа, lead-notices, validate:prices 150 строк, `npm run audit`, e2e 125 passed / 4 skipped и readonly-календарь 1 passed.
 
-Три Vercel Preview для этой ветки были Ready для `f33ae6a` с 22:49 по Варшаве 11 ноября. Новый push их пересоберёт:
+Проверка `dcd7b6a` завершилась без ошибок 12 ноября 2026, около 09:50 по Варшаве. Прогон: https://github.com/r4818848-lang/bess-motors-site/actions/runs/43185828655. Unit 1 минута 38 секунд, e2e 2 минуты 49 секунд, в e2e 125 passed и 4 skipped. Три Vercel Preview для `dcd7b6a` сообщили Deployment completed. Те же адреса ветки:
+
+Код сцен остаётся `eaf0d89`. Строка выше относится к `dcd7b6a`, до этого абзаца отчёта.
 
 - [bess-motors](https://bess-motors-git-feat-bess-motors-2-c8e1f7-bess-motors-projects.vercel.app)
 - [bess-motors-site](https://bess-motors-site-git-feat-bess-moto-fdba1d-bess-motors-projects.vercel.app)
