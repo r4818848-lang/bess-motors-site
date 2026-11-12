@@ -26,23 +26,40 @@ Blender 4.0.2 opened all three files. Packed images loaded. No texture was missi
 
 **G90.** 258 meshes, 45 materials, 28 images. World size about 2.19 × 5.10 × 1.48 m, which matches a real G90. The nose points toward -Y. The axles run along X. Wheel hubs are the empties `WHEEL_RF`, `WHEEL_LF`, `WHEEL_LR`, `WHEEL_RR` (radius about 0.37 m). Rims, tires, and brake discs are parented to those empties. Brake calipers stay on the suspension, so they do not spin with the wheel. The visible body is material `0.005`, a dark green. The render script recolours that shell and the black shell `0.002` toward Black Sapphire. The source GLB is not rewritten. Those empties import as quaternions: setting `rotation_euler` without switching `rotation_mode` to `XYZ` does not turn the wheels.
 
-**M4 Widebody.** 101 meshes, 65 materials, 45 images. World size about 2.04 × 4.87 × 1.35 m. Four separate tires: `TIRE_LF`, `TIRE_RF`, `TIRE_LR`, `TIRE_RR`. The paint is a dark carbon widebody with a wing. It is the stronger of the two CC BY models visually. It is not in the arrival shot yet.
+**M4 Widebody.** 101 meshes, 65 materials, 45 images. World size about 2.04 × 4.87 × 1.35 m once the imported 2 m cube, light, and camera are removed. Four tire empties, nose toward -Y, radius about 0.33 m. The paint is a dark carbon widebody with a wing. It is the second car in the animatic.
 
 **M4 GT3 EVO.** 288 meshes, 20 materials, 45 images, and separate wheel objects. The imported size is about 0.021 × 0.050 × 0.014 m, roughly one hundred times too small. Scaled by 100 it measures 2.06 × 5.02 × 1.39 m, the images load, and the body is a recognisable GT3 with a wing and separate wheels. The license is CC BY-NC-SA. This model must not be encoded into the homepage, a preview that customers can open, or any other commercial page. Scaling it does not change that.
 
-## Arrival render
+## Alternative GT3, not in the shot
 
-`scripts/cinematic-hero/render_g90_arrival.py` builds a 4-second, 24 fps desktop shot of the G90 only:
+Checked on 12 Nov 2026 via the public Sketchfab API, model `0feb1f9793c14b35971518a93a97d688`:
 
-- 0–1 s the car enters from the right, along its own forward axis.
-- 1–2.5 s it continues. Wheel spin is distance divided by the measured tire radius.
-- 2.5–3.5 s it brakes and the body pitches.
-- 3.5–4 s it holds a front three-quarter. That last frame is the poster.
+https://sketchfab.com/3d-models/bmw-m4-gt3-evo-0feb1f9793c14b35971518a93a97d688
 
-The desktop pass is rendered locally at `assets/hero/renders/g90-arrival/`: 96 PNG frames, `poster.png`, `g90-arrival.webm` (VP9, yuv420p), and `g90-arrival.mp4` (H.264, yuv420p, faststart). All of that is gitignored. Eevee, 1280×720, no sound. The page does not reference these files. A mobile camera and headlamp glow are still open. The M4 Widebody can be a second shot under the same CC BY terms. The GT3 cannot.
+| Field | Value |
+| --- | --- |
+| Title | BMW M4 GT3 EVO |
+| Author | MattDoesBlender |
+| License | CC BY 4.0 (`by`). Sketchfab's own line: "Author must be credited. Commercial use is allowed." |
+| Published | 17 Jun 2025 |
+| Description | Empty. No extra restriction is written on the model. |
+| Price | None. Marked downloadable, not protected. |
+
+This is a different file from MattDoesBlender's G90, which was CC BY-NC-SA. CC BY still is not a license from BMW AG. The file is not in this workspace and was not downloaded. The third mark stays empty until the owner supplies that GLB and it passes the same Blender check as the other two.
+
+## Lineup animatic
+
+`scripts/cinematic-hero/render_lineup.py` is one Eevee scene and one camera. It is not a finished trilogy and it is not on the page.
+
+- 0.35–4.05 s: G90 enters from the right on a cubic Bezier, heading about -68° to -46°. The body yaw is the path tangent. Front wheels steer with the curvature, then straighten. Roll and brake pitch come from steer and deceleration. Wheel spin is arc length divided by the measured radius. Spots at the lamps ease on as it stops. Parked near (0.15, 0.35).
+- 4.45–7.45 s: M4 Widebody enters from the left on its own Bezier and stops near (-5.15, 3.45), heading about 58°, left and behind the G90. Centerline clearance while it moves is about 3.5 m.
+- The right-rear mark (4.55, 5.35), heading -70°, is empty. A reserved entry from (16.0, 8.2) is in the script and is not rendered. The VTX file is not imported.
+
+The straight-line script `render_g90_arrival.py` now only points at this one. Renders stay in gitignored `assets/hero/renders/lineup/`. Quality stills are 1400×788. The animatic is 8 fps, 960×540, 8 seconds, no sound.
 
 ## Still not done
 
 - The homepage hero is unchanged: no `<video>`, no poster, no reduced-motion fallback.
 - No Lighthouse pass of a video hero.
+- The third car is not in the scene.
 - No production deploy and no merge.

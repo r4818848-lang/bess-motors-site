@@ -10,4 +10,4 @@ Three GLBs from the owner's Google Drive folder live here. They are listed in `.
 
 CC BY is the uploader's file license, not a BMW AG trademark or design license. CC BY-NC-SA cannot be used on the commercial site. Details and the Blender check are in `docs/cinematic-hero-v2.md`.
 
-The arrival script is `scripts/cinematic-hero/render_g90_arrival.py`. It reads the G90 from `g90/bmw-g90-m5-justgame.glb` and writes frames under `assets/hero/renders/`, which is also gitignored.
+The lineup script is `scripts/cinematic-hero/render_lineup.py`. It reads the G90 and the M4 Widebody and writes frames under `assets/hero/renders/`, which is gitignored. It does not read the VTX GT3.
