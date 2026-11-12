@@ -12,18 +12,20 @@ export const metadata: Metadata = buildPageMetadata({
 
 export default function BlogPage() {
   return (
-    <div className="pt-28 pb-20 px-4 max-w-3xl mx-auto">
-      <h1 className="font-display text-3xl uppercase text-glow mb-8">Blog</h1>
-      <ul className="space-y-6">
+    <div className="pt-28 pb-20 px-4 max-w-5xl mx-auto">
+      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-bm-red">BESS MOTORS</p>
+      <h1 className="mt-3 font-display text-4xl uppercase text-white">Blog</h1>
+      <div className="mt-4 h-1 w-16 bg-bm-red" />
+      <ul className="mt-10 grid gap-4 md:grid-cols-2">
         {blogPosts.map((p) => (
-          <li key={p.slug} className="glass rounded-xl p-6">
-            <p className="text-xs text-bm-muted">{p.date}</p>
-            <h2 className="font-display text-xl mt-1">
+          <li key={p.slug} className="rounded-2xl border border-white/10 bg-white/[0.03] p-6">
+            <p className="text-xs uppercase tracking-wide text-bm-muted">{p.date}</p>
+            <h2 className="mt-2 font-display text-xl text-white">
               <Link href={`/blog/${p.slug}`} className="hover:text-bm-red">
                 {p.title}
               </Link>
             </h2>
-            <p className="text-bm-muted text-sm mt-2">{p.excerpt}</p>
+            <p className="mt-3 text-sm leading-relaxed text-bm-muted">{p.excerpt}</p>
           </li>
         ))}
       </ul>

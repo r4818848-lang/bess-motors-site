@@ -38,7 +38,9 @@ export default function ContactsPage() {
   return (
     <div className="pt-28 pb-20">
       <div className="mx-auto max-w-7xl px-4 lg:px-8">
-        <h1 className="font-display text-4xl font-bold uppercase text-glow">{t.contacts.title}</h1>
+        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-bm-red">BESS MOTORS</p>
+        <h1 className="mt-3 font-display text-4xl font-bold uppercase text-white">{t.contacts.title}</h1>
+        <div className="mt-4 h-1 w-16 bg-bm-red" />
         <p className="mt-2 text-bm-red font-display uppercase tracking-wide text-sm">
           {t.hero.ctaCall}
         </p>

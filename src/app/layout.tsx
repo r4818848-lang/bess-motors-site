@@ -103,8 +103,7 @@ const criticalCss = `
   html[data-cc-lang="uk"] [data-cookie-dialog] [data-cc]{display:none}
   html[data-cc-lang="uk"] [data-cookie-dialog] [data-cc="uk"]{display:block}
   html[data-cookie-consent] [data-cookie-dialog]{display:none!important}
-  [data-cookie-dialog] [data-cc="ru"],[data-cookie-dialog] [data-cc="uk"]{font-family:system-ui,sans-serif}
-  html[data-cc-lang="ru"] [data-cookie-dialog] [data-cc="ru"],html[data-cc-lang="uk"] [data-cookie-dialog] [data-cc="uk"]{font-family:Inter,"Inter Fallback",system-ui,sans-serif}
+  [data-cookie-dialog],[data-cookie-dialog] [data-cc]{font-family:system-ui,sans-serif}
 `;
 
 

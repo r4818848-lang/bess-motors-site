@@ -7,6 +7,7 @@ import { HomeComplexRepairs } from "@/components/home/HomeComplexRepairs";
 import { HomeSeoServiceLinks } from "@/components/home/HomeSeoServiceLinks";
 import { HomePromoBlock } from "@/components/home/HomePromoBlock";
 import { HomeFinalCta } from "@/components/home/HomeFinalCta";
+import { SymptomShortcuts } from "@/components/home/SymptomShortcuts";
 
 const VinQuoteForm = dynamic(() =>
   import("@/components/home/VinQuoteForm").then((m) => m.VinQuoteForm)
@@ -42,6 +43,7 @@ export default function HomePage() {
       <div className="h-14 sm:h-16 safe-area-pt" aria-hidden />
       <Hero />
       <HomeTrustBar />
+      <SymptomShortcuts />
       <SameDayServices />
       <HomeTireSeasonBlock />
       <HomeComplexRepairs />

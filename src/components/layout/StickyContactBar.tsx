@@ -28,7 +28,7 @@ export function StickyContactBar() {
   if (hiddenPaths.some((p) => pathname.startsWith(p))) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-[90] md:hidden border-t border-white/10 bg-bm-black/95 backdrop-blur-md safe-area-pb">
+    <div className="bm-sticky-contact fixed bottom-0 left-0 right-0 z-[90] md:hidden border-t border-white/10 bg-bm-black/95 backdrop-blur-md safe-area-pb">
       <div className="grid grid-cols-4 gap-0">
         <PhoneLink
           trackSource="sticky_bar"

@@ -25,9 +25,28 @@ function run(name, script) {
   }
 }
 
+function publishedSeoSlugs() {
+  const slugs = new Set();
+  const dynamicPage = join(root, "src", "app", "[slug]", "page.tsx");
+  if (!existsSync(dynamicPage)) return slugs;
+  function walk(dir) {
+    for (const name of readdirSync(dir, { withFileTypes: true })) {
+      const file = join(dir, name.name);
+      if (name.isDirectory()) walk(file);
+      else if (name.name.endsWith(".ts")) {
+        const text = readFileSync(file, "utf8");
+        for (const match of text.matchAll(/slug:\s*"([^"]+)"/g)) slugs.add(match[1]);
+      }
+    }
+  }
+  walk(join(root, "src", "lib"));
+  return slugs;
+}
+
 function checkNavRoutes() {
   const layout = readFileSync(join(root, "src", "components", "layout", "Header.tsx"), "utf8");
   const appDir = join(root, "src", "app");
+  const seoSlugs = publishedSeoSlugs();
   const hrefs = [...layout.matchAll(/href:\s*["'](\/[^"']+)["']/g)].map((m) => m[1]);
   const missing = hrefs.filter((h) => {
     if (h.startsWith("http") || h.startsWith("#")) return false;
@@ -36,7 +55,9 @@ function checkNavRoutes() {
       pathname === "/"
         ? join(appDir, "page.tsx")
         : join(appDir, pathname.slice(1), "page.tsx");
-    return !existsSync(path);
+    if (existsSync(path)) return false;
+    const slug = pathname.replace(/^\//, "");
+    return !seoSlugs.has(slug);
   });
   if (missing.length) {
     console.error("❌ Header links without page.tsx:", missing);

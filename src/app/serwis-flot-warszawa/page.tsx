@@ -6,6 +6,7 @@ import { useI18n } from "@/lib/i18n/context";
 import { BookingLink } from "@/components/analytics/BookingLink";
 import { PhoneLink } from "@/components/analytics/PhoneLink";
 import { SITE_NAP } from "@/lib/site-nap";
+import { ServiceMotion } from "@/components/motion/ServiceMotion";
 
 export default function FleetServicePage() {
   const { t } = useI18n();
@@ -14,6 +15,7 @@ export default function FleetServicePage() {
   return (
     <div className="pt-28 pb-20">
       <div className="mx-auto max-w-3xl px-4 lg:px-8">
+        <ServiceMotion slug="serwis-flot-warszawa" className="mb-6" />
         <p className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-bm-red mb-4">
           <Building2 size={14} />
           BESS MOTORS

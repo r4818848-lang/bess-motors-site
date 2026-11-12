@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { Menu, Phone, X } from "lucide-react";
 import { clsx } from "clsx";
 import { useI18n } from "@/lib/i18n/context";
@@ -28,22 +29,61 @@ const mobileNav = [
   { href: "/faq", key: "faq" as const },
 ];
 
+const serviceLinks = [
+  { href: "/wulkanizacja-warszawa", key: "tires" as const },
+  { href: "/wymiana-oleju", key: "oil" as const },
+  { href: "/hamulce", key: "brakePads" as const },
+  { href: "/diagnostyka", key: "diagnostic" as const },
+  { href: "/klimatyzacja", key: "acRefill" as const },
+  { href: "/zawieszenie", key: "suspension" as const },
+  { href: "/silnik", key: "engine" as const },
+];
+
 export function Header() {
   const { t, locale } = useI18n();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const [servicesOpen, setServicesOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (!open) return;
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+    document.body.dataset.nav = "open";
     return () => {
       document.body.style.overflow = prev;
+      delete document.body.dataset.nav;
     };
   }, [open]);
 
   useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  useEffect(() => {
+    if (!open && !servicesOpen) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setOpen(false);
+        setServicesOpen(false);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, servicesOpen]);
+
+  useEffect(() => {
     setOpen(false);
+    setServicesOpen(false);
   }, [pathname]);
 
   const labelFor = (item: (typeof desktopNav)[number]) => {
@@ -54,12 +94,52 @@ export function Header() {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 border-b border-white/10 bg-bm-black/90 backdrop-blur-md safe-area-pt">
+    <header className="fixed top-0 left-0 right-0 z-50 safe-area-pt">
+      <div
+        className={clsx(
+          "border-b transition-colors duration-200",
+          scrolled ? "border-white/10 bg-bm-black/80 backdrop-blur-md" : "border-transparent bg-bm-black/55"
+        )}
+      >
       <div className="mx-auto flex h-14 sm:h-16 max-w-7xl items-center justify-between gap-3 px-4 lg:px-8">
         <Logo size="sm" showTagline={false} />
 
         <nav className="hidden items-center gap-1 lg:flex">
-          {desktopNav.map((item) => {
+          <div className="relative">
+            <button
+              type="button"
+              className="rounded-lg px-3 py-2 text-sm text-bm-silver hover:text-white min-h-[44px]"
+              aria-expanded={servicesOpen}
+              aria-controls="header-services"
+              onClick={() => setServicesOpen((value) => !value)}
+            >
+              {t.nav.services}
+            </button>
+            <div
+                id="header-services"
+                hidden={!servicesOpen}
+                className="absolute left-0 top-full z-20 mt-2 w-56 rounded-xl border border-white/10 bg-bm-black/95 p-2 shadow-lg"
+              >
+                {serviceLinks.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className="block rounded-lg px-3 py-2 text-sm text-bm-silver hover:bg-white/5 hover:text-white min-h-[44px]"
+                    onClick={() => setServicesOpen(false)}
+                  >
+                    {t.serviceItems[item.key]}
+                  </Link>
+                ))}
+                <Link
+                  href="/services"
+                  className="mt-1 block rounded-lg border-t border-white/10 px-3 py-2 text-sm text-white min-h-[44px]"
+                  onClick={() => setServicesOpen(false)}
+                >
+                  {t.nav.services}
+                </Link>
+              </div>
+          </div>
+          {desktopNav.filter((item) => item.href !== "/services").map((item) => {
             const isGallery = item.href.startsWith("/gallery");
             const active = isGallery ? pathname === "/gallery" : pathname === item.href;
             return (
@@ -108,15 +188,28 @@ export function Header() {
             onClick={() => setOpen(!open)}
             aria-label="Menu"
             aria-expanded={open}
+            aria-controls="mobile-nav"
           >
             {open ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>
       </div>
+      </div>
 
-      {open && (
-        <div className="lg:hidden border-t border-white/10 bg-bm-black/98 px-4 py-4 max-h-[min(75vh,calc(100dvh-3.5rem))] overflow-y-auto">
-          <nav className="flex flex-col gap-1">
+      {open && mounted
+        ? createPortal(
+        <div id="mobile-nav" className="fixed inset-x-0 bottom-0 top-14 z-[100] overflow-y-auto bg-[#090b0e] px-4 py-4 lg:hidden">
+          <nav className="flex flex-col gap-1" aria-label={t.nav.services}>
+            {serviceLinks.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setOpen(false)}
+                className="rounded-lg px-4 py-3 text-base min-h-[48px] flex items-center text-bm-silver"
+              >
+                {t.serviceItems[item.key]}
+              </Link>
+            ))}
             {mobileNav.map((item) => {
               const isGallery = item.href.startsWith("/gallery");
               const active = isGallery ? pathname === "/gallery" : pathname === item.href;
@@ -159,8 +252,10 @@ export function Header() {
               {t.hero.ctaBook}
             </BookingLink>
           </div>
-        </div>
-      )}
+        </div>,
+        document.body
+        )
+        : null}
     </header>
   );
 }

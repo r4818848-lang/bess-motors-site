@@ -10,6 +10,7 @@ import { SocialContactLink } from "@/components/analytics/SocialContactLink";
 import { Logo } from "@/components/brand/Logo";
 import { seoFooterServiceLinks } from "@/lib/seo-footer-links";
 import { workshopWhatsAppChatUrl } from "@/lib/chat-cta";
+import { businessConfig } from "@/lib/businessConfig";
 
 export function Footer() {
   const { t, locale } = useI18n();
@@ -22,6 +23,7 @@ export function Footer() {
           <div>
             <Logo size="md" />
             <p className="mt-4 text-sm text-bm-muted max-w-xs">{t.footer.desc}</p>
+            <p className="mt-3 text-sm text-white">{businessConfig.workingHoursLabel}</p>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">

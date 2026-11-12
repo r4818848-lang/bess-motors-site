@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import Link from "next/link";
 import { Calendar, ChevronRight, MapPin, Phone, FileSearch, Navigation } from "lucide-react";
 import type { SeoLandingPage } from "@/lib/seo-landing-pages";
@@ -45,6 +45,7 @@ import { TirePromoPhotoStrip } from "@/components/seo/landing/TirePromoPhotoStri
 import { ModelServiceHero } from "@/components/seo/landing/ModelServiceHero";
 import { TIRE_AD_LANDING_SLUG } from "@/lib/tire-media";
 import { getModelHeroForSlug } from "@/lib/model-service-media";
+import { ServiceMotion } from "@/components/motion/ServiceMotion";
 
 type Props = {
   page: SeoLandingPage;
@@ -58,15 +59,13 @@ export function SeoLandingPageView({ page }: Props) {
   const bookServiceId = resolveLandingBookServiceId(page.slug, page.serviceId);
   const contentServiceId = resolveLandingContentServiceId(page.slug, page.serviceId);
   const [bookingService, setBookingService] = useState<ServiceId | null>(null);
-  const [scrollPromptShown, setScrollPromptShown] = useState(false);
+  const tireQuick = isTireQuickBookSlug(page.slug);
 
   const openBooking = useCallback(() => {
     if (bookServiceId) {
       setBookingService(bookServiceId);
     }
   }, [bookServiceId]);
-
-  const tireQuick = isTireQuickBookSlug(page.slug);
   const bookFromPage = () => {
     trackBookingOpen(`landing_${page.slug}`);
     if (tireQuick) {
@@ -80,28 +79,13 @@ export function SeoLandingPageView({ page }: Props) {
     document.getElementById("landing-map-heading")?.scrollIntoView({ behavior: "smooth" });
   };
 
-  useEffect(() => {
-    if (tireQuick || !bookServiceId || scrollPromptShown) return;
-    const onScroll = () => {
-      const nearBottom =
-        window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 120;
-      if (nearBottom) {
-        setScrollPromptShown(true);
-        setBookingService(bookServiceId);
-        window.removeEventListener("scroll", onScroll);
-      }
-    };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, [bookServiceId, scrollPromptShown, tireQuick]);
-
   const heroTitle =
     pageLoc.title.toLowerCase().includes("warszawa") ||
     pageLoc.title.toLowerCase().includes("warsaw")
       ? pageLoc.title
       : `${pageLoc.title} — Warszawa`;
 
-  const isExtraSeoPage = EXTRA_SEO_SERVICE_PAGES.some((p) => p.slug === page.slug);
+  const isExtraSeoPage = EXTRA_SEO_SERVICE_PAGES.some((item) => item.slug === page.slug);
 
   return (
     <>
@@ -109,7 +93,9 @@ export function SeoLandingPageView({ page }: Props) {
         <div className="mx-auto max-w-5xl px-4 lg:px-8">
           <SeoLandingBreadcrumbs serviceTitle={pageLoc.title} serviceHref={`/${page.slug}`} />
 
-          <div className="text-center">
+          <div className="grid items-center gap-6 text-center lg:grid-cols-[minmax(260px,480px)_minmax(0,1fr)] lg:text-left">
+            <ServiceMotion slug={page.slug} serviceId={page.serviceId} />
+            <div>
             <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl metallic text-bm-red mb-6 shadow-neon-sm">
               <ServiceIcon name={page.icon} size={32} />
             </div>
@@ -128,8 +114,17 @@ export function SeoLandingPageView({ page }: Props) {
                 {sl.brandNotice}
               </p>
             ) : null}
-            <div className="mt-6 h-1 w-24 bg-bm-red shadow-neon-sm mx-auto" />
+            <div className="mt-6 h-1 w-24 bg-bm-red shadow-neon-sm mx-auto lg:mx-0" />
+            </div>
           </div>
+
+          {contentServiceId ? (
+            <ServiceLandingPhotos
+              serviceId={contentServiceId}
+              slug={page.slug}
+              placement="under-motion"
+            />
+          ) : null}
 
           {getModelHeroForSlug(page.slug) ? (
             <ModelServiceHero slug={page.slug} />
