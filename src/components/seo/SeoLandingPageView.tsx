@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import Link from "next/link";
 import { Calendar, ChevronRight, MapPin, Phone, FileSearch, Navigation } from "lucide-react";
 import type { SeoLandingPage } from "@/lib/seo-landing-pages";
@@ -59,7 +59,6 @@ export function SeoLandingPageView({ page }: Props) {
   const bookServiceId = resolveLandingBookServiceId(page.slug, page.serviceId);
   const contentServiceId = resolveLandingContentServiceId(page.slug, page.serviceId);
   const [bookingService, setBookingService] = useState<ServiceId | null>(null);
-  const [scrollPromptShown, setScrollPromptShown] = useState(false);
 
   const openBooking = useCallback(() => {
     if (bookServiceId) {
@@ -81,21 +80,6 @@ export function SeoLandingPageView({ page }: Props) {
     document.getElementById("landing-map-heading")?.scrollIntoView({ behavior: "smooth" });
   };
 
-  useEffect(() => {
-    if (tireQuick || !bookServiceId || scrollPromptShown) return;
-    const onScroll = () => {
-      const nearBottom =
-        window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 120;
-      if (nearBottom) {
-        setScrollPromptShown(true);
-        setBookingService(bookServiceId);
-        window.removeEventListener("scroll", onScroll);
-      }
-    };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, [bookServiceId, scrollPromptShown, tireQuick]);
-
   const heroTitle =
     pageLoc.title.toLowerCase().includes("warszawa") ||
     pageLoc.title.toLowerCase().includes("warsaw")
@@ -110,7 +94,7 @@ export function SeoLandingPageView({ page }: Props) {
         <div className="mx-auto max-w-5xl px-4 lg:px-8">
           <SeoLandingBreadcrumbs serviceTitle={pageLoc.title} serviceHref={`/${page.slug}`} />
 
-          <div className="grid items-center gap-6 text-center lg:grid-cols-[minmax(220px,340px)_minmax(0,1fr)] lg:text-left">
+          <div className="grid items-center gap-6 text-center lg:grid-cols-[minmax(260px,480px)_minmax(0,1fr)] lg:text-left">
             <ServiceMotion slug={page.slug} serviceId={page.serviceId} />
             <div>
             <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl metallic text-bm-red mb-6 shadow-neon-sm">

@@ -12,10 +12,11 @@ export default function FaqPage() {
     <div className="pt-28 pb-24">
       <div className="mx-auto max-w-3xl px-4 lg:px-8">
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-          <h1 className="font-display text-4xl font-bold uppercase text-glow text-center">
+          <h1 className="font-display text-4xl font-bold uppercase text-white text-center">
             {f.title}
           </h1>
-          <p className="text-center text-bm-muted mt-3 mb-10">{f.subtitle}</p>
+          <div className="mx-auto mt-4 h-1 w-16 bg-bm-red" />
+          <p className="text-center text-bm-muted mt-4 mb-10">{f.subtitle}</p>
         </motion.div>
 
         <div className="space-y-4">
@@ -25,9 +26,9 @@ export default function FaqPage() {
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.04 }}
-              className="glass-red rounded-xl p-5 neon-border group"
+              className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 group"
             >
-              <summary className="font-semibold cursor-pointer list-none flex justify-between gap-4">
+              <summary className="min-h-[44px] font-semibold cursor-pointer list-none flex items-center justify-between gap-4">
                 {item.q}
                 <span className="text-bm-red group-open:rotate-45 transition-transform">+</span>
               </summary>

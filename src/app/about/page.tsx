@@ -18,9 +18,11 @@ export default function AboutPage() {
     <div className="pt-28 pb-20">
       <div className="mx-auto max-w-7xl px-4 lg:px-8">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-          <h1 className="font-display text-4xl md:text-5xl font-bold uppercase text-glow">
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-bm-red">BESS MOTORS</p>
+          <h1 className="mt-3 font-display text-4xl md:text-5xl font-bold uppercase text-white">
             {t.about.title}
           </h1>
+          <div className="mt-4 h-1 w-16 bg-bm-red" />
           <p className="mt-4 text-xl text-bm-red font-display uppercase tracking-wide">
             {t.about.subtitle}
           </p>

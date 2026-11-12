@@ -50,6 +50,7 @@ export default async function BlogPostPage({
     <>
       <StructuredData data={blogPostingSchema(post)} />
       <article className="pt-28 pb-20 px-4 max-w-3xl mx-auto">
+        <div className="mb-6 h-1 w-16 bg-bm-red" />
         <nav aria-label="Breadcrumb" className="text-sm text-bm-muted">
           <Link href="/" className="hover:text-bm-red">
             Strona główna

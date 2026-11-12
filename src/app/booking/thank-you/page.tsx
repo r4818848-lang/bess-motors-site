@@ -49,7 +49,8 @@ function ThankYouContent() {
     <div className="pt-28 pb-24 min-h-[70vh]">
       <div className="mx-auto max-w-lg px-4 text-center">
         <Check className="bm-confirm w-20 h-20 text-bm-red mx-auto mb-6" />
-        <h1 className="font-display text-3xl font-bold uppercase text-glow">{title}</h1>
+        <h1 className="font-display text-3xl font-bold uppercase text-white">{title}</h1>
+        <div className="mx-auto mt-4 h-1 w-16 bg-bm-red" />
         <PwaInstallHint />
         <p className="text-bm-muted mt-4 leading-relaxed">
           {syncPending ? ty.syncPending : ty.message}

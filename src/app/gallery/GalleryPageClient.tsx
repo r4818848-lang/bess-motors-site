@@ -13,6 +13,7 @@ import { WORK_BEFORE_AFTER_CASES } from "@/lib/work-before-after";
 import { WorkshopPhotosGrid } from "@/components/gallery/WorkshopPhotosGrid";
 import { InstagramReelsSection } from "@/components/gallery/InstagramReelsSection";
 import { OurWorksSection } from "@/components/gallery/OurWorksSection";
+import type { ServiceId } from "@/lib/services-catalog";
 
 type GalleryTab = "workshop" | "works" | "repairs";
 
@@ -28,6 +29,18 @@ export default function GalleryPageClient({
   const [items, setItems] = useState<PublicGalleryItem[]>([]);
   const [makeFilter, setMakeFilter] = useState<string>("all");
   const [tab, setTab] = useState<GalleryTab>("works");
+  const [serviceFilter, setServiceFilter] = useState<ServiceId | "all">("all");
+  const serviceFilters: { id: ServiceId | "all"; label: string }[] = [
+    { id: "all", label: g.allServices },
+    { id: "tires", label: t.serviceItems.tires },
+    { id: "oil", label: t.serviceItems.oil },
+    { id: "brakePads", label: t.serviceItems.brakePads },
+    { id: "acRefill", label: t.serviceItems.acRefill },
+    { id: "suspension", label: t.serviceItems.suspension },
+    { id: "engine", label: t.serviceItems.engine },
+    { id: "clutch", label: t.serviceItems.clutch },
+    { id: "electric", label: t.serviceItems.electric },
+  ];
 
   useEffect(() => {
     const fromUrl = searchParams.get("tab");
@@ -78,7 +91,7 @@ export default function GalleryPageClient({
               aria-selected={tab === id}
               onClick={() => selectTab(id)}
               className={clsx(
-                "px-4 py-2 rounded-full text-xs font-bold uppercase border transition-colors",
+                "min-h-[44px] px-4 py-2 rounded-full text-xs font-bold uppercase border transition-colors",
                 tab === id
                   ? "bg-bm-red/20 border-bm-red text-bm-red"
                   : "border-bm-border text-bm-muted hover:text-white"
@@ -102,7 +115,25 @@ export default function GalleryPageClient({
 
         {tab === "works" && (
           <div className="mt-10" role="tabpanel">
-            <OurWorksSection showHeader />
+            <div className="mb-6 flex flex-wrap gap-2" aria-label="Filtr usług">
+              {serviceFilters.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  aria-pressed={serviceFilter === item.id}
+                  onClick={() => setServiceFilter(item.id)}
+                  className={clsx(
+                    "min-h-[44px] rounded-full border px-4 text-sm",
+                    serviceFilter === item.id
+                      ? "border-bm-red bg-bm-red/15 text-white"
+                      : "border-white/15 text-bm-silver"
+                  )}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+            <OurWorksSection showHeader serviceId={serviceFilter === "all" ? undefined : serviceFilter} />
           </div>
         )}
 
