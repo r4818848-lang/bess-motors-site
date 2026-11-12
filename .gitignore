@@ -33,8 +33,12 @@ __MACOSX/
 /data/gsc/
 /data/seo-private/
 
-# Hero render intermediates. The JUSTGAME source drop stays visible to git.
+# Hero render intermediates and the owner-supplied GLBs.
+# The models stay on the PR machine until a publish decision. Do not commit them.
 /assets/hero/renders/
+/assets/hero/source/**/*.glb
+/assets/hero/source/**/*.bin
+/assets/hero/source/**/*.zip
 
 # debug
 npm-debug.log*

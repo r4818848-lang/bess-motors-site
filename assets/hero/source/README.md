@@ -1,15 +1,13 @@
-# G90 source drop
+# Car models for the cinematic hero
 
-Put the owner-downloaded JUSTGAME archive here. Do not download it from Sketchfab in CI or in an agent session: that API requires the owner's account.
+Three GLBs from the owner's Google Drive folder live here. They are listed in `.gitignore` and are not part of the pull request.
 
-Preferred file, exactly one of these names:
+| Path | Model | Uploader license |
+| --- | --- | --- |
+| `g90/bmw-g90-m5-justgame.glb` | BMW G90 M5, JUST GAME | CC BY 4.0 |
+| `m4-widebody/bmw-m4-widebody.glb` | BMW M4 Widebody Modified, VTDAT23 | CC BY 4.0 |
+| `m4-gt3/bmw-m4-gt3-evo.glb` | 2025 BMW M4 GT3 EVO, VTX | CC BY-NC-SA 4.0 |
 
-- `assets/hero/source/bmw-g90-m5-justgame.glb`
-- `assets/hero/source/bmw-g90-m5-justgame.gltf` (keep the `.bin` and textures in this same folder)
-- `assets/hero/source/bmw-g90-m5-justgame.zip` (glTF/GLB archive from Sketchfab)
+CC BY is the uploader's file license, not a BMW AG trademark or design license. CC BY-NC-SA cannot be used on the commercial site. Details and the Blender check are in `docs/cinematic-hero-v2.md`.
 
-Source page: https://sketchfab.com/3d-models/bmw-g90-m5-9dc9e5c88bec4faa94552fdd0b76ed21
-
-Author: JUSTGAME. Uploader license on 12 Nov 2026: CC BY 4.0. That allows use of the file with attribution. It is not a BMW AG trademark or design license. The model is not published on the site until a Blender review accepts the mesh, the textures, and separate wheels.
-
-Commit the file on `feat/bess-cinematic-hero-v2` or attach it to the next agent message. An empty folder is not a model.
+The arrival script is `scripts/cinematic-hero/render_g90_arrival.py`. It reads the G90 from `g90/bmw-g90-m5-justgame.glb` and writes frames under `assets/hero/renders/`, which is also gitignored.
