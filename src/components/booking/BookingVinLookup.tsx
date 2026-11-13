@@ -55,7 +55,7 @@ export function BookingVinLookup({ onVinChange, onDecoded }: Props) {
     <div className="rounded-xl border border-bm-border/50 bg-bm-card/40 p-4 mb-6">
       <div className="flex items-center gap-2 text-bm-red mb-2">
         <ScanLine size={18} />
-        <span className="text-xs font-bold uppercase">{v.title}</span>
+        <span className="text-xs font-bold uppercase text-bm-ink">{v.title}</span>
       </div>
       <div className="flex flex-col sm:flex-row gap-2">
         <input

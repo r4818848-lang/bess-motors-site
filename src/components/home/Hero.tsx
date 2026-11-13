@@ -18,7 +18,7 @@ export function Hero() {
   const h = t.hero;
 
   return (
-    <section className="relative -mt-14 overflow-hidden pb-12 pt-24 sm:-mt-16 sm:flex sm:min-h-[100svh] sm:items-center sm:pb-16 sm:pt-28">
+    <section className="relative -mt-14 overflow-hidden pb-[calc(4.75rem+env(safe-area-inset-bottom))] pt-20 sm:-mt-16 md:pb-10 lg:flex lg:min-h-[70vh] lg:items-center lg:pb-16 lg:pt-24">
       <div className="absolute inset-0" aria-hidden>
         <div className="absolute inset-0 bg-[#07080b]" />
         <div
@@ -40,7 +40,7 @@ export function Hero() {
         <div className="absolute inset-0 bg-gradient-to-t from-[#07080b] via-transparent to-[#07080b]/70" />
       </div>
 
-      <div className="relative z-10 mx-auto w-full max-w-7xl px-4 pb-16 pt-28 lg:px-8 sm:pt-32">
+      <div className="relative z-10 mx-auto w-full max-w-7xl px-4 pb-4 pt-8 lg:px-8 lg:pb-8 lg:pt-16">
         <p className="text-xs font-semibold uppercase tracking-[0.28em] text-bm-ink">BESS MOTORS</p>
         <h1 className="mt-4 max-w-4xl font-display text-[2.15rem] font-semibold leading-[1.02] tracking-[-0.03em] text-white sm:text-6xl md:text-[4.25rem]">
           {h.h1Short}
@@ -64,9 +64,12 @@ export function Hero() {
           </Link>
         </div>
 
-        <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-white/70">
-          <PhoneLink trackSource="hero_cta" className="inline-flex items-center gap-2 hover:text-white">
-            <Phone size={14} aria-hidden />
+        <div className="mt-5 flex flex-col gap-1 sm:flex-row sm:flex-wrap sm:items-center sm:gap-2 text-sm text-white/80">
+          <PhoneLink
+            trackSource="hero_cta"
+            className="inline-flex min-h-[44px] items-center gap-2 rounded-lg px-2 hover:text-white"
+          >
+            <Phone size={16} aria-hidden />
             {SITE_NAP.phoneDisplay}
           </PhoneLink>
           <a
@@ -74,12 +77,12 @@ export function Hero() {
             target="_blank"
             rel="noopener noreferrer"
             onClick={() => trackGetDirectionsClick("hero")}
-            className="inline-flex items-center gap-2 hover:text-white"
+            className="inline-flex min-h-[44px] items-center gap-2 rounded-lg px-2 hover:text-white"
           >
-            <Navigation size={14} aria-hidden />
+            <Navigation size={16} aria-hidden />
             {t.stickyBar.route}
           </a>
-          <a href="#wyceń-po-vin" className="hover:text-white">
+          <a href="#wyceń-po-vin" className="inline-flex min-h-[44px] items-center rounded-lg px-2 hover:text-white">
             {h.ctaVinShort}
           </a>
         </div>

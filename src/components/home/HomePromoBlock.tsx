@@ -26,7 +26,7 @@ export function HomePromoBlock() {
       aria-labelledby="oil-offer-heading"
     >
       <div className="mx-auto max-w-7xl px-4 lg:px-8 py-8 sm:py-10">
-        <p className="text-[11px] sm:text-xs font-semibold uppercase tracking-[0.22em] text-bm-red mb-2 sm:mb-3">
+        <p className="text-[11px] sm:text-xs font-semibold uppercase tracking-[0.22em] text-bm-ink mb-2 sm:mb-3">
           {h.offerBadge} · {OIL_BRAKE_PROMO_CODE}
         </p>
 

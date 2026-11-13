@@ -468,6 +468,7 @@ const pl = {
     serviceVideoTitle: "Wideo z warsztatu",
     serviceVideoHint: "Zobacz, jak wykonujemy tę usługę w BESS MOTORS.",
     viewAllWorks: "Zobacz realizacje",
+    promoTitle: "Materiały promocyjne",
   },
   seasonalAc: {
     badge: "Serwis klimatyzacji",
@@ -2462,6 +2463,7 @@ const ru: TranslationKeys = {
     serviceVideoTitle: "Видео с работы",
     serviceVideoHint: "Посмотрите, как мы выполняем эту услугу в BESS MOTORS.",
     viewAllWorks: "Все работы",
+    promoTitle: "Рекламные материалы",
   },
   seasonalAc: {
     ...pl.seasonalAc,
@@ -4633,6 +4635,7 @@ const en: TranslationKeys = {
     serviceVideoTitle: "Workshop video",
     serviceVideoHint: "See how we perform this service at BESS MOTORS.",
     viewAllWorks: "All work videos",
+    promoTitle: "Promotional material",
   },
   seasonalAc: {
     ...pl.seasonalAc,

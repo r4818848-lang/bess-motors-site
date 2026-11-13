@@ -56,6 +56,8 @@
   html {
     --font-inter: "Inter", "Inter Fallback", system-ui, sans-serif;
     scroll-behavior: smooth;
+    scroll-padding-top: 5rem;
+    scroll-padding-bottom: calc(4.75rem + env(safe-area-inset-bottom));
     overflow-x: clip;
   }
 
@@ -2113,6 +2115,10 @@ body[data-nav="open"] .bm-sticky-contact {
   .bm-plug-group {
     transform: translateY(10px) rotate(-220deg);
   }
+}
+
+body[data-nav="open"] .bm-sticky-contact {
+  display: none;
 }
 
 a:focus-visible,

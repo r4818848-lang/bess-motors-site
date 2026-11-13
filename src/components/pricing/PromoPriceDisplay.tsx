@@ -64,7 +64,7 @@ export function PromoPriceDisplay(props: ItemProps | AmountProps) {
     return (
       <span
         className={clsx(
-          "font-mono font-bold text-bm-red",
+          "font-mono font-bold text-bm-ink",
           size === "xs" && "text-xs",
           size === "sm" && "text-sm",
           size === "md" && "text-base",
@@ -100,7 +100,7 @@ export function PromoPriceDisplay(props: ItemProps | AmountProps) {
       {discount != null && discount > 0 ? (
         <span
           className={clsx(
-            "shrink-0 rounded border border-emerald-500/40 bg-emerald-500/15 font-bold uppercase tracking-wide text-emerald-400",
+            "shrink-0 rounded border border-white/15 bg-white/5 font-bold uppercase tracking-wide text-bm-ink",
             badgeClass
           )}
         >
@@ -109,13 +109,13 @@ export function PromoPriceDisplay(props: ItemProps | AmountProps) {
       ) : null}
       <span className={clsx("text-bm-muted", wasClass)}>
         <span className="sr-only">{pp.was}: </span>
-        <span className="opacity-80">{pp.was}</span>{" "}
+        <span>{pp.was}</span>{" "}
         <span className="line-through">{compareText}</span>
       </span>
       <span className="text-white/40" aria-hidden>
         →
       </span>
-      <span className={clsx("font-bold text-bm-red", nowClass)}>
+      <span className={clsx("font-bold text-bm-ink", nowClass)}>
         <span className="sr-only">{pp.now}: </span>
         <span className="opacity-90 font-normal text-white/70">{pp.now}</span> {nowText}
       </span>
