@@ -10,7 +10,9 @@ The VTX CC BY-NC-SA file is not imported. Blender 4.0 Eevee. Nose is local -Y, a
 """
 
 import math
+import os
 import sys
+import time
 from pathlib import Path
 
 import bpy
@@ -61,6 +63,12 @@ GT3_PATH = {
 }
 DURATION = 9.0
 FPS = 24
+RENDER_FLAGS = set()
+
+
+def v4_requested():
+    """True for --v4 and every --v4-* still. Substring checks miss --v4-desktop."""
+    return any(flag == "--v4" or flag.startswith("--v4-") for flag in RENDER_FLAGS)
 
 
 def clear():
@@ -107,18 +115,23 @@ def bsdf(mat):
     return next((node for node in mat.node_tree.nodes if node.type == "BSDF_PRINCIPLED"), None)
 
 
-def paint(name, color, metallic, roughness, coat=1.0):
+def paint(name, color, metallic, roughness, coat=1.0, coat_rough=0.03):
+    """Automotive paint is a dielectric under clearcoat, not a metal shader."""
     node = bsdf(bpy.data.materials.get(name))
     if node is None:
         return
-    node.inputs["Base Color"].default_value = (*color, 1.0)
+    if "Base Color" in node.inputs and not node.inputs["Base Color"].is_linked:
+        node.inputs["Base Color"].default_value = (*color, 1.0)
     node.inputs["Metallic"].default_value = metallic
-    node.inputs["Roughness"].default_value = roughness
+    if not node.inputs["Roughness"].is_linked:
+        node.inputs["Roughness"].default_value = roughness
     if "Coat Weight" in node.inputs:
         node.inputs["Coat Weight"].default_value = coat
     if "Coat Roughness" in node.inputs:
-        node.inputs["Coat Roughness"].default_value = 0.05
-    if "Emission Strength" in node.inputs:
+        node.inputs["Coat Roughness"].default_value = coat_rough
+    if "Specular IOR Level" in node.inputs and not node.inputs["Specular IOR Level"].is_linked:
+        node.inputs["Specular IOR Level"].default_value = 0.5
+    if "Emission Strength" in node.inputs and not node.inputs["Emission Strength"].is_linked:
         node.inputs["Emission Strength"].default_value = 0.0
 
 
@@ -330,7 +343,12 @@ def segment_gap(a, b):
     return best
 
 
-def studio(floor_z):
+def studio(floor_z, receivers=None):
+    """Dark cove. Wide softboxes shape the paint. A dim overhead casts the contact shadow.
+
+    The softboxes are linked to the cars when Blender allows it, so they do not
+    turn the floor into a white sheet.
+    """
     world = bpy.data.worlds.new("Studio")
     bpy.context.scene.world = world
     world.use_nodes = True
@@ -342,14 +360,14 @@ def studio(floor_z):
     geom = nodes.new("ShaderNodeNewGeometry")
     sep = nodes.new("ShaderNodeSeparateXYZ")
     ramp = nodes.new("ShaderNodeValToRGB")
-    ramp.color_ramp.elements[0].position = 0.42
-    ramp.color_ramp.elements[0].color = (0.012, 0.013, 0.016, 1.0)
-    ramp.color_ramp.elements[1].position = 0.58
-    ramp.color_ramp.elements[1].color = (0.07, 0.074, 0.082, 1.0)
+    ramp.color_ramp.elements[0].position = 0.35
+    ramp.color_ramp.elements[0].color = (0.004, 0.004, 0.005, 1.0)
+    ramp.color_ramp.elements[1].position = 0.72
+    ramp.color_ramp.elements[1].color = (0.018, 0.019, 0.022, 1.0)
     links.new(geom.outputs["Incoming"], sep.inputs["Vector"])
     links.new(sep.outputs["Z"], ramp.inputs["Fac"])
     links.new(ramp.outputs["Color"], bg.inputs["Color"])
-    bg.inputs["Strength"].default_value = 0.45
+    bg.inputs["Strength"].default_value = 0.12
     links.new(bg.outputs["Background"], out.inputs["Surface"])
 
     bpy.ops.mesh.primitive_plane_add(size=160, location=(0.0, 4.0, floor_z))
@@ -358,36 +376,49 @@ def studio(floor_z):
     mat = bpy.data.materials.new("Floor")
     mat.use_nodes = True
     node = mat.node_tree.nodes["Principled BSDF"]
-    node.inputs["Base Color"].default_value = (0.004, 0.0045, 0.005, 1.0)
-    node.inputs["Roughness"].default_value = 0.16
+    node.inputs["Base Color"].default_value = (0.012, 0.0125, 0.014, 1.0)
+    node.inputs["Roughness"].default_value = 0.48
     node.inputs["Metallic"].default_value = 0.0
-    node.inputs["Specular IOR Level"].default_value = 0.62
+    node.inputs["Specular IOR Level"].default_value = 0.28
     floor.data.materials.append(mat)
 
-    def area(name, location, energy, color, size, aim):
+    def area(name, location, energy, color, size, aim, shadow=False, link=False, size_y=None):
         light = bpy.data.lights.new(name, "AREA")
         light.energy = energy
         light.color = color
+        light.shape = "RECTANGLE" if size_y else "SQUARE"
         light.size = size
-        light.use_shadow = name in {"Key", "Top"}
+        if size_y:
+            light.size_y = size_y
+        light.use_shadow = shadow
         obj = bpy.data.objects.new(name, light)
         bpy.context.scene.collection.objects.link(obj)
         obj.location = location
         look_at(obj, aim)
+        if link and receivers:
+            col = bpy.data.collections.new(f"{name}Rx")
+            bpy.context.scene.collection.children.link(col)
+            col.hide_render = False
+            for item in receivers:
+                try:
+                    col.objects.link(item)
+                except RuntimeError:
+                    pass
+            try:
+                obj.light_linking.receiver_collection = col
+                print("LIGHTLINK", name, len(col.objects))
+            except (AttributeError, TypeError) as exc:
+                print("LIGHTLINK unavailable", name, exc)
 
-    aim = Vector((0.15, 1.1, 0.7))
-    area("Key", Vector((-1.6, -4.2, 6.2)), 2600, (1.0, 0.97, 0.94), 10.0, aim)
-    area("Fill", Vector((3.6, -2.8, 3.2)), 900, (0.86, 0.89, 0.96), 8.0, aim)
-    area("RimL", Vector((-4.6, 4.8, 3.4)), 520, (0.84, 0.88, 1.0), 5.5, Vector((-2.4, 1.8, 0.9)))
-    area("RimR", Vector((5.6, 4.6, 3.6)), 560, (1.0, 0.95, 0.9), 5.5, Vector((3.6, 1.8, 0.9)))
-    area("Top", Vector((0.2, 1.2, 7.6)), 340, (0.94, 0.95, 1.0), 8.0, aim)
-    sun_data = bpy.data.lights.new("Sun", "SUN")
-    sun_data.energy = 2.4
-    sun_data.use_shadow = True
-    sun_data.angle = math.radians(6.0)
-    sun = bpy.data.objects.new("Sun", sun_data)
-    bpy.context.scene.collection.objects.link(sun)
-    sun.rotation_euler = (math.radians(58), 0.0, math.radians(-18))
+    aim = Vector((0.2, 1.05, 0.72))
+    # A wide bank, not a thin strip. The old 1.35 m key clipped every upward panel.
+    area("Key", Vector((-4.4, -4.6, 4.4)), 150, (1.0, 0.97, 0.94), 7.2, aim, size_y=3.8, link=True)
+    area("Fill", Vector((3.8, -2.8, 2.1)), 110, (0.86, 0.9, 0.98), 6.0, aim, size_y=3.2, link=True)
+    area("RimL", Vector((-5.6, 4.2, 1.9)), 150, (0.82, 0.88, 1.0), 3.6, Vector((-2.2, 1.6, 0.85)), size_y=1.8, link=True)
+    area("RimR", Vector((7.2, 4.0, 2.0)), 140, (1.0, 0.94, 0.88), 3.6, Vector((4.2, 1.8, 0.85)), size_y=1.8, link=True)
+    area("Face", Vector((0.2, -6.8, 1.35)), 70, (1.0, 0.98, 0.95), 5.0, aim, link=True)
+    # Soft contact shadow. This one also reaches the floor.
+    area("Top", Vector((0.3, 1.4, 7.2)), 55, (0.95, 0.96, 1.0), 8.0, Vector((0.3, 1.2, 0.2)), shadow=True)
 
     cam_data = bpy.data.cameras.new("HeroCam")
     cam_data.lens = 35
@@ -409,27 +440,49 @@ def aim_nearest_front(car):
     look_at(cam, origin + Vector((0.0, 0.0, 0.02)))
 
 
+def aim_g90_detail(car):
+    """Paint, side glass, and the near front wheel in one frame."""
+    hubs = [obj.matrix_world.translation.copy() for obj in car["front"]]
+    origin = min(hubs, key=lambda point: point.y)
+    cam = bpy.data.objects["HeroCam"]
+    cam.data.lens = 65
+    cam.data.shift_x = 0.0
+    cam.data.shift_y = 0.0
+    cam.location = origin + Vector((-0.15, -1.85, 0.62))
+    look_at(cam, origin + Vector((0.22, 0.45, 0.42)))
+
+
 def frame_camera(kind):
     cam = bpy.data.objects["HeroCam"]
     cam.data.shift_x = 0.0
     cam.data.shift_y = 0.0
+    cam.data.sensor_fit = "HORIZONTAL"
     if kind == "mobile":
-        cam.data.sensor_fit = "HORIZONTAL"
-        cam.data.lens = 21
-        cam.data.shift_y = 0.4
-        cam.location = Vector((0.1, -5.4, 0.64))
-        look_at(cam, Vector((0.28, 1.45, 0.98)))
+        # Closer three-quarter. The upper third stays empty for the hero type.
+        cam.data.lens = 28
+        cam.data.shift_x = -0.08
+        cam.data.shift_y = 0.14
+        cam.location = Vector((-1.05, -7.15, 1.02))
+        look_at(cam, Vector((0.7, 1.45, 0.58)))
+    elif kind == "gt3":
+        cam.data.lens = 48
+        cam.location = Vector((1.4, -2.4, 0.92))
+        look_at(cam, Vector((5.15, 2.55, 0.62)))
     elif kind == "wheels":
-        cam.data.sensor_fit = "HORIZONTAL"
         cam.data.lens = 30
         cam.location = Vector((-0.15, -7.6, 0.72))
         look_at(cam, Vector((0.35, 1.2, 0.42)))
+    elif kind == "detail":
+        cam.data.lens = 65
+        cam.location = Vector((-0.4, -2.4, 0.85))
+        look_at(cam, Vector((0.2, 0.4, 0.55)))
     else:
-        cam.data.sensor_fit = "HORIZONTAL"
-        cam.data.lens = 32
-        cam.data.shift_y = 0.0
-        cam.location = Vector((0.1, -8.6, 1.18))
-        look_at(cam, Vector((0.25, 1.25, 0.62)))
+        # Closer, and shifted so the trio sits right of the homepage headline.
+        # Wide enough that the trio sits in the right half, clear of the headline.
+        cam.data.lens = 28
+        cam.data.shift_x = -0.24
+        cam.location = Vector((-2.4, -12.4, 1.2))
+        look_at(cam, Vector((1.35, 1.5, 0.58)))
 
 
 def place(car, t, radius, wheelbase):
@@ -622,35 +675,42 @@ def build_gt3(new_objects, curve):
 
 
 def tune_named_materials():
-    """Glass was exported opaque, and the M4 rims were too dark to read."""
+    """Glass was exported opaque. Paint stays a clearcoat, not a chrome shader."""
     for mat in bpy.data.materials:
         node = bsdf(mat)
         if node is None:
             continue
         low = mat.name.lower()
-        if any(key in low for key in ("glass", "windsh", "window")):
-            node.inputs["Transmission Weight"].default_value = 0.92
-            node.inputs["Roughness"].default_value = 0.04
+        glass = any(key in low for key in ("glass", "windsh", "window"))
+        lamp = any(key in low for key in ("tail", "red_glass", "tl_"))
+        if glass and not lamp:
+            node.inputs["Transmission Weight"].default_value = 0.98
+            node.inputs["Roughness"].default_value = 0.015
             node.inputs["Metallic"].default_value = 0.0
             if "IOR" in node.inputs:
-                node.inputs["IOR"].default_value = 1.45
+                node.inputs["IOR"].default_value = 1.52
             if "Coat Weight" in node.inputs:
-                node.inputs["Coat Weight"].default_value = 0.15
+                node.inputs["Coat Weight"].default_value = 0.0
+            if not node.inputs["Base Color"].is_linked:
+                node.inputs["Base Color"].default_value = (0.72, 0.76, 0.78, 1.0)
             mat.blend_method = "HASHED"
             mat.use_screen_refraction = True
             mat.show_transparent_back = False
-        if "tyre" in low or low.startswith("ext_tyre"):
+        if "tyre" in low or "tire" in low:
+            node.inputs["Metallic"].default_value = 0.0
             if not node.inputs["Roughness"].is_linked:
-                node.inputs["Roughness"].default_value = 0.68
+                node.inputs["Roughness"].default_value = 0.78
             if "Specular IOR Level" in node.inputs and not node.inputs["Specular IOR Level"].is_linked:
-                node.inputs["Specular IOR Level"].default_value = 0.42
-        if low.startswith("ext_rim") or "lightsilver" in low:
+                node.inputs["Specular IOR Level"].default_value = 0.32
+            if "Coat Weight" in node.inputs:
+                node.inputs["Coat Weight"].default_value = 0.0
+        if low.startswith("ext_rim") or "lightsilver" in low or "apex_rim" in low:
             node.inputs["Metallic"].default_value = 1.0
             if not node.inputs["Roughness"].is_linked:
-                node.inputs["Roughness"].default_value = 0.2
+                node.inputs["Roughness"].default_value = 0.32
             if "Coat Weight" in node.inputs:
-                node.inputs["Coat Weight"].default_value = 0.35
-                node.inputs["Coat Roughness"].default_value = 0.08
+                node.inputs["Coat Weight"].default_value = 0.12
+                node.inputs["Coat Roughness"].default_value = 0.12
 
 
 def coat_gt3_body(rig):
@@ -699,12 +759,279 @@ def boost_lamps():
             continue
         if node.inputs["Emission Strength"].is_linked:
             continue
-        node.inputs["Emission Strength"].default_value = max(
-            float(node.inputs["Emission Strength"].default_value), 6.0
-        )
+        node.inputs["Emission Strength"].default_value = 2.4
         if "Emission Color" in node.inputs and not node.inputs["Emission Color"].is_linked:
-            node.inputs["Emission Color"].default_value = (1.0, 0.96, 0.9, 1.0)
+            node.inputs["Emission Color"].default_value = (1.0, 0.95, 0.86, 1.0)
+        if "Transmission Weight" in node.inputs and "glass" in low:
+            node.inputs["Transmission Weight"].default_value = max(
+                float(node.inputs["Transmission Weight"].default_value), 0.35
+            )
         print("LAMP", mat.name)
+
+
+LIVERY_IMAGES = {"000002395C8219E0", "000002395C823820"}
+TIRE_IMAGES = {"00000235C9F39020"}
+
+
+def linked_images(mat):
+    node = bsdf(mat)
+    if node is None or "Base Color" not in node.inputs or not node.inputs["Base Color"].is_linked:
+        return set()
+    found = set()
+    stack = [node.inputs["Base Color"].links[0].from_node]
+    seen = set()
+    while stack:
+        current = stack.pop()
+        if current in seen:
+            continue
+        seen.add(current)
+        if current.type == "TEX_IMAGE" and current.image:
+            found.add(current.image.name)
+        for socket in current.inputs:
+            for link in socket.links:
+                stack.append(link.from_node)
+    return found
+
+
+def bess_paint_material():
+    """Scene-only graphite clearcoat. The source GLB is not rewritten.
+
+    A new material does not license the car design or the BMW marks.
+    """
+    mat = bpy.data.materials.new("BESS_GT3_Paint")
+    mat.use_nodes = True
+    node = mat.node_tree.nodes["Principled BSDF"]
+    node.inputs["Base Color"].default_value = (0.085, 0.088, 0.092, 1.0)
+    node.inputs["Metallic"].default_value = 0.0
+    node.inputs["Roughness"].default_value = 0.34
+    node.inputs["Coat Weight"].default_value = 1.0
+    node.inputs["Coat Roughness"].default_value = 0.028
+    node.inputs["Specular IOR Level"].default_value = 0.5
+    return mat
+
+
+def is_livery_image(name):
+    return name.startswith("000002395C8219E0") or name.startswith("000002395C823820")
+
+
+def recolor_keep_maps(mat, color):
+    """Copy the shader and swap only the paint colour, so normals stay on the mesh.
+
+    The copy lives in the scene. The GLB file is not saved.
+    """
+    copy = mat.copy()
+    copy.name = "BESS_" + mat.name
+    node = bsdf(copy)
+    if node is None:
+        return copy
+    if node.inputs["Base Color"].is_linked:
+        for link in list(node.inputs["Base Color"].links):
+            copy.node_tree.links.remove(link)
+    node.inputs["Base Color"].default_value = (*color, 1.0)
+    for socket_name in ("Emission Color", "Emission Strength", "Alpha"):
+        socket = node.inputs.get(socket_name)
+        if socket is None or not socket.is_linked:
+            continue
+        for link in list(socket.links):
+            copy.node_tree.links.remove(link)
+    if "Emission Strength" in node.inputs:
+        node.inputs["Emission Strength"].default_value = 0.0
+    if "Alpha" in node.inputs:
+        node.inputs["Alpha"].default_value = 1.0
+    node.inputs["Metallic"].default_value = 0.0
+    if os.environ.get("GT3_DEBUG") and mat.name in {"mat_64", "mat_9", "mat_63", "mat_30"}:
+        color_now = tuple(round(v, 3) for v in node.inputs["Base Color"].default_value)
+        print("RECOLOR", mat.name, "linked", node.inputs["Base Color"].is_linked, "color", color_now)
+    if not node.inputs["Roughness"].is_linked:
+        node.inputs["Roughness"].default_value = 0.32
+    if "Coat Weight" in node.inputs:
+        node.inputs["Coat Weight"].default_value = 1.0
+        node.inputs["Coat Roughness"].default_value = 0.055
+    if "Specular IOR Level" in node.inputs and not node.inputs["Specular IOR Level"].is_linked:
+        node.inputs["Specular IOR Level"].default_value = 0.5
+    return copy
+
+
+def glass_copy(mat):
+    """Scene-only glass. The exported windshield is an opaque shell."""
+    copy = mat.copy()
+    copy.name = "BESS_GLASS_" + mat.name
+    node = bsdf(copy)
+    if node is None:
+        return copy
+    for socket_name in ("Base Color", "Emission Color", "Emission Strength", "Alpha", "Roughness"):
+        socket = node.inputs.get(socket_name)
+        if socket is None or not socket.is_linked:
+            continue
+        for link in list(socket.links):
+            copy.node_tree.links.remove(link)
+    node.inputs["Base Color"].default_value = (0.45, 0.5, 0.52, 1.0)
+    node.inputs["Metallic"].default_value = 0.0
+    node.inputs["Roughness"].default_value = 0.06
+    node.inputs["Transmission Weight"].default_value = 0.96
+    if "IOR" in node.inputs:
+        node.inputs["IOR"].default_value = 1.52
+    if "Coat Weight" in node.inputs:
+        node.inputs["Coat Weight"].default_value = 0.15
+        node.inputs["Coat Roughness"].default_value = 0.04
+    if "Emission Strength" in node.inputs:
+        node.inputs["Emission Strength"].default_value = 0.0
+    if "Alpha" in node.inputs:
+        node.inputs["Alpha"].default_value = 1.0
+    copy.blend_method = "HASHED"
+    copy.use_screen_refraction = True
+    copy.show_transparent_back = False
+    return copy
+
+
+def clarify_gt3_glass(rig):
+    """Turn the windshield and side glass back into glass after the paint pass.
+
+    Upward body panels stay paint. A panel counts as glass when its normals
+    face the camera or the side, and it sits in the cabin band.
+    """
+    cache = {}
+    converted = 0
+    for obj in bpy.context.scene.objects:
+        if obj.type != "MESH" or obj in STAY_HIDDEN or obj.hide_render:
+            continue
+        parent = obj
+        while parent is not None and parent != rig:
+            parent = parent.parent
+        if parent != rig:
+            continue
+        wheel = False
+        parent = obj.parent
+        while parent is not None:
+            if parent.name.startswith(("GT3_F", "GT3_R")):
+                wheel = True
+                break
+            parent = parent.parent
+        if wheel or not obj.data.polygons:
+            continue
+        center, size = mesh_center(obj)
+        if center.z < 0.55 or max(size) < 0.35:
+            continue
+        weighted = Vector((0.0, 0.0, 0.0))
+        area = 0.0
+        for poly in obj.data.polygons:
+            face = (obj.matrix_world.to_3x3() @ poly.normal).normalized()
+            weighted += face * poly.area
+            area += poly.area
+        if area <= 0.0:
+            continue
+        normal = (weighted / area).normalized()
+        # Some cabin shells were exported inside-out. Their outside then ignores the paint.
+        if normal.z < -0.8 and center.z > 0.95 and max(size) > 0.8:
+            obj.data.flip_normals()
+            print("GT3 FLIP", obj.name, tuple(round(v, 2) for v in normal))
+        side = abs(normal.x) > 0.72 and center.z > 0.7 and max(size) < 1.4
+        screen = normal.y < -0.75 and center.z > 0.85 and max(size) > 0.5
+        if not side and not screen:
+            continue
+        for slot in obj.material_slots:
+            if slot.material is None:
+                continue
+            images = linked_images(slot.material)
+            if any(name.startswith("00000235C9F39020") for name in images):
+                continue
+            source = slot.material
+            if source.name not in cache:
+                cache[source.name] = glass_copy(source)
+            slot.material = cache[source.name]
+            converted += 1
+        print(
+            "GT3 GLASS",
+            obj.name,
+            "side" if side else "screen",
+            tuple(round(v, 2) for v in normal),
+            "z",
+            round(center.z, 2),
+        )
+    print(f"GT3 GLASS slots={converted}")
+
+
+def neutral_bess_gt3(rig):
+    """Recolour the race body. Decal cards that only carry sponsor art are hidden.
+
+    Removing those logos does not clear the vehicle design or the BMW trademarks.
+    """
+    cache = {}
+    painted = 0
+    hidden = 0
+    graphite = (0.016, 0.017, 0.019)
+    for obj in list(bpy.context.scene.objects):
+        if obj.type != "MESH" or obj in STAY_HIDDEN:
+            continue
+        parent = obj
+        while parent is not None and parent != rig:
+            parent = parent.parent
+        if parent != rig:
+            continue
+        wheel = False
+        parent = obj.parent
+        while parent is not None:
+            if parent.name.startswith(("GT3_F", "GT3_R")):
+                wheel = True
+                break
+            parent = parent.parent
+        if wheel:
+            if os.environ.get("GT3_DEBUG") and max(mesh_center(obj)[1]) > 0.6:
+                print("GT3WHEEL", obj.name, tuple(round(v, 2) for v in mesh_center(obj)[1]))
+            continue
+        slots = [slot for slot in obj.material_slots if slot.material]
+        if os.environ.get("GT3_DEBUG") and mesh_center(obj)[0].z > 0.85:
+            print(
+                "GT3HIGH",
+                obj.name,
+                tuple(round(v, 2) for v in mesh_center(obj)[1]),
+                [slot.material.name for slot in slots],
+            )
+        livery = any(any(is_livery_image(name) for name in linked_images(slot.material)) for slot in slots)
+        _center, size = mesh_center(obj)
+        if livery and max(size) < 1.15:
+            obj.hide_render = True
+            STAY_HIDDEN.add(obj)
+            hidden += 1
+            continue
+        if not livery and max(size) < 0.3:
+            if os.environ.get("GT3_DEBUG") and max(size) > 0.8:
+                print("GT3SMALL", obj.name, tuple(round(v, 2) for v in size), [slot.material.name for slot in slots])
+            continue
+        for slot in slots:
+            images = linked_images(slot.material)
+            if any(name.startswith("00000235C9F39020") for name in images):
+                continue
+            node = bsdf(slot.material)
+            if node and float(node.inputs["Transmission Weight"].default_value) > 0.45:
+                continue
+            source = slot.material
+            if source.name not in cache:
+                cache[source.name] = recolor_keep_maps(source, graphite)
+            slot.material = cache[source.name]
+            painted += 1
+    print(f"GT3 NEUTRAL painted_slots={painted} hidden_decals={hidden}")
+    clarify_gt3_glass(rig)
+    if os.environ.get("GT3_DEBUG"):
+        for obj in bpy.context.scene.objects:
+            if obj.type != "MESH":
+                continue
+            parent = obj
+            while parent is not None and parent != rig:
+                parent = parent.parent
+            if parent != rig:
+                continue
+            for slot in obj.material_slots:
+                if slot.material and not slot.material.name.startswith("BESS_"):
+                    center, size = mesh_center(obj)
+                    print(
+                        "UNPAINTED",
+                        obj.name,
+                        tuple(round(v, 2) for v in size),
+                        "z",
+                        round(center.z, 2),
+                        slot.material.name,
+                    )
 
 
 def visible_wheel_meshes(hub):
@@ -731,7 +1058,8 @@ def configure_scene(width, height, samples, cycles):
     scene.render.film_transparent = False
     scene.view_settings.view_transform = "AgX"
     scene.view_settings.look = "AgX - Base Contrast"
-    scene.view_settings.exposure = 0.35
+    v4_look = v4_requested()
+    scene.view_settings.exposure = -0.15 if v4_look else 0.35
     if cycles:
         # Cycles reads everything after "--" and exits on our flags.
         if "--" in sys.argv:
@@ -741,8 +1069,11 @@ def configure_scene(width, height, samples, cycles):
         scene.cycles.samples = samples
         scene.cycles.device = "CPU"
         scene.cycles.use_adaptive_sampling = True
-        scene.cycles.adaptive_threshold = 0.03
+        scene.cycles.adaptive_threshold = 0.01 if v4_look else 0.03
+        if v4_look:
+            scene.cycles.adaptive_min_samples = 24
         scene.cycles.use_denoising = True
+        scene.cycles.transmission_bounces = 8
         try:
             scene.cycles.denoiser = "OPENIMAGEDENOISE"
             print("DENOISER", scene.cycles.denoiser)
@@ -769,6 +1100,7 @@ def wheelbase(front_name, rear_name):
 
 
 def main():
+    RENDER_FLAGS.update(sys.argv)
     preview = "--preview" in sys.argv
     animatic = "--animatic" in sys.argv
     stills = "--stills" in sys.argv
@@ -796,14 +1128,30 @@ def main():
         jobs = [("quality", "mobile")]
     if "--axle-still" in sys.argv:
         jobs = [("axle", "desktop")]
+    if "--v4-desktop" in sys.argv:
+        jobs = [("v4", "desktop")]
+    elif "--v4-motion" in sys.argv:
+        jobs = [("v4", "motion")]
+    elif "--v4-draft" in sys.argv:
+        jobs = [("v4", "desktop"), ("v4", "mobile"), ("v4", "gt3")]
+    elif "--v4-gt3" in sys.argv:
+        jobs = [("v4", "gt3")]
+    elif "--v4" in sys.argv:
+        jobs = [
+            ("v4", "desktop"),
+            ("v4", "mobile"),
+            ("v4", "detail"),
+            ("v4", "gt3"),
+            ("v4", "motion"),
+        ]
     out = Path("/workspace/assets/hero/renders/lineup-v2")
     out.mkdir(parents=True, exist_ok=True)
 
     clear()
     g90_objects = import_new(G90_SRC)
-    paint("0.005", (0.062, 0.066, 0.074), 0.92, 0.1, coat=1.0)
-    paint("0.002", (0.02, 0.021, 0.024), 0.55, 0.28, coat=0.7)
-    paint("0.003", (0.03, 0.03, 0.034), 0.12, 0.4, coat=0.25)
+    paint("0.005", (0.008, 0.0085, 0.01), 0.0, 0.38, coat=1.0, coat_rough=0.022)
+    paint("0.002", (0.015, 0.015, 0.016), 0.0, 0.55, coat=0.15, coat_rough=0.08)
+    paint("0.003", (0.02, 0.02, 0.022), 0.0, 0.48, coat=0.2, coat_rough=0.08)
     hide_orbiting_duplicates(G90_FRONT + G90_REAR)
     g90_wb = wheelbase("WHEEL_LF", "WHEEL_LR")
     g90 = build_car(g90_objects, "G90", G90_FRONT, G90_REAR, Curve(G90_PATH))
@@ -817,9 +1165,41 @@ def main():
     gt3_objects = import_new(GT3_SRC)
     gt3 = build_gt3(gt3_objects, Curve(GT3_PATH))
     gt3_wb = gt3["wheelbase"]
+    paint(
+        "bBMW_M4CompetitionG82TNR0_2021PaintTNR_Material_004",
+        (0.18, 0.008, 0.006),
+        0.0,
+        0.4,
+        coat=1.0,
+        coat_rough=0.03,
+    )
+    paint("ext_red", (0.26, 0.012, 0.008), 0.0, 0.38, coat=0.8, coat_rough=0.045)
     tune_named_materials()
     coat_gt3_body(gt3["rig"])
     boost_lamps()
+    v4 = v4_requested()
+    if v4:
+        neutral_bess_gt3(gt3["rig"])
+        if os.environ.get("GT3_DEBUG"):
+            return
+    if "--dump-gt3" in sys.argv:
+        for image in bpy.data.images:
+            print(f"IMG {image.name} {image.size[0]}x{image.size[1]}")
+        for obj in bpy.context.scene.objects:
+            if obj.type != "MESH":
+                continue
+            parent = obj
+            while parent is not None and parent != gt3["rig"]:
+                parent = parent.parent
+            if parent != gt3["rig"]:
+                continue
+            _center, size = mesh_center(obj)
+            mats = [slot.material.name for slot in obj.material_slots if slot.material]
+            if max(size) > 0.25:
+                print(
+                    f"GT3MESH {obj.name} size={tuple(round(v, 2) for v in size)} mats={mats}"
+                )
+        return
     for label, car in (("g90", g90), ("m4", m4), ("gt3", gt3)):
         counts = [visible_wheel_meshes(hub) for hub in car["front"] + car["rear"]]
         print(f"WHEELS {label} {counts}")
@@ -844,7 +1224,8 @@ def main():
         )
     print(f"CLEARANCE m4 {worst_m4:.2f} gt3 {worst_gt3:.2f}")
 
-    studio(0.0)
+    receivers = [obj for obj in bpy.context.scene.objects if obj.type == "MESH"]
+    studio(0.0, receivers)
     keyframes = [
         ("00-empty", 0.0, True),
         ("01-g90-arc", 1.7, False),
@@ -894,6 +1275,35 @@ def main():
                     True,
                 )
             folder = out / f"quality-{view}"
+        elif job == "v4":
+            draft = "--v4-draft" in RENDER_FLAGS
+            if view == "desktop":
+                shots = [("06-trio", DURATION, False)]
+                scene = configure_scene(960 if draft else 1920, 540 if draft else 1080, 16 if draft else 128, True)
+                folder = out / ("v4-draft-desktop" if draft else "v4-desktop")
+            elif view == "mobile":
+                shots = [("06-trio", DURATION, False)]
+                scene = configure_scene(540 if draft else 1080, 960 if draft else 1920, 16 if draft else 128, True)
+                folder = out / ("v4-draft-mobile" if draft else "v4-mobile")
+            elif view == "detail":
+                shots = [("detail", DURATION, False)]
+                scene = configure_scene(1600, 900, 96, True)
+                folder = out / "v4-detail"
+            elif view == "gt3":
+                shots = [("gt3-neutral", DURATION, False)]
+                scene = configure_scene(960 if draft else 1600, 540 if draft else 900, 16 if draft else 64, True)
+                folder = out / ("v4-draft-gt3" if draft else "v4-gt3")
+            else:
+                shots = [
+                    ("m01-g90-steer", 1.55, False),
+                    ("m02-g90-brake", 2.7, False),
+                    ("m02b-axle", 2.7, False),
+                    ("m03-m4-steer", 4.7, False),
+                    ("m04-gt3-steer", 7.25, False),
+                    ("m05-trio", DURATION, False),
+                ]
+                scene = configure_scene(1280, 720, 32, True)
+                folder = out / "v4-motion"
         elif job == "axle":
             shots = [("m02b-axle", 2.7, False)]
             scene = configure_scene(1280, 720, 24, True)
@@ -927,14 +1337,21 @@ def main():
                 gt3_steer, gt3_dist = place(gt3, t, gt3["radius"], gt3_wb)
             else:
                 gt3_steer, gt3_dist = 0.0, 0.0
+            if view == "gt3":
+                hide_tree(g90["rig"], True)
+                hide_tree(m4["rig"], True)
             bpy.context.view_layer.update()
             if "axle" in name:
                 aim_nearest_front(g90)
-                bpy.context.view_layer.update()
+            elif view == "detail" or name == "detail":
+                aim_g90_detail(g90)
+            bpy.context.view_layer.update()
             scene.render.filepath = str(folder / name)
+            started = time.perf_counter()
             bpy.ops.render.render(write_still=True)
+            elapsed = time.perf_counter() - started
             print(
-                f"FRAME {job} {view} {name} t={t:.2f} "
+                f"FRAME {job} {view} {name} t={t:.2f} {elapsed:.1f}s "
                 f"g90={math.degrees(steer):.1f}/{dist:.1f} "
                 f"m4={math.degrees(m4_steer):.1f}/{m4_dist:.1f} "
                 f"gt3={math.degrees(gt3_steer):.1f}/{gt3_dist:.1f}"

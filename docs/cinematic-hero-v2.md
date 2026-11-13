@@ -100,10 +100,32 @@ CC BY 4.0 is the uploader's license for the file. It is not a license from BMW A
 
 The GT3 body atlas still shows Michelin, Goodyear, Monster Energy, WEC, 24h, Snap-on, D.I.D, Fastron, BMW Oman, BMW roundels, M stripes, M Motorsport, and the number 46. The G90 tire sidewall also reads Michelin, and the wheel centre carries the BMW roundel. Those marks are visible in the test frames. They are not cleared for a public hero. The livery was not painted out. The VTX file (CC BY-NC-SA) is not imported.
 
+## Cycles v4, 13 Nov 2026
+
+Same official Blender 4.0.2, Cycles on CPU, OpenImageDenoise, AgX Base Contrast. Exposure is -0.15. Adaptive sampling threshold is 0.01, with at least 24 samples. Transmission bounces are 8. The softboxes are light-linked to the car meshes. A dim overhead light is the one that reaches the floor, so the contact shadow stays and the floor does not turn into a white sheet. Paint is a dielectric clearcoat (metallic 0), not a metal shader.
+
+These frames replace the v3 test as the current review set. They are not on the homepage. The 12-second film was not rendered.
+
+| Frame | Samples | Time |
+| --- | --- | --- |
+| Desktop 1920×1080 `docs/review/v4-cycles-desktop.png` | 128 | 64.5 s |
+| Mobile 1080×1920 `docs/review/v4-cycles-mobile.png` | 128 | 55.7 s |
+| Body, glass, and wheel `docs/review/v4-detail.png` | 96 | 123.4 s |
+| Neutral GT3 `docs/review/v4-gt3-neutral.png` | 64 | 33.4 s |
+| Motion test, six beats, 1280×720, 5.2 s `docs/review/v4-motion-test.mp4` | 32 | 91.4 s |
+
+The desktop camera leaves the left of the frame dark for the headline. G90 is forward of center, the Widebody is left and behind, the GT3 is right and behind. Logged steer, then 0 when parked, is unchanged: G90 6.0° at 1.55 s and 12.6° at 2.70 s; M4 5.4° at 4.70 s; GT3 10.8° at 7.25 s.
+
+The GT3 racing livery is a copied material in the scene. The source GLB is not rewritten. Sponsor albedo is disconnected on the body, the cabin glass is a glass shader, and four inside-out shells were flipped. Hiding those logos does not license the vehicle design or the BMW trademarks. The G90 tire still reads Michelin and the wheel centre still carries the roundel.
+
+`docs/review/v4-hero-desktop.png` and `docs/review/v4-hero-mobile.png` are the real homepage hero, with the live headline and buttons, and the still placed behind them. The live black wash in `Hero.tsx` was hidden for these two screenshots so the cars can be judged. That component was not edited, and the stills are not wired into the site.
+
+What is still wrong: the GT3 windshield and roof carry a hot highlight; the mobile hero is only as tall as its text, so the lineup sits behind the full-width buttons and the outer cars clip; the desktop headline overlaps the Widebody roof; the frames are darker and simpler than a finished studio photograph.
+
 ## Still not done
 
 - The homepage hero is unchanged: no `<video>`, no poster, no reduced-motion fallback.
 - No Lighthouse pass of a video hero.
 - The full 12-second Cycles film waits until these test frames are accepted.
-- The GT3 livery and the BMW marks are not cleared for publication.
+- The v4 GT3 material hides the sponsor art in the scene only. That does not clear the car design or the BMW marks. The G90 Michelin sidewall and the roundel remain.
 - No production deploy and no merge.
