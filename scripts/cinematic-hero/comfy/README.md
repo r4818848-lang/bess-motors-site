@@ -1,6 +1,8 @@
-# Qwen-Image-Edit-2511 for the V8 still
+# Image edit for the V8 still
 
-This is one image editor. Wan, LTX, and FLUX are not part of this pass. ComfyUI is the optional official UI for the same model, not a second model to install beside it.
+Cloud GPU rental is cancelled. The current path is the Windows PC with an RTX 5060 Ti 8 GB, documented in `windows/README.md`. Qwen-Image-Edit-2511 is not installed for that card. The notes below are the earlier 80 GB recipe and are not the next step.
+
+This is one image editor. Wan, LTX, and FLUX are not part of the 80 GB recipe. ComfyUI is the optional official UI for the same model, not a second model to install beside it.
 
 Nothing here has produced an image. The Cloud Agent that wrote this file has no GPU. `edit_hero.py` exits before `from_pretrained` when CUDA is missing, so the 57.72 GB of weights are not on this machine.
 

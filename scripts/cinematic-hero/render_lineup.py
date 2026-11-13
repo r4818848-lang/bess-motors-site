@@ -2140,6 +2140,33 @@ def add_lamp_glow(scene):
     tree.links.new(glare.outputs["Image"], out.inputs["Image"])
 
 
+def cycles_device():
+    """CPU unless the owner asks for the GPU on their own machine.
+
+    BESS_CYCLES_DEVICE=GPU tries OptiX, then CUDA. A missing device stays on CPU.
+    """
+    if os.environ.get("BESS_CYCLES_DEVICE", "CPU").upper() != "GPU":
+        return "CPU"
+    prefs = bpy.context.preferences.addons["cycles"].preferences
+    for kind in ("OPTIX", "CUDA"):
+        try:
+            prefs.compute_device_type = kind
+            prefs.get_devices()
+        except Exception as exc:
+            print("CYCLES device lookup failed", kind, exc)
+            continue
+        enabled = False
+        for device in prefs.devices:
+            use = device.type == kind
+            device.use = use
+            enabled = enabled or use
+        if enabled:
+            print("CYCLES device", kind)
+            return "GPU"
+    print("CYCLES GPU was requested and no OptiX or CUDA device was enabled. Using CPU.")
+    return "CPU"
+
+
 def configure_scene(width, height, samples, cycles):
     scene = bpy.context.scene
     scene.render.resolution_x = width
@@ -2158,7 +2185,7 @@ def configure_scene(width, height, samples, cycles):
         bpy.ops.preferences.addon_enable(module="cycles")
         scene.render.engine = "CYCLES"
         scene.cycles.samples = samples
-        scene.cycles.device = "CPU"
+        scene.cycles.device = cycles_device()
         scene.cycles.use_adaptive_sampling = True
         scene.cycles.adaptive_threshold = 0.01 if v4_look else 0.03
         if v4_look:

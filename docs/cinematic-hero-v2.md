@@ -446,9 +446,19 @@ A later GPU edit of `docs/review/v8-beauty.png` is allowed only if the three bod
 
 Goodyear and Eagle remain on the GT3 tires. Michelin and the BMW roundel remain on the G90. CC BY 4.0 credits JUST GAME (G90), VTDAT23 (M4 Widebody), and MattDoesBlender (GT3). That is the file authors' license. It is not a license from BMW AG. BESS MOTORS is not a BMW partner.
 
+## Windows 8 GB pipeline — not run
+
+Cloud GPU rental is cancelled. The next machine is the owner's Windows 11 PC: RTX 5060 Ti 8 GB, Ryzen 7 7800X3D, 32 GB RAM. The entry point is `scripts/cinematic-hero/comfy/windows/README.md`.
+
+ComfyUI 0.45.0 portable NVIDIA (CUDA 13.0 package, 2,071,479,423 bytes) is the install. It binds to 127.0.0.1 and starts with `--offline`. The download script was not executed here.
+
+The graph is SDXL img2img at 896×512, denoise 0.32, with the xinsir union ControlNet on Canny. SDXL base is Open RAIL++-M. The fp16 VAE fix is MIT. The ControlNet is Apache-2.0. Qwen-Image-Edit-2511 is not downloaded. FLUX.1-schnell Q4_K_S is Apache-2.0 and 6.78 GB, and ComfyUI 0.45 has no GGUF loader, so it is not installed. No image has been generated.
+
+`BESS_CYCLES_DEVICE=GPU` asks the existing render script for OptiX, then CUDA. The default remains CPU. The 12-second Cycles film is still waiting.
+
 ## V8 AI pipeline — not run
 
-The V8 still is the input. There is no V9 lighting pass. The Cloud Agent still has no GPU, so the weights were not downloaded and no AI frame exists.
+The 80 GB recipe is kept and is not the current step. The V8 still is the input. There is no V9 lighting pass. The Cloud Agent still has no GPU, so those weights were not downloaded and no AI frame exists.
 
 `scripts/cinematic-hero/comfy/edit_hero.py` calls the official `QwenImageEditPlusPipeline` for `Qwen/Qwen-Image-Edit-2511` (Apache-2.0, 57.72 GB). Diffusers is pinned at 0.43.0. On this machine the script exits 2 before `from_pretrained`. A dry run exits 0 and only prints the three variant names.
 
