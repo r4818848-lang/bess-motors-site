@@ -19,19 +19,19 @@ export function HomeFinalCta() {
         </h2>
         <p className="mt-3 text-bm-silver/90">{c.subtitle}</p>
         <div className="mt-8 flex flex-col sm:flex-row flex-wrap justify-center gap-3">
-          <a href="#wyceń-po-vin" className="btn-primary inline-flex items-center justify-center gap-2 min-h-[44px]">
+          <a href="#wyceń-po-vin" className="btn-primary inline-flex items-center justify-center gap-2">
             {c.ctaVin}
             <ChevronRight size={16} />
           </a>
           <BookingLink
             trackSource="home_final_book"
-            className="btn-outline inline-flex items-center justify-center gap-2 min-h-[44px]"
+            className="btn-outline inline-flex items-center justify-center gap-2"
           >
             {c.ctaBook}
           </BookingLink>
           <PhoneLink
             trackSource="home_final_call"
-            className="btn-outline inline-flex items-center justify-center gap-2 min-h-[44px]"
+            className="btn-outline inline-flex items-center justify-center gap-2"
           >
             <Phone size={16} />
             {SITE_NAP.phoneDisplay}

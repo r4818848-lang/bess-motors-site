@@ -40,7 +40,10 @@
 @layer base {
   :root {
     --bm-red: #e10600;
+    --bm-red-ink: #ff4d3a;
     --bm-red-glow: rgba(225, 6, 0, 0.25);
+    --bm-motion: 200ms;
+    --bm-ease: cubic-bezier(0.22, 1, 0.36, 1);
     --bm-black: #080808;
     --bm-surface: #111111;
     --bm-graphite: #141414;
@@ -924,39 +927,49 @@
   }
 
   .btn-primary {
-    @apply relative inline-flex items-center justify-center gap-2 px-6 py-3 font-display text-sm font-semibold tracking-wide text-white transition-all duration-200 rounded-[10px] min-h-[48px];
+    @apply relative inline-flex cursor-pointer items-center justify-center gap-2 px-6 py-3 font-display text-sm font-semibold tracking-wide text-white rounded-[10px] min-h-[48px];
     background: #e10600;
     box-shadow: none;
+    transition: background-color var(--bm-motion) var(--bm-ease);
   }
 
   .btn-primary:hover {
     background: #c50500;
-    transform: translateY(-1px);
   }
 
   .btn-outline {
-    @apply inline-flex items-center justify-center gap-2 px-6 py-3 font-display text-sm font-semibold tracking-wide text-white border border-white/15 bg-transparent transition-all duration-200 rounded-[10px] min-h-[48px];
+    @apply inline-flex cursor-pointer items-center justify-center gap-2 px-6 py-3 font-display text-sm font-semibold tracking-wide text-white border border-white/15 bg-transparent rounded-[10px] min-h-[48px];
+    transition: background-color var(--bm-motion) var(--bm-ease), border-color var(--bm-motion) var(--bm-ease);
   }
 
   .btn-outline:hover {
     @apply border-white/30 bg-white/5;
   }
 
-  .card-premium {
-    @apply rounded-xl p-6 transition-all duration-200 bg-bm-card border border-white/10;
+  .card-premium,
+  .bm-service-card {
+    @apply rounded-xl bg-bm-card border border-white/10;
+    transition: border-color var(--bm-motion) var(--bm-ease), background-color var(--bm-motion) var(--bm-ease);
   }
 
-  .card-premium:hover {
+  .card-premium {
+    @apply p-6;
+  }
+
+  .card-premium:hover,
+  .bm-service-card:hover {
     border-color: rgba(255, 255, 255, 0.16);
-    transform: translateY(-2px);
+    background-color: #181818;
   }
 
   .input-premium {
-    @apply w-full rounded-lg border border-bm-border bg-bm-graphite/80 px-4 py-3 text-white placeholder-bm-muted outline-none transition-all;
+    @apply w-full rounded-lg border border-bm-border bg-bm-graphite/80 px-4 py-3 text-white placeholder-bm-muted outline-none min-h-[48px];
+    transition: border-color var(--bm-motion) var(--bm-ease), box-shadow var(--bm-motion) var(--bm-ease);
   }
 
   .input-premium:focus {
-    @apply border-bm-red;
+    border-color: #e10600;
+    box-shadow: 0 0 0 3px rgba(225, 6, 0, 0.35);
   }
 
   .input-premium:-webkit-autofill,
@@ -2103,7 +2116,20 @@ body[data-nav="open"] .bm-sticky-contact {
 }
 
 a:focus-visible,
-button:focus-visible {
-  outline: 2px solid #e10600;
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid #ff4d3a;
   outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-primary,
+  .btn-outline,
+  .card-premium,
+  .bm-service-card,
+  .input-premium {
+    transition: none;
+  }
 }

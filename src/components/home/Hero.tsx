@@ -41,7 +41,7 @@ export function Hero() {
       </div>
 
       <div className="relative z-10 mx-auto w-full max-w-7xl px-4 pb-16 pt-28 lg:px-8 sm:pt-32">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-bm-red">BESS MOTORS</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.28em] text-bm-ink">BESS MOTORS</p>
         <h1 className="mt-4 max-w-4xl font-display text-[2.15rem] font-semibold leading-[1.02] tracking-[-0.03em] text-white sm:text-6xl md:text-[4.25rem]">
           {h.h1Short}
         </h1>
