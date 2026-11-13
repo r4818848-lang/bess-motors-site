@@ -349,7 +349,7 @@ def studio(floor_z):
     links.new(geom.outputs["Incoming"], sep.inputs["Vector"])
     links.new(sep.outputs["Z"], ramp.inputs["Fac"])
     links.new(ramp.outputs["Color"], bg.inputs["Color"])
-    bg.inputs["Strength"].default_value = 0.7
+    bg.inputs["Strength"].default_value = 0.45
     links.new(bg.outputs["Background"], out.inputs["Surface"])
 
     bpy.ops.mesh.primitive_plane_add(size=160, location=(0.0, 4.0, floor_z))
@@ -358,10 +358,10 @@ def studio(floor_z):
     mat = bpy.data.materials.new("Floor")
     mat.use_nodes = True
     node = mat.node_tree.nodes["Principled BSDF"]
-    node.inputs["Base Color"].default_value = (0.028, 0.029, 0.032, 1.0)
-    node.inputs["Roughness"].default_value = 0.46
+    node.inputs["Base Color"].default_value = (0.004, 0.0045, 0.005, 1.0)
+    node.inputs["Roughness"].default_value = 0.16
     node.inputs["Metallic"].default_value = 0.0
-    node.inputs["Specular IOR Level"].default_value = 0.35
+    node.inputs["Specular IOR Level"].default_value = 0.62
     floor.data.materials.append(mat)
 
     def area(name, location, energy, color, size, aim):
@@ -376,15 +376,15 @@ def studio(floor_z):
         look_at(obj, aim)
 
     aim = Vector((0.15, 1.1, 0.7))
-    area("Key", Vector((-1.6, -4.2, 6.2)), 1400, (1.0, 0.97, 0.94), 10.0, aim)
-    area("Fill", Vector((3.6, -2.8, 3.2)), 420, (0.86, 0.89, 0.96), 8.0, aim)
-    area("RimL", Vector((-4.6, 4.8, 3.4)), 260, (0.84, 0.88, 1.0), 5.5, Vector((-2.4, 1.8, 0.9)))
-    area("RimR", Vector((5.6, 4.6, 3.6)), 280, (1.0, 0.95, 0.9), 5.5, Vector((3.6, 1.8, 0.9)))
-    area("Top", Vector((0.2, 1.2, 7.6)), 380, (0.94, 0.95, 1.0), 14.0, aim)
+    area("Key", Vector((-1.6, -4.2, 6.2)), 2600, (1.0, 0.97, 0.94), 10.0, aim)
+    area("Fill", Vector((3.6, -2.8, 3.2)), 900, (0.86, 0.89, 0.96), 8.0, aim)
+    area("RimL", Vector((-4.6, 4.8, 3.4)), 520, (0.84, 0.88, 1.0), 5.5, Vector((-2.4, 1.8, 0.9)))
+    area("RimR", Vector((5.6, 4.6, 3.6)), 560, (1.0, 0.95, 0.9), 5.5, Vector((3.6, 1.8, 0.9)))
+    area("Top", Vector((0.2, 1.2, 7.6)), 340, (0.94, 0.95, 1.0), 8.0, aim)
     sun_data = bpy.data.lights.new("Sun", "SUN")
-    sun_data.energy = 1.8
+    sun_data.energy = 2.4
     sun_data.use_shadow = True
-    sun_data.angle = math.radians(8.0)
+    sun_data.angle = math.radians(6.0)
     sun = bpy.data.objects.new("Sun", sun_data)
     bpy.context.scene.collection.objects.link(sun)
     sun.rotation_euler = (math.radians(58), 0.0, math.radians(-18))
@@ -398,13 +398,27 @@ def studio(floor_z):
     return cam
 
 
+def aim_nearest_front(car):
+    hubs = [obj.matrix_world.translation.copy() for obj in car["front"]]
+    origin = min(hubs, key=lambda point: point.y)
+    cam = bpy.data.objects["HeroCam"]
+    cam.data.lens = 48
+    cam.data.shift_x = 0.0
+    cam.data.shift_y = 0.0
+    cam.location = origin + Vector((0.02, -1.28, 0.2))
+    look_at(cam, origin + Vector((0.0, 0.0, 0.02)))
+
+
 def frame_camera(kind):
     cam = bpy.data.objects["HeroCam"]
+    cam.data.shift_x = 0.0
+    cam.data.shift_y = 0.0
     if kind == "mobile":
         cam.data.sensor_fit = "HORIZONTAL"
-        cam.data.lens = 24
-        cam.location = Vector((0.1, -7.1, 0.78))
-        look_at(cam, Vector((0.2, 1.35, 0.92)))
+        cam.data.lens = 21
+        cam.data.shift_y = 0.4
+        cam.location = Vector((0.1, -5.4, 0.64))
+        look_at(cam, Vector((0.28, 1.45, 0.98)))
     elif kind == "wheels":
         cam.data.sensor_fit = "HORIZONTAL"
         cam.data.lens = 30
@@ -413,6 +427,7 @@ def frame_camera(kind):
     else:
         cam.data.sensor_fit = "HORIZONTAL"
         cam.data.lens = 32
+        cam.data.shift_y = 0.0
         cam.location = Vector((0.1, -8.6, 1.18))
         look_at(cam, Vector((0.25, 1.25, 0.62)))
 
@@ -663,9 +678,33 @@ def coat_gt3_body(rig):
             node.inputs["Coat Weight"].default_value = 0.62
             node.inputs["Coat Roughness"].default_value = 0.1
         if not node.inputs["Roughness"].is_linked:
-            node.inputs["Roughness"].default_value = 0.34
+            node.inputs["Roughness"].default_value = 0.26
+        if "Coat Roughness" in node.inputs:
+            node.inputs["Coat Roughness"].default_value = 0.06
         if "Specular IOR Level" in node.inputs and not node.inputs["Specular IOR Level"].is_linked:
             node.inputs["Specular IOR Level"].default_value = 0.5
+
+
+def boost_lamps():
+    """Headlamp shells in these exports are often unlit. A small emission makes the lens read."""
+    keys = ("drl_glass", "headlight", "head_lamp", "taillight", "tail_light", "indicator")
+    for mat in bpy.data.materials:
+        node = bsdf(mat)
+        if node is None or "Emission Strength" not in node.inputs:
+            continue
+        low = mat.name.lower()
+        if any(skip in low for skip in ("_nm", "_ao", "detail", "detailed")):
+            continue
+        if not any(key in low for key in keys):
+            continue
+        if node.inputs["Emission Strength"].is_linked:
+            continue
+        node.inputs["Emission Strength"].default_value = max(
+            float(node.inputs["Emission Strength"].default_value), 6.0
+        )
+        if "Emission Color" in node.inputs and not node.inputs["Emission Color"].is_linked:
+            node.inputs["Emission Color"].default_value = (1.0, 0.96, 0.9, 1.0)
+        print("LAMP", mat.name)
 
 
 def visible_wheel_meshes(hub):
@@ -692,7 +731,7 @@ def configure_scene(width, height, samples, cycles):
     scene.render.film_transparent = False
     scene.view_settings.view_transform = "AgX"
     scene.view_settings.look = "AgX - Base Contrast"
-    scene.view_settings.exposure = 0.2
+    scene.view_settings.exposure = 0.35
     if cycles:
         # Cycles reads everything after "--" and exits on our flags.
         if "--" in sys.argv:
@@ -700,8 +739,16 @@ def configure_scene(width, height, samples, cycles):
         bpy.ops.preferences.addon_enable(module="cycles")
         scene.render.engine = "CYCLES"
         scene.cycles.samples = samples
-        scene.cycles.use_denoising = False
         scene.cycles.device = "CPU"
+        scene.cycles.use_adaptive_sampling = True
+        scene.cycles.adaptive_threshold = 0.03
+        scene.cycles.use_denoising = True
+        try:
+            scene.cycles.denoiser = "OPENIMAGEDENOISE"
+            print("DENOISER", scene.cycles.denoiser)
+        except TypeError as exc:
+            scene.cycles.use_denoising = False
+            print("DENOISER unavailable", exc)
     else:
         scene.render.engine = "BLENDER_EEVEE"
         scene.eevee.taa_render_samples = samples
@@ -725,8 +772,9 @@ def main():
     preview = "--preview" in sys.argv
     animatic = "--animatic" in sys.argv
     stills = "--stills" in sys.argv
+    quality = "--quality" in sys.argv
     mobile = "--mobile" in sys.argv
-    if not (preview or animatic or stills):
+    if not (preview or animatic or stills or quality):
         preview = True
     jobs = []
     if preview:
@@ -740,14 +788,22 @@ def main():
         jobs.append(("animatic", "desktop"))
         if mobile:
             jobs.append(("animatic", "mobile"))
+    if quality:
+        jobs.append(("quality", "desktop"))
+        jobs.append(("quality", "mobile"))
+        jobs.append(("motion", "desktop"))
+    if "--mobile-still" in sys.argv:
+        jobs = [("quality", "mobile")]
+    if "--axle-still" in sys.argv:
+        jobs = [("axle", "desktop")]
     out = Path("/workspace/assets/hero/renders/lineup-v2")
     out.mkdir(parents=True, exist_ok=True)
 
     clear()
     g90_objects = import_new(G90_SRC)
-    paint("0.005", (0.028, 0.030, 0.034), 0.86, 0.16)
-    paint("0.002", (0.012, 0.012, 0.014), 0.45, 0.32, coat=0.55)
-    paint("0.003", (0.016, 0.016, 0.018), 0.08, 0.48, coat=0.15)
+    paint("0.005", (0.062, 0.066, 0.074), 0.92, 0.1, coat=1.0)
+    paint("0.002", (0.02, 0.021, 0.024), 0.55, 0.28, coat=0.7)
+    paint("0.003", (0.03, 0.03, 0.034), 0.12, 0.4, coat=0.25)
     hide_orbiting_duplicates(G90_FRONT + G90_REAR)
     g90_wb = wheelbase("WHEEL_LF", "WHEEL_LR")
     g90 = build_car(g90_objects, "G90", G90_FRONT, G90_REAR, Curve(G90_PATH))
@@ -763,6 +819,7 @@ def main():
     gt3_wb = gt3["wheelbase"]
     tune_named_materials()
     coat_gt3_body(gt3["rig"])
+    boost_lamps()
     for label, car in (("g90", g90), ("m4", m4), ("gt3", gt3)):
         counts = [visible_wheel_meshes(hub) for hub in car["front"] + car["rear"]]
         print(f"WHEELS {label} {counts}")
@@ -814,7 +871,7 @@ def main():
             else:
                 scene = configure_scene(720, 1280, 8, False)
             folder = out / f"animatic-{view}"
-        else:
+        elif job == "stills":
             shots = [shot for shot in keyframes if shot[0] in {"06-trio", "07-wheels"}]
             if view == "mobile":
                 shots = [shot for shot in shots if shot[0] == "06-trio"]
@@ -824,9 +881,37 @@ def main():
             else:
                 scene = configure_scene(900, 1600, samples, cycles)
             folder = out / f"stills-{view}"
+        elif job == "quality":
+            shots = [("06-trio", DURATION, False)]
+            if view == "desktop":
+                scene = configure_scene(1920, 1080, 32, True)
+            else:
+                draft = "--draft" in sys.argv
+                scene = configure_scene(
+                    540 if draft else 1080,
+                    960 if draft else 1920,
+                    8 if draft else 32,
+                    True,
+                )
+            folder = out / f"quality-{view}"
+        elif job == "axle":
+            shots = [("m02b-axle", 2.7, False)]
+            scene = configure_scene(1280, 720, 24, True)
+            folder = out / "motion"
+        else:
+            shots = [
+                ("m01-g90-steer", 1.55, False),
+                ("m01b-wheels", 1.55, False),
+                ("m02-g90-brake", 2.7, False),
+                ("m03-m4-steer", 4.7, False),
+                ("m04-gt3-steer", 7.25, False),
+                ("m05-trio", DURATION, False),
+            ]
+            scene = configure_scene(1280, 720, 16, True)
+            folder = out / "motion"
         folder.mkdir(parents=True, exist_ok=True)
         for name, t, empty in shots:
-            frame_camera("wheels" if name.startswith("07") else view)
+            frame_camera("wheels" if "wheels" in name else view)
             hide_tree(g90["rig"], empty or t < G90_PATH["t0"])
             hide_tree(m4["rig"], empty or t < M4_PATH["t0"])
             hide_tree(gt3["rig"], empty or t < GT3_PATH["t0"])
@@ -843,6 +928,9 @@ def main():
             else:
                 gt3_steer, gt3_dist = 0.0, 0.0
             bpy.context.view_layer.update()
+            if "axle" in name:
+                aim_nearest_front(g90)
+                bpy.context.view_layer.update()
             scene.render.filepath = str(folder / name)
             bpy.ops.render.render(write_still=True)
             print(

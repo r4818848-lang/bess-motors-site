@@ -91,6 +91,7 @@ export function FeaturedGoogleReviewCard({
               target="_blank"
               rel="noopener noreferrer"
               className="relative block overflow-hidden rounded-lg border border-bm-border/40 aspect-[4/3] bg-bm-graphite"
+              aria-label={gr.photoLink.replace("{author}", review.author)}
             >
               <Image
                 src={reviewPhotoDisplayUrl(photo)}

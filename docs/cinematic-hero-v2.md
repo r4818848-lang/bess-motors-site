@@ -71,9 +71,39 @@ The body atlas carries third-party marks that CC BY does not clear. Visible on t
 - Read the GT3 livery at full size before any public frame. Third-party marks on the body are a separate clearance from CC BY.
 - Do not encode the VTX GLB. Do not commit any GLB. Put the attribution next to the player, not only in this note.
 
+## Cycles test, 13 Nov 2026
+
+Ubuntu's Blender 4.0.2 package loads Cycles, but its denoiser list is empty and OpenImageDenoise is not linked. The official Blender 4.0.2 linux-x64 build from blender.org accepts `scene.cycles.denoiser = "OPENIMAGEDENOISE"` even though `enum_items` is empty. A 64×64 test cube rendered with denoising on. The quality frames below use that binary, CPU, adaptive sampling at 0.03, AgX, exposure 0.35.
+
+These are review frames. They are not on the homepage. The 12-second film was not rendered.
+
+- Desktop 1920×1080, 32 samples, OpenImageDenoise: `docs/review/v3-cycles-desktop.png`
+- Mobile 1080×1920, 32 samples, OpenImageDenoise: `docs/review/v3-cycles-mobile.png`
+- Motion beats, 1280×720, 16 samples, about 3 seconds, not the 12-second film: `docs/review/v3-motion-test.mp4`
+- Front axle at 2.7 s, when the G90 steer is 12.6°: `docs/review/v3-axle-steer.png`
+
+Parked lineup is unchanged: G90 near (0.05, 0), M4 Widebody near (-2.95, 2.25), GT3 near (5.5, 2.9). During the move the closest body-segment gap is 2.08 m for the M4 and 2.14 m for the GT3, so the paths do not cross. Logged front steer, then 0 when parked: G90 6.0° at 1.55 s and 12.6° at 2.70 s; M4 5.4° at 4.70 s; GT3 10.8° at 7.25 s. Hub mesh counts: G90 11, 11, 11, 9; M4 4, 4, 4, 4; GT3 5, 6, 5, 6.
+
+The floor is a dark reflective plane so the cars and their contact reflections read against the black studio. The mobile frame keeps the three cars in the lower half, with studio black above. The M4 nose sits close to the left edge. That frame is for review, not a finished phone hero.
+
+The blue-red streak on the G90 rear door is a reflection of the GT3 livery and the rim light. It is not a missing texture. It should be judged with the stills, not painted over in the model.
+
+### Attribution, required before any public frame
+
+| Car | Author | File license | Sketchfab |
+| --- | --- | --- | --- |
+| BMW G90 M5 | JUST GAME | CC BY 4.0 | https://sketchfab.com/3d-models/bmw-g90-m5-9dc9e5c88bec4faa94552fdd0b76ed21 |
+| BMW M4 Widebody Modified | VTDAT23 | CC BY 4.0 | https://sketchfab.com/3d-models/bmw-m4-widebody-modified-4738e45152e144abac79da2a2b9a4c49 |
+| BMW M4 GT3 EVO | MattDoesBlender | CC BY 4.0 | https://sketchfab.com/models/0feb1f9793c14b35971518a93a97d688 |
+
+CC BY 4.0 is the uploader's license for the file. It is not a license from BMW AG. It does not clear the BMW trademark, the roundel, the M stripes, the grille, or the vehicle design, and it does not allow the site to imply that BMW sponsors or supplied the picture.
+
+The GT3 body atlas still shows Michelin, Goodyear, Monster Energy, WEC, 24h, Snap-on, D.I.D, Fastron, BMW Oman, BMW roundels, M stripes, M Motorsport, and the number 46. The G90 tire sidewall also reads Michelin, and the wheel centre carries the BMW roundel. Those marks are visible in the test frames. They are not cleared for a public hero. The livery was not painted out. The VTX file (CC BY-NC-SA) is not imported.
+
 ## Still not done
 
 - The homepage hero is unchanged: no `<video>`, no poster, no reduced-motion fallback.
 - No Lighthouse pass of a video hero.
-- Cycles test stills exist at 40 samples, without a denoiser, because OpenImageDenoise is not built into this Blender. The 9-second film is still Eevee. A full 12-second CGI render waits for this blocking to be accepted.
+- The full 12-second Cycles film waits until these test frames are accepted.
+- The GT3 livery and the BMW marks are not cleared for publication.
 - No production deploy and no merge.

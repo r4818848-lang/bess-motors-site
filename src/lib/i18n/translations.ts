@@ -442,6 +442,7 @@ const pl = {
     viewOnMaps: "Zobacz w Google Maps",
     leaveReview: "Zostaw opinię w Google",
     readReview: "Zobacz opinię w Google",
+    photoLink: "Zdjęcie do opinii {author} w Google",
     fallback:
       "Opinie z Google pojawią się tutaj po podłączeniu wizytówki (klucz API). Tymczasem zostaw opinię bezpośrednio w Maps.",
   },
@@ -932,6 +933,10 @@ const pl = {
       "Ceny „od” — ostateczny koszt może się zmienić po diagnostyce.",
     fromWarningShort: "Ceny orientacyjne (od)",
     hourlyNote: "Norma-godzina mechanika:",
+    stepsLabel: "Etapy zapisu",
+    stepService: "Usługa",
+    stepPhone: "Telefon",
+    stepConfirm: "Potwierdzenie",
     continue: "Dalej — telefon",
     back: "Wstecz",
     finalTotalTitle: "Szacunkowy koszt usług",
@@ -2437,6 +2442,7 @@ const ru: TranslationKeys = {
     viewOnMaps: "Смотреть в Google Maps",
     leaveReview: "Оставить отзыв в Google",
     readReview: "Читать отзыв в Google",
+    photoLink: "Фото к отзыву {author} в Google",
     fallback:
       "Отзывы Google появятся здесь после подключения карточки (API-ключ). Пока можно оставить отзыв в Maps.",
   },
@@ -2919,6 +2925,10 @@ const ru: TranslationKeys = {
       "Итоговая стоимость может измениться после диагностики (цены «от»).",
     fromWarningShort: "Ориентировочные цены (от)",
     hourlyNote: "Норма-час мастера:",
+    stepsLabel: "Шаги записи",
+    stepService: "Услуга",
+    stepPhone: "Телефон",
+    stepConfirm: "Подтверждение",
     continue: "Далее — телефон",
     back: "Назад",
     finalTotalTitle: "Итоговая стоимость",
@@ -4325,6 +4335,10 @@ const en: TranslationKeys = {
     fromWarning: "Final cost may change after diagnostics (prices marked “from”).",
     fromWarningShort: "Indicative prices (from)",
     hourlyNote: "Labour rate:",
+    stepsLabel: "Booking steps",
+    stepService: "Service",
+    stepPhone: "Phone",
+    stepConfirm: "Confirmation",
     continue: "Next — phone",
     back: "Back",
     finalTotalTitle: "Estimated service cost",
@@ -4609,6 +4623,7 @@ const en: TranslationKeys = {
     viewOnMaps: "View on Google Maps",
     leaveReview: "Leave a Google review",
     readReview: "Read review on Google",
+    photoLink: "Photo from {author}'s Google review",
     fallback:
       "Google reviews appear here once the business profile API is connected. You can still review us on Maps.",
   },
@@ -5434,6 +5449,21 @@ const en: TranslationKeys = {
 
 const uk: TranslationKeys = {
   ...ru,
+  ourWorks: {
+    ...ru.ourWorks,
+    promoTitle: "Рекламні матеріали",
+  },
+  googleReviewsBlock: {
+    ...ru.googleReviewsBlock,
+    photoLink: "Фото до відгуку {author} у Google",
+  },
+  bookingQuote: {
+    ...ru.bookingQuote,
+    stepsLabel: "Кроки запису",
+    stepService: "Послуга",
+    stepPhone: "Телефон",
+    stepConfirm: "Підтвердження",
+  },
   tagline: "АВТОСЕРВІС",
   nav: {
     home: "Головна",

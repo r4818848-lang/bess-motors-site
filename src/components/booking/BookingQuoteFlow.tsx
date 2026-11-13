@@ -442,11 +442,11 @@ export function BookingQuoteFlow({ onDone }: Props) {
         {bq.hourlyNote} <strong className="text-bm-ink">{HOURLY_RATE_PLN} zł/h</strong>
       </p>
 
-      <ol className="mb-6 flex flex-row flex-wrap justify-center gap-x-5 gap-y-1 text-sm text-bm-silver" aria-label="Etapy zapisu">
+      <ol className="mb-6 flex flex-row flex-wrap justify-center gap-x-5 gap-y-1 text-sm text-bm-silver" aria-label={bq.stepsLabel}>
         {[
-          { id: "services", label: "Usługa" },
-          { id: "phone", label: "Telefon" },
-          { id: "done", label: "Potwierdzenie" },
+          { id: "services", label: bq.stepService },
+          { id: "phone", label: bq.stepPhone },
+          { id: "done", label: bq.stepConfirm },
         ].map((item, index) => {
           const active =
             item.id === phase || (item.id === "phone" && phase === "acChoice");
