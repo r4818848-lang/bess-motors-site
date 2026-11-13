@@ -1,0 +1,11 @@
+# GPU machine only. Do not install this on the CPU Cloud Agent.
+# Diffusers 0.43.0 (12 Nov 2026) contains QwenImageEditPlusPipeline.
+# The Qwen-Image-Edit-2511 model card was authored against diffusers 0.36.0.dev0
+# and loads with that same class.
+torch>=2.6
+diffusers==0.43.0
+transformers>=4.51
+accelerate>=1.2
+safetensors>=0.4
+pillow>=10
+huggingface_hub>=0.26

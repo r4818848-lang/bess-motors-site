@@ -446,10 +446,22 @@ A later GPU edit of `docs/review/v8-beauty.png` is allowed only if the three bod
 
 Goodyear and Eagle remain on the GT3 tires. Michelin and the BMW roundel remain on the G90. CC BY 4.0 credits JUST GAME (G90), VTDAT23 (M4 Widebody), and MattDoesBlender (GT3). That is the file authors' license. It is not a license from BMW AG. BESS MOTORS is not a BMW partner.
 
+## V8 AI pipeline — not run
+
+The V8 still is the input. There is no V9 lighting pass. The Cloud Agent still has no GPU, so the weights were not downloaded and no AI frame exists.
+
+`scripts/cinematic-hero/comfy/edit_hero.py` calls the official `QwenImageEditPlusPipeline` for `Qwen/Qwen-Image-Edit-2511` (Apache-2.0, 57.72 GB). Diffusers is pinned at 0.43.0. On this machine the script exits 2 before `from_pretrained`. A dry run exits 0 and only prints the three variant names.
+
+The transformer files are 40.86 GB. `pipeline.to("cuda")` is the official model-card call and is the mode for an 80 GB card. It is not offloading. `enable_model_cpu_offload()` is implemented for a card that reports at least 48 GB, and `enable_sequential_cpu_offload()` only runs when asked for by name. Neither offload mode has been executed. A 24 GB card is refused. The script does not claim that floor is verified.
+
+The GT3 kidneys stay pale. A material census after the V8 recolour shows the body shells on an unlinked burgundy base `(0.27, 0.01, 0.02)`. There is no separate unlinked white grille material on those shells. The edit prompt forbids redrawing that grille. Splitting the faces is the geometry fix, and it was not done in this pass.
+
+The first paid step is one 80 GB GPU, 64 GB of system RAM, and 120 GB of free disk, for about two hours. Public on-demand ranges on 13 Nov 2026 were roughly $0.87–$1.72 per hour for an A100 80GB and roughly $2.69–$3.87 per hour for an H100 80GB. That is a published range, not a reservation. No account was opened.
+
 ## Still not done
 
 - No `<video>` on the homepage. The v8 posters are on this branch for review. The v7 and v6 files stay.
-- No AI image was generated. The ComfyUI recipe is `scripts/cinematic-hero/comfy/README.md`.
+- No AI image was generated. The runnable entry point is `scripts/cinematic-hero/comfy/edit_hero.py`. It has not loaded a model.
 - No production Lighthouse pass. The times above are the local dev server.
 - The full 12-second Cycles film waits until the owner accepts these frames.
 - The GT3 material hides the sponsor art in the scene only. That does not clear the car design, the BMW marks, or the tire marks.

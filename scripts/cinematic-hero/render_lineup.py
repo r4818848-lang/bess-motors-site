@@ -2400,8 +2400,21 @@ def main():
             _center, size = mesh_center(obj)
             mats = [slot.material.name for slot in obj.material_slots if slot.material]
             if max(size) > 0.25:
+                colors = []
+                for slot in obj.material_slots:
+                    mat = slot.material
+                    node = bsdf(mat) if mat is not None else None
+                    if node is None or "Base Color" not in node.inputs:
+                        colors.append("none")
+                        continue
+                    base = node.inputs["Base Color"]
+                    if base.is_linked:
+                        colors.append("linked")
+                    else:
+                        color = tuple(round(v, 2) for v in base.default_value[:3])
+                        colors.append(str(color))
                 print(
-                    f"GT3MESH {obj.name} size={tuple(round(v, 2) for v in size)} mats={mats}"
+                    f"GT3MESH {obj.name} size={tuple(round(v, 2) for v in size)} mats={mats} base={colors}"
                 )
         return
     for label, car in (("g90", g90), ("m4", m4), ("gt3", gt3)):
