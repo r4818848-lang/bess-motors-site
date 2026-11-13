@@ -122,10 +122,58 @@ The GT3 racing livery is a copied material in the scene. The source GLB is not r
 
 What is still wrong: the GT3 windshield and roof carry a hot highlight; the mobile hero is only as tall as its text, so the lineup sits behind the full-width buttons and the outer cars clip; the desktop headline overlaps the Widebody roof; the frames are darker and simpler than a finished studio photograph.
 
+## Cycles v5, 13 Nov 2026
+
+The owner rejected the v4 composite. This pass changes the paint, the studio, the stance, and the hero. It is a review set. The 12-second film was not rendered, and the stills are posters, not a video.
+
+### Stance
+
+The left car looked raised because the parked M4 sat farther from a 28 mm camera on a black floor, so its tires had no readable contact. The GT3 was a separate, real error: after the Y-up correction its front axle was about 12 cm above the rear. `plant_car` now measures vertices within 24 cm of each hub, pitches the rig until the front and rear contact differ by less than 8 mm, then drops the car until the lowest tire is 4 mm above the floor. A splitter that would sink lifts the whole car.
+
+Measured at the parked frame: G90 front 4.0 mm, rear 5.9 mm, pitch bias 0. M4 front 4.0 mm, rear 6.2 mm, pitch bias 0. GT3 front 7.2 mm, rear 4.0 mm, pitch bias 0.059 rad (about 3.4° nose down). The diagnostic with the floor grid and contact marks is `docs/review/v5-ground.png`.
+
+### Paint
+
+sRGB hex is converted to linear before the Principled base color.
+
+| Car | Hex | Metallic | Roughness | Coat | Coat roughness |
+| --- | --- | --- | --- | --- | --- |
+| G90, material `0.005` | `#B5121B` | 0 | 0.32 | 1.0 | 0.028 |
+| M4 paint and `ext_red` | `#2E6A4C` | 0 | 0.55 / 0.52 | 0.18 / 0.16 | 0.28 / 0.30 |
+| GT3 body copy | `#555B64` | 0.22 | 0.24 | 1.0 | 0.08 |
+
+`#234C3B` went nearly black under this light, so the green is `#2E6A4C`. The green stays a satin dielectric. The red stays a clearcoat dielectric. The graphite is the only paint with a metallic weight, and only on the scene copy. The source GLB is not rewritten. GT3 glass roughness is 0.08 so the windshield does not clip. Exposure is +0.20, AgX.
+
+### Lights
+
+Key 150 W, 12.0 × 3.8 m, at (-2.4, -8.6, 6.6). Fill 190 W, 6.5 × 3.4 m. Wheel strip 36 W. Left rim 130 W, slightly green. Right rim 110 W. A 80 W nose light from the right front. Overhead 90 W, the only light that casts on the floor. Car lights are light-linked to the meshes. World strength 0.28. Floor albedo about 0.055, roughness 0.42.
+
+### Cameras and the page
+
+Desktop is 50 mm, shift X -0.20, at (-2.6, -20.4, 1.04), looking at (1.15, 1.3, 0.58). Mobile is its own 42 mm camera at (0.15, -11.8, 0.82), shift Y -0.08. Parked positions are tighter: M4 (-2.45, 1.55), heading -22°. GT3 (3.35, 1.75), heading -44°. G90 stays at (0.05, 0), heading -38°. Closest body gap during the move is 1.28 m for the M4 and 1.10 m for the GT3.
+
+`Hero.tsx` uses these stills as posters. Desktop text sits in a left column, and the black wash stops at about 34% of the width. Mobile stacks the headline, a 2.4:1 crop of the portrait still, then the two buttons above the contact bar. The phone, route, and VIN links stay on desktop; on a phone those actions are the contact bar. Booking, services, and the phone link were clicked through. The film is not wired in.
+
+| Frame | Samples | Time |
+| --- | --- | --- |
+| Desktop 1920×1080 `docs/review/v5-cycles-desktop.png` | 128 | 77.6 s |
+| Mobile 1080×1920 `docs/review/v5-cycles-mobile.png` | 128 | 74.5 s |
+| G90 paint and glass `docs/review/v5-g90.png` | 64 | 55.9 s |
+| M4 satin `docs/review/v5-m4.png` | 64 | 50.8 s |
+| GT3 nose `docs/review/v5-gt3.png` | 64 | 36.5 s |
+| Contact grid `docs/review/v5-ground.png` | 48 | 39.2 s |
+| Eight beats, 1280×720, 4 s `docs/review/v5-motion-test.mp4` | 16 | 58.0 s |
+| Homepage, Polish, 1440×900 `docs/review/v5-hero-desktop.png` |  |  |
+| Homepage, Polish, 390×844 `docs/review/v5-hero-mobile.png` |  |  |
+
+### What is still wrong
+
+The GT3 roof still carries a bright softbox reflection. It is smaller than the v4 white band, and the body pixels read as graphite, but it is not a finished commercial highlight. The G90 close-up is the front door and glass; the wheel is only at the edge of that frame. The G90 tire still reads Michelin and the wheel centre still carries the roundel. Hiding the GT3 sponsor albedo does not license the vehicle design or the BMW marks. The full 12-second film was not rendered.
+
 ## Still not done
 
-- The homepage hero is unchanged: no `<video>`, no poster, no reduced-motion fallback.
+- No `<video>` on the homepage. The v5 posters are on this branch only, for review.
 - No Lighthouse pass of a video hero.
-- The full 12-second Cycles film waits until these test frames are accepted.
-- The v4 GT3 material hides the sponsor art in the scene only. That does not clear the car design or the BMW marks. The G90 Michelin sidewall and the roundel remain.
+- The full 12-second Cycles film waits until these frames are accepted.
+- The GT3 material hides the sponsor art in the scene only. That does not clear the car design or the BMW marks. The G90 Michelin sidewall and the roundel remain.
 - No production deploy and no merge.

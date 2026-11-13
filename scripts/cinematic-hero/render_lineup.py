@@ -44,8 +44,8 @@ G90_PATH = {
 M4_PATH = {
     "p0": (-10.2, 1.4),
     "h0": 62.0,
-    "p3": (-2.95, 2.25),
-    "h3": -18.0,
+    "p3": (-2.45, 1.55),
+    "h3": -22.0,
     "l1": 4.2,
     "l2": 3.0,
     "t0": 3.55,
@@ -54,8 +54,8 @@ M4_PATH = {
 GT3_PATH = {
     "p0": (11.4, 5.2),
     "h0": -74.0,
-    "p3": (5.5, 2.9),
-    "h3": -50.0,
+    "p3": (3.35, 1.75),
+    "h3": -44.0,
     "l1": 4.6,
     "l2": 2.8,
     "t0": 6.25,
@@ -69,6 +69,23 @@ RENDER_FLAGS = set()
 def v4_requested():
     """True for --v4 and every --v4-* still. Substring checks miss --v4-desktop."""
     return any(flag == "--v4" or flag.startswith("--v4-") for flag in RENDER_FLAGS)
+
+
+def v5_requested():
+    return any(flag == "--v5" or flag.startswith("--v5-") for flag in RENDER_FLAGS)
+
+
+def srgb_to_linear(hex_color):
+    """Blender paints in linear. A hex swatch has to be converted or it goes dull."""
+    value = hex_color.lstrip("#")
+    channels = [int(value[index : index + 2], 16) / 255.0 for index in (0, 2, 4)]
+
+    def convert(channel):
+        if channel <= 0.04045:
+            return channel / 12.92
+        return ((channel + 0.055) / 1.055) ** 2.4
+
+    return tuple(convert(channel) for channel in channels)
 
 
 def clear():
@@ -360,14 +377,14 @@ def studio(floor_z, receivers=None):
     geom = nodes.new("ShaderNodeNewGeometry")
     sep = nodes.new("ShaderNodeSeparateXYZ")
     ramp = nodes.new("ShaderNodeValToRGB")
-    ramp.color_ramp.elements[0].position = 0.35
-    ramp.color_ramp.elements[0].color = (0.004, 0.004, 0.005, 1.0)
-    ramp.color_ramp.elements[1].position = 0.72
-    ramp.color_ramp.elements[1].color = (0.018, 0.019, 0.022, 1.0)
+    ramp.color_ramp.elements[0].position = 0.22
+    ramp.color_ramp.elements[0].color = (0.012, 0.013, 0.015, 1.0)
+    ramp.color_ramp.elements[1].position = 0.78
+    ramp.color_ramp.elements[1].color = (0.045, 0.048, 0.054, 1.0)
     links.new(geom.outputs["Incoming"], sep.inputs["Vector"])
     links.new(sep.outputs["Z"], ramp.inputs["Fac"])
     links.new(ramp.outputs["Color"], bg.inputs["Color"])
-    bg.inputs["Strength"].default_value = 0.12
+    bg.inputs["Strength"].default_value = 0.28 if v5_requested() else 0.12
     links.new(bg.outputs["Background"], out.inputs["Surface"])
 
     bpy.ops.mesh.primitive_plane_add(size=160, location=(0.0, 4.0, floor_z))
@@ -376,10 +393,15 @@ def studio(floor_z, receivers=None):
     mat = bpy.data.materials.new("Floor")
     mat.use_nodes = True
     node = mat.node_tree.nodes["Principled BSDF"]
-    node.inputs["Base Color"].default_value = (0.012, 0.0125, 0.014, 1.0)
-    node.inputs["Roughness"].default_value = 0.48
+    if v5_requested():
+        node.inputs["Base Color"].default_value = (0.055, 0.056, 0.060, 1.0)
+        node.inputs["Roughness"].default_value = 0.42
+        node.inputs["Specular IOR Level"].default_value = 0.42
+    else:
+        node.inputs["Base Color"].default_value = (0.012, 0.0125, 0.014, 1.0)
+        node.inputs["Roughness"].default_value = 0.48
+        node.inputs["Specular IOR Level"].default_value = 0.28
     node.inputs["Metallic"].default_value = 0.0
-    node.inputs["Specular IOR Level"].default_value = 0.28
     floor.data.materials.append(mat)
 
     def area(name, location, energy, color, size, aim, shadow=False, link=False, size_y=None):
@@ -410,15 +432,23 @@ def studio(floor_z, receivers=None):
             except (AttributeError, TypeError) as exc:
                 print("LIGHTLINK unavailable", name, exc)
 
-    aim = Vector((0.2, 1.05, 0.72))
-    # A wide bank, not a thin strip. The old 1.35 m key clipped every upward panel.
-    area("Key", Vector((-4.4, -4.6, 4.4)), 150, (1.0, 0.97, 0.94), 7.2, aim, size_y=3.8, link=True)
-    area("Fill", Vector((3.8, -2.8, 2.1)), 110, (0.86, 0.9, 0.98), 6.0, aim, size_y=3.2, link=True)
-    area("RimL", Vector((-5.6, 4.2, 1.9)), 150, (0.82, 0.88, 1.0), 3.6, Vector((-2.2, 1.6, 0.85)), size_y=1.8, link=True)
-    area("RimR", Vector((7.2, 4.0, 2.0)), 140, (1.0, 0.94, 0.88), 3.6, Vector((4.2, 1.8, 0.85)), size_y=1.8, link=True)
-    area("Face", Vector((0.2, -6.8, 1.35)), 70, (1.0, 0.98, 0.95), 5.0, aim, link=True)
-    # Soft contact shadow. This one also reaches the floor.
-    area("Top", Vector((0.3, 1.4, 7.2)), 55, (0.95, 0.96, 1.0), 8.0, Vector((0.3, 1.2, 0.2)), shadow=True)
+    aim = Vector((0.35, 1.15, 0.7))
+    if v5_requested():
+        # Long banks shape the panels. A low strip lifts the wheels out of the black.
+        area("Key", Vector((-2.4, -8.6, 6.6)), 150, (1.0, 0.97, 0.93), 12.0, aim, size_y=3.8, link=True)
+        area("Fill", Vector((2.4, -8.4, 1.7)), 190, (0.9, 0.93, 1.0), 6.5, aim, size_y=3.4, link=True)
+        area("Wheel", Vector((0.4, -5.2, 0.38)), 36, (1.0, 0.97, 0.94), 5.5, Vector((0.4, 1.1, 0.28)), size_y=0.7, link=True)
+        area("RimL", Vector((-6.2, 3.4, 1.8)), 130, (0.78, 0.9, 0.84), 4.2, Vector((-2.2, 1.4, 0.7)), size_y=1.6, link=True)
+        area("RimR", Vector((6.4, 3.2, 1.9)), 110, (0.95, 0.94, 0.98), 4.2, Vector((3.2, 1.6, 0.65)), size_y=1.6, link=True)
+        area("NoseR", Vector((4.8, -3.6, 1.35)), 80, (0.96, 0.97, 1.0), 3.2, Vector((3.2, 1.5, 0.55)), size_y=1.4, link=True)
+        area("Top", Vector((0.4, 1.3, 8.5)), 90, (0.96, 0.97, 1.0), 12.0, Vector((0.4, 1.2, 0.0)), shadow=True)
+    else:
+        area("Key", Vector((-4.4, -4.6, 4.4)), 150, (1.0, 0.97, 0.94), 7.2, aim, size_y=3.8, link=True)
+        area("Fill", Vector((3.8, -2.8, 2.1)), 110, (0.86, 0.9, 0.98), 6.0, aim, size_y=3.2, link=True)
+        area("RimL", Vector((-5.6, 4.2, 1.9)), 150, (0.82, 0.88, 1.0), 3.6, Vector((-2.2, 1.6, 0.85)), size_y=1.8, link=True)
+        area("RimR", Vector((7.2, 4.0, 2.0)), 140, (1.0, 0.94, 0.88), 3.6, Vector((4.2, 1.8, 0.85)), size_y=1.8, link=True)
+        area("Face", Vector((0.2, -6.8, 1.35)), 70, (1.0, 0.98, 0.95), 5.0, aim, link=True)
+        area("Top", Vector((0.3, 1.4, 7.2)), 55, (0.95, 0.96, 1.0), 8.0, Vector((0.3, 1.2, 0.2)), shadow=True)
 
     cam_data = bpy.data.cameras.new("HeroCam")
     cam_data.lens = 35
@@ -452,13 +482,78 @@ def aim_g90_detail(car):
     look_at(cam, origin + Vector((0.22, 0.45, 0.42)))
 
 
+def aim_beauty(car, offset, look, lens):
+    origin = car["rig"].matrix_world.translation
+    cam = bpy.data.objects["HeroCam"]
+    cam.data.lens = lens
+    cam.data.shift_x = 0.0
+    cam.data.shift_y = 0.0
+    cam.location = origin + Vector(offset)
+    look_at(cam, origin + Vector(look))
+
+
+def show_contacts(cars, visible):
+    """Diagnostic only. Beauty frames leave the floor unmarked."""
+    for obj in list(bpy.data.objects):
+        if obj.name.startswith("ContactMark"):
+            obj.hide_render = not visible
+    if not visible:
+        floor = bpy.data.materials.get("Floor")
+        if floor is not None:
+            bsdf = floor.node_tree.nodes["Principled BSDF"]
+            for link in list(bsdf.inputs["Base Color"].links):
+                floor.node_tree.links.remove(link)
+            bsdf.inputs["Base Color"].default_value = (0.055, 0.056, 0.060, 1.0)
+        return
+    if bpy.data.objects.get("ContactMark0") is not None:
+        return
+    mat = bpy.data.materials.new("ContactEmit")
+    mat.use_nodes = True
+    node = mat.node_tree.nodes["Principled BSDF"]
+    node.inputs["Emission Color"].default_value = (1.0, 0.35, 0.08, 1.0)
+    node.inputs["Emission Strength"].default_value = 12.0
+    floor = bpy.data.materials.get("Floor")
+    if floor is not None:
+        nodes = floor.node_tree.nodes
+        links = floor.node_tree.links
+        checker = nodes.new("ShaderNodeTexChecker")
+        checker.inputs["Scale"].default_value = 80.0
+        checker.inputs["Color1"].default_value = (0.11, 0.11, 0.12, 1.0)
+        checker.inputs["Color2"].default_value = (0.2, 0.2, 0.21, 1.0)
+        links.new(checker.outputs["Color"], nodes["Principled BSDF"].inputs["Base Color"])
+    index = 0
+    for car in cars:
+        for hub in car["front"] + car["rear"]:
+            low, point = contact_near_hub(hub)
+            if low > 1e8:
+                continue
+            bpy.ops.mesh.primitive_uv_sphere_add(radius=0.05, location=(point.x, point.y, 0.05))
+            mark = bpy.context.active_object
+            mark.name = f"ContactMark{index}"
+            mark.data.materials.append(mat)
+            index += 1
+            print(
+                f"CONTACT {car['rig'].name} {hub.name} z={low:.4f} "
+                f"xy=({point.x:.2f},{point.y:.2f})"
+            )
+
+
 def frame_camera(kind):
     cam = bpy.data.objects["HeroCam"]
     cam.data.shift_x = 0.0
     cam.data.shift_y = 0.0
     cam.data.sensor_fit = "HORIZONTAL"
-    if kind == "mobile":
-        # Closer three-quarter. The upper third stays empty for the hero type.
+    if kind == "ground":
+        cam.data.lens = 48
+        cam.location = Vector((-0.15, -9.6, 2.35))
+        look_at(cam, Vector((0.35, 1.15, 0.12)))
+    elif kind == "mobile" and v5_requested():
+        # Far enough that the outer cars keep a margin. Eye height puts them mid-frame.
+        cam.data.lens = 42
+        cam.data.shift_y = -0.08
+        cam.location = Vector((0.15, -11.8, 0.82))
+        look_at(cam, Vector((0.45, 1.25, 0.62)))
+    elif kind == "mobile":
         cam.data.lens = 28
         cam.data.shift_x = -0.08
         cam.data.shift_y = 0.14
@@ -476,13 +571,119 @@ def frame_camera(kind):
         cam.data.lens = 65
         cam.location = Vector((-0.4, -2.4, 0.85))
         look_at(cam, Vector((0.2, 0.4, 0.55)))
+    elif v5_requested():
+        # 48 mm. Pulled back so the GT3 is inside the frame and the left stays clear.
+        cam.data.lens = 50
+        cam.data.shift_x = -0.20
+        cam.location = Vector((-2.6, -20.4, 1.04))
+        look_at(cam, Vector((1.15, 1.3, 0.58)))
     else:
-        # Closer, and shifted so the trio sits right of the homepage headline.
-        # Wide enough that the trio sits in the right half, clear of the headline.
         cam.data.lens = 28
         cam.data.shift_x = -0.24
         cam.location = Vector((-2.4, -12.4, 1.2))
         look_at(cam, Vector((1.35, 1.5, 0.58)))
+
+
+def meshes_under(hubs):
+    found = []
+    for obj in bpy.context.scene.objects:
+        if obj.type != "MESH" or obj.hide_render:
+            continue
+        parent = obj.parent
+        while parent is not None and parent not in hubs:
+            parent = parent.parent
+        if parent in hubs:
+            found.append(obj)
+    return found
+
+
+def lowest_point(objects):
+    low = 1e9
+    point = Vector((0.0, 0.0, 0.0))
+    for obj in objects:
+        for vertex in obj.data.vertices:
+            world = obj.matrix_world @ vertex.co
+            if world.z < low:
+                low = world.z
+                point = world
+    return low, point
+
+
+def contact_near_hub(hub):
+    """Lowest vertex of the tire, not a splitter that happens to share the axle empty."""
+    origin = hub.matrix_world.translation
+    low = 1e9
+    point = origin.copy()
+    for obj in meshes_under([hub]):
+        for vertex in obj.data.vertices:
+            world = obj.matrix_world @ vertex.co
+            if (world.xy - origin.xy).length > 0.24:
+                continue
+            if world.z < low:
+                low = world.z
+                point = world
+    return low, point
+
+
+def axle_low(hubs):
+    lows = [contact_near_hub(hub)[0] for hub in hubs]
+    lows = [value for value in lows if value < 1e8]
+    return min(lows) if lows else 1e9
+
+
+def plant_car(car, radius, wheelbase):
+    """Level a nose-up model, then put the tire contact on the floor."""
+    car["pitch_bias"] = 0.0
+    place(car, DURATION, radius, wheelbase)
+    bpy.context.view_layer.update()
+    bias = 0.0
+    for _ in range(5):
+        front = axle_low(car["front"])
+        rear = axle_low(car["rear"])
+        error = front - rear
+        print(f"LEVEL {car['rig'].name} front={front:.4f} rear={rear:.4f} bias={bias:.4f}")
+        if abs(error) < 0.008 or front > 1e8 or rear > 1e8:
+            break
+        delta = error / max(wheelbase, 1.0)
+        car["pitch_bias"] = bias - delta
+        place(car, DURATION, radius, wheelbase)
+        bpy.context.view_layer.update()
+        improved = abs(axle_low(car["front"]) - axle_low(car["rear"])) < abs(error) - 0.001
+        if improved:
+            bias -= delta
+            continue
+        bias += delta
+        car["pitch_bias"] = bias
+        place(car, DURATION, radius, wheelbase)
+        bpy.context.view_layer.update()
+    tire_low = min(axle_low(car["front"]), axle_low(car["rear"]))
+    if tire_low > 1e8:
+        print("PLANT", car["rig"].name, "no tire mesh")
+        return
+    car["z"] += 0.004 - tire_low
+    place(car, DURATION, radius, wheelbase)
+    bpy.context.view_layer.update()
+    body = []
+    hubs = set(car["front"] + car["rear"])
+    for obj in bpy.context.scene.objects:
+        if obj.type != "MESH" or obj.hide_render or obj.name == "Floor":
+            continue
+        parent = obj
+        under_wheel = False
+        while parent is not None and parent != car["rig"]:
+            if parent in hubs:
+                under_wheel = True
+            parent = parent.parent
+        if parent == car["rig"] and not under_wheel:
+            body.append(obj)
+    body_low, _body_point = lowest_point(body) if body else (1.0, Vector())
+    if body_low < 0.0:
+        car["z"] += 0.002 - body_low
+        place(car, DURATION, radius, wheelbase)
+        bpy.context.view_layer.update()
+    front = axle_low(car["front"])
+    rear = axle_low(car["rear"])
+    print(f"PLANT {car['rig'].name} front={front:.4f} rear={rear:.4f} body={body_low:.4f} bias={car.get('pitch_bias', 0):.4f}")
 
 
 def place(car, t, radius, wheelbase):
@@ -497,7 +698,7 @@ def place(car, t, radius, wheelbase):
     speed_now = (curve.distance_at(t) - curve.distance_at(t - dt)) / dt
     speed_prev = (curve.distance_at(t - dt) - curve.distance_at(t - 2 * dt)) / dt
     accel = (speed_now - speed_prev) / dt
-    pitch = max(-math.radians(1.0), min(math.radians(2.3), -accel * 0.016))
+    pitch = max(-math.radians(1.0), min(math.radians(2.3), -accel * 0.016)) + car.get("pitch_bias", 0.0)
     roll = max(-math.radians(1.6), min(math.radians(1.6), -steer * 0.28))
     travelled = curve.distance_at(t)
     rig = car["rig"]
@@ -838,15 +1039,15 @@ def recolor_keep_maps(mat, color):
         node.inputs["Emission Strength"].default_value = 0.0
     if "Alpha" in node.inputs:
         node.inputs["Alpha"].default_value = 1.0
-    node.inputs["Metallic"].default_value = 0.0
+    node.inputs["Metallic"].default_value = 0.22 if v5_requested() else 0.0
     if os.environ.get("GT3_DEBUG") and mat.name in {"mat_64", "mat_9", "mat_63", "mat_30"}:
         color_now = tuple(round(v, 3) for v in node.inputs["Base Color"].default_value)
         print("RECOLOR", mat.name, "linked", node.inputs["Base Color"].is_linked, "color", color_now)
     if not node.inputs["Roughness"].is_linked:
-        node.inputs["Roughness"].default_value = 0.32
+        node.inputs["Roughness"].default_value = 0.24 if v5_requested() else 0.32
     if "Coat Weight" in node.inputs:
         node.inputs["Coat Weight"].default_value = 1.0
-        node.inputs["Coat Roughness"].default_value = 0.055
+        node.inputs["Coat Roughness"].default_value = 0.08 if v5_requested() else 0.055
     if "Specular IOR Level" in node.inputs and not node.inputs["Specular IOR Level"].is_linked:
         node.inputs["Specular IOR Level"].default_value = 0.5
     return copy
@@ -867,7 +1068,7 @@ def glass_copy(mat):
             copy.node_tree.links.remove(link)
     node.inputs["Base Color"].default_value = (0.45, 0.5, 0.52, 1.0)
     node.inputs["Metallic"].default_value = 0.0
-    node.inputs["Roughness"].default_value = 0.06
+    node.inputs["Roughness"].default_value = 0.08 if v5_requested() else 0.06
     node.inputs["Transmission Weight"].default_value = 0.96
     if "IOR" in node.inputs:
         node.inputs["IOR"].default_value = 1.52
@@ -959,7 +1160,8 @@ def neutral_bess_gt3(rig):
     cache = {}
     painted = 0
     hidden = 0
-    graphite = (0.016, 0.017, 0.019)
+    # #555B64 gunmetal. Metallic is only on this paint; the green M4 stays a satin dielectric.
+    graphite = srgb_to_linear("555B64") if v5_requested() else (0.016, 0.017, 0.019)
     for obj in list(bpy.context.scene.objects):
         if obj.type != "MESH" or obj in STAY_HIDDEN:
             continue
@@ -1058,8 +1260,8 @@ def configure_scene(width, height, samples, cycles):
     scene.render.film_transparent = False
     scene.view_settings.view_transform = "AgX"
     scene.view_settings.look = "AgX - Base Contrast"
-    v4_look = v4_requested()
-    scene.view_settings.exposure = -0.15 if v4_look else 0.35
+    v4_look = v4_requested() or v5_requested()
+    scene.view_settings.exposure = 0.2 if v5_requested() else (-0.15 if v4_requested() else 0.35)
     if cycles:
         # Cycles reads everything after "--" and exits on our flags.
         if "--" in sys.argv:
@@ -1128,7 +1330,19 @@ def main():
         jobs = [("quality", "mobile")]
     if "--axle-still" in sys.argv:
         jobs = [("axle", "desktop")]
-    if "--v4-desktop" in sys.argv:
+    if "--v5-draft" in sys.argv:
+        jobs = [("v5", "desktop"), ("v5", "mobile")]
+    elif "--v5" in sys.argv:
+        jobs = [
+            ("v5", "desktop"),
+            ("v5", "mobile"),
+            ("v5", "g90"),
+            ("v5", "m4"),
+            ("v5", "gt3"),
+            ("v5", "ground"),
+            ("v5", "motion"),
+        ]
+    elif "--v4-desktop" in sys.argv:
         jobs = [("v4", "desktop")]
     elif "--v4-motion" in sys.argv:
         jobs = [("v4", "motion")]
@@ -1149,7 +1363,9 @@ def main():
 
     clear()
     g90_objects = import_new(G90_SRC)
-    paint("0.005", (0.008, 0.0085, 0.01), 0.0, 0.38, coat=1.0, coat_rough=0.022)
+    # #B5121B in linear. Clearcoat over a dielectric, so the red stays a paint.
+    red = srgb_to_linear("B5121B")
+    paint("0.005", red, 0.0, 0.32, coat=1.0, coat_rough=0.028)
     paint("0.002", (0.015, 0.015, 0.016), 0.0, 0.55, coat=0.15, coat_rough=0.08)
     paint("0.003", (0.02, 0.02, 0.022), 0.0, 0.48, coat=0.2, coat_rough=0.08)
     hide_orbiting_duplicates(G90_FRONT + G90_REAR)
@@ -1165,19 +1381,21 @@ def main():
     gt3_objects = import_new(GT3_SRC)
     gt3 = build_gt3(gt3_objects, Curve(GT3_PATH))
     gt3_wb = gt3["wheelbase"]
+    # #2E6A4C reads as British racing green under the studio banks. #234C3B turned black.
+    green = srgb_to_linear("2E6A4C")
     paint(
         "bBMW_M4CompetitionG82TNR0_2021PaintTNR_Material_004",
-        (0.18, 0.008, 0.006),
+        green,
         0.0,
-        0.4,
-        coat=1.0,
-        coat_rough=0.03,
+        0.55,
+        coat=0.18,
+        coat_rough=0.28,
     )
-    paint("ext_red", (0.26, 0.012, 0.008), 0.0, 0.38, coat=0.8, coat_rough=0.045)
+    paint("ext_red", green, 0.0, 0.52, coat=0.16, coat_rough=0.3)
     tune_named_materials()
     coat_gt3_body(gt3["rig"])
     boost_lamps()
-    v4 = v4_requested()
+    v4 = v4_requested() or v5_requested()
     if v4:
         neutral_bess_gt3(gt3["rig"])
         if os.environ.get("GT3_DEBUG"):
@@ -1224,6 +1442,10 @@ def main():
         )
     print(f"CLEARANCE m4 {worst_m4:.2f} gt3 {worst_gt3:.2f}")
 
+    if v5_requested():
+        plant_car(g90, g90["radius"], g90_wb)
+        plant_car(m4, m4["radius"], m4_wb)
+        plant_car(gt3, gt3["radius"], gt3_wb)
     receivers = [obj for obj in bpy.context.scene.objects if obj.type == "MESH"]
     studio(0.0, receivers)
     keyframes = [
@@ -1275,6 +1497,45 @@ def main():
                     True,
                 )
             folder = out / f"quality-{view}"
+        elif job == "v5":
+            draft = "--v5-draft" in RENDER_FLAGS
+            if view == "desktop":
+                shots = [("06-trio", DURATION, False)]
+                scene = configure_scene(960 if draft else 1920, 540 if draft else 1080, 16 if draft else 128, True)
+                folder = out / ("v5-draft-desktop" if draft else "v5-desktop")
+            elif view == "mobile":
+                shots = [("06-trio", DURATION, False)]
+                scene = configure_scene(540 if draft else 1080, 960 if draft else 1920, 16 if draft else 128, True)
+                folder = out / ("v5-draft-mobile" if draft else "v5-mobile")
+            elif view == "ground":
+                shots = [("contacts", DURATION, False)]
+                scene = configure_scene(1280, 720, 16 if draft else 48, True)
+                folder = out / ("v5-draft-ground" if draft else "v5-ground")
+            elif view == "g90":
+                shots = [("g90", DURATION, False)]
+                scene = configure_scene(1400, 788, 64, True)
+                folder = out / "v5-g90"
+            elif view == "m4":
+                shots = [("m4", DURATION, False)]
+                scene = configure_scene(1400, 788, 64, True)
+                folder = out / "v5-m4"
+            elif view == "gt3":
+                shots = [("gt3", DURATION, False)]
+                scene = configure_scene(960 if draft else 1400, 540 if draft else 788, 16 if draft else 64, True)
+                folder = out / ("v5-draft-gt3" if draft else "v5-gt3")
+            else:
+                shots = [
+                    ("m01", 1.4, False),
+                    ("m02", 2.6, False),
+                    ("m03", 3.3, False),
+                    ("m04", 4.8, False),
+                    ("m05", 6.0, False),
+                    ("m06", 7.3, False),
+                    ("m07", 8.4, False),
+                    ("m08", 9.0, False),
+                ]
+                scene = configure_scene(1280, 720, 16, True)
+                folder = out / "v5-motion"
         elif job == "v4":
             draft = "--v4-draft" in RENDER_FLAGS
             if view == "desktop":
@@ -1340,7 +1601,23 @@ def main():
             if view == "gt3":
                 hide_tree(g90["rig"], True)
                 hide_tree(m4["rig"], True)
+            elif view == "g90":
+                hide_tree(m4["rig"], True)
+                hide_tree(gt3["rig"], True)
+            elif view == "m4":
+                hide_tree(g90["rig"], True)
+                hide_tree(gt3["rig"], True)
             bpy.context.view_layer.update()
+            if job == "v5" and view == "g90":
+                aim_beauty(g90, (1.55, -3.9, 0.92), (0.1, 0.4, 0.42), 55)
+            elif job == "v5" and view == "m4":
+                aim_beauty(m4, (1.7, -3.7, 0.95), (0.05, 0.35, 0.4), 52)
+            elif job == "v5" and view == "gt3":
+                aim_beauty(gt3, (-2.6, -3.6, 0.7), (-0.4, 0.7, 0.32), 46)
+            if view == "ground":
+                show_contacts((g90, m4, gt3), True)
+            else:
+                show_contacts((g90, m4, gt3), False)
             if "axle" in name:
                 aim_nearest_front(g90)
             elif view == "detail" or name == "detail":
