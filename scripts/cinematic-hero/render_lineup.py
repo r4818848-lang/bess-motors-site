@@ -72,7 +72,8 @@ def v4_requested():
 
 
 def v5_requested():
-    return any(flag == "--v5" or flag.startswith("--v5-") for flag in RENDER_FLAGS)
+    # "--v51" does not start with "--v5-", so match the whole v5 family.
+    return any(flag == "--v5" or flag.startswith("--v5") for flag in RENDER_FLAGS)
 
 
 def srgb_to_linear(hex_color):
@@ -435,13 +436,15 @@ def studio(floor_z, receivers=None):
     aim = Vector((0.35, 1.15, 0.7))
     if v5_requested():
         # Long banks shape the panels. A low strip lifts the wheels out of the black.
-        area("Key", Vector((-2.4, -8.6, 6.6)), 150, (1.0, 0.97, 0.93), 12.0, aim, size_y=3.8, link=True)
-        area("Fill", Vector((2.4, -8.4, 1.7)), 190, (0.9, 0.93, 1.0), 6.5, aim, size_y=3.4, link=True)
-        area("Wheel", Vector((0.4, -5.2, 0.38)), 36, (1.0, 0.97, 0.94), 5.5, Vector((0.4, 1.1, 0.28)), size_y=0.7, link=True)
-        area("RimL", Vector((-6.2, 3.4, 1.8)), 130, (0.78, 0.9, 0.84), 4.2, Vector((-2.2, 1.4, 0.7)), size_y=1.6, link=True)
-        area("RimR", Vector((6.4, 3.2, 1.9)), 110, (0.95, 0.94, 0.98), 4.2, Vector((3.2, 1.6, 0.65)), size_y=1.6, link=True)
-        area("NoseR", Vector((4.8, -3.6, 1.35)), 80, (0.96, 0.97, 1.0), 3.2, Vector((3.2, 1.5, 0.55)), size_y=1.4, link=True)
-        area("Top", Vector((0.4, 1.3, 8.5)), 90, (0.96, 0.97, 1.0), 12.0, Vector((0.4, 1.2, 0.0)), shadow=True)
+        # The key sits in front of the noses, not above the roofs, so the GT3 glass
+        # gets a long hood reflection instead of a white panel.
+        area("Key", Vector((-0.6, -11.2, 2.55)), 180, (1.0, 0.97, 0.93), 14.0, Vector((0.4, 0.6, 0.55)), size_y=1.8, link=True)
+        area("Fill", Vector((3.6, -9.2, 1.45)), 150, (0.9, 0.93, 1.0), 7.0, Vector((1.2, 1.0, 0.55)), size_y=2.6, link=True)
+        area("Wheel", Vector((0.4, -5.2, 0.38)), 32, (1.0, 0.97, 0.94), 5.5, Vector((0.4, 1.1, 0.28)), size_y=0.7, link=True)
+        area("RimL", Vector((-6.8, 2.2, 1.55)), 90, (0.78, 0.9, 0.84), 3.4, Vector((-2.2, 1.4, 0.62)), size_y=1.1, link=True)
+        area("RimR", Vector((7.6, 4.4, 1.7)), 70, (0.95, 0.94, 0.98), 3.2, Vector((3.8, 2.1, 0.72)), size_y=1.0, link=True)
+        area("NoseR", Vector((5.4, -2.2, 0.85)), 55, (0.96, 0.97, 1.0), 2.4, Vector((3.3, 1.4, 0.42)), size_y=0.9, link=True)
+        area("Top", Vector((0.6, 2.4, 9.5)), 28, (0.96, 0.97, 1.0), 18.0, Vector((0.6, 1.4, 0.0)), shadow=True)
     else:
         area("Key", Vector((-4.4, -4.6, 4.4)), 150, (1.0, 0.97, 0.94), 7.2, aim, size_y=3.8, link=True)
         area("Fill", Vector((3.8, -2.8, 2.1)), 110, (0.86, 0.9, 0.98), 6.0, aim, size_y=3.2, link=True)
@@ -547,6 +550,16 @@ def frame_camera(kind):
         cam.data.lens = 48
         cam.location = Vector((-0.15, -9.6, 2.35))
         look_at(cam, Vector((0.35, 1.15, 0.12)))
+    elif kind == "wide" and v5_requested():
+        # 16:9 frame for the phone block. The portrait still stays a separate file.
+        cam.data.lens = 44
+        cam.data.shift_x = -0.14
+        cam.location = Vector((-0.85, -12.6, 0.84))
+        look_at(cam, Vector((1.15, 1.45, 0.52)))
+    elif kind == "gt3side" and v5_requested():
+        cam.data.lens = 70
+        cam.location = Vector((7.4, -2.2, 0.62))
+        look_at(cam, Vector((3.35, 1.75, 0.48)))
     elif kind == "mobile" and v5_requested():
         # Far enough that the outer cars keep a margin. Eye height puts them mid-frame.
         cam.data.lens = 42
@@ -1047,7 +1060,7 @@ def recolor_keep_maps(mat, color):
         node.inputs["Roughness"].default_value = 0.24 if v5_requested() else 0.32
     if "Coat Weight" in node.inputs:
         node.inputs["Coat Weight"].default_value = 1.0
-        node.inputs["Coat Roughness"].default_value = 0.08 if v5_requested() else 0.055
+        node.inputs["Coat Roughness"].default_value = 0.16 if v5_requested() else 0.055
     if "Specular IOR Level" in node.inputs and not node.inputs["Specular IOR Level"].is_linked:
         node.inputs["Specular IOR Level"].default_value = 0.5
     return copy
@@ -1068,7 +1081,7 @@ def glass_copy(mat):
             copy.node_tree.links.remove(link)
     node.inputs["Base Color"].default_value = (0.45, 0.5, 0.52, 1.0)
     node.inputs["Metallic"].default_value = 0.0
-    node.inputs["Roughness"].default_value = 0.08 if v5_requested() else 0.06
+    node.inputs["Roughness"].default_value = 0.12 if v5_requested() else 0.06
     node.inputs["Transmission Weight"].default_value = 0.96
     if "IOR" in node.inputs:
         node.inputs["IOR"].default_value = 1.52
@@ -1330,7 +1343,13 @@ def main():
         jobs = [("quality", "mobile")]
     if "--axle-still" in sys.argv:
         jobs = [("axle", "desktop")]
-    if "--v5-draft" in sys.argv:
+    if "--v51-draft" in sys.argv:
+        jobs = [("v5", "wide")]
+    elif "--v51" in sys.argv:
+        jobs = [("v5", "desktop"), ("v5", "wide"), ("v5", "g90"), ("v5", "gt3side")]
+    elif "--v51-reel" in sys.argv:
+        jobs = [("v51reel", "desktop")]
+    elif "--v5-draft" in sys.argv:
         jobs = [("v5", "desktop"), ("v5", "mobile")]
     elif "--v5" in sys.argv:
         jobs = [
@@ -1497,24 +1516,44 @@ def main():
                     True,
                 )
             folder = out / f"quality-{view}"
+        elif job == "v51reel":
+            # Continuous Eevee preview. Not the Cycles film.
+            shots = [(f"f{i:04d}", i / FPS, False) for i in range(int(12 * FPS))]
+            scene = configure_scene(640, 360, 4, False)
+            scene.eevee.use_bloom = False
+            scene.eevee.use_ssr = False
+            folder = out / "v51-reel"
         elif job == "v5":
-            draft = "--v5-draft" in RENDER_FLAGS
+            draft = "--v5-draft" in RENDER_FLAGS or "--v51-draft" in RENDER_FLAGS
             if view == "desktop":
                 shots = [("06-trio", DURATION, False)]
-                scene = configure_scene(960 if draft else 1920, 540 if draft else 1080, 16 if draft else 128, True)
-                folder = out / ("v5-draft-desktop" if draft else "v5-desktop")
+                scene = configure_scene(
+                    960 if draft else 1920,
+                    540 if draft else 1080,
+                    16 if draft else (64 if "--v51" in RENDER_FLAGS else 128),
+                    True,
+                )
+                folder = out / ("v51-draft-desktop" if "--v51-draft" in RENDER_FLAGS else ("v5-draft-desktop" if draft else "v51-desktop" if "--v51" in RENDER_FLAGS else "v5-desktop"))
             elif view == "mobile":
                 shots = [("06-trio", DURATION, False)]
                 scene = configure_scene(540 if draft else 1080, 960 if draft else 1920, 16 if draft else 128, True)
                 folder = out / ("v5-draft-mobile" if draft else "v5-mobile")
+            elif view == "wide":
+                shots = [("wide", DURATION, False)]
+                scene = configure_scene(960 if draft else 1600, 540 if draft else 900, 16 if draft else 64, True)
+                folder = out / ("v51-draft-wide" if draft else "v51-wide")
+            elif view == "gt3side":
+                shots = [("side", DURATION, False)]
+                scene = configure_scene(1280, 720, 16 if draft else 32, True)
+                folder = out / ("v51-draft-gt3side" if draft else "v51-gt3side")
             elif view == "ground":
                 shots = [("contacts", DURATION, False)]
                 scene = configure_scene(1280, 720, 16 if draft else 48, True)
                 folder = out / ("v5-draft-ground" if draft else "v5-ground")
             elif view == "g90":
                 shots = [("g90", DURATION, False)]
-                scene = configure_scene(1400, 788, 64, True)
-                folder = out / "v5-g90"
+                scene = configure_scene(960 if draft else 1400, 540 if draft else 788, 16 if draft else 64, True)
+                folder = out / ("v51-draft-g90" if draft else "v51-g90")
             elif view == "m4":
                 shots = [("m4", DURATION, False)]
                 scene = configure_scene(1400, 788, 64, True)
@@ -1598,7 +1637,7 @@ def main():
                 gt3_steer, gt3_dist = place(gt3, t, gt3["radius"], gt3_wb)
             else:
                 gt3_steer, gt3_dist = 0.0, 0.0
-            if view == "gt3":
+            if view == "gt3" or view == "gt3side":
                 hide_tree(g90["rig"], True)
                 hide_tree(m4["rig"], True)
             elif view == "g90":
@@ -1609,12 +1648,28 @@ def main():
                 hide_tree(gt3["rig"], True)
             bpy.context.view_layer.update()
             if job == "v5" and view == "g90":
-                aim_beauty(g90, (1.55, -3.9, 0.92), (0.1, 0.4, 0.42), 55)
+                # Front three-quarter: paint, the near wheel, the lamp, and the glass.
+                cam = bpy.data.objects["HeroCam"]
+                cam.data.lens = 42
+                cam.data.shift_x = 0.0
+                cam.data.shift_y = 0.0
+                cam.location = Vector((-0.05, -3.35, 0.58))
+                look_at(cam, Vector((-0.95, -0.95, 0.42)))
+            elif job == "v5" and view == "gt3side":
+                origin = gt3["rig"].matrix_world.translation
+                yaw = gt3["curve"].at_time(DURATION)[1]
+                side = Vector((math.cos(yaw), math.sin(yaw), 0.0))
+                cam = bpy.data.objects["HeroCam"]
+                cam.data.lens = 65
+                cam.data.shift_x = 0.0
+                cam.data.shift_y = 0.0
+                cam.location = origin + side * 6.4 + Vector((0.0, 0.0, 0.08))
+                look_at(cam, origin + Vector((0.0, 0.0, 0.08)))
             elif job == "v5" and view == "m4":
                 aim_beauty(m4, (1.7, -3.7, 0.95), (0.05, 0.35, 0.4), 52)
             elif job == "v5" and view == "gt3":
                 aim_beauty(gt3, (-2.6, -3.6, 0.7), (-0.4, 0.7, 0.32), 46)
-            if view == "ground":
+            if view in {"ground", "gt3side"}:
                 show_contacts((g90, m4, gt3), True)
             else:
                 show_contacts((g90, m4, gt3), False)

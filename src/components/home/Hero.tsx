@@ -10,27 +10,33 @@ import { trackGetDirectionsClick } from "@/lib/gtag";
 import { SITE_NAP } from "@/lib/site-nap";
 
 /**
- * Studio poster for the three-car test on this branch. The film is not wired in.
- * See docs/cinematic-hero-v2.md. The stills are review frames, not a BMW partnership.
+ * Studio posters for the three-car test on this branch. The film is not wired in.
+ * The phone loads the wide frame. Desktop loads its own frame. See docs/cinematic-hero-v2.md.
  */
 export function Hero() {
   const { t } = useI18n();
   const h = t.hero;
 
   return (
-    <section className="relative -mt-14 overflow-hidden bg-[#07080b] pb-[calc(4.75rem+env(safe-area-inset-bottom))] pt-20 sm:-mt-16 lg:flex lg:min-h-[78vh] lg:items-center lg:pb-16 lg:pt-24">
-      <img
-        src="/hero/v5-desktop.png"
-        alt=""
-        className="pointer-events-none absolute inset-0 hidden h-full w-full object-cover object-[72%_58%] lg:block"
-      />
+    <section className="relative isolate -mt-14 flex flex-col overflow-hidden bg-[#07080b] pb-[calc(4.75rem+env(safe-area-inset-bottom))] pt-16 sm:-mt-16 sm:pt-20 lg:block lg:min-h-[78vh] lg:pb-16 lg:pt-24">
+      <picture className="order-2 px-4 lg:absolute lg:inset-0 lg:z-0 lg:px-0">
+        <source media="(min-width: 1024px)" srcSet="/hero/v51-desktop.webp" type="image/webp" />
+        <img
+          src="/hero/v51-wide.webp"
+          alt=""
+          width={1600}
+          height={900}
+          fetchPriority="high"
+          className="mt-4 h-auto w-full lg:mt-0 lg:h-full lg:object-cover lg:object-[72%_58%]"
+        />
+      </picture>
       <div
-        className="pointer-events-none absolute inset-y-0 left-0 hidden w-[min(30rem,34%)] bg-gradient-to-r from-[#07080b] from-8% via-[#07080b]/55 via-42% to-transparent lg:block"
+        className="pointer-events-none absolute inset-y-0 left-0 z-10 hidden w-[min(30rem,34%)] bg-gradient-to-r from-[#07080b] from-8% via-[#07080b]/55 via-42% to-transparent lg:block"
         aria-hidden
       />
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 hidden h-16 bg-gradient-to-t from-[#07080b] to-transparent lg:block" aria-hidden />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 hidden h-16 bg-gradient-to-t from-[#07080b] to-transparent lg:block" aria-hidden />
 
-      <div className="relative z-10 flex w-full flex-col px-4 pb-2 pt-6 lg:block lg:px-10 lg:pb-6 lg:pt-10">
+      <div className="relative z-10 order-1 w-full px-4 pt-6 lg:px-10 lg:pt-10">
         <div className="max-w-xl lg:max-w-md">
           <p className="text-xs font-semibold uppercase tracking-[0.28em] text-bm-ink">BESS MOTORS</p>
           <h1 className="mt-4 max-w-[12ch] font-display text-[2.35rem] font-semibold leading-[1.02] tracking-[-0.03em] text-white sm:max-w-none sm:text-5xl lg:text-[3.15rem]">
@@ -39,14 +45,10 @@ export function Hero() {
           <p className="mt-5 max-w-xl text-base leading-relaxed text-white/85 sm:text-lg">{h.subtitleClean}</p>
           <p className="mt-3 max-w-xl text-sm text-white/55">{h.servicesLine}</p>
         </div>
+      </div>
 
-        <img
-          src="/hero/v5-mobile.png"
-          alt=""
-          className="mt-4 aspect-[2.4/1] w-full object-cover object-[center_46%] lg:hidden"
-        />
-
-        <div className="mt-4 flex flex-col gap-3 sm:flex-row lg:mt-8">
+      <div className="relative z-10 order-3 w-full px-4 pb-2 lg:px-10 lg:pb-6">
+        <div className="mt-3 flex flex-col gap-2.5 sm:flex-row lg:mt-8">
           <BookingLink
             trackSource="hero"
             className="btn-primary inline-flex items-center justify-center gap-2 uppercase tracking-wide"

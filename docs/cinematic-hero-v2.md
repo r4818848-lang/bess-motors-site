@@ -166,14 +166,74 @@ Desktop is 50 mm, shift X -0.20, at (-2.6, -20.4, 1.04), looking at (1.15, 1.3, 
 | Homepage, Polish, 1440×900 `docs/review/v5-hero-desktop.png` |  |  |
 | Homepage, Polish, 390×844 `docs/review/v5-hero-mobile.png` |  |  |
 
-### What is still wrong
+### What v5 left open
 
-The GT3 roof still carries a bright softbox reflection. It is smaller than the v4 white band, and the body pixels read as graphite, but it is not a finished commercial highlight. The G90 close-up is the front door and glass; the wheel is only at the edge of that frame. The G90 tire still reads Michelin and the wheel centre still carries the roundel. Hiding the GT3 sponsor albedo does not license the vehicle design or the BMW marks. The full 12-second film was not rendered.
+The GT3 roof still carried a bright softbox reflection. The G90 close-up was the front door and glass, with the wheel at the edge. The phone hero put the portrait still into a 2.4:1 box. The motion file was eight frames. Those four points are the v5.1 pass below. The tire marks and the BMW roundel were not cleared.
+
+## Cycles v5.1, 13 Nov 2026
+
+Corrections on top of `7904f6a`. This is still a draft. The owner has not accepted it. The 12-second Cycles film was not rendered. Exposure was not lowered to hide the highlight.
+
+### GT3 highlight and stance
+
+The key no longer sits above the roofs. It is a 180 W bank, 14.0 × 1.8 m, at (-0.6, -11.2, 2.55), aimed at (0.4, 0.6, 0.55), light-linked to the cars. Fill is 150 W at (3.6, -9.2, 1.45). The overhead light is 28 W at z 9.5 and is the only light that hits the floor. GT3 clearcoat roughness is 0.16, and the scene-copy glass roughness is 0.12. Exposure stays +0.20.
+
+On the 1920×1080 still, the right-hand zone (x greater than 72% of the frame) has 685 pixels where red, green, and blue are all above 210. The roof reads as a long reflection, not a white panel. The highlight is smaller. It is not gone.
+
+The 3.4° pitch is the correction that levels the Y-up export. After that turn the front axle sat about 12 cm above the rear. `plant_car` pitches until the contacts match, then drops the car. Parked GT3: front 7.2 mm, rear 4.0 mm, rocker 62 mm, bias 0.0589 rad. G90 and M4 stay at bias 0, contacts 4.0 / 5.9 mm and 4.0 / 6.2 mm. The side frame shows a horizontal rocker and four tires on the floor. A real GT3 often carries a slight rake under 1°. This stance is level. It is not an extra nose-down pose added on top of a level car.
+
+![GT3 side, contact grid](docs/review/v51-gt3-side.png)
+
+### Phone hero
+
+The portrait 1080×1920 still is no longer fitted into `aspect-[2.4/1]` with `object-cover`. The phone block uses its own 16:9 frame. Camera 44 mm, shift X -0.14, at (-0.85, -12.6, 0.84), looking at (1.15, 1.45, 0.52). The portrait file stays at `docs/review/v5-cycles-mobile.png` for a later layout. It is not the phone hero.
+
+On a phone the order is the headline, the wide studio, then the two buttons, above the contact bar. Desktop keeps the same wide studio as a full-bleed poster behind a left text column. The picture element requests `/hero/v51-desktop.webp` only at 1024 px and wider. Narrower viewports request `/hero/v51-wide.webp` only.
+
+Second-button bottom, measured in the browser: 716 px on 360×800, 733 px on 390×844, 777 px on 430×932. The contact bar is about 52 px plus its safe-area padding. Both buttons sit above it on those three screens. Booking opens `/booking`. Services opens `/services`. Polish, Russian, English, and Ukrainian headlines were checked. Polish is the longest and stays clear of the green car at 1366, 1440, and 1920.
+
+### Motion preview
+
+`docs/review/v51-motion-preview.mp4` is 288 frames, 0–12 s, 24 fps, 640×360, Eevee, 4 samples, bloom off, screen-space reflections off. It is 282 KB. It is not the Cycles film.
+
+All 288 frames are present. The largest frame-to-frame change is 0.80 grey levels at frame 126, and no frame jumps above 2.8 times its neighbours. From 9 s to 12 s the picture is pixel-identical: the cars are parked and the wheels do not creep. Travelled distance grows through each entrance and then holds: G90 9.7 m, M4 9.0 m, GT3 8.9 m. Steering is 0° once a car is parked. The closest body gap on these paths is 1.28 m for the M4 and 1.10 m for the GT3. Wheel crops aligned between t = 1.67 s and t = 2.00 s show the rim pattern changing while the car advances. At 640 px this cannot measure millimetre slip.
+
+### G90 close-up
+
+64 samples, 42 mm, camera at (-0.05, -3.35, 0.58), looking at (-0.95, -0.95, 0.42). The frame holds the red clearcoat, the near headlamp, the front wheel, the rim, and the base of the windshield. The glass is only the top edge of the frame. The green M4 is still the v5 satin frame: roughness 0.55, coat 0.18, against the red coat weight of 1.0 and coat roughness of 0.028.
+
+### Weight and layout shift
+
+The two public PNGs were about 2.0 MB each and are removed. The posters are WebP, Pillow quality 84: `public/hero/v51-desktop.webp` is 25,468 bytes, `public/hero/v51-wide.webp` is 29,636 bytes. The hero uses a `picture` element, so Next's image optimizer does not emit AVIF for it. This machine's Pillow has no AVIF encoder. A second format was not added.
+
+Cumulative layout shift was 0 at 1366×768, 1440×900, 1920×1080, 360×800, 390×844, and 430×932. On the local Next dev server the largest contentful paint was the hero image: 332 ms at 1366, 624 ms at 1440, 444 ms at 1920, 412 ms at 360, 468 ms at 390, 372 ms at 430. Those times are the dev server, not a production Lighthouse run.
+
+### Rights, still open
+
+The GT3 body livery is hidden on a scene material copy, 27 slots. The source GLB is unchanged. The GT3 sidewalls still read Goodyear and Eagle. The G90 sidewall still reads Michelin, and the wheel centre still has the BMW roundel. CC BY 4.0 is the file author's license. It is not a license from BMW AG. It does not clear the vehicle design, the roundel, the grille, or those tire marks. These frames must not go on the commercial site until that is decided, and the page must not imply that BESS is a BMW partner.
+
+### Frames
+
+| Frame | Samples | Time |
+| --- | --- | --- |
+| Desktop 1920×1080 `docs/review/v51-cycles-desktop.png` | 64 | 46.3 s |
+| Wide 16:9 `docs/review/v51-wide.png` | 64 | 44.6 s |
+| G90 close-up `docs/review/v51-g90.png` | 64 | 62.6 s |
+| GT3 side `docs/review/v51-gt3-side.png` | 32 | 28.9 s |
+| Eevee preview, 288 frames `docs/review/v51-motion-preview.mp4` | 4 | about 2 s each |
+| Hero 1440, 1366, 1920, 390, 360, 430 under `docs/review/v51-hero-*.png` |  |  |
+
+### Still a draft
+
+- The GT3 roof reflection is smaller and is still visible.
+- The G90 close-up includes only the base of the glass.
+- Tire marks and the BMW roundel are still in the frames.
+- The 12-second Cycles film was not rendered, and no video is wired into the page.
 
 ## Still not done
 
-- No `<video>` on the homepage. The v5 posters are on this branch only, for review.
-- No Lighthouse pass of a video hero.
-- The full 12-second Cycles film waits until these frames are accepted.
-- The GT3 material hides the sponsor art in the scene only. That does not clear the car design or the BMW marks. The G90 Michelin sidewall and the roundel remain.
+- No `<video>` on the homepage. The v5.1 posters are on this branch for review.
+- No production Lighthouse pass. The times above are the local dev server.
+- The full 12-second Cycles film waits until the owner accepts these frames.
+- The GT3 material hides the sponsor art in the scene only. That does not clear the car design, the BMW marks, or the tire marks.
 - No production deploy and no merge.
