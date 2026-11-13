@@ -305,9 +305,67 @@ The picture element requests `/hero/v6-desktop.webp` only at 1024 px and wider, 
 | Eevee preview `docs/review/v6-motion-preview.mp4` | 4 | 10 s, 640×360 |
 | Hero 1920, 1440, 1366, 430, 390, 360 under `docs/review/v6-hero-*.png` |  |  |
 
+## V7 — visual approval required
+
+V6 is not accepted. V7 is the next draft, still not the film and still not on production. Reference C (the attached studio photograph) is the quality target for brightness, headlamp read, floor glow, and the premium lineup. It is not a colour lock: in that photograph the right car is burgundy, and this scene keeps the right car black.
+
+### What changed from V6
+
+The three cars sit closer, with the G90 as the centre car and the other two a step behind. Mesh clearance at the park is 0.222 m between the M4 and the G90, and 0.275 m between the GT3 and the G90. The tightest point on the arcs is 0.200 m (M4, u=0.90) and 0.137 m (GT3, u=0.75). Those are gaps, not intersections. The source GLBs are not rewritten.
+
+Every tire is on the floor. Lowest tire points from the contact pass: G90 4.0–13.2 mm, M4 3.8–19.4 mm, GT3 5.2–11.4 mm. The GT3 front tires (5.2 mm and 8.3 mm) sit lower than the rear tires (11.2 mm and 11.4 mm), so the nose is not raised. A low camera can still make the wing look high. The beauty camera is at 0.64 m so the rocker reads level.
+
+| Car | Paint | Roughness | Clearcoat | Coat roughness |
+| --- | --- | --- | --- | --- |
+| Left M4, satin green | #1C8C4A | 0.46 / 0.44 | 0.34 / 0.30 | 0.18 / 0.20 |
+| Centre G90, burgundy | #6C1528 | 0.18 | 1.0 | 0.012 |
+| Right GT3, black | #0B0C0F | 0.18 | 1.0 | 0.02 |
+
+#6C1528 replaces the V6 scarlet #9A1824. The green is lighter than V6 #2E6A4C so it stays readable, and the coat stays low so it does not go full gloss. The GT3 clearcoat is tighter than V6 so the panels separate from the background. Glass roughness stays 0.03.
+
+Exposure is +0.48. World strength is 0.9. The floor is (0.045, 0.046, 0.050), roughness 0.18, specular 0.58, so the coloured light stretches toward the camera. A fog-glow composite (threshold 0.65, mix −0.48, size 6) blooms the lamps without replacing the render.
+
+Head spots are 70 W and aimed at lamp height, so they do not paint white bars on the floor. G90 and M4 lens materials emit at 80 (head) and 36 (tail). The GT3 file has no separate lamp mesh. The scene adds a pod on the ray-hit nose and tail: a dark housing, a metal bowl, two emissive projectors, a thin DRL, a bezel, and a glass cover, parented to the rig. At the beauty distance the fascia opening still reads as a bright slit. The G90 close-up is the frame that shows a real LED lamp. That limit is the model, not the exposure.
+
+Underglow is parented to each car and hidden from the camera, so the floor shows the light and not a floating rectangle. Green #18F06A at 90 W under the M4. Burgundy #D01238 at 105 W under the G90 and 120 W under the GT3. Each car has side skirts, a nose patch, a forward wash, a tail, and a shadowed pool under the body. It is stronger than the V6 pools (14 W and 26 W) and it reflects on the floor. It is still a tighter band than the photograph.
+
+### Cameras and the page
+
+Beauty, no text: 40 mm at (0.08, −9.8, 0.64). Wide phone frame: 36 mm at (−0.05, −7.6, 0.55). Desktop poster: 40 mm, shift X −0.30, at (0.15, −14.2, 0.78), so the left third of the file stays dark. On viewports from 1024 px the picture is scaled to 0.86 from the right edge, which keeps the Polish headline and the address off the green nose on a 1366 px screen. A pixel test on `v7-hero-1366.png` found no white headline pixel touching the green body.
+
+The picture requests `/hero/v7-desktop.webp` (48 332 bytes) from 1024 px and `/hero/v7-wide.webp` (66 190 bytes) below that. Pillow quality 86. One viewport loads one file. Polish cumulative layout shift on the measured viewports was under 0.001. Booking opens `/booking`. Services opens `/services`. On 360×800 the second button ends at 716 px. On 390×844 it ends at 733 px. On 430×932 it ends at 755 px. The contact bar is about 52 px. Both buttons sit above it.
+
+### Motion preview
+
+`docs/review/v7-motion-preview.mp4` is an Eevee animatic of the whole entrance: 12 seconds, 24 fps, 640×360, 4 samples, bloom off, screen-space reflections off. It is not the Cycles film. The G90 enters from the right and parks by 3.5 s. The M4 enters from the left and parks by 6.2 s. The GT3 enters from the right and parks by 9 s. From 9 s to 12 s the three cars hold, with the lamps and the underglow on. The homepage still shows the still poster. No `<video>` is wired.
+
+### Still short of the photograph
+
+- The GT3 lamp is a lit pod in a slit opening. It does not yet read as the large projector headlamp in the photograph.
+- The floor glow is a readable coloured reflection under each car. It is not as wide or as bright as Reference C.
+- The bodies are still these three GLBs. Clearcoat, glass, and the studio banks make them read better than V6. They are not a photograph.
+- Goodyear and Eagle remain on the GT3 tires. Michelin and the BMW roundel remain on the G90. CC BY 4.0 is the file author's license. It is not a license from BMW AG. BESS MOTORS is not a BMW partner. These frames must not go on the commercial site until that is decided.
+
+### Frames
+
+| Frame | Samples | Time |
+| --- | --- | --- |
+| Desktop 1920×1080 `docs/review/v7-cycles-desktop.png` | 40 | 49.2 s |
+| Beauty, no text `docs/review/v7-beauty.png` | 40 | 68.1 s |
+| Wide 16:9 `docs/review/v7-wide.png` | 40 | 54.6 s |
+| G90 close-up `docs/review/v7-g90.png` | 32 | 38.0 s |
+| M4 close-up `docs/review/v7-m4.png` | 32 | 31.3 s |
+| GT3 close-up `docs/review/v7-gt3.png` | 32 | 27.8 s |
+| Headlamp `docs/review/v7-lamps.png` | 32 | 78.9 s |
+| Floor glow `docs/review/v7-glow.png` | 32 | 56.3 s |
+| Ground contact `docs/review/v7-ground.png` | 28 | 27.9 s |
+| Eevee preview `docs/review/v7-motion-preview.mp4` | 4 | 12 s, 640×360 |
+| Comparison `docs/review/v7-compare.png` |  | V6, V7, Reference C |
+| Hero 1920, 1440, 1366, 430, 390, 360 and ru/en/uk under `docs/review/v7-hero-*.png` |  |  |
+
 ## Still not done
 
-- No `<video>` on the homepage. The v6 posters are on this branch for review.
+- No `<video>` on the homepage. The v7 posters are on this branch for review. The v6 files stay.
 - No production Lighthouse pass. The times above are the local dev server.
 - The full 12-second Cycles film waits until the owner accepts these frames.
 - The GT3 material hides the sponsor art in the scene only. That does not clear the car design, the BMW marks, or the tire marks.

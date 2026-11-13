@@ -71,8 +71,12 @@ def v4_requested():
     return any(flag == "--v4" or flag.startswith("--v4-") for flag in RENDER_FLAGS)
 
 
+def v7_requested():
+    return any(flag == "--v7" or flag.startswith("--v7") for flag in RENDER_FLAGS)
+
+
 def v6_requested():
-    return any(flag == "--v6" or flag.startswith("--v6") for flag in RENDER_FLAGS)
+    return v7_requested() or any(flag == "--v6" or flag.startswith("--v6") for flag in RENDER_FLAGS)
 
 
 def v5_requested():
@@ -83,6 +87,7 @@ def v5_requested():
 
 def use_v6_parks():
     """A tight row. Mesh packing pushes a corner back out if it clips."""
+    global DURATION
     if not v6_requested():
         return
     G90_PATH["p3"] = (0.0, -0.15)
@@ -96,6 +101,17 @@ def use_v6_parks():
     GT3_PATH["p3"] = (2.55, 0.08)
     GT3_PATH["h3"] = -14.0
     GT3_PATH["l2"] = 2.2
+    if v7_requested():
+        # Side cars sit a little behind the hero. Packing still opens a real mesh gap.
+        M4_PATH["p3"] = (-2.28, 0.18)
+        GT3_PATH["p3"] = (2.36, 0.2)
+        G90_PATH["t0"] = 0.2
+        G90_PATH["t1"] = 3.5
+        M4_PATH["t0"] = 3.5
+        M4_PATH["t1"] = 6.2
+        GT3_PATH["t0"] = 6.2
+        GT3_PATH["t1"] = 9.0
+        DURATION = 12.0
 
 
 def srgb_to_linear(hex_color):
@@ -353,12 +369,13 @@ def spin_wheel(obj, rest, roll, steer):
 
 def add_spots(rig, prefix):
     spots = []
-    aim = Vector((0.0, -1.0, -0.02)).to_track_quat("-Z", "Y").to_euler()
+    # v7 aims the beam at lamp height. A downward aim painted white bars on the floor.
+    aim = Vector((0.0, -1.0, 0.38 if v7_requested() else -0.02)).to_track_quat("-Z", "Y").to_euler()
     for side, x in (("L", 0.72), ("R", -0.72)):
         light = bpy.data.lights.new(f"{prefix}_{side}", "SPOT")
         light.energy = 0.0
-        light.spot_size = math.radians(18)
-        light.spot_blend = 0.6
+        light.spot_size = math.radians(16 if v7_requested() else 18)
+        light.spot_blend = 0.85 if v7_requested() else 0.6
         light.color = (0.86, 0.91, 1.0)
         light.use_shadow = False
         obj = bpy.data.objects.new(light.name, light)
@@ -411,7 +428,9 @@ def studio(floor_z, receivers=None):
     links.new(geom.outputs["Incoming"], sep.inputs["Vector"])
     links.new(sep.outputs["Z"], ramp.inputs["Fac"])
     links.new(ramp.outputs["Color"], bg.inputs["Color"])
-    bg.inputs["Strength"].default_value = 0.62 if v6_requested() else (0.28 if v5_requested() else 0.12)
+    bg.inputs["Strength"].default_value = (
+        0.9 if v7_requested() else (0.62 if v6_requested() else (0.28 if v5_requested() else 0.12))
+    )
     links.new(bg.outputs["Background"], out.inputs["Surface"])
 
     bpy.ops.mesh.primitive_plane_add(size=160, location=(0.0, 4.0, floor_z))
@@ -420,7 +439,13 @@ def studio(floor_z, receivers=None):
     mat = bpy.data.materials.new("Floor")
     mat.use_nodes = True
     node = mat.node_tree.nodes["Principled BSDF"]
-    if v6_requested():
+    if v7_requested():
+        # Dark enough to stay a studio, glossy enough for the coloured pools to read.
+        node.inputs["Base Color"].default_value = (0.045, 0.046, 0.050, 1.0)
+        # Glossy enough that the coloured light stretches toward the camera, as on the reference floor.
+        node.inputs["Roughness"].default_value = 0.18
+        node.inputs["Specular IOR Level"].default_value = 0.58
+    elif v6_requested():
         node.inputs["Base Color"].default_value = (0.078, 0.080, 0.086, 1.0)
         node.inputs["Roughness"].default_value = 0.55
         node.inputs["Specular IOR Level"].default_value = 0.36
@@ -464,7 +489,17 @@ def studio(floor_z, receivers=None):
                 print("LIGHTLINK unavailable", name, exc)
 
     aim = Vector((0.35, 1.15, 0.7))
-    if v6_requested():
+    if v7_requested():
+        # Long banks in front of the noses. The key is not above the roofs.
+        area("Key", Vector((-1.6, -9.6, 2.15)), 320, (1.0, 0.98, 0.95), 9.0, Vector((0.15, 0.25, 0.72)), size_y=1.7, link=True)
+        area("Fill", Vector((4.4, -7.2, 1.55)), 180, (0.86, 0.9, 1.0), 6.2, Vector((0.5, 0.3, 0.55)), size_y=2.2, link=True)
+        area("Face", Vector((0.15, -6.2, 0.85)), 90, (1.0, 0.98, 0.96), 5.4, Vector((0.2, 0.4, 0.48)), size_y=0.7, link=True)
+        area("RimL", Vector((-5.4, 2.2, 1.45)), 190, (0.7, 0.98, 0.8), 2.6, Vector((-1.6, 0.35, 0.6)), size_y=1.4, link=True)
+        area("RimR", Vector((5.8, 2.6, 1.6)), 260, (1.0, 0.94, 0.92), 2.2, Vector((1.7, 0.4, 0.68)), size_y=1.6, link=True)
+        area("Edge", Vector((1.4, 6.4, 2.05)), 200, (0.97, 0.97, 1.0), 1.4, Vector((0.35, 0.45, 0.82)), size_y=3.4, link=True)
+        area("Wheel", Vector((0.05, -3.8, 0.32)), 55, (1.0, 0.97, 0.92), 5.0, Vector((0.1, 0.4, 0.22)), size_y=0.4, link=True)
+        area("Top", Vector((0.15, 0.5, 8.4)), 36, (0.96, 0.97, 1.0), 14.0, Vector((0.15, 0.3, 0.0)), shadow=True)
+    elif v6_requested():
         # Wide banks in front of the noses, plus a hard rim so the black car separates.
         area("Key", Vector((-2.8, -8.4, 2.7)), 240, (1.0, 0.97, 0.93), 7.2, Vector((0.1, 0.2, 0.62)), size_y=2.6, link=True)
         area("Fill", Vector((3.8, -7.4, 1.9)), 130, (0.84, 0.89, 1.0), 5.6, Vector((0.4, 0.35, 0.5)), size_y=2.4, link=True)
@@ -535,7 +570,7 @@ def aim_front(car, side_scale, lens):
     cam.data.lens = lens
     cam.data.shift_x = 0.0
     cam.data.shift_y = 0.0
-    cam.location = nose + ahead * 2.15 + side * side_scale + Vector((0.0, 0.0, 0.22))
+    cam.location = nose + ahead * 2.15 + side * side_scale + Vector((0.0, 0.0, 0.4 if v7_requested() else 0.22))
     look_at(cam, nose + side * (0.22 if side_scale > 0 else -0.22) + Vector((0.0, 0.0, -0.08)))
 
 
@@ -604,6 +639,23 @@ def frame_camera(kind):
         cam.data.lens = 48
         cam.location = Vector((-0.15, -9.6, 2.35))
         look_at(cam, Vector((0.35, 1.15, 0.12)))
+    elif kind == "glow":
+        cam.data.lens = 42
+        cam.location = Vector((0.05, -5.6, 0.22))
+        look_at(cam, Vector((0.15, 0.8, 0.12)))
+    elif kind == "lamps":
+        cam.data.lens = 50
+        cam.location = Vector((0.15, -6.6, 0.52))
+        look_at(cam, Vector((0.25, 0.15, 0.44)))
+    elif kind == "beauty" and v7_requested():
+        cam.data.lens = 40
+        cam.location = Vector((0.08, -9.8, 0.64))
+        look_at(cam, Vector((0.12, 0.35, 0.4)))
+    elif kind == "wide" and v7_requested():
+        cam.data.lens = 36
+        cam.data.shift_x = -0.02
+        cam.location = Vector((-0.05, -7.6, 0.55))
+        look_at(cam, Vector((0.15, 0.45, 0.36)))
     elif kind == "beauty" and v6_requested():
         cam.data.lens = 58
         cam.location = Vector((-0.15, -9.6, 0.86))
@@ -647,6 +699,13 @@ def frame_camera(kind):
         cam.data.lens = 65
         cam.location = Vector((-0.4, -2.4, 0.85))
         look_at(cam, Vector((0.2, 0.4, 0.55)))
+    elif v7_requested():
+        # Left third stays empty for the headline. The group sits right, still fully in frame.
+        # The Polish block is about a third of the viewport. Keep the cars to the right of it.
+        cam.data.lens = 40
+        cam.data.shift_x = -0.30
+        cam.location = Vector((0.15, -14.2, 0.78))
+        look_at(cam, Vector((1.45, 0.42, 0.4)))
     elif v6_requested():
         # The Polish headline needs the left third empty. Wider lens, then a shift, so the black car stays in frame.
         cam.data.lens = 40
@@ -1014,28 +1073,42 @@ def add_tail_spots(rig, prefix):
 
 
 def add_contour(car, color, tag, energy=14.0):
-    """A soft skirt of light on the floor. Low energy, wide, not a neon tube."""
+    """A skirt of light on the floor. v7 is the reference pool, still one colour per car."""
     rig = car["rig"]
     origin = rig.matrix_world.translation
     yaw = rig.rotation_euler.z
     forward_vec = Vector((math.sin(yaw), -math.cos(yaw), 0.0))
     side = Vector((math.cos(yaw), math.sin(yaw), 0.0))
-    specs = (
-        ("L", origin + side * 1.02 + Vector((0.0, 0.0, 0.16)), 3.3, 0.28),
-        ("R", origin - side * 1.02 + Vector((0.0, 0.0, 0.16)), 3.3, 0.28),
-        ("N", origin + forward_vec * 2.05 + Vector((0.0, 0.0, 0.14)), 1.55, 0.24),
-        ("T", origin - forward_vec * 2.05 + Vector((0.0, 0.0, 0.14)), 1.55, 0.24),
-        ("P", origin + Vector((0.0, 0.0, 0.2)), 2.4, 4.2),
-    )
-    for name, location, size, size_y in specs:
+    if v7_requested():
+        # Skirts and a nose patch paint the floor. The pool is shadowed by the
+        # body, so the emitter stays hidden and only a halo escapes the sills.
+        specs = (
+            ("L", origin + side * 0.95 + Vector((0.0, 0.0, 0.11)), 4.4, 0.42, False, 1.15),
+            ("R", origin - side * 0.95 + Vector((0.0, 0.0, 0.11)), 4.4, 0.42, False, 1.15),
+            ("N", origin + forward_vec * 2.35 + Vector((0.0, 0.0, 0.16)), 2.2, 1.15, False, 2.6),
+            ("W", origin + forward_vec * 3.15 + Vector((0.0, 0.0, 0.22)), 2.4, 1.35, False, 2.0),
+            ("T", origin - forward_vec * 2.45 + Vector((0.0, 0.0, 0.05)), 1.7, 0.45, False, 0.7),
+            ("P", origin + Vector((0.0, 0.0, 0.28)), 1.5, 3.4, True, 1.6),
+        )
+    else:
+        specs = (
+            ("L", origin + side * 1.02 + Vector((0.0, 0.0, 0.16)), 3.3, 0.28, False, 1.0),
+            ("R", origin - side * 1.02 + Vector((0.0, 0.0, 0.16)), 3.3, 0.28, False, 1.0),
+            ("N", origin + forward_vec * 2.05 + Vector((0.0, 0.0, 0.14)), 1.55, 0.24, False, 1.0),
+            ("T", origin - forward_vec * 2.05 + Vector((0.0, 0.0, 0.14)), 1.55, 0.24, False, 1.0),
+            ("P", origin + Vector((0.0, 0.0, 0.2)), 2.4, 4.2, False, 0.55),
+        )
+    for name, location, size, size_y, shadow, scale in specs:
         light = bpy.data.lights.new(f"Glow{tag}{name}", "AREA")
-        light.energy = energy * 0.55 if name == "P" else energy
+        light.energy = energy * scale
         light.color = color
         light.shape = "RECTANGLE"
         light.size = size
         light.size_y = size_y
-        light.use_shadow = False
+        light.use_shadow = shadow
         obj = bpy.data.objects.new(light.name, light)
+        if v7_requested():
+            obj.visible_camera = False
         bpy.context.scene.collection.objects.link(obj)
         obj.location = location
         look_at(obj, location + Vector((0.0, 0.0, -1.0)))
@@ -1046,7 +1119,9 @@ def ignite_material(mat, red):
     node = bsdf(mat)
     if node is None or "Emission Strength" not in node.inputs or node.inputs["Emission Strength"].is_linked:
         return
-    node.inputs["Emission Strength"].default_value = 9.0 if red else 16.0
+    node.inputs["Emission Strength"].default_value = (
+        (36.0 if red else 80.0) if v7_requested() else (9.0 if red else 16.0)
+    )
     color_in = node.inputs.get("Emission Color")
     base = node.inputs.get("Base Color")
     if color_in is not None and not color_in.is_linked and base is not None and base.is_linked:
@@ -1088,11 +1163,11 @@ def place(car, t, radius, wheelbase):
         lamp = 1.0
     else:
         lamp = smooth((shaped((t - curve.t0) / (curve.t1 - curve.t0)) - 0.72) / 0.28)
-    head = 150.0 if v6_requested() else 70.0
+    head = 70.0 if v7_requested() else (150.0 if v6_requested() else 70.0)
     for light in car["spots"]:
         light.energy = head * lamp
     for light in car.get("tails", []):
-        light.energy = (55.0 if v6_requested() else 0.0) * lamp
+        light.energy = (90.0 if v7_requested() else (55.0 if v6_requested() else 0.0)) * lamp
     return steer, travelled
 
 
@@ -1427,10 +1502,14 @@ def recolor_keep_maps(mat, color):
         color_now = tuple(round(v, 3) for v in node.inputs["Base Color"].default_value)
         print("RECOLOR", mat.name, "linked", node.inputs["Base Color"].is_linked, "color", color_now)
     if not node.inputs["Roughness"].is_linked:
-        node.inputs["Roughness"].default_value = 0.34 if v6_requested() else (0.24 if v5_requested() else 0.32)
+        node.inputs["Roughness"].default_value = (
+            0.18 if v7_requested() else (0.34 if v6_requested() else (0.24 if v5_requested() else 0.32))
+        )
     if "Coat Weight" in node.inputs:
         node.inputs["Coat Weight"].default_value = 1.0
-        node.inputs["Coat Roughness"].default_value = 0.04 if v6_requested() else (0.16 if v5_requested() else 0.055)
+        node.inputs["Coat Roughness"].default_value = (
+            0.02 if v7_requested() else (0.04 if v6_requested() else (0.16 if v5_requested() else 0.055))
+        )
     if "Specular IOR Level" in node.inputs and not node.inputs["Specular IOR Level"].is_linked:
         node.inputs["Specular IOR Level"].default_value = 0.5
     return copy
@@ -1656,15 +1735,93 @@ def plant_visible_optics(rig, nose, tail):
         outward = rot @ (Vector((0.0, 1.0, 0.0)) if red else Vector((0.0, -1.0, 0.0)))
         outward.normalize()
         # Clear the grille slats. The hit itself is often inside the opening.
-        add_lens_card(
-            rig,
-            center + outward * 0.035,
-            outward,
-            f"GT3Lens{'T' if red else 'H'}{int(side)}",
-            red,
-        )
+        if v7_requested():
+            add_optic_pod(
+                rig,
+                center + outward * 0.034,
+                outward,
+                f"GT3Pod{'T' if red else 'H'}{int(side)}",
+                red,
+            )
+        else:
+            add_lens_card(
+                rig,
+                center + outward * 0.035,
+                outward,
+                f"GT3Lens{'T' if red else 'H'}{int(side)}",
+                red,
+            )
         cards[1 if red else 0] += 1
     return cards
+
+
+def add_optic_pod(rig, location, outward, name, red):
+    """A lamp with a housing, a glass cover, and LED elements. Not a flat white bar."""
+    up = Vector((0.0, 0.0, 1.0))
+    side = outward.cross(up)
+    if side.length < 1e-6:
+        side = Vector((1.0, 0.0, 0.0))
+    side.normalize()
+    outward = outward.normalized()
+    up = side.cross(outward).normalized()
+    rot = Matrix((side, up, outward)).transposed().to_quaternion()
+    shrink = 0.78 if red else 1.0
+
+    def put(obj, local, scale):
+        obj.matrix_world = Matrix.LocRotScale(location, rot, Vector((1.0, 1.0, 1.0))) @ Matrix.LocRotScale(
+            Vector(local) * shrink,
+            Quaternion((1.0, 0.0, 0.0, 0.0)),
+            Vector(scale) * shrink,
+        )
+        parent_keep(obj, rig)
+
+    def make(tag, local, scale, mat, sphere=False):
+        if sphere:
+            bpy.ops.mesh.primitive_uv_sphere_add(radius=0.5, segments=16, ring_count=8)
+        else:
+            bpy.ops.mesh.primitive_cube_add(size=1.0)
+        obj = bpy.context.active_object
+        obj.name = f"{name}{tag}"
+        obj.data.materials.append(mat)
+        put(obj, local, scale)
+
+    def shade(suffix, color, emission, rough, transmission=0.0, metallic=0.0):
+        mat = bpy.data.materials.new(name + suffix)
+        mat.use_nodes = True
+        node = mat.node_tree.nodes["Principled BSDF"]
+        node.inputs["Base Color"].default_value = (*color, 1.0)
+        node.inputs["Emission Color"].default_value = (*color, 1.0)
+        node.inputs["Emission Strength"].default_value = emission
+        node.inputs["Roughness"].default_value = rough
+        node.inputs["Metallic"].default_value = metallic
+        if transmission and "Transmission Weight" in node.inputs:
+            node.inputs["Transmission Weight"].default_value = transmission
+            if "IOR" in node.inputs:
+                node.inputs["IOR"].default_value = 1.5
+            mat.blend_method = "HASHED"
+            mat.use_screen_refraction = True
+        return mat
+
+    led_color = (1.0, 0.045, 0.012) if red else (1.0, 0.98, 0.92)
+    housing = shade("H", (0.012, 0.012, 0.014), 0.0, 0.42)
+    metal = shade("M", (0.04, 0.04, 0.045), 0.0, 0.22, metallic=1.0)
+    glass = shade("G", (0.55, 0.08, 0.05) if red else (0.85, 0.9, 0.94), 0.0, 0.02, transmission=0.92)
+    led = shade("L", led_color, 28.0 if red else 40.0, 0.18)
+    lamp = shade("P", led_color, 90.0 if red else 180.0, 0.08)
+    make("Bucket", (0.0, 0.0, -0.016), (0.16, 0.08, 0.046), housing)
+    make("Bowl", (0.0, 0.0, -0.004), (0.12, 0.05, 0.018), metal)
+    make("Bar", (0.0, 0.034, 0.012), (0.1, 0.0035, 0.003), led)
+    for side_x in (-0.036, 0.036):
+        make("Proj", (side_x, 0.016, 0.014), (0.044, 0.03, 0.018), lamp, sphere=True)
+        bpy.ops.mesh.primitive_torus_add(
+            major_radius=0.5, minor_radius=0.14, major_segments=20, minor_segments=8
+        )
+        ring = bpy.context.active_object
+        ring.name = f"{name}Ring{int(side_x * 100)}"
+        ring.data.materials.append(metal)
+        put(ring, (side_x, 0.016, 0.016), (0.05, 0.038, 0.05))
+    make("Lens", (0.0, 0.0, 0.016), (0.15, 0.068, 0.006), glass)
+    print(f"POD {name} red={red}")
 
 
 def add_lens_card(rig, location, normal, name, red):
@@ -1798,7 +1955,9 @@ def neutral_bess_gt3(rig):
     painted = 0
     hidden = 0
     # #555B64 gunmetal. Metallic is only on this paint; the green M4 stays a satin dielectric.
-    if v6_requested():
+    if v7_requested():
+        graphite = srgb_to_linear("0B0C0F")
+    elif v6_requested():
         graphite = srgb_to_linear("14161A")
     elif v5_requested():
         graphite = srgb_to_linear("555B64")
@@ -1897,6 +2056,23 @@ def visible_wheel_meshes(hub):
     return count
 
 
+def add_lamp_glow(scene):
+    """A small fog glow so the lamps and the floor light bloom the way a photo does."""
+    scene.use_nodes = True
+    tree = scene.node_tree
+    tree.nodes.clear()
+    layers = tree.nodes.new("CompositorNodeRLayers")
+    glare = tree.nodes.new("CompositorNodeGlare")
+    glare.glare_type = "FOG_GLOW"
+    glare.quality = "HIGH"
+    glare.threshold = 0.65
+    glare.mix = -0.48
+    glare.size = 6
+    out = tree.nodes.new("CompositorNodeComposite")
+    tree.links.new(layers.outputs["Image"], glare.inputs["Image"])
+    tree.links.new(glare.outputs["Image"], out.inputs["Image"])
+
+
 def configure_scene(width, height, samples, cycles):
     scene = bpy.context.scene
     scene.render.resolution_x = width
@@ -1905,7 +2081,9 @@ def configure_scene(width, height, samples, cycles):
     scene.view_settings.view_transform = "AgX"
     scene.view_settings.look = "AgX - Base Contrast"
     v4_look = v4_requested() or v5_requested()
-    scene.view_settings.exposure = 0.34 if v6_requested() else (0.2 if v5_requested() else (-0.15 if v4_requested() else 0.35))
+    scene.view_settings.exposure = (
+        0.48 if v7_requested() else (0.34 if v6_requested() else (0.2 if v5_requested() else (-0.15 if v4_requested() else 0.35)))
+    )
     if cycles:
         # Cycles reads everything after "--" and exits on our flags.
         if "--" in sys.argv:
@@ -1926,6 +2104,8 @@ def configure_scene(width, height, samples, cycles):
         except TypeError as exc:
             scene.cycles.use_denoising = False
             print("DENOISER unavailable", exc)
+        if v7_requested():
+            add_lamp_glow(scene)
     else:
         scene.render.engine = "BLENDER_EEVEE"
         scene.eevee.taa_render_samples = samples
@@ -1975,7 +2155,29 @@ def main():
         jobs = [("quality", "mobile")]
     if "--axle-still" in sys.argv:
         jobs = [("axle", "desktop")]
-    if "--v51-draft" in sys.argv:
+    if "--v7-desk" in sys.argv:
+        jobs = [("v7", "desktop")]
+    elif "--v7-lamps" in sys.argv:
+        jobs = [("v7", "lamps")]
+    elif "--v7-check" in sys.argv:
+        jobs = [("v7", "beauty"), ("v7", "gt3")]
+    elif "--v7-ee" in sys.argv:
+        jobs = [("v7ee", "beauty"), ("v7ee", "gt3"), ("v7ee", "glow"), ("v7ee", "lamps")]
+    elif "--v7-reel" in sys.argv:
+        jobs = [("v7reel", "desktop")]
+    elif "--v7" in sys.argv:
+        jobs = [
+            ("v7", "desktop"),
+            ("v7", "beauty"),
+            ("v7", "wide"),
+            ("v7", "g90"),
+            ("v7", "m4"),
+            ("v7", "gt3"),
+            ("v7", "lamps"),
+            ("v7", "glow"),
+            ("v7", "ground"),
+        ]
+    elif "--v51-draft" in sys.argv:
         jobs = [("v5", "wide")]
     elif "--v51" in sys.argv:
         jobs = [("v5", "desktop"), ("v5", "wide"), ("v5", "g90"), ("v5", "gt3side")]
@@ -2035,14 +2237,14 @@ def main():
     clear()
     g90_objects = import_new(G90_SRC)
     # Clearcoat over a dielectric. v6 is a deeper burgundy, still a red paint.
-    red = srgb_to_linear("9A1824" if v6_requested() else "B5121B")
+    red = srgb_to_linear("6C1528" if v7_requested() else ("9A1824" if v6_requested() else "B5121B"))
     paint(
         "0.005",
         red,
         0.0,
-        0.26 if v6_requested() else 0.32,
+        0.18 if v7_requested() else (0.26 if v6_requested() else 0.32),
         coat=1.0,
-        coat_rough=0.02 if v6_requested() else 0.028,
+        coat_rough=0.012 if v7_requested() else (0.02 if v6_requested() else 0.028),
     )
     paint("0.002", (0.015, 0.015, 0.016), 0.0, 0.55, coat=0.15, coat_rough=0.08)
     paint("0.003", (0.02, 0.02, 0.022), 0.0, 0.48, coat=0.2, coat_rough=0.08)
@@ -2060,22 +2262,22 @@ def main():
     gt3 = build_gt3(gt3_objects, Curve(GT3_PATH))
     gt3_wb = gt3["wheelbase"]
     # #2E6A4C reads as British racing green under the studio banks. #234C3B turned black.
-    green = srgb_to_linear("2E6A4C")
+    green = srgb_to_linear("1C8C4A" if v7_requested() else "2E6A4C")
     paint(
         "bBMW_M4CompetitionG82TNR0_2021PaintTNR_Material_004",
         green,
         0.0,
-        0.58 if v6_requested() else 0.55,
-        coat=0.22 if v6_requested() else 0.18,
-        coat_rough=0.32 if v6_requested() else 0.28,
+        0.46 if v7_requested() else (0.58 if v6_requested() else 0.55),
+        coat=0.34 if v7_requested() else (0.22 if v6_requested() else 0.18),
+        coat_rough=0.18 if v7_requested() else (0.32 if v6_requested() else 0.28),
     )
     paint(
         "ext_red",
         green,
         0.0,
-        0.56 if v6_requested() else 0.52,
-        coat=0.2 if v6_requested() else 0.16,
-        coat_rough=0.34 if v6_requested() else 0.3,
+        0.44 if v7_requested() else (0.56 if v6_requested() else 0.52),
+        coat=0.3 if v7_requested() else (0.2 if v6_requested() else 0.16),
+        coat_rough=0.2 if v7_requested() else (0.34 if v6_requested() else 0.3),
     )
     if v6_requested():
         for mat_name in (
@@ -2148,9 +2350,14 @@ def main():
         level_gt3_shell(gt3)
         pack_lineup(g90, m4, gt3, g90_wb, m4_wb, gt3_wb)
         audit_arrivals(g90, m4, gt3, g90_wb, m4_wb, gt3_wb)
-        add_contour(m4, srgb_to_linear("1C8F45"), "M4")
-        add_contour(g90, srgb_to_linear("C4162A"), "G90")
-        add_contour(gt3, srgb_to_linear("8A2444"), "GT3", energy=26.0)
+        if v7_requested():
+            add_contour(m4, srgb_to_linear("18F06A"), "M4", energy=90.0)
+            add_contour(g90, srgb_to_linear("D01238"), "G90", energy=105.0)
+            add_contour(gt3, srgb_to_linear("D01238"), "GT3", energy=120.0)
+        else:
+            add_contour(m4, srgb_to_linear("1C8F45"), "M4")
+            add_contour(g90, srgb_to_linear("C4162A"), "G90")
+            add_contour(gt3, srgb_to_linear("8A2444"), "GT3", energy=26.0)
     receivers = [obj for obj in bpy.context.scene.objects if obj.type == "MESH"]
     studio(0.0, receivers)
     keyframes = [
@@ -2202,6 +2409,36 @@ def main():
                     True,
                 )
             folder = out / f"quality-{view}"
+        elif job == "v7ee":
+            shots = [("check", DURATION, False)]
+            scene = configure_scene(1200, 675, 8, False)
+            scene.eevee.use_bloom = False
+            scene.eevee.use_ssr = False
+            folder = out / f"v7-ee-{view}"
+        elif job == "v7reel":
+            shots = [(f"f{i:04d}", i / FPS, False) for i in range(int(DURATION * FPS))]
+            scene = configure_scene(640, 360, 4, False)
+            scene.eevee.use_bloom = False
+            scene.eevee.use_ssr = False
+            folder = out / "v7-reel"
+        elif job == "v7":
+            samples = 40
+            if view in {"desktop", "beauty"}:
+                shots = [("06-trio" if view == "desktop" else "beauty", DURATION, False)]
+                scene = configure_scene(1920, 1080, samples, True)
+            elif view == "wide":
+                shots = [("wide", DURATION, False)]
+                scene = configure_scene(1600, 900, samples, True)
+            elif view == "ground":
+                shots = [("contacts", DURATION, False)]
+                scene = configure_scene(1280, 720, 28, True)
+            elif view in {"glow", "lamps"}:
+                shots = [(view, DURATION, False)]
+                scene = configure_scene(1600, 900, 32, True)
+            else:
+                shots = [(view, DURATION, False)]
+                scene = configure_scene(1400, 788, 32, True)
+            folder = out / f"v7-{view}"
         elif job == "v6ee":
             shots = [("check", DURATION, False)]
             scene = configure_scene(1100, 620, 8, False)
@@ -2380,12 +2617,14 @@ def main():
                 hide_tree(g90["rig"], True)
                 hide_tree(gt3["rig"], True)
             bpy.context.view_layer.update()
-            if job in {"v6", "v6ee"} and view == "g90":
+            if job in {"v6", "v6ee", "v7", "v7ee"} and view == "g90":
                 aim_beauty(g90, (0.15, -3.2, 0.5), (-0.05, 0.45, 0.34), 46)
-            elif job in {"v6", "v6ee"} and view == "m4":
+            elif job in {"v6", "v6ee", "v7", "v7ee"} and view == "m4":
                 aim_front(m4, 1.35, 38)
-            elif job in {"v6", "v6ee"} and view == "gt3":
-                aim_front(gt3, -1.25, 36)
+            elif job in {"v7", "v7ee"} and view == "lamps":
+                aim_beauty(g90, (0.15, -3.2, 0.48), (-0.05, 0.35, 0.32), 52)
+            elif job in {"v6", "v6ee", "v7", "v7ee"} and view == "gt3":
+                aim_front(gt3, -0.85, 48)
             elif job == "v6" and view == "gt3side":
                 origin = gt3["rig"].matrix_world.translation
                 yaw = gt3["curve"].at_time(DURATION)[1]

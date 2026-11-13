@@ -20,14 +20,14 @@ export function Hero() {
   return (
     <section className="relative isolate -mt-14 flex flex-col overflow-hidden bg-[#07080b] pb-[calc(4.75rem+env(safe-area-inset-bottom))] pt-16 sm:-mt-16 sm:pt-20 lg:block lg:min-h-[78vh] lg:pb-16 lg:pt-24">
       <picture className="order-2 px-4 lg:absolute lg:inset-0 lg:z-0 lg:px-0">
-        <source media="(min-width: 1024px)" srcSet="/hero/v6-desktop.webp" type="image/webp" />
+        <source media="(min-width: 1024px)" srcSet="/hero/v7-desktop.webp" type="image/webp" />
         <img
-          src="/hero/v6-wide.webp"
+          src="/hero/v7-wide.webp"
           alt=""
           width={1600}
           height={900}
           fetchPriority="high"
-          className="mt-4 h-auto w-full lg:mt-0 lg:h-full lg:object-cover lg:object-[64%_30%]"
+          className="mt-4 h-auto w-full lg:mt-0 lg:h-full lg:origin-right lg:scale-[0.86] lg:object-cover lg:object-[72%_16%]"
         />
       </picture>
       <div
