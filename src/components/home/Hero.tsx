@@ -20,9 +20,9 @@ export function Hero() {
   return (
     <section className="relative isolate -mt-14 flex flex-col overflow-hidden bg-[#07080b] pb-[calc(4.75rem+env(safe-area-inset-bottom))] pt-16 sm:-mt-16 sm:pt-20 lg:block lg:min-h-[78vh] lg:pb-16 lg:pt-24">
       <picture className="order-2 px-4 lg:absolute lg:inset-0 lg:z-0 lg:px-0">
-        <source media="(min-width: 1024px)" srcSet="/hero/v7-desktop.webp" type="image/webp" />
+        <source media="(min-width: 1024px)" srcSet="/hero/v8-desktop.webp" type="image/webp" />
         <img
-          src="/hero/v7-wide.webp"
+          src="/hero/v8-wide.webp"
           alt=""
           width={1600}
           height={900}

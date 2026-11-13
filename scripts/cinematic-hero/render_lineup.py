@@ -71,8 +71,13 @@ def v4_requested():
     return any(flag == "--v4" or flag.startswith("--v4-") for flag in RENDER_FLAGS)
 
 
+def v8_requested():
+    """New reference: green M4, metallic blue G90, burgundy GT3."""
+    return any(flag == "--v8" or flag.startswith("--v8") for flag in RENDER_FLAGS)
+
+
 def v7_requested():
-    return any(flag == "--v7" or flag.startswith("--v7") for flag in RENDER_FLAGS)
+    return v8_requested() or any(flag == "--v7" or flag.startswith("--v7") for flag in RENDER_FLAGS)
 
 
 def v6_requested():
@@ -499,6 +504,11 @@ def studio(floor_z, receivers=None):
         area("Edge", Vector((1.4, 6.4, 2.05)), 200, (0.97, 0.97, 1.0), 1.4, Vector((0.35, 0.45, 0.82)), size_y=3.4, link=True)
         area("Wheel", Vector((0.05, -3.8, 0.32)), 55, (1.0, 0.97, 0.92), 5.0, Vector((0.1, 0.4, 0.22)), size_y=0.4, link=True)
         area("Top", Vector((0.15, 0.5, 8.4)), 36, (0.96, 0.97, 1.0), 14.0, Vector((0.15, 0.3, 0.0)), shadow=True)
+        if v8_requested():
+            # Thin coloured tubes behind the trio, matching the reference neon, not a floor slab.
+            area("NeonL", Vector((-4.4, 2.4, 1.35)), 110, srgb_to_linear("18F06A"), 0.14, Vector((-1.7, 0.25, 0.65)), size_y=2.8)
+            area("NeonC", Vector((0.15, 5.2, 1.6)), 100, srgb_to_linear("2F74FF"), 0.14, Vector((0.15, 0.35, 0.7)), size_y=3.0)
+            area("NeonR", Vector((4.6, 2.5, 1.35)), 120, srgb_to_linear("E01430"), 0.14, Vector((1.8, 0.25, 0.65)), size_y=2.8)
     elif v6_requested():
         # Wide banks in front of the noses, plus a hard rim so the black car separates.
         area("Key", Vector((-2.8, -8.4, 2.7)), 240, (1.0, 0.97, 0.93), 7.2, Vector((0.1, 0.2, 0.62)), size_y=2.6, link=True)
@@ -1120,7 +1130,7 @@ def ignite_material(mat, red):
     if node is None or "Emission Strength" not in node.inputs or node.inputs["Emission Strength"].is_linked:
         return
     node.inputs["Emission Strength"].default_value = (
-        (36.0 if red else 80.0) if v7_requested() else (9.0 if red else 16.0)
+        (50.0 if red else 120.0) if v8_requested() else ((36.0 if red else 80.0) if v7_requested() else (9.0 if red else 16.0))
     )
     color_in = node.inputs.get("Emission Color")
     base = node.inputs.get("Base Color")
@@ -1503,12 +1513,12 @@ def recolor_keep_maps(mat, color):
         print("RECOLOR", mat.name, "linked", node.inputs["Base Color"].is_linked, "color", color_now)
     if not node.inputs["Roughness"].is_linked:
         node.inputs["Roughness"].default_value = (
-            0.18 if v7_requested() else (0.34 if v6_requested() else (0.24 if v5_requested() else 0.32))
+            0.15 if v8_requested() else (0.18 if v7_requested() else (0.34 if v6_requested() else (0.24 if v5_requested() else 0.32)))
         )
     if "Coat Weight" in node.inputs:
         node.inputs["Coat Weight"].default_value = 1.0
         node.inputs["Coat Roughness"].default_value = (
-            0.02 if v7_requested() else (0.04 if v6_requested() else (0.16 if v5_requested() else 0.055))
+            0.012 if v8_requested() else (0.02 if v7_requested() else (0.04 if v6_requested() else (0.16 if v5_requested() else 0.055)))
         )
     if "Specular IOR Level" in node.inputs and not node.inputs["Specular IOR Level"].is_linked:
         node.inputs["Specular IOR Level"].default_value = 0.5
@@ -1946,6 +1956,61 @@ def clarify_gt3_glass(rig):
     print(f"GT3 GLASS slots={converted}")
 
 
+def darken_gt3_grille(rig):
+    """The GT3 kidneys ship as bright slats. Darken the small front pieces, not the wheels."""
+    bpy.context.view_layer.update()
+    inverse = rig.matrix_world.inverted()
+    darkened = 0
+    for obj in list(bpy.context.scene.objects):
+        if obj.type != "MESH" or obj.hide_render:
+            continue
+        parent = obj
+        while parent is not None and parent != rig:
+            parent = parent.parent
+        if parent != rig:
+            continue
+        walker = obj.parent
+        wheel = False
+        while walker is not None:
+            if walker.name.startswith(("GT3_F", "GT3_R")):
+                wheel = True
+                break
+            walker = walker.parent
+        if wheel or obj.name.startswith("GT3Pod"):
+            continue
+        center, size = mesh_center(obj)
+        local = inverse @ center
+        # The nose is the negative local Y. Small pieces there are the kidneys, not the body shell.
+        if local.y > -1.7 or not (0.12 < local.z < 0.72) or max(size) > 0.55:
+            continue
+        for slot in obj.material_slots:
+            mat = slot.material
+            if mat is None or mat.name.startswith(("BESS_LAMP", "BESS_GLASS", "GT3Pod")):
+                continue
+            node = bsdf(mat)
+            if node is None or "Base Color" not in node.inputs:
+                continue
+            base = node.inputs["Base Color"]
+            bright = False
+            if not base.is_linked:
+                color = base.default_value
+                bright = color[0] > 0.45 and color[1] > 0.45 and color[2] > 0.45
+            elif max(size) < 0.7:
+                bright = True
+            if not bright:
+                continue
+            if base.is_linked:
+                for link in list(base.links):
+                    mat.node_tree.links.remove(link)
+            base.default_value = (0.012, 0.013, 0.015, 1.0)
+            node.inputs["Metallic"].default_value = 0.25
+            if not node.inputs["Roughness"].is_linked:
+                node.inputs["Roughness"].default_value = 0.48
+            darkened += 1
+            print("GRILLE", obj.name, mat.name, "y", round(local.y, 2))
+    print(f"GRILLE darkened={darkened}")
+
+
 def neutral_bess_gt3(rig):
     """Recolour the race body. Decal cards that only carry sponsor art are hidden.
 
@@ -1955,7 +2020,9 @@ def neutral_bess_gt3(rig):
     painted = 0
     hidden = 0
     # #555B64 gunmetal. Metallic is only on this paint; the green M4 stays a satin dielectric.
-    if v7_requested():
+    if v8_requested():
+        graphite = srgb_to_linear("8E1C2A")
+    elif v7_requested():
         graphite = srgb_to_linear("0B0C0F")
     elif v6_requested():
         graphite = srgb_to_linear("14161A")
@@ -2155,7 +2222,25 @@ def main():
         jobs = [("quality", "mobile")]
     if "--axle-still" in sys.argv:
         jobs = [("axle", "desktop")]
-    if "--v7-desk" in sys.argv:
+    if "--v8-gt3" in sys.argv:
+        jobs = [("v8ee", "gt3")]
+    elif "--v8-ee" in sys.argv:
+        jobs = [("v8ee", "beauty"), ("v8ee", "gt3")]
+    elif "--v8-reel" in sys.argv:
+        jobs = [("v8reel", "desktop")]
+    elif "--v8" in sys.argv:
+        jobs = [
+            ("v8", "desktop"),
+            ("v8", "beauty"),
+            ("v8", "wide"),
+            ("v8", "g90"),
+            ("v8", "m4"),
+            ("v8", "gt3"),
+            ("v8", "lamps"),
+            ("v8", "glow"),
+            ("v8", "ground"),
+        ]
+    elif "--v7-desk" in sys.argv:
         jobs = [("v7", "desktop")]
     elif "--v7-lamps" in sys.argv:
         jobs = [("v7", "lamps")]
@@ -2237,12 +2322,14 @@ def main():
     clear()
     g90_objects = import_new(G90_SRC)
     # Clearcoat over a dielectric. v6 is a deeper burgundy, still a red paint.
-    red = srgb_to_linear("6C1528" if v7_requested() else ("9A1824" if v6_requested() else "B5121B"))
+    red = srgb_to_linear(
+        "0E3F96" if v8_requested() else ("6C1528" if v7_requested() else ("9A1824" if v6_requested() else "B5121B"))
+    )
     paint(
         "0.005",
         red,
-        0.0,
-        0.18 if v7_requested() else (0.26 if v6_requested() else 0.32),
+        0.30 if v8_requested() else 0.0,
+        0.24 if v8_requested() else (0.18 if v7_requested() else (0.26 if v6_requested() else 0.32)),
         coat=1.0,
         coat_rough=0.012 if v7_requested() else (0.02 if v6_requested() else 0.028),
     )
@@ -2262,22 +2349,22 @@ def main():
     gt3 = build_gt3(gt3_objects, Curve(GT3_PATH))
     gt3_wb = gt3["wheelbase"]
     # #2E6A4C reads as British racing green under the studio banks. #234C3B turned black.
-    green = srgb_to_linear("1C8C4A" if v7_requested() else "2E6A4C")
+    green = srgb_to_linear("187A3C" if v8_requested() else ("1C8C4A" if v7_requested() else "2E6A4C"))
     paint(
         "bBMW_M4CompetitionG82TNR0_2021PaintTNR_Material_004",
         green,
         0.0,
-        0.46 if v7_requested() else (0.58 if v6_requested() else 0.55),
-        coat=0.34 if v7_requested() else (0.22 if v6_requested() else 0.18),
-        coat_rough=0.18 if v7_requested() else (0.32 if v6_requested() else 0.28),
+        0.32 if v8_requested() else (0.46 if v7_requested() else (0.58 if v6_requested() else 0.55)),
+        coat=0.72 if v8_requested() else (0.34 if v7_requested() else (0.22 if v6_requested() else 0.18)),
+        coat_rough=0.06 if v8_requested() else (0.18 if v7_requested() else (0.32 if v6_requested() else 0.28)),
     )
     paint(
         "ext_red",
         green,
         0.0,
-        0.44 if v7_requested() else (0.56 if v6_requested() else 0.52),
-        coat=0.3 if v7_requested() else (0.2 if v6_requested() else 0.16),
-        coat_rough=0.2 if v7_requested() else (0.34 if v6_requested() else 0.3),
+        0.30 if v8_requested() else (0.44 if v7_requested() else (0.56 if v6_requested() else 0.52)),
+        coat=0.68 if v8_requested() else (0.3 if v7_requested() else (0.2 if v6_requested() else 0.16)),
+        coat_rough=0.07 if v8_requested() else (0.2 if v7_requested() else (0.34 if v6_requested() else 0.3)),
     )
     if v6_requested():
         for mat_name in (
@@ -2295,6 +2382,8 @@ def main():
     v4 = v4_requested() or v5_requested()
     if v4:
         neutral_bess_gt3(gt3["rig"])
+        if v8_requested():
+            darken_gt3_grille(gt3["rig"])
         if os.environ.get("GT3_DEBUG"):
             return
     if "--dump-gt3" in sys.argv:
@@ -2350,7 +2439,11 @@ def main():
         level_gt3_shell(gt3)
         pack_lineup(g90, m4, gt3, g90_wb, m4_wb, gt3_wb)
         audit_arrivals(g90, m4, gt3, g90_wb, m4_wb, gt3_wb)
-        if v7_requested():
+        if v8_requested():
+            add_contour(m4, srgb_to_linear("18F06A"), "M4", energy=150.0)
+            add_contour(g90, srgb_to_linear("2F74FF"), "G90", energy=175.0)
+            add_contour(gt3, srgb_to_linear("E01430"), "GT3", energy=185.0)
+        elif v7_requested():
             add_contour(m4, srgb_to_linear("18F06A"), "M4", energy=90.0)
             add_contour(g90, srgb_to_linear("D01238"), "G90", energy=105.0)
             add_contour(gt3, srgb_to_linear("D01238"), "GT3", energy=120.0)
@@ -2409,19 +2502,19 @@ def main():
                     True,
                 )
             folder = out / f"quality-{view}"
-        elif job == "v7ee":
+        elif job in {"v7ee", "v8ee"}:
             shots = [("check", DURATION, False)]
             scene = configure_scene(1200, 675, 8, False)
             scene.eevee.use_bloom = False
             scene.eevee.use_ssr = False
-            folder = out / f"v7-ee-{view}"
-        elif job == "v7reel":
+            folder = out / f"{'v8' if job == 'v8ee' else 'v7'}-ee-{view}"
+        elif job in {"v7reel", "v8reel"}:
             shots = [(f"f{i:04d}", i / FPS, False) for i in range(int(DURATION * FPS))]
             scene = configure_scene(640, 360, 4, False)
             scene.eevee.use_bloom = False
             scene.eevee.use_ssr = False
-            folder = out / "v7-reel"
-        elif job == "v7":
+            folder = out / ("v8-reel" if job == "v8reel" else "v7-reel")
+        elif job in {"v7", "v8"}:
             samples = 40
             if view in {"desktop", "beauty"}:
                 shots = [("06-trio" if view == "desktop" else "beauty", DURATION, False)]
@@ -2438,7 +2531,7 @@ def main():
             else:
                 shots = [(view, DURATION, False)]
                 scene = configure_scene(1400, 788, 32, True)
-            folder = out / f"v7-{view}"
+            folder = out / f"{job}-{view}"
         elif job == "v6ee":
             shots = [("check", DURATION, False)]
             scene = configure_scene(1100, 620, 8, False)
@@ -2617,13 +2710,13 @@ def main():
                 hide_tree(g90["rig"], True)
                 hide_tree(gt3["rig"], True)
             bpy.context.view_layer.update()
-            if job in {"v6", "v6ee", "v7", "v7ee"} and view == "g90":
+            if job in {"v6", "v6ee", "v7", "v7ee", "v8", "v8ee"} and view == "g90":
                 aim_beauty(g90, (0.15, -3.2, 0.5), (-0.05, 0.45, 0.34), 46)
-            elif job in {"v6", "v6ee", "v7", "v7ee"} and view == "m4":
+            elif job in {"v6", "v6ee", "v7", "v7ee", "v8", "v8ee"} and view == "m4":
                 aim_front(m4, 1.35, 38)
-            elif job in {"v7", "v7ee"} and view == "lamps":
+            elif job in {"v7", "v7ee", "v8", "v8ee"} and view == "lamps":
                 aim_beauty(g90, (0.15, -3.2, 0.48), (-0.05, 0.35, 0.32), 52)
-            elif job in {"v6", "v6ee", "v7", "v7ee"} and view == "gt3":
+            elif job in {"v6", "v6ee", "v7", "v7ee", "v8", "v8ee"} and view == "gt3":
                 aim_front(gt3, -0.85, 48)
             elif job == "v6" and view == "gt3side":
                 origin = gt3["rig"].matrix_world.translation

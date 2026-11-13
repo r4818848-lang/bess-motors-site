@@ -363,9 +363,93 @@ The picture requests `/hero/v7-desktop.webp` (48 332 bytes) from 1024 px and `/h
 | Comparison `docs/review/v7-compare.png` |  | V6, V7, Reference C |
 | Hero 1920, 1440, 1366, 430, 390, 360 and ru/en/uk under `docs/review/v7-hero-*.png` |  |  |
 
+## V8 — visual approval required
+
+V7 is not accepted. The new reference is the attached studio photograph: green car on the left, metallic blue car in the centre, burgundy car on the right, with headlights and coloured floor light. That photograph replaces the V7 colour lock. The centre car is no longer burgundy, and the right car is no longer black. The photograph is a lighting and colour target. It is not composited into the page, and its logo is not copied into the scene. The site keeps its own header and the left-hand text.
+
+### This machine
+
+The Cloud Agent that built V8 is CPU only.
+
+| Check | Result |
+| --- | --- |
+| OS | Linux 6.12.113+ x86_64 |
+| CPU | 4 cores, Intel Xeon |
+| GPU | none. `nvidia-smi` is absent and `/dev/dri` does not exist |
+| VRAM | 0 |
+| RAM | 15 GB system memory, not video memory |
+| Disk free | 237 GB of 254 GB |
+| Python | 3.12.3 |
+| PyTorch | not installed |
+| CUDA / ROCm | not available |
+
+`scripts/cinematic-hero/comfy/edit_hero.py` was started against `docs/review/v8-beauty.png`. It exited with code 2 and printed that PyTorch is not installed. It did not download weights and it did not write an image. ComfyUI was not installed. No AI frame exists for this pass.
+
+### Models that were not downloaded
+
+Sizes and licenses below were read from the public GitHub repositories and Hugging Face model cards on 13 Nov 2026. They are not install receipts.
+
+| Tool | Code license | Weight license | Download | Decision |
+| --- | --- | --- | --- | --- |
+| [ComfyUI](https://github.com/Comfy-Org/ComfyUI) | GPL-3.0 | — | code repo about 108 MB | Not installed. No GPU to serve it. |
+| [ComfyUI-Manager](https://github.com/Comfy-Org/ComfyUI-Manager) | GPL-3.0 | — | code repo about 204 MB | Not installed. Custom nodes were not added. |
+| [Qwen-Image](https://github.com/QwenLM/Qwen-Image) / `Qwen/Qwen-Image-Edit-2511` | Apache-2.0 | Apache-2.0 | 57.72 GB | The image editor to run later, on a GPU. Practical floor used in the recipe: 24 GB VRAM with offload. Not downloaded. |
+| [FLUX.1-schnell](https://github.com/black-forest-labs/flux) | Apache-2.0 | Apache-2.0 | `flux1-schnell.safetensors` 23.78 GB. The tree listing sums to 57.85 GB because it also lists the shards. | Commercial text-to-image. Not a replacement for the Blender scene. Not downloaded. |
+| FLUX.1-dev | Apache-2.0 code | Hugging Face license field `other` | — | Not for the advertisement. Not downloaded. |
+| [Wan2.2 TI2V-5B](https://github.com/Wan-Video/Wan2.2) | Apache-2.0 | Apache-2.0 | 34.20 GB | Video model. Not downloaded. A CPU pass would not be a usable check of identity. |
+| [LTX-2](https://github.com/Lightricks/LTX-2) | Apache-2.0 | LTX-2 Community License (`license: other`). Entities with annual revenue of at least $10,000,000 need a paid commercial license. | One distilled file is 43.29 GB. The tree lists many variants and sums to 314 GB. | Not installed. Do not use the weights on the advertisement until the owner checks that revenue clause. The card points at a newer LTX-2.3. |
+
+Wan and LTX were not installed together. Neither was installed. The 12-second preview is Blender Eevee, not an AI video.
+
+### Paint
+
+Sampled body pixels on the Cycles beauty frame: left (42, 96, 57), centre (11, 45, 90), right (86, 23, 28). Shader bases:
+
+| Car | Paint | Metallic | Roughness | Clearcoat | Coat roughness | Underglow |
+| --- | --- | --- | --- | --- | --- | --- |
+| Left M4 | #187A3C | 0 | 0.32 / 0.30 | 0.72 / 0.68 | 0.06 / 0.07 | #18F06A, 150 W |
+| Centre G90 | #0E3F96 | 0.30 | 0.24 | 1.0 | 0.012 | #2F74FF, 175 W |
+| Right GT3 | #8E1C2A | 0 | 0.15 | 1.0 | 0.012 | #E01430, 185 W |
+
+Head and tail emission on the G90 and M4 lenses is 120 and 50. Three thin neon areas sit off camera: green, blue, and red. The cars, the parks, and the arcs are the V7 layout. Mesh clearance stays 0.222 m (M4) and 0.275 m (GT3). The source GLBs are not rewritten.
+
+The GT3 kidneys are still pale. A pass over the nose looked for a small separate grille mesh and found none (`GRILLE darkened=0`). The white slats belong to the body shell. Recolouring that shell would paint the burgundy panels, so they were left. The GT3 lamp is still the slit pod from V7. The G90 close-up is the frame with a real LED lamp.
+
+### Page
+
+The picture requests `/hero/v8-desktop.webp` (60 246 bytes) from 1024 px and `/hero/v8-wide.webp` (57 382 bytes) below that. Pillow quality 86. There is no `<video>`. On 1366×768 the headline box ends at x=488 and the green body starts at x=601. No green pixel sits inside the headline box. Polish layout shift on the dev server: 0.00020 at 1366, 0.00016 at 1440, 0.00007 at 1920, and 0 at 360, 390, and 430. "Umów wizytę" opens `/booking`. "Sprawdź usługi" opens `/services`. The second button ends at 716 px on 360×800, 733 px on 390×844, and 755 px on 430×932. The contact bar starts at 739, 783, and 871 px. These times are the local dev server, not a production Lighthouse pass.
+
+### Motion preview
+
+`docs/review/v8-motion-preview.mp4` is an Eevee animatic of the same entrance with the V8 colours: 12.000 seconds, 24 fps, 288 frames, 640×360, 4 samples, bloom off, screen-space reflections off, 510 010 bytes. It is not the Cycles film and it is not an AI video. The largest frame steps are cars entering: 17.5 grey levels at frame 88 (3.67 s) and 4.3 at frame 153 (6.38 s). After the park (frame 220 onward) the largest step is 0.061. The floor in this file is speckled because the pass is 4-sample Eevee. The Cycles stills are the frames to judge. The homepage still shows the still poster.
+
+### What an AI video must clear before it replaces Blender
+
+A later GPU edit of `docs/review/v8-beauty.png` is allowed only if the three bodies, the wheel count, the kidney shapes, and the green / blue / burgundy assignment stay put. If a video model changes a body, a lamp, a wheel, or a path, it does not go into the 12-second film. The film stays a Cycles render of this scene, and only after the owner accepts the still.
+
+### Frames
+
+| Frame | Samples | Time |
+| --- | --- | --- |
+| Desktop 1920×1080 `docs/review/v8-cycles-desktop.png` | 40 | 51.9 s |
+| Beauty, no text `docs/review/v8-beauty.png` | 40 | 69.1 s |
+| Wide 16:9 `docs/review/v8-wide.png` | 40 | 55.0 s |
+| G90 close-up `docs/review/v8-g90.png` | 32 | 38.0 s |
+| M4 close-up `docs/review/v8-m4.png` | 32 | 31.6 s |
+| GT3 close-up `docs/review/v8-gt3.png` | 32 | 30.1 s |
+| Headlamp `docs/review/v8-lamps.png` | 32 | 63.9 s |
+| Floor glow `docs/review/v8-glow.png` | 32 | 59.5 s |
+| Ground contact `docs/review/v8-ground.png` | 28 | 29.5 s |
+| Eevee preview `docs/review/v8-motion-preview.mp4` | 4 | 12 s, 640×360 |
+| Comparison `docs/review/v8-compare.png` |  | V7, V8, the new reference |
+| Hero 1920, 1440, 1366, 430, 390, 360 and ru/en/uk under `docs/review/v8-hero-*.png` |  |  |
+
+Goodyear and Eagle remain on the GT3 tires. Michelin and the BMW roundel remain on the G90. CC BY 4.0 credits JUST GAME (G90), VTDAT23 (M4 Widebody), and MattDoesBlender (GT3). That is the file authors' license. It is not a license from BMW AG. BESS MOTORS is not a BMW partner.
+
 ## Still not done
 
-- No `<video>` on the homepage. The v7 posters are on this branch for review. The v6 files stay.
+- No `<video>` on the homepage. The v8 posters are on this branch for review. The v7 and v6 files stay.
+- No AI image was generated. The ComfyUI recipe is `scripts/cinematic-hero/comfy/README.md`.
 - No production Lighthouse pass. The times above are the local dev server.
 - The full 12-second Cycles film waits until the owner accepts these frames.
 - The GT3 material hides the sponsor art in the scene only. That does not clear the car design, the BMW marks, or the tire marks.
