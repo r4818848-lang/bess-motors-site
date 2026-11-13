@@ -71,9 +71,31 @@ def v4_requested():
     return any(flag == "--v4" or flag.startswith("--v4-") for flag in RENDER_FLAGS)
 
 
+def v6_requested():
+    return any(flag == "--v6" or flag.startswith("--v6") for flag in RENDER_FLAGS)
+
+
 def v5_requested():
     # "--v51" does not start with "--v5-", so match the whole v5 family.
-    return any(flag == "--v5" or flag.startswith("--v5") for flag in RENDER_FLAGS)
+    # v6 keeps the planted stance and the neutral GT3 paint path.
+    return v6_requested() or any(flag == "--v5" or flag.startswith("--v5") for flag in RENDER_FLAGS)
+
+
+def use_v6_parks():
+    """A tight row. Mesh packing pushes a corner back out if it clips."""
+    if not v6_requested():
+        return
+    G90_PATH["p3"] = (0.0, -0.15)
+    G90_PATH["h3"] = -18.0
+    G90_PATH["l2"] = 3.0
+    M4_PATH["p3"] = (-2.45, 0.05)
+    M4_PATH["h3"] = -10.0
+    # A longer straight finish. The old short handle rotated the nose through the red car.
+    M4_PATH["l2"] = 4.8
+    M4_PATH["side"] = 0.0
+    GT3_PATH["p3"] = (2.55, 0.08)
+    GT3_PATH["h3"] = -14.0
+    GT3_PATH["l2"] = 2.2
 
 
 def srgb_to_linear(hex_color):
@@ -161,6 +183,10 @@ class Curve:
         p3 = Vector((spec["p3"][0], spec["p3"][1], 0.0))
         p1 = p0 + f0 * spec["l1"]
         p2 = p3 - f3 * spec["l2"]
+        # Positive side is to the car's right. The M4 bows out to its left so the arc misses the red car.
+        if spec.get("side"):
+            right = Vector((-f3.y, f3.x, 0.0))
+            p2 = p2 + right * spec["side"]
         pts = []
         for i in range(241):
             t = i / 240.0
@@ -385,7 +411,7 @@ def studio(floor_z, receivers=None):
     links.new(geom.outputs["Incoming"], sep.inputs["Vector"])
     links.new(sep.outputs["Z"], ramp.inputs["Fac"])
     links.new(ramp.outputs["Color"], bg.inputs["Color"])
-    bg.inputs["Strength"].default_value = 0.28 if v5_requested() else 0.12
+    bg.inputs["Strength"].default_value = 0.62 if v6_requested() else (0.28 if v5_requested() else 0.12)
     links.new(bg.outputs["Background"], out.inputs["Surface"])
 
     bpy.ops.mesh.primitive_plane_add(size=160, location=(0.0, 4.0, floor_z))
@@ -394,7 +420,11 @@ def studio(floor_z, receivers=None):
     mat = bpy.data.materials.new("Floor")
     mat.use_nodes = True
     node = mat.node_tree.nodes["Principled BSDF"]
-    if v5_requested():
+    if v6_requested():
+        node.inputs["Base Color"].default_value = (0.078, 0.080, 0.086, 1.0)
+        node.inputs["Roughness"].default_value = 0.55
+        node.inputs["Specular IOR Level"].default_value = 0.36
+    elif v5_requested():
         node.inputs["Base Color"].default_value = (0.055, 0.056, 0.060, 1.0)
         node.inputs["Roughness"].default_value = 0.42
         node.inputs["Specular IOR Level"].default_value = 0.42
@@ -434,7 +464,16 @@ def studio(floor_z, receivers=None):
                 print("LIGHTLINK unavailable", name, exc)
 
     aim = Vector((0.35, 1.15, 0.7))
-    if v5_requested():
+    if v6_requested():
+        # Wide banks in front of the noses, plus a hard rim so the black car separates.
+        area("Key", Vector((-2.8, -8.4, 2.7)), 240, (1.0, 0.97, 0.93), 7.2, Vector((0.1, 0.2, 0.62)), size_y=2.6, link=True)
+        area("Fill", Vector((3.8, -7.4, 1.9)), 130, (0.84, 0.89, 1.0), 5.6, Vector((0.4, 0.35, 0.5)), size_y=2.4, link=True)
+        area("RimL", Vector((-5.2, 2.4, 1.55)), 160, (0.72, 0.95, 0.82), 2.4, Vector((-1.5, 0.4, 0.62)), size_y=1.3, link=True)
+        area("RimR", Vector((5.6, 2.8, 1.7)), 210, (1.0, 0.93, 0.9), 1.8, Vector((1.6, 0.45, 0.7)), size_y=1.5, link=True)
+        area("Edge", Vector((1.6, 6.2, 2.15)), 170, (0.96, 0.96, 1.0), 1.2, Vector((0.4, 0.5, 0.85)), size_y=3.2, link=True)
+        area("Wheel", Vector((0.1, -4.2, 0.28)), 36, (1.0, 0.96, 0.9), 4.2, Vector((0.1, 0.3, 0.2)), size_y=0.45, link=True)
+        area("Top", Vector((0.15, 0.6, 7.2)), 48, (0.96, 0.97, 1.0), 12.0, Vector((0.15, 0.3, 0.0)), shadow=True)
+    elif v5_requested():
         # Long banks shape the panels. A low strip lifts the wheels out of the black.
         # The key sits in front of the noses, not above the roofs, so the GT3 glass
         # gets a long hood reflection instead of a white panel.
@@ -483,6 +522,21 @@ def aim_g90_detail(car):
     cam.data.shift_y = 0.0
     cam.location = origin + Vector((-0.15, -1.85, 0.62))
     look_at(cam, origin + Vector((0.22, 0.45, 0.42)))
+
+
+def aim_front(car, side_scale, lens):
+    """Front corner: lamp, paint, and the near wheel. The look point is the nose, not the cabin."""
+    origin = car["rig"].matrix_world.translation
+    yaw = car["curve"].at_time(DURATION)[1]
+    ahead = Vector((math.sin(yaw), -math.cos(yaw), 0.0))
+    side = Vector((math.cos(yaw), math.sin(yaw), 0.0))
+    nose = origin + ahead * 1.85 + Vector((0.0, 0.0, 0.52))
+    cam = bpy.data.objects["HeroCam"]
+    cam.data.lens = lens
+    cam.data.shift_x = 0.0
+    cam.data.shift_y = 0.0
+    cam.location = nose + ahead * 2.15 + side * side_scale + Vector((0.0, 0.0, 0.22))
+    look_at(cam, nose + side * (0.22 if side_scale > 0 else -0.22) + Vector((0.0, 0.0, -0.08)))
 
 
 def aim_beauty(car, offset, look, lens):
@@ -550,6 +604,15 @@ def frame_camera(kind):
         cam.data.lens = 48
         cam.location = Vector((-0.15, -9.6, 2.35))
         look_at(cam, Vector((0.35, 1.15, 0.12)))
+    elif kind == "beauty" and v6_requested():
+        cam.data.lens = 58
+        cam.location = Vector((-0.15, -9.6, 0.86))
+        look_at(cam, Vector((0.05, 0.15, 0.46)))
+    elif kind == "wide" and v6_requested():
+        cam.data.lens = 42
+        cam.data.shift_x = -0.06
+        cam.location = Vector((-0.35, -8.8, 0.74))
+        look_at(cam, Vector((0.05, 0.2, 0.42)))
     elif kind == "wide" and v5_requested():
         # 16:9 frame for the phone block. The portrait still stays a separate file.
         cam.data.lens = 44
@@ -584,6 +647,12 @@ def frame_camera(kind):
         cam.data.lens = 65
         cam.location = Vector((-0.4, -2.4, 0.85))
         look_at(cam, Vector((0.2, 0.4, 0.55)))
+    elif v6_requested():
+        # The Polish headline needs the left third empty. Wider lens, then a shift, so the black car stays in frame.
+        cam.data.lens = 40
+        cam.data.shift_x = -0.20
+        cam.location = Vector((-0.15, -15.8, 1.05))
+        look_at(cam, Vector((1.05, 0.45, 0.5)))
     elif v5_requested():
         # 48 mm. Pulled back so the GT3 is inside the frame and the left stays clear.
         cam.data.lens = 50
@@ -644,11 +713,46 @@ def axle_low(hubs):
     return min(lows) if lows else 1e9
 
 
+def side_contact(car, positive):
+    inverse = car["rig"].matrix_world.inverted()
+    lows = []
+    for hub in car["front"] + car["rear"]:
+        local_x = (inverse @ hub.matrix_world.translation).x
+        if (local_x > 0.05) != positive:
+            continue
+        low, _point = contact_near_hub(hub)
+        if low < 1e8:
+            lows.append(low)
+    return min(lows) if lows else 1e9
+
+
 def plant_car(car, radius, wheelbase):
-    """Level a nose-up model, then put the tire contact on the floor."""
+    """Level pitch and roll, then put the lowest tire on the floor."""
     car["pitch_bias"] = 0.0
+    car["roll_bias"] = 0.0
     place(car, DURATION, radius, wheelbase)
     bpy.context.view_layer.update()
+    roll_bias = 0.0
+    for _ in range(6):
+        left = side_contact(car, True)
+        right = side_contact(car, False)
+        error = left - right
+        print(f"ROLL {car['rig'].name} left={left:.4f} right={right:.4f} bias={roll_bias:.4f}")
+        if abs(error) < 0.008 or left > 1e8 or right > 1e8:
+            break
+        trial = roll_bias - error / 1.55
+        car["roll_bias"] = trial
+        place(car, DURATION, radius, wheelbase)
+        bpy.context.view_layer.update()
+        improved = abs(side_contact(car, True) - side_contact(car, False)) < abs(error) - 0.001
+        if improved:
+            roll_bias = trial
+            continue
+        roll_bias = trial + 2.0 * error / 1.55
+        car["roll_bias"] = roll_bias
+        place(car, DURATION, radius, wheelbase)
+        bpy.context.view_layer.update()
+    # Pitch is solved below, then roll is solved again so the pitch does not lift one side.
     bias = 0.0
     for _ in range(5):
         front = axle_low(car["front"])
@@ -669,6 +773,22 @@ def plant_car(car, radius, wheelbase):
         car["pitch_bias"] = bias
         place(car, DURATION, radius, wheelbase)
         bpy.context.view_layer.update()
+    for _ in range(4):
+        left = side_contact(car, True)
+        right = side_contact(car, False)
+        error = left - right
+        print(f"ROLL2 {car['rig'].name} left={left:.4f} right={right:.4f} bias={car.get('roll_bias', 0):.4f}")
+        if abs(error) < 0.006 or left > 1e8 or right > 1e8:
+            break
+        trial = car.get("roll_bias", 0.0) - error / 1.55
+        car["roll_bias"] = trial
+        place(car, DURATION, radius, wheelbase)
+        bpy.context.view_layer.update()
+        if abs(side_contact(car, True) - side_contact(car, False)) >= abs(error) - 0.001:
+            car["roll_bias"] = trial + 2.0 * error / 1.55
+            place(car, DURATION, radius, wheelbase)
+            bpy.context.view_layer.update()
+            break
     tire_low = min(axle_low(car["front"]), axle_low(car["rear"]))
     if tire_low > 1e8:
         print("PLANT", car["rig"].name, "no tire mesh")
@@ -699,6 +819,245 @@ def plant_car(car, radius, wheelbase):
     print(f"PLANT {car['rig'].name} front={front:.4f} rear={rear:.4f} body={body_low:.4f} bias={car.get('pitch_bias', 0):.4f}")
 
 
+def body_meshes(car):
+    hubs = set(car["front"] + car["rear"])
+    found = []
+    for obj in bpy.context.scene.objects:
+        if obj.type != "MESH" or obj.hide_render or obj.name in {"Floor"} or obj.name.startswith("Contact"):
+            continue
+        parent = obj
+        wheel = False
+        while parent is not None and parent != car["rig"]:
+            if parent in hubs:
+                wheel = True
+            parent = parent.parent
+        if parent == car["rig"] and not wheel:
+            found.append(obj)
+    return found
+
+
+def car_points(car, step=50):
+    points = []
+    for obj in body_meshes(car):
+        matrix = obj.matrix_world
+        verts = obj.data.vertices
+        for index in range(0, len(verts), step):
+            points.append(matrix @ verts[index].co)
+    return points
+
+
+def closest_gap(points_a, points_b):
+    if not points_a or not points_b:
+        return 1e9, None
+    cell = 0.35
+    grid = {}
+    for point in points_b:
+        key = (int(math.floor(point.x / cell)), int(math.floor(point.y / cell)), int(math.floor(point.z / cell)))
+        grid.setdefault(key, []).append(point)
+    best = 1e9
+    pair = None
+    for point in points_a:
+        base = (int(math.floor(point.x / cell)), int(math.floor(point.y / cell)), int(math.floor(point.z / cell)))
+        for dx in (-1, 0, 1):
+            for dy in (-1, 0, 1):
+                for dz in (-1, 0, 1):
+                    for other in grid.get((base[0] + dx, base[1] + dy, base[2] + dz), ()):
+                        dist = (point - other).length
+                        if dist < best:
+                            best = dist
+                            pair = (point, other)
+    if pair is None:
+        for point in points_a[::6]:
+            for other in points_b[::6]:
+                dist = (point - other).length
+                if dist < best:
+                    best = dist
+                    pair = (point, other)
+    return best, pair
+
+
+def shift_park(car, spec, delta, radius, wheelbase):
+    spec["p3"] = (spec["p3"][0] + delta.x, spec["p3"][1] + delta.y)
+    car["curve"] = Curve(spec)
+    place(car, DURATION, radius, wheelbase)
+
+
+def pack_lineup(g90, m4, gt3, g90_wb, m4_wb, gt3_wb):
+    """Keep a small air gap. Centerline clearance was letting the corners occupy the same space."""
+    target = 0.18
+    for _ in range(8):
+        place(g90, DURATION, g90["radius"], g90_wb)
+        place(m4, DURATION, m4["radius"], m4_wb)
+        place(gt3, DURATION, gt3["radius"], gt3_wb)
+        bpy.context.view_layer.update()
+        clouds = {id(g90): car_points(g90), id(m4): car_points(m4), id(gt3): car_points(gt3)}
+        gap_m4, _pair = closest_gap(clouds[id(g90)], clouds[id(m4)])
+        gap_gt3, _pair = closest_gap(clouds[id(g90)], clouds[id(gt3)])
+        gap_sides, _pair = closest_gap(clouds[id(m4)], clouds[id(gt3)])
+        print(f"GAP m4 {gap_m4:.3f} gt3 {gap_gt3:.3f} sides {gap_sides:.3f}")
+        if gap_m4 >= target and gap_gt3 >= target and gap_sides >= target:
+            break
+        # Step sideways. The contact normal slid along the overlap and never opened it.
+        if gap_m4 < target:
+            shift_park(m4, M4_PATH, Vector((-0.16, 0.0, 0.0)), m4["radius"], m4_wb)
+        if gap_gt3 < target:
+            shift_park(gt3, GT3_PATH, Vector((0.16, 0.0, 0.0)), gt3["radius"], gt3_wb)
+    print(f"PARK g90={G90_PATH['p3']} m4={M4_PATH['p3']} gt3={GT3_PATH['p3']}")
+
+
+def audit_arrivals(g90, m4, gt3, g90_wb, m4_wb, gt3_wb):
+    """Mesh gap while a car is still moving. The parked gap does not prove the arc is clear."""
+    for label, car, spec, radius, wheelbase in (
+        ("m4", m4, M4_PATH, m4["radius"], m4_wb),
+        ("gt3", gt3, GT3_PATH, gt3["radius"], gt3_wb),
+    ):
+        for frac in (0.55, 0.75, 0.9, 1.0):
+            t = spec["t0"] + (spec["t1"] - spec["t0"]) * frac
+            place(g90, DURATION, g90["radius"], g90_wb)
+            place(m4, DURATION, m4["radius"], m4_wb)
+            place(gt3, DURATION, gt3["radius"], gt3_wb)
+            place(car, t, radius, wheelbase)
+            bpy.context.view_layer.update()
+            gap_g, _pair = closest_gap(car_points(car), car_points(g90))
+            other = m4 if label == "gt3" else gt3
+            gap_o, _pair = closest_gap(car_points(car), car_points(other))
+            print(f"ARC {label} u={frac:.2f} g90={gap_g:.3f} other={gap_o:.3f}")
+
+
+def sill_heights(car):
+    """Outer rocker, front half against rear half. The hood is not the sill."""
+    rig = car["rig"]
+    inverse = rig.matrix_world.inverted()
+    front = []
+    rear = []
+    for obj in body_meshes(car):
+        matrix = obj.matrix_world
+        verts = obj.data.vertices
+        for index in range(0, len(verts), 28):
+            world = matrix @ verts[index].co
+            if world.z < 0.10 or world.z > 0.42:
+                continue
+            local = inverse @ world
+            if abs(local.x) < 0.55 or abs(local.x) > 1.15:
+                continue
+            if local.y < -0.55:
+                front.append(world.z)
+            elif local.y > 0.7:
+                rear.append(world.z)
+    if len(front) < 12 or len(rear) < 12:
+        return None
+    front.sort()
+    rear.sort()
+    return front[len(front) // 5], rear[len(rear) // 5]
+
+
+def level_gt3_shell(car):
+    """Pitch only the body. The tire empties stay on the rig, so the contact does not lift."""
+    orient = car.get("orient")
+    if orient is None:
+        return
+    measured = sill_heights(car)
+    if measured is None:
+        print("RAKE none")
+        return
+    front_z, rear_z = measured
+    print(f"RAKE before front={front_z:.3f} rear={rear_z:.3f}")
+    error = front_z - rear_z
+    # Only drop a nose that is actually high. A lower front sill is a normal race rake.
+    if error < 0.02:
+        return
+    angle = math.atan2(error, max(car.get("wheelbase", 2.9), 1.0))
+    pivot = car["rig"].matrix_world.translation.copy()
+    axis = (car["rig"].matrix_world.to_3x3() @ Vector((1.0, 0.0, 0.0))).normalized()
+    orient.matrix_world = (
+        Matrix.Translation(pivot) @ Matrix.Rotation(angle, 4, axis) @ Matrix.Translation(-pivot) @ orient.matrix_world
+    )
+    bpy.context.view_layer.update()
+    again = sill_heights(car)
+    low = 1e9
+    for obj in body_meshes(car):
+        for index in range(0, len(obj.data.vertices), 40):
+            low = min(low, (obj.matrix_world @ obj.data.vertices[index].co).z)
+    if low < 0.0:
+        # The splitter met the floor. Undo most of the pitch and keep the tires where they are.
+        orient.matrix_world = (
+            Matrix.Translation(pivot)
+            @ Matrix.Rotation(-angle * 0.65, 4, axis)
+            @ Matrix.Translation(-pivot)
+            @ orient.matrix_world
+        )
+        bpy.context.view_layer.update()
+        again = sill_heights(car)
+        print(f"RAKE splitter {low:.3f} backed off")
+    print(f"RAKE after {again}")
+
+
+def add_tail_spots(rig, prefix):
+    spots = []
+    aim = Vector((0.0, 1.0, -0.04)).to_track_quat("-Z", "Y").to_euler()
+    for side, x in (("L", 0.62), ("R", -0.62)):
+        light = bpy.data.lights.new(f"{prefix}_T{side}", "SPOT")
+        light.energy = 0.0
+        light.spot_size = math.radians(32)
+        light.spot_blend = 0.65
+        light.color = (1.0, 0.03, 0.015)
+        light.use_shadow = False
+        obj = bpy.data.objects.new(light.name, light)
+        bpy.context.scene.collection.objects.link(obj)
+        obj.parent = rig
+        obj.matrix_parent_inverse = Matrix.Identity(4)
+        obj.location = Vector((x, 2.05, 0.62))
+        obj.rotation_mode = "XYZ"
+        obj.rotation_euler = aim
+        spots.append(light)
+    return spots
+
+
+def add_contour(car, color, tag, energy=14.0):
+    """A soft skirt of light on the floor. Low energy, wide, not a neon tube."""
+    rig = car["rig"]
+    origin = rig.matrix_world.translation
+    yaw = rig.rotation_euler.z
+    forward_vec = Vector((math.sin(yaw), -math.cos(yaw), 0.0))
+    side = Vector((math.cos(yaw), math.sin(yaw), 0.0))
+    specs = (
+        ("L", origin + side * 1.02 + Vector((0.0, 0.0, 0.16)), 3.3, 0.28),
+        ("R", origin - side * 1.02 + Vector((0.0, 0.0, 0.16)), 3.3, 0.28),
+        ("N", origin + forward_vec * 2.05 + Vector((0.0, 0.0, 0.14)), 1.55, 0.24),
+        ("T", origin - forward_vec * 2.05 + Vector((0.0, 0.0, 0.14)), 1.55, 0.24),
+        ("P", origin + Vector((0.0, 0.0, 0.2)), 2.4, 4.2),
+    )
+    for name, location, size, size_y in specs:
+        light = bpy.data.lights.new(f"Glow{tag}{name}", "AREA")
+        light.energy = energy * 0.55 if name == "P" else energy
+        light.color = color
+        light.shape = "RECTANGLE"
+        light.size = size
+        light.size_y = size_y
+        light.use_shadow = False
+        obj = bpy.data.objects.new(light.name, light)
+        bpy.context.scene.collection.objects.link(obj)
+        obj.location = location
+        look_at(obj, location + Vector((0.0, 0.0, -1.0)))
+        parent_keep(obj, rig)
+
+
+def ignite_material(mat, red):
+    node = bsdf(mat)
+    if node is None or "Emission Strength" not in node.inputs or node.inputs["Emission Strength"].is_linked:
+        return
+    node.inputs["Emission Strength"].default_value = 9.0 if red else 16.0
+    color_in = node.inputs.get("Emission Color")
+    base = node.inputs.get("Base Color")
+    if color_in is not None and not color_in.is_linked and base is not None and base.is_linked:
+        mat.node_tree.links.new(base.links[0].from_socket, color_in)
+    elif color_in is not None and not color_in.is_linked:
+        color_in.default_value = (1.0, 0.05, 0.02, 1.0) if red else (1.0, 0.97, 0.9, 1.0)
+    if "Transmission Weight" in node.inputs and not node.inputs["Transmission Weight"].is_linked:
+        node.inputs["Transmission Weight"].default_value = max(float(node.inputs["Transmission Weight"].default_value), 0.25)
+    print("IGNITE", mat.name, "tail" if red else "head")
+
+
 def place(car, t, radius, wheelbase):
     curve = car["curve"]
     pos, yaw, curvature = curve.at_time(t)
@@ -712,7 +1071,7 @@ def place(car, t, radius, wheelbase):
     speed_prev = (curve.distance_at(t - dt) - curve.distance_at(t - 2 * dt)) / dt
     accel = (speed_now - speed_prev) / dt
     pitch = max(-math.radians(1.0), min(math.radians(2.3), -accel * 0.016)) + car.get("pitch_bias", 0.0)
-    roll = max(-math.radians(1.6), min(math.radians(1.6), -steer * 0.28))
+    roll = max(-math.radians(1.6), min(math.radians(1.6), -steer * 0.28)) + car.get("roll_bias", 0.0)
     travelled = curve.distance_at(t)
     rig = car["rig"]
     rig.location = Vector((pos.x, pos.y, car["z"]))
@@ -729,8 +1088,11 @@ def place(car, t, radius, wheelbase):
         lamp = 1.0
     else:
         lamp = smooth((shaped((t - curve.t0) / (curve.t1 - curve.t0)) - 0.72) / 0.28)
+    head = 150.0 if v6_requested() else 70.0
     for light in car["spots"]:
-        light.energy = 70.0 * lamp
+        light.energy = head * lamp
+    for light in car.get("tails", []):
+        light.energy = (55.0 if v6_requested() else 0.0) * lamp
     return steer, travelled
 
 
@@ -885,6 +1247,7 @@ def build_gt3(new_objects, curve):
         "radius": radius,
         "spots": add_spots(rig, "GT3"),
         "wheelbase": abs(front_hubs[0].y - rear_hubs[0].y),
+        "orient": orient,
     }
 
 
@@ -973,6 +1336,10 @@ def boost_lamps():
             continue
         if node.inputs["Emission Strength"].is_linked:
             continue
+        red = any(key in low for key in ("tail", "rear", "stop"))
+        if v6_requested():
+            ignite_material(mat, red)
+            continue
         node.inputs["Emission Strength"].default_value = 2.4
         if "Emission Color" in node.inputs and not node.inputs["Emission Color"].is_linked:
             node.inputs["Emission Color"].default_value = (1.0, 0.95, 0.86, 1.0)
@@ -1052,15 +1419,18 @@ def recolor_keep_maps(mat, color):
         node.inputs["Emission Strength"].default_value = 0.0
     if "Alpha" in node.inputs:
         node.inputs["Alpha"].default_value = 1.0
-    node.inputs["Metallic"].default_value = 0.22 if v5_requested() else 0.0
+    if v6_requested():
+        node.inputs["Metallic"].default_value = 0.0
+    else:
+        node.inputs["Metallic"].default_value = 0.22 if v5_requested() else 0.0
     if os.environ.get("GT3_DEBUG") and mat.name in {"mat_64", "mat_9", "mat_63", "mat_30"}:
         color_now = tuple(round(v, 3) for v in node.inputs["Base Color"].default_value)
         print("RECOLOR", mat.name, "linked", node.inputs["Base Color"].is_linked, "color", color_now)
     if not node.inputs["Roughness"].is_linked:
-        node.inputs["Roughness"].default_value = 0.24 if v5_requested() else 0.32
+        node.inputs["Roughness"].default_value = 0.34 if v6_requested() else (0.24 if v5_requested() else 0.32)
     if "Coat Weight" in node.inputs:
         node.inputs["Coat Weight"].default_value = 1.0
-        node.inputs["Coat Roughness"].default_value = 0.16 if v5_requested() else 0.055
+        node.inputs["Coat Roughness"].default_value = 0.04 if v6_requested() else (0.16 if v5_requested() else 0.055)
     if "Specular IOR Level" in node.inputs and not node.inputs["Specular IOR Level"].is_linked:
         node.inputs["Specular IOR Level"].default_value = 0.5
     return copy
@@ -1081,7 +1451,7 @@ def glass_copy(mat):
             copy.node_tree.links.remove(link)
     node.inputs["Base Color"].default_value = (0.45, 0.5, 0.52, 1.0)
     node.inputs["Metallic"].default_value = 0.0
-    node.inputs["Roughness"].default_value = 0.12 if v5_requested() else 0.06
+    node.inputs["Roughness"].default_value = 0.03 if v6_requested() else (0.12 if v5_requested() else 0.06)
     node.inputs["Transmission Weight"].default_value = 0.96
     if "IOR" in node.inputs:
         node.inputs["IOR"].default_value = 1.52
@@ -1096,6 +1466,260 @@ def glass_copy(mat):
     copy.use_screen_refraction = True
     copy.show_transparent_back = False
     return copy
+
+
+def y_span(obj, inverse):
+    verts = obj.data.vertices
+    step = max(1, len(verts) // 500)
+    ymin = 1e9
+    ymax = -1e9
+    zmin = 1e9
+    zmax = -1e9
+    for index in range(0, len(verts), step):
+        world = obj.matrix_world @ verts[index].co
+        local_y = (inverse @ world).y
+        ymin = min(ymin, local_y)
+        ymax = max(ymax, local_y)
+        zmin = min(zmin, world.z)
+        zmax = max(zmax, world.z)
+    return ymin, ymax, zmin, zmax
+
+
+def ignite_gt3_ends(rig):
+    """Light pieces that actually reach the nose or the tail, not the cabin."""
+    inverse = rig.matrix_world.inverted()
+    spans = []
+    for obj in bpy.context.scene.objects:
+        if obj.type != "MESH" or obj.hide_render or obj in STAY_HIDDEN or not obj.data.vertices:
+            continue
+        parent = obj
+        wheel = False
+        while parent is not None and parent != rig:
+            if parent.name.startswith(("GT3_F", "GT3_R")):
+                wheel = True
+            parent = parent.parent
+        if parent != rig or wheel:
+            continue
+        spans.append((obj, y_span(obj, inverse)))
+    if not spans:
+        print("GT3 LAMPS none")
+        return
+    nose = min(item[1][0] for item in spans)
+    tail = max(item[1][1] for item in spans)
+    lit = 0
+    for obj, (ymin, ymax, zmin, zmax) in spans:
+        # A lamp housing reaches the end and stays there. The body shell runs the whole length.
+        head = ymin < nose + 0.28 and ymax < nose + 1.15 and zmax > 0.30 and zmin < 0.92
+        # zmax stops the rear wing. Its endplates sit above the lamp line and were glowing.
+        red = ymax > tail - 0.28 and ymin > tail - 1.15 and 0.28 < zmin and zmax < 0.98
+        if not head and not red:
+            continue
+        for slot in obj.material_slots:
+            mat = slot.material
+            if mat is None or mat.name.startswith(("BESS_LAMP", "BESS_GLASS")):
+                continue
+            node = bsdf(mat)
+            if node is None:
+                continue
+            if "Transmission Weight" in node.inputs and float(node.inputs["Transmission Weight"].default_value) > 0.5:
+                continue
+            copy = mat.copy()
+            copy.name = "BESS_LAMP_" + mat.name
+            slot.material = copy
+            tail_lamp = red and not head
+            ignite_material(copy, tail_lamp)
+            lamp_node = bsdf(copy)
+            if lamp_node is not None and "Emission Strength" in lamp_node.inputs:
+                wide = (ymax - ymin) > 0.55 or (zmax - zmin) > 0.45
+                lamp_node.inputs["Emission Strength"].default_value = (8.0 if tail_lamp else 12.0) if wide else (14.0 if tail_lamp else 32.0)
+            lit += 1
+            print(
+                "GT3SLOT",
+                "tail" if tail_lamp else "head",
+                obj.name,
+                f"y={ymin:.2f}..{ymax:.2f}",
+                f"z={zmin:.2f}..{zmax:.2f}",
+                mat.name,
+            )
+    # Hidden bumper faces were not the surface the camera sees. Hit the visible shell
+    # from in front and from behind, then light that material or sit a lens on it.
+    head_cards, tail_cards = plant_visible_optics(rig, nose, tail)
+    print(f"GT3 LAMPS lit={lit} cards={head_cards}/{tail_cards} nose={nose:.2f} tail={tail:.2f}")
+
+
+def optic_material(name, red):
+    mat = bpy.data.materials.new(name)
+    mat.use_nodes = True
+    node = mat.node_tree.nodes["Principled BSDF"]
+    color = (1.0, 0.045, 0.012, 1.0) if red else (1.0, 0.97, 0.9, 1.0)
+    node.inputs["Base Color"].default_value = color
+    node.inputs["Emission Color"].default_value = color
+    node.inputs["Emission Strength"].default_value = 16.0 if red else 30.0
+    node.inputs["Roughness"].default_value = 0.14
+    if "Coat Weight" in node.inputs:
+        node.inputs["Coat Weight"].default_value = 0.0
+    return mat
+
+
+def plant_visible_optics(rig, nose, tail):
+    """Ray-cast the visible nose and tail. Light the surface that is actually in front."""
+    bpy.context.view_layer.update()
+    scene = bpy.context.scene
+    depsgraph = bpy.context.evaluated_depsgraph_get()
+    inverse = rig.matrix_world.inverted()
+    rot = rig.matrix_world.to_3x3()
+    head_hits = []
+    tail_hits = []
+    def facing(normal, forward):
+        local_normal = (inverse.to_3x3() @ normal).normalized()
+        return local_normal.y < -0.45 if forward else local_normal.y > 0.45
+
+    def march(start, direction, forward, bucket, side):
+        origin = start
+        budget = 1.4
+        for _ in range(7):
+            hit, loc, normal, index, obj, _matrix = scene.ray_cast(depsgraph, origin, direction, distance=budget)
+            if not hit or obj is None or obj.type != "MESH":
+                return
+            if facing(normal, forward):
+                bucket.append((side, obj, index, loc, normal))
+                return
+            step = (loc - origin).length + 0.025
+            origin = loc + direction * 0.025
+            budget -= step
+            if budget <= 0.05:
+                return
+
+    direction_head = (rot @ Vector((0.0, 1.0, 0.0))).normalized()
+    direction_tail = (rot @ Vector((0.0, -1.0, 0.0))).normalized()
+    for side in (-1.0, 1.0):
+        for along in (0.18, 0.34, 0.50, 0.66):
+            for z in (0.28, 0.40, 0.52, 0.64):
+                march(
+                    rig.matrix_world @ Vector((side * along, nose - 0.5, z)),
+                    direction_head,
+                    True,
+                    head_hits,
+                    side,
+                )
+            for z in (0.36, 0.48, 0.60):
+                march(
+                    rig.matrix_world @ Vector((side * along, tail + 0.5, z)),
+                    direction_tail,
+                    False,
+                    tail_hits,
+                    side,
+                )
+
+    def material_of(obj, index):
+        poly = obj.data.polygons[index]
+        if not obj.material_slots:
+            return None
+        return obj.material_slots[poly.material_index].material
+
+    def is_paint(mat):
+        if mat is None:
+            return True
+        return mat.name.startswith("BESS_") and not mat.name.startswith(("BESS_LAMP", "BESS_GLASS", "BESS_GT3_HEAD", "BESS_GT3_TAIL"))
+
+    print(f"RAYHITS head={len(head_hits)} tail={len(tail_hits)}")
+    lit_slots = set()
+    cards = [0, 0]
+    clusters = {(-1.0, False): [], (1.0, False): [], (-1.0, True): [], (1.0, True): []}
+    for red, group in ((False, head_hits), (True, tail_hits)):
+        for side, obj, index, loc, normal in group:
+            mat = material_of(obj, index)
+            local = inverse @ loc
+            name = mat.name if mat else "-"
+            if not is_paint(mat) and (obj.name, mat.name) not in lit_slots:
+                copy = mat.copy()
+                copy.name = "BESS_LAMP_" + mat.name
+                ignite_material(copy, red)
+                for slot in obj.material_slots:
+                    if slot.material == mat:
+                        slot.material = copy
+                lit_slots.add((obj.name, mat.name))
+                print(f"RAYLIT {'tail' if red else 'head'} {obj.name} {name} y={local.y:.2f} z={local.z:.2f}")
+            elif is_paint(mat):
+                clusters[(side, red)].append((loc, normal))
+                print(f"RAYPAINT {'tail' if red else 'head'} {obj.name} {name} y={local.y:.2f} z={local.z:.2f}")
+    for (side, red), points in clusters.items():
+        if len(points) < 2:
+            continue
+        top = max(point.z for point, _normal in points)
+        band = [item for item in points if item[0].z >= top - 0.04] or points
+        center = sum((point for point, _normal in band), Vector()) / len(band)
+        normal = sum((normal for _point, normal in band), Vector())
+        if normal.length < 1e-6:
+            normal = rot @ (Vector((0.0, -1.0, 0.0)) if not red else Vector((0.0, 1.0, 0.0)))
+        normal.normalize()
+        outward = rot @ (Vector((0.0, 1.0, 0.0)) if red else Vector((0.0, -1.0, 0.0)))
+        outward.normalize()
+        # Clear the grille slats. The hit itself is often inside the opening.
+        add_lens_card(
+            rig,
+            center + outward * 0.035,
+            outward,
+            f"GT3Lens{'T' if red else 'H'}{int(side)}",
+            red,
+        )
+        cards[1 if red else 0] += 1
+    return cards
+
+
+def add_lens_card(rig, location, normal, name, red):
+    bpy.ops.mesh.primitive_plane_add(size=1.0, location=(0.0, 0.0, 0.0))
+    plane = bpy.context.active_object
+    plane.name = name
+    # matrix_world is assigned whole. Setting .scale first is lost until the depsgraph runs.
+    plane.matrix_world = Matrix.LocRotScale(
+        location,
+        normal.to_track_quat("Z", "X"),
+        Vector((0.22, 0.038, 1.0)),
+    )
+    plane.data.materials.append(optic_material(name + "Mat", red))
+    parent_keep(plane, rig)
+    print(
+        f"CARD {plane.name} loc={tuple(round(v, 2) for v in plane.matrix_world.translation)} "
+        f"scale={tuple(round(v, 3) for v in plane.matrix_world.to_scale())}"
+    )
+
+
+def paint_optic_faces(obj, inverse, nose, tail, head_mat, tail_mat):
+    import bmesh
+
+    bm = bmesh.new()
+    bm.from_mesh(obj.data)
+    heads = []
+    tails = []
+    for face in bm.faces:
+        world = obj.matrix_world @ face.calc_center_median()
+        local = inverse @ world
+        normal = (inverse.to_3x3() @ (obj.matrix_world.to_3x3() @ face.normal)).normalized()
+        span = abs(local.x)
+        if span < 0.16 or span > 0.86:
+            continue
+        if local.y < nose + 0.5 and normal.y < -0.3 and 0.34 < world.z < 0.72:
+            heads.append(face)
+        elif local.y > tail - 0.45 and normal.y > 0.3 and 0.40 < world.z < 0.78:
+            tails.append(face)
+    if not heads and not tails:
+        bm.free()
+        return 0, 0
+    if heads:
+        obj.data.materials.append(head_mat)
+        index = len(obj.data.materials) - 1
+        for face in heads:
+            face.material_index = index
+    if tails:
+        obj.data.materials.append(tail_mat)
+        index = len(obj.data.materials) - 1
+        for face in tails:
+            face.material_index = index
+    bm.to_mesh(obj.data)
+    obj.data.update()
+    bm.free()
+    return len(heads), len(tails)
 
 
 def clarify_gt3_glass(rig):
@@ -1174,7 +1798,12 @@ def neutral_bess_gt3(rig):
     painted = 0
     hidden = 0
     # #555B64 gunmetal. Metallic is only on this paint; the green M4 stays a satin dielectric.
-    graphite = srgb_to_linear("555B64") if v5_requested() else (0.016, 0.017, 0.019)
+    if v6_requested():
+        graphite = srgb_to_linear("14161A")
+    elif v5_requested():
+        graphite = srgb_to_linear("555B64")
+    else:
+        graphite = (0.016, 0.017, 0.019)
     for obj in list(bpy.context.scene.objects):
         if obj.type != "MESH" or obj in STAY_HIDDEN:
             continue
@@ -1226,6 +1855,8 @@ def neutral_bess_gt3(rig):
             slot.material = cache[source.name]
             painted += 1
     print(f"GT3 NEUTRAL painted_slots={painted} hidden_decals={hidden}")
+    if v6_requested():
+        ignite_gt3_ends(rig)
     clarify_gt3_glass(rig)
     if os.environ.get("GT3_DEBUG"):
         for obj in bpy.context.scene.objects:
@@ -1274,7 +1905,7 @@ def configure_scene(width, height, samples, cycles):
     scene.view_settings.view_transform = "AgX"
     scene.view_settings.look = "AgX - Base Contrast"
     v4_look = v4_requested() or v5_requested()
-    scene.view_settings.exposure = 0.2 if v5_requested() else (-0.15 if v4_requested() else 0.35)
+    scene.view_settings.exposure = 0.34 if v6_requested() else (0.2 if v5_requested() else (-0.15 if v4_requested() else 0.35))
     if cycles:
         # Cycles reads everything after "--" and exits on our flags.
         if "--" in sys.argv:
@@ -1316,6 +1947,7 @@ def wheelbase(front_name, rear_name):
 
 def main():
     RENDER_FLAGS.update(sys.argv)
+    use_v6_parks()
     preview = "--preview" in sys.argv
     animatic = "--animatic" in sys.argv
     stills = "--stills" in sys.argv
@@ -1347,6 +1979,26 @@ def main():
         jobs = [("v5", "wide")]
     elif "--v51" in sys.argv:
         jobs = [("v5", "desktop"), ("v5", "wide"), ("v5", "g90"), ("v5", "gt3side")]
+    elif "--v6-desk" in sys.argv:
+        jobs = [("v6", "desktop")]
+    elif "--v6-ee" in sys.argv:
+        jobs = [("v6ee", "gt3"), ("v6ee", "beauty")]
+    elif "--v6-fix" in sys.argv:
+        jobs = [("v6", "desktop"), ("v6", "beauty"), ("v6", "wide"), ("v6", "m4"), ("v6", "gt3"), ("v6", "ground")]
+    elif "--v6-draft" in sys.argv:
+        jobs = [("v6", "desktop"), ("v6", "beauty"), ("v6", "gt3side"), ("v6", "ground")]
+    elif "--v6" in sys.argv:
+        jobs = [
+            ("v6", "desktop"),
+            ("v6", "beauty"),
+            ("v6", "wide"),
+            ("v6", "g90"),
+            ("v6", "m4"),
+            ("v6", "gt3"),
+            ("v6", "ground"),
+        ]
+    elif "--v6-reel" in sys.argv:
+        jobs = [("v6reel", "desktop")]
     elif "--v51-reel" in sys.argv:
         jobs = [("v51reel", "desktop")]
     elif "--v5-draft" in sys.argv:
@@ -1382,9 +2034,16 @@ def main():
 
     clear()
     g90_objects = import_new(G90_SRC)
-    # #B5121B in linear. Clearcoat over a dielectric, so the red stays a paint.
-    red = srgb_to_linear("B5121B")
-    paint("0.005", red, 0.0, 0.32, coat=1.0, coat_rough=0.028)
+    # Clearcoat over a dielectric. v6 is a deeper burgundy, still a red paint.
+    red = srgb_to_linear("9A1824" if v6_requested() else "B5121B")
+    paint(
+        "0.005",
+        red,
+        0.0,
+        0.26 if v6_requested() else 0.32,
+        coat=1.0,
+        coat_rough=0.02 if v6_requested() else 0.028,
+    )
     paint("0.002", (0.015, 0.015, 0.016), 0.0, 0.55, coat=0.15, coat_rough=0.08)
     paint("0.003", (0.02, 0.02, 0.022), 0.0, 0.48, coat=0.2, coat_rough=0.08)
     hide_orbiting_duplicates(G90_FRONT + G90_REAR)
@@ -1406,11 +2065,28 @@ def main():
         "bBMW_M4CompetitionG82TNR0_2021PaintTNR_Material_004",
         green,
         0.0,
-        0.55,
-        coat=0.18,
-        coat_rough=0.28,
+        0.58 if v6_requested() else 0.55,
+        coat=0.22 if v6_requested() else 0.18,
+        coat_rough=0.32 if v6_requested() else 0.28,
     )
-    paint("ext_red", green, 0.0, 0.52, coat=0.16, coat_rough=0.3)
+    paint(
+        "ext_red",
+        green,
+        0.0,
+        0.56 if v6_requested() else 0.52,
+        coat=0.2 if v6_requested() else 0.16,
+        coat_rough=0.34 if v6_requested() else 0.3,
+    )
+    if v6_requested():
+        for mat_name in (
+            "bBMW_M4CompetitionG82TNR0_2021PaintTNR_Material_004",
+            "ext_red",
+        ):
+            mat = bpy.data.materials.get(mat_name)
+            node = bsdf(mat)
+            if node is not None and "Normal" in node.inputs:
+                for link in list(node.inputs["Normal"].links):
+                    mat.node_tree.links.remove(link)
     tune_named_materials()
     coat_gt3_body(gt3["rig"])
     boost_lamps()
@@ -1461,10 +2137,20 @@ def main():
         )
     print(f"CLEARANCE m4 {worst_m4:.2f} gt3 {worst_gt3:.2f}")
 
+    if v6_requested():
+        for car, prefix in ((g90, "G90"), (m4, "M4"), (gt3, "GT3")):
+            car["tails"] = add_tail_spots(car["rig"], prefix)
     if v5_requested():
         plant_car(g90, g90["radius"], g90_wb)
         plant_car(m4, m4["radius"], m4_wb)
         plant_car(gt3, gt3["radius"], gt3_wb)
+    if v6_requested():
+        level_gt3_shell(gt3)
+        pack_lineup(g90, m4, gt3, g90_wb, m4_wb, gt3_wb)
+        audit_arrivals(g90, m4, gt3, g90_wb, m4_wb, gt3_wb)
+        add_contour(m4, srgb_to_linear("1C8F45"), "M4")
+        add_contour(g90, srgb_to_linear("C4162A"), "G90")
+        add_contour(gt3, srgb_to_linear("8A2444"), "GT3", energy=26.0)
     receivers = [obj for obj in bpy.context.scene.objects if obj.type == "MESH"]
     studio(0.0, receivers)
     keyframes = [
@@ -1516,6 +2202,53 @@ def main():
                     True,
                 )
             folder = out / f"quality-{view}"
+        elif job == "v6ee":
+            shots = [("check", DURATION, False)]
+            scene = configure_scene(1100, 620, 8, False)
+            scene.eevee.use_bloom = False
+            folder = out / f"v6-ee-{view}"
+        elif job == "v6reel":
+            shots = [(f"f{i:04d}", i / FPS, False) for i in range(int((DURATION + 1.0) * FPS))]
+            scene = configure_scene(640, 360, 4, False)
+            scene.eevee.use_bloom = False
+            scene.eevee.use_ssr = False
+            folder = out / "v6-reel"
+        elif job == "v6":
+            draft = "--v6-draft" in RENDER_FLAGS
+            samples = 16 if draft else 48
+            wide_s = 16 if draft else 48
+            if view == "desktop":
+                shots = [("06-trio", DURATION, False)]
+                scene = configure_scene(960 if draft else 1920, 540 if draft else 1080, samples, True)
+                folder = out / ("v6-draft-desktop" if draft else "v6-desktop")
+            elif view == "beauty":
+                shots = [("beauty", DURATION, False)]
+                scene = configure_scene(960 if draft else 1920, 540 if draft else 1080, samples, True)
+                folder = out / ("v6-draft-beauty" if draft else "v6-beauty")
+            elif view == "wide":
+                shots = [("wide", DURATION, False)]
+                scene = configure_scene(960 if draft else 1600, 540 if draft else 900, wide_s, True)
+                folder = out / ("v6-draft-wide" if draft else "v6-wide")
+            elif view == "gt3side":
+                shots = [("side", DURATION, False)]
+                scene = configure_scene(1280, 720, 16 if draft else 32, True)
+                folder = out / ("v6-draft-gt3side" if draft else "v6-gt3side")
+            elif view == "ground":
+                shots = [("contacts", DURATION, False)]
+                scene = configure_scene(1280, 720, 16 if draft else 32, True)
+                folder = out / ("v6-draft-ground" if draft else "v6-ground")
+            elif view == "g90":
+                shots = [("g90", DURATION, False)]
+                scene = configure_scene(960 if draft else 1400, 540 if draft else 788, samples, True)
+                folder = out / ("v6-draft-g90" if draft else "v6-g90")
+            elif view == "m4":
+                shots = [("m4", DURATION, False)]
+                scene = configure_scene(960 if draft else 1400, 540 if draft else 788, samples, True)
+                folder = out / ("v6-draft-m4" if draft else "v6-m4")
+            else:
+                shots = [("gt3", DURATION, False)]
+                scene = configure_scene(960 if draft else 1400, 540 if draft else 788, samples, True)
+                folder = out / ("v6-draft-gt3" if draft else "v6-gt3")
         elif job == "v51reel":
             # Continuous Eevee preview. Not the Cycles film.
             shots = [(f"f{i:04d}", i / FPS, False) for i in range(int(12 * FPS))]
@@ -1647,7 +2380,23 @@ def main():
                 hide_tree(g90["rig"], True)
                 hide_tree(gt3["rig"], True)
             bpy.context.view_layer.update()
-            if job == "v5" and view == "g90":
+            if job in {"v6", "v6ee"} and view == "g90":
+                aim_beauty(g90, (0.15, -3.2, 0.5), (-0.05, 0.45, 0.34), 46)
+            elif job in {"v6", "v6ee"} and view == "m4":
+                aim_front(m4, 1.35, 38)
+            elif job in {"v6", "v6ee"} and view == "gt3":
+                aim_front(gt3, -1.25, 36)
+            elif job == "v6" and view == "gt3side":
+                origin = gt3["rig"].matrix_world.translation
+                yaw = gt3["curve"].at_time(DURATION)[1]
+                side = Vector((math.cos(yaw), math.sin(yaw), 0.0))
+                cam = bpy.data.objects["HeroCam"]
+                cam.data.lens = 65
+                cam.data.shift_x = 0.0
+                cam.data.shift_y = 0.0
+                cam.location = origin + side * 6.2 + Vector((0.0, 0.0, 0.06))
+                look_at(cam, origin + Vector((0.0, 0.0, 0.08)))
+            elif job == "v5" and view == "g90":
                 # Front three-quarter: paint, the near wheel, the lamp, and the glass.
                 cam = bpy.data.objects["HeroCam"]
                 cam.data.lens = 42

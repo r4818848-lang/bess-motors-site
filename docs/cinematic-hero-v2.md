@@ -230,9 +230,84 @@ The GT3 body livery is hidden on a scene material copy, 27 slots. The source GLB
 - Tire marks and the BMW roundel are still in the frames.
 - The 12-second Cycles film was not rendered, and no video is wired into the page.
 
+## Cycles v6, 13 Nov 2026
+
+Draft for visual review. The owner has not accepted it. The 12-second Cycles film was not rendered. No video is wired into the page.
+
+### What changed from v5.1
+
+The three cars are one group. Mesh gap at the park is 0.231 m between the green M4 and the red G90, and 0.323 m between the red G90 and the black GT3. The outer cars are 2.80 m apart. While the M4 is still moving, the closest mesh gap to the parked G90 is 0.206 m (at 90% of its entrance). The GT3's closest is 0.199 m (at 75%). Neither body crosses the other.
+
+The right car is black clearcoat, not graphite. Its nose is no longer the high end: `plant_car` solves roll, then pitch, then drops the car so the lowest tire is 4 mm off the floor. Parked GT3 contacts are 4.0 mm and 8.6 mm at the front, 11.0 mm and 12.7 mm at the rear. Pitch bias is 0.0448 rad. The front rocker is not higher than the rear, so the shell is not given an extra nose-down turn. G90 contacts stay 4.0 / 6.0 mm, M4 4.0 / 6.0 mm.
+
+### Colours and materials
+
+All three paints are dielectric under clearcoat. Metallic is 0.
+
+| Car | Hex | Roughness | Coat | Coat roughness |
+| --- | --- | --- | --- | --- |
+| Left M4, satin green | #2E6A4C | 0.58 / 0.56 | 0.22 / 0.20 | 0.32 / 0.34 |
+| Center G90, burgundy red | #9A1824 | 0.26 | 1.0 | 0.02 |
+| Right GT3, black | #14161A | 0.34 | 1.0 | 0.04 |
+
+The green normal map is disconnected on those two paint slots so the hood reads as satin paint. GT3 glass roughness is 0.03. The source GLB is not rewritten.
+
+### Light
+
+Exposure +0.34. World strength 0.62. Floor albedo (0.078, 0.080, 0.086), roughness 0.55, specular 0.36.
+
+| Light | Power | Size | Place |
+| --- | --- | --- | --- |
+| Key | 240 W | 7.2 × 2.6 m | (-2.8, -8.4, 2.7), in front of the noses |
+| Fill | 130 W | 5.6 × 2.4 m | (3.8, -7.4, 1.9) |
+| Rim left | 160 W | 2.4 × 1.3 m | (-5.2, 2.4, 1.55), slight green |
+| Rim right | 210 W | 1.8 × 1.5 m | (5.6, 2.8, 1.7), separates the black car |
+| Edge | 170 W | 1.2 × 3.2 m | (1.6, 6.2, 2.15), rear rim |
+| Wheel | 36 W | 4.2 × 0.45 m | (0.1, -4.2, 0.28) |
+| Top | 48 W | 12 m | (0.15, 0.6, 7.2), the contact-shadow light |
+
+Headlamp spots are 150 W when a car is parked, aimed forward. Tail spots are 55 W, red. G90 and M4 lenses use the named glass materials with emission 16 (head) and 9 (tail). The GT3 export has no separate lens mesh: the visible nose is one painted shell. Two thin emissive slits, 0.22 × 0.038 m, emission 30, sit on the forward face of that shell, one each side. Two red slits, emission 16, sit on the tail. They are scene cards, not a change to the GLB.
+
+Underglow is four low area lights plus a soft pool, parented to each car, shadows off. Green #1C8F45 at 14 W under the M4. Red #C4162A at 14 W under the G90. Dark burgundy #8A2444 at 26 W under the GT3. It is a floor pool, not a neon tube. On the black car it reads as a thin line, quieter than the red pool.
+
+### Cameras
+
+Beauty, no text: 58 mm at (-0.15, -9.6, 0.86), looking at (0.05, 0.15, 0.46). Wide phone frame: 42 mm, shift X -0.06, at (-0.35, -8.8, 0.74). Desktop poster: 40 mm, shift X -0.20, at (-0.15, -15.8, 1.05), looking at (1.05, 0.45, 0.50), so the left third stays dark for the Polish headline and the black car stays inside the frame. Detail cameras follow each car's parked heading and look at the nose, not the roof.
+
+The ground frame turns on an orange contact marker at each tire and a checker on the floor. Those marks are only on that proof frame. The beauty, wide, and desktop frames do not have them.
+
+### Motion preview
+
+`docs/review/v6-motion-preview.mp4` is the Eevee check of the new paths: 10 seconds, 24 fps, 640×360, 4 samples, bloom off, screen-space reflections off. It is not the Cycles film. The G90 arcs in from the right and parks in the center. The M4 arcs in from the left; its last handle is 4.8 m so it slides into the slot instead of rotating the nose through the red car. The GT3 arcs in from the right and parks on the right. Lamps come up at the end of each entrance.
+
+### Hero page
+
+The picture element requests `/hero/v6-desktop.webp` only at 1024 px and wider, and `/hero/v6-wide.webp` below that. Pillow WebP quality 86. Desktop loads the desktop file. Phones load the wide file. Cumulative layout shift was 0 on the measured viewports. Booking opens `/booking`. Services opens `/services`. On 360×800 the second button bottom is 716 px. On 390×844 it is 733 px. On 430×932 it is 755 px. The contact bar is about 52 px. Both buttons sit above it.
+
+### Still open
+
+- The GT3 headlamps are slits on the painted nose, not the projector optics the G90 and the M4 already have. The owner has to decide if that reads as a real lamp.
+- The burgundy pool under the black car is the quietest of the three.
+- The GT3 sidewalls still read Goodyear and Eagle. The G90 sidewall still reads Michelin, and the wheel centre still has the BMW roundel. CC BY 4.0 is the file author's license. It is not a license from BMW AG. These frames must not go on the commercial site until that is decided.
+- The 12-second Cycles film was not rendered.
+
+### Frames
+
+| Frame | Samples | Time |
+| --- | --- | --- |
+| Desktop 1920×1080 `docs/review/v6-cycles-desktop.png` | 48 | 67.3 s |
+| Beauty, no text `docs/review/v6-beauty.png` | 48 | 82.1 s |
+| Wide 16:9 `docs/review/v6-wide.png` | 48 | 49.7 s |
+| G90 close-up `docs/review/v6-g90.png` | 48 | 53.3 s |
+| M4 close-up `docs/review/v6-m4.png` | 48 | 38.0 s |
+| GT3 close-up `docs/review/v6-gt3.png` | 48 | 30.3 s |
+| Ground contact `docs/review/v6-ground.png` | 32 | 32.6 s |
+| Eevee preview `docs/review/v6-motion-preview.mp4` | 4 | 10 s, 640×360 |
+| Hero 1920, 1440, 1366, 430, 390, 360 under `docs/review/v6-hero-*.png` |  |  |
+
 ## Still not done
 
-- No `<video>` on the homepage. The v5.1 posters are on this branch for review.
+- No `<video>` on the homepage. The v6 posters are on this branch for review.
 - No production Lighthouse pass. The times above are the local dev server.
 - The full 12-second Cycles film waits until the owner accepts these frames.
 - The GT3 material hides the sponsor art in the scene only. That does not clear the car design, the BMW marks, or the tire marks.
