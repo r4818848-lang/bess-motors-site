@@ -546,6 +546,51 @@ Hand-modelling a photographic GT3 nose from pictures is not available from these
 
 CC BY 4.0 remains the uploader's file licence. It is not a licence from BMW AG for the roundel, the grille, the lamps, or the vehicle design.
 
+## G90 photoreal pass — the current file cannot pass, and no replacement was imported
+
+The owner rendered the 2-second 1920×1080 control on an RTX 5060 Ti, 48 of 48 frames. The motion is accepted. The picture is not: the blue car still reads as a game model. This pass did not raise samples, did not upscale, and did not send the frame through SDXL. It also did not stick new boxes on the nose. The GT3 and the M4 were not touched. The drive rigs and `Start-BessGpuFilm.ps1` are unchanged. The 12-second film was not started.
+
+### What the G90 file actually is
+
+`assets/hero/source/g90/bmw-g90-m5-justgame.glb` is the JUST GAME upload, Sketchfab `9dc9e5c88bec4faa94552fdd0b76ed21`, tagged low poly. The mesh names (`CSR2_Grille`, `CSR2_Light`) are the CSR Racing 2 export. The Sketchfab licence widget says CC BY 4.0. The same author's profile says the models are ripped from games and are for personal use only. CC BY is not a BMW AG licence either way.
+
+Measured on the imported mesh, nose toward −Y:
+
+| Part | What is in the file | What a 2025 M5 G90 has |
+| --- | --- | --- |
+| Lower grille `CSR2_Grille1` | 24 faces, 1.57 m wide, 0.35 m tall, 0.25 m deep | An open kidney and lower intakes with depth, slats, and a frame |
+| Headlamps `CSR2_Light` `.003` / `.004` | 503 faces each, about 19×28×13 cm | A split lamp: a thin upper DRL and a lower projector with a lens and a bucket |
+| Lamp strip `CSR2_Light.012` | 64 faces, 2 cm tall, across the nose | The DRL is a separate optical element, not a flat strip |
+| Body paint `0.005` | No image, no normal map, no clearcoat in the file | Basecoat, metallic flake, and clearcoat over panel gaps |
+| Front wheel `metalicpaint_lightsilver` | 1,060 faces, about 62 cm across and 5 cm of width. The quarter frame shows spokes and a textured sidewall | A rim with depth, a separate tire carcass, and a brake you can read |
+| Glass | `glass_int` is a 6 cm interior card, not a windshield shell with thickness | Two glass surfaces, a dark band, and a cabin behind them |
+
+A shader can darken the paint and turn the lamp cards on. It cannot cut an opening, add a slat, or put a lens inside a card. That is why this pass does not publish a "new" beauty next to the old one. A second frame with the same mesh and a different roughness would be the pass that was already rejected.
+
+### Models that were checked and not imported
+
+Sketchfab's public search for a downloadable CC BY "BMW M5 G90" returns six models. The download API returns HTTP 401 without the owner's token, so none of them was fetched.
+
+| Model | Faces | Textures | File licence | Decision |
+| --- | --- | --- | --- | --- |
+| JUST GAME `9dc9e5c`, the file already in the scene | 378,335 | 28, but the body paint is untextured | CC BY widget; author says personal use, game rip | Kept only because it is the rigged car. It cannot pass the photo test. |
+| Res1n `7c2f503` | 389,102 | 31 | CC BY 4.0 | Not a geometry upgrade. Face count and vertex count sit within a few percent of the CSR2 file. A prettier thumbnail is lighting, not a new nose. |
+| romanian_guy_0069 `a1f2894` | 164,939 | 13 | CC BY 4.0 | Coarser than the current file. |
+| szymonpasterczyk `9d5ca9d`, "G90/G99" | 786,659 | 0 | CC BY 4.0 | The preview is an unfinished shell from above. No front, no materials. |
+| homicivan53 `21ab881` | 49,378 | — | CC BY 4.0 | A sketch, not a car. |
+| vecarz `b2dd13e` | 790,738 | 17, 66 materials | **CC BY-NC-SA** | This is the preview that actually has a deep kidney, split lamps, and a detailed wheel. Non-commercial. Not imported. |
+| teret_50 `a5dcb74`, "BMW m3 ts" | 2,104,275 | 69 | CC BY 4.0 | An M3 widebody, not a G90. It would replace the car the shot is about. |
+
+### What would actually change the picture
+
+1. A commercial-licence G90 with a modelled kidney, a split lamp, glass thickness, and a wheel that has depth. The vecarz file is the visual example and it is the one licence this project cannot use.
+2. Modelling those parts from the car or from CAD, then parenting them to the existing rig. That is a modelling job, not a sample change. Scripted boxes on this shell repeat the GT3 mistake and are not in this pass.
+3. Until one of those exists, the Windows pipeline should keep rendering this GLB. The hash check still refuses any other file, including a download dropped into `BESS MOTORS 3D`, until that file has been measured.
+
+The two 1920×1080 frames from `--g90-limit` are the current mesh under the same studio as the GPU film: straight on, then the front three-quarter. They are the limit, not an upgrade. There is no second "after" frame, because the mesh did not change. M4 and GT3 stay on the old meshes for the same reason.
+
+`docs/review/g90-limit-front.png`, `docs/review/g90-limit-quarter.png`. Cycles, 32 samples, OIDN, CPU. The flat grey kidney, the shallow lamps, and the hard paint streak are the file.
+
 ## Windows GPU film — 1920×1080 Cycles, not another 640×360 reel
 
 The 640×360 Eevee file is not the film. `scripts/cinematic-hero/windows/Start-BessGpuFilm.ps1` is the launcher for the owner's PC (Blender 4.5 or newer, NVIDIA GPU). It does not run on this cloud machine: that machine has no RTX 5060 Ti.
@@ -579,12 +624,12 @@ That is frames 0–287, the same 1920×1080 24 fps settings, order blue G90 (0.2
 
 Paths inside `render_lineup.py` come from the checkout (`Path(__file__)`) or from `BESS_REPO`. There is no hardcoded `/workspace`.
 
-The mesh limits in the audit still apply. This pass does not add a grille or a lamp to the GT3 shell, and it does not put the rejected boxes back. Headlamp emission on this pass is 3.5 (tail 8) and the head spot is 14, so the M4 rings that exist stay visible. Floor roughness is 0.22. Skirt colour is energy 90 / 100 / 110. Clearcoat roughness varies across the panel. None of that turns the game meshes into a photograph. The 2-second 1080p sequence has not been rendered here.
+The mesh limits in the audit still apply. This pass does not add a grille or a lamp to the GT3 shell, and it does not put the rejected boxes back. Headlamp emission on this pass is 3.5 (tail 8) and the head spot is 14, so the M4 rings that exist stay visible. Floor roughness is 0.22. Skirt colour is energy 90 / 100 / 110. Clearcoat roughness varies across the panel. None of that turns the game meshes into a photograph. The owner has rendered the 2-second control on the RTX 5060 Ti. That reel is motion-accepted and picture-rejected. It is not replaced here.
 
 ## Still not done
 
 - No `<video>` on the homepage. The rejected V10 posters are still what the branch shows. This pass did not replace them.
-- No new group beauty. The three fascia close-ups are the review. They still read as game models.
+- No new group beauty and no replacement G90. The 1920×1080 G90 frames are the current CSR2 mesh, not an upgraded car. GT3 and M4 were not revised in this pass.
 - No AI image was generated. The runnable entry point is `scripts/cinematic-hero/comfy/edit_hero.py`. It has not loaded a model.
 - No production Lighthouse pass. The times above are the local dev server.
 - The 12-second Cycles film was not started. The Windows launcher above is the way to render the 2-second 1920×1080 control, then the film after that control is accepted. `docs/review/v10-motion-preview.mp4` is the old 640×360 Eevee file and is not the film. The drive-in order and the rigs were not changed.

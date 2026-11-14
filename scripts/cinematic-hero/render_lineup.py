@@ -95,9 +95,14 @@ def audit_requested():
     return any(flag == "--audit" or flag.startswith("--audit") for flag in RENDER_FLAGS)
 
 
+def g90_limit_requested():
+    """Close frames of the current G90 only. Same studio as the GPU film, no new geometry."""
+    return "--g90-limit" in RENDER_FLAGS
+
+
 def gpu_film_requested():
     """1080p Cycles on the owner's GPU. Not the 640px Eevee reel."""
-    return any(flag in {"--gpu-control", "--gpu-film"} for flag in RENDER_FLAGS)
+    return g90_limit_requested() or any(flag in {"--gpu-control", "--gpu-film"} for flag in RENDER_FLAGS)
 
 
 def v10_requested():
@@ -2740,7 +2745,9 @@ def main():
         jobs = [("quality", "mobile")]
     if "--axle-still" in sys.argv:
         jobs = [("axle", "desktop")]
-    if "--gpu-control" in sys.argv:
+    if "--g90-limit" in sys.argv:
+        jobs = [("g90limit", "front"), ("g90limit", "quarter")]
+    elif "--gpu-control" in sys.argv:
         jobs = [("gpucontrol", "desktop")]
     elif "--gpu-film" in sys.argv:
         jobs = [("gpufilm", "desktop")]
@@ -3078,6 +3085,14 @@ def main():
                     True,
                 )
             folder = out / f"quality-{view}"
+        elif job == "g90limit":
+            shots = [("fascia" if view == "front" else "quarter", DURATION, False)]
+            samples = int(os.environ.get("BESS_SAMPLES", "40"))
+            scene = configure_scene(1920, 1080, samples, True)
+            scene.render.image_settings.file_format = "PNG"
+            scene.render.image_settings.color_mode = "RGB"
+            folder = out / "g90-limit"
+            print(f"G90 LIMIT {view} {scene.render.resolution_x}x{scene.render.resolution_y} samples={samples}")
         elif job in {"gpucontrol", "gpufilm"}:
             if job == "gpucontrol":
                 # 1.75s–3.71s, 48 frames at 24 fps. The blue G90 is still moving and its
@@ -3371,7 +3386,17 @@ def main():
                 hide_tree(g90["rig"], True)
                 hide_tree(gt3["rig"], True)
             bpy.context.view_layer.update()
-            if job == "audit" and view == "gt3":
+            if job == "g90limit":
+                hide_tree(m4["rig"], True)
+                hide_tree(gt3["rig"], True)
+                mute_car_lights(m4, True)
+                mute_car_lights(gt3, True)
+                if view == "front":
+                    aim_fascia(g90, 55)
+                else:
+                    # Far enough that the near wheel and the arch stay in the 1080p frame.
+                    aim_front(g90, 2.15, 34)
+            elif job == "audit" and view == "gt3":
                 aim_fascia(gt3, 50)
             elif job == "audit" and view == "g90":
                 aim_fascia(g90, 50)
