@@ -71,9 +71,14 @@ def v4_requested():
     return any(flag == "--v4" or flag.startswith("--v4-") for flag in RENDER_FLAGS)
 
 
+def v9_requested():
+    """Same colours as V8, with the GT3 nose and the framing repaired."""
+    return any(flag == "--v9" or flag.startswith("--v9") for flag in RENDER_FLAGS)
+
+
 def v8_requested():
     """New reference: green M4, metallic blue G90, burgundy GT3."""
-    return any(flag == "--v8" or flag.startswith("--v8") for flag in RENDER_FLAGS)
+    return v9_requested() or any(flag == "--v8" or flag.startswith("--v8") for flag in RENDER_FLAGS)
 
 
 def v7_requested():
@@ -567,6 +572,20 @@ def aim_g90_detail(car):
     cam.data.shift_y = 0.0
     cam.location = origin + Vector((-0.15, -1.85, 0.62))
     look_at(cam, origin + Vector((0.22, 0.45, 0.42)))
+
+
+def aim_fascia(car, lens=64):
+    """Straight at the nose, low enough to see the grille and the lamps."""
+    origin = car["rig"].matrix_world.translation
+    yaw = car["curve"].at_time(DURATION)[1]
+    ahead = Vector((math.sin(yaw), -math.cos(yaw), 0.0))
+    nose = origin + ahead * 2.15 + Vector((0.0, 0.0, 0.32))
+    cam = bpy.data.objects["HeroCam"]
+    cam.data.lens = lens
+    cam.data.shift_x = 0.0
+    cam.data.shift_y = 0.0
+    cam.location = nose + ahead * 2.6 + Vector((0.0, 0.0, 0.04))
+    look_at(cam, nose)
 
 
 def aim_front(car, side_scale, lens):
@@ -1985,7 +2004,7 @@ def darken_gt3_grille(rig):
             continue
         for slot in obj.material_slots:
             mat = slot.material
-            if mat is None or mat.name.startswith(("BESS_LAMP", "BESS_GLASS", "GT3Pod")):
+            if mat is None or mat.name.startswith(("BESS_LAMP", "BESS_GLASS", "GT3Pod", "GT3Grill", "GT3Lamp", "G90Grill")):
                 continue
             node = bsdf(mat)
             if node is None or "Base Color" not in node.inputs:
@@ -2009,6 +2028,225 @@ def darken_gt3_grille(rig):
             darkened += 1
             print("GRILLE", obj.name, mat.name, "y", round(local.y, 2))
     print(f"GRILLE darkened={darkened}")
+
+
+def _nose_material(name, color, emission, rough, metallic=0.0, transmission=0.0):
+    mat = bpy.data.materials.new(name)
+    mat.use_nodes = True
+    node = mat.node_tree.nodes["Principled BSDF"]
+    node.inputs["Base Color"].default_value = (*color, 1.0)
+    node.inputs["Emission Color"].default_value = (*color, 1.0)
+    node.inputs["Emission Strength"].default_value = emission
+    node.inputs["Roughness"].default_value = rough
+    node.inputs["Metallic"].default_value = metallic
+    if transmission and "Transmission Weight" in node.inputs:
+        node.inputs["Transmission Weight"].default_value = transmission
+        if "IOR" in node.inputs:
+            node.inputs["IOR"].default_value = 1.5
+        mat.blend_method = "HASHED"
+        mat.use_screen_refraction = True
+    return mat
+
+
+def _faced_box(name, center, right, depth, up, size, mat, rig):
+    """A box facing the camera. Scale is baked into the vertices so parenting keeps it."""
+    bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0.0, 0.0, 0.0))
+    obj = bpy.context.active_object
+    obj.name = name
+    for vert in obj.data.vertices:
+        vert.co.x *= size[0]
+        vert.co.y *= size[1]
+        vert.co.z *= size[2]
+    axes = Matrix((right, depth, up)).transposed().to_3x3()
+    obj.matrix_world = Matrix.LocRotScale(center, axes.to_quaternion(), Vector((1.0, 1.0, 1.0)))
+    bpy.context.view_layer.update()
+    obj.data.materials.append(mat)
+    parent_keep(obj, rig)
+    return obj
+
+
+def _fascia_basis(cam):
+    rotation = cam.matrix_world.to_quaternion()
+    forward = rotation @ Vector((0.0, 0.0, -1.0))
+    right = rotation @ Vector((1.0, 0.0, 0.0))
+    up = rotation @ Vector((0.0, 1.0, 0.0))
+    aspect = bpy.context.scene.render.resolution_x / bpy.context.scene.render.resolution_y
+    fit = cam.data.sensor_width / cam.data.lens
+    return forward, right, up, fit, fit / aspect
+
+
+def _window_hits(cam, rig, u0, v0, u1, v1):
+    """Body hits inside a camera window. The GT3 shell normals point inward."""
+    forward, right, up, view_w, view_h = _fascia_basis(cam)
+    origin = cam.matrix_world.translation
+    depsgraph = bpy.context.evaluated_depsgraph_get()
+    found = []
+    steps_u = max(4, int((u1 - u0) / 0.008))
+    steps_v = max(4, int((v1 - v0) / 0.006))
+    for row in range(steps_v + 1):
+        v = v0 + (v1 - v0) * row / steps_v
+        for col in range(steps_u + 1):
+            u = u0 + (u1 - u0) * col / steps_u
+            direction = (forward + right * ((u - 0.5) * view_w) + up * ((v - 0.5) * view_h)).normalized()
+            hit, loc, _normal, index, obj, _matrix = bpy.context.scene.ray_cast(
+                depsgraph, origin, direction, distance=8.0
+            )
+            if not hit or obj is None or obj.type != "MESH":
+                continue
+            parent = obj
+            while parent is not None and parent != rig:
+                parent = parent.parent
+            if parent != rig or obj.name.startswith(("GT3Grill", "GT3Lamp")):
+                continue
+            found.append((loc.copy(), obj, index))
+    return found
+
+
+def _cover_window(cam, rig, hits, tag, kind):
+    if len(hits) < 8:
+        print("GT3", tag, "miss", len(hits))
+        return
+    forward, right, up, _view_w, _view_h = _fascia_basis(cam)
+    origin = sum((loc for loc, _obj, _index in hits), Vector((0.0, 0.0, 0.0))) / len(hits)
+    xs = [(loc - origin).dot(right) for loc, _obj, _index in hits]
+    zs = [(loc - origin).dot(up) for loc, _obj, _index in hits]
+    xs.sort()
+    zs.sort()
+    lo = max(0, int(len(xs) * 0.06))
+    hi = min(len(xs) - 1, int(len(xs) * 0.94))
+    width = max(0.12, xs[hi] - xs[lo])
+    height = max(0.045, zs[hi] - zs[lo])
+    center = origin + right * ((xs[lo] + xs[hi]) * 0.5) + up * ((zs[lo] + zs[hi]) * 0.5)
+    if kind == "lamp":
+        # The fender curves through the mean. Sit the optic in front of the nearest body point.
+        cam_origin = cam.matrix_world.translation
+        closest = min(hits, key=lambda item: (item[0] - cam_origin).length)[0]
+        ahead = max(0.0, (origin - closest).dot(forward))
+        center -= forward * (ahead + 0.012)
+    else:
+        center -= forward * 0.012
+    if kind == "grille":
+        cavity = _nose_material(f"{tag}Cav", (0.004, 0.004, 0.005), 0.0, 0.92)
+        # Dark metal disappears in Cycles. A satin slat stays readable at 896px.
+        slat = _nose_material(f"{tag}Slat", (0.55, 0.55, 0.57), 0.35, 0.32, metallic=0.88)
+        frame = _nose_material(f"{tag}Frame", (0.72, 0.72, 0.74), 0.2, 0.18, metallic=1.0)
+        _faced_box(f"{tag}Back", center + forward * 0.006, right, forward, up, (width, 0.006, height), cavity, rig)
+        _faced_box(
+            f"{tag}Top",
+            center + up * (height * 0.5) - forward * 0.004,
+            right, forward, up, (width * 1.04, 0.012, 0.012), frame, rig,
+        )
+        _faced_box(
+            f"{tag}Bot",
+            center - up * (height * 0.5) - forward * 0.004,
+            right, forward, up, (width * 1.04, 0.012, 0.012), frame, rig,
+        )
+        count = 5
+        span = height * 0.72
+        thickness = span / (count * 2.15)
+        for index in range(count):
+            offset = -span * 0.5 + thickness * 0.5 + index * (span - thickness) / (count - 1)
+            _faced_box(
+                f"{tag}Bar{index}",
+                center + up * offset - forward * 0.008,
+                right, forward, up, (width * 0.90, 0.008, thickness), slat, rig,
+            )
+    else:
+        housing = _nose_material(f"{tag}H", (0.004, 0.004, 0.006), 0.0, 0.7)
+        glass = _nose_material(f"{tag}G", (0.15, 0.22, 0.32), 2.2, 0.05, transmission=0.72)
+        led = _nose_material(f"{tag}L", (0.92, 0.96, 1.0), 60.0, 0.08)
+        # Inboard of the fender curve. Wide enough to read at 896px, short like the GT3 lamp.
+        width = min(width, 0.26)
+        height = min(max(height, 0.05), 0.058)
+        _faced_box(f"{tag}Bucket", center + forward * 0.004, right, forward, up, (width, 0.01, height), housing, rig)
+        _faced_box(
+            f"{tag}Lens",
+            center - forward * 0.004,
+            right, forward, up, (width * 0.82, 0.005, height * 0.62), glass, rig,
+        )
+        _faced_box(
+            f"{tag}Drl",
+            center + up * (height * 0.06) - forward * 0.009,
+            right, forward, up, (width * 0.62, 0.004, height * 0.34), led, rig,
+        )
+    print(f"GT3 {kind} {tag} {width:.2f}x{height:.2f} hits={len(hits)}")
+
+
+def fit_gt3_nose(_rig):
+    """The parked fascia is seated later, once the car faces the camera."""
+    return
+
+
+def seat_gt3_fascia(car):
+    """The GT3 export has no grille slats and no headlamp glass.
+
+    The pale kidneys measured on the straight-on fascia are the panels that get a
+    real opening. Screen windows are for the 64mm fascia camera.
+    """
+    if car.get("nose_seated"):
+        return
+    rig = car["rig"]
+    aim_fascia(car, 64)
+    bpy.context.view_layer.update()
+    cam = bpy.data.objects["HeroCam"]
+    forward, _right, _up, _view_w, _view_h = _fascia_basis(cam)
+    windows = (
+        ("GT3GrillL", "grille", (0.255, 0.145, 0.482, 0.275)),
+        ("GT3GrillR", "grille", (0.518, 0.145, 0.745, 0.275)),
+        ("GT3LampL", "lamp", (0.22, 0.30, 0.40, 0.40)),
+        ("GT3LampR", "lamp", (0.60, 0.30, 0.78, 0.40)),
+    )
+    for tag, kind, (u0, v0, u1, v1) in windows:
+        hits = _window_hits(cam, rig, u0, v0, u1, v1)
+        # Leave the shell closed. Pulling its vertices open tears the bumper corners.
+        _cover_window(cam, rig, hits, tag, kind)
+    car["nose_seated"] = True
+
+
+def frame_complete_trio(cars):
+    """Pull back until every car, including the green M4, has margin on both sides."""
+    points = []
+    for car in cars:
+        rig = car["rig"]
+        for obj in bpy.context.scene.objects:
+            if obj.type != "MESH" or obj.hide_render or not obj.data.vertices:
+                continue
+            parent = obj
+            while parent is not None and parent != rig:
+                parent = parent.parent
+            if parent != rig:
+                continue
+            step = max(1, len(obj.data.vertices) // 60)
+            for index in range(0, len(obj.data.vertices), step):
+                points.append(obj.matrix_world @ obj.data.vertices[index].co)
+    if not points:
+        return
+    minx = min(point.x for point in points)
+    maxx = max(point.x for point in points)
+    miny = min(point.y for point in points)
+    maxy = max(point.y for point in points)
+    minz = min(point.z for point in points)
+    maxz = max(point.z for point in points)
+    lens = 36.0
+    half_fov_x = math.atan((18.0) / lens)
+    half_fov_y = math.atan((12.0) / lens)
+    dist = max(
+        ((maxx - minx) * 0.5) / (math.tan(half_fov_x) * 0.80),
+        ((maxz - minz) * 0.5) / (math.tan(half_fov_y) * 0.72),
+        8.0,
+    )
+    center_x = (minx + maxx) * 0.5
+    look_z = minz + (maxz - minz) * 0.42
+    cam = bpy.data.objects["HeroCam"]
+    cam.data.lens = lens
+    cam.data.shift_x = 0.0
+    cam.data.shift_y = 0.0
+    cam.location = Vector((center_x, miny - dist, max(0.58, look_z)))
+    look_at(cam, Vector((center_x, (miny + maxy) * 0.5, look_z)))
+    print(
+        f"FRAME trio x={minx:.2f}..{maxx:.2f} z={minz:.2f}..{maxz:.2f} "
+        f"dist={dist:.2f} cam={tuple(round(v, 2) for v in cam.location)}"
+    )
 
 
 def neutral_bess_gt3(rig):
@@ -2081,8 +2319,10 @@ def neutral_bess_gt3(rig):
             slot.material = cache[source.name]
             painted += 1
     print(f"GT3 NEUTRAL painted_slots={painted} hidden_decals={hidden}")
-    if v6_requested():
+    if v6_requested() and not v9_requested():
         ignite_gt3_ends(rig)
+    if v9_requested():
+        fit_gt3_nose(rig)
     clarify_gt3_glass(rig)
     if os.environ.get("GT3_DEBUG"):
         for obj in bpy.context.scene.objects:
@@ -2249,7 +2489,13 @@ def main():
         jobs = [("quality", "mobile")]
     if "--axle-still" in sys.argv:
         jobs = [("axle", "desktop")]
-    if "--v8-gt3" in sys.argv:
+    if "--v9-nose" in sys.argv:
+        jobs = [("v9ee", "gt3")]
+    elif "--v9-ee" in sys.argv:
+        jobs = [("v9ee", "beauty"), ("v9ee", "gt3"), ("v9ee", "g90")]
+    elif "--v9" in sys.argv:
+        jobs = [("v9", "beauty"), ("v9", "gt3"), ("v9", "g90")]
+    elif "--v8-gt3" in sys.argv:
         jobs = [("v8ee", "gt3")]
     elif "--v8-ee" in sys.argv:
         jobs = [("v8ee", "beauty"), ("v8ee", "gt3")]
@@ -2406,6 +2652,7 @@ def main():
     tune_named_materials()
     coat_gt3_body(gt3["rig"])
     boost_lamps()
+    # The G90 kidney is already a modeled grille. A cover card is not replaced here.
     v4 = v4_requested() or v5_requested()
     if v4:
         neutral_bess_gt3(gt3["rig"])
@@ -2493,6 +2740,14 @@ def main():
             add_contour(gt3, srgb_to_linear("8A2444"), "GT3", energy=26.0)
     receivers = [obj for obj in bpy.context.scene.objects if obj.type == "MESH"]
     studio(0.0, receivers)
+    if v9_requested():
+        # Measure the fascia on the parked pose, then parent the new parts to the rig
+        # so a later drive-in keeps them on the nose. The 12-second film is not rendered here.
+        place(g90, DURATION, g90["radius"], g90_wb)
+        place(m4, DURATION, m4["radius"], m4_wb)
+        place(gt3, DURATION, gt3["radius"], gt3_wb)
+        bpy.context.view_layer.update()
+        seat_gt3_fascia(gt3)
     keyframes = [
         ("00-empty", 0.0, True),
         ("01-g90-arc", 1.7, False),
@@ -2542,6 +2797,19 @@ def main():
                     True,
                 )
             folder = out / f"quality-{view}"
+        elif job == "v9ee":
+            shots = [("check", DURATION, False)]
+            scene = configure_scene(1280, 720, 8, False)
+            scene.eevee.use_bloom = False
+            scene.eevee.use_ssr = False
+            folder = out / f"v9-ee-{view}"
+        elif job == "v9":
+            shots = [("beauty" if view == "beauty" else view, DURATION, False)]
+            if view == "beauty":
+                scene = configure_scene(1920, 1080, 40, True)
+            else:
+                scene = configure_scene(1400, 788, 28, True)
+            folder = out / f"v9-{view}"
         elif job in {"v7ee", "v8ee"}:
             shots = [("check", DURATION, False)]
             scene = configure_scene(1200, 675, 8, False)
@@ -2750,12 +3018,18 @@ def main():
                 hide_tree(g90["rig"], True)
                 hide_tree(gt3["rig"], True)
             bpy.context.view_layer.update()
-            if job in {"v6", "v6ee", "v7", "v7ee", "v8", "v8ee"} and view == "g90":
+            if v9_requested() and view == "beauty":
+                frame_complete_trio((g90, m4, gt3))
+            elif job in {"v9", "v9ee"} and view == "g90":
+                aim_fascia(g90, 58)
+            elif job in {"v6", "v6ee", "v7", "v7ee", "v8", "v8ee"} and view == "g90":
                 aim_beauty(g90, (0.15, -3.2, 0.5), (-0.05, 0.45, 0.34), 46)
             elif job in {"v6", "v6ee", "v7", "v7ee", "v8", "v8ee"} and view == "m4":
                 aim_front(m4, 1.35, 38)
             elif job in {"v7", "v7ee", "v8", "v8ee"} and view == "lamps":
                 aim_beauty(g90, (0.15, -3.2, 0.48), (-0.05, 0.35, 0.32), 52)
+            elif job in {"v9", "v9ee"} and view == "gt3":
+                aim_fascia(gt3, 64)
             elif job in {"v6", "v6ee", "v7", "v7ee", "v8", "v8ee"} and view == "gt3":
                 aim_front(gt3, -0.85, 48)
             elif job == "v6" and view == "gt3side":

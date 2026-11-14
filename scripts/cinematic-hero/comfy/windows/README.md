@@ -4,6 +4,27 @@ Cloud GPU rental is cancelled for this stage. The machine is the owner's PC: Win
 
 Nothing in this folder has been executed on that PC. The cloud agent checked the file list, the licenses, the checksums, and the workflow slots. It did not download the weights and it did not generate an image. A PNG is an AI frame only after ComfyUI on that PC has written it.
 
+## V9 source frame
+
+The rejected pass was the network redrawing a nose the mesh did not have. Denoise stays 0.32. The new input is `docs/review/v9-beauty.png`: green M4 on the left, fully in frame; blue G90 in the centre with its original kidney; burgundy GT3 on the right with horizontal grille slats and lit headlamps. Coloured underglow stays. The G90 grille mesh was not replaced.
+
+The Comfy graph still asks for a file named `v8-beauty.png`. `-Install` copies `docs/review/v9-beauty.png` onto that name. If ComfyUI is already installed, replace the input and queue the same graph. Do not edit denoise, steps, CFG, or the ControlNet strength.
+
+```powershell
+Copy-Item docs\review\v9-beauty.png C:\ComfyUI\bess\ComfyUI_windows_portable\ComfyUI\input\v8-beauty.png -Force
+```
+
+Use the real portable path if it is not `C:\ComfyUI\bess`. Then open `workflows/v8-sdxl-canny.json` and queue it. Seed 7, denoise 0.32. The other tries remain seeds 11 and 21, denoise 0.22 and 0.42. Do not go above 0.45.
+
+To render that still again on the RTX 5060 Ti, from the repo, with Blender 4.5 or newer on the PATH:
+
+```bat
+set BESS_CYCLES_DEVICE=GPU
+blender -b --python scripts\cinematic-hero\render_lineup.py -- --v9
+```
+
+That writes `assets\hero\renders\lineup-v2\v9-beauty\beauty.png` plus the GT3 and G90 fascia checks. It is not the 12-second film. Copy `beauty.png` over Comfy's `input\v8-beauty.png` and queue the same Canny graph. The cloud copy of this still is already in `docs/review/v9-beauty.png`, so a local re-render is optional.
+
 Qwen-Image-Edit-2511 is not part of this setup. The transformer alone is 40.86 GB. It does not fit in 8 GB.
 
 ## What to install
@@ -21,7 +42,7 @@ From this folder, in PowerShell:
 .\Install-BessComfy.ps1 -Launch
 ```
 
-`-Install` downloads the 2.07 GB portable archive and copies `docs/review/v8-beauty.png` into ComfyUI's input folder as `v8-beauty.png`. `-DownloadModels` then fetches only the three files below and checks the SHA-256. FLUX is not downloaded.
+`-Install` downloads the 2.07 GB portable archive and copies `docs/review/v9-beauty.png` into ComfyUI's input folder as `v8-beauty.png`. The graph name is unchanged. `-DownloadModels` then fetches only the three files below and checks the SHA-256. FLUX is not downloaded.
 
 ## Models
 
@@ -77,7 +98,7 @@ The render script stays on CPU unless the environment says otherwise. In `cmd`, 
 
 ```bat
 set BESS_CYCLES_DEVICE=GPU
-blender -b --python scripts\cinematic-hero\render_lineup.py -- --v8
+blender -b --python scripts\cinematic-hero\render_lineup.py -- --v9
 ```
 
-The script tries OptiX, then CUDA, and prints which one it enabled. If neither enables, it stays on CPU. This is the stills pass. The 12-second Cycles film is still waiting for the still to be accepted. The site hero stays a poster until that film exists: autoplay, muted, playsInline, no loop, stopped on the last frame.
+`--v8` is the previous still. `--v9` is the framed trio with the GT3 nose. The script tries OptiX, then CUDA, and prints which one it enabled. If neither enables, it stays on CPU. This is the stills pass. The 12-second Cycles film is still waiting for the still to be accepted. The site hero stays a poster until that film exists: autoplay, muted, playsInline, no loop, stopped on the last frame. The new grille and lamps are parented to the GT3 rig, so a later film keeps them on the car while it drives in and stops.

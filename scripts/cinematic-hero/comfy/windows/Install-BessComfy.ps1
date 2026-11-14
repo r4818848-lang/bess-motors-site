@@ -129,7 +129,12 @@ if ($Install) {
         Copy-Item (Join-Path $repo "scripts\cinematic-hero\comfy\windows\workflows\*.json") $workflowDir -Force
         $inputDir = Join-Path $portable "ComfyUI\input"
         New-Item -ItemType Directory -Force -Path $inputDir | Out-Null
-        Copy-Item (Join-Path $repo "docs\review\v8-beauty.png") (Join-Path $inputDir "v8-beauty.png") -Force
+        # The graph still loads a file named v8-beauty.png. The pixels are the V9 still.
+        $sourceStill = Join-Path $repo "docs\review\v9-beauty.png"
+        if (-not (Test-Path $sourceStill)) {
+            $sourceStill = Join-Path $repo "docs\review\v8-beauty.png"
+        }
+        Copy-Item $sourceStill (Join-Path $inputDir "v8-beauty.png") -Force
     }
     Write-Host "installed under $portable"
 }

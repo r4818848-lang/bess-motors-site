@@ -446,25 +446,33 @@ A later GPU edit of `docs/review/v8-beauty.png` is allowed only if the three bod
 
 Goodyear and Eagle remain on the GT3 tires. Michelin and the BMW roundel remain on the G90. CC BY 4.0 credits JUST GAME (G90), VTDAT23 (M4 Widebody), and MattDoesBlender (GT3). That is the file authors' license. It is not a license from BMW AG. BESS MOTORS is not a BMW partner.
 
+## V9 source frame
+
+`docs/review/v9-beauty.png` is a Cycles still, 1920×1080, 40 samples, OpenImageDenoise, CPU, 45.7 s. It is not an AI image. The camera is pulled back so the green M4, the blue G90, and the burgundy GT3 all sit inside the frame, with the M4 on the left. Headlights are on. The floor glow stays green, blue, and red. `--v9` does not render the 12-second film and does not change the drive-in paths.
+
+The GT3 export has no separate grille or headlamp mesh. The pale kidneys were the painted shell. V9 measures those panels on the parked fascia and parents a slatted grille and a lamp to the rig. `docs/review/v9-gt3.png` is the fascia check, 1400×788, 28 samples, 23.3 s. `docs/review/v9-g90.png` is the original G90 kidney, 28.7 s. The centre plate on that kidney is part of the export. It was not covered and it was not deleted.
+
+The Comfy graph is unchanged: 896×512, denoise 0.32, seed 7, ControlNet 0.55. The file it loads is still named `v8-beauty.png`. Copy `v9-beauty.png` onto that name. Do not raise denoise to invent the grille. The network will not restore geometry that is missing from this still.
+
 ## Windows 8 GB pipeline — not run
 
 Cloud GPU rental is cancelled. The next machine is the owner's Windows 11 PC: RTX 5060 Ti 8 GB, Ryzen 7 7800X3D, 32 GB RAM. The entry point is `scripts/cinematic-hero/comfy/windows/README.md`.
 
 ComfyUI 0.45.0 portable NVIDIA (CUDA 13.0 package, 2,071,479,423 bytes) is the install. It binds to 127.0.0.1 and starts with `--offline`. The download script was not executed here.
 
-The graph is SDXL img2img at 896×512, denoise 0.32, with the xinsir union ControlNet on Canny. SDXL base is Open RAIL++-M. The fp16 VAE fix is MIT. The ControlNet is Apache-2.0. Qwen-Image-Edit-2511 is not downloaded. FLUX.1-schnell Q4_K_S is Apache-2.0 and 6.78 GB, and ComfyUI 0.45 has no GGUF loader, so it is not installed. No image has been generated.
+The graph is SDXL img2img at 896×512, denoise 0.32, with the xinsir union ControlNet on Canny. The input pixels are now `docs/review/v9-beauty.png`, copied over the name `v8-beauty.png`. SDXL base is Open RAIL++-M. The fp16 VAE fix is MIT. The ControlNet is Apache-2.0. Qwen-Image-Edit-2511 is not downloaded. FLUX.1-schnell Q4_K_S is Apache-2.0 and 6.78 GB, and ComfyUI 0.45 has no GGUF loader, so it is not installed. No AI image has been generated.
 
 `BESS_CYCLES_DEVICE=GPU` asks the existing render script for OptiX, then CUDA. The default remains CPU. The 12-second Cycles film is still waiting.
 
 ## V8 AI pipeline — not run
 
-The 80 GB recipe is kept and is not the current step. The V8 still is the input. There is no V9 lighting pass. The Cloud Agent still has no GPU, so those weights were not downloaded and no AI frame exists.
+The 80 GB recipe is kept and is not the current step. The Comfy input is the V9 Cycles still. The Cloud Agent still has no GPU, so those weights were not downloaded and no AI frame exists.
 
 `scripts/cinematic-hero/comfy/edit_hero.py` calls the official `QwenImageEditPlusPipeline` for `Qwen/Qwen-Image-Edit-2511` (Apache-2.0, 57.72 GB). Diffusers is pinned at 0.43.0. On this machine the script exits 2 before `from_pretrained`. A dry run exits 0 and only prints the three variant names.
 
 The transformer files are 40.86 GB. `pipeline.to("cuda")` is the official model-card call and is the mode for an 80 GB card. It is not offloading. `enable_model_cpu_offload()` is implemented for a card that reports at least 48 GB, and `enable_sequential_cpu_offload()` only runs when asked for by name. Neither offload mode has been executed. A 24 GB card is refused. The script does not claim that floor is verified.
 
-The GT3 kidneys stay pale. A material census after the V8 recolour shows the body shells on an unlinked burgundy base `(0.27, 0.01, 0.02)`. There is no separate unlinked white grille material on those shells. The edit prompt forbids redrawing that grille. Splitting the faces is the geometry fix, and it was not done in this pass.
+The GT3 nose in the V8 still was a smooth shell. V9 puts horizontal slats and a lit lamp on that shell. See the V9 source frame below. The G90 kidney mesh was left as exported.
 
 The first paid step is one 80 GB GPU, 64 GB of system RAM, and 120 GB of free disk, for about two hours. Public on-demand ranges on 13 Nov 2026 were roughly $0.87–$1.72 per hour for an A100 80GB and roughly $2.69–$3.87 per hour for an H100 80GB. That is a published range, not a reservation. No account was opened.
 
