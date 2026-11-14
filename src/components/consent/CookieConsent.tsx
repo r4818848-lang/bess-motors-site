@@ -37,7 +37,7 @@ function ConsentText({ field }: { field: "title" | "body" | "requiredHint" | "ac
   return (
     <>
       {CONSENT_LOCALES.map((locale) => (
-        <span key={locale} data-cc={locale}>
+        <span key={locale} data-cc={locale} suppressHydrationWarning>
           {getTranslations(locale).cookieConsent[field]}
         </span>
       ))}
@@ -90,13 +90,13 @@ export function CookieConsent() {
       aria-labelledby="cookie-consent-title"
     >
       <div className="w-full max-w-lg rounded-2xl border border-bm-red/40 bg-bm-surface p-6 md:p-8 shadow-2xl">
-        <p id="cookie-consent-title" className="font-display text-lg uppercase text-bm-red">
+        <p id="cookie-consent-title" className="font-display text-lg uppercase text-white">
           <ConsentText field="title" />
         </p>
         <p className="text-sm text-bm-muted mt-3 leading-relaxed min-h-[4.75rem]">
           <ConsentText field="body" />
         </p>
-        <p className="text-xs text-bm-muted/80 mt-2">
+        <p className="text-xs text-white/75 mt-2">
           <ConsentText field="requiredHint" />
         </p>
         <div className="mt-6 flex flex-col sm:flex-row gap-3">

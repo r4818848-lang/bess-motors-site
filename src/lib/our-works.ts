@@ -1240,6 +1240,11 @@ See: /wymiana-sprzegla-warszawa
 
 export const OUR_WORK_VIDEOS: OurWorkVideo[] = [...OUR_WORK_VIDEOS_SOURCE].reverse();
 
+/** Designed reel covers and promo boards, not a photograph of the finished job. */
+export function isPromoArtwork(src: string): boolean {
+  return /(?:-cover\.|-promo\.)/i.test(src);
+}
+
 export function getOurWorkVideosForService(serviceId: ServiceId): OurWorkVideo[] {
   return OUR_WORK_VIDEOS.filter((work) => work.serviceIds.includes(serviceId));
 }

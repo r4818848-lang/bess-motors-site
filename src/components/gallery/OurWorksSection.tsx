@@ -7,7 +7,7 @@ import { Play, X, ExternalLink, Instagram, ZoomIn } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { contentLocale } from "@/lib/i18n/locale-utils";
 import type { ServiceId } from "@/lib/services-catalog";
-import { OUR_WORK_VIDEOS, type OurWorkVideo } from "@/lib/our-works";
+import { isPromoArtwork, OUR_WORK_VIDEOS, type OurWorkVideo } from "@/lib/our-works";
 
 function WorkDescription({ text }: { text: string }) {
   const blocks = text.split(/\n\n+/);
@@ -86,17 +86,15 @@ function WorkCard({
   work: OurWorkVideo;
   onPlay: (work: OurWorkVideo) => void;
 }) {
-  const { locale, t } = useI18n();
+  const { locale } = useI18n();
   const lang = contentLocale(locale);
-  const ow = t.ourWorks;
 
   return (
     <article className="group relative rounded-2xl overflow-hidden border border-bm-border/50 bg-bm-card/40 hover:border-bm-red/40 transition-all hover:shadow-neon-sm">
       <button
         type="button"
         onClick={() => onPlay(work)}
-        className="relative block w-full aspect-[9/16] max-h-[420px] text-left"
-        aria-label={`${work.imageOnly ? ow.viewPhoto : ow.watchVideo}: ${work.title[lang]}`}
+        className="relative block w-full aspect-[9/16] max-h-[min(420px,70vh)] text-left"
       >
         <Image
           src={work.posterSrc}
@@ -106,15 +104,9 @@ function WorkCard({
           className="object-contain bg-black transition-transform duration-500 group-hover:scale-[1.02]"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-black/30" />
-        <div className="absolute inset-0 flex items-center justify-center">
-          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-bm-red/90 text-white shadow-neon-sm ring-4 ring-white/20 transition-transform group-hover:scale-110">
-            {work.imageOnly ? (
-              <ZoomIn size={26} />
-            ) : (
-              <Play size={28} className="ml-1" fill="currentColor" />
-            )}
-          </span>
-        </div>
+        <span className="absolute left-3 top-3 flex h-8 w-8 items-center justify-center rounded-full border border-white/25 bg-black/55 text-white" aria-hidden>
+          {work.imageOnly ? <ZoomIn size={16} /> : <Play size={16} className="ml-0.5" fill="currentColor" />}
+        </span>
         {work.instagramUrl ? (
           <div className="absolute top-3 right-3 rounded-full bg-black/60 p-1.5">
             <Instagram size={16} className="text-white" />
@@ -226,7 +218,12 @@ export function OurWorksSection({
   const items = serviceId
     ? OUR_WORK_VIDEOS.filter((work) => work.serviceIds.includes(serviceId))
     : OUR_WORK_VIDEOS;
-  const visible = limit ? items.slice(0, limit) : items;
+  const photos = items.filter((work) => !isPromoArtwork(work.posterSrc));
+  const promos = items.filter((work) => isPromoArtwork(work.posterSrc));
+  const ordered = [...photos, ...promos];
+  const visible = limit ? ordered.slice(0, limit) : ordered;
+  const visiblePhotos = visible.filter((work) => !isPromoArtwork(work.posterSrc));
+  const visiblePromos = visible.filter((work) => isPromoArtwork(work.posterSrc));
 
   if (!visible.length) return null;
 
@@ -247,17 +244,21 @@ export function OurWorksSection({
         </h2>
       )}
 
-      <div
-        className={
-          compact
-            ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"
-            : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"
-        }
-      >
-        {visible.map((work) => (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        {visiblePhotos.map((work) => (
           <WorkCard key={work.id} work={work} onPlay={setActive} />
         ))}
       </div>
+      {visiblePromos.length > 0 ? (
+        <div className="mt-12">
+          <h3 className="font-display text-lg uppercase text-white">{ow.promoTitle}</h3>
+          <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {visiblePromos.map((work) => (
+              <WorkCard key={work.id} work={work} onPlay={setActive} />
+            ))}
+          </div>
+        </div>
+      ) : null}
 
       {limit && items.length > limit ? (
         <div className="mt-6 text-center">
@@ -365,7 +366,6 @@ export function ServiceWorkVideo({ serviceId, className = "" }: InlineProps) {
                 type="button"
                 onClick={() => canPlayVideo && setPlaying(true)}
                 className="relative block w-full aspect-[9/16] max-h-[70vh] text-left"
-                aria-label={`${canPlayVideo ? ow.watchVideo : ow.viewPhoto}: ${featured.title[lang]}`}
               >
                 <Image
                   src={featured.posterSrc}

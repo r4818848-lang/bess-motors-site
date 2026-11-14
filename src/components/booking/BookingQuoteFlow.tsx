@@ -113,8 +113,8 @@ function ServiceCard({
           type="button"
           data-fbq-track="AddToCart"
           onClick={() => onAdd(qty)}
-          className="shrink-0 w-9 h-9 rounded-full border border-bm-red/60 flex items-center justify-center text-bm-red hover:bg-bm-red/20 transition-colors"
-          title={labels.addService}
+          className="shrink-0 inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full border border-bm-red/60 text-bm-ink hover:bg-bm-red/20 transition-colors"
+          aria-label={labels.addService}
         >
           <Plus size={18} />
         </button>
@@ -126,7 +126,8 @@ function ServiceCard({
           </span>
           <button
             type="button"
-            className="w-8 h-8 rounded-lg border border-bm-border flex items-center justify-center"
+            className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg border border-bm-border"
+            aria-label={`${labels.quantity} −`}
             onClick={() =>
               setQty((q) => Math.max(item.minQty ?? 1, q - 1))
             }
@@ -136,7 +137,8 @@ function ServiceCard({
           <span className="font-mono text-sm w-8 text-center">{qty}</span>
           <button
             type="button"
-            className="w-8 h-8 rounded-lg border border-bm-border flex items-center justify-center"
+            className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg border border-bm-border"
+            aria-label={`${labels.quantity} +`}
             onClick={() =>
               setQty((q) => Math.min(item.maxQty ?? 99, q + 1))
             }
@@ -149,7 +151,7 @@ function ServiceCard({
         </div>
       )}
       {inCart && (
-        <p className="text-[10px] text-emerald-400 mt-2 uppercase tracking-wide">
+        <p className="text-[10px] text-bm-ink mt-2 uppercase tracking-wide">
           ✓ {labels.inCart}
         </p>
       )}
@@ -291,6 +293,7 @@ export function BookingQuoteFlow({ onDone }: Props) {
   const quickFromAds = isPhoneOnlyBookingUrl(searchParams.toString());
 
   const [phase, setPhase] = useState<Phase>("services");
+  const [fieldFocused, setFieldFocused] = useState(false);
   const { t, locale } = useI18n();
   const { clientUser, sessionReady } = useAuth();
   const bq = t.bookingQuote;
@@ -382,6 +385,30 @@ export function BookingQuoteFlow({ onDone }: Props) {
     });
   };
 
+  useEffect(() => {
+    const isField = (node: EventTarget | null) =>
+      node instanceof HTMLElement && node.matches("input, textarea, select");
+    const onFocus = (event: FocusEvent) => {
+      if (!isField(event.target)) return;
+      setFieldFocused(true);
+      const target = event.target as HTMLElement;
+      window.setTimeout(() => {
+        target.scrollIntoView({ block: "center", inline: "nearest" });
+      }, 280);
+    };
+    const onBlur = () => {
+      window.setTimeout(() => {
+        if (!isField(document.activeElement)) setFieldFocused(false);
+      }, 40);
+    };
+    document.addEventListener("focusin", onFocus);
+    document.addEventListener("focusout", onBlur);
+    return () => {
+      document.removeEventListener("focusin", onFocus);
+      document.removeEventListener("focusout", onBlur);
+    };
+  }, []);
+
   const cartIds = new Set(cart.map((l) => l.itemId));
   const subtotal = cartSubtotal(cart);
   const activePackage = activePackageId ? getServicePackage(activePackageId) : undefined;
@@ -409,17 +436,17 @@ export function BookingQuoteFlow({ onDone }: Props) {
   };
 
   return (
-    <div className="pb-52 lg:pb-8">
+    <div className="pb-72 lg:pb-8">
       <p className="text-center text-sm text-bm-muted mb-2">{siteConfig.workingHours}</p>
-      <p className="text-center text-xs text-bm-muted/80 mb-6 max-w-xl mx-auto">
-        {bq.hourlyNote} <strong className="text-bm-red">{HOURLY_RATE_PLN} zł/h</strong>
+      <p className="text-center text-xs text-bm-muted mb-6 max-w-xl mx-auto">
+        {bq.hourlyNote} <strong className="text-bm-ink">{HOURLY_RATE_PLN} zł/h</strong>
       </p>
 
-      <ol className="mb-6 flex flex-col gap-2 text-sm text-bm-silver sm:flex-row sm:justify-center sm:gap-6" aria-label="Etapy zapisu">
+      <ol className="mb-6 flex flex-row flex-wrap justify-center gap-x-5 gap-y-1 text-sm text-bm-silver" aria-label={bq.stepsLabel}>
         {[
-          { id: "services", label: "Usługa" },
-          { id: "phone", label: "Telefon" },
-          { id: "done", label: "Potwierdzenie" },
+          { id: "services", label: bq.stepService },
+          { id: "phone", label: bq.stepPhone },
+          { id: "done", label: bq.stepConfirm },
         ].map((item, index) => {
           const active =
             item.id === phase || (item.id === "phone" && phase === "acChoice");
@@ -462,10 +489,10 @@ export function BookingQuoteFlow({ onDone }: Props) {
                     key={cat.id}
                     type="button"
                     onClick={() => setCategory(cat.id)}
-                    className={`px-3 py-2 rounded-full text-[11px] font-bold uppercase tracking-wide border transition-all ${
+                    className={`inline-flex min-h-[44px] items-center px-4 py-2 rounded-full text-[11px] font-bold uppercase tracking-wide border transition-all ${
                       category === cat.id
-                        ? "bg-bm-red/20 border-bm-red text-bm-red shadow-neon-sm"
-                        : "border-bm-border text-bm-muted hover:text-white"
+                        ? "bg-bm-red border-bm-red text-white"
+                        : "border-bm-border text-white/80 hover:text-white"
                     }`}
                   >
                     {contentLoc === "ru" ? cat.nameRu : cat.namePl}
@@ -596,7 +623,7 @@ export function BookingQuoteFlow({ onDone }: Props) {
         )}
       </AnimatePresence>
 
-      {(phase === "services" || phase === "phone") && (
+      {(phase === "services" || phase === "phone") && !fieldFocused && (
         <div className="lg:hidden fixed bottom-0 left-0 right-0 z-[100] glass-red border-t border-bm-red/40 shadow-[0_-8px_32px_rgba(0,0,0,0.85)] safe-area-pb">
           {cart.length > 0 && (
             <div className="max-h-44 overflow-y-auto border-b border-bm-border/40 px-3 py-2 space-y-1">

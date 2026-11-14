@@ -53,10 +53,10 @@ export function PriceListCalculator() {
     <div className="rounded-2xl border border-bm-red/30 bg-bm-card/60 p-5 mb-10">
       <div className="flex items-center gap-2 mb-3">
         <Calculator className="text-bm-red" size={20} />
-        <h2 className="font-display text-sm uppercase text-bm-red">{c.title}</h2>
+        <h2 className="font-display text-sm uppercase text-bm-ink">{c.title}</h2>
       </div>
       <p className="text-sm text-bm-muted mb-4">{c.subtitle}</p>
-      <p className="text-xs text-emerald-400/90 mb-4">{t.promoPrice.legend}</p>
+      <p className="text-xs text-white/75 mb-4">{t.promoPrice.legend}</p>
       <div className="grid sm:grid-cols-2 gap-2 mb-4">
         {popular.map((item) => {
           if (!item) return null;

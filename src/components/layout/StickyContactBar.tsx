@@ -40,7 +40,7 @@ export function StickyContactBar() {
           kind="whatsapp"
           href={workshopWhatsAppChatUrl(locale)}
           trackSource="sticky_bar_whatsapp"
-          className="flex items-center justify-center gap-1 min-h-[52px] py-3 text-[10px] font-bold uppercase bg-[#25D366] text-white border-x border-white/10"
+          className="flex items-center justify-center gap-1 min-h-[52px] py-3 text-[10px] font-bold uppercase bg-[#25D366] text-black border-x border-white/10"
         >
           <MessageCircle size={15} /> {sc.whatsapp}
         </SocialContactLink>

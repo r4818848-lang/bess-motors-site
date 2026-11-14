@@ -37,7 +37,7 @@ export function OilBrakePromoBanner() {
       <div className="mx-auto max-w-7xl px-4 lg:px-8 py-8 sm:py-10 relative">
         <div className="grid lg:grid-cols-[1fr_auto] gap-8 items-start">
           <div>
-            <p className="inline-flex items-center gap-2 rounded-full border border-emerald-500/50 bg-emerald-500/15 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-emerald-400 mb-4">
+            <p className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-bm-ink mb-4">
               <Tag size={12} />
               {p.badge}
             </p>
@@ -86,7 +86,7 @@ export function OilBrakePromoBanner() {
                         : buildBookingUrl([offer.bookingItems])
                     }
                     trackSource={`oil_brake_promo_${offer.id}`}
-                    className="mt-3 inline-flex text-xs font-bold uppercase text-bm-red hover:underline items-center gap-1"
+                    className="mt-3 inline-flex text-xs font-bold uppercase text-bm-ink hover:underline items-center gap-1"
                   >
                     {p.bookItem}
                     <ChevronRight size={12} />
