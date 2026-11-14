@@ -236,13 +236,16 @@ Info "Frames  $folder"
 Info "Mode  $Mode   $($Env:BESS_FRAME_START)-$($Env:BESS_FRAME_END)   max samples $($Env:BESS_SAMPLES)"
 Info "An existing PNG larger than 200 KB is kept, so a stopped render continues."
 
-& $Blender -b --python (Join-Path $Repo "scripts\cinematic-hero\render_lineup.py") -- $flag
+& $Blender -b --python-exit-code 7 --python (Join-Path $Repo "scripts\cinematic-hero\render_lineup.py") -- $flag
 if ($LASTEXITCODE -ne 0) {
     Fail "Blender exited with code $LASTEXITCODE. Finished PNGs were kept."
 }
 
 $pngs = @(Get-ChildItem -LiteralPath $folder -Filter "f*.png" | Where-Object { $_.Length -ge 200KB })
 Info "PNG frames on disk: $($pngs.Count) / $frameCount"
+if ($pngs.Count -lt $frameCount) {
+    Fail "Render is incomplete: $($pngs.Count) of $frameCount PNGs exist. Inspect Blender errors and run again to resume."
+}
 
 $ffmpeg = Get-Command ffmpeg -ErrorAction SilentlyContinue
 if (-not $ffmpeg) {
