@@ -215,6 +215,29 @@ def bsdf(mat):
     return next((node for node in mat.node_tree.nodes if node.type == "BSDF_PRINCIPLED"), None)
 
 
+def ensure_principled(mat):
+    """Blender 5.x creates a material node tree without a named default Principled node.
+
+    Look up the shader by type, and for a freshly created material add and wire one
+    if it is absent. Do not replace imported GLB material node graphs.
+    """
+    tree = mat.node_tree
+    if tree is None:
+        raise RuntimeError(f"Material {mat.name} has no node tree")
+    node = next((n for n in tree.nodes if n.type == "BSDF_PRINCIPLED"), None)
+    if node is not None:
+        return node
+    node = tree.nodes.new("ShaderNodeBsdfPrincipled")
+    node.name = "Principled BSDF"
+    output = next((n for n in tree.nodes if n.type == "OUTPUT_MATERIAL" and n.is_active_output), None)
+    if output is None:
+        output = next((n for n in tree.nodes if n.type == "OUTPUT_MATERIAL"), None)
+    if output is None:
+        output = tree.nodes.new("ShaderNodeOutputMaterial")
+    tree.links.new(node.outputs["BSDF"], output.inputs["Surface"])
+    return node
+
+
 def paint(name, color, metallic, roughness, coat=1.0, coat_rough=0.03):
     """Automotive paint is a dielectric under clearcoat, not a metal shader."""
     node = bsdf(bpy.data.materials.get(name))
@@ -568,7 +591,7 @@ def studio(floor_z, receivers=None):
     floor.name = "Floor"
     mat = bpy.data.materials.new("Floor")
     mat.use_nodes = True
-    node = mat.node_tree.nodes["Principled BSDF"]
+    node = ensure_principled(mat)
     if v10_requested():
         # Near-black and wet, so the coloured skirts stretch the way they do in the reference.
         # The audit close-ups use a softer floor. A mirror was hiding the bumper edges.
@@ -767,7 +790,7 @@ def show_contacts(cars, visible):
     if not visible:
         floor = bpy.data.materials.get("Floor")
         if floor is not None:
-            bsdf = floor.node_tree.nodes["Principled BSDF"]
+            bsdf = ensure_principled(floor)
             for link in list(bsdf.inputs["Base Color"].links):
                 floor.node_tree.links.remove(link)
             bsdf.inputs["Base Color"].default_value = (0.055, 0.056, 0.060, 1.0)
@@ -776,7 +799,7 @@ def show_contacts(cars, visible):
         return
     mat = bpy.data.materials.new("ContactEmit")
     mat.use_nodes = True
-    node = mat.node_tree.nodes["Principled BSDF"]
+    node = ensure_principled(mat)
     node.inputs["Emission Color"].default_value = (1.0, 0.35, 0.08, 1.0)
     node.inputs["Emission Strength"].default_value = 12.0
     floor = bpy.data.materials.get("Floor")
@@ -787,7 +810,7 @@ def show_contacts(cars, visible):
         checker.inputs["Scale"].default_value = 80.0
         checker.inputs["Color1"].default_value = (0.11, 0.11, 0.12, 1.0)
         checker.inputs["Color2"].default_value = (0.2, 0.2, 0.21, 1.0)
-        links.new(checker.outputs["Color"], nodes["Principled BSDF"].inputs["Base Color"])
+        links.new(checker.outputs["Color"], ensure_principled(floor).inputs["Base Color"])
     index = 0
     for car in cars:
         for hub in car["front"] + car["rear"]:
@@ -1554,8 +1577,14 @@ def tune_named_materials():
                 node.inputs["Coat Weight"].default_value = 0.0
             if not node.inputs["Base Color"].is_linked:
                 node.inputs["Base Color"].default_value = (0.72, 0.76, 0.78, 1.0)
-            mat.blend_method = "HASHED"
-            mat.use_screen_refraction = True
+            if hasattr(mat, "surface_render_method"):
+                mat.surface_render_method = "DITHERED"
+            elif hasattr(mat, "blend_method"):
+                mat.blend_method = "HASHED"
+            if hasattr(mat, "use_raytrace_refraction"):
+                mat.use_raytrace_refraction = True
+            elif hasattr(mat, "use_screen_refraction"):
+                mat.use_screen_refraction = True
             mat.show_transparent_back = False
         if "tyre" in low or "tire" in low:
             node.inputs["Metallic"].default_value = 0.0
@@ -1667,7 +1696,7 @@ def bess_paint_material():
     """
     mat = bpy.data.materials.new("BESS_GT3_Paint")
     mat.use_nodes = True
-    node = mat.node_tree.nodes["Principled BSDF"]
+    node = ensure_principled(mat)
     node.inputs["Base Color"].default_value = (0.085, 0.088, 0.092, 1.0)
     node.inputs["Metallic"].default_value = 0.0
     node.inputs["Roughness"].default_value = 0.34
@@ -1840,7 +1869,7 @@ def ignite_gt3_ends(rig):
 def optic_material(name, red):
     mat = bpy.data.materials.new(name)
     mat.use_nodes = True
-    node = mat.node_tree.nodes["Principled BSDF"]
+    node = ensure_principled(mat)
     color = (1.0, 0.045, 0.012, 1.0) if red else (1.0, 0.97, 0.9, 1.0)
     node.inputs["Base Color"].default_value = color
     node.inputs["Emission Color"].default_value = color
@@ -1999,7 +2028,7 @@ def add_optic_pod(rig, location, outward, name, red):
     def shade(suffix, color, emission, rough, transmission=0.0, metallic=0.0):
         mat = bpy.data.materials.new(name + suffix)
         mat.use_nodes = True
-        node = mat.node_tree.nodes["Principled BSDF"]
+        node = ensure_principled(mat)
         node.inputs["Base Color"].default_value = (*color, 1.0)
         node.inputs["Emission Color"].default_value = (*color, 1.0)
         node.inputs["Emission Strength"].default_value = emission
@@ -2009,8 +2038,14 @@ def add_optic_pod(rig, location, outward, name, red):
             node.inputs["Transmission Weight"].default_value = transmission
             if "IOR" in node.inputs:
                 node.inputs["IOR"].default_value = 1.5
-            mat.blend_method = "HASHED"
-            mat.use_screen_refraction = True
+            if hasattr(mat, "surface_render_method"):
+                mat.surface_render_method = "DITHERED"
+            elif hasattr(mat, "blend_method"):
+                mat.blend_method = "HASHED"
+            if hasattr(mat, "use_raytrace_refraction"):
+                mat.use_raytrace_refraction = True
+            elif hasattr(mat, "use_screen_refraction"):
+                mat.use_screen_refraction = True
         return mat
 
     led_color = (1.0, 0.045, 0.012) if red else (1.0, 0.98, 0.92)
@@ -2215,7 +2250,7 @@ def darken_gt3_grille(rig):
 def _nose_material(name, color, emission, rough, metallic=0.0, transmission=0.0):
     mat = bpy.data.materials.new(name)
     mat.use_nodes = True
-    node = mat.node_tree.nodes["Principled BSDF"]
+    node = ensure_principled(mat)
     node.inputs["Base Color"].default_value = (*color, 1.0)
     node.inputs["Emission Color"].default_value = (*color, 1.0)
     node.inputs["Emission Strength"].default_value = emission
@@ -2546,7 +2581,29 @@ def visible_wheel_meshes(hub):
 
 
 def add_lamp_glow(scene):
-    """A small fog glow so the lamps and the floor light bloom the way a photo does."""
+    """A small glow on lamps; Blender 5.x uses scene.compositing_node_group."""
+    if bpy.app.version >= (5, 0, 0):
+        tree = bpy.data.node_groups.new("BESS Film Compositor", "CompositorNodeTree")
+        scene.compositing_node_group = tree
+        tree.interface.new_socket(name="Image", in_out="OUTPUT", socket_type="NodeSocketColor")
+        layers = tree.nodes.new("CompositorNodeRLayers")
+        output = tree.nodes.new("NodeGroupOutput")
+        try:
+            glare = tree.nodes.new("CompositorNodeGlare")
+            if hasattr(glare, "glare_type"):
+                glare.glare_type = "FOG_GLOW"
+            if hasattr(glare, "threshold"):
+                glare.threshold = 0.65
+            if "Image" in glare.inputs and "Image" in glare.outputs:
+                tree.links.new(layers.outputs["Image"], glare.inputs["Image"])
+                tree.links.new(glare.outputs["Image"], output.inputs["Image"])
+            else:
+                tree.links.new(layers.outputs["Image"], output.inputs["Image"])
+        except (RuntimeError, TypeError, AttributeError, KeyError) as exc:
+            print("COMPOSITOR glare unavailable; using unmodified render:", exc)
+            tree.links.new(layers.outputs["Image"], output.inputs["Image"])
+        return
+
     scene.use_nodes = True
     tree = scene.node_tree
     tree.nodes.clear()
@@ -3066,7 +3123,7 @@ def main():
             scene.eevee.bloom_intensity = 0.012
             scene.eevee.bloom_threshold = 1.8
             scene.eevee.use_ssr = False
-            floor_node = bpy.data.materials["Floor"].node_tree.nodes["Principled BSDF"]
+            floor_node = ensure_principled(bpy.data.materials["Floor"])
             # Eevee turns the softboxes into white tiles on a wet floor. Matte the
             # draft floor and keep the colour on the skirt lights only.
             floor_node.inputs["Roughness"].default_value = 0.92
