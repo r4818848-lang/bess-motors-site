@@ -71,9 +71,14 @@ def v4_requested():
     return any(flag == "--v4" or flag.startswith("--v4-") for flag in RENDER_FLAGS)
 
 
+def audit_requested():
+    """Close-ups of the exported meshes. No fake GT3 boxes and no new group shot."""
+    return any(flag == "--audit" or flag.startswith("--audit") for flag in RENDER_FLAGS)
+
+
 def v10_requested():
     """The attached studio frame: darker cove, wet floor, brighter lamps."""
-    return any(flag == "--v10" or flag.startswith("--v10") for flag in RENDER_FLAGS)
+    return audit_requested() or any(flag == "--v10" or flag.startswith("--v10") for flag in RENDER_FLAGS)
 
 
 def v9_requested():
@@ -204,6 +209,36 @@ def paint(name, color, metallic, roughness, coat=1.0, coat_rough=0.03):
         node.inputs["Specular IOR Level"].default_value = 0.5
     if "Emission Strength" in node.inputs and not node.inputs["Emission Strength"].is_linked:
         node.inputs["Emission Strength"].default_value = 0.0
+
+
+def automotive_clearcoat(mat):
+    """Dielectric basecoat under a clearcoat whose roughness varies, as orange peel does.
+
+    A single roughness number is what made the bodies look like plastic.
+    """
+    node = bsdf(mat)
+    if node is None or "Coat Roughness" not in node.inputs or mat.node_tree is None:
+        return
+    tree = mat.node_tree
+    noise = tree.nodes.new("ShaderNodeTexNoise")
+    noise.inputs["Scale"].default_value = 240.0
+    noise.inputs["Detail"].default_value = 6.0
+    noise.inputs["Roughness"].default_value = 0.62
+    spread = tree.nodes.new("ShaderNodeMapRange")
+    spread.inputs["From Min"].default_value = 0.4
+    spread.inputs["From Max"].default_value = 0.72
+    spread.inputs["To Min"].default_value = 0.016
+    spread.inputs["To Max"].default_value = 0.065
+    tree.links.new(noise.outputs["Fac"], spread.inputs["Value"])
+    for link in list(node.inputs["Coat Roughness"].links):
+        tree.links.remove(link)
+    tree.links.new(spread.outputs["Result"], node.inputs["Coat Roughness"])
+    node.inputs["Coat Weight"].default_value = 1.0
+    node.inputs["Metallic"].default_value = 0.0
+    if not node.inputs["Roughness"].is_linked:
+        node.inputs["Roughness"].default_value = 0.46
+    if "Specular IOR Level" in node.inputs and not node.inputs["Specular IOR Level"].is_linked:
+        node.inputs["Specular IOR Level"].default_value = 0.5
 
 
 class Curve:
@@ -480,9 +515,10 @@ def studio(floor_z, receivers=None):
     node = mat.node_tree.nodes["Principled BSDF"]
     if v10_requested():
         # Near-black and wet, so the coloured skirts stretch the way they do in the reference.
+        # The audit close-ups use a softer floor. A mirror was hiding the bumper edges.
         node.inputs["Base Color"].default_value = (0.012, 0.012, 0.014, 1.0)
-        node.inputs["Roughness"].default_value = 0.07
-        node.inputs["Specular IOR Level"].default_value = 0.72
+        node.inputs["Roughness"].default_value = 0.42 if audit_requested() else 0.07
+        node.inputs["Specular IOR Level"].default_value = 0.38 if audit_requested() else 0.72
     elif v7_requested():
         # Dark enough to stay a studio, glossy enough for the coloured pools to read.
         node.inputs["Base Color"].default_value = (0.045, 0.046, 0.050, 1.0)
@@ -1219,16 +1255,24 @@ def ignite_material(mat, red):
     node = bsdf(mat)
     if node is None or "Emission Strength" not in node.inputs or node.inputs["Emission Strength"].is_linked:
         return
-    node.inputs["Emission Strength"].default_value = (
-        (50.0 if red else 120.0) if v8_requested() else ((36.0 if red else 80.0) if v7_requested() else (9.0 if red else 16.0))
-    )
+    if audit_requested():
+        # Enough to read as lit, low enough that the lamp housing stays visible.
+        node.inputs["Emission Strength"].default_value = 8.0 if red else 3.5
+    else:
+        node.inputs["Emission Strength"].default_value = (
+            (50.0 if red else 120.0) if v8_requested() else ((36.0 if red else 80.0) if v7_requested() else (9.0 if red else 16.0))
+        )
     color_in = node.inputs.get("Emission Color")
     base = node.inputs.get("Base Color")
     if color_in is not None and not color_in.is_linked and base is not None and base.is_linked:
         mat.node_tree.links.new(base.links[0].from_socket, color_in)
     elif color_in is not None and not color_in.is_linked:
         color_in.default_value = (1.0, 0.05, 0.02, 1.0) if red else (1.0, 0.97, 0.9, 1.0)
-    if "Transmission Weight" in node.inputs and not node.inputs["Transmission Weight"].is_linked:
+    if (
+        not audit_requested()
+        and "Transmission Weight" in node.inputs
+        and not node.inputs["Transmission Weight"].is_linked
+    ):
         node.inputs["Transmission Weight"].default_value = max(float(node.inputs["Transmission Weight"].default_value), 0.25)
     print("IGNITE", mat.name, "tail" if red else "head")
 
@@ -1263,7 +1307,7 @@ def place(car, t, radius, wheelbase):
         lamp = 1.0
     else:
         lamp = smooth((shaped((t - curve.t0) / (curve.t1 - curve.t0)) - 0.72) / 0.28)
-    head = 130.0 if v10_requested() else (70.0 if v7_requested() else (150.0 if v6_requested() else 70.0))
+    head = 14.0 if audit_requested() else (130.0 if v10_requested() else (70.0 if v7_requested() else (150.0 if v6_requested() else 70.0)))
     for light in car["spots"]:
         light.energy = head * lamp
     for light in car.get("tails", []):
@@ -1495,6 +1539,8 @@ def coat_gt3_body(rig):
             node.inputs["Coat Roughness"].default_value = 0.06
         if "Specular IOR Level" in node.inputs and not node.inputs["Specular IOR Level"].is_linked:
             node.inputs["Specular IOR Level"].default_value = 0.5
+        if audit_requested():
+            automotive_clearcoat(mat)
 
 
 def boost_lamps():
@@ -2560,7 +2606,9 @@ def main():
         jobs = [("quality", "mobile")]
     if "--axle-still" in sys.argv:
         jobs = [("axle", "desktop")]
-    if "--v10-ee" in sys.argv:
+    if "--audit" in sys.argv:
+        jobs = [("audit", "gt3"), ("audit", "g90"), ("audit", "m4")]
+    elif "--v10-ee" in sys.argv:
         jobs = [("v10ee", "desktop"), ("v10ee", "wide")]
     elif "--v10-reel-spot" in sys.argv:
         jobs = [("v10spot", "wide")]
@@ -2805,7 +2853,11 @@ def main():
         level_gt3_shell(gt3)
         pack_lineup(g90, m4, gt3, g90_wb, m4_wb, gt3_wb)
         audit_arrivals(g90, m4, gt3, g90_wb, m4_wb, gt3_wb)
-        if v10_requested():
+        if audit_requested():
+            add_contour(m4, srgb_to_linear("18F06A"), "M4", energy=48.0)
+            add_contour(g90, srgb_to_linear("2F74FF"), "G90", energy=52.0)
+            add_contour(gt3, srgb_to_linear("E01430"), "GT3", energy=56.0)
+        elif v10_requested():
             add_contour(m4, srgb_to_linear("18F06A"), "M4", energy=340.0)
             add_contour(g90, srgb_to_linear("2F74FF"), "G90", energy=380.0)
             add_contour(gt3, srgb_to_linear("E01430"), "GT3", energy=400.0)
@@ -2830,7 +2882,15 @@ def main():
         place(m4, DURATION, m4["radius"], m4_wb)
         place(gt3, DURATION, gt3["radius"], gt3_wb)
         bpy.context.view_layer.update()
-        seat_gt3_fascia(gt3)
+        if not audit_requested():
+            seat_gt3_fascia(gt3)
+        else:
+            for name in (
+                "0.005",
+                "bBMW_M4CompetitionG82TNR0_2021PaintTNR_Material_004",
+                "ext_red",
+            ):
+                automotive_clearcoat(bpy.data.materials.get(name))
     keyframes = [
         ("00-empty", 0.0, True),
         ("01-g90-arc", 1.7, False),
@@ -2880,6 +2940,10 @@ def main():
                     True,
                 )
             folder = out / f"quality-{view}"
+        elif job == "audit":
+            shots = [("fascia", DURATION, False)]
+            scene = configure_scene(1400, 900, 40, True)
+            folder = out / f"audit-{view}"
         elif job == "v10ee":
             shots = [("check", DURATION, False)]
             scene = configure_scene(1280, 720, 16, False)
@@ -3149,7 +3213,13 @@ def main():
                 hide_tree(g90["rig"], True)
                 hide_tree(gt3["rig"], True)
             bpy.context.view_layer.update()
-            if v9_requested() and not v10_requested() and view == "beauty":
+            if job == "audit" and view == "gt3":
+                aim_fascia(gt3, 50)
+            elif job == "audit" and view == "g90":
+                aim_fascia(g90, 50)
+            elif job == "audit" and view == "m4":
+                aim_fascia(m4, 50)
+            elif v9_requested() and not v10_requested() and view == "beauty":
                 frame_complete_trio((g90, m4, gt3))
             elif job in {"v9", "v9ee"} and view == "g90":
                 aim_fascia(g90, 58)

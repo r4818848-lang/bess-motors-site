@@ -511,11 +511,47 @@ The homepage on this branch shows these posters. There is still no `<video>`. Th
 
 CC BY 4.0 is the uploader's license for the file only: JUST GAME (G90), VTDAT23 (M4 Widebody), MattDoesBlender (GT3). It is not a license from BMW AG. It does not clear the roundel, the M stripes, the grille, the vehicle design, or a claim that BMW supplied the picture. The VTX GT3 (CC BY-NC-SA) is not imported. Goodyear and Eagle remain on the GT3 tires. Michelin and the roundel remain on the G90. These frames must not go on the commercial site until that is decided. BESS MOTORS is not a BMW partner.
 
+## Mesh audit — V10 was rejected, and shaders do not make these files photographic
+
+V10 was not accepted. The colours and the underglow were not the cause. The close-ups below are Cycles, 1400×900, 40 samples, OIDN, CPU, one car at a time, straight at the nose. The GT3 boxes from V9 are not in these frames. The homepage posters were not replaced, and no new group shot was rendered.
+
+`docs/review/audit-gt3-fascia.png`, `docs/review/audit-g90-fascia.png`, `docs/review/audit-m4-fascia.png`.
+
+| File | Tris | What the file actually contains |
+| --- | --- | --- |
+| G90, JUST GAME, CC BY 4.0 | 378,333 | Body material `0.005` has no texture, no normal map, and no clearcoat in the file. `CSR2_Grille1` is a 24-face card, 1.57×0.34 m. The lamp pieces named `CSR2_Light` are 327 and 503 faces and about 2 cm deep. |
+| M4 Widebody, VTDAT23, CC BY 4.0 | 385,081 | The nose has separate lamp meshes (the housing is 13,755 faces, the inner frame 11,630) and a 2,048 px lamp texture. The kidney `Object_99` is 1,888 faces for the whole grille. Glass is a single shell of 1,641 faces. |
+| GT3, MattDoesBlender `0feb1f9`, CC BY 4.0 | 523,877 | One outer shell (`mesh_135_1713`, 71,551 faces) plus inner shells. No headlamp object and no grille object. Most materials use a 16×16 colour swatch. The livery is a 2,048 px albedo with no normal map and no roughness map. Sampled face normals point inward on 2,198 of 6,458 faces. `mesh_132_*` is a second, upside-down copy and is deleted at load. |
+
+Sampled normals also point inward on 2,089 of 9,408 G90 faces and 698 of 3,650 M4 faces. That is a game-export habit. It is not something a roughness change repairs.
+
+### What a shader can change
+
+- Clearcoat over a dielectric base, with the coat roughness varying across the panel, is on these three close-ups. It stops the body reading as a single mirror. It does not add panel gaps, flake, or a studio environment.
+- Glass materials whose names contain "glass" are transmitted at IOR 1.52. The G90 and the M4 then show a cabin. The cabin is the game interior, not a photographed one.
+- Headlamp emission on this pass is 3.5 and the head spot is 14, so the M4 rings stay visible instead of burning out. The G90 lamps have almost no internal mesh, so lowering the emission only reveals a shallow card.
+- The floor on this pass is roughness 0.42. The long coloured pools of V10 were the wet floor plus skirt lights at energy 340–400.
+
+### What needs geometry
+
+- GT3: an open kidney mesh, a lens, a lamp bucket, a DRL, and deep intakes. The pale panels and the headlamp dents in `audit-gt3-fascia.png` are the closed shell. Building those parts as boxes was rejected, and it is not repeated here.
+- G90: replace the 24-face grille card with an open slatted kidney, and replace the 2 cm lamp cards with a housing. The lower intakes are a coarse mesh. The real G90 also splits the lamp into an upper DRL and a lower beam. This file does not.
+- M4: the widebody shape, the kidney, and the lamps are present and are the best of the three. They are still a CSR2-resolution game model. The grille does not have the depth of a photographed M4, and the bumper plastics are flat shaders. At the parked yaw the green car sits partly behind the G90. That is framing, and it was not redrawn, because a new group shot waits until the noses are good enough.
+
+### A better GT3 file exists, and it was not imported
+
+[toddeppe, BMW M4 GT3](https://sketchfab.com/3d-models/bmw-m4-gt3-cbf6fd3ea47f41b3aad3f385ee0ee853) is CC BY 4.0, 2,560,923 faces, 36 PBR textures, separate body, glass, tyre, and wheel materials. Sketchfab's download endpoint returns 401 without that account, so the file is not in this branch. The preview is a side view of a race car with a wing, a splitter, and glass. It is the earlier M4 GT3, not the 2025 EVO face, and it still carries BMW marks and sponsor livery. The same mesh re-uploaded by VTX is CC BY-NC-SA and stays unused, as does the Ddiaz CSR2 file. The other MattDoesBlender upload (`341e68d`, 725,225 faces) is also CC BY, but it has one texture. It is not a modelled front.
+
+Hand-modelling a photographic GT3 nose from pictures is not available from these GLBs. A grille, two lamp assemblies, and the intakes are a modelling job measured in days for someone working from the car or from CAD, and the result would still not be a photograph. Scripting more boxes will not get there.
+
+CC BY 4.0 remains the uploader's file licence. It is not a licence from BMW AG for the roundel, the grille, the lamps, or the vehicle design.
+
 ## Still not done
 
-- No `<video>` on the homepage. The v10 posters are on this branch for review. The v8, v7, and v6 files stay.
+- No `<video>` on the homepage. The rejected V10 posters are still what the branch shows. This pass did not replace them.
+- No new group beauty. The three fascia close-ups are the review. They still read as game models.
 - No AI image was generated. The runnable entry point is `scripts/cinematic-hero/comfy/edit_hero.py`. It has not loaded a model.
 - No production Lighthouse pass. The times above are the local dev server.
-- The full 12-second Cycles film waits until the owner accepts these frames. The Eevee file `docs/review/v10-motion-preview.mp4` is the motion test only.
+- The full 12-second Cycles film was not started. The Eevee file `docs/review/v10-motion-preview.mp4` remains the motion test. The drive-in order and the rigs were not changed.
 - The GT3 material hides the sponsor art in the scene only. That does not clear the car design, the BMW marks, or the tire marks.
 - No production deploy and no merge.
