@@ -476,11 +476,46 @@ The GT3 nose in the V8 still was a smooth shell. V9 puts horizontal slats and a 
 
 The first paid step is one 80 GB GPU, 64 GB of system RAM, and 120 GB of free disk, for about two hours. Public on-demand ranges on 13 Nov 2026 were roughly $0.87–$1.72 per hour for an A100 80GB and roughly $2.69–$3.87 per hour for an H100 80GB. That is a published range, not a reservation. No account was opened.
 
+## V10 studio stills — review, not the film
+
+The attached frame is the look reference. It is saved as `docs/review/v10-reference.png`. It is an AI picture, not a photograph and not a render of these GLBs. The cars in the scene are still the three exported meshes.
+
+`docs/review/v10-desktop.png` is Cycles, 1920×1080, 36 samples, OpenImageDenoise, CPU, 44.1 s. The left of the frame stays dark for the headline. `docs/review/v10-wide.png` is the phone frame, 1600×900, 32 samples, 30.0 s, cars centred. Both were rendered on this cloud machine. It has no RTX 5060 Ti. `BESS_CYCLES_DEVICE=GPU` is the switch for the owner's Windows PC, with Blender 4.5 or newer:
+
+```bat
+set BESS_CYCLES_DEVICE=GPU
+blender -b --python scripts\cinematic-hero\render_lineup.py -- --v10
+```
+
+`docs/review/v10-motion-preview.mp4` is the continuous Eevee animatic, 640×360, 24 fps, 12 s, 4 samples. It is not the Cycles film, and it was rendered on this cloud machine's CPU. The owner's RTX 5060 Ti was not used. On Windows, with Blender 4.5 or newer, the same draft is:
+
+```bat
+set BESS_CYCLES_DEVICE=GPU
+blender -b --python scripts\cinematic-hero\render_lineup.py -- --v10-reel
+```
+
+Order is unchanged: blue G90 from 0.2–3.5 s, green M4 from 3.5–6.2 s, burgundy GT3 from 6.2–9.0 s, then a hold to 12 s with the lamps and the floor colour on. The new GT3 grille and lamps are parented to the rig, so they travel with the car. Eevee does not honour the light linking that keeps the Cycles floor dark, so the draft floor is matte and the big softboxes are dimmed. A hidden car's lamps are switched off, because Eevee was still lighting the empty parking spots. The wet floor and the long coloured pools stay in the Cycles stills.
+
+The homepage on this branch shows these posters. There is still no `<video>`. The real page, after the cookie banner is accepted, is in `docs/review/v10-hero-1440.png`, `v10-hero-1366.png`, and `v10-hero-390.png`. Desktop keeps the headline over the left of the picture. The phone puts the picture between the text and the buttons. Both buttons go where they did: UMÓW WIZYTĘ to `/booking`, SPRAWDŹ USŁUGI to `/services`.
+
+### What these GLBs cannot match
+
+- The GT3 file has no headlamp glass and no grille slats. The lit bars and the horizontal slats are boxes parented to the rig. They are not the angular race lamps or the mesh kidney in the reference.
+- The GT3 windshield banner that reads M4 GT3 is not in the mesh. It was not added. It is also a BMW mark.
+- The G90 kidney is the exported mesh, including its flat centre plate. The reference shows an open, lit kidney. That plate was not covered, because a cover hides the real slats.
+- The M4 and G90 headlamp drawings are whatever the export contains. They are not redrawn to the reference's LED signature.
+- The reference background is a specific studio reflection. This scene uses area lights and a dark world, not that environment map. Paint flake, the exact hood streak, and the mirror-wet floor of the AI frame are only approximated.
+- Parked headings stay the drive-in headings. The reference cars face the camera more squarely than these meshes do at the end of the path.
+
+### Rights, before any commercial page
+
+CC BY 4.0 is the uploader's license for the file only: JUST GAME (G90), VTDAT23 (M4 Widebody), MattDoesBlender (GT3). It is not a license from BMW AG. It does not clear the roundel, the M stripes, the grille, the vehicle design, or a claim that BMW supplied the picture. The VTX GT3 (CC BY-NC-SA) is not imported. Goodyear and Eagle remain on the GT3 tires. Michelin and the roundel remain on the G90. These frames must not go on the commercial site until that is decided. BESS MOTORS is not a BMW partner.
+
 ## Still not done
 
-- No `<video>` on the homepage. The v8 posters are on this branch for review. The v7 and v6 files stay.
+- No `<video>` on the homepage. The v10 posters are on this branch for review. The v8, v7, and v6 files stay.
 - No AI image was generated. The runnable entry point is `scripts/cinematic-hero/comfy/edit_hero.py`. It has not loaded a model.
 - No production Lighthouse pass. The times above are the local dev server.
-- The full 12-second Cycles film waits until the owner accepts these frames.
+- The full 12-second Cycles film waits until the owner accepts these frames. The Eevee file `docs/review/v10-motion-preview.mp4` is the motion test only.
 - The GT3 material hides the sponsor art in the scene only. That does not clear the car design, the BMW marks, or the tire marks.
 - No production deploy and no merge.

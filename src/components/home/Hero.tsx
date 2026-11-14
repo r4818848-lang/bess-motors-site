@@ -10,8 +10,8 @@ import { trackGetDirectionsClick } from "@/lib/gtag";
 import { SITE_NAP } from "@/lib/site-nap";
 
 /**
- * Studio posters for the three-car test on this branch. The film is not wired in.
- * The phone loads the wide frame. Desktop loads its own frame. See docs/cinematic-hero-v2.md.
+ * V10 studio posters. The 12-second film is not wired in.
+ * The phone loads the centred wide frame. Desktop loads the frame with room on the left.
  */
 export function Hero() {
   const { t } = useI18n();
@@ -20,14 +20,14 @@ export function Hero() {
   return (
     <section className="relative isolate -mt-14 flex flex-col overflow-hidden bg-[#07080b] pb-[calc(4.75rem+env(safe-area-inset-bottom))] pt-16 sm:-mt-16 sm:pt-20 lg:block lg:min-h-[78vh] lg:pb-16 lg:pt-24">
       <picture className="order-2 px-4 lg:absolute lg:inset-0 lg:z-0 lg:px-0">
-        <source media="(min-width: 1024px)" srcSet="/hero/v8-desktop.webp" type="image/webp" />
+        <source media="(min-width: 1024px)" srcSet="/hero/v10-desktop.webp" type="image/webp" />
         <img
-          src="/hero/v8-wide.webp"
+          src="/hero/v10-wide.webp"
           alt=""
           width={1600}
           height={900}
           fetchPriority="high"
-          className="mt-4 h-auto w-full lg:mt-0 lg:h-full lg:origin-right lg:scale-[0.86] lg:object-cover lg:object-[72%_16%]"
+          className="mt-4 h-auto w-full lg:mt-0 lg:h-full lg:object-cover lg:object-[62%_46%]"
         />
       </picture>
       <div

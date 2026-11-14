@@ -71,9 +71,14 @@ def v4_requested():
     return any(flag == "--v4" or flag.startswith("--v4-") for flag in RENDER_FLAGS)
 
 
+def v10_requested():
+    """The attached studio frame: darker cove, wet floor, brighter lamps."""
+    return any(flag == "--v10" or flag.startswith("--v10") for flag in RENDER_FLAGS)
+
+
 def v9_requested():
     """Same colours as V8, with the GT3 nose and the framing repaired."""
-    return any(flag == "--v9" or flag.startswith("--v9") for flag in RENDER_FLAGS)
+    return v10_requested() or any(flag == "--v9" or flag.startswith("--v9") for flag in RENDER_FLAGS)
 
 
 def v8_requested():
@@ -335,6 +340,25 @@ def hide_tree(rig, hidden):
             obj.hide_render = True if obj in STAY_HIDDEN else hidden
 
 
+def mute_car_lights(car, hidden):
+    """Eevee keeps lighting from a hidden lamp. Zero it until the car is in the shot."""
+    rig = car["rig"]
+    for obj in bpy.context.scene.objects:
+        if obj.type != "LIGHT":
+            continue
+        parent = obj
+        while parent is not None and parent != rig:
+            parent = parent.parent
+        if parent != rig:
+            continue
+        if "bess_energy" not in obj:
+            obj["bess_energy"] = obj.data.energy
+        if hidden:
+            obj.data.energy = 0.0
+        elif obj.name.startswith("Glow"):
+            obj.data.energy = float(obj["bess_energy"])
+
+
 def tire_bottom(names):
     low = 1e9
     hubs = [bpy.data.objects[name] for name in names]
@@ -438,8 +462,13 @@ def studio(floor_z, receivers=None):
     links.new(geom.outputs["Incoming"], sep.inputs["Vector"])
     links.new(sep.outputs["Z"], ramp.inputs["Fac"])
     links.new(ramp.outputs["Color"], bg.inputs["Color"])
+    if v10_requested():
+        ramp.color_ramp.elements[0].color = (0.004, 0.004, 0.005, 1.0)
+        ramp.color_ramp.elements[1].color = (0.012, 0.013, 0.016, 1.0)
     bg.inputs["Strength"].default_value = (
-        0.9 if v7_requested() else (0.62 if v6_requested() else (0.28 if v5_requested() else 0.12))
+        0.22
+        if v10_requested()
+        else (0.9 if v7_requested() else (0.62 if v6_requested() else (0.28 if v5_requested() else 0.12)))
     )
     links.new(bg.outputs["Background"], out.inputs["Surface"])
 
@@ -449,7 +478,12 @@ def studio(floor_z, receivers=None):
     mat = bpy.data.materials.new("Floor")
     mat.use_nodes = True
     node = mat.node_tree.nodes["Principled BSDF"]
-    if v7_requested():
+    if v10_requested():
+        # Near-black and wet, so the coloured skirts stretch the way they do in the reference.
+        node.inputs["Base Color"].default_value = (0.012, 0.012, 0.014, 1.0)
+        node.inputs["Roughness"].default_value = 0.07
+        node.inputs["Specular IOR Level"].default_value = 0.72
+    elif v7_requested():
         # Dark enough to stay a studio, glossy enough for the coloured pools to read.
         node.inputs["Base Color"].default_value = (0.045, 0.046, 0.050, 1.0)
         # Glossy enough that the coloured light stretches toward the camera, as on the reference floor.
@@ -482,6 +516,8 @@ def studio(floor_z, receivers=None):
         obj = bpy.data.objects.new(name, light)
         bpy.context.scene.collection.objects.link(obj)
         obj.location = location
+        # Eevee draws an area lamp as a white card when the camera can see it.
+        obj.visible_camera = False
         look_at(obj, aim)
         if link and receivers:
             col = bpy.data.collections.new(f"{name}Rx")
@@ -501,16 +537,26 @@ def studio(floor_z, receivers=None):
     aim = Vector((0.35, 1.15, 0.7))
     if v7_requested():
         # Long banks in front of the noses. The key is not above the roofs.
-        area("Key", Vector((-1.6, -9.6, 2.15)), 320, (1.0, 0.98, 0.95), 9.0, Vector((0.15, 0.25, 0.72)), size_y=1.7, link=True)
-        area("Fill", Vector((4.4, -7.2, 1.55)), 180, (0.86, 0.9, 1.0), 6.2, Vector((0.5, 0.3, 0.55)), size_y=2.2, link=True)
-        area("Face", Vector((0.15, -6.2, 0.85)), 90, (1.0, 0.98, 0.96), 5.4, Vector((0.2, 0.4, 0.48)), size_y=0.7, link=True)
+        # V10 raises the key so the hoods catch a streak, as in the attached frame.
+        area(
+            "Key",
+            Vector((-1.2, -8.4, 3.4)) if v10_requested() else Vector((-1.6, -9.6, 2.15)),
+            640 if v10_requested() else 320,
+            (1.0, 0.98, 0.95),
+            7.2 if v10_requested() else 9.0,
+            Vector((0.15, 0.4, 0.85)) if v10_requested() else Vector((0.15, 0.25, 0.72)),
+            size_y=1.15 if v10_requested() else 1.7,
+            link=True,
+        )
+        area("Fill", Vector((4.4, -7.2, 1.55)), 90 if v10_requested() else 180, (0.86, 0.9, 1.0), 6.2, Vector((0.5, 0.3, 0.55)), size_y=2.2, link=True)
+        area("Face", Vector((0.15, -6.2, 0.85)), 140 if v10_requested() else 90, (1.0, 0.98, 0.96), 5.4, Vector((0.2, 0.4, 0.48)), size_y=0.7, link=True)
         area("RimL", Vector((-5.4, 2.2, 1.45)), 190, (0.7, 0.98, 0.8), 2.6, Vector((-1.6, 0.35, 0.6)), size_y=1.4, link=True)
         area("RimR", Vector((5.8, 2.6, 1.6)), 260, (1.0, 0.94, 0.92), 2.2, Vector((1.7, 0.4, 0.68)), size_y=1.6, link=True)
         area("Edge", Vector((1.4, 6.4, 2.05)), 200, (0.97, 0.97, 1.0), 1.4, Vector((0.35, 0.45, 0.82)), size_y=3.4, link=True)
         area("Wheel", Vector((0.05, -3.8, 0.32)), 55, (1.0, 0.97, 0.92), 5.0, Vector((0.1, 0.4, 0.22)), size_y=0.4, link=True)
         area("Top", Vector((0.15, 0.5, 8.4)), 36, (0.96, 0.97, 1.0), 14.0, Vector((0.15, 0.3, 0.0)), shadow=True)
-        if v8_requested():
-            # Thin coloured tubes behind the trio, matching the reference neon, not a floor slab.
+        if v8_requested() and not v10_requested():
+            # Thin coloured tubes behind the trio. V10 uses the skirt lights only, so no stray beam sits beside the GT3.
             area("NeonL", Vector((-4.4, 2.4, 1.35)), 110, srgb_to_linear("18F06A"), 0.14, Vector((-1.7, 0.25, 0.65)), size_y=2.8)
             area("NeonC", Vector((0.15, 5.2, 1.6)), 100, srgb_to_linear("2F74FF"), 0.14, Vector((0.15, 0.35, 0.7)), size_y=3.0)
             area("NeonR", Vector((4.6, 2.5, 1.35)), 120, srgb_to_linear("E01430"), 0.14, Vector((1.8, 0.25, 0.65)), size_y=2.8)
@@ -676,6 +722,16 @@ def frame_camera(kind):
         cam.data.lens = 50
         cam.location = Vector((0.15, -6.6, 0.52))
         look_at(cam, Vector((0.25, 0.15, 0.44)))
+    elif kind == "beauty" and v10_requested():
+        # Closer and more frontal than V9. The attached frame fills the width with the noses.
+        cam.data.lens = 52
+        cam.location = Vector((0.06, -7.4, 0.52))
+        look_at(cam, Vector((0.12, 0.85, 0.46)))
+    elif kind == "wide" and v10_requested():
+        # Phone frame: the headline sits above the picture, so the cars can be centred.
+        cam.data.lens = 42
+        cam.location = Vector((0.2, -13.4, 0.58))
+        look_at(cam, Vector((0.35, 0.5, 0.4)))
     elif kind == "beauty" and v7_requested():
         cam.data.lens = 40
         cam.location = Vector((0.08, -9.8, 0.64))
@@ -728,6 +784,12 @@ def frame_camera(kind):
         cam.data.lens = 65
         cam.location = Vector((-0.4, -2.4, 0.85))
         look_at(cam, Vector((0.2, 0.4, 0.55)))
+    elif v10_requested():
+        # Left third stays clear for the headline. Cars sit right and a little closer than V8.
+        cam.data.lens = 44
+        cam.data.shift_x = -0.12
+        cam.location = Vector((0.05, -14.8, 0.64))
+        look_at(cam, Vector((0.45, 0.4, 0.4)))
     elif v7_requested():
         # Left third stays empty for the headline. The group sits right, still fully in frame.
         # The Polish block is about a third of the viewport. Keep the cars to the right of it.
@@ -1108,7 +1170,15 @@ def add_contour(car, color, tag, energy=14.0):
     yaw = rig.rotation_euler.z
     forward_vec = Vector((math.sin(yaw), -math.cos(yaw), 0.0))
     side = Vector((math.cos(yaw), math.sin(yaw), 0.0))
-    if v7_requested():
+    if v10_requested():
+        # Skirts and a short nose pool. The far wash was painting a beam beside the GT3.
+        specs = (
+            ("L", origin + side * 0.92 + Vector((0.0, 0.0, 0.08)), 4.2, 0.32, False, 1.5),
+            ("R", origin - side * 0.92 + Vector((0.0, 0.0, 0.08)), 4.2, 0.32, False, 1.5),
+            ("N", origin + forward_vec * 2.05 + Vector((0.0, 0.0, 0.1)), 1.5, 0.55, False, 1.6),
+            ("T", origin - forward_vec * 2.15 + Vector((0.0, 0.0, 0.05)), 1.3, 0.28, False, 0.55),
+        )
+    elif v7_requested():
         # Skirts and a nose patch paint the floor. The pool is shadowed by the
         # body, so the emitter stays hidden and only a halo escapes the sills.
         specs = (
@@ -1142,6 +1212,7 @@ def add_contour(car, color, tag, energy=14.0):
         obj.location = location
         look_at(obj, location + Vector((0.0, 0.0, -1.0)))
         parent_keep(obj, rig)
+        obj["bess_energy"] = light.energy
 
 
 def ignite_material(mat, red):
@@ -1192,7 +1263,7 @@ def place(car, t, radius, wheelbase):
         lamp = 1.0
     else:
         lamp = smooth((shaped((t - curve.t0) / (curve.t1 - curve.t0)) - 0.72) / 0.28)
-    head = 70.0 if v7_requested() else (150.0 if v6_requested() else 70.0)
+    head = 130.0 if v10_requested() else (70.0 if v7_requested() else (150.0 if v6_requested() else 70.0))
     for light in car["spots"]:
         light.energy = head * lamp
     for light in car.get("tails", []):
@@ -2489,7 +2560,15 @@ def main():
         jobs = [("quality", "mobile")]
     if "--axle-still" in sys.argv:
         jobs = [("axle", "desktop")]
-    if "--v9-nose" in sys.argv:
+    if "--v10-ee" in sys.argv:
+        jobs = [("v10ee", "desktop"), ("v10ee", "wide")]
+    elif "--v10-reel-spot" in sys.argv:
+        jobs = [("v10spot", "wide")]
+    elif "--v10-reel" in sys.argv:
+        jobs = [("v10reel", "wide")]
+    elif "--v10" in sys.argv:
+        jobs = [("v10", "desktop"), ("v10", "wide")]
+    elif "--v9-nose" in sys.argv:
         jobs = [("v9ee", "gt3")]
     elif "--v9-ee" in sys.argv:
         jobs = [("v9ee", "beauty"), ("v9ee", "gt3"), ("v9ee", "g90")]
@@ -2726,7 +2805,11 @@ def main():
         level_gt3_shell(gt3)
         pack_lineup(g90, m4, gt3, g90_wb, m4_wb, gt3_wb)
         audit_arrivals(g90, m4, gt3, g90_wb, m4_wb, gt3_wb)
-        if v8_requested():
+        if v10_requested():
+            add_contour(m4, srgb_to_linear("18F06A"), "M4", energy=340.0)
+            add_contour(g90, srgb_to_linear("2F74FF"), "G90", energy=380.0)
+            add_contour(gt3, srgb_to_linear("E01430"), "GT3", energy=400.0)
+        elif v8_requested():
             add_contour(m4, srgb_to_linear("18F06A"), "M4", energy=150.0)
             add_contour(g90, srgb_to_linear("2F74FF"), "G90", energy=175.0)
             add_contour(gt3, srgb_to_linear("E01430"), "GT3", energy=185.0)
@@ -2797,6 +2880,51 @@ def main():
                     True,
                 )
             folder = out / f"quality-{view}"
+        elif job == "v10ee":
+            shots = [("check", DURATION, False)]
+            scene = configure_scene(1280, 720, 16, False)
+            scene.eevee.use_bloom = True
+            scene.eevee.bloom_intensity = 0.035
+            scene.eevee.bloom_threshold = 1.1
+            scene.eevee.use_ssr = True
+            folder = out / f"v10-ee-{view}"
+        elif job in {"v10reel", "v10spot"}:
+            # Eevee clips the wet floor and draws a hidden car's skirt as a white tile.
+            # The Cycles stills keep the darker glossy floor. This pass is the draft only.
+            if job == "v10spot":
+                picks = (10, 48, 88, 150, 210, 287)
+                shots = [(f"f{i:04d}", i / FPS, False) for i in picks]
+            else:
+                shots = [(f"f{i:04d}", i / FPS, False) for i in range(int(DURATION * FPS))]
+            scene = configure_scene(640, 360, 4, False)
+            scene.eevee.use_bloom = True
+            scene.eevee.bloom_intensity = 0.012
+            scene.eevee.bloom_threshold = 1.8
+            scene.eevee.use_ssr = False
+            floor_node = bpy.data.materials["Floor"].node_tree.nodes["Principled BSDF"]
+            # Eevee turns the softboxes into white tiles on a wet floor. Matte the
+            # draft floor and keep the colour on the skirt lights only.
+            floor_node.inputs["Roughness"].default_value = 0.92
+            floor_node.inputs["Specular IOR Level"].default_value = 0.0
+            for obj in bpy.data.objects:
+                if obj.type != "LIGHT":
+                    continue
+                obj.visible_camera = False
+                obj.visible_glossy = False
+                if obj.name.startswith("Glow"):
+                    obj.data.energy *= 0.45
+                    obj["bess_energy"] = obj.data.energy
+                elif obj.name in {"Key", "Fill", "Face", "Wheel", "Top", "Edge"}:
+                    # Eevee ignores light linking, so these softboxes wash the whole floor.
+                    obj.data.energy *= 0.18
+            folder = out / "v10-reel"
+        elif job == "v10":
+            shots = [("desktop" if view == "desktop" else "wide", DURATION, False)]
+            if view == "desktop":
+                scene = configure_scene(1920, 1080, 36, True)
+            else:
+                scene = configure_scene(1600, 900, 32, True)
+            folder = out / f"v10-{view}"
         elif job == "v9ee":
             shots = [("check", DURATION, False)]
             scene = configure_scene(1280, 720, 8, False)
@@ -2996,6 +3124,9 @@ def main():
             hide_tree(g90["rig"], empty or t < G90_PATH["t0"])
             hide_tree(m4["rig"], empty or t < M4_PATH["t0"])
             hide_tree(gt3["rig"], empty or t < GT3_PATH["t0"])
+            mute_car_lights(g90, empty or t < G90_PATH["t0"])
+            mute_car_lights(m4, empty or t < M4_PATH["t0"])
+            mute_car_lights(gt3, empty or t < GT3_PATH["t0"])
             if not empty and t >= G90_PATH["t0"]:
                 steer, dist = place(g90, t, g90["radius"], g90_wb)
             else:
@@ -3018,7 +3149,7 @@ def main():
                 hide_tree(g90["rig"], True)
                 hide_tree(gt3["rig"], True)
             bpy.context.view_layer.update()
-            if v9_requested() and view == "beauty":
+            if v9_requested() and not v10_requested() and view == "beauty":
                 frame_complete_trio((g90, m4, gt3))
             elif job in {"v9", "v9ee"} and view == "g90":
                 aim_fascia(g90, 58)
