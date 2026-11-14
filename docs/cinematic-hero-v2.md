@@ -546,12 +546,47 @@ Hand-modelling a photographic GT3 nose from pictures is not available from these
 
 CC BY 4.0 remains the uploader's file licence. It is not a licence from BMW AG for the roundel, the grille, the lamps, or the vehicle design.
 
+## Windows GPU film — 1920×1080 Cycles, not another 640×360 reel
+
+The 640×360 Eevee file is not the film. `scripts/cinematic-hero/windows/Start-BessGpuFilm.ps1` is the launcher for the owner's PC (Blender 4.5 or newer, NVIDIA GPU). It does not run on this cloud machine: that machine has no RTX 5060 Ti.
+
+What the script checks before Blender starts:
+
+- Blender is 4.5 or newer. Older builds do not drive OptiX on an RTX 5060 Ti. `BESS_BLENDER` overrides the search.
+- `nvidia-smi` reports an NVIDIA GPU. A name that is not 5060 is a warning, not a hard stop.
+- The drive that holds the repo has at least 8 GB free.
+- The three reviewed GLBs are present and match these SHA-256 values. They are gitignored, so a fresh clone does not contain them.
+  - G90 `842f7d94ca1e93cd3ce66abd622638818da3d39edf94a70462552a92aa2f76dc` (30,477,340 bytes)
+  - M4 `e78b83a33af71793dae97556f1751c77346b27a45311e48bc45d7985b8b10020` (27,544,152 bytes)
+  - GT3 `6bcdf40c3eb4437dbe1efd7676f95f5314d2984dcaf2735eae9f408422c2174f` (46,147,100 bytes)
+- If a file is missing, the script looks in `BESS_DRIVE_DIR`, then `%USERPROFILE%\BESS MOTORS 3D`, `%USERPROFILE%\Google Drive\BESS MOTORS 3D`, `%USERPROFILE%\My Drive\BESS MOTORS 3D`, and `X:\My Drive\BESS MOTORS 3D` / `X:\BESS MOTORS 3D` on each file-system drive. It copies a file only when the hash matches. A `bmw-m4-gt3-evo.zip` is unpacked only when the GLB inside has the reviewed GT3 hash. The VTX file (`b7d79ca09ba472ae5651c578b8b41680c8437c93b59049893816bed6976baceb`, 9,302,992 bytes) is refused. There is no public download and no token in the script.
+
+The render itself:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\cinematic-hero\windows\Start-BessGpuFilm.ps1
+```
+
+That is the 2-second control only: frames 42–89, 1920×1080, 24 fps, desktop camera. Time 1.75 s to 3.71 s. The blue G90 is still moving and its lamps come on; the green M4 starts to enter at 3.5 s; the burgundy GT3 is not in this window. Cycles, OptiX then CUDA, adaptive sampling (threshold 0.01, minimum 16), OpenImageDenoise, AgX, max 128 samples (`BESS_SAMPLES` overrides). Tile size 1024. PNGs land in `assets/hero/renders/lineup-v2/gpu-control/` as `f0042.png` … `f0089.png`. A PNG of 200 KB or larger is kept, so a stopped render continues. ffmpeg, when it is installed and all 48 frames exist, writes `gpu-control.mp4` with libx264, yuv420p, CRF 16, and no scale filter.
+
+The 12-second film is a separate command, and only after the control has been watched:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\cinematic-hero\windows\Start-BessGpuFilm.ps1 -Mode Film -Approved
+```
+
+That is frames 0–287, the same 1920×1080 24 fps settings, order blue G90 (0.2–3.5 s), green M4 (3.5–6.2 s), burgundy GT3 (6.2–9.0 s), hold to 12.0 s. `render_lineup.py` exits before any of those frames unless `BESS_FILM_APPROVED=1`. Output is `gpu-film/` and `gpu-film.mp4`.
+
+Paths inside `render_lineup.py` come from the checkout (`Path(__file__)`) or from `BESS_REPO`. There is no hardcoded `/workspace`.
+
+The mesh limits in the audit still apply. This pass does not add a grille or a lamp to the GT3 shell, and it does not put the rejected boxes back. Headlamp emission on this pass is 3.5 (tail 8) and the head spot is 14, so the M4 rings that exist stay visible. Floor roughness is 0.22. Skirt colour is energy 90 / 100 / 110. Clearcoat roughness varies across the panel. None of that turns the game meshes into a photograph. The 2-second 1080p sequence has not been rendered here.
+
 ## Still not done
 
 - No `<video>` on the homepage. The rejected V10 posters are still what the branch shows. This pass did not replace them.
 - No new group beauty. The three fascia close-ups are the review. They still read as game models.
 - No AI image was generated. The runnable entry point is `scripts/cinematic-hero/comfy/edit_hero.py`. It has not loaded a model.
 - No production Lighthouse pass. The times above are the local dev server.
-- The full 12-second Cycles film was not started. The Eevee file `docs/review/v10-motion-preview.mp4` remains the motion test. The drive-in order and the rigs were not changed.
+- The 12-second Cycles film was not started. The Windows launcher above is the way to render the 2-second 1920×1080 control, then the film after that control is accepted. `docs/review/v10-motion-preview.mp4` is the old 640×360 Eevee file and is not the film. The drive-in order and the rigs were not changed.
 - The GT3 material hides the sponsor art in the scene only. That does not clear the car design, the BMW marks, or the tire marks.
 - No production deploy and no merge.

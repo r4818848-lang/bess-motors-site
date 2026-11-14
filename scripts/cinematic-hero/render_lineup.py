@@ -3,12 +3,14 @@
 G90 (JUST GAME, CC BY) arcs in from the right and stops in the center.
 M4 Widebody (VTDAT23, CC BY) then arcs in from the left and stops behind-left.
 M4 GT3 EVO (MattDoesBlender, CC BY) arrives last from the right and stops behind-right.
-The VTX CC BY-NC-SA file is not imported. Blender 4.0 Eevee. Nose is local -Y, axle is local X.
+The VTX CC BY-NC-SA file is not imported. Nose is local -Y, axle is local X.
+The 1920x1080 film is Cycles. On Windows, Start-BessGpuFilm.ps1 is the launcher.
 
   blender -b -P scripts/cinematic-hero/render_lineup.py -- --preview
-  blender -b -P scripts/cinematic-hero/render_lineup.py -- --animatic --mobile
+  blender -b -P scripts/cinematic-hero/render_lineup.py -- --gpu-control
 """
 
+import hashlib
 import math
 import os
 import sys
@@ -18,10 +20,27 @@ from pathlib import Path
 import bpy
 from mathutils import Matrix, Quaternion, Vector
 
-G90_SRC = "/workspace/assets/hero/source/g90/bmw-g90-m5-justgame.glb"
-M4_SRC = "/workspace/assets/hero/source/m4-widebody/bmw-m4-widebody.glb"
-GT3_SRC = "/workspace/assets/hero/source/gt3-ccby/bmw-m4-gt3-evo-mattdoesblender.glb"
+
+def repo_root():
+    """The checkout that contains this script. BESS_REPO wins on Windows."""
+    env = os.environ.get("BESS_REPO", "").strip().strip('"')
+    if env:
+        return Path(env)
+    return Path(__file__).resolve().parents[2]
+
+
+ROOT = repo_root()
+G90_SRC = str(ROOT / "assets/hero/source/g90/bmw-g90-m5-justgame.glb")
+M4_SRC = str(ROOT / "assets/hero/source/m4-widebody/bmw-m4-widebody.glb")
+GT3_SRC = str(ROOT / "assets/hero/source/gt3-ccby/bmw-m4-gt3-evo-mattdoesblender.glb")
 # Forbidden in this shot: assets/hero/source/m4-gt3/bmw-m4-gt3-evo.glb (CC BY-NC-SA).
+# These hashes are the files reviewed in this branch. A different byte string is refused.
+REVIEWED_GLB = (
+    ("G90", Path(G90_SRC), "842f7d94ca1e93cd3ce66abd622638818da3d39edf94a70462552a92aa2f76dc", 30477340),
+    ("M4", Path(M4_SRC), "e78b83a33af71793dae97556f1751c77346b27a45311e48bc45d7985b8b10020", 27544152),
+    ("GT3", Path(GT3_SRC), "6bcdf40c3eb4437dbe1efd7676f95f5314d2984dcaf2735eae9f408422c2174f", 46147100),
+)
+VTX_SHA256 = "b7d79ca09ba472ae5651c578b8b41680c8437c93b59049893816bed6976baceb"
 
 G90_FRONT = ("WHEEL_LF", "WHEEL_RF")
 G90_REAR = ("WHEEL_LR", "WHEEL_RR")
@@ -76,9 +95,14 @@ def audit_requested():
     return any(flag == "--audit" or flag.startswith("--audit") for flag in RENDER_FLAGS)
 
 
+def gpu_film_requested():
+    """1080p Cycles on the owner's GPU. Not the 640px Eevee reel."""
+    return any(flag in {"--gpu-control", "--gpu-film"} for flag in RENDER_FLAGS)
+
+
 def v10_requested():
     """The attached studio frame: darker cove, wet floor, brighter lamps."""
-    return audit_requested() or any(flag == "--v10" or flag.startswith("--v10") for flag in RENDER_FLAGS)
+    return audit_requested() or gpu_film_requested() or any(flag == "--v10" or flag.startswith("--v10") for flag in RENDER_FLAGS)
 
 
 def v9_requested():
@@ -310,6 +334,38 @@ class Curve:
         return self.sample(self.distance_at(t))
 
 
+def file_sha256(path):
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def require_sources():
+    """Stop before a render if a reviewed GLB is missing or is the NC-SA file."""
+    failed = False
+    for label, path, expected, size in REVIEWED_GLB:
+        if not path.is_file():
+            print(f"MISSING {label} {path}")
+            failed = True
+            continue
+        actual = path.stat().st_size
+        digest = file_sha256(path)
+        print(f"GLB {label} bytes={actual} sha256={digest}")
+        if digest == VTX_SHA256 or actual == 9302992:
+            print(f"REFUSED {label} {path} is the VTX CC BY-NC-SA model and is not imported.")
+            failed = True
+            continue
+        if digest != expected or actual != size:
+            print(f"REFUSED {label} hash or size does not match the reviewed file.")
+            if os.environ.get("BESS_ALLOW_UNVERIFIED") != "1":
+                failed = True
+    if failed:
+        print("GLB check failed. The Windows script can copy the reviewed files from the BESS MOTORS 3D folder.")
+        sys.exit(2)
+
+
 def import_new(path):
     before = set(bpy.data.objects)
     bpy.ops.import_scene.gltf(filepath=path)
@@ -517,8 +573,16 @@ def studio(floor_z, receivers=None):
         # Near-black and wet, so the coloured skirts stretch the way they do in the reference.
         # The audit close-ups use a softer floor. A mirror was hiding the bumper edges.
         node.inputs["Base Color"].default_value = (0.012, 0.012, 0.014, 1.0)
-        node.inputs["Roughness"].default_value = 0.42 if audit_requested() else 0.07
-        node.inputs["Specular IOR Level"].default_value = 0.38 if audit_requested() else 0.72
+        if gpu_film_requested():
+            # Glossy enough to read the cars, not a mirror that turns the skirts into stripes.
+            node.inputs["Roughness"].default_value = 0.22
+            node.inputs["Specular IOR Level"].default_value = 0.5
+        elif audit_requested():
+            node.inputs["Roughness"].default_value = 0.42
+            node.inputs["Specular IOR Level"].default_value = 0.38
+        else:
+            node.inputs["Roughness"].default_value = 0.07
+            node.inputs["Specular IOR Level"].default_value = 0.72
     elif v7_requested():
         # Dark enough to stay a studio, glossy enough for the coloured pools to read.
         node.inputs["Base Color"].default_value = (0.045, 0.046, 0.050, 1.0)
@@ -1255,7 +1319,7 @@ def ignite_material(mat, red):
     node = bsdf(mat)
     if node is None or "Emission Strength" not in node.inputs or node.inputs["Emission Strength"].is_linked:
         return
-    if audit_requested():
+    if audit_requested() or gpu_film_requested():
         # Enough to read as lit, low enough that the lamp housing stays visible.
         node.inputs["Emission Strength"].default_value = 8.0 if red else 3.5
     else:
@@ -1270,6 +1334,7 @@ def ignite_material(mat, red):
         color_in.default_value = (1.0, 0.05, 0.02, 1.0) if red else (1.0, 0.97, 0.9, 1.0)
     if (
         not audit_requested()
+        and not gpu_film_requested()
         and "Transmission Weight" in node.inputs
         and not node.inputs["Transmission Weight"].is_linked
     ):
@@ -1307,7 +1372,7 @@ def place(car, t, radius, wheelbase):
         lamp = 1.0
     else:
         lamp = smooth((shaped((t - curve.t0) / (curve.t1 - curve.t0)) - 0.72) / 0.28)
-    head = 14.0 if audit_requested() else (130.0 if v10_requested() else (70.0 if v7_requested() else (150.0 if v6_requested() else 70.0)))
+    head = 14.0 if (audit_requested() or gpu_film_requested()) else (130.0 if v10_requested() else (70.0 if v7_requested() else (150.0 if v6_requested() else 70.0)))
     for light in car["spots"]:
         light.energy = head * lamp
     for light in car.get("tails", []):
@@ -1539,7 +1604,7 @@ def coat_gt3_body(rig):
             node.inputs["Coat Roughness"].default_value = 0.06
         if "Specular IOR Level" in node.inputs and not node.inputs["Specular IOR Level"].is_linked:
             node.inputs["Specular IOR Level"].default_value = 0.5
-        if audit_requested():
+        if audit_requested() or gpu_film_requested():
             automotive_clearcoat(mat)
 
 
@@ -2546,12 +2611,20 @@ def configure_scene(width, height, samples, cycles):
         scene.cycles.use_adaptive_sampling = True
         scene.cycles.adaptive_threshold = 0.01 if v4_look else 0.03
         if v4_look:
-            scene.cycles.adaptive_min_samples = 24
+            # A short smoke test can ask for fewer samples than the floor.
+            scene.cycles.adaptive_min_samples = min(16 if gpu_film_requested() else 24, samples)
         scene.cycles.use_denoising = True
         scene.cycles.transmission_bounces = 8
+        if hasattr(scene.cycles, "use_auto_tile"):
+            scene.cycles.use_auto_tile = True
+        if hasattr(scene.cycles, "tile_size"):
+            # 8 GB stays inside the card. A full 1080p tile can spill.
+            scene.cycles.tile_size = 1024 if gpu_film_requested() else 2048
         try:
             scene.cycles.denoiser = "OPENIMAGEDENOISE"
-            print("DENOISER", scene.cycles.denoiser)
+            if hasattr(scene.cycles, "denoising_use_gpu"):
+                scene.cycles.denoising_use_gpu = scene.cycles.device == "GPU"
+            print("DENOISER", scene.cycles.denoiser, "device", scene.cycles.device)
         except TypeError as exc:
             scene.cycles.use_denoising = False
             print("DENOISER unavailable", exc)
@@ -2578,6 +2651,10 @@ def wheelbase(front_name, rear_name):
 
 def main():
     RENDER_FLAGS.update(sys.argv)
+    if "--gpu-film" in sys.argv and os.environ.get("BESS_FILM_APPROVED") != "1":
+        print("REFUSED the 12-second film. Watch the 2-second control, then set BESS_FILM_APPROVED=1.")
+        sys.exit(2)
+    require_sources()
     use_v6_parks()
     preview = "--preview" in sys.argv
     animatic = "--animatic" in sys.argv
@@ -2606,7 +2683,11 @@ def main():
         jobs = [("quality", "mobile")]
     if "--axle-still" in sys.argv:
         jobs = [("axle", "desktop")]
-    if "--audit" in sys.argv:
+    if "--gpu-control" in sys.argv:
+        jobs = [("gpucontrol", "desktop")]
+    elif "--gpu-film" in sys.argv:
+        jobs = [("gpufilm", "desktop")]
+    elif "--audit" in sys.argv:
         jobs = [("audit", "gt3"), ("audit", "g90"), ("audit", "m4")]
     elif "--v10-ee" in sys.argv:
         jobs = [("v10ee", "desktop"), ("v10ee", "wide")]
@@ -2716,7 +2797,7 @@ def main():
             ("v4", "gt3"),
             ("v4", "motion"),
         ]
-    out = Path("/workspace/assets/hero/renders/lineup-v2")
+    out = ROOT / "assets/hero/renders/lineup-v2"
     out.mkdir(parents=True, exist_ok=True)
 
     clear()
@@ -2853,10 +2934,10 @@ def main():
         level_gt3_shell(gt3)
         pack_lineup(g90, m4, gt3, g90_wb, m4_wb, gt3_wb)
         audit_arrivals(g90, m4, gt3, g90_wb, m4_wb, gt3_wb)
-        if audit_requested():
-            add_contour(m4, srgb_to_linear("18F06A"), "M4", energy=48.0)
-            add_contour(g90, srgb_to_linear("2F74FF"), "G90", energy=52.0)
-            add_contour(gt3, srgb_to_linear("E01430"), "GT3", energy=56.0)
+        if audit_requested() or gpu_film_requested():
+            add_contour(m4, srgb_to_linear("18F06A"), "M4", energy=90.0)
+            add_contour(g90, srgb_to_linear("2F74FF"), "G90", energy=100.0)
+            add_contour(gt3, srgb_to_linear("E01430"), "GT3", energy=110.0)
         elif v10_requested():
             add_contour(m4, srgb_to_linear("18F06A"), "M4", energy=340.0)
             add_contour(g90, srgb_to_linear("2F74FF"), "G90", energy=380.0)
@@ -2882,7 +2963,7 @@ def main():
         place(m4, DURATION, m4["radius"], m4_wb)
         place(gt3, DURATION, gt3["radius"], gt3_wb)
         bpy.context.view_layer.update()
-        if not audit_requested():
+        if not audit_requested() and not gpu_film_requested():
             seat_gt3_fascia(gt3)
         else:
             for name in (
@@ -2940,6 +3021,26 @@ def main():
                     True,
                 )
             folder = out / f"quality-{view}"
+        elif job in {"gpucontrol", "gpufilm"}:
+            if job == "gpucontrol":
+                # 1.75s–3.71s, 48 frames at 24 fps. The blue G90 is still moving and its
+                # lamps come on. The green M4 begins to enter at 3.5s. The GT3 is not in yet.
+                start = int(os.environ.get("BESS_FRAME_START", "42"))
+                end = int(os.environ.get("BESS_FRAME_END", "89"))
+            else:
+                start = int(os.environ.get("BESS_FRAME_START", "0"))
+                end = int(os.environ.get("BESS_FRAME_END", str(int(DURATION * FPS) - 1)))
+            shots = [(f"f{i:04d}", i / FPS, False) for i in range(start, end + 1)]
+            samples = int(os.environ.get("BESS_SAMPLES", "128"))
+            scene = configure_scene(1920, 1080, samples, True)
+            scene.render.image_settings.file_format = "PNG"
+            scene.render.image_settings.color_mode = "RGB"
+            scene.render.fps = FPS
+            folder = out / ("gpu-control" if job == "gpucontrol" else "gpu-film")
+            print(
+                f"GPU FILM {job} {scene.render.resolution_x}x{scene.render.resolution_y} "
+                f"frames {start}-{end} samples={samples} device={scene.cycles.device}"
+            )
         elif job == "audit":
             shots = [("fascia", DURATION, False)]
             scene = configure_scene(1400, 900, 40, True)
@@ -3275,6 +3376,11 @@ def main():
                 aim_g90_detail(g90)
             bpy.context.view_layer.update()
             scene.render.filepath = str(folder / name)
+            if job in {"gpucontrol", "gpufilm"}:
+                existing = Path(scene.render.filepath + ".png")
+                if existing.is_file() and existing.stat().st_size >= 200_000:
+                    print(f"SKIP {existing.name}")
+                    continue
             started = time.perf_counter()
             bpy.ops.render.render(write_still=True)
             elapsed = time.perf_counter() - started
