@@ -3416,10 +3416,22 @@ def main():
             ):
                 automotive_clearcoat(bpy.data.materials.get(name))
         if gpu_film_requested():
-            # Before the studio: light linking only includes meshes that already exist.
-            build_g90_nose(g90)
-            if os.environ.get("BESS_NOSE_PROBE") == "1":
-                raise SystemExit(0)
+            # Keep the original G90 lights and kidney visible by default.
+            # The procedural prototype is NOT a faithful G90 fascia: six bright
+            # horizontal slats per kidney and rectangular headlamp housings
+            # produced the rejected "blinds and square lamps" look.
+            # BMW G90 has a mostly enclosed gloss-black kidney with one
+            # horizontal M double-bar and sculpted, integrated LED headlights.
+            # Do not hide the source lamp cards or layer placeholder boxes onto
+            # the car in owner-facing film renders.
+            if os.environ.get("BESS_G90_NOSE_PROTOTYPE") == "1":
+                # Explicit opt-in only for isolated geometry/debugging passes.
+                # Before the studio: light linking only includes existing meshes.
+                build_g90_nose(g90)
+                if os.environ.get("BESS_NOSE_PROBE") == "1":
+                    raise SystemExit(0)
+            else:
+                print("G90 FASCIA: rejected prototype disabled; original meshes preserved", flush=True)
     receivers = [obj for obj in bpy.context.scene.objects if obj.type == "MESH"]
     studio(0.0, receivers)
     keyframes = [
