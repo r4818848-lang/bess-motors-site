@@ -584,8 +584,8 @@ Sketchfab's public search for a downloadable CC BY "BMW M5 G90" returns six mode
 ### What would actually change the picture
 
 1. A commercial-licence G90 with a modelled kidney, a split lamp, glass thickness, and a wheel that has depth. The vecarz file is the visual example and it is the one licence this project cannot use.
-2. Modelling those parts from the car or from CAD, then parenting them to the existing rig. That is a modelling job, not a sample change. Scripted boxes on this shell repeat the GT3 mistake and are not in this pass.
-3. Until one of those exists, the Windows pipeline should keep rendering this GLB. The hash check still refuses any other file, including a download dropped into `BESS MOTORS 3D`, until that file has been measured.
+2. Modelling those parts from the car or from CAD, then parenting them to the existing rig. The zero-budget section below is the scripted grille that was actually parented to this rig after the budget was set to 0. It does not make the shell a photograph.
+3. Until a denser free file is on disk, the Windows pipeline keeps this GLB. The hash check still refuses any other file, including a download dropped into `BESS MOTORS 3D`, until that file has been measured.
 
 The two 1920×1080 frames from `--g90-limit` are the current mesh under the same studio as the GPU film: straight on, then the front three-quarter. They are the limit, not an upgrade. There is no second "after" frame, because the mesh did not change. M4 and GT3 stay on the old meshes for the same reason.
 
@@ -626,48 +626,56 @@ Paths inside `render_lineup.py` come from the checkout (`Path(__file__)`) or fro
 
 The mesh limits in the audit still apply. This pass does not add a grille or a lamp to the GT3 shell, and it does not put the rejected boxes back. Headlamp emission on this pass is 3.5 (tail 8) and the head spot is 14, so the M4 rings that exist stay visible. Floor roughness is 0.22. Skirt colour is energy 90 / 100 / 110. Clearcoat roughness varies across the panel. None of that turns the game meshes into a photograph. The owner has rendered the 2-second control on the RTX 5060 Ti. That reel is motion-accepted and picture-rejected. It is not replaced here.
 
-## Commercial models — 16 November 2026, nothing purchased
+## Budget 0 — 16 November 2026
 
-The owner accepted the mesh limit. This pass does not retune lights or materials, and it does not render the old GLBs again. Prices below use 3.99 PLN per USD, the rate quoted by money.pl on the morning of 16 November 2026 (3.9987 at 07:00 Europe/Warsaw). No file was downloaded. Wheel separation is taken from the seller's description until a bought file is opened.
+The owner set the budget at 0 PLN. No model, subscription, paid API, or GPU rental is to be bought, and this note does not recommend one. The earlier shortlist is withdrawn as a plan. BMW design and trademark rights stay open. CC BY on an uploader's file is not a licence from BMW AG.
 
-ArtStation Standard for a stock asset is one commercial work, capped at 2,000 sales or 20,000 views of that work per month. Extended removes the cap. The Next Level listings that were opened publish Standard only, with no Extended price. A public homepage can pass 20,000 views in a month. Do not buy Standard for that use without a written answer from the seller. Buying any of these files still does not license the BMW roundel, the kidney, the lamps, the M stripes, or the vehicle design from BMW AG. Michelin lettering on a race tire has the same problem.
+### Free files that were checked and not imported
 
-### What to buy, only after a yes
-
-| Role | Model | Price | Why this one |
-| --- | --- | --- | --- |
-| Blue G90, first | [Next Level Models, BMW M5 G90](https://www.artstation.com/marketplace/p/ekG29/bmw-m5-g90) | 79.99 USD, about 319 PLN | The public hero shows a slatted kidney, a split lamp, an open hood with an engine, and a cabin. GLB is 170 MB and FBX is 96 MB, against the 30 MB CSR2 file. The page does not publish a face count or a wireframe. Confirm the file is the sedan, ask for the base face count, and confirm separate wheel objects before paying. |
-| Burgundy GT3, third | [Next Level Models, BMW M4 GT3 EVO 2025](https://www.artstation.com/marketplace/p/pRzPn/bmw-m4-gt3-evo-2025) | 129 USD, about 515 PLN | The only listing with both a published mesh size and a front that is not a plate: 544,036 faces, 2,175,640 after one subdivision, `.blend` 290 MB. The preview shows a mesh grille, separate lamp units, a splitter, a cage, and slicks. The engine is described as low poly with textures. Sponsor and tire marks are in the texture and have to come off before a commercial page. |
-| Green M4, second | No widebody in this class | — | Next Level does not sell an M4 coupe or a widebody. A stock G82 changes the silhouette. Do not fill the gap with the game widebody. |
-
-If the green car may become a stock G82, the cheapest file that is at least in the right size class is [Raj Prajapat, BMW M4 G82 2021](https://www.artstation.com/marketplace/p/drRW0/bmw-m4-g82-2021): Extended license 9 USD, about 36 PLN, claimed 1,804,562 polygons, `.blend` 79 MB, not rigged, no wireframe on the public page. The cover shows vertical slats and a cabin. That is not enough to buy it. Ask for a wireframe of the nose first. It is not a widebody.
-
-Same-studio reference, wrong body: [BMW M3 G80 2025](https://www.artstation.com/marketplace/p/rdlVd/bmw-m3-g80-2025), 89.99 USD, about 359 PLN, 813,065 faces. Useful only as proof that this studio publishes real face counts. It is a sedan, not the green coupe.
-
-### Rejected
-
-| Model | Price | Why it is out |
+| Model | What the public page says | Decision |
 | --- | --- | --- |
-| 3DExport "M5 G90 2025", R.works | 42.50 USD, about 170 PLN | 389,102 triangles. That is the Res1n / CSR2 count, not a new nose. |
-| Patricars G90 Competition | 9.99 USD, about 40 PLN | Sketchfab lists 389.3k triangles. Same class. |
-| Deep3DSea ProGraphix G90 | Extended, price not listed as a checkout number | 280k triangles. Below the current game file. |
-| CGTrader GT3 EVO and ADRO widebody, abdelalitoumarti, 40 USD each | about 160 PLN | Royalty-free template text, published days apart. The widebody FBX is 9.77 MB. A real car of this class is tens to hundreds of megabytes. No face count. |
-| pryanex ArtStation G90 | Standard, price not stated on the fetched page | One `.blend`, no face count, no nose study. The seller's line "no copyright issues" does not bind BMW. |
-| vecarz Sketchfab G90 | not priced here | CC BY-NC-SA. Out unless BMW and the seller both grant commercial use in writing. |
-| JUST GAME, Res1n, the current M4, MattDoesBlender GT3 | already on disk | Game meshes. Lights and materials do not make them a photograph. |
+| [toddeppe, BMW M4 GT3](https://sketchfab.com/3d-models/bmw-m4-gt3-cbf6fd3ea47f41b3aad3f385ee0ee853) `cbf6fd3e` | CC BY 4.0, 2,560,923 faces, 1,310,665 vertices, 36 PBR textures, separate body, glass, tyre, and wheel materials. Downloadable, price empty. | Best free GT3 found. It is the earlier M4 GT3, not the 2025 EVO face. The download endpoint returned HTTP 401 without an account token. The bytes are not in this repo. Not scraped. |
+| [RT3X, Widebody Custom BMW M4 G82](https://sketchfab.com/3d-models/widebody-custom-bmw-m4-g82-rt3x-9c29bd4fb20040bc864d4a946003fed1) `9c29bd4f` | Widget says CC BY 4.0, 316,677 faces. The description says the custom started from [Ddiaz Design, 2025 BMW M4 Competition](https://sketchfab.com/3d-models/2025-bmw-m4-competition-f8141ecd755547989c9209784b71ad43) `f8141ecd`. | Refused. That base is CC BY-NC-SA, 125,819 faces, and its own text says it is based on a Racing Kingdom model. A CC BY widget on a derivative does not clear the non-commercial base. Also fewer faces than the current M4. |
+| [MattDoesBlender, Bmw M5 G90 Full Final](https://sketchfab.com/3d-models/bmw-m5-g90-full-final-11-10-2024-51cc5edf1ac74c39ad7c042d03aa4141) `51cc5edf` | CC BY-NC-SA, 2,126,499 faces, 777,260 vertices. | Refused. This is the dense free G90, and the licence is non-commercial. |
+| vecarz `b2dd13e` | CC BY-NC-SA, 790,738 faces. | Already refused. Not imported. |
+| Other CC BY G90 search hits | JUST GAME (the current file), Res1n 389,102, romanian 164,939, szymon 786,659 with 0 textures, homicivan 49,378. | None is a denser finished car than the CSR2 file already in the scene. |
 
-### Hand modeling instead of a purchase
+No free commercially usable G90 replaces the current mesh. The G90 work below is new geometry on that mesh.
 
-Modeling a grille and two lamps onto the current shells repeats the rejected GT3 boxes: the body around them is still the game body. Building three complete exteriors and interiors from CAD is the larger job, and the two Next Level files already exist at 319 and 515 PLN. Commissioning that work costs more than buying those files, and it still does not create a BMW design license.
+### G90 nose that was actually built
 
-### Rig
+`build_g90_nose` in `render_lineup.py` runs on the parked G90 and parents every new mesh to the existing rig, so the drive path is unchanged. The GT3 box fascia stays off on this path. ComfyUI was not used.
 
-Drive order stays blue G90, then green M4, then burgundy GT3. A bought `.blend` opens in Blender 5.x; use that file, not the Corona `.max`. Separate suspension parts can be parented to the existing steer and spin rigs. The wheel names will not match `WHEEL_LF` until someone maps them. That mapping is not started, because no file was bought. The 12-second film was not started.
+What the new meshes are:
+
+- Two grille openings inside the chrome kidney, each with a dark cavity, horizontal metal slats, a frame, and a center bar. The slats sit in front of the cavity so the gaps are depth, not a painted plate.
+- A lens, a reflector, and a thin DRL bar on each front lamp, placed on the shell rather than on the recessed game card. The old front lamp cards are hidden.
+- A brake disc on each front hub, so it spins with the existing wheel, and a caliper on the rig.
+- Studio lights include the new meshes. An earlier frame was black because light linking was built before the meshes existed.
+
+What is still missing on the G90, visible in `docs/review/front-g90.png`:
+
+- The slats are straight boxes. They do not follow the kidney outline, so the corners of the chrome graphic remain the flat game plate.
+- The lamp is still the game housing. The new lens does not replace it with a projector, a bucket, and a separate upper DRL.
+- The lower bumper intakes are still the game mesh. A bumper-wide cavity was tried and covered the nose, so it was removed.
+- Glass transmission was not raised: zero materials named as glass had an open transmission socket. The cabin is still the game interior. There is no thick windshield.
+- The body has no panel gaps and no flake map. The wheel spokes are still the 1,060-face game rim. The new disc is a plain rotor.
+
+This is not a photograph. It is the furthest the current file can be pushed with meshes this script can build. Light and a neural redraw were not used to hide the rest.
+
+### M4 and GT3 fronts, unchanged meshes
+
+`docs/review/front-m4.png` and `docs/review/front-gt3.png` are the current files at 1920×1080. Nothing was added to them.
+
+M4 still missing: a lamp with a real projector and a glass cover instead of the angular housing, a windshield with thickness, and a wheel that is more than the game rim. The grille slats and the lower opening are already separate meshes, which is why this nose reads better than the other two.
+
+GT3 still missing: a grille, headlamps, intakes, and a glass cover. The nose is one closed shell. Boxes on that shell were rejected earlier and were not put back. The toddeppe file would be the free replacement, and it is not on disk.
 
 ## Still not done
 
 - No `<video>` on the homepage. The rejected V10 posters are still what the branch shows. This pass did not replace them.
-- No new group beauty and no replacement files. The commercial shortlist is above. Nothing was purchased. The old GLBs were not rendered again in this pass.
+- No new group beauty and no replacement files. The budget is 0. Nothing was purchased, and the withdrawn shortlist is not a shopping list.
+- The three fascia stills are `docs/review/front-g90.png`, `front-m4.png`, and `front-gt3.png`. They are CPU Cycles checks on this machine, not the RTX reel.
 - No AI image was generated. The runnable entry point is `scripts/cinematic-hero/comfy/edit_hero.py`. It has not loaded a model.
 - No production Lighthouse pass. The times above are the local dev server.
 - The 12-second Cycles film was not started. The Windows launcher above is the way to render the 2-second 1920×1080 control, then the film after that control is accepted. `docs/review/v10-motion-preview.mp4` is the old 640×360 Eevee file and is not the film. The drive-in order and the rigs were not changed.

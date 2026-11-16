@@ -96,13 +96,18 @@ def audit_requested():
 
 
 def g90_limit_requested():
-    """Close frames of the current G90 only. Same studio as the GPU film, no new geometry."""
+    """Close frames of the current G90 only. Same studio as the GPU film."""
     return "--g90-limit" in RENDER_FLAGS
+
+
+def fronts_requested():
+    """One Full HD fascia still of each car, after the G90 nose meshes exist."""
+    return "--fronts" in RENDER_FLAGS
 
 
 def gpu_film_requested():
     """1080p Cycles on the owner's GPU. Not the 640px Eevee reel."""
-    return g90_limit_requested() or any(flag in {"--gpu-control", "--gpu-film"} for flag in RENDER_FLAGS)
+    return g90_limit_requested() or fronts_requested() or any(flag in {"--gpu-control", "--gpu-film"} for flag in RENDER_FLAGS)
 
 
 def v10_requested():
@@ -2394,6 +2399,325 @@ def _cover_window(cam, rig, hits, tag, kind):
     print(f"GT3 {kind} {tag} {width:.2f}x{height:.2f} hits={len(hits)}")
 
 
+def _meshes_under(rig):
+    found = []
+    for obj in bpy.context.scene.objects:
+        if obj.type != "MESH":
+            continue
+        parent = obj
+        while parent is not None and parent != rig:
+            parent = parent.parent
+        if parent == rig:
+            found.append(obj)
+    return found
+
+
+def _local_bounds(obj, rig):
+    inv = rig.matrix_world.inverted()
+    xs, ys, zs = [], [], []
+    for vert in obj.data.vertices:
+        point = inv @ (obj.matrix_world @ vert.co)
+        xs.append(point.x)
+        ys.append(point.y)
+        zs.append(point.z)
+    return (min(xs), max(xs), min(ys), max(ys), min(zs), max(zs))
+
+
+def _outer_y(meshes, rig, x0, x1, z0, z1):
+    """Most forward local Y in a window. The G90 nose points to local -Y."""
+    inv = rig.matrix_world.inverted()
+    best = None
+    for obj in meshes:
+        if obj.name.startswith(("BESS_", "CSR2_Light", "CAR_lights")) or "Grille" in obj.name:
+            continue
+        for index, vert in enumerate(obj.data.vertices):
+            if index % 4:
+                continue
+            point = inv @ (obj.matrix_world @ vert.co)
+            if x0 <= point.x <= x1 and z0 <= point.z <= z1 and (best is None or point.y < best):
+                best = point.y
+    return best
+
+
+def _pbr(name, color, metallic, roughness, transmission=0.0, emission=0.0):
+    mat = bpy.data.materials.new(name)
+    mat.use_nodes = True
+    node = ensure_principled(mat)
+    node.inputs["Base Color"].default_value = (*color, 1.0)
+    node.inputs["Metallic"].default_value = metallic
+    node.inputs["Roughness"].default_value = roughness
+    if transmission:
+        for key in ("Transmission Weight", "Transmission"):
+            if key in node.inputs:
+                node.inputs[key].default_value = transmission
+                break
+        if "IOR" in node.inputs:
+            node.inputs["IOR"].default_value = 1.52
+    if emission and "Emission Strength" in node.inputs:
+        node.inputs["Emission Strength"].default_value = emission
+        for key in ("Emission Color", "Emission"):
+            if key in node.inputs and not node.inputs[key].is_linked:
+                node.inputs[key].default_value = (*color, 1.0)
+                break
+    return mat
+
+
+def _local_box(rig, name, center, size, mat):
+    """Box in the rig's local space. Parenting keeps it on the car through the drive."""
+    sx, sy, sz = size[0] * 0.5, size[1] * 0.5, size[2] * 0.5
+    cx, cy, cz = center
+
+    def corner(dx, dy, dz):
+        return tuple(rig.matrix_world @ Vector((cx + dx, cy + dy, cz + dz)))
+
+    verts = [
+        corner(-sx, -sy, -sz), corner(sx, -sy, -sz), corner(sx, sy, -sz), corner(-sx, sy, -sz),
+        corner(-sx, -sy, sz), corner(sx, -sy, sz), corner(sx, sy, sz), corner(-sx, sy, sz),
+    ]
+    faces = [(0, 1, 2, 3), (4, 7, 6, 5), (0, 4, 5, 1), (1, 5, 6, 2), (2, 6, 7, 3), (3, 7, 4, 0)]
+    mesh = bpy.data.meshes.new(name)
+    mesh.from_pydata(verts, [], faces)
+    mesh.update()
+    # Outward normals. An inward face stays black: the studio light never hits it.
+    import bmesh
+
+    bm = bmesh.new()
+    bm.from_mesh(mesh)
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    bm.to_mesh(mesh)
+    bm.free()
+    mesh.update()
+    obj = bpy.data.objects.new(name, mesh)
+    bpy.context.scene.collection.objects.link(obj)
+    obj.data.materials.append(mat)
+    bpy.context.view_layer.update()
+    parent_keep(obj, rig)
+    return obj
+
+
+def _hide_card(obj):
+    obj.hide_render = True
+    STAY_HIDDEN.add(obj)
+
+
+def _slatted_opening(rig, name, x0, x1, z0, z1, face_y, cavity, slat, frame, slats):
+    """Black cavity behind horizontal bars. face_y is the outer body, and the nose is -Y."""
+    width = max(0.04, x1 - x0)
+    height = max(0.04, z1 - z0)
+    cx = (x0 + x1) * 0.5
+    cz = (z0 + z1) * 0.5
+    # Cavity proud of the painted plate. Slats proud of the cavity. The plate stays hidden.
+    _local_box(rig, name + "_cavity", (cx, face_y + 0.016, cz), (width * 0.98, 0.040, height * 0.96), cavity)
+    bar = max(0.012, min(0.020, height * 0.11))
+    gap = (height - slats * bar) / (slats + 1)
+    for index in range(slats):
+        z = z0 + gap + bar * 0.5 + index * (bar + gap)
+        _local_box(
+            rig, f"{name}_slat{index}",
+            (cx, face_y - 0.022, z), (max(0.02, width - 0.016), 0.014, bar), slat,
+        )
+    lip = 0.014
+    _local_box(rig, name + "_top", (cx, face_y - 0.026, z1 - lip * 0.5), (width + lip, 0.010, lip), frame)
+    _local_box(rig, name + "_bot", (cx, face_y - 0.026, z0 + lip * 0.5), (width + lip, 0.010, lip), frame)
+    _local_box(rig, name + "_left", (x0 + lip * 0.35, face_y - 0.026, cz), (lip, 0.010, height), frame)
+    _local_box(rig, name + "_right", (x1 - lip * 0.35, face_y - 0.026, cz), (lip, 0.010, height), frame)
+
+
+def _brake_disc(hub, name, mat):
+    """A rotor on the hub's local X axle, so the existing spin carries it."""
+    axis = (hub.matrix_world.to_3x3() @ Vector((1.0, 0.0, 0.0))).normalized()
+    up = axis.cross(Vector((0.0, 0.0, 1.0)))
+    if up.length < 0.2:
+        up = axis.cross(Vector((0.0, 1.0, 0.0)))
+    up.normalize()
+    side = axis.cross(up).normalized()
+    center = hub.matrix_world.translation
+    segments = 36
+    verts = []
+    for end in (-0.010, 0.010):
+        for index in range(segments):
+            angle = index / segments * math.tau
+            radial = up * math.cos(angle) + side * math.sin(angle)
+            verts.append(tuple(center + radial * 0.158 + axis * end))
+        verts.append(tuple(center + axis * end))
+    faces = []
+    cap = segments + 1
+    for index in range(segments):
+        nxt = (index + 1) % segments
+        faces.append((index, nxt, nxt + cap, index + cap))
+        faces.append((segments, index, nxt))
+        faces.append((segments + cap, nxt + cap, index + cap))
+    mesh = bpy.data.meshes.new(name)
+    mesh.from_pydata(verts, [], faces)
+    mesh.update()
+    import bmesh
+
+    bm = bmesh.new()
+    bm.from_mesh(mesh)
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    bm.to_mesh(mesh)
+    bm.free()
+    mesh.update()
+    obj = bpy.data.objects.new(name, mesh)
+    bpy.context.scene.collection.objects.link(obj)
+    obj.data.materials.append(mat)
+    bpy.context.view_layer.update()
+    parent_keep(obj, hub)
+    return obj
+
+
+def build_g90_nose(car):
+    """Replace the flat G90 grille and lamp cards with meshes that have depth.
+
+    The body shell, the cabin and the wheel spokes stay the game meshes.
+    New parts are parented to the existing rig, so the drive path is unchanged.
+    """
+    rig = car["rig"]
+    meshes = _meshes_under(rig)
+    lamps = []
+    for obj in meshes:
+        if "CSR2_Light" not in obj.name and "CAR_lights" not in obj.name:
+            continue
+        bounds = _local_bounds(obj, rig)
+        dx = bounds[1] - bounds[0]
+        dy = bounds[3] - bounds[2]
+        cy = (bounds[2] + bounds[3]) * 0.5
+        if dy > 0.8 or dx > 1.3 or cy > -1.6:
+            continue
+        lamps.append((obj, bounds))
+    left = [item for item in lamps if (item[1][0] + item[1][1]) * 0.5 < -0.2]
+    right = [item for item in lamps if (item[1][0] + item[1][1]) * 0.5 > 0.2]
+    if not left or not right:
+        print("G90 NOSE skipped: front lamp cards were not found")
+        return
+
+    def main_lamp(group):
+        band = [item for item in group if 0.55 < (item[1][4] + item[1][5]) * 0.5 < 0.95]
+        return max(band or group, key=lambda item: len(item[0].data.vertices))
+
+    left_main, right_main = main_lamp(left), main_lamp(right)
+    for obj, _bounds in lamps:
+        _hide_card(obj)
+
+    cavity = _pbr("BESS_G90_Cavity", (0.02, 0.02, 0.022), 0.0, 0.62)
+    slat = _pbr("BESS_G90_Slat", (0.28, 0.29, 0.31), 0.82, 0.42)
+    frame = _pbr("BESS_G90_Frame", (0.14, 0.14, 0.15), 0.7, 0.32)
+    housing = _pbr("BESS_G90_Housing", (0.008, 0.008, 0.010), 0.0, 0.5)
+    reflector = _pbr("BESS_G90_Reflector", (0.70, 0.70, 0.72), 0.92, 0.24)
+    lens = _pbr("BESS_G90_Lens", (0.82, 0.88, 0.92), 0.0, 0.04, transmission=0.9)
+    drl = _pbr("BESS_G90_DRL", (0.86, 0.91, 1.0), 0.0, 0.18, emission=3.5)
+    disc_mat = _pbr("BESS_G90_Disc", (0.52, 0.52, 0.54), 0.9, 0.36)
+    caliper_mat = _pbr("BESS_G90_Caliper", (0.03, 0.06, 0.14), 0.2, 0.38)
+
+    lb, rb = left_main[1], right_main[1]
+    # The lamp cards sit behind the shell. The kidney graphic is the body below them.
+    lamp_z0 = min(lb[4], rb[4])
+    lamp_z1 = max(lb[5], rb[5])
+    x0, x1 = lb[1] + 0.02, rb[0] - 0.02
+    inset = (x1 - x0) * 0.22
+    x0, x1 = x0 + inset, x1 - inset
+    # The chrome opening is taller than the lamp cards. A short band only crossed its middle.
+    z0, z1 = lamp_z0 - 0.175, lamp_z0 + 0.045
+    face = _outer_y(meshes, rig, x0, x1, z0, z1)
+    if face is None:
+        face = min(lb[2], rb[2])
+    bridge = 0.046
+    _slatted_opening(rig, "BESS_G90_kidneyL", x0, -bridge * 0.5, z0, z1, face, cavity, slat, frame, 6)
+    _slatted_opening(rig, "BESS_G90_kidneyR", bridge * 0.5, x1, z0, z1, face, cavity, slat, frame, 6)
+    _local_box(
+        rig, "BESS_G90_bridge",
+        (0.0, face - 0.020, (z0 + z1) * 0.5), (bridge, 0.012, max(0.05, z1 - z0)), frame,
+    )
+
+    for side, bounds in (("L", lb), ("R", rb)):
+        lx0, lx1, _ly0, _ly1, lz0, lz1 = bounds
+        cx, cz = (lx0 + lx1) * 0.5, (lz0 + lz1) * 0.5
+        # Sit the optic on the shell, not on the recessed card. The card is ~40 cm behind.
+        lamp_y = _outer_y(meshes, rig, lx0, lx1, lz0, lz1)
+        if lamp_y is None:
+            lamp_y = face
+        width, height = lx1 - lx0, lz1 - lz0
+        _local_box(
+            rig, f"BESS_G90_lamp{side}",
+            (cx, lamp_y + 0.006, cz), (width, 0.028, height), housing,
+        )
+        _local_box(
+            rig, f"BESS_G90_bowl{side}",
+            (cx, lamp_y - 0.004, cz - height * 0.06),
+            (width * 0.55, 0.012, height * 0.38),
+            reflector,
+        )
+        _local_box(
+            rig, f"BESS_G90_lens{side}",
+            (cx, lamp_y - 0.016, cz - height * 0.04),
+            (width * 0.82, 0.008, height * 0.62),
+            lens,
+        )
+        _local_box(
+            rig, f"BESS_G90_drl{side}",
+            (cx, lamp_y - 0.020, lz1 - 0.012),
+            (width * 0.88, 0.006, 0.014),
+            drl,
+        )
+
+    # The bumper-wide Grille1 card is not an opening. A cavity the size of that card
+    # covered the nose, so the lower mesh stays the game plate.
+    intake_count = 0
+
+    glass_open = 0
+    for obj in meshes:
+        for slot in obj.material_slots:
+            mat = slot.material
+            if mat is None or mat.node_tree is None:
+                continue
+            label = mat.name.lower()
+            if "glass" not in label or "red" in label:
+                continue
+            node = bsdf(mat)
+            if node is None:
+                continue
+            for key in ("Transmission Weight", "Transmission"):
+                sock = node.inputs.get(key)
+                if sock is not None and not sock.is_linked and sock.default_value < 0.2:
+                    sock.default_value = 0.9
+                    glass_open += 1
+                    break
+            rough = node.inputs.get("Roughness")
+            if rough is not None and not rough.is_linked and rough.default_value > 0.2:
+                rough.default_value = 0.04
+    print(f"G90 GLASS transmission raised on {glass_open} materials; the cabin mesh is still the game interior")
+
+    for hub in car["front"]:
+        for obj in _meshes_under(hub):
+            if any(word in obj.name.lower() for word in ("brake", "disc", "caliper")):
+                _hide_card(obj)
+        local = rig.matrix_world.inverted() @ hub.matrix_world.translation
+        _local_box(
+            rig, "BESS_" + hub.name + "_caliper",
+            (local.x, local.y + 0.02, local.z + 0.10), (0.042, 0.07, 0.10), caliper_mat,
+        )
+        _brake_disc(hub, "BESS_" + hub.name + "_disc", disc_mat)
+    yaw = car["curve"].at_time(DURATION)[1]
+    toward_world = Vector((math.sin(yaw), -math.cos(yaw), 0.0))
+    toward_local = rig.matrix_world.to_3x3().inverted() @ toward_world
+    print(
+        f"G90 NOSE kidneys y={face:.3f} x={x0:.3f}..{x1:.3f} z={z0:.3f}..{z1:.3f} "
+        f"lamps L={len(left_main[0].data.vertices)} R={len(right_main[0].data.vertices)} intakes={intake_count} "
+        f"cam_local=({toward_local.x:.3f},{toward_local.y:.3f},{toward_local.z:.3f})",
+        flush=True,
+    )
+    if os.environ.get("BESS_NOSE_PROBE") == "1":
+        for obj in bpy.context.scene.objects:
+            if obj.name in {"BESS_G90_kidneyL_slat0", "BESS_G90_kidneyL_cavity", "BESS_G90_lensL", "BESS_G90_intake1_slat0", "BESS_G90_intake1_cavity"}:
+                xs = [obj.matrix_world @ Vector(c) for c in obj.bound_box]
+                ys = [p.y for p in xs]
+                zs = [p.z for p in xs]
+                print(
+                    f"PROBE {obj.name} worldY {min(ys):.3f}..{max(ys):.3f} worldZ {min(zs):.3f}..{max(zs):.3f}",
+                    flush=True,
+                )
+
+
 def fit_gt3_nose(_rig):
     """The parked fascia is seated later, once the car faces the camera."""
     return
@@ -2745,7 +3069,11 @@ def main():
         jobs = [("quality", "mobile")]
     if "--axle-still" in sys.argv:
         jobs = [("axle", "desktop")]
-    if "--g90-limit" in sys.argv:
+    if "--fronts" in sys.argv:
+        only = os.environ.get("BESS_FRONT", "").strip()
+        views = [only] if only in {"g90", "m4", "gt3"} else ["g90", "m4", "gt3"]
+        jobs = [("fronts", view) for view in views]
+    elif "--g90-limit" in sys.argv:
         jobs = [("g90limit", "front"), ("g90limit", "quarter")]
     elif "--gpu-control" in sys.argv:
         jobs = [("gpucontrol", "desktop")]
@@ -3018,8 +3346,6 @@ def main():
             add_contour(m4, srgb_to_linear("1C8F45"), "M4")
             add_contour(g90, srgb_to_linear("C4162A"), "G90")
             add_contour(gt3, srgb_to_linear("8A2444"), "GT3", energy=26.0)
-    receivers = [obj for obj in bpy.context.scene.objects if obj.type == "MESH"]
-    studio(0.0, receivers)
     if v9_requested():
         # Measure the fascia on the parked pose, then parent the new parts to the rig
         # so a later drive-in keeps them on the nose. The 12-second film is not rendered here.
@@ -3036,6 +3362,13 @@ def main():
                 "ext_red",
             ):
                 automotive_clearcoat(bpy.data.materials.get(name))
+        if gpu_film_requested():
+            # Before the studio: light linking only includes meshes that already exist.
+            build_g90_nose(g90)
+            if os.environ.get("BESS_NOSE_PROBE") == "1":
+                raise SystemExit(0)
+    receivers = [obj for obj in bpy.context.scene.objects if obj.type == "MESH"]
+    studio(0.0, receivers)
     keyframes = [
         ("00-empty", 0.0, True),
         ("01-g90-arc", 1.7, False),
@@ -3085,6 +3418,14 @@ def main():
                     True,
                 )
             folder = out / f"quality-{view}"
+        elif job == "fronts":
+            shots = [(view, DURATION, False)]
+            samples = int(os.environ.get("BESS_SAMPLES", "28"))
+            scene = configure_scene(1920, 1080, samples, True)
+            scene.render.image_settings.file_format = "PNG"
+            scene.render.image_settings.color_mode = "RGB"
+            folder = out / "fronts"
+            print(f"FRONT {view} {scene.render.resolution_x}x{scene.render.resolution_y} samples={samples}")
         elif job == "g90limit":
             shots = [("fascia" if view == "front" else "quarter", DURATION, False)]
             samples = int(os.environ.get("BESS_SAMPLES", "40"))
@@ -3386,7 +3727,13 @@ def main():
                 hide_tree(g90["rig"], True)
                 hide_tree(gt3["rig"], True)
             bpy.context.view_layer.update()
-            if job == "g90limit":
+            if job == "fronts":
+                chosen = {"g90": g90, "m4": m4, "gt3": gt3}[view]
+                for other in (g90, m4, gt3):
+                    hide_tree(other["rig"], other is not chosen)
+                    mute_car_lights(other, other is not chosen)
+                aim_fascia(chosen, 52 if view == "gt3" else 55)
+            elif job == "g90limit":
                 hide_tree(m4["rig"], True)
                 hide_tree(gt3["rig"], True)
                 mute_car_lights(m4, True)
