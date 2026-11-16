@@ -13,7 +13,7 @@ const symptoms = [
 /** Existing service pages, reached in one tap. This does not diagnose the car. */
 export function SymptomShortcuts() {
   return (
-    <section className="mx-auto max-w-7xl px-4 py-8 lg:px-8">
+    <section className="mx-auto max-w-7xl px-4 py-10 lg:px-8">
       <h2 className="font-display text-2xl font-bold uppercase text-white">Co dzieje się z Twoim autem?</h2>
       <p className="mt-2 max-w-2xl text-sm text-bm-muted">
         Wybierz objaw. Otworzymy odpowiednią usługę warsztatu w Warszawie. To nie jest diagnoza konkretnego samochodu.

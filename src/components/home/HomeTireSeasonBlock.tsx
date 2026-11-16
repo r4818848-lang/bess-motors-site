@@ -27,7 +27,7 @@ export function HomeTireSeasonBlock() {
       <div className="mx-auto max-w-7xl px-4 lg:px-8">
         <div className="grid lg:grid-cols-[1.05fr_0.95fr] gap-8 items-center">
           <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-bm-red font-bold mb-2">
+            <p className="text-xs uppercase tracking-[0.2em] text-bm-ink font-bold mb-2">
               {h.badge}
             </p>
             <h2
@@ -45,7 +45,7 @@ export function HomeTireSeasonBlock() {
                 >
                   <span className="text-bm-muted block text-xs">{row.label}</span>
                   <span className="flex items-baseline gap-2 flex-wrap">
-                    <span className="font-bold text-emerald-400">{row.nowZl} zł</span>
+                    <span className="font-bold text-white">{row.nowZl} zł</span>
                     <span className="text-xs text-bm-muted line-through">{row.wasZl} zł</span>
                   </span>
                 </li>

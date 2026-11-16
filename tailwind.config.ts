@@ -15,6 +15,7 @@ const config: Config = {
           border: "rgba(255,255,255,0.08)",
           red: "#e10600",
           "red-glow": "#ff1a1a",
+          ink: "#ff4d3a",
           silver: "#a8a8a8",
           muted: "#888888",
         },

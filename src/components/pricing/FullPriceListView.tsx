@@ -80,22 +80,22 @@ export function FullPriceListView() {
   return (
     <div>
       <div className="rounded-2xl border border-bm-red/40 bg-gradient-to-br from-bm-red/15 via-bm-card to-bm-black p-6 md:p-8 mb-10">
-        <p className="text-xs uppercase tracking-[0.2em] text-bm-red font-bold mb-2">
+        <p className="text-xs uppercase tracking-[0.2em] text-bm-ink font-bold mb-2">
           BESS MOTORS · PREMIUM SERVICE
         </p>
         <h1 className="font-display text-3xl md:text-4xl font-bold uppercase text-glow">
           {t.priceList.title}
         </h1>
         <p className="mt-3 text-bm-muted max-w-2xl">{t.priceList.subtitle}</p>
-        <p className="mt-2 text-sm text-emerald-400/90 max-w-2xl">
+        <p className="mt-2 text-sm text-white/80 max-w-2xl">
           {t.promoPrice.legend}
         </p>
         <div className="mt-5 flex flex-wrap items-center gap-4 text-sm">
-          <span className="inline-flex items-center gap-2 rounded-full border border-bm-red/50 bg-bm-red/10 px-4 py-2 text-bm-red font-semibold">
+          <span className="inline-flex min-h-[44px] items-center gap-2 rounded-full border border-bm-red/50 bg-bm-red/10 px-4 py-2 text-bm-ink font-semibold">
             <Clock size={16} />
             {t.priceList.hourlyRate}: {HOURLY_RATE_PLN} zł/h
           </span>
-          <PhoneLink className="inline-flex items-center gap-2 text-white hover:text-bm-red transition-colors">
+          <PhoneLink className="inline-flex min-h-[44px] items-center gap-2 text-white hover:text-bm-ink transition-colors">
             <Phone size={16} />
             {siteConfig.phone}
           </PhoneLink>
@@ -103,7 +103,7 @@ export function FullPriceListView() {
         <button
           type="button"
           onClick={() => void downloadPriceListPdf(contentLoc)}
-          className="mt-4 inline-flex items-center gap-2 text-sm text-bm-red hover:underline"
+          className="mt-4 inline-flex min-h-[44px] items-center gap-2 text-sm text-bm-ink hover:underline"
         >
           <Download size={16} />
           {t.priceList.downloadPdf}
@@ -151,7 +151,7 @@ export function FullPriceListView() {
               className="rounded-2xl border border-bm-border/60 overflow-hidden scroll-mt-28"
             >
               <div className="bg-bm-card/80 px-4 py-3 border-b border-bm-border/60">
-                <h2 className="font-display text-lg uppercase text-bm-red">
+                <h2 className="font-display text-lg uppercase text-bm-ink">
                   {pickName(cat, locale)}
                 </h2>
               </div>
@@ -183,7 +183,7 @@ export function FullPriceListView() {
         <ul className="space-y-2 text-sm text-bm-muted">
           {priceListFooterNotes.map((note) => (
             <li key={note.pl} className="flex gap-2">
-              <span className="text-bm-red shrink-0">•</span>
+              <span className="text-bm-ink shrink-0" aria-hidden>•</span>
               <span>
                 {locale === "en"
                   ? note.en || note.pl

@@ -32,7 +32,7 @@ export function WhyBessMotors() {
             return (
               <li
                 key={item.title}
-                className="rounded-xl border border-white/10 bg-bm-card p-5 transition-transform duration-200 hover:-translate-y-0.5"
+                className="bm-service-card p-5"
               >
                 <Icon size={20} className="text-bm-red mb-3" />
                 <p className="font-semibold text-white">{item.title}</p>

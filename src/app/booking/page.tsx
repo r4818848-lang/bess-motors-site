@@ -17,9 +17,12 @@ export default function BookingPage() {
             Wybierz usługi z cennika i zostaw telefon. Potwierdzimy termin telefonicznie. Bez konta
             i logowania.
           </p>
-          <p className="mt-2 text-sm text-bm-silver/80 max-w-xl mx-auto">
-            {siteConfig.address} ·{" "}
-            <a href={siteConfig.phoneHref} className="text-bm-red font-semibold hover:underline">
+          <p className="mt-3 flex flex-col items-center gap-1 text-sm text-bm-silver/90 sm:flex-row sm:justify-center sm:gap-3">
+            <span className="max-w-[18rem] text-center sm:max-w-none">{siteConfig.address}</span>
+            <a
+              href={siteConfig.phoneHref}
+              className="inline-flex min-h-[44px] items-center whitespace-nowrap font-semibold text-bm-ink hover:underline"
+            >
               {siteConfig.phone}
             </a>
           </p>

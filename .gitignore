@@ -33,10 +33,20 @@ __MACOSX/
 /data/gsc/
 /data/seo-private/
 
+# Hero render intermediates and the owner-supplied GLBs.
+# The models stay on the PR machine until a publish decision. Do not commit them.
+/assets/hero/renders/
+/assets/hero/source/**/*.glb
+/assets/hero/source/**/*.bin
+/assets/hero/source/**/*.zip
+
 # debug
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# python
+__pycache__/
 
 # typescript
 *.tsbuildinfo

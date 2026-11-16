@@ -1,97 +1,90 @@
 "use client";
 
-import Image from "next/image";
-import { ChevronRight, Phone, FileSearch, Navigation } from "lucide-react";
+import Link from "next/link";
+import { ChevronRight, Phone, Navigation } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
-import { siteConfig } from "@/lib/site";
 import { PhoneLink } from "@/components/analytics/PhoneLink";
 import { BookingLink } from "@/components/analytics/BookingLink";
 import { WORKSHOP_DIRECTIONS_URL } from "@/lib/maps";
 import { trackGetDirectionsClick } from "@/lib/gtag";
-import { DriveInCar } from "@/components/motion/ServiceMotion";
+import { SITE_NAP } from "@/lib/site-nap";
 
-/** Calm hero — brand + CTAs (Final Polish v3 §6–7) */
+/**
+ * V10 studio posters. The 12-second film is not wired in.
+ * The phone loads the centred wide frame. Desktop loads the frame with room on the left.
+ */
 export function Hero() {
   const { t } = useI18n();
   const h = t.hero;
 
   return (
-    <section className="relative flex items-end sm:items-center overflow-hidden pt-2 pb-8 sm:pb-12 sm:min-h-[58vh]">
-      <div className="absolute inset-0 z-0" aria-hidden>
-        <Image
-          src={siteConfig.bannerImage}
-          alt="BESS MOTORS — serwis samochodowy Warszawa Włochy"
-          fill
-          priority
+    <section className="relative isolate -mt-14 flex flex-col overflow-hidden bg-[#07080b] pb-[calc(4.75rem+env(safe-area-inset-bottom))] pt-16 sm:-mt-16 sm:pt-20 lg:block lg:min-h-[78vh] lg:pb-16 lg:pt-24">
+      <picture className="order-2 px-4 lg:absolute lg:inset-0 lg:z-0 lg:px-0">
+        <source media="(min-width: 1024px)" srcSet="/hero/v10-desktop.webp" type="image/webp" />
+        <img
+          src="/hero/v10-wide.webp"
+          alt=""
+          width={1600}
+          height={900}
           fetchPriority="high"
-          decoding="sync"
-          className="object-cover object-[72%_42%] sm:object-[75%_40%]"
-          sizes="100vw"
-          quality={75}
+          className="mt-4 h-auto w-full lg:mt-0 lg:h-full lg:object-cover lg:object-[62%_46%]"
         />
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              "linear-gradient(105deg, rgba(8,8,8,0.94) 0%, rgba(8,8,8,0.78) 45%, rgba(8,8,8,0.35) 100%)",
-          }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-bm-black via-transparent to-bm-black/40" />
-        <div className="bm-hero-sweep" />
-      </div>
+      </picture>
+      <div
+        className="pointer-events-none absolute inset-y-0 left-0 z-10 hidden w-[min(30rem,34%)] bg-gradient-to-r from-[#07080b] from-8% via-[#07080b]/55 via-42% to-transparent lg:block"
+        aria-hidden
+      />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 hidden h-16 bg-gradient-to-t from-[#07080b] to-transparent lg:block" aria-hidden />
 
-      <div className="relative z-10 mx-auto max-w-7xl px-4 lg:px-8 w-full py-8 sm:py-12">
-        <div className="grid items-end gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(280px,480px)] lg:items-center">
-        <div className="max-w-2xl">
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-bm-red">BESS MOTORS</p>
-          <h1 className="mt-3 font-display font-bold tracking-tight text-[2.125rem] leading-[1.1] sm:text-5xl md:text-[3.5rem] text-white">
+      <div className="relative z-10 order-1 w-full px-4 pt-6 lg:px-10 lg:pt-10">
+        <div className="max-w-xl lg:max-w-md">
+          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-bm-ink">BESS MOTORS</p>
+          <h1 className="mt-4 max-w-[12ch] font-display text-[2.35rem] font-semibold leading-[1.02] tracking-[-0.03em] text-white sm:max-w-none sm:text-5xl lg:text-[3.15rem]">
             {h.h1Short}
           </h1>
-          <div className="mt-4 h-1 w-16 bg-bm-red" />
-
-          <p className="mt-4 text-base sm:text-lg text-white/90 max-w-xl leading-relaxed">
-            {h.subtitleClean}
-          </p>
-
-          <p className="mt-3 text-sm text-bm-silver">{h.servicesLine}</p>
-
-          <div className="mt-6 flex flex-col sm:flex-row flex-wrap gap-3">
-            <BookingLink
-              trackSource="hero"
-              className="btn-primary inline-flex items-center justify-center gap-2 uppercase tracking-wide"
-            >
-              {h.ctaBook}
-              <ChevronRight size={16} />
-            </BookingLink>
-            <a
-              href="#wyceń-po-vin"
-              className="btn-outline inline-flex items-center justify-center gap-2 uppercase tracking-wide"
-            >
-              <FileSearch size={16} />
-              {h.ctaVinShort}
-            </a>
-            <PhoneLink
-              trackSource="hero_cta"
-              className="btn-outline inline-flex items-center justify-center gap-2 uppercase tracking-wide"
-            >
-              <Phone size={16} />
-              {h.ctaCall}
-            </PhoneLink>
-            <a
-              href={WORKSHOP_DIRECTIONS_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={() => trackGetDirectionsClick("hero")}
-              className="btn-outline inline-flex items-center justify-center gap-2 uppercase tracking-wide"
-            >
-              <Navigation size={16} />
-              {t.stickyBar.route}
-            </a>
-          </div>
+          <p className="mt-5 max-w-xl text-base leading-relaxed text-white/85 sm:text-lg">{h.subtitleClean}</p>
+          <p className="mt-3 max-w-xl text-sm text-white/55">{h.servicesLine}</p>
         </div>
-          <div className="rounded-3xl border border-white/10 bg-[#0c0e12] p-2">
-            <DriveInCar className="pointer-events-none w-full" />
-          </div>
+      </div>
+
+      <div className="relative z-10 order-3 w-full px-4 pb-2 lg:px-10 lg:pb-6">
+        <div className="mt-3 flex flex-col gap-2.5 sm:flex-row lg:mt-8">
+          <BookingLink
+            trackSource="hero"
+            className="btn-primary inline-flex items-center justify-center gap-2 uppercase tracking-wide"
+          >
+            {h.ctaBook}
+            <ChevronRight size={16} />
+          </BookingLink>
+          <Link
+            href="/services"
+            className="btn-outline inline-flex items-center justify-center gap-2 uppercase tracking-wide"
+          >
+            {h.ctaExplore}
+          </Link>
+        </div>
+
+        <div className="mt-5 hidden flex-col gap-1 text-sm text-white/80 sm:flex-row sm:flex-wrap sm:items-center sm:gap-2 lg:flex">
+          <PhoneLink
+            trackSource="hero_cta"
+            className="inline-flex min-h-[44px] items-center gap-2 rounded-lg px-2 hover:text-white"
+          >
+            <Phone size={16} aria-hidden />
+            {SITE_NAP.phoneDisplay}
+          </PhoneLink>
+          <a
+            href={WORKSHOP_DIRECTIONS_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => trackGetDirectionsClick("hero")}
+            className="inline-flex min-h-[44px] items-center gap-2 rounded-lg px-2 hover:text-white"
+          >
+            <Navigation size={16} aria-hidden />
+            {t.stickyBar.route}
+          </a>
+          <a href="#wyceń-po-vin" className="inline-flex min-h-[44px] items-center rounded-lg px-2 hover:text-white">
+            {h.ctaVinShort}
+          </a>
         </div>
       </div>
     </section>

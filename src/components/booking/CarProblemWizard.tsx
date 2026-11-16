@@ -59,7 +59,7 @@ export function CarProblemWizard({ onApply }: Props) {
     <div className="rounded-2xl border border-bm-border/60 bg-bm-card/50 p-5 mb-8">
       <div className="flex items-center gap-2 mb-3">
         <Wrench className="text-bm-red" size={20} />
-        <h2 className="font-display text-sm uppercase text-bm-red">{w.title}</h2>
+        <h2 className="font-display text-sm uppercase text-bm-ink">{w.title}</h2>
       </div>
       <p className="text-sm text-bm-muted mb-4">{w.subtitle}</p>
       <div className="flex flex-wrap gap-2 mb-4">

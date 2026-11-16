@@ -32,7 +32,7 @@ function PhotoGrid({ tiles, lang }: { tiles: LandingPhoto[]; lang: "pl" | "ru" }
             alt={tile.alt[lang]}
             fill
             sizes="(max-width: 640px) 45vw, 240px"
-            quality={55}
+            quality={75}
             loading="lazy"
             className="object-cover"
           />

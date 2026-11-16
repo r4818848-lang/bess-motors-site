@@ -36,7 +36,7 @@ export function SymptomFaq() {
                         <Link
                           key={sid}
                           href={bookingUrlForService(sid as ServiceId)}
-                          className="text-xs text-bm-red font-bold uppercase hover:underline"
+                          className="text-xs text-bm-ink font-bold uppercase hover:underline"
                         >
                           → {t.serviceItems[sid as keyof typeof t.serviceItems] ?? sid}
                         </Link>

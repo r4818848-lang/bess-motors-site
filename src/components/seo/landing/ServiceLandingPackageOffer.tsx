@@ -54,7 +54,7 @@ export function ServiceLandingPackageOffer({ serviceId }: { serviceId: ServiceId
             {p.regularPrice}:{" "}
             <span className="line-through">{formatPln(regular)}</span>
             {savings > 0 && (
-              <span className="text-emerald-400 ml-1">(−{formatPln(savings)})</span>
+              <span className="text-bm-ink ml-1">(−{formatPln(savings)})</span>
             )}
           </div>
         </div>

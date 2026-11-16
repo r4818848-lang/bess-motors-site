@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Menu, Phone, X } from "lucide-react";
 import { clsx } from "clsx";
@@ -43,6 +43,8 @@ export function Header() {
   const { t, locale } = useI18n();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(false);
   const [servicesOpen, setServicesOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -75,11 +77,34 @@ export function Header() {
       if (event.key === "Escape") {
         setOpen(false);
         setServicesOpen(false);
+        menuButtonRef.current?.focus();
+        return;
+      }
+      if (!open || event.key !== "Tab") return;
+      const menu = menuRef.current;
+      if (!menu) return;
+      const items = [...menu.querySelectorAll<HTMLElement>("a, button")];
+      if (menuButtonRef.current) items.push(menuButtonRef.current);
+      if (!items.length) return;
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [open, servicesOpen]);
+
+  useEffect(() => {
+    if (!open) return;
+    const first = menuRef.current?.querySelector<HTMLElement>("a, button");
+    first?.focus();
+  }, [open]);
 
   useEffect(() => {
     setOpen(false);
@@ -98,7 +123,9 @@ export function Header() {
       <div
         className={clsx(
           "border-b transition-colors duration-200",
-          scrolled ? "border-white/10 bg-bm-black/80 backdrop-blur-md" : "border-transparent bg-bm-black/55"
+          scrolled || pathname !== "/"
+            ? "border-white/10 bg-bm-black/80 backdrop-blur-md"
+            : "border-transparent bg-transparent"
         )}
       >
       <div className="mx-auto flex h-14 sm:h-16 max-w-7xl items-center justify-between gap-3 px-4 lg:px-8">
@@ -147,7 +174,7 @@ export function Header() {
                 key={item.href}
                 href={item.href}
                 className={clsx(
-                  "rounded-lg px-3 py-2 text-sm transition-colors",
+                  "inline-flex min-h-[44px] items-center rounded-lg px-3 py-2 text-sm transition-colors",
                   active ? "text-white" : "text-bm-silver hover:text-white"
                 )}
               >
@@ -161,7 +188,7 @@ export function Header() {
           <LanguageSwitcher compact />
           <PhoneLink
             trackSource="header"
-            className="text-sm font-semibold text-white hover:text-bm-red transition-colors whitespace-nowrap"
+            className="inline-flex min-h-[44px] items-center text-sm font-semibold text-white hover:text-bm-ink transition-colors whitespace-nowrap"
           >
             {SITE_NAP.phoneDisplay}
           </PhoneLink>
@@ -185,6 +212,7 @@ export function Header() {
           <button
             type="button"
             className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-white hover:bg-white/5"
+            ref={menuButtonRef}
             onClick={() => setOpen(!open)}
             aria-label="Menu"
             aria-expanded={open}
@@ -198,7 +226,7 @@ export function Header() {
 
       {open && mounted
         ? createPortal(
-        <div id="mobile-nav" className="fixed inset-x-0 bottom-0 top-14 z-[100] overflow-y-auto bg-[#090b0e] px-4 py-4 lg:hidden">
+        <div id="mobile-nav" ref={menuRef} className="fixed inset-x-0 bottom-0 top-14 z-[120] overflow-y-auto bg-[#090b0e] px-4 py-4 pb-28 lg:hidden">
           <nav className="flex flex-col gap-1" aria-label={t.nav.services}>
             {serviceLinks.map((item) => (
               <Link

@@ -25,7 +25,7 @@ export function TirePromoBanner() {
       <div className="mx-auto max-w-7xl px-4 lg:px-8 py-8 sm:py-10">
         <div className="grid lg:grid-cols-[1.1fr_0.9fr] gap-6 lg:gap-10 items-center">
           <div>
-            <p className="text-[11px] sm:text-xs font-semibold uppercase tracking-[0.22em] text-bm-red mb-2">
+            <p className="text-[11px] sm:text-xs font-semibold uppercase tracking-[0.22em] text-bm-ink mb-2">
               Sezon opon — promocja
             </p>
             <h2

@@ -32,7 +32,7 @@ export function ServiceLandingPrice({
       </h2>
       <Card glow className="p-6">
         {!isAc && price.compareAtZl != null ? (
-          <p className="text-xs text-emerald-400/90 mb-3">{pp.legend}</p>
+          <p className="text-xs text-white/75 mb-3">{pp.legend}</p>
         ) : null}
         {price.fromZl <= 0 && !price.priceFrom ? (
           <p className="font-display text-2xl text-bm-red">{sl.priceOnRequest}</p>

@@ -96,7 +96,7 @@ export function SameDayServices() {
           {items.map((item) => (
             <li
               key={item.source}
-              className="bm-service-card rounded-xl border border-white/10 bg-bm-card p-5 flex flex-col transition-transform duration-200 hover:-translate-y-0.5"
+              className="bm-service-card p-5 flex flex-col"
             >
               <item.icon className="w-5 h-5 text-bm-red" aria-hidden />
               <p className="mt-3 font-semibold text-white leading-snug">{item.title}</p>
@@ -108,7 +108,7 @@ export function SameDayServices() {
               <BookingLink
                 href={item.href}
                 trackSource={item.source}
-                className="mt-4 text-sm font-semibold text-bm-red hover:text-white transition-colors inline-flex items-center gap-1"
+                className="mt-4 text-sm font-semibold text-bm-ink hover:text-white transition-colors inline-flex items-center gap-1 min-h-[44px]"
               >
                 {h.sameDayBook}
                 <ChevronRight size={14} aria-hidden />

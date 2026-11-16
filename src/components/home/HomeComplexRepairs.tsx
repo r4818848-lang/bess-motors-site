@@ -63,7 +63,7 @@ export function HomeComplexRepairs() {
               <BookingLink
                 href={item.href}
                 trackSource={item.source}
-                className="mt-4 text-sm font-semibold text-bm-red hover:text-white transition-colors inline-flex items-center gap-1"
+                className="mt-4 text-sm font-semibold text-bm-ink hover:text-white transition-colors inline-flex items-center gap-1"
               >
                 {h.cta}
                 <ChevronRight size={14} aria-hidden />

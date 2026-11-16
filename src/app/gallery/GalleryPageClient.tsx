@@ -107,7 +107,7 @@ export default function GalleryPageClient({
           </motion.div>
         )}
 
-        <div className="mt-10 flex flex-wrap gap-2" role="tablist" aria-label={g.title}>
+        <div className="sticky top-14 z-30 -mx-4 mt-6 flex flex-wrap gap-2 bg-[#080808]/95 px-4 py-3 backdrop-blur sm:top-16" role="tablist" aria-label={g.title}>
           {tabs.map(({ id, label }) => (
             <button
               key={id}
@@ -118,7 +118,7 @@ export default function GalleryPageClient({
               className={clsx(
                 "min-h-[44px] px-4 py-2 rounded-full text-xs font-bold uppercase border transition-colors",
                 tab === id
-                  ? "bg-bm-red/20 border-bm-red text-bm-red"
+                  ? "bg-bm-red border-bm-red text-white"
                   : "border-bm-border text-bm-muted hover:text-white"
               )}
             >
@@ -140,7 +140,7 @@ export default function GalleryPageClient({
 
         {tab === "works" && (
           <div className="mt-10" role="tabpanel">
-            <div className="mb-6 flex flex-wrap gap-2" aria-label="Filtr usług">
+            <div className="mb-6 flex gap-2 overflow-x-auto pb-1" aria-label="Filtr usług">
               {serviceFilters.map((item) => (
                 <button
                   key={item.id}
@@ -148,9 +148,9 @@ export default function GalleryPageClient({
                   aria-pressed={serviceFilter === item.id}
                   onClick={() => selectService(item.id)}
                   className={clsx(
-                    "min-h-[44px] rounded-full border px-4 text-sm",
+                    "min-h-[44px] shrink-0 rounded-full border px-4 text-sm",
                     serviceFilter === item.id
-                      ? "border-bm-red bg-bm-red/15 text-white"
+                      ? "border-bm-red bg-bm-red text-white"
                       : "border-white/15 text-bm-silver"
                   )}
                 >

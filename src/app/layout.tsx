@@ -94,14 +94,12 @@ const criticalCss = `
   .text-bm-red{color:#e10600!important}
   .text-bm-muted{color:#888!important}
   .font-display{font-weight:700;letter-spacing:.05em}
-  [data-cookie-dialog] [data-cc]{display:none}
-  [data-cookie-dialog] [data-cc="pl"]{display:block}
-  html[data-cc-lang="en"] [data-cookie-dialog] [data-cc]{display:none}
-  html[data-cc-lang="en"] [data-cookie-dialog] [data-cc="en"]{display:block}
-  html[data-cc-lang="ru"] [data-cookie-dialog] [data-cc]{display:none}
-  html[data-cc-lang="ru"] [data-cookie-dialog] [data-cc="ru"]{display:block}
-  html[data-cc-lang="uk"] [data-cookie-dialog] [data-cc]{display:none}
-  html[data-cc-lang="uk"] [data-cookie-dialog] [data-cc="uk"]{display:block}
+  [data-cookie-dialog] [data-cc]{display:none !important}
+  html:not([data-cc-lang]) [data-cookie-dialog] [data-cc="pl"],
+  html[data-cc-lang="pl"] [data-cookie-dialog] [data-cc="pl"],
+  html[data-cc-lang="en"] [data-cookie-dialog] [data-cc="en"],
+  html[data-cc-lang="ru"] [data-cookie-dialog] [data-cc="ru"],
+  html[data-cc-lang="uk"] [data-cookie-dialog] [data-cc="uk"]{display:block !important}
   html[data-cookie-consent] [data-cookie-dialog]{display:none!important}
   [data-cookie-dialog],[data-cookie-dialog] [data-cc]{font-family:system-ui,sans-serif}
 `;

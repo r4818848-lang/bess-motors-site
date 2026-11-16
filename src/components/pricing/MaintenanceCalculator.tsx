@@ -61,7 +61,7 @@ export function MaintenanceCalculator({
           ))
         )}
       </ul>
-      <BookingLink className="inline-block mt-4 text-bm-red text-sm font-semibold hover:underline">
+      <BookingLink className="mt-4 inline-flex min-h-[44px] items-center text-bm-ink text-sm font-semibold hover:underline">
         {m.bookVisit}
       </BookingLink>
     </Card>
