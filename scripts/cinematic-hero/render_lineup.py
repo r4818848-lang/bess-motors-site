@@ -105,9 +105,14 @@ def fronts_requested():
     return "--fronts" in RENDER_FLAGS
 
 
+def compare_requested():
+    """G90 part close-ups plus two parked grades. No new meshes and no 12-second film."""
+    return "--compare" in RENDER_FLAGS
+
+
 def gpu_film_requested():
     """1080p Cycles on the owner's GPU. Not the 640px Eevee reel."""
-    return g90_limit_requested() or fronts_requested() or any(flag in {"--gpu-control", "--gpu-film"} for flag in RENDER_FLAGS)
+    return g90_limit_requested() or fronts_requested() or compare_requested() or any(flag in {"--gpu-control", "--gpu-film"} for flag in RENDER_FLAGS)
 
 
 def v10_requested():
@@ -751,6 +756,50 @@ def aim_g90_detail(car):
     cam.data.shift_y = 0.0
     cam.location = origin + Vector((-0.15, -1.85, 0.62))
     look_at(cam, origin + Vector((0.22, 0.45, 0.42)))
+
+
+def aim_g90_part(car, kind):
+    """Close view of a part that already exists. The mesh is not rebuilt for the shot."""
+    origin = car["rig"].matrix_world.translation
+    yaw = car["curve"].at_time(DURATION)[1]
+    ahead = Vector((math.sin(yaw), -math.cos(yaw), 0.0))
+    side = Vector((math.cos(yaw), math.sin(yaw), 0.0))
+    cam = bpy.data.objects["HeroCam"]
+    cam.data.shift_x = 0.0
+    cam.data.shift_y = 0.0
+    if kind == "grille":
+        look = origin + ahead * 2.02 + Vector((0.0, 0.0, 0.16))
+        cam.location = look + ahead * 0.95
+        cam.data.lens = 85
+    elif kind == "lamp":
+        look = origin + ahead * 1.85 + side * 1.05 + Vector((0.0, 0.0, 0.32))
+        cam.location = look + ahead * 0.55 + side * 0.05
+        cam.data.lens = 70
+    else:
+        hub = min(car["front"], key=lambda obj: obj.matrix_world.translation.y)
+        look = hub.matrix_world.translation + Vector((0.0, 0.0, 0.02))
+        cam.location = look + ahead * 0.72 + side * 0.28 + Vector((0.0, 0.0, 0.08))
+        cam.data.lens = 75
+    look_at(cam, look)
+
+
+def apply_style_grade():
+    """One poster grade. Same cars, same camera, same paths. Not a second geometry pass."""
+    world = bpy.context.scene.world
+    if world and world.use_nodes:
+        for node in world.node_tree.nodes:
+            if node.type == "BACKGROUND":
+                node.inputs["Strength"].default_value = 0.05
+    for light in bpy.data.lights:
+        if light.name.startswith("Glow"):
+            light.energy *= 2.5
+        elif light.name in {"Key", "Fill", "Face", "Top", "Edge"}:
+            light.energy *= 0.7
+    for prefix in ("G90", "M4", "GT3"):
+        for side in ("L", "R"):
+            light = bpy.data.lights.get(f"{prefix}_{side}")
+            if light is not None:
+                light.energy = 22.0
 
 
 def aim_fascia(car, lens=64):
@@ -3069,7 +3118,11 @@ def main():
         jobs = [("quality", "mobile")]
     if "--axle-still" in sys.argv:
         jobs = [("axle", "desktop")]
-    if "--fronts" in sys.argv:
+    if "--compare" in sys.argv:
+        only = os.environ.get("BESS_COMPARE", "").strip()
+        views = [only] if only in {"grille", "lamp", "wheel", "real", "style"} else ["grille", "lamp", "wheel", "real", "style"]
+        jobs = [("compare", view) for view in views]
+    elif "--fronts" in sys.argv:
         only = os.environ.get("BESS_FRONT", "").strip()
         views = [only] if only in {"g90", "m4", "gt3"} else ["g90", "m4", "gt3"]
         jobs = [("fronts", view) for view in views]
@@ -3418,6 +3471,14 @@ def main():
                     True,
                 )
             folder = out / f"quality-{view}"
+        elif job == "compare":
+            shots = [(view, DURATION, False)]
+            samples = int(os.environ.get("BESS_SAMPLES", "12"))
+            scene = configure_scene(1920, 1080, samples, True)
+            scene.render.image_settings.file_format = "PNG"
+            scene.render.image_settings.color_mode = "RGB"
+            folder = out / "compare"
+            print(f"COMPARE {view} {scene.render.resolution_x}x{scene.render.resolution_y} samples={samples}")
         elif job == "fronts":
             shots = [(view, DURATION, False)]
             samples = int(os.environ.get("BESS_SAMPLES", "28"))
@@ -3727,7 +3788,22 @@ def main():
                 hide_tree(g90["rig"], True)
                 hide_tree(gt3["rig"], True)
             bpy.context.view_layer.update()
-            if job == "fronts":
+            if job == "compare":
+                if view in {"grille", "lamp", "wheel"}:
+                    hide_tree(m4["rig"], True)
+                    hide_tree(gt3["rig"], True)
+                    mute_car_lights(m4, True)
+                    mute_car_lights(gt3, True)
+                    aim_g90_part(g90, view)
+                elif view == "style":
+                    apply_style_grade()
+                    cam = bpy.data.objects["HeroCam"]
+                    cam.data.lens = 36
+                    cam.data.shift_x = 0.0
+                    cam.data.shift_y = 0.0
+                    cam.location = Vector((0.1, -8.4, 0.32))
+                    look_at(cam, Vector((0.2, 0.6, 0.42)))
+            elif job == "fronts":
                 chosen = {"g90": g90, "m4": m4, "gt3": gt3}[view]
                 for other in (g90, m4, gt3):
                     hide_tree(other["rig"], other is not chosen)

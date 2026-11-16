@@ -642,6 +642,21 @@ The owner set the budget at 0 PLN. No model, subscription, paid API, or GPU rent
 
 No free commercially usable G90 replaces the current mesh. The G90 work below is new geometry on that mesh.
 
+### Official download of the toddeppe GT3
+
+Checked again on 16 November 2026: the public model record is still CC BY 4.0, 2,560,923 faces, 36 textures, price empty, `isDownloadable` true. `GET /v3/models/cbf6fd3ea47f41b3aad3f385ee0ee853/download` still returns HTTP 401. This machine will not scrape the viewer and will not use a token.
+
+The owner downloads it in a browser, on the Sketchfab account that accepts the licence:
+
+1. Sign in at [sketchfab.com](https://sketchfab.com/login).
+2. Open [BMW M4 GT3 by toddeppe](https://sketchfab.com/3d-models/bmw-m4-gt3-cbf6fd3ea47f41b3aad3f385ee0ee853).
+3. Use the page's own Download control. Accept the CC BY 4.0 attribution prompt Sketchfab shows.
+4. Choose the glTF Binary (`.glb`) file. If the page lists an original upload and an autoconverted glTF, take the `.glb`. Do not take a screenshot or a preview image.
+5. Do not rename it over the current GT3. Put the untouched file in the Drive folder `BESS MOTORS 3D` as `bmw-m4-gt3-toddeppe.glb`.
+6. Do not send a password or an API token. The next pass hashes the file, reads the licence that arrived with it, and measures the lamps, grille, bumper, and wheels before any rig adapter. The source GLB is not edited.
+
+CC BY 4.0 requires attribution to toddeppe and a link to that model. It is still not a licence from BMW AG. Sponsor marks in the textures, if they are there, have to come off before a commercial page. The same mesh re-uploaded by VTX under CC BY-NC-SA stays unused.
+
 ### G90 nose that was actually built
 
 `build_g90_nose` in `render_lineup.py` runs on the parked G90 and parents every new mesh to the existing rig, so the drive path is unchanged. The GT3 box fascia stays off on this path. ComfyUI was not used.
@@ -661,7 +676,26 @@ What is still missing on the G90, visible in `docs/review/front-g90.png`:
 - Glass transmission was not raised: zero materials named as glass had an open transmission socket. The cabin is still the game interior. There is no thick windshield.
 - The body has no panel gaps and no flake map. The wheel spokes are still the 1,060-face game rim. The new disc is a plain rotor.
 
-This is not a photograph. It is the furthest the current file can be pushed with meshes this script can build. Light and a neural redraw were not used to hide the rest.
+This is not a photograph. It is the furthest the current file can be pushed with meshes this script can build. Further boxes on the shell are stopped. Light and a neural redraw were not used to hide the rest.
+
+The grille macro `docs/review/compare-grille.png` is the new part at full frame: flat bars, a flat centre pillar, and a dark slot. A 2025 M5 kidney has a shaped opening, a frame, and slats with edges. These bars can sit in the graphic. They cannot become that kidney without a new body.
+
+The wheel macro `docs/review/compare-wheel.png` is the game rim and the sidewall texture. The added rotor does not read behind the spokes.
+
+Two lamp macros missed the headlamp (the hood, then the rear quarter). They are not the evidence. The fascia `docs/review/front-g90.png` is: the DRL is still the game curve, and the added lens does not read as a projector.
+
+### Two parked grades, same cars and the same paths
+
+Both are one frame at the end of the arrival, 1920×1080, Cycles on this CPU, 12 samples. Headlights are on. The drive order and the rigs are unchanged. No 12-second film.
+
+| Grade | Frame | What it is |
+| --- | --- | --- |
+| A. The straighter studio | `docs/review/compare-real.png` | The current studio: green M4 left, blue G90 centre, burgundy GT3 right, coloured skirts, headlights on. This is the more literal frame. The M4 nose is the only one with a modelled grille. The G90 grate is a bright insert. The GT3 nose is a closed shell. |
+| B. The low poster | `docs/review/compare-style.png` | Same three cars and the same parked positions, from a lower camera, with a darker cove and stronger skirts. The floor colour and the headlights carry the picture. The meshes are the same meshes. |
+
+A light-only change of grade A, with the same camera, moved the pixels by about 4 levels and was not a second composition. B is the lower camera, rendered once.
+
+At a budget of 0, B is the frame that can go on the site as an animation style. A cannot become a photograph of three BMWs. Neither grade fixes the GT3 shell or the G90 body. The toddeppe file is still the free GT3 candidate, and it is still not on disk.
 
 ### M4 and GT3 fronts, unchanged meshes
 
@@ -675,7 +709,8 @@ GT3 still missing: a grille, headlamps, intakes, and a glass cover. The nose is 
 
 - No `<video>` on the homepage. The rejected V10 posters are still what the branch shows. This pass did not replace them.
 - No new group beauty and no replacement files. The budget is 0. Nothing was purchased, and the withdrawn shortlist is not a shopping list.
-- The three fascia stills are `docs/review/front-g90.png`, `front-m4.png`, and `front-gt3.png`. They are CPU Cycles checks on this machine, not the RTX reel.
+- The fascia stills are `docs/review/front-g90.png`, `front-m4.png`, and `front-gt3.png`. The comparison stills are `docs/review/compare-grille.png`, `compare-wheel.png`, `compare-real.png`, and `compare-style.png`. They are CPU Cycles checks on this machine, not the RTX reel.
+- The toddeppe GLB is not in the repo. The download steps are above. No rig adapter was written, because the bytes are not here. The source GLBs were not edited.
 - No AI image was generated. The runnable entry point is `scripts/cinematic-hero/comfy/edit_hero.py`. It has not loaded a model.
 - No production Lighthouse pass. The times above are the local dev server.
 - The 12-second Cycles film was not started. The Windows launcher above is the way to render the 2-second 1920×1080 control, then the film after that control is accepted. `docs/review/v10-motion-preview.mp4` is the old 640×360 Eevee file and is not the film. The drive-in order and the rigs were not changed.
