@@ -21,7 +21,7 @@ function Photo({
     >
       <Image src={src} alt={alt} fill unoptimized sizes={large ? "(max-width: 768px) 50vw, 450px" : "(max-width: 768px) 33vw, 160px"} className="object-cover transition-transform duration-500 motion-safe:group-hover:scale-105" />
       {badge ? <span className="absolute left-3 top-3 rounded-md border border-white/25 bg-black/75 px-3 py-1.5 text-[11px] font-bold tracking-wide text-white">{badge}</span> : null}
-      <span className="absolute bottom-3 right-3 rounded-full bg-black/65 p-2 text-white/80 opacity-80 transition-opacity group-hover:opacity-100" aria-hidden><ArrowUpRight size={16} /></span>
+      <span className="absolute bottom-3 right-3 rounded-full bg-black/65 p-2 text-bm-copy opacity-80 transition-opacity group-hover:opacity-100" aria-hidden><ArrowUpRight size={16} /></span>
     </button>
   );
 }
@@ -49,10 +49,10 @@ export function WorkBeforeAfterCollage({ item }: { item: WorkBeforeAfterCase }) 
     <article className="overflow-hidden rounded-[24px] border border-white/15 bg-[#1a1e26]" data-testid="repair-portfolio-case">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 px-5 py-4">
         <div>
-          {item.make ? <p className="mb-1 text-xs font-bold uppercase tracking-[0.16em] text-[#ff7772]">{item.make}</p> : null}
+          {item.make ? <p className="mb-1 text-xs font-bold uppercase tracking-[0.16em] text-bm-accent">{item.make}</p> : null}
           <h3 className="text-lg font-bold tracking-tight text-white">{jobName}</h3>
         </div>
-        <span className="inline-flex items-center gap-2 text-xs font-semibold text-white/55"><Camera size={16} aria-hidden />{item.before.length + item.after.length + (item.workPhotos?.length ?? 0)}</span>
+        <span className="inline-flex items-center gap-2 text-xs font-semibold text-bm-label"><Camera size={16} aria-hidden />{item.before.length + item.after.length + (item.workPhotos?.length ?? 0)}</span>
       </div>
 
       {hasComparison ? (
@@ -65,7 +65,7 @@ export function WorkBeforeAfterCollage({ item }: { item: WorkBeforeAfterCase }) 
             <details className="group border-t border-white/10">
               <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-5 py-3 text-sm font-bold text-white/85 transition-colors hover:bg-white/[0.04] [&::-webkit-details-marker]:hidden">
                 <span>{w.sectionTitle} · {extraCount}</span>
-                <ChevronDown size={18} className="text-[#ff7772] transition-transform group-open:rotate-180" aria-hidden />
+                <ChevronDown size={18} className="text-bm-accent transition-transform group-open:rotate-180" aria-hidden />
               </summary>
               <div className="grid grid-cols-3 gap-1 border-t border-white/10 bg-[#0e1116] sm:grid-cols-5">
                 {extraBefore.map((src, idx) => <Photo key={src} src={src} alt={jobName + " — " + w.before + " " + (idx + 2)} onOpen={() => openPhoto(src, jobName + " — " + w.before)} />)}
@@ -108,7 +108,7 @@ export function WorkBeforeAfterList({
       {heading !== "" ? (
         <div className="mb-6">
           <h2 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">{heading ?? w.sectionTitle}</h2>
-          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/60">{hint ?? w.sectionHint}</p>
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-bm-label">{hint ?? w.sectionHint}</p>
         </div>
       ) : null}
       <div className="grid gap-6 lg:grid-cols-2">
