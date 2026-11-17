@@ -254,3 +254,30 @@ test("mobile tyre page prioritizes booking above the large photo", async ({ page
   const [buttonBox, photoBox] = await Promise.all([action.boundingBox(), photo.boundingBox()]);
   expect(buttonBox && photoBox && buttonBox.y < photoBox.y).toBeTruthy();
 });
+
+
+test("approved BMW film fills the hero background behind readable booking actions", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/");
+  const hero = page.getByTestId("home-hero");
+  await expect(hero).toHaveAttribute("data-hero-layout", "full-bleed");
+  await expect(hero.locator('[data-hero-background="true"]')).toHaveCount(1);
+  await expect(hero.locator('video[poster="/images/bess-motors-hero-poster.webp"]')).toHaveCount(1);
+  await expect(hero.locator('a[href="/booking"]').first()).toBeVisible();
+  await expect(hero.locator('a[href="/services"]').first()).toBeVisible();
+  await expect(hero.getByText("01 / 01")).toHaveCount(0);
+
+  const background = page.getByTestId("hero-background-film");
+  const [heroBox, backgroundBox] = await Promise.all([hero.boundingBox(), background.boundingBox()]);
+  expect(heroBox && backgroundBox && backgroundBox.width > heroBox.width * 0.7).toBeTruthy();
+  const image = hero.locator('[data-hero-background="true"] img');
+  await expect.poll(() => image.evaluate((el) => getComputedStyle(el).objectFit)).toBe("cover");
+  const video = hero.locator('video[poster="/images/bess-motors-hero-poster.webp"]');
+  await expect.poll(() => video.evaluate((el) => getComputedStyle(el).objectFit)).toBe("cover");
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(hero.locator('a[href="/booking"]').first()).toBeVisible();
+  await expect(hero.locator('a[href="/services"]').first()).toBeVisible();
+  const mobileWidth = await page.evaluate(() => document.documentElement.scrollWidth);
+  expect(mobileWidth).toBeLessThanOrEqual(390);
+});
