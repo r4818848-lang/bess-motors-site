@@ -32,7 +32,7 @@ export function StickyContactBar() {
   return (
     <nav
       aria-label={ui.aria}
-      className="bm-sticky-contact fixed inset-x-0 bottom-0 z-[90] border-t border-white/20 bg-[#10141b]/97 px-2 pt-1 shadow-[0_-12px_45px_rgba(0,0,0,.5)] backdrop-blur-xl safe-area-pb md:hidden"
+      className="bm-sticky-contact fixed inset-x-0 bottom-0 z-[90] border-t border-white/20 bg-[#10141b]/95 px-2 pt-1 shadow-[0_-12px_45px_rgba(0,0,0,.5)] backdrop-blur-xl safe-area-pb md:hidden"
       data-testid="mobile-action-bar"
     >
       <div className="mx-auto grid max-w-lg grid-cols-[1fr_1fr_1.4fr_1fr_1fr] items-end gap-0.5">
@@ -48,7 +48,7 @@ export function StickyContactBar() {
 
         <BookingLink
           trackSource="mobile_dock_booking"
-          className="bm-btn-primary relative -mt-5 flex h-[83px] w-full flex-col items-center justify-center gap-1 rounded-[28px] border border-[#ff6b65]/60 px-1 text-center text-[11px] font-bold leading-tight shadow-[0_0_26px_rgba(225,6,0,.32)]"
+          className="bm-btn-primary relative mx-auto -mt-5 flex h-[86px] w-[86px] max-w-full flex-col items-center justify-center gap-1 rounded-full border border-[#ff6b65]/60 px-1 text-center text-[11px] font-bold leading-tight shadow-[0_0_26px_rgba(225,6,0,.32)]"
         >
           <CalendarDays size={26} aria-hidden />
           <span>{ui.book}</span>
