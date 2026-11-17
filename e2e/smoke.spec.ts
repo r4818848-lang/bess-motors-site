@@ -241,3 +241,16 @@ test("service landing photos load successfully instead of displaying broken plac
     await expect(galleryPhoto).not.toHaveAttribute("src", /[?&]q=55(?:&|$)/);
   }
 });
+
+
+test("mobile tyre page prioritizes booking above the large photo", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  const response = await page.goto("/wymiana-opon-warszawa");
+  expect(response?.ok()).toBeTruthy();
+  const action = page.getByTestId("service-hero-book");
+  const photo = page.getByTestId("service-landing-hero-media");
+  await expect(action).toBeVisible();
+  await expect(photo).toBeVisible();
+  const [buttonBox, photoBox] = await Promise.all([action.boundingBox(), photo.boundingBox()]);
+  expect(buttonBox && photoBox && buttonBox.y < photoBox.y).toBeTruthy();
+});
