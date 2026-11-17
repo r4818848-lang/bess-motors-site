@@ -1,7 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, CalendarDays, CheckCircle2, ChevronRight, Clock3, FileSearch, MapPin, Phone, Wrench } from "lucide-react";
+import {
+  ArrowRight, CalendarDays, ChevronRight, CircleHelp, Clock3,
+  Disc3, Droplets, FileSearch, Gauge, MapPin, Phone,
+} from "lucide-react";
 import { HeroVideo } from "@/components/home/HeroVideo";
 import { useI18n } from "@/lib/i18n/context";
 import { BookingLink } from "@/components/analytics/BookingLink";
@@ -10,182 +13,197 @@ import { businessConfig } from "@/lib/businessConfig";
 import { WORKSHOP_DIRECTIONS_URL } from "@/lib/maps";
 import { trackGetDirectionsClick } from "@/lib/gtag";
 
-const labels = {
+const copy = {
   pl: {
-    eyebrow: "Warsztat samochodowy / Warszawa Włochy",
-    statement: "Twój samochód. Jasny plan naprawy.",
-    steps: "Najprościej: wybierz usługę, zapytaj o koszt i umów wizytę.",
+    eyebrow: "BESS MOTORS / WARSZAWA WŁOCHY",
+    headline1: "Mniej zgadywania.",
+    headline2: "Więcej konkretów.",
+    intro: "Diagnostyka, obsługa i naprawy samochodów. Najpierw sprawdzamy problem i uzgadniamy zakres oraz cenę prac.",
+    book: "Umów wizytę",
     services: "Znajdź usługę",
     quote: "Wycena po VIN",
-    before: "Wycena przed naprawą",
-    parts: "Dobór części do auta",
-    location: "Zobacz dojazd",
-    film: "BESS MOTORS / WARSZAWA",
-    hours: "Pon–Pt 09:00–18:00 · Sob 09:00–14:00",
+    call: "Zadzwoń",
+    directions: "Wyznacz trasę",
+    hours: "Pn–Pt 09:00–18:00 · Sb 09:00–14:00",
+    choose: "WYBIERZ, CZEGO POTRZEBUJESZ",
+    fast: "Szybki wybór usług",
+    tires: "Wymiana opon",
+    oil: "Olej i filtry",
+    brakes: "Hamulce",
+    diagnostic: "Diagnostyka",
   },
   ru: {
-    eyebrow: "Автосервис / Варшава Włochy",
-    statement: "Ваш автомобиль. Понятный план ремонта.",
-    steps: "Выберите услугу, уточните стоимость и запишитесь.",
+    eyebrow: "BESS MOTORS / ВАРШАВА WŁOCHY",
+    headline1: "Меньше догадок.",
+    headline2: "Больше конкретики.",
+    intro: "Диагностика, обслуживание и ремонт автомобилей. Сначала разбираемся с проблемой и согласовываем работы и стоимость.",
+    book: "Записаться",
     services: "Найти услугу",
     quote: "Расчёт по VIN",
-    before: "Смета до ремонта",
-    parts: "Подбор запчастей под авто",
-    location: "Как доехать",
-    film: "BESS MOTORS / WARSZAWA",
+    call: "Позвонить",
+    directions: "Построить маршрут",
     hours: "Пн–Пт 09:00–18:00 · Сб 09:00–14:00",
+    choose: "ВЫБЕРИТЕ НУЖНУЮ УСЛУГУ",
+    fast: "Быстрый выбор услуг",
+    tires: "Шиномонтаж",
+    oil: "Масло и фильтры",
+    brakes: "Тормоза",
+    diagnostic: "Диагностика",
   },
   uk: {
-    eyebrow: "Автосервіс / Варшава Włochy",
-    statement: "Ваш автомобіль. Зрозумілий план ремонту.",
-    steps: "Оберіть послугу, уточніть ціну та запишіться.",
+    eyebrow: "BESS MOTORS / ВАРШАВА WŁOCHY",
+    headline1: "Менше здогадів.",
+    headline2: "Більше конкретики.",
+    intro: "Діагностика, обслуговування та ремонт авто. Спочатку з'ясовуємо проблему й погоджуємо роботи та вартість.",
+    book: "Записатися",
     services: "Знайти послугу",
     quote: "Оцінка за VIN",
-    before: "Кошторис до ремонту",
-    parts: "Підбір запчастин",
-    location: "Як доїхати",
-    film: "BESS MOTORS / WARSZAWA",
+    call: "Зателефонувати",
+    directions: "Прокласти маршрут",
     hours: "Пн–Пт 09:00–18:00 · Сб 09:00–14:00",
+    choose: "ОБЕРІТЬ ПОТРІБНУ ПОСЛУГУ",
+    fast: "Швидкий вибір послуг",
+    tires: "Шиномонтаж",
+    oil: "Олива й фільтри",
+    brakes: "Гальма",
+    diagnostic: "Діагностика",
   },
   en: {
-    eyebrow: "Independent workshop / Warsaw Włochy",
-    statement: "Your car. A clear plan for repair.",
-    steps: "Choose a service, request a quote and book a visit.",
-    services: "Explore services",
-    quote: "VIN-based quote",
-    before: "Quote before repairs",
-    parts: "Parts matched to your car",
-    location: "Get directions",
-    film: "BESS MOTORS / WARSZAWA",
+    eyebrow: "BESS MOTORS / WARSAW WŁOCHY",
+    headline1: "Less guesswork.",
+    headline2: "More clarity.",
+    intro: "Diagnostics, servicing and vehicle repairs. We identify the problem and agree on the scope and quote before work begins.",
+    book: "Book a visit",
+    services: "Find a service",
+    quote: "Quote by VIN",
+    call: "Call us",
+    directions: "Get directions",
     hours: "Mon–Fri 09:00–18:00 · Sat 09:00–14:00",
+    choose: "CHOOSE THE SERVICE YOU NEED",
+    fast: "Quick service shortcuts",
+    tires: "Tyres",
+    oil: "Oil and filters",
+    brakes: "Brakes",
+    diagnostic: "Diagnostics",
   },
 } as const;
 
 export function Hero() {
   const { t, locale } = useI18n();
-  const copy = labels[locale];
+  const ui = copy[locale];
+  const shortcuts = [
+    { href: "/wymiana-opon-warszawa", icon: Gauge, title: ui.tires, number: "01" },
+    { href: "/wymiana-oleju", icon: Droplets, title: ui.oil, number: "02" },
+    { href: "/hamulce", icon: Disc3, title: ui.brakes, number: "03" },
+    { href: "/diagnostyka-komputerowa-warszawa", icon: CircleHelp, title: ui.diagnostic, number: "04" },
+  ] as const;
 
   return (
     <section
-      className="relative isolate flex min-h-[690px] flex-col justify-between overflow-hidden bg-[#080b10] sm:min-h-[720px] lg:min-h-[680px]"
+      className="relative isolate overflow-hidden bg-[#07090e]"
       aria-label="BESS MOTORS"
       data-testid="home-hero"
       data-hero-layout="full-bleed"
+      data-hero-design="editorial-2026"
     >
-      {/* Approved film and its poster are the background, not a framed video card. */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 top-[20%] z-0 lg:inset-y-0 lg:left-[16%] lg:right-0" data-testid="hero-background-film">
+      {/* Same approved BMW video. Full-bleed stage, with a readable left side. */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 top-[17%] z-0 lg:inset-y-0 lg:left-[14%] lg:right-0" data-testid="hero-background-film">
         <HeroVideo background />
       </div>
-
-      {/* On wide screens the cars remain visible to the right of the readable text. */}
       <div
         className="pointer-events-none absolute inset-0 z-[1] hidden lg:block"
-        aria-hidden
-        style={{
-          background:
-            "linear-gradient(90deg, rgba(8,11,16,0.99) 0%, rgba(8,11,16,0.98) 17%, rgba(8,11,16,0.91) 31%, rgba(8,11,16,0.70) 43%, rgba(8,11,16,0.16) 69%, rgba(8,11,16,0.11) 100%)",
-        }}
+        aria-hidden="true"
+        style={{ background: "linear-gradient(90deg,rgba(7,9,14,.995) 0%,rgba(7,9,14,.98) 16%,rgba(7,9,14,.90) 33%,rgba(7,9,14,.72) 43%,rgba(7,9,14,.12) 70%,rgba(7,9,14,.07) 100%)" }}
       />
-      {/* Mobile/tablet: darken the heading area; show the cars lower in the scene. */}
       <div
         className="pointer-events-none absolute inset-0 z-[1] lg:hidden"
-        aria-hidden
-        style={{
-          background:
-            "linear-gradient(180deg, rgba(8,11,16,0.99) 0%, rgba(8,11,16,0.98) 26%, rgba(8,11,16,0.87) 48%, rgba(8,11,16,0.48) 75%, rgba(8,11,16,0.70) 100%)",
-        }}
+        aria-hidden="true"
+        style={{ background: "linear-gradient(180deg,rgba(7,9,14,.99) 0%,rgba(7,9,14,.96) 32%,rgba(7,9,14,.72) 57%,rgba(7,9,14,.43) 78%,rgba(7,9,14,.93) 100%)" }}
       />
-      <div
-        className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-[28%]"
-        aria-hidden
-        style={{ background: "linear-gradient(180deg, transparent, rgba(8,11,16,0.82))" }}
-      />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-[35%] bg-gradient-to-t from-[#07090e] via-[#07090e]/65 to-transparent" aria-hidden="true" />
 
-      <div className="relative z-10 mx-auto flex w-full max-w-7xl flex-1 items-center px-4 py-14 sm:py-16 lg:px-8 lg:py-20">
-        <div className="max-w-[700px]">
-          <p className="inline-flex items-center gap-2 rounded-full border border-bm-red/30 bg-black/60 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.17em] text-[#ff8581] backdrop-blur-sm sm:text-xs">
-            <span className="h-1.5 w-1.5 rounded-full bg-bm-red" aria-hidden />
-            {copy.eyebrow}
-          </p>
+      <div className="relative z-10 mx-auto flex min-h-[575px] w-full max-w-7xl flex-col justify-center px-4 pb-14 pt-14 sm:min-h-[620px] lg:min-h-[610px] lg:px-8 lg:pb-20 lg:pt-16">
+        <div className="max-w-[720px]">
+          <div className="flex items-center gap-3">
+            <span className="h-px w-9 bg-[#fb4843]" aria-hidden="true" />
+            <p className="text-[10px] font-bold uppercase tracking-[.21em] text-white/75 sm:text-xs">{ui.eyebrow}</p>
+          </div>
 
-          <h1 className="bm-hero-enter mt-6 max-w-[700px] font-display text-[2.55rem] font-extrabold leading-[1.07] tracking-[-0.047em] text-white drop-shadow-[0_3px_18px_rgba(0,0,0,0.55)] sm:text-[3.5rem] lg:text-[3.65rem] xl:text-[3.8rem] [text-wrap:balance]">
+          {/* Keep a crawlable, precise local-search H1 while prioritizing the actual customer message visually. */}
+          <h1 className="mt-5 text-sm font-semibold leading-snug text-white/75 sm:text-base">
             {t.hero.h1Short}
           </h1>
-          <p className="bm-hero-enter bm-hero-enter-delay mt-6 max-w-lg text-lg font-semibold leading-snug text-white sm:text-xl">
-            {copy.statement}
+          <p
+            data-testid="hero-editorial-headline"
+            className="bm-hero-enter mt-4 max-w-[700px] font-display text-[clamp(2.8rem,5.2vw,5rem)] font-extrabold leading-[1.04] tracking-[-.055em] text-white [text-wrap:balance]"
+          >
+            <span className="block">{ui.headline1}</span>
+            <span className="mt-1 block text-[#ff625c]">{ui.headline2}</span>
           </p>
-          <p className="mt-3 max-w-lg text-sm leading-relaxed text-white/80 sm:text-base">
-            {copy.steps}
+          <p className="bm-hero-enter bm-hero-enter-delay mt-6 max-w-[525px] text-sm leading-[1.75] text-white/80 sm:text-base">
+            {ui.intro}
           </p>
 
-          <div className="bm-hero-enter bm-hero-enter-delay mt-8 grid grid-cols-1 gap-3 sm:max-w-[550px] sm:grid-cols-2">
+          <div className="bm-hero-enter bm-hero-enter-delay mt-8 flex flex-col gap-3 sm:flex-row">
             <BookingLink
-              trackSource="hero_redesign"
-              className="inline-flex min-h-14 items-center justify-center gap-2 rounded-xl bg-bm-red px-5 text-sm font-bold text-white shadow-[0_12px_30px_rgba(225,6,0,0.3)] transition-colors hover:bg-red-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+              trackSource="hero_editorial"
+              className="inline-flex min-h-14 items-center justify-center gap-3 rounded-xl bg-bm-red px-7 text-sm font-bold text-white shadow-[0_16px_40px_rgba(225,6,0,.24)] transition-colors hover:bg-red-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
             >
               <CalendarDays size={19} aria-hidden />
-              {t.hero.ctaBook}
+              {ui.book}
               <ArrowRight size={18} aria-hidden />
             </BookingLink>
             <Link
               href="/services"
-              className="inline-flex min-h-14 items-center justify-center gap-2 rounded-xl border border-white/35 bg-black/45 px-5 text-sm font-bold text-white backdrop-blur-sm transition-colors hover:border-white/70 hover:bg-black/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+              className="inline-flex min-h-14 items-center justify-center gap-3 rounded-xl border border-white/40 bg-black/35 px-7 text-sm font-bold text-white backdrop-blur-sm transition-colors hover:border-white/80 hover:bg-black/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
             >
-              <Wrench size={19} aria-hidden />
-              {copy.services}
-              <ChevronRight size={18} aria-hidden />
+              {ui.services}<ChevronRight size={18} aria-hidden />
             </Link>
           </div>
 
-          <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-1 text-sm">
-            <a
-              href="#wyceń-po-vin"
-              className="inline-flex min-h-11 items-center gap-1.5 font-semibold text-white underline decoration-white/35 underline-offset-4 hover:text-[#ff8b87]"
-            >
-              <FileSearch size={17} className="text-[#ff5550]" aria-hidden />
-              {copy.quote}
+          <div className="mt-4 flex flex-wrap gap-x-7 gap-y-1 text-sm font-semibold">
+            <a href="#wyceń-po-vin" className="inline-flex min-h-11 items-center gap-2 text-white/80 transition-colors hover:text-white">
+              <FileSearch size={17} className="text-[#ff625c]" aria-hidden />{ui.quote}
             </a>
-            <PhoneLink
-              trackSource="hero_redesign"
-              className="inline-flex min-h-11 items-center gap-1.5 font-semibold text-white underline decoration-white/35 underline-offset-4 hover:text-[#ff8b87]"
-            >
-              <Phone size={17} className="text-[#ff5550]" aria-hidden />
-              {t.hero.ctaCall}
+            <PhoneLink trackSource="hero_editorial" className="inline-flex min-h-11 items-center gap-2 text-white/80 transition-colors hover:text-white">
+              <Phone size={17} className="text-[#ff625c]" aria-hidden />{ui.call}
             </PhoneLink>
-          </div>
-
-          <div className="mt-7 grid gap-3 border-t border-white/20 pt-5 text-xs font-semibold text-white/85 sm:max-w-[550px] sm:grid-cols-2">
-            <span className="inline-flex items-center gap-2">
-              <CheckCircle2 size={17} className="shrink-0 text-[#ff5550]" aria-hidden />
-              {copy.before}
-            </span>
-            <span className="inline-flex items-center gap-2">
-              <CheckCircle2 size={17} className="shrink-0 text-[#ff5550]" aria-hidden />
-              {copy.parts}
-            </span>
           </div>
         </div>
       </div>
 
-      <div className="relative z-10 w-full border-t border-white/15 bg-[#0b0e14]/70 px-4 py-4 backdrop-blur-md lg:px-8">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-8 gap-y-3 text-xs font-semibold text-white/85 sm:text-sm">
-          <span className="inline-flex items-center gap-2">
-            <MapPin size={17} className="shrink-0 text-[#ff5550]" aria-hidden />
-            {businessConfig.streetAddress}, Warszawa
-          </span>
-          <span className="inline-flex items-center gap-2">
-            <Clock3 size={17} className="shrink-0 text-[#ff5550]" aria-hidden />
-            {copy.hours}
-          </span>
-          <a
-            href={WORKSHOP_DIRECTIONS_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={() => trackGetDirectionsClick("hero_background")}
-            className="inline-flex min-h-10 items-center gap-2 text-white transition-colors hover:text-[#ff8b87] sm:ml-auto"
-          >
-            {copy.location}
-            <ArrowRight size={16} aria-hidden />
+      {/* New command dock: real service pages instead of a second address/hours strip. */}
+      <div className="relative z-10 mx-auto max-w-7xl px-4 pb-4 lg:px-8" data-testid="hero-service-dock">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <p className="text-[10px] font-extrabold uppercase tracking-[.18em] text-white/60 sm:text-xs">{ui.choose}</p>
+          <span className="hidden text-[10px] font-semibold uppercase tracking-[.18em] text-white/35 sm:inline">BESS / SERVICES</span>
+        </div>
+        <nav className="grid grid-cols-2 overflow-hidden rounded-[22px] border border-white/20 bg-[#171b23]/95 shadow-[0_22px_55px_rgba(0,0,0,.40)] backdrop-blur-xl lg:grid-cols-4" aria-label={ui.fast}>
+          {shortcuts.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="group flex min-h-[108px] flex-col justify-between gap-4 border-b border-r border-white/10 p-4 transition-colors hover:bg-[#2a2228] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-white sm:min-h-[118px] sm:p-5 lg:border-b-0"
+            >
+              <div className="flex items-center justify-between gap-2">
+                <item.icon size={23} className="text-[#ff625c]" aria-hidden />
+                <span className="text-[10px] font-bold tracking-[.18em] text-white/35">{item.number}</span>
+              </div>
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-sm font-bold text-white sm:text-base">{item.title}</span>
+                <ArrowRight size={18} className="shrink-0 text-white/55 transition-transform motion-safe:group-hover:translate-x-1 motion-reduce:transition-none" aria-hidden />
+              </div>
+            </Link>
+          ))}
+        </nav>
+      </div>
+
+      <div className="relative z-10 border-t border-white/10 bg-[#090c12]/85 px-4 py-3 lg:px-8">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-8 gap-y-2 text-[11px] font-medium text-white/65 sm:text-xs">
+          <span className="inline-flex items-center gap-2"><MapPin size={15} className="text-[#ff625c]" aria-hidden />{businessConfig.streetAddress}, Warszawa</span>
+          <span className="inline-flex items-center gap-2"><Clock3 size={15} className="text-[#ff625c]" aria-hidden />{ui.hours}</span>
+          <a href={WORKSHOP_DIRECTIONS_URL} target="_blank" rel="noopener noreferrer" onClick={() => trackGetDirectionsClick("hero_editorial")} className="inline-flex min-h-9 items-center gap-2 text-white transition-colors hover:text-[#ff817d] sm:ml-auto">
+            {ui.directions}<ArrowRight size={15} aria-hidden />
           </a>
         </div>
       </div>
