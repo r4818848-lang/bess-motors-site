@@ -1,5 +1,4 @@
 import { getSiteUrl } from "@/lib/seo";
-import { businessConfig } from "@/lib/businessConfig";
 import { ENHANCEMENT_HUB_SLUG, enhancementServices, type EnhancementService } from "@/lib/enhancement-services";
 
 /** Accurate structured data: a Service without prices/offers until owner approves a price. */
