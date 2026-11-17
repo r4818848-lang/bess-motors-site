@@ -76,6 +76,11 @@
   }
 
   /* CRM: dark (default) or Motowarsztat-style light */
+  /* The workshop ERP stays on familiar Inter typography. */
+  .crm-shell {
+    --font-bess-display: var(--font-inter);
+  }
+
   .crm-shell,
   .crm-shell[data-theme="dark"] {
     --crm-bg: #0a0a0a;
