@@ -4,7 +4,7 @@
 import assert from "node:assert/strict";
 import { getPriceItem, isPublicPriceItem } from "../src/lib/price-list";
 import { seoLandingPages, seoLandingSlugs } from "../src/lib/seo-landing-pages";
-import { SITEMAP_LAST_MODIFIED, sitemapLastModifiedFor } from "../src/lib/seo";
+import { SITEMAP_LAST_MODIFIED, SEO_DESIGN_LAST_MODIFIED, sitemapLastModifiedFor } from "../src/lib/seo";
 import { EXTRA_SEO_SERVICE_PROFILES_BATCH2 } from "../src/lib/seo-extra-service-pages-batch2";
 import {
   TIRE_PROMO_EXTRAS,
@@ -71,7 +71,7 @@ assert.equal(
 );
 assert.equal(
   sitemapLastModifiedFor("/wulkanizacja-warszawa").toISOString(),
-  "2026-11-11T11:30:00.000Z"
+  SEO_DESIGN_LAST_MODIFIED.toISOString()
 );
 assert.equal(sitemapLastModifiedFor("/cennik").toISOString(), "2026-11-11T11:30:00.000Z");
 
