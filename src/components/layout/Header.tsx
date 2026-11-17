@@ -171,7 +171,7 @@ export function Header() {
   return (
     <header className="fixed inset-x-0 top-0 z-[95] safe-area-pt" data-site-header>
       <div className={scrolled ? "border-b border-white/10 bg-[#0c0e13]/95 shadow-[0_10px_36px_rgba(0,0,0,.28)] backdrop-blur-xl" : "border-b border-white/[0.08] bg-[#0c0e13]/85 backdrop-blur-xl"}>
-        <div className="mx-auto flex h-14 max-w-7xl items-center gap-2 px-4 sm:h-16 lg:px-8">
+        <div className={`mx-auto flex max-w-7xl items-center gap-2 px-4 transition-[height] duration-200 motion-reduce:transition-none lg:px-8 ${scrolled ? "h-12 sm:h-14" : "h-14 sm:h-16"}`}>
           <Logo size="sm" showTagline={false} />
           <span className="ml-1 hidden h-7 w-px bg-white/10 lg:block" aria-hidden />
           <span className="ml-2 hidden max-w-28 text-[10px] font-bold uppercase leading-tight tracking-[0.17em] text-white/55 lg:block">
