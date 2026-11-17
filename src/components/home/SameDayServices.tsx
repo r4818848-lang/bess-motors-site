@@ -17,8 +17,14 @@ import { TIRE_PROMO_FROM_ZL } from "@/lib/tire-promo-prices";
  * a separate tracked action. Avoid promises about same-day availability.
  */
 export function SameDayServices() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const h = t.homeLead;
+  const ui = {
+    pl: { brakes: "Hamulce", tires: "Z wyważaniem", labour: "Robocizna — części osobno", oil: "Olej i filtr osobno", details: "Zobacz zakres i cenę", note: "Cenę końcową uzgodnimy przed wykonaniem usługi." },
+    ru: { brakes: "Тормоза", tires: "С балансировкой", labour: "Работа — запчасти отдельно", oil: "Масло и фильтр отдельно", details: "Подробнее об услуге", note: "Итоговую стоимость согласуем до работ." },
+    uk: { brakes: "Гальма", tires: "З балансуванням", labour: "Робота — запчастини окремо", oil: "Олива та фільтр окремо", details: "Докладніше", note: "Кінцеву ціну погодимо до виконання робіт." },
+    en: { brakes: "Brakes", tires: "Balancing included", labour: "Labour only, parts extra", oil: "Oil and filter extra", details: "Service details", note: "We agree on the total price before work begins." },
+  }[locale];
 
   const featured = [
     {
@@ -29,6 +35,7 @@ export function SameDayServices() {
       href: "/wymiana-opon-warszawa",
       bookingHref: TIRE_AD_LANDING_PATH + "#zapis-opony",
       price: "od " + TIRE_PROMO_FROM_ZL + " zł / komplet",
+      priceDetail: ui.tires,
       source: "premium_tires",
       icon: Circle,
     },
@@ -40,17 +47,19 @@ export function SameDayServices() {
       href: "/wymiana-oleju",
       bookingHref: buildBookingUrl([...OIL_CHANGE_PROMO_BOOKING_ITEMS]),
       price: oilLabourPromoZl() + " zł / robocizna",
+      priceDetail: ui.oil,
       source: "premium_oil",
       icon: Droplets,
     },
     {
-      title: "Hamulce",
+      title: ui.brakes,
       label: "03 / HAMULCE",
       photo: "/images/works/brake-pads-change.png",
       alt: "Wymiana klocków hamulcowych w serwisie BESS MOTORS Warszawa",
       href: "/hamulce",
       bookingHref: buildBookingUrl(["brake_pads_front"]),
       price: "od " + (getOilBrakePromoOffer("brake_pads_front")?.nowZl ?? 100) + " zł / robocizna",
+      priceDetail: ui.labour,
       source: "premium_brakes",
       icon: Disc,
     },
@@ -90,14 +99,14 @@ export function SameDayServices() {
 
         <ul className="mt-9 grid gap-4 md:grid-cols-3">
           {featured.map((item) => (
-            <li key={item.href} className="group flex min-w-0 flex-col overflow-hidden rounded-2xl border border-white/15 bg-[#13151b] shadow-[0_20px_50px_rgba(0,0,0,0.2)] transition-colors hover:border-bm-red/60">
-              <Link href={item.href} className="relative isolate block aspect-[5/4] overflow-hidden focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-4px] focus-visible:outline-bm-red" aria-label={item.title + " — zobacz usługę"}>
+            <li key={item.href} className="bm-premium-card group flex min-w-0 flex-col overflow-hidden rounded-[26px] border border-white/15 bg-[#171a22] shadow-[0_20px_50px_rgba(0,0,0,0.2)] hover:border-bm-red/60">
+              <Link href={item.href} className="relative isolate block aspect-[5/4] overflow-hidden focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-4px] focus-visible:outline-bm-red" aria-label={item.title + " — " + ui.details}>
                 <Image
                   src={item.photo}
                   alt={item.alt}
                   fill
                   sizes="(min-width: 1024px) 31vw, (min-width: 768px) 45vw, 100vw"
-                  className="object-cover transition-transform duration-500 motion-safe:group-hover:scale-105"
+                  className="object-cover transition-transform duration-700 motion-safe:group-hover:scale-[1.06]"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#08090c] via-[#08090c]/20 to-transparent" aria-hidden />
                 <span className="absolute left-5 top-5 rounded-md border border-white/25 bg-black/70 px-3 py-1.5 text-[10px] font-bold tracking-[0.18em] text-white/90">
@@ -111,7 +120,10 @@ export function SameDayServices() {
                 </div>
               </Link>
               <div className="flex flex-1 items-center justify-between gap-2 border-t border-white/10 px-5 py-4">
-                <span className="text-sm font-semibold text-white">{item.price}</span>
+                <div className="min-w-0">
+                  <p className="text-sm font-bold text-white">{item.price}</p>
+                  <p className="mt-1 text-xs text-white/50">{item.priceDetail}</p>
+                </div>
                 <BookingLink
                   href={item.bookingHref}
                   trackSource={item.source}
@@ -125,10 +137,11 @@ export function SameDayServices() {
           ))}
         </ul>
 
-        <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+        <p className="mt-4 text-xs text-white/45">{ui.note}</p>
+        <ul className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
           {more.map((item) => (
             <li key={item.href}>
-              <Link href={item.href} className="flex min-h-[76px] items-center gap-3 rounded-xl border border-white/10 bg-white/[0.035] px-4 text-sm font-semibold text-white transition-colors hover:border-bm-red/50 hover:bg-bm-red/5">
+              <Link href={item.href} className="bm-premium-card flex min-h-[78px] items-center gap-3 rounded-2xl border border-white/10 bg-[#1a1d25] px-4 text-sm font-semibold text-white hover:border-bm-red/50 hover:bg-bm-red/5">
                 <item.icon className="h-5 w-5 shrink-0 text-bm-red" aria-hidden />
                 <span className="flex-1">{item.title}</span>
                 <ChevronRight className="h-4 w-4 shrink-0 text-white/60" aria-hidden />
