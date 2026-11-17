@@ -88,9 +88,9 @@ const criticalCss = `
 
   header:not([data-site-header]) a:hover{color:#e10600}
 
-  .btn-primary{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;padding:.5rem 1rem;background:linear-gradient(135deg,#e10600,#a00400);color:#fff;font-weight:600;text-transform:uppercase;font-size:.75rem;border-radius:.5rem;border:none;cursor:pointer;text-decoration:none}
+  .btn-primary{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;padding:.5rem 1rem;background:#e10600;color:#fff;font-weight:600;font-size:.875rem;border-radius:.75rem;border:none;cursor:pointer;text-decoration:none}
 
-  .btn-outline{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;padding:.5rem 1rem;border:1px solid rgba(225,6,0,.5);color:#fff;border-radius:.5rem;text-decoration:none}
+  .btn-outline{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;padding:.5rem 1rem;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.04);color:#f8fafc;border-radius:.75rem;text-decoration:none}
 
   .input-premium{width:100%;padding:.75rem 1rem;background:#141414;border:1px solid #2a2a2a;border-radius:.5rem;color:#fff;margin-bottom:1rem}
 
@@ -101,8 +101,8 @@ const criticalCss = `
   footer>div{max-width:80rem;margin:0 auto}
 
   img{max-width:100%;height:auto}
-  .text-bm-red{color:#e10600!important}
-  .text-bm-muted{color:#888!important}
+  .text-bm-red{color:#ff625c!important}
+  .text-bm-muted{color:#9aa4b2!important}
   .font-display{font-weight:700;letter-spacing:.05em}
   [data-cookie-dialog] [data-cc]{display:none}
   [data-cookie-dialog] [data-cc="pl"]{display:block}
