@@ -510,7 +510,7 @@ test("all 13 customization SEO pages resolve with distinct metadata and no inven
     titles.add(title);
     await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", new RegExp("/" + slug + "$"));
     await expect(page.locator('meta[name="robots"]')).not.toHaveAttribute("content", /noindex/i);
-    await expect(page.locator('main [data-testid="enhancement-service-page"] img')).toHaveCount(0);
+    await expect(page.locator('main[data-testid="enhancement-service-page"] img')).toHaveCount(0);
   }
   await page.goto("/oswietlenie-ambientowe-samochodu-warszawa");
   await expect(page.getByTestId("enhancement-quote")).toBeVisible();
