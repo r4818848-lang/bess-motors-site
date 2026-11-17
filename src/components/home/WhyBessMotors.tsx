@@ -31,18 +31,18 @@ export function WhyBessMotors() {
           </div>
 
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.20em] text-[#ff7772]">BESS MOTORS / NASZ SERWIS</p>
+            <p className="text-xs font-bold uppercase tracking-[0.20em] text-bm-accent">BESS MOTORS / NASZ SERWIS</p>
             <h2 id="why-bess-heading" className="mt-3 max-w-2xl font-display text-3xl font-bold tracking-tight text-white sm:text-4xl">{w.title}</h2>
-            <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/60 sm:text-base">{w.subtitle}</p>
+            <p className="mt-3 max-w-2xl text-sm leading-relaxed text-bm-label sm:text-base">{w.subtitle}</p>
             <ul className="mt-7 grid gap-3 sm:grid-cols-2">
               {w.items.map((item, i) => {
                 const Icon = ICONS[i % ICONS.length];
                 return (
                   <li key={item.title} className="bm-premium-card flex items-start gap-3 rounded-2xl border border-white/10 bg-[#1b2029] p-4">
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-bm-red/10 text-[#ff7772]"><Icon size={19} aria-hidden /></span>
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-bm-red/10 text-bm-accent"><Icon size={19} aria-hidden /></span>
                     <div>
                       <h3 className="text-sm font-bold leading-snug text-white">{item.title}</h3>
-                      <p className="mt-1 text-xs leading-relaxed text-white/60">{item.body}</p>
+                      <p className="mt-1 text-xs leading-relaxed text-bm-label">{item.body}</p>
                     </div>
                   </li>
                 );
