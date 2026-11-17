@@ -122,3 +122,39 @@ test("tyre catalog paints the cookie choice in the first HTML", async ({ request
   const dialogTag = html.match(/<div[^>]*data-cookie-dialog[^>]*>/)?.[0] ?? "";
   expect(dialogTag).not.toContain("backdrop-blur");
 });
+
+// SEO/CRO sprint: keep strong organic service URLs visible and canonicalized.
+test("homepage premium cards link to primary tyre, oil and brake landings", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.locator("#popular-services-heading")).toBeVisible();
+  await expect(page.locator('a[href="/wymiana-opon-warszawa"]').first()).toBeVisible();
+  await expect(page.locator('a[href="/wymiana-oleju"]').first()).toBeVisible();
+  await expect(page.locator('a[href="/hamulce"]').first()).toBeVisible();
+});
+
+test("legacy oil landing shares the canonical URL of the primary oil page", async ({ request }) => {
+  const [main, alternate] = await Promise.all([
+    request.get("/wymiana-oleju"),
+    request.get("/wymiana-oleju-warszawa"),
+  ]);
+  expect(main.ok()).toBeTruthy();
+  expect(alternate.ok()).toBeTruthy();
+  const extractCanonical = (html: string) =>
+    html.match(/<link rel="canonical" href="([^"]+)"/)?.[1];
+  const primaryCanonical = extractCanonical(await main.text());
+  const alternateCanonical = extractCanonical(await alternate.text());
+  expect(primaryCanonical).toMatch(/\/wymiana-oleju$/);
+  expect(alternateCanonical).toBe(primaryCanonical);
+});
+
+test("high-intent service descriptions stay concise and location-specific", async ({ request }) => {
+  for (const path of ["/wymiana-opon-warszawa", "/wymiana-oleju", "/hamulce", "/zawieszenie"]) {
+    const response = await request.get(path);
+    expect(response.ok(), path).toBeTruthy();
+    const html = await response.text();
+    const description = html.match(/<meta name="description" content="([^"]+)"/)?.[1] ?? "";
+    expect(description.length, path).toBeGreaterThan(70);
+    expect(description.length, path).toBeLessThanOrEqual(160);
+    expect(description, path).toMatch(/Warszawa/);
+  }
+});
