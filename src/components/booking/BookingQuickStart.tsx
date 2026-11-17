@@ -25,9 +25,9 @@ export function BookingQuickStart() {
   ];
   return (
     <section className="mb-8 rounded-[26px] border border-white/10 bg-gradient-to-br from-[#1b2029] to-[#12161d] p-5 sm:p-7" aria-labelledby="booking-quick-heading" data-testid="booking-quick-start">
-      <p className="text-xs font-bold uppercase tracking-[0.17em] text-[#ff7974]">{ui.eyebrow}</p>
+      <p className="text-xs font-bold uppercase tracking-[0.17em] text-bm-accent">{ui.eyebrow}</p>
       <h2 id="booking-quick-heading" className="mt-2 text-xl font-bold tracking-tight text-white sm:text-2xl">{ui.heading}</h2>
-      <p className="mt-2 text-sm leading-relaxed text-white/60">{ui.intro}</p>
+      <p className="mt-2 text-sm leading-relaxed text-bm-label">{ui.intro}</p>
       <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
         {choices.map((item) => (
           <BookingLink
@@ -36,12 +36,12 @@ export function BookingQuickStart() {
             trackSource={"booking_quick_" + item.tag}
             className="bm-premium-card flex min-h-[114px] flex-col justify-between rounded-2xl border border-white/15 bg-white/[0.045] p-4 text-white hover:border-bm-red/60 hover:bg-bm-red/10"
           >
-            <span className="flex items-center justify-between"><item.icon size={22} className="text-[#ff7772]" aria-hidden /><ArrowRight size={17} className="text-white/50" aria-hidden /></span>
+            <span className="flex items-center justify-between"><item.icon size={22} className="text-bm-accent" aria-hidden /><ArrowRight size={17} className="text-bm-label" aria-hidden /></span>
             <span className="text-sm font-bold leading-tight sm:text-base">{item.label}</span>
           </BookingLink>
         ))}
       </div>
-      <p className="mt-4 flex items-center gap-2 text-xs text-white/45"><CalendarCheck2 size={15} className="text-[#ff7772]" aria-hidden />{ui.detail}</p>
+      <p className="mt-4 flex items-center gap-2 text-xs text-bm-label"><CalendarCheck2 size={15} className="text-bm-accent" aria-hidden />{ui.detail}</p>
     </section>
   );
 }
