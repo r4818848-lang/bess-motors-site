@@ -39,6 +39,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }
 
   for (const slug of seoLandingSlugs) {
+    // Duplicate oil landing remains accessible, but its canonical points at /wymiana-oleju.
+    if (slug === "wymiana-oleju-warszawa") continue;
     if (sitemapExcludedSlugs.has(slug) || pendingNoIndexSlugs.has(slug)) continue;
                 const priority =
                   slug === "klimatyzacja" ||
