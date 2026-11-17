@@ -33,9 +33,9 @@ export const EXTRA_SEO_SERVICE_PAGES_BATCH2: SeoLandingPage[] = [
     title: "Wulkanizacja Warszawa",
     line1: `Komplet od ${TIRE_PROMO_FROM_ZL} zł · ${TIRE_PROMO_SUMMARY_SHORT_PL}`,
     line2: "Jeden warsztat: Aleja Krakowska 48/52 · cała Warszawa",
-    metaTitle: `Wulkanizacja Warszawa Włochy – od ${TIRE_PROMO_FROM_ZL} zł`,
+    metaTitle: `Wulkanizacja Warszawa – opony od ${TIRE_PROMO_FROM_ZL} zł`,
     metaDescription:
-      `Wulkanizacja Warszawa Włochy: wymiana opon, wyważanie, naprawa przebicia. Komplety od ${TIRE_PROMO_FROM_ZL} zł. BESS MOTORS, Aleja Krakowska 48/52.`,
+      `Wulkanizacja Warszawa: wymiana opon, wyważanie i naprawa przebicia. Komplety od ${TIRE_PROMO_FROM_ZL} zł. BESS MOTORS, Aleja Krakowska 48/52.`,
     serviceId: "tires",
     icon: "Circle",
   },
@@ -44,9 +44,9 @@ export const EXTRA_SEO_SERVICE_PAGES_BATCH2: SeoLandingPage[] = [
     title: "Wymiana opon Warszawa",
     line1: `Cena kompletu od ${TIRE_PROMO_FROM_ZL} zł z wyważaniem`,
     line2: "Cena promocyjna i regularna w jednym cenniku · Aleja Krakowska 48/52",
-    metaTitle: `Wymiana opon Warszawa Włochy – od ${TIRE_PROMO_FROM_ZL} zł`,
+    metaTitle: `Wymiana opon Warszawa – od ${TIRE_PROMO_FROM_ZL} zł`,
     metaDescription:
-      `Wymiana opon Warszawa Włochy od ${TIRE_PROMO_FROM_ZL} zł za komplet z wyważaniem. BESS MOTORS, Aleja Krakowska 48/52. Sprawdź cennik i umów termin.`,
+      `Wymiana opon Warszawa od ${TIRE_PROMO_FROM_ZL} zł za komplet z wyważaniem. BESS MOTORS, Aleja Krakowska 48/52. Sprawdź cennik i umów termin.`,
     serviceId: "tires",
     icon: "Circle",
   },
@@ -79,7 +79,7 @@ export const EXTRA_SEO_SERVICE_PAGES_BATCH2: SeoLandingPage[] = [
     line2: "Zima i lato · wyważanie w cenie kompletu · Aleja Krakowska 48/52",
     metaTitle: `Sezonowa wymiana opon Warszawa – od ${TIRE_PROMO_FROM_ZL} zł`,
     metaDescription:
-      `Sezonowa wymiana opon Warszawa Włochy od ${TIRE_PROMO_FROM_ZL} zł za komplet z wyważaniem. BESS MOTORS, Aleja Krakowska 48/52. Rezerwacja online.`,
+      `Sezonowa wymiana opon Warszawa od ${TIRE_PROMO_FROM_ZL} zł za komplet z wyważaniem. BESS MOTORS, Aleja Krakowska 48/52. Rezerwacja online.`,
     serviceId: "tires",
     icon: "Circle",
   },
