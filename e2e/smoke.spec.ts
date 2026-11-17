@@ -383,3 +383,35 @@ test("editorial hero remains navigable on 360px phone", async ({ page }) => {
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
   expect(overflow).toBeLessThanOrEqual(1);
 });
+
+
+test("automotive headline uses a distinct condensed display face while the body stays readable", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/");
+  const headline = page.getByTestId("hero-editorial-headline");
+  await expect(headline).toBeVisible();
+  const typography = await page.evaluate(() => {
+    const title = document.querySelector('[data-testid="hero-editorial-headline"]');
+    if (!title) return null;
+    const heading = getComputedStyle(title);
+    const body = getComputedStyle(document.body);
+    return {
+      titleFamily: heading.fontFamily,
+      bodyFamily: body.fontFamily,
+      titleWeight: Number(heading.fontWeight),
+      text: title.textContent,
+    };
+  });
+  expect(typography).not.toBeNull();
+  expect(typography?.titleFamily).toMatch(/Roboto[_ ]Condensed/i);
+  expect(typography?.bodyFamily).toMatch(/Inter/i);
+  expect(typography?.titleWeight).toBeLessThanOrEqual(750);
+  expect(typography?.text).toContain("Więcej konkretów.");
+
+  for (const width of [360, 390, 768]) {
+    await page.setViewportSize({ width, height: 840 });
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+    expect(overflow, "new condensed font overflow at " + width).toBeLessThanOrEqual(1);
+    await expect(headline).toBeVisible();
+  }
+});
