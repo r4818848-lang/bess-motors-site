@@ -96,16 +96,16 @@ export function SeoLandingPageView({ page }: Props) {
           <div className="mt-5 grid items-center gap-8 rounded-[28px] border border-white/10 bg-[#151920]/60 p-5 text-center shadow-[0_30px_75px_rgba(0,0,0,.25)] sm:p-8 lg:grid-cols-[minmax(260px,470px)_minmax(0,1fr)] lg:text-left">
             <ServiceLandingHeroMedia slug={page.slug} serviceId={page.serviceId} />
             <div className="order-first lg:order-last">
-            <div className="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-2xl border border-bm-red/30 bg-bm-red/10 text-[#ff7c77]">
+            <div className="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-2xl border border-bm-red/30 bg-bm-red/10 text-bm-accent">
               <ServiceIcon name={page.icon} size={32} />
             </div>
             <h1 className="font-display text-[2.25rem] font-extrabold leading-[1.08] tracking-[-0.035em] text-white sm:text-5xl">
               {heroTitle}
             </h1>
-            <p className="mt-5 text-lg font-semibold leading-snug text-[#ff7772] sm:text-xl">
+            <p className="mt-5 text-lg font-semibold leading-snug text-bm-accent sm:text-xl">
               {pageLoc.line1}
             </p>
-            <p className="mt-3 text-base leading-relaxed text-white/65">{pageLoc.line2}</p>
+            <p className="mt-3 text-base leading-relaxed text-bm-copy">{pageLoc.line2}</p>
             {page.slug === "klimatyzacja" ? (
               <AcPromoAccentPills variant="landing" className="mt-5 justify-center" />
             ) : null}
@@ -159,7 +159,7 @@ export function SeoLandingPageView({ page }: Props) {
             </div>
             <Link
               href="/cennik"
-              className="mt-3 inline-flex min-h-10 items-center gap-2 text-sm font-semibold text-white/70 underline decoration-white/25 underline-offset-4 hover:text-white"
+              className="mt-3 inline-flex min-h-10 items-center gap-2 text-sm font-semibold text-bm-copy underline decoration-white/25 underline-offset-4 hover:text-white"
             >
               {t.nav.priceList}
               <ChevronRight size={16} aria-hidden />
