@@ -22,8 +22,8 @@ export function Footer() {
         <div className="grid gap-10 border-b border-white/10 pb-10 lg:grid-cols-[1.1fr_.9fr_1fr] lg:gap-14">
           <div>
             <Logo size="md" />
-            <p className="mt-5 max-w-sm text-sm leading-relaxed text-white/60">{t.footer.desc}</p>
-            <p className="mt-4 text-sm font-semibold text-white/80">{businessConfig.workingHoursLabel}</p>
+            <p className="mt-5 max-w-sm text-sm leading-relaxed text-bm-label">{t.footer.desc}</p>
+            <p className="mt-4 text-sm font-semibold text-bm-copy">{businessConfig.workingHoursLabel}</p>
           </div>
 
           <div className="grid grid-cols-2 gap-x-5 gap-y-4 text-sm sm:grid-cols-3">
@@ -126,7 +126,7 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-white/10 pt-7 text-xs text-white/50 sm:flex-row">
+        <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-white/10 pt-7 text-xs text-bm-label sm:flex-row">
           <span>
             © {year} BESS MOTORS — {t.common.allRights}
           </span>
