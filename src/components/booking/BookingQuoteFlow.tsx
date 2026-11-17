@@ -94,10 +94,10 @@ function ServiceCard({
 
   return (
     <div
-      className={`rounded-xl border p-4 transition-all ${
+      className={`rounded-2xl border p-4 transition-colors ${
         inCart
           ? "border-bm-red/70 bg-bm-red/10 shadow-[0_0_16px_rgba(225,6,0,0.2)]"
-          : "border-bm-border/60 bg-bm-card/60 hover:border-bm-red/40"
+          : "border-white/10 bg-[#191d25] hover:border-bm-red/40"
       }`}
     >
       <div className="flex justify-between gap-3 items-start">
@@ -275,7 +275,7 @@ function CartPanel({
   }
 
   return (
-    <div className="glass-red rounded-2xl p-5 neon-border h-fit sticky top-28">
+    <div className="sticky top-24 h-fit rounded-2xl border border-white/15 bg-[#1c2028] p-5 shadow-[0_20px_50px_rgba(0,0,0,.25)]">
       {inner}
     </div>
   );
@@ -294,6 +294,12 @@ export function BookingQuoteFlow({ onDone }: Props) {
   const { t, locale } = useI18n();
   const { clientUser, sessionReady } = useAuth();
   const bq = t.bookingQuote;
+  const progress = {
+    pl: { title: "Etapy rezerwacji", services: "Auto i usługa", phone: "Termin i kontakt", done: "Potwierdzenie" },
+    ru: { title: "Шаги записи", services: "Авто и услуга", phone: "Время и контакты", done: "Подтверждение" },
+    uk: { title: "Етапи запису", services: "Авто й послуга", phone: "Час і контакти", done: "Підтвердження" },
+    en: { title: "Booking steps", services: "Car and service", phone: "Time and contact", done: "Confirmation" },
+  }[locale];
   const contentLoc = contentLocale(locale);
   const [category, setCategory] = useState<PriceCategoryId>("maintenance");
   const [cart, setCart] = useState<CartLine[]>([]);
@@ -409,25 +415,25 @@ export function BookingQuoteFlow({ onDone }: Props) {
   };
 
   return (
-    <div className="pb-52 lg:pb-8">
+    <div id="wybor-uslug" className="scroll-mt-24 pb-52 lg:pb-8" data-testid="booking-quote-flow">
       <p className="text-center text-sm text-bm-muted mb-2">{siteConfig.workingHours}</p>
       <p className="text-center text-xs text-bm-muted/80 mb-6 max-w-xl mx-auto">
         {bq.hourlyNote} <strong className="text-bm-red">{HOURLY_RATE_PLN} zł/h</strong>
       </p>
 
-      <ol className="mb-6 flex flex-col gap-2 text-sm text-bm-silver sm:flex-row sm:justify-center sm:gap-6" aria-label="Etapy zapisu">
+      <ol className="mb-7 grid grid-cols-3 gap-2 rounded-2xl border border-white/10 bg-[#1a1e26] p-3 text-xs text-white/60 sm:gap-4 sm:p-4 sm:text-sm" aria-label={progress.title}>
         {[
-          { id: "services", label: "Usługa" },
-          { id: "phone", label: "Telefon" },
-          { id: "done", label: "Potwierdzenie" },
+          { id: "services", label: progress.services },
+          { id: "phone", label: progress.phone },
+          { id: "done", label: progress.done },
         ].map((item, index) => {
           const active =
             item.id === phase || (item.id === "phone" && phase === "acChoice");
           return (
-            <li key={item.id} className="flex min-h-[44px] items-center gap-2" aria-current={active ? "step" : undefined}>
+            <li key={item.id} className="flex min-h-[44px] flex-col items-center justify-center gap-2 text-center sm:flex-row sm:text-left" aria-current={active ? "step" : undefined}>
               <span
                 className={`inline-flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${
-                  active ? "bg-bm-red text-white" : "border border-white/20"
+                  active ? "bg-bm-red text-white shadow-[0_4px_16px_rgba(225,6,0,.3)]" : "border border-white/20 bg-white/5 text-white/50"
                 }`}
               >
                 {index + 1}
@@ -462,7 +468,7 @@ export function BookingQuoteFlow({ onDone }: Props) {
                     key={cat.id}
                     type="button"
                     onClick={() => setCategory(cat.id)}
-                    className={`px-3 py-2 rounded-full text-[11px] font-bold uppercase tracking-wide border transition-all ${
+                    className={`min-h-10 rounded-full border px-3 py-2 text-[11px] font-bold uppercase tracking-wide transition-colors ${
                       category === cat.id
                         ? "bg-bm-red/20 border-bm-red text-bm-red shadow-neon-sm"
                         : "border-bm-border text-bm-muted hover:text-white"
