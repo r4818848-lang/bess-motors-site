@@ -6,8 +6,8 @@ const symptoms = [
   { href: "/hamulce-warszawa", label: "Auto słabo hamuje" },
   { href: "/klimatyzacja", label: "Klimatyzacja nie chłodzi" },
   { href: "/diagnostyka-silnika-warszawa", label: "Silnik pracuje nierówno" },
-  { href: "/wymiana-oleju-warszawa", label: "Chcę wymienić olej" },
-  { href: "/wulkanizacja-warszawa", label: "Potrzebuję wymiany opon" },
+  { href: "/wymiana-oleju", label: "Chcę wymienić olej" },
+  { href: "/wymiana-opon-warszawa", label: "Potrzebuję wymiany opon" },
 ];
 
 /** Existing service pages, reached in one tap. This does not diagnose the car. */
