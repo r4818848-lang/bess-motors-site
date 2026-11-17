@@ -415,3 +415,54 @@ test("automotive headline uses a distinct condensed display face while the body 
     await expect(headline).toBeVisible();
   }
 });
+
+
+test("public site brand palette unifies primary, secondary and accent controls", async ({ page }) => {
+  await page.goto("/");
+  const root = page.locator(".bm-public");
+  await expect(root).toHaveCount(1);
+  const tokens = await root.evaluate((element) => {
+    const style = getComputedStyle(element);
+    return {
+      primary: style.getPropertyValue("--bm-primary").trim(),
+      hover: style.getPropertyValue("--bm-primary-hover").trim(),
+      accent: style.getPropertyValue("--bm-accent").trim(),
+      text: style.getPropertyValue("--bm-copy").trim(),
+    };
+  });
+  expect(tokens).toEqual({
+    primary: "#e10600",
+    hover: "#c90a05",
+    accent: "#ff625c",
+    text: "#c9d1d9",
+  });
+
+  const hero = page.getByTestId("home-hero");
+  const primary = hero.locator(".bm-btn-primary").first();
+  const secondary = hero.locator(".bm-btn-secondary").first();
+  await expect(primary).toBeVisible();
+  await expect(secondary).toBeVisible();
+  const getBg = async (locator: typeof primary) =>
+    locator.evaluate((element) => getComputedStyle(element).backgroundColor);
+  const getText = async (locator: typeof primary) =>
+    locator.evaluate((element) => getComputedStyle(element).color);
+
+  await expect.poll(() => getBg(primary)).toBe("rgb(225, 6, 0)");
+  await expect.poll(() => getText(primary)).toBe("rgb(255, 255, 255)");
+  await expect.poll(() => getText(secondary)).toBe("rgb(248, 250, 252)");
+  await primary.hover();
+  await expect.poll(() => getBg(primary)).toBe("rgb(201, 10, 5)");
+
+  const accent = hero.locator(".text-bm-accent").first();
+  await expect.poll(() => getText(accent)).toBe("rgb(255, 98, 92)");
+
+  await page.goto("/wymiana-opon-warszawa");
+  const landingBook = page.getByTestId("service-hero-book");
+  await expect(landingBook).toBeVisible();
+  await expect.poll(() => getBg(landingBook)).toBe("rgb(225, 6, 0)");
+
+  await page.goto("/services");
+  const catalogueBook = page.getByTestId("service-catalogue").locator(".bm-btn-primary").first();
+  await expect(catalogueBook).toBeVisible();
+  await expect.poll(() => getBg(catalogueBook)).toBe("rgb(225, 6, 0)");
+});
