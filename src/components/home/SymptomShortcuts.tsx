@@ -26,17 +26,17 @@ export function SymptomShortcuts() {
     <section id="objawy" className="scroll-mt-20 border-t border-white/10 bg-[#0d1016] py-12 sm:py-16" aria-labelledby="symptom-shortcuts-heading">
       <div className="mx-auto max-w-7xl px-4 lg:px-8">
         <div className="max-w-3xl">
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#ff7772]">BESS MOTORS / DIAGNOSTYKA</p>
+          <p className="text-xs font-bold uppercase tracking-[0.2em] text-bm-accent">BESS MOTORS / DIAGNOSTYKA</p>
           <h2 id="symptom-shortcuts-heading" className="mt-3 font-display text-2xl font-extrabold tracking-tight text-white sm:text-3xl">{heading[locale][0]}</h2>
-          <p className="mt-3 text-sm leading-relaxed text-white/60 sm:text-base">{heading[locale][1]}</p>
+          <p className="mt-3 text-sm leading-relaxed text-bm-label sm:text-base">{heading[locale][1]}</p>
         </div>
         <ul className="mt-7 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {symptoms.map((item) => (
             <li key={item.href}>
               <Link href={item.href} className="group flex min-h-[82px] items-center gap-3 rounded-2xl border border-white/[0.10] bg-[#191d25] px-4 py-3 text-white transition-all hover:border-bm-red/50 hover:bg-[#242832]">
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-bm-red/10 text-[#ff716d]"><item.icon size={19} aria-hidden /></span>
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-bm-red/10 text-bm-accent"><item.icon size={19} aria-hidden /></span>
                 <span className="flex-1 text-sm font-semibold leading-snug">{item.text[locale]}</span>
-                <ArrowUpRight size={17} className="shrink-0 text-white/35 group-hover:text-white" aria-hidden />
+                <ArrowUpRight size={17} className="shrink-0 text-bm-muted group-hover:text-white" aria-hidden />
               </Link>
             </li>
           ))}
