@@ -215,3 +215,28 @@ test("service catalogue lets visitors filter repairs without a long unstructured
   await expect(catalog.locator('article[data-testid="service-result"] a[href="/wymiana-rozrzadu-warszawa"]')).toBeVisible();
   await expect(catalog.locator('article[data-testid="service-result"] a[href="/wymiana-opon-warszawa"]')).toHaveCount(0);
 });
+
+
+test("service landing photos load successfully instead of displaying broken placeholders", async ({ page }) => {
+  for (const path of ["/wymiana-opon-warszawa", "/wymiana-oleju", "/hamulce"]) {
+    const response = await page.goto(path);
+    expect(response?.ok(), path).toBeTruthy();
+    const media = page.getByTestId("service-landing-hero-media");
+    await expect(media, path).toBeVisible();
+    const heroPhoto = media.locator("img");
+    await expect.poll(
+      () => heroPhoto.evaluate((img: HTMLImageElement) => img.complete ? img.naturalWidth : 0),
+      { timeout: 20000, message: path + " hero image is missing or failed to decode" },
+    ).toBeGreaterThan(0);
+
+    const gallery = page.locator('section[aria-labelledby="landing-photos-hero-heading"]');
+    await expect(gallery, path).toBeVisible();
+    const galleryPhoto = gallery.locator("img").first();
+    await galleryPhoto.scrollIntoViewIfNeeded();
+    await expect.poll(
+      () => galleryPhoto.evaluate((img: HTMLImageElement) => img.complete ? img.naturalWidth : 0),
+      { timeout: 20000, message: path + " work photo is missing or cannot be optimized" },
+    ).toBeGreaterThan(0);
+    await expect(galleryPhoto).not.toHaveAttribute("src", /[?&]q=55(?:&|$)/);
+  }
+});
