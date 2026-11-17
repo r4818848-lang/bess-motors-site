@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Roboto_Condensed } from "next/font/google";
 
 import "./globals.css";
 
@@ -21,6 +22,15 @@ import { buildPageMetadata, DEFAULT_OG_IMAGE } from "@/lib/seo-metadata";
 import { telegramLaunchHeadScript } from "@/lib/telegram-webapp-client";
 
 
+
+/** Self-hosted by Next.js at build time: no Google Fonts request from visitor browsers. */
+const headlineFont = Roboto_Condensed({
+  subsets: ["latin", "latin-ext", "cyrillic", "cyrillic-ext"],
+  display: "swap",
+  variable: "--font-bess-display",
+  weight: "variable",
+  preload: false,
+});
 
 const siteUrl = getSiteUrl();
 
@@ -70,17 +80,17 @@ const criticalCss = `
 
   main{min-height:60vh}
 
-  header{position:fixed;top:0;left:0;right:0;z-index:50;background:rgba(20,20,20,.92);border-bottom:1px solid #2a2a2a;backdrop-filter:blur(12px)}
+  header:not([data-site-header]){position:fixed;top:0;left:0;right:0;z-index:50;background:rgba(20,20,20,.92);border-bottom:1px solid #2a2a2a;backdrop-filter:blur(12px)}
 
-  header>div{max-width:80rem;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.75rem 1rem}
+  header:not([data-site-header])>div{max-width:80rem;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.75rem 1rem}
 
-  header a,nav a{color:#888;text-decoration:none;font-size:.875rem;padding:.5rem .75rem;border-radius:.5rem}
+  header:not([data-site-header]) a{color:#888;text-decoration:none;font-size:.875rem;padding:.5rem .75rem;border-radius:.5rem}
 
-  header a:hover,nav a:hover{color:#e10600}
+  header:not([data-site-header]) a:hover{color:#e10600}
 
-  .btn-primary{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;padding:.5rem 1rem;background:linear-gradient(135deg,#e10600,#a00400);color:#fff;font-weight:600;text-transform:uppercase;font-size:.75rem;border-radius:.5rem;border:none;cursor:pointer;text-decoration:none}
+  .btn-primary{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;padding:.5rem 1rem;background:#e10600;color:#fff;font-weight:600;font-size:.875rem;border-radius:.75rem;border:none;cursor:pointer;text-decoration:none}
 
-  .btn-outline{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;padding:.5rem 1rem;border:1px solid rgba(225,6,0,.5);color:#fff;border-radius:.5rem;text-decoration:none}
+  .btn-outline{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;padding:.5rem 1rem;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.04);color:#f8fafc;border-radius:.75rem;text-decoration:none}
 
   .input-premium{width:100%;padding:.75rem 1rem;background:#141414;border:1px solid #2a2a2a;border-radius:.5rem;color:#fff;margin-bottom:1rem}
 
@@ -92,7 +102,9 @@ const criticalCss = `
 
   img{max-width:100%;height:auto}
   .text-bm-red{color:#e10600!important}
+  .bm-public .text-bm-red{color:#ff625c!important}
   .text-bm-muted{color:#888!important}
+  .bm-public .text-bm-muted{color:#9aa4b2!important}
   .font-display{font-weight:700;letter-spacing:.05em}
   [data-cookie-dialog] [data-cc]{display:none}
   [data-cookie-dialog] [data-cc="pl"]{display:block}
@@ -152,7 +164,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
       <body
 
-        className="min-h-screen bg-bm-black text-white font-body antialiased"
+        className={`min-h-screen bg-bm-black text-white font-body antialiased ${headlineFont.variable}`}
 
         style={{ backgroundColor: "#0a0a0a", color: "#ffffff" }}
 

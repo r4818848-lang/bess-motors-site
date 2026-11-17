@@ -5,7 +5,6 @@ import { useI18n } from "@/lib/i18n/context";
 import type { ServiceId } from "@/lib/services-catalog";
 import { getServiceLandingPrice } from "@/lib/service-landing-content";
 import { pickLocalized } from "@/lib/service-landing-locale";
-import { Card } from "@/components/ui/Card";
 import { Check } from "lucide-react";
 import { PromoPriceDisplay } from "@/components/pricing/PromoPriceDisplay";
 import { getDiscountPercent } from "@/lib/site-promo-pricing";
@@ -26,11 +25,11 @@ export function ServiceLandingPrice({
   const isAc = serviceId === "acRefill" || serviceId === "acRepair";
 
   return (
-    <section className="mt-12" aria-labelledby="landing-price-heading">
-      <h2 id="landing-price-heading" className="font-display text-xl uppercase mb-4">
+    <section id="cena-uslugi" className="mt-14 scroll-mt-24" aria-labelledby="landing-price-heading">
+      <h2 id="landing-price-heading" className="mb-5 font-display text-2xl font-bold tracking-tight text-white sm:text-3xl">
         {sl.priceTitle}
       </h2>
-      <Card glow className="p-6">
+      <div className="rounded-[26px] border border-white/15 bg-gradient-to-br from-[#20242d] via-[#171a22] to-[#11141b] p-5 shadow-[0_22px_55px_rgba(0,0,0,.25)] sm:p-7">
         {!isAc && price.compareAtZl != null ? (
           <p className="text-xs text-emerald-400/90 mb-3">{pp.legend}</p>
         ) : null}
@@ -53,7 +52,7 @@ export function ServiceLandingPrice({
           <p className="text-sm text-bm-muted mt-2">{pickLocalized(price.note, locale)}</p>
         )}
         {price.priceTable && price.priceTable.length > 0 && (
-          <div className="mt-5 overflow-x-auto rounded-lg border border-bm-border/50">
+          <div className="mt-6 overflow-x-auto rounded-xl border border-white/10">
             <table className="w-full text-sm min-w-[280px]">
               <thead>
                 <tr className="bg-bm-surface/80 text-xs uppercase">
@@ -85,7 +84,7 @@ export function ServiceLandingPrice({
             </table>
           </div>
         )}
-        <ul className="mt-5 space-y-2">
+        <ul className="mt-6 grid gap-3 sm:grid-cols-2">
           {price.includes.map((item) => (
             <li key={item.pl} className="flex gap-2 text-sm">
               <Check className="w-4 h-4 text-bm-red shrink-0 mt-0.5" />
@@ -98,10 +97,10 @@ export function ServiceLandingPrice({
             {sl.materialsExtra}
           </p>
         )}
-        <Link href="/cennik" className="inline-block mt-4 text-sm text-bm-red hover:underline">
+        <Link href="/cennik" className="mt-6 inline-flex min-h-11 items-center rounded-xl border border-white/20 px-4 text-sm font-semibold text-white transition-colors hover:border-bm-red/60 hover:bg-bm-red/10">
           {sl.fullPriceList} →
         </Link>
-      </Card>
+      </div>
     </section>
   );
 }

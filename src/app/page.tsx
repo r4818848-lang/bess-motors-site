@@ -1,11 +1,9 @@
 import dynamic from "next/dynamic";
 import { Hero } from "@/components/home/Hero";
-import { HomeTrustBar } from "@/components/home/HomeTrustBar";
+import { HomeTrustHighlights } from "@/components/home/HomeTrustHighlights";
 import { SameDayServices } from "@/components/home/SameDayServices";
 import { HomeTireSeasonBlock } from "@/components/home/HomeTireSeasonBlock";
-import { HomeComplexRepairs } from "@/components/home/HomeComplexRepairs";
 import { HomeSeoServiceLinks } from "@/components/home/HomeSeoServiceLinks";
-import { HomePromoBlock } from "@/components/home/HomePromoBlock";
 import { HomeFinalCta } from "@/components/home/HomeFinalCta";
 import { SymptomShortcuts } from "@/components/home/SymptomShortcuts";
 
@@ -21,9 +19,6 @@ const WhyBessMotors = dynamic(() =>
 const HomeRealizations = dynamic(() =>
   import("@/components/home/HomeRealizations").then((m) => m.HomeRealizations)
 );
-const WorkshopGallerySection = dynamic(() =>
-  import("@/components/home/WorkshopGallerySection").then((m) => m.WorkshopGallerySection)
-);
 const GoogleReviewsBlock = dynamic(() =>
   import("@/components/home/GoogleReviewsBlock").then((m) => m.GoogleReviewsBlock)
 );
@@ -35,27 +30,24 @@ const SymptomFaq = dynamic(() =>
 );
 
 /**
- * Homepage order — Final Polish v3 §5 / §39 + TZ CRO (tires + complex repairs).
+ * 2026 editorial home: trust + visitor paths + services + real work before supporting details. Repetitive repair promo removed; full repair taxonomy remains under /services.
  */
 export default function HomePage() {
   return (
     <>
       <div className="h-14 sm:h-16 safe-area-pt" aria-hidden />
       <Hero />
-      <HomeTrustBar />
-      <SymptomShortcuts />
       <SameDayServices />
+      <HomeTrustHighlights />
+      <SymptomShortcuts />
       <HomeTireSeasonBlock />
-      <HomeComplexRepairs />
-      <HomeSeoServiceLinks />
-      <HomePromoBlock />
+      <HomeRealizations />
+      <WhyBessMotors />
       <VinQuoteForm />
       <HowRepairWorks />
-      <WhyBessMotors />
-      <HomeRealizations />
       <GoogleReviewsBlock />
-      <WorkshopGallerySection />
       <SymptomFaq />
+      <HomeSeoServiceLinks />
       <HomeDirectionsMap />
       <HomeFinalCta />
     </>

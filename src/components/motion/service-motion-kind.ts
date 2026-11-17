@@ -21,6 +21,16 @@ export type MotionKind = (typeof MOTION_KINDS)[number];
 /** Map a public landing to one technical scene. Unknown pages get a quiet workshop frame. */
 export function motionKindFor(slug: string, serviceId?: ServiceId | string): MotionKind {
   const value = slug.toLowerCase();
+  // ATF/DSG/Haldex oil changes are gearbox services, not engine oil changes.
+  if (
+    value.includes("skrzyn") ||
+    value.includes("dsg") ||
+    value.includes("haldex") ||
+    value.includes("automat") ||
+    serviceId === "transmission"
+  ) {
+    return "transmission";
+  }
   if (value.includes("olej") || serviceId === "oil") return "oil";
   if (
     value.includes("opon") ||
@@ -54,16 +64,7 @@ export function motionKindFor(slug: string, serviceId?: ServiceId | string): Mot
     return "suspension";
   }
   if (value.includes("rozrzad") || serviceId === "timingBelt") return "timing";
-  if (
-    value.includes("skrzyn") ||
-    value.includes("dsg") ||
-    value.includes("haldex") ||
-    value.includes("sprzeg") ||
-    serviceId === "transmission" ||
-    serviceId === "clutch"
-  ) {
-    return "transmission";
-  }
+  if (value.includes("sprzeg") || serviceId === "clutch") return "transmission";
   if (
     value.includes("silnik") ||
     value.includes("turbo") ||

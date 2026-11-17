@@ -45,7 +45,7 @@ import { TirePromoPhotoStrip } from "@/components/seo/landing/TirePromoPhotoStri
 import { ModelServiceHero } from "@/components/seo/landing/ModelServiceHero";
 import { TIRE_AD_LANDING_SLUG } from "@/lib/tire-media";
 import { getModelHeroForSlug } from "@/lib/model-service-media";
-import { ServiceMotion } from "@/components/motion/ServiceMotion";
+import { ServiceLandingHeroMedia } from "@/components/seo/landing/ServiceLandingHeroMedia";
 
 type Props = {
   page: SeoLandingPage;
@@ -89,23 +89,23 @@ export function SeoLandingPageView({ page }: Props) {
 
   return (
     <>
-      <div className="pt-28 pb-28 min-h-[70vh]">
-        <div className="mx-auto max-w-5xl px-4 lg:px-8">
+      <div className="min-h-[70vh] bg-gradient-to-b from-[#12161e] via-[#0c0e13] to-bm-black pb-24 pt-24 sm:pt-28">
+        <div className="mx-auto max-w-6xl px-4 lg:px-8">
           <SeoLandingBreadcrumbs serviceTitle={pageLoc.title} serviceHref={`/${page.slug}`} />
 
-          <div className="grid items-center gap-6 text-center lg:grid-cols-[minmax(260px,480px)_minmax(0,1fr)] lg:text-left">
-            <ServiceMotion slug={page.slug} serviceId={page.serviceId} />
-            <div>
-            <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl metallic text-bm-red mb-6 shadow-neon-sm">
+          <div className="mt-5 grid items-center gap-8 rounded-[28px] border border-white/10 bg-[#151920]/60 p-5 text-center shadow-[0_30px_75px_rgba(0,0,0,.25)] sm:p-8 lg:grid-cols-[minmax(260px,470px)_minmax(0,1fr)] lg:text-left">
+            <ServiceLandingHeroMedia slug={page.slug} serviceId={page.serviceId} />
+            <div className="order-first lg:order-last">
+            <div className="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-2xl border border-bm-red/30 bg-bm-red/10 text-bm-accent">
               <ServiceIcon name={page.icon} size={32} />
             </div>
-            <h1 className="font-display text-3xl md:text-5xl font-bold uppercase text-glow">
+            <h1 className="font-display text-[2.25rem] font-extrabold leading-[1.08] tracking-[-0.035em] text-white sm:text-5xl">
               {heroTitle}
             </h1>
-            <p className="mt-4 text-xl md:text-2xl text-bm-red font-display uppercase tracking-wide">
+            <p className="mt-5 text-lg font-semibold leading-snug text-bm-accent sm:text-xl">
               {pageLoc.line1}
             </p>
-            <p className="mt-2 text-lg text-bm-muted">{pageLoc.line2}</p>
+            <p className="mt-3 text-base leading-relaxed text-bm-copy">{pageLoc.line2}</p>
             {page.slug === "klimatyzacja" ? (
               <AcPromoAccentPills variant="landing" className="mt-5 justify-center" />
             ) : null}
@@ -114,7 +114,56 @@ export function SeoLandingPageView({ page }: Props) {
                 {sl.brandNotice}
               </p>
             ) : null}
-            <div className="mt-6 h-1 w-24 bg-bm-red shadow-neon-sm mx-auto lg:mx-0" />
+            <div className="mx-auto mt-6 h-1 w-16 rounded-full bg-bm-red lg:mx-0" />
+            <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap lg:justify-start">
+              {tireQuick ? (
+                <a
+                  href={"#" + TIRE_QUICK_FORM_ID}
+                  onClick={() => trackBookingOpen("landing_hero_" + page.slug)}
+                  className="bm-btn-primary inline-flex min-h-12 items-center justify-center gap-2 px-5 text-sm font-bold"
+                  data-testid="service-hero-book"
+                >
+                  <Calendar size={17} aria-hidden />
+                  {t.hero.ctaBook}
+                  <ChevronRight size={17} aria-hidden />
+                </a>
+              ) : bookServiceId ? (
+                <button
+                  type="button"
+                  onClick={bookFromPage}
+                  className="bm-btn-primary inline-flex min-h-12 items-center justify-center gap-2 px-5 text-sm font-bold"
+                  data-testid="service-hero-book"
+                >
+                  <Calendar size={17} aria-hidden />
+                  {t.hero.ctaBook}
+                  <ChevronRight size={17} aria-hidden />
+                </button>
+              ) : (
+                <BookingLink
+                  trackSource={"landing_hero_" + page.slug}
+                  className="bm-btn-primary inline-flex min-h-12 items-center justify-center gap-2 px-5 text-sm font-bold"
+                  data-testid="service-hero-book"
+                >
+                  <Calendar size={17} aria-hidden />
+                  {t.hero.ctaBook}
+                  <ChevronRight size={17} aria-hidden />
+                </BookingLink>
+              )}
+              <PhoneLink
+                trackSource={"landing_hero_" + page.slug}
+                className="bm-btn-secondary inline-flex min-h-12 items-center justify-center gap-2 px-5 text-sm font-bold"
+              >
+                <Phone size={17} aria-hidden />
+                {t.stickyBar.call}
+              </PhoneLink>
+            </div>
+            <Link
+              href="/cennik"
+              className="mt-3 inline-flex min-h-10 items-center gap-2 text-sm font-semibold text-bm-copy underline decoration-white/25 underline-offset-4 hover:text-white"
+            >
+              {t.nav.priceList}
+              <ChevronRight size={16} aria-hidden />
+            </Link>
             </div>
           </div>
 
@@ -134,10 +183,10 @@ export function SeoLandingPageView({ page }: Props) {
             <TirePromoPhotoStrip className="mt-10" />
           ) : null}
 
-          <div className="mt-12 grid sm:grid-cols-2 gap-4">
+          <div className="mt-8 grid gap-3 sm:grid-cols-2">
             <Card
               glow
-              className="flex gap-3 items-start cursor-pointer hover:border-bm-red/40 transition-colors"
+              className="flex cursor-pointer items-start gap-3 rounded-2xl border border-white/10 bg-[#1a1d25] transition-colors hover:border-bm-red/40"
               onClick={scrollToMap}
             >
               <MapPin className="w-5 h-5 text-bm-red shrink-0 mt-0.5" />
@@ -148,7 +197,7 @@ export function SeoLandingPageView({ page }: Props) {
                 <p className="font-medium mt-1">{siteConfig.address}</p>
               </div>
             </Card>
-            <Card glow className="flex gap-3 items-start">
+            <Card glow className="flex items-start gap-3 rounded-2xl border border-white/10 bg-[#1a1d25]">
               <Phone className="w-5 h-5 text-bm-red shrink-0 mt-0.5" />
               <div className="text-left text-sm">
                 <p className="text-bm-muted uppercase text-[10px] tracking-wide">
@@ -164,7 +213,7 @@ export function SeoLandingPageView({ page }: Props) {
             </Card>
           </div>
 
-          <div className="mt-10 flex flex-col sm:flex-row flex-wrap gap-3 justify-center">
+          <div className="mt-8 flex flex-col flex-wrap justify-center gap-3 sm:flex-row">
             {tireQuick ? (
               <a
                 href={`#${TIRE_QUICK_FORM_ID}`}

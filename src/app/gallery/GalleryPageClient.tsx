@@ -97,7 +97,7 @@ export default function GalleryPageClient({
     makeFilter === "all" ? items : items.filter((item) => item.make === makeFilter);
 
   return (
-    <div className={hideTitle ? "pt-6 pb-20" : "pt-28 pb-20"}>
+    <div className={hideTitle ? "pt-3 pb-20" : "pt-28 pb-20"}>
       <div className="mx-auto max-w-7xl px-4 lg:px-8">
         {!hideTitle && (
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
@@ -107,7 +107,7 @@ export default function GalleryPageClient({
           </motion.div>
         )}
 
-        <div className="mt-10 flex flex-wrap gap-2" role="tablist" aria-label={g.title}>
+        <div className="mt-8 flex flex-wrap gap-2 rounded-2xl border border-white/10 bg-[#1b2028] p-2" role="tablist" aria-label={g.title}>
           {tabs.map(({ id, label }) => (
             <button
               key={id}
@@ -116,10 +116,10 @@ export default function GalleryPageClient({
               aria-selected={tab === id}
               onClick={() => selectTab(id)}
               className={clsx(
-                "min-h-[44px] px-4 py-2 rounded-full text-xs font-bold uppercase border transition-colors",
+                "min-h-[44px] px-5 py-2 rounded-xl text-sm font-bold border transition-colors",
                 tab === id
-                  ? "bg-bm-red/20 border-bm-red text-bm-red"
-                  : "border-bm-border text-bm-muted hover:text-white"
+                  ? "bg-bm-red border-bm-red text-white"
+                  : "border-transparent text-bm-copy hover:border-white/15 hover:text-white"
               )}
             >
               {label}
@@ -139,7 +139,7 @@ export default function GalleryPageClient({
         )}
 
         {tab === "works" && (
-          <div className="mt-10" role="tabpanel">
+          <div className="mt-7" role="tabpanel">
             <div className="mb-6 flex flex-wrap gap-2" aria-label="Filtr usług">
               {serviceFilters.map((item) => (
                 <button

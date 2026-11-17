@@ -12,26 +12,26 @@ export function HomeFinalCta() {
   const c = t.homeFinalCta;
 
   return (
-    <section className="py-14 sm:py-18 border-t border-bm-red/30 bg-gradient-to-b from-bm-graphite to-bm-black">
+    <section className="border-t border-white/10 bg-gradient-to-br from-[#241820] via-[#11151c] to-[#080b10] py-16 sm:py-20">
       <div className="mx-auto max-w-3xl px-4 lg:px-8 text-center">
-        <h2 className="font-display text-2xl sm:text-3xl font-black uppercase text-white">
+        <h2 className="font-display text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
           {c.title}
         </h2>
         <p className="mt-3 text-bm-silver/90">{c.subtitle}</p>
         <div className="mt-8 flex flex-col sm:flex-row flex-wrap justify-center gap-3">
-          <a href="#wyceń-po-vin" className="btn-primary inline-flex items-center justify-center gap-2 min-h-[44px]">
+          <a href="#wyceń-po-vin" className="bm-btn-secondary inline-flex min-h-12 items-center justify-center gap-2 px-5 text-sm font-bold">
             {c.ctaVin}
             <ChevronRight size={16} />
           </a>
           <BookingLink
             trackSource="home_final_book"
-            className="btn-outline inline-flex items-center justify-center gap-2 min-h-[44px]"
+            className="bm-btn-primary inline-flex min-h-12 items-center justify-center gap-2 px-5 text-sm font-bold"
           >
             {c.ctaBook}
           </BookingLink>
           <PhoneLink
             trackSource="home_final_call"
-            className="btn-outline inline-flex items-center justify-center gap-2 min-h-[44px]"
+            className="bm-btn-secondary inline-flex min-h-12 items-center justify-center gap-2 px-5 text-sm font-bold"
           >
             <Phone size={16} />
             {SITE_NAP.phoneDisplay}

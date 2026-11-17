@@ -5,9 +5,9 @@ import { ChevronRight } from "lucide-react";
 
 /** Curated high-intent SEO links — not the full catalog (avoids footer-style clutter) */
 const FEATURED_SEO_LINKS: { href: string; label: string }[] = [
-  { href: "/wymiana-oleju-warszawa", label: "Wymiana oleju Warszawa" },
+  { href: "/wymiana-oleju", label: "Wymiana oleju Warszawa" },
+  { href: "/wymiana-opon-warszawa", label: "Wymiana opon Warszawa" },
   { href: "/sezonowa-wymiana-opon-warszawa", label: "Sezonowa wymiana opon" },
-  { href: "/wymiana-opon-audi-q5-warszawa", label: "Opony Audi Q5" },
   { href: "/wymiana-opon-bmw-7-g70-warszawa", label: "Opony BMW 7 G70" },
   { href: "/wulkanizacja-warszawa", label: "Wulkanizacja / opony" },
   { href: "/serwis-klimatyzacji-warszawa", label: "Serwis klimatyzacji" },

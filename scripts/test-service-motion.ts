@@ -13,6 +13,8 @@ assert.equal(motionKindFor("zawieszenie", "suspension"), "suspension");
 assert.equal(motionKindFor("rozrzad", "timingBelt"), "timing");
 assert.equal(motionKindFor("silnik", "engine"), "engine");
 assert.equal(motionKindFor("skrzynia-biegow", "transmission"), "transmission");
+assert.equal(motionKindFor("wymiana-oleju-skrzynia-automatyczna-warszawa", "transmission"), "transmission");
+assert.equal(motionKindFor("wymiana-oleju-dsg-warszawa"), "transmission");
 assert.equal(motionKindFor("elektryka", "electric"), "electric");
 assert.equal(motionKindFor("geometria", "alignment"), "workshop");
 assert.equal(motionKindFor("przeglad-samochodu"), "checklist");

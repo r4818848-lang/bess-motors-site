@@ -138,7 +138,7 @@ export function VinQuoteForm() {
               type="tel"
               required
               autoComplete="tel"
-              className="w-full rounded-lg border border-bm-border/60 bg-white px-4 py-3 min-h-[44px] text-neutral-900 placeholder:text-neutral-500 outline-none focus:border-bm-red"
+              className="w-full rounded-xl border border-white/25 bg-[#0d1117] px-4 py-3 min-h-[44px] text-white placeholder:text-bm-muted outline-none focus:border-bm-accent"
               placeholder={v.phonePlaceholder}
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
@@ -152,7 +152,7 @@ export function VinQuoteForm() {
             <input
               id="vin-code"
               required
-              className="w-full rounded-lg border border-bm-border/60 bg-white px-4 py-3 min-h-[44px] text-neutral-900 placeholder:text-neutral-500 outline-none focus:border-bm-red uppercase tracking-wider font-mono"
+              className="w-full rounded-xl border border-white/25 bg-[#0d1117] px-4 py-3 min-h-[44px] text-white placeholder:text-bm-muted outline-none focus:border-bm-accent uppercase tracking-wider font-mono"
               placeholder={v.vinPlaceholder}
               value={vin}
               maxLength={17}
@@ -171,7 +171,7 @@ export function VinQuoteForm() {
               </label>
               <input
                 id="vin-brand"
-                className="w-full rounded-lg border border-bm-border/60 bg-white px-4 py-3 min-h-[44px] text-neutral-900 placeholder:text-neutral-500 outline-none focus:border-bm-red"
+                className="w-full rounded-xl border border-white/25 bg-[#0d1117] px-4 py-3 min-h-[44px] text-white placeholder:text-bm-muted outline-none focus:border-bm-accent"
                 placeholder={v.brandPlaceholder}
                 value={brand}
                 onChange={(e) => setBrand(e.target.value)}
@@ -183,7 +183,7 @@ export function VinQuoteForm() {
               </label>
               <input
                 id="vin-model"
-                className="w-full rounded-lg border border-bm-border/60 bg-white px-4 py-3 min-h-[44px] text-neutral-900 placeholder:text-neutral-500 outline-none focus:border-bm-red"
+                className="w-full rounded-xl border border-white/25 bg-[#0d1117] px-4 py-3 min-h-[44px] text-white placeholder:text-bm-muted outline-none focus:border-bm-accent"
                 placeholder={v.modelPlaceholder}
                 value={model}
                 onChange={(e) => setModel(e.target.value)}
@@ -196,7 +196,7 @@ export function VinQuoteForm() {
               <input
                 id="vin-year"
                 inputMode="numeric"
-                className="w-full rounded-lg border border-bm-border/60 bg-white px-4 py-3 min-h-[44px] text-neutral-900 placeholder:text-neutral-500 outline-none focus:border-bm-red"
+                className="w-full rounded-xl border border-white/25 bg-[#0d1117] px-4 py-3 min-h-[44px] text-white placeholder:text-bm-muted outline-none focus:border-bm-accent"
                 placeholder={v.yearPlaceholder}
                 value={year}
                 onChange={(e) => setYear(e.target.value)}
@@ -210,7 +210,7 @@ export function VinQuoteForm() {
             </label>
             <input
               id="vin-mileage"
-              className="w-full rounded-lg border border-bm-border/60 bg-white px-4 py-3 min-h-[44px] text-neutral-900 placeholder:text-neutral-500 outline-none focus:border-bm-red"
+              className="w-full rounded-xl border border-white/25 bg-[#0d1117] px-4 py-3 min-h-[44px] text-white placeholder:text-bm-muted outline-none focus:border-bm-accent"
               placeholder={v.mileagePlaceholder}
               value={mileage}
               onChange={(e) => setMileage(e.target.value)}
@@ -223,7 +223,7 @@ export function VinQuoteForm() {
             </label>
             <textarea
               id="vin-problem"
-              className="w-full min-h-[100px] rounded-lg border border-bm-border/60 bg-white px-4 py-3 text-neutral-900 placeholder:text-neutral-500 outline-none focus:border-bm-red resize-y"
+              className="w-full min-h-[100px] rounded-xl border border-white/25 bg-[#0d1117] px-4 py-3 text-white placeholder:text-bm-muted outline-none focus:border-bm-accent resize-y"
               placeholder={v.problemPlaceholder}
               value={problem}
               onChange={(e) => setProblem(e.target.value)}
@@ -274,7 +274,7 @@ export function VinQuoteForm() {
           <button
             type="submit"
             disabled={sending}
-            className="btn-primary w-full sm:w-auto min-h-[44px] px-8 uppercase tracking-wide"
+            className="btn-primary w-full sm:w-auto min-h-[48px] px-8"
           >
             {sending ? "…" : v.submit}
           </button>

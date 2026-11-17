@@ -15,7 +15,7 @@ function usesMinimalChrome(pathname: string): boolean {
   );
 }
 
-const NO_MOBILE_STICKY_PREFIXES = ["/booking", "/cennik"];
+const NO_MOBILE_STICKY_PREFIXES = ["/booking"];
 
 function hidesMobileStickyBar(pathname: string): boolean {
   return NO_MOBILE_STICKY_PREFIXES.some(
@@ -34,13 +34,9 @@ export function SiteShell({ children }: { children: ReactNode }) {
   const hideMobileBar = hidesMobileStickyBar(pathname);
 
   return (
-    <div className="min-h-screen overflow-x-clip">
+    <div className={hideMobileBar ? "bm-public min-h-screen overflow-x-clip" : "bm-public min-h-screen overflow-x-clip pb-[6.5rem] md:pb-0"}>
       <Header />
-      <main
-        className={
-          hideMobileBar ? "min-h-screen" : "min-h-screen pb-[4.5rem] md:pb-0"
-        }
-      >
+      <main className="min-h-screen">
         {children}
       </main>
       <Footer />

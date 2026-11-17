@@ -66,6 +66,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: page.metaTitle,
     description,
     path: `/${page.slug}`,
+    canonicalPath: slug === "wymiana-oleju-warszawa" ? "/wymiana-oleju" : undefined,
     noIndex:
       page.noIndex === true ||
       pendingNoIndexSlugs.has(slug) ||
