@@ -66,74 +66,127 @@ export function Hero() {
   const copy = labels[locale];
 
   return (
-    <section className="relative isolate overflow-hidden bg-[#080b10] pb-12 pt-8 sm:pb-20 sm:pt-12" aria-label="BESS MOTORS">
-      <div className="pointer-events-none absolute inset-0 -z-10 opacity-50" aria-hidden style={{
-        backgroundImage: "radial-gradient(ellipse 70% 55% at 92% 8%,rgba(225,6,0,0.11),transparent 72%),linear-gradient(rgba(255,255,255,0.018) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.018) 1px,transparent 1px)",
-        backgroundSize: "auto,64px 64px,64px 64px",
-      }} />
-      <div className="mx-auto max-w-7xl px-4 lg:px-8">
-        <div className="grid items-center gap-8 xl:grid-cols-[minmax(0,0.87fr)_minmax(0,1.13fr)] xl:gap-10">
-          <div className="relative z-10 max-w-2xl py-2">
-            <p className="inline-flex items-center gap-2 rounded-full border border-bm-red/25 bg-bm-red/[0.09] px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.19em] text-[#ff8581] sm:text-xs">
-              <span className="h-1.5 w-1.5 rounded-full bg-bm-red" aria-hidden />
-              {copy.eyebrow}
-            </p>
-            <h1 className="mt-6 max-w-2xl font-display text-[2.65rem] font-extrabold leading-[1.04] tracking-[-0.045em] text-white sm:text-6xl xl:text-[4.25rem]">
-              {t.hero.h1Short}
-            </h1>
-            <p className="mt-5 max-w-xl text-lg font-semibold leading-snug text-white/90 sm:text-xl">
-              {copy.statement}
-            </p>
-            <p className="mt-3 max-w-lg text-sm leading-relaxed text-white/60 sm:text-base">
-              {copy.steps}
-            </p>
+    <section
+      className="relative isolate flex min-h-[700px] flex-col justify-between overflow-hidden bg-[#080b10] sm:min-h-[760px] lg:min-h-[740px]"
+      aria-label="BESS MOTORS"
+      data-testid="home-hero"
+      data-hero-layout="full-bleed"
+    >
+      {/* Approved film and its poster are the background, not a framed video card. */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 top-[20%] z-0 lg:inset-y-0 lg:left-[16%] lg:right-0" data-testid="hero-background-film">
+        <HeroVideo background />
+      </div>
 
-            <div className="mt-7 grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <BookingLink
-                trackSource="hero_redesign"
-                className="inline-flex min-h-14 items-center justify-center gap-2 rounded-xl bg-bm-red px-6 text-sm font-bold text-white shadow-[0_12px_30px_rgba(225,6,0,0.23)] transition-colors hover:bg-red-700"
-              >
-                <CalendarDays size={19} aria-hidden />{t.hero.ctaBook}<ArrowRight size={18} aria-hidden />
-              </BookingLink>
-              <Link href="/services" className="inline-flex min-h-14 items-center justify-center gap-2 rounded-xl border border-white/25 bg-white/[0.045] px-6 text-sm font-bold text-white transition-colors hover:border-white/50 hover:bg-white/[0.085]">
-                <Wrench size={19} aria-hidden />{copy.services}<ChevronRight size={18} aria-hidden />
-              </Link>
-            </div>
+      {/* On wide screens the cars remain visible to the right of the readable text. */}
+      <div
+        className="pointer-events-none absolute inset-0 z-[1] hidden lg:block"
+        aria-hidden
+        style={{
+          background:
+            "linear-gradient(90deg, rgba(8,11,16,0.99) 0%, rgba(8,11,16,0.98) 17%, rgba(8,11,16,0.91) 31%, rgba(8,11,16,0.70) 43%, rgba(8,11,16,0.16) 69%, rgba(8,11,16,0.11) 100%)",
+        }}
+      />
+      {/* Mobile/tablet: darken the heading area; show the cars lower in the scene. */}
+      <div
+        className="pointer-events-none absolute inset-0 z-[1] lg:hidden"
+        aria-hidden
+        style={{
+          background:
+            "linear-gradient(180deg, rgba(8,11,16,0.99) 0%, rgba(8,11,16,0.98) 26%, rgba(8,11,16,0.87) 48%, rgba(8,11,16,0.48) 75%, rgba(8,11,16,0.70) 100%)",
+        }}
+      />
+      <div
+        className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-[28%]"
+        aria-hidden
+        style={{ background: "linear-gradient(180deg, transparent, rgba(8,11,16,0.82))" }}
+      />
 
-            <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-3 text-sm">
-              <a href="#wyceń-po-vin" className="inline-flex min-h-10 items-center gap-1.5 font-semibold text-white/85 underline decoration-white/30 underline-offset-4 transition-colors hover:text-white">
-                <FileSearch size={16} className="text-bm-red" aria-hidden/>{copy.quote}
-              </a>
-              <PhoneLink trackSource="hero_redesign" className="inline-flex min-h-10 items-center gap-1.5 font-semibold text-white/85 underline decoration-white/30 underline-offset-4 transition-colors hover:text-white">
-                <Phone size={16} className="text-bm-red" aria-hidden/>{t.hero.ctaCall}
-              </PhoneLink>
-            </div>
+      <div className="relative z-10 mx-auto flex w-full max-w-7xl flex-1 items-center px-4 py-14 sm:py-16 lg:px-8 lg:py-20">
+        <div className="max-w-[620px]">
+          <p className="inline-flex items-center gap-2 rounded-full border border-bm-red/30 bg-black/60 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.17em] text-[#ff8581] backdrop-blur-sm sm:text-xs">
+            <span className="h-1.5 w-1.5 rounded-full bg-bm-red" aria-hidden />
+            {copy.eyebrow}
+          </p>
 
-            <div className="mt-7 grid gap-3 border-t border-white/10 pt-5 text-xs font-semibold text-white/65 sm:grid-cols-2">
-              <span className="inline-flex items-center gap-2"><CheckCircle2 size={17} className="shrink-0 text-bm-red" aria-hidden/>{copy.before}</span>
-              <span className="inline-flex items-center gap-2"><CheckCircle2 size={17} className="shrink-0 text-bm-red" aria-hidden/>{copy.parts}</span>
-            </div>
+          <h1 className="mt-6 max-w-[650px] font-display text-[2.65rem] font-extrabold leading-[1.04] tracking-[-0.045em] text-white drop-shadow-[0_3px_18px_rgba(0,0,0,0.55)] sm:text-6xl lg:text-[4.15rem]">
+            {t.hero.h1Short}
+          </h1>
+          <p className="mt-6 max-w-lg text-lg font-semibold leading-snug text-white sm:text-xl">
+            {copy.statement}
+          </p>
+          <p className="mt-3 max-w-lg text-sm leading-relaxed text-white/80 sm:text-base">
+            {copy.steps}
+          </p>
+
+          <div className="mt-8 grid grid-cols-1 gap-3 sm:max-w-[550px] sm:grid-cols-2">
+            <BookingLink
+              trackSource="hero_redesign"
+              className="inline-flex min-h-14 items-center justify-center gap-2 rounded-xl bg-bm-red px-5 text-sm font-bold text-white shadow-[0_12px_30px_rgba(225,6,0,0.3)] transition-colors hover:bg-red-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+            >
+              <CalendarDays size={19} aria-hidden />
+              {t.hero.ctaBook}
+              <ArrowRight size={18} aria-hidden />
+            </BookingLink>
+            <Link
+              href="/services"
+              className="inline-flex min-h-14 items-center justify-center gap-2 rounded-xl border border-white/35 bg-black/45 px-5 text-sm font-bold text-white backdrop-blur-sm transition-colors hover:border-white/70 hover:bg-black/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+            >
+              <Wrench size={19} aria-hidden />
+              {copy.services}
+              <ChevronRight size={18} aria-hidden />
+            </Link>
           </div>
 
-          <div className="min-w-0">
-            <div className="relative overflow-hidden rounded-[22px] border border-white/15 bg-[#0b0b0e] shadow-[0_35px_90px_rgba(0,0,0,.55)] sm:rounded-[28px]">
-              <div className="flex items-center justify-between gap-2 border-b border-white/10 bg-[#151820] px-4 py-3 sm:px-5">
-                <span className="flex items-center gap-2 text-[10px] font-bold tracking-[0.2em] text-white/65">
-                  <span className="h-2 w-2 rounded-full bg-bm-red" aria-hidden />{copy.film}
-                </span>
-                <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-white/40">01 / 01</span>
-              </div>
-              <HeroVideo />
-              <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-t border-white/10 bg-[#13161d] px-4 py-4 sm:px-5">
-                <span className="inline-flex items-center gap-2 text-xs text-white/70"><MapPin size={15} className="text-bm-red" aria-hidden/>{businessConfig.streetAddress}, Warszawa</span>
-                <a href={WORKSHOP_DIRECTIONS_URL} target="_blank" rel="noopener noreferrer" onClick={() => trackGetDirectionsClick("hero_film")} className="inline-flex min-h-9 items-center gap-1.5 text-xs font-bold text-white hover:text-[#ff7772]">{copy.location}<ArrowRight size={15} aria-hidden /></a>
-              </div>
-            </div>
-            <div className="mt-4 flex flex-wrap justify-between gap-x-4 gap-y-2 px-1 text-[11px] text-white/50">
-              <span className="inline-flex items-center gap-1.5"><Clock3 size={14} aria-hidden />{copy.hours}</span>
-              <span className="font-semibold tracking-wide">{businessConfig.phoneDisplay}</span>
-            </div>
+          <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-1 text-sm">
+            <a
+              href="#wyceń-po-vin"
+              className="inline-flex min-h-11 items-center gap-1.5 font-semibold text-white underline decoration-white/35 underline-offset-4 hover:text-[#ff8b87]"
+            >
+              <FileSearch size={17} className="text-[#ff5550]" aria-hidden />
+              {copy.quote}
+            </a>
+            <PhoneLink
+              trackSource="hero_redesign"
+              className="inline-flex min-h-11 items-center gap-1.5 font-semibold text-white underline decoration-white/35 underline-offset-4 hover:text-[#ff8b87]"
+            >
+              <Phone size={17} className="text-[#ff5550]" aria-hidden />
+              {t.hero.ctaCall}
+            </PhoneLink>
           </div>
+
+          <div className="mt-7 grid gap-3 border-t border-white/20 pt-5 text-xs font-semibold text-white/85 sm:max-w-[550px] sm:grid-cols-2">
+            <span className="inline-flex items-center gap-2">
+              <CheckCircle2 size={17} className="shrink-0 text-[#ff5550]" aria-hidden />
+              {copy.before}
+            </span>
+            <span className="inline-flex items-center gap-2">
+              <CheckCircle2 size={17} className="shrink-0 text-[#ff5550]" aria-hidden />
+              {copy.parts}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div className="relative z-10 w-full border-t border-white/15 bg-[#0b0e14]/70 px-4 py-4 backdrop-blur-md lg:px-8">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-8 gap-y-3 text-xs font-semibold text-white/85 sm:text-sm">
+          <span className="inline-flex items-center gap-2">
+            <MapPin size={17} className="shrink-0 text-[#ff5550]" aria-hidden />
+            {businessConfig.streetAddress}, Warszawa
+          </span>
+          <span className="inline-flex items-center gap-2">
+            <Clock3 size={17} className="shrink-0 text-[#ff5550]" aria-hidden />
+            {copy.hours}
+          </span>
+          <a
+            href={WORKSHOP_DIRECTIONS_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => trackGetDirectionsClick("hero_background")}
+            className="inline-flex min-h-10 items-center gap-2 text-white transition-colors hover:text-[#ff8b87] sm:ml-auto"
+          >
+            {copy.location}
+            <ArrowRight size={16} aria-hidden />
+          </a>
         </div>
       </div>
     </section>
