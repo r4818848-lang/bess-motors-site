@@ -929,14 +929,17 @@
   }
 
   .btn-primary {
-    @apply relative inline-flex items-center justify-center gap-2 px-6 py-3 font-display text-sm font-semibold tracking-wide text-white transition-all duration-200 rounded-[10px] min-h-[48px];
+    @apply relative inline-flex min-h-[48px] items-center justify-center gap-2 rounded-xl px-6 py-3 text-sm font-bold text-white transition-colors duration-200;
     background: #e10600;
     box-shadow: none;
   }
 
   .btn-primary:hover {
-    background: #c50500;
-    transform: translateY(-1px);
+    background: #c90a05;
+  }
+
+  .btn-primary:active {
+    background: #a80804;
   }
 
   .btn-outline {
@@ -944,7 +947,13 @@
   }
 
   .btn-outline:hover {
-    @apply border-white/30 bg-white/5;
+    border-color: rgba(255,98,92,.6);
+    background: rgba(255,255,255,.08);
+    color: #fff;
+  }
+
+  .btn-outline:active {
+    background: rgba(255,255,255,.12);
   }
 
   .card-premium {
@@ -2129,5 +2138,109 @@ button:focus-visible {
   .bm-hero-enter, .bm-premium-card, .bm-premium-card * {
     animation: none !important;
     transition-duration: .01ms !important;
+  }
+}
+
+
+/* BESS MOTORS 3.0 — public website color system.
+ * Red is reserved for conversion; readable coral is for text and icons.
+ * Scoped to SiteShell so owner ERP and mechanic screens retain their themes.
+ */
+@layer components {
+  .bm-public {
+    --bm-primary: #e10600;
+    --bm-primary-hover: #c90a05;
+    --bm-primary-active: #a80804;
+    --bm-accent: #ff625c;
+    --bm-foreground: #f8fafc;
+    --bm-copy: #c9d1d9;
+    --bm-secondary-text: #aeb6c2;
+    --bm-muted-text: #9aa4b2;
+    --bm-surface-raised: #151922;
+    --bm-outline: rgba(255,255,255,.22);
+    --bm-outline-hover: rgba(255,98,92,.7);
+  }
+
+  .bm-public .btn-primary,
+  .bm-public .bm-btn-primary {
+    background: var(--bm-primary);
+    color: #fff;
+    border: 1px solid transparent;
+    border-radius: .75rem;
+    font-weight: 700;
+    text-transform: none;
+    text-shadow: none;
+    box-shadow: 0 10px 30px rgba(225,6,0,.18);
+    transition: background-color .18s ease, border-color .18s ease, box-shadow .18s ease;
+  }
+  .bm-public .btn-primary:hover:not(:disabled),
+  .bm-public .bm-btn-primary:hover:not(:disabled) {
+    background: var(--bm-primary-hover);
+    box-shadow: 0 12px 32px rgba(225,6,0,.26);
+    transform: none;
+  }
+  .bm-public .btn-primary:active:not(:disabled),
+  .bm-public .bm-btn-primary:active:not(:disabled) {
+    background: var(--bm-primary-active);
+  }
+
+  .bm-public .btn-outline,
+  .bm-public .bm-btn-secondary {
+    background: rgba(255,255,255,.04);
+    color: var(--bm-foreground);
+    border: 1px solid var(--bm-outline);
+    border-radius: .75rem;
+    font-weight: 600;
+    text-shadow: none;
+    box-shadow: none;
+    transition: background-color .18s ease, border-color .18s ease;
+  }
+  .bm-public .btn-outline:hover:not(:disabled),
+  .bm-public .bm-btn-secondary:hover:not(:disabled) {
+    background: rgba(255,255,255,.09);
+    border-color: var(--bm-outline-hover);
+    color: #fff;
+  }
+  .bm-public .btn-outline:active:not(:disabled),
+  .bm-public .bm-btn-secondary:active:not(:disabled) {
+    background: rgba(255,255,255,.13);
+  }
+
+  /* Utility-colored CTA buttons also share one state color. Other colors
+     (WhatsApp, statuses, ratings) remain semantically distinct. */
+  .bm-public :is(a,button).bg-bm-red {
+    background-color: var(--bm-primary);
+    color: #fff;
+  }
+  .bm-public :is(a,button).bg-bm-red:hover:not(:disabled) {
+    background-color: var(--bm-primary-hover);
+  }
+  .bm-public :is(a,button).bg-bm-red:active:not(:disabled) {
+    background-color: var(--bm-primary-active);
+  }
+
+  .bm-public .bm-text-primary { color: var(--bm-foreground); }
+  .bm-public .bm-text-body { color: var(--bm-copy); }
+  .bm-public .bm-text-secondary { color: var(--bm-secondary-text); }
+  .bm-public .bm-text-accent { color: var(--bm-accent); }
+  .bm-public .text-bm-muted { color: var(--bm-muted-text) !important; }
+  .bm-public .text-bm-red { color: var(--bm-accent) !important; }
+
+  .bm-public :is(a,button,input,textarea,select):focus-visible {
+    outline: 2px solid var(--bm-accent);
+    outline-offset: 3px;
+  }
+  .bm-public :is(button,input,textarea,select):disabled {
+    cursor: not-allowed;
+  }
+}
+
+/* Controls remain still when system-wide reduced motion is requested. */
+@media (prefers-reduced-motion: reduce) {
+  .bm-public .btn-primary,
+  .bm-public .btn-outline,
+  .bm-public .bm-btn-primary,
+  .bm-public .bm-btn-secondary {
+    transition-duration: .01ms;
   }
 }
