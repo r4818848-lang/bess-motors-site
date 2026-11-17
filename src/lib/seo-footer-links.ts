@@ -19,6 +19,12 @@ export const seoFooterServiceLinks: { href: string; label: string }[] = [
   { href: "/mechanik-warszawa-wlochy", label: "Mechanik Warszawa Włochy" },
   { href: "/mechanik-warszawa-okecie", label: "Mechanik Warszawa Okęcie" },
   { href: "/klimatyzacja", label: "Nabijanie klimatyzacji" },
+  { href: "/personalizacja-samochodu-warszawa", label: "Personalizacja samochodu Warszawa" },
+  { href: "/oswietlenie-ambientowe-samochodu-warszawa", label: "Oświetlenie ambientowe" },
+  { href: "/obszywanie-kierownicy-warszawa", label: "Obszywanie kierownicy" },
+  { href: "/montaz-apple-carplay-warszawa", label: "Montaż Apple CarPlay" },
+  { href: "/oklejanie-samochodu-folia-warszawa", label: "Oklejanie samochodu folią" },
+  { href: "/pranie-tapicerki-samochodowej-warszawa", label: "Pranie tapicerki samochodowej" },
   { href: "/cennik", label: "Cennik" },
   { href: "/contacts", label: "Kontakt" },
 ];
