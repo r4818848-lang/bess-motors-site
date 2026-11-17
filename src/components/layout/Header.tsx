@@ -164,7 +164,7 @@ export function Header() {
     >
       <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/[0.07] text-bm-red" aria-hidden><Wrench size={15}/></span>
       <span className="flex-1 leading-snug">{t.serviceItems[service.key]}</span>
-      <ArrowRight size={15} className="shrink-0 text-white/35 transition-transform group-hover:translate-x-0.5 group-hover:text-white" aria-hidden />
+      <ArrowRight size={15} className="shrink-0 text-bm-muted transition-transform group-hover:translate-x-0.5 group-hover:text-white" aria-hidden />
     </Link>
   ));
 
@@ -280,7 +280,7 @@ export function Header() {
                     const groupItems = matches.filter((s) => s.group === group);
                     return groupItems.length ? (
                       <section key={group} aria-label={heading}>
-                        <h3 className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.15em] text-white/65"><Icon className="text-bm-red" size={18}/>{heading}</h3>
+                        <h3 className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.15em] text-bm-copy"><Icon className="text-bm-red" size={18}/>{heading}</h3>
                         <div className="grid gap-2">{renderServices(group)}</div>
                       </section>
                     ) : null;
@@ -296,7 +296,7 @@ export function Header() {
 
               <div className="mt-7 grid gap-4 border-t border-white/10 pt-5 lg:grid-cols-[1fr_auto]">
                 <div>
-                  <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.15em] text-white/40">{copy.fastLinks}</p>
+                  <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.15em] text-bm-muted">{copy.fastLinks}</p>
                   <div className="flex flex-wrap gap-2">
                     <Link href="/services" onClick={close} className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-white/15 bg-white/5 px-3 text-sm text-white"><Wrench size={16} aria-hidden />{copy.allServices}</Link>
                     <Link href="/cennik" onClick={close} className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-white/15 bg-white/5 px-3 text-sm text-white"><FileText size={16} aria-hidden />{t.nav.priceList}</Link>
@@ -314,7 +314,7 @@ export function Header() {
                   <a href={WORKSHOP_DIRECTIONS_URL} target="_blank" rel="noopener noreferrer" onClick={() => { trackGetDirectionsClick("nav_panel"); close(); }} className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl border border-white/20 px-4 text-sm font-semibold text-white lg:flex-none"><MapPin size={17} aria-hidden/>{copy.showRoute}</a>
                 </div>
               </div>
-              <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-white/50">
+              <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-bm-label">
                 <span className="inline-flex items-center gap-1.5"><MapPin size={14} aria-hidden/>{businessConfig.addressLine}</span>
                 <span className="inline-flex items-center gap-1.5"><Clock3 size={14} aria-hidden/>{businessConfig.workingHoursLabel}</span>
                 <PhoneLink trackSource="nav_contact" className="inline-flex items-center gap-1.5 text-white/70 hover:text-white"><Phone size={14} aria-hidden/>{businessConfig.phoneDisplay}</PhoneLink>
