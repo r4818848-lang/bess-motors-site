@@ -13,14 +13,14 @@ export function HomeDirectionsMap() {
   const h = t.homeLead;
 
   return (
-    <section className="py-12 border-t border-bm-border/40" aria-labelledby="home-map-heading">
+    <section className="border-t border-white/10 bg-[#0d1016] py-14 sm:py-20" aria-labelledby="home-map-heading">
       <div className="mx-auto max-w-7xl px-4 lg:px-8">
         <div className="flex items-start gap-3 mb-6">
           <MapPin className="w-7 h-7 text-bm-red shrink-0 mt-0.5" aria-hidden />
           <div>
             <h2
               id="home-map-heading"
-              className="font-display text-2xl md:text-3xl font-bold uppercase text-glow"
+              className="font-display text-3xl font-bold tracking-tight text-white sm:text-4xl"
             >
               {h.mapTitle}
             </h2>
@@ -32,7 +32,7 @@ export function HomeDirectionsMap() {
         </div>
 
         <div className="grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] gap-6 items-stretch">
-          <div className="rounded-2xl border border-bm-border/60 bg-bm-card/50 p-5 space-y-4">
+          <div className="space-y-4 rounded-[26px] border border-white/15 bg-[#1a1e26] p-5">
             <div className="relative aspect-[16/10] rounded-xl overflow-hidden border border-bm-border/40">
               <Image
                 src="/images/workshop/exterior.png"
