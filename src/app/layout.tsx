@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Roboto_Condensed } from "next/font/google";
 
 import "./globals.css";
 
@@ -21,6 +22,15 @@ import { buildPageMetadata, DEFAULT_OG_IMAGE } from "@/lib/seo-metadata";
 import { telegramLaunchHeadScript } from "@/lib/telegram-webapp-client";
 
 
+
+/** Self-hosted by Next.js at build time: no Google Fonts request from visitor browsers. */
+const headlineFont = Roboto_Condensed({
+  subsets: ["latin", "latin-ext", "cyrillic", "cyrillic-ext"],
+  display: "swap",
+  variable: "--font-bess-display",
+  weight: "variable",
+  preload: false,
+});
 
 const siteUrl = getSiteUrl();
 
@@ -152,7 +162,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
       <body
 
-        className="min-h-screen bg-bm-black text-white font-body antialiased"
+        className={`min-h-screen bg-bm-black text-white font-body antialiased ${headlineFont.variable}`}
 
         style={{ backgroundColor: "#0a0a0a", color: "#ffffff" }}
 
