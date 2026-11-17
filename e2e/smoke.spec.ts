@@ -191,16 +191,22 @@ test("mobile navigation searches Polish and Russian symptoms and exposes booking
   await expect(page.getByTestId("nav-overlay")).toHaveCount(0);
 });
 
-test("homepage provides four easy paths into the workshop", async ({ page }) => {
+
+test("homepage provides four immediate customer actions and six service links", async ({ page }) => {
   await page.goto("/");
-  const shortcuts = page.locator('section[aria-labelledby="home-quick-choices"]');
-  await expect(shortcuts.locator('a[href="/services"]')).toBeVisible();
-  await expect(shortcuts.locator('a[href="#objawy"]')).toBeVisible();
-  await expect(shortcuts.locator('a[href="/cennik"]')).toBeVisible();
-  await expect(shortcuts.locator('a[href="/booking"]')).toBeVisible();
+  const actions = page.getByTestId("hero-quick-actions");
+  await expect(actions.locator("a")).toHaveCount(4);
+  await expect(actions.locator('a[href="/booking"]')).toBeVisible();
+  await expect(actions.locator('a[href^="tel:"]')).toBeVisible();
+  await expect(actions.locator('a[href="#wyceń-po-vin"]')).toBeVisible();
+  await expect(actions.locator('a[href="/services"]')).toBeVisible();
+  const services = page.getByTestId("services-visual-grid");
+  await expect(services.getByTestId("visual-service-card")).toHaveCount(6);
+  for (const href of ["/wymiana-oleju", "/wymiana-opon-warszawa", "/hamulce", "/klimatyzacja", "/diagnostyka-komputerowa-warszawa", "/naprawa-zawieszenia-warszawa"]) {
+    await expect(services.locator('a[href="' + href + '"]')).toBeVisible();
+  }
   await expect(page.locator("#objawy")).toHaveCount(1);
 });
-
 
 test("service catalogue lets visitors filter repairs without a long unstructured list", async ({ page }) => {
   await page.goto("/services");
@@ -256,32 +262,30 @@ test("mobile tyre page prioritizes booking above the large photo", async ({ page
 });
 
 
-test("approved BMW film fills the hero background behind readable booking actions", async ({ page }) => {
+
+test("approved three BMWs remain uncropped on phone and desktop", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/");
   const hero = page.getByTestId("home-hero");
   await expect(hero).toHaveAttribute("data-hero-layout", "full-bleed");
+  const media = page.getByTestId("hero-background-film");
+  await expect(media).toHaveAttribute("data-cars-visible", "three");
   await expect(hero.locator('[data-hero-background="true"]')).toHaveCount(1);
   await expect(hero.locator('video[poster="/images/bess-motors-hero-poster.webp"]')).toHaveCount(1);
-  await expect(hero.locator('a[href="/booking"]').first()).toBeVisible();
-  await expect(hero.locator('a[href="/services"]').first()).toBeVisible();
-  await expect(hero.getByText("01 / 01")).toHaveCount(0);
+  const image = media.locator("img");
+  const video = media.locator("video");
+  await expect.poll(() => image.evaluate(el => getComputedStyle(el).objectFit)).toBe("contain");
+  await expect.poll(() => video.evaluate(el => getComputedStyle(el).objectFit)).toBe("contain");
 
-  const background = page.getByTestId("hero-background-film");
-  const [heroBox, backgroundBox] = await Promise.all([hero.boundingBox(), background.boundingBox()]);
-  expect(heroBox && backgroundBox && backgroundBox.width > heroBox.width * 0.7).toBeTruthy();
-  const image = hero.locator('[data-hero-background="true"] img');
-  await expect.poll(() => image.evaluate((el) => getComputedStyle(el).objectFit)).toBe("cover");
-  const video = hero.locator('video[poster="/images/bess-motors-hero-poster.webp"]');
-  await expect.poll(() => video.evaluate((el) => getComputedStyle(el).objectFit)).toBe("cover");
-
-  await page.setViewportSize({ width: 390, height: 844 });
-  await expect(hero.locator('a[href="/booking"]').first()).toBeVisible();
-  await expect(hero.locator('a[href="/services"]').first()).toBeVisible();
-  const mobileWidth = await page.evaluate(() => document.documentElement.scrollWidth);
-  expect(mobileWidth).toBeLessThanOrEqual(390);
+  for (const width of [360, 390, 428, 768, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    const box = await media.boundingBox();
+    expect(box && box.width > width * (width >= 1024 ? 0.5 : 0.9)).toBeTruthy();
+    await expect.poll(() => image.evaluate((el: HTMLImageElement) => el.complete ? el.naturalWidth : 0)).toBeGreaterThan(0);
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
+    expect(overflow, "overflow at " + width).toBeLessThanOrEqual(1);
+  }
 });
-
 
 test("BESS 3.0 portfolio shows real before and after work photos", async ({ page }) => {
   await page.goto("/");
@@ -356,34 +360,44 @@ test("desktop header becomes compact after scrolling", async ({ page }) => {
 });
 
 
-test("editorial hero is visually distinct and exposes a four-service command dock", async ({ page }) => {
+
+test("BESS hero matches the approved premium automotive design", async ({ page }) => {
   await page.goto("/");
   const hero = page.getByTestId("home-hero");
-  await expect(hero).toHaveAttribute("data-hero-design", "editorial-2026");
+  await expect(hero).toHaveAttribute("data-hero-design", "automotive-showcase-2026");
   await expect(hero.getByRole("heading", { level: 1 })).toContainText("Mechanik samochodowy Warszawa Włochy");
   const headline = hero.getByTestId("hero-editorial-headline");
-  await expect(headline).toContainText("Mniej zgadywania.");
-  await expect(headline).toContainText("Więcej konkretów.");
-  const dock = hero.getByTestId("hero-service-dock");
-  await expect(dock.locator("nav a")).toHaveCount(4);
-  for (const route of ["/wymiana-opon-warszawa", "/wymiana-oleju", "/hamulce", "/diagnostyka-komputerowa-warszawa"]) {
-    await expect(dock.locator('a[href="' + route + '"]')).toBeVisible();
-  }
-  await expect(hero.locator('a[href="/booking"]').first()).toBeVisible();
-  const nextSection = await hero.evaluate((section) => section.nextElementSibling?.getAttribute("aria-labelledby"));
+  await expect(headline).toContainText("Kompleksowy serwis");
+  await expect(headline).toContainText("Twojego samochodu.");
+  await expect(headline).toContainText("Szybko i bez stresu.");
+  await expect(hero.getByTestId("hero-quick-actions").locator("a")).toHaveCount(4);
+  const nextSection = await hero.evaluate(section => section.nextElementSibling?.getAttribute("aria-labelledby"));
   expect(nextSection).toBe("popular-services-heading");
+  await expect(page.getByTestId("home-trust-summary")).toBeVisible();
+  await expect(page.getByTestId("home-google-ribbon")).toBeVisible();
+  await expect(page.getByText("Ponad 500 opinii w Google")).toHaveCount(0);
 });
 
-test("editorial hero remains navigable on 360px phone", async ({ page }) => {
+
+test("mobile homepage has four large actions and app-like five-item navigation", async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 760 });
   await page.goto("/");
   const hero = page.getByTestId("home-hero");
   await expect(hero.getByTestId("hero-editorial-headline")).toBeVisible();
-  await expect(hero.getByTestId("hero-service-dock").locator("nav a")).toHaveCount(4);
+  await expect(hero.getByTestId("hero-quick-actions").locator("a")).toHaveCount(4);
+  const bar = page.getByTestId("mobile-action-bar");
+  await expect(bar).toBeVisible();
+  await expect(bar.locator('a[href="/"]')).toBeVisible();
+  await expect(bar.locator('a[href="/services"]')).toBeVisible();
+  await expect(bar.locator('a[href="/booking"]')).toBeVisible();
+  await expect(bar.locator('a[href="/cennik"]')).toBeVisible();
+  await bar.getByTestId("mobile-bottom-menu").click();
+  await expect(page.getByTestId("nav-overlay")).toBeVisible();
+  await page.getByTestId("close-nav").click();
+  await expect(page.getByTestId("nav-overlay")).toHaveCount(0);
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
   expect(overflow).toBeLessThanOrEqual(1);
 });
-
 
 test("automotive headline uses a distinct condensed display face while the body stays readable", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
@@ -406,7 +420,7 @@ test("automotive headline uses a distinct condensed display face while the body 
   expect(typography?.titleFamily).toMatch(/Roboto[_ ]Condensed/i);
   expect(typography?.bodyFamily).toMatch(/Inter/i);
   expect(typography?.titleWeight).toBeLessThanOrEqual(750);
-  expect(typography?.text).toContain("Więcej konkretów.");
+  expect(typography?.text).toContain("Szybko i bez stresu.");
 
   for (const width of [360, 390, 768]) {
     await page.setViewportSize({ width, height: 840 });
