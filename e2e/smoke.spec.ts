@@ -56,14 +56,31 @@ test("main navigation pages respond 200", async ({ page }) => {
   }
 });
 
-test("homepage preloads only the hero image", async ({ request }) => {
+test("homepage preloads the approved hero poster, not the legacy banner", async ({ request }) => {
   const html = await (await request.get("/")).text();
   const imagePreloads = [...html.matchAll(/<link rel="preload" as="image"[^>]*>/g)].map((m) => m[0]);
-  expect(imagePreloads.some((tag) => tag.includes("banner.png"))).toBeTruthy();
+  expect(imagePreloads.some((tag) => tag.includes("bess-motors-hero-poster.webp"))).toBeTruthy();
+  expect(imagePreloads.some((tag) => tag.includes("banner.png"))).toBeFalsy();
   expect(imagePreloads.some((tag) => tag.includes("exterior.png"))).toBeFalsy();
   expect(imagePreloads.some((tag) => tag.includes("tire-audi"))).toBeFalsy();
   expect(html).not.toContain("Orbitron");
   expect(html).not.toMatch(/<link rel="preload" as="image"[^>]*logo\.png/);
+});
+
+test("approved homepage film has its static assets and accessible poster", async ({ page, request }) => {
+  await page.goto("/");
+  const video = page.locator('video[poster="/images/bess-motors-hero-poster.webp"]');
+  await expect(video).toHaveCount(1);
+  await expect(video).toHaveAttribute("preload", "none");
+  await expect(video).toHaveAttribute("loop", "");
+  const [film, poster] = await Promise.all([
+    request.get("/videos/bess-motors-hero-2026.mp4"),
+    request.get("/images/bess-motors-hero-poster.webp"),
+  ]);
+  expect(film.status()).toBe(200);
+  expect(film.headers()["content-type"]).toContain("video/mp4");
+  expect(poster.status()).toBe(200);
+  expect(poster.headers()["content-type"]).toContain("image/webp");
 });
 
 test("tyre landing heading is visible in the first HTML", async ({ request }) => {
