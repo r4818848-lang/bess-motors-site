@@ -10,15 +10,15 @@ export default function BookingPage() {
     <div className="min-h-screen bg-gradient-to-b from-[#151922] via-[#0c1016] to-bm-black pb-24 pt-24 sm:pt-28">
       <div className="mx-auto max-w-7xl px-4 lg:px-8">
         <header className="mb-9 max-w-4xl">
-          <p className="text-xs font-bold uppercase tracking-[0.19em] text-[#ff7974]">BESS MOTORS / WARSZAWA WŁOCHY</p>
+          <p className="text-xs font-bold uppercase tracking-[0.19em] text-bm-accent">BESS MOTORS / WARSZAWA WŁOCHY</p>
           <h1 className="mt-3 font-display text-[2.5rem] font-extrabold leading-tight tracking-[-0.04em] text-white sm:text-[3.4rem]">
             Umów wizytę — BESS MOTORS
           </h1>
-          <p className="mt-4 max-w-2xl text-base leading-relaxed text-white/65">
+          <p className="mt-4 max-w-2xl text-base leading-relaxed text-bm-copy">
             Wybierz usługi z cennika i zostaw telefon. Potwierdzimy termin telefonicznie. Bez konta
             i logowania.
           </p>
-          <p className="mt-3 max-w-xl text-sm text-white/55">
+          <p className="mt-3 max-w-xl text-sm text-bm-label">
             {siteConfig.address} ·{" "}
             <a href={siteConfig.phoneHref} className="text-bm-red font-semibold hover:underline">
               {siteConfig.phone}
