@@ -33,7 +33,7 @@ const serviceCatalog = [
   { key: "electric", href: "/elektryka", group: "diagnostics", search: "elektryka alternator rozrusznik электрика стартер generator" },
   { key: "acRepair", href: "/naprawa-klimatyzacji", group: "repair", search: "naprawa klimatyzacji sprężarka wyciek кондиционер компрессор" },
   { key: "turbo", href: "/wymiana-turbosprezarki-warszawa", group: "repair", search: "turbo turbosprężarka турбина turbocharger" },
-  { key: "otherReason", href: "/diagnostyka-przed-zakupem-warszawa", group: "diagnostics", search: "przed zakupem sprawdzenie auta przed kupnem проверка перед покупкой" },
+  { key: "otherReason", href: "/booking", group: "diagnostics", search: "inny problem inna przyczyna nie wiem co z autem другая причина не знаю что случилось other problem" },
 ] as const satisfies ReadonlyArray<{ key: string; href: string; group: ServiceGroup; search: string }>;
 
 const auxiliaryLinks = [
