@@ -200,3 +200,18 @@ test("homepage provides four easy paths into the workshop", async ({ page }) => 
   await expect(shortcuts.locator('a[href="/booking"]')).toBeVisible();
   await expect(page.locator("#objawy")).toHaveCount(1);
 });
+
+
+test("service catalogue lets visitors filter repairs without a long unstructured list", async ({ page }) => {
+  await page.goto("/services");
+  const catalog = page.getByTestId("service-catalogue");
+  await expect(catalog).toBeVisible();
+  const search = page.getByTestId("catalogue-search");
+  await search.fill("dsg");
+  await expect(catalog.getByTestId("service-result")).toHaveCount(1);
+  await expect(catalog.locator('a[href="/wymiana-oleju-skrzynia-automatyczna-warszawa"]')).toBeVisible();
+  await search.fill("");
+  await catalog.locator('button[aria-pressed="false"]').filter({ hasText: /Naprawy|Ремонт|Mechanical/i }).first().click();
+  await expect(catalog.locator('article[data-testid="service-result"] a[href="/wymiana-rozrzadu-warszawa"]')).toBeVisible();
+  await expect(catalog.locator('article[data-testid="service-result"] a[href="/wymiana-opon-warszawa"]')).toHaveCount(0);
+});
