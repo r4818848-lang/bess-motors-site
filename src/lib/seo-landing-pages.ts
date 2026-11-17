@@ -47,9 +47,9 @@ export const seoLandingPages: SeoLandingPage[] = [
     title: "Naprawa Zawieszenia",
     line1: "Stuki i luz w zawieszeniu?",
     line2: "Profesjonalny serwis Warszawa",
-    metaTitle: "Naprawa zawieszenia Warszawa",
+    metaTitle: "Naprawa zawieszenia Warszawa Włochy",
     metaDescription:
-      "Naprawa zawieszenia w BESS MOTORS — amortyzatory, wahacze, stuki, luz w zawieszeniu. Profesjonalny serwis samochodowy Warszawa.",
+      "Naprawa zawieszenia Warszawa Włochy: stuki, wahacze, tuleje, amortyzatory. Diagnoza i wycena przed naprawą. BESS MOTORS, Aleja Krakowska 48/52.",
     serviceId: "suspension",
     icon: "Settings",
   },
