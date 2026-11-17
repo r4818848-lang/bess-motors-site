@@ -95,7 +95,7 @@ export function SeoLandingPageView({ page }: Props) {
 
           <div className="mt-5 grid items-center gap-8 rounded-[28px] border border-white/10 bg-[#151920]/60 p-5 text-center shadow-[0_30px_75px_rgba(0,0,0,.25)] sm:p-8 lg:grid-cols-[minmax(260px,470px)_minmax(0,1fr)] lg:text-left">
             <ServiceLandingHeroMedia slug={page.slug} serviceId={page.serviceId} />
-            <div>
+            <div className="order-first lg:order-last">
             <div className="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-2xl border border-bm-red/30 bg-bm-red/10 text-[#ff7c77]">
               <ServiceIcon name={page.icon} size={32} />
             </div>
