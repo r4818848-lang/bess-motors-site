@@ -115,6 +115,55 @@ export function SeoLandingPageView({ page }: Props) {
               </p>
             ) : null}
             <div className="mx-auto mt-6 h-1 w-16 rounded-full bg-bm-red lg:mx-0" />
+            <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap lg:justify-start">
+              {tireQuick ? (
+                <a
+                  href={"#" + TIRE_QUICK_FORM_ID}
+                  onClick={() => trackBookingOpen("landing_hero_" + page.slug)}
+                  className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-bm-red px-5 text-sm font-bold text-white transition-colors hover:bg-red-700"
+                  data-testid="service-hero-book"
+                >
+                  <Calendar size={17} aria-hidden />
+                  {t.hero.ctaBook}
+                  <ChevronRight size={17} aria-hidden />
+                </a>
+              ) : bookServiceId ? (
+                <button
+                  type="button"
+                  onClick={bookFromPage}
+                  className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-bm-red px-5 text-sm font-bold text-white transition-colors hover:bg-red-700"
+                  data-testid="service-hero-book"
+                >
+                  <Calendar size={17} aria-hidden />
+                  {t.hero.ctaBook}
+                  <ChevronRight size={17} aria-hidden />
+                </button>
+              ) : (
+                <BookingLink
+                  trackSource={"landing_hero_" + page.slug}
+                  className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-bm-red px-5 text-sm font-bold text-white transition-colors hover:bg-red-700"
+                  data-testid="service-hero-book"
+                >
+                  <Calendar size={17} aria-hidden />
+                  {t.hero.ctaBook}
+                  <ChevronRight size={17} aria-hidden />
+                </BookingLink>
+              )}
+              <PhoneLink
+                trackSource={"landing_hero_" + page.slug}
+                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-white/25 bg-white/[0.05] px-5 text-sm font-bold text-white transition-colors hover:border-white/50 hover:bg-white/[0.1]"
+              >
+                <Phone size={17} aria-hidden />
+                {t.stickyBar.call}
+              </PhoneLink>
+            </div>
+            <Link
+              href="/cennik"
+              className="mt-3 inline-flex min-h-10 items-center gap-2 text-sm font-semibold text-white/70 underline decoration-white/25 underline-offset-4 hover:text-white"
+            >
+              {t.nav.priceList}
+              <ChevronRight size={16} aria-hidden />
+            </Link>
             </div>
           </div>
 
