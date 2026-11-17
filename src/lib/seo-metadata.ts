@@ -10,6 +10,8 @@ export type PageSeoInput = {
   description: string;
   /** Path starting with / or "" for homepage */
   path: string;
+  /** Use when a near-duplicate service URL should consolidate to a primary landing. */
+  canonicalPath?: string;
   keywords?: string[];
   noIndex?: boolean;
   /** Use when title already includes brand (blog posts) */
@@ -29,7 +31,7 @@ export function pageCanonical(path: string): string {
 
 /** Consistent Open Graph + Twitter + canonical for public pages */
 export function buildPageMetadata(input: PageSeoInput): Metadata {
-  const canonical = pageCanonical(input.path);
+  const canonical = pageCanonical(input.canonicalPath ?? input.path);
   const ogTitle = input.absoluteTitle
     ? input.title
     : input.title.includes(BRAND)
