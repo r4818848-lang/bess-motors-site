@@ -122,12 +122,12 @@ export function SameDayServices() {
               <div className="flex flex-1 items-center justify-between gap-2 border-t border-white/10 px-5 py-4">
                 <div className="min-w-0">
                   <p className="text-sm font-bold text-white">{item.price}</p>
-                  <p className="mt-1 text-xs text-white/50">{item.priceDetail}</p>
+                  <p className="mt-1 text-xs text-bm-label">{item.priceDetail}</p>
                 </div>
                 <BookingLink
                   href={item.bookingHref}
                   trackSource={item.source}
-                  className="inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-lg bg-bm-red px-3 text-xs font-bold text-white transition-colors hover:bg-red-700"
+                  className="bm-btn-primary inline-flex min-h-10 shrink-0 items-center gap-1.5 px-3 text-xs font-bold"
                 >
                   <CalendarDays size={14} aria-hidden />
                   {h.sameDayBook}
@@ -137,7 +137,7 @@ export function SameDayServices() {
           ))}
         </ul>
 
-        <p className="mt-4 text-xs text-white/45">{ui.note}</p>
+        <p className="mt-4 text-xs text-bm-label">{ui.note}</p>
         <ul className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
           {more.map((item) => (
             <li key={item.href}>
