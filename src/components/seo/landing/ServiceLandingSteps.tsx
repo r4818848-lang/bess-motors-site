@@ -16,6 +16,7 @@ export function ServiceLandingSteps({
 }) {
   const { t, locale } = useI18n();
   const steps = getServiceLandingSteps(serviceId, slug);
+  const stepCountLabel = { pl: "kroków", ru: "этапов", uk: "етапів", en: "steps" }[locale];
   return (
     <section className="mt-14 scroll-mt-24" aria-labelledby="landing-steps-heading">
       <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
