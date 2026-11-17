@@ -120,7 +120,7 @@ export function SeoLandingPageView({ page }: Props) {
                 <a
                   href={"#" + TIRE_QUICK_FORM_ID}
                   onClick={() => trackBookingOpen("landing_hero_" + page.slug)}
-                  className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-bm-red px-5 text-sm font-bold text-white transition-colors hover:bg-red-700"
+                  className="bm-btn-primary inline-flex min-h-12 items-center justify-center gap-2 px-5 text-sm font-bold"
                   data-testid="service-hero-book"
                 >
                   <Calendar size={17} aria-hidden />
@@ -131,7 +131,7 @@ export function SeoLandingPageView({ page }: Props) {
                 <button
                   type="button"
                   onClick={bookFromPage}
-                  className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-bm-red px-5 text-sm font-bold text-white transition-colors hover:bg-red-700"
+                  className="bm-btn-primary inline-flex min-h-12 items-center justify-center gap-2 px-5 text-sm font-bold"
                   data-testid="service-hero-book"
                 >
                   <Calendar size={17} aria-hidden />
@@ -141,7 +141,7 @@ export function SeoLandingPageView({ page }: Props) {
               ) : (
                 <BookingLink
                   trackSource={"landing_hero_" + page.slug}
-                  className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-bm-red px-5 text-sm font-bold text-white transition-colors hover:bg-red-700"
+                  className="bm-btn-primary inline-flex min-h-12 items-center justify-center gap-2 px-5 text-sm font-bold"
                   data-testid="service-hero-book"
                 >
                   <Calendar size={17} aria-hidden />
@@ -151,7 +151,7 @@ export function SeoLandingPageView({ page }: Props) {
               )}
               <PhoneLink
                 trackSource={"landing_hero_" + page.slug}
-                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-white/25 bg-white/[0.05] px-5 text-sm font-bold text-white transition-colors hover:border-white/50 hover:bg-white/[0.1]"
+                className="bm-btn-secondary inline-flex min-h-12 items-center justify-center gap-2 px-5 text-sm font-bold"
               >
                 <Phone size={17} aria-hidden />
                 {t.stickyBar.call}
