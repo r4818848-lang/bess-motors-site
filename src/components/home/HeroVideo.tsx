@@ -10,7 +10,7 @@ const FALLBACK_SRC = "/images/banner.png";
 
 type ConnectionNavigator = Navigator & { connection?: { saveData?: boolean } };
 
-export function HeroVideo() {
+export function HeroVideo({ background = false }: { background?: boolean }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [playing, setPlaying] = useState(false);
   const [failed, setFailed] = useState(false);
@@ -55,17 +55,19 @@ export function HeroVideo() {
 
   return (
     <div
-      className="relative aspect-video w-full overflow-hidden bg-black"
-      role="img"
-      aria-label="BESS MOTORS: trzy samochody BMW z zielonym, niebieskim i czerwonym podświetleniem w ciemnym studio"
+      className={background ? "absolute inset-0 h-full w-full overflow-hidden bg-[#080b10]" : "relative aspect-video w-full overflow-hidden bg-black"}
+      role={background ? undefined : "img"}
+      aria-label={background ? undefined : "BESS MOTORS: trzy samochody BMW z zielonym, niebieskim i czerwonym podświetleniem w ciemnym studio"}
+      aria-hidden={background || undefined}
+      data-hero-background={background ? "true" : undefined}
     >
       <Image
         src={posterSrc}
         alt=""
         fill
         priority
-        sizes="(min-width: 1024px) 58vw, 100vw"
-        className="object-contain"
+        sizes={background ? "(min-width: 1024px) 82vw, 100vw" : "(min-width: 1024px) 58vw, 100vw"}
+        className={background ? "object-cover object-[50%_55%]" : "object-contain"}
         onError={() => {
           if (posterSrc !== FALLBACK_SRC) setPosterSrc(FALLBACK_SRC);
         }}
@@ -82,7 +84,7 @@ export function HeroVideo() {
           aria-hidden="true"
           onPlaying={() => setPlaying(true)}
           onError={() => setFailed(true)}
-          className={`absolute inset-0 h-full w-full object-contain transition-opacity duration-300 ${playing ? "opacity-100" : "opacity-0"}`}
+          className={`absolute inset-0 h-full w-full ${background ? "object-cover object-[50%_55%]" : "object-contain"} transition-opacity duration-300 ${playing ? "opacity-100" : "opacity-0"}`}
         />
       )}
     </div>
