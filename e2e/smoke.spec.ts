@@ -281,3 +281,76 @@ test("approved BMW film fills the hero background behind readable booking action
   const mobileWidth = await page.evaluate(() => document.documentElement.scrollWidth);
   expect(mobileWidth).toBeLessThanOrEqual(390);
 });
+
+
+test("BESS 3.0 portfolio shows real before and after work photos", async ({ page }) => {
+  await page.goto("/");
+  const cases = page.getByTestId("home-case-studies");
+  await expect(cases).toBeVisible();
+  await expect(cases.getByTestId("work-case-card")).toHaveCount(2);
+  const photos = cases.getByTestId("work-case-card").first().locator("img");
+  await expect(photos).toHaveCount(2);
+  await photos.first().scrollIntoViewIfNeeded();
+  await expect.poll(
+    () => photos.first().evaluate((img: HTMLImageElement) => img.complete ? img.naturalWidth : 0),
+    { timeout: 20000 },
+  ).toBeGreaterThan(0);
+  await expect(cases.locator('a[href="/gallery?tab=repairs"]')).toBeVisible();
+});
+
+test("portfolio repairs tab has usable before-after images and expandable detail", async ({ page }) => {
+  await page.goto("/gallery?tab=repairs");
+  const cases = page.getByTestId("repair-portfolio-case");
+  await expect(cases.first()).toBeVisible();
+  const comparison = cases.first().getByTestId("before-after-comparison");
+  await expect(comparison.locator("img")).toHaveCount(2);
+  const detail = cases.first().locator("details");
+  await expect(detail).toHaveCount(1);
+  await detail.locator("summary").click();
+  await expect(detail).toHaveAttribute("open", "");
+  await cases.first().getByTestId("before-after-comparison").locator("button").first().click();
+  await expect(page.getByRole("dialog", { name: /Wymiana|Замена|Brake/i })).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog", { name: /Wymiana|Замена|Brake/i })).toHaveCount(0);
+});
+
+test("booking includes quick service paths and retains existing booking flow", async ({ page }) => {
+  await page.goto("/booking");
+  const quickStart = page.getByTestId("booking-quick-start");
+  await expect(quickStart).toBeVisible();
+  await expect(quickStart.locator('a[href*="items=oil_filter"]').first()).toBeVisible();
+  await expect(quickStart.locator('a[href*="items=brake_pads_front"]').first()).toBeVisible();
+  await expect(quickStart.locator('a[href*="/sezonowa-wymiana-opon-warszawa"]').first()).toBeVisible();
+  await expect(page.getByTestId("booking-quote-flow")).toBeVisible();
+  const steps = page.getByTestId("booking-quote-flow").locator('ol[aria-label]');
+  await expect(steps.locator("li")).toHaveCount(3);
+});
+
+test("service process uses readable cards rather than horizontal scrolling table", async ({ page }) => {
+  await page.goto("/wymiana-opon-warszawa");
+  const steps = page.getByTestId("service-process-steps");
+  await expect(steps).toBeVisible();
+  await expect(steps.locator("li").first()).toBeVisible();
+  await expect(steps.locator("table")).toHaveCount(0);
+});
+
+test("new homepage remains usable at small mobile widths", async ({ page }) => {
+  for (const width of [360, 390, 768]) {
+    await page.setViewportSize({ width, height: 840 });
+    await page.goto("/");
+    await expect(page.getByTestId("home-hero").locator('a[href="/booking"]').first()).toBeVisible();
+    await expect(page.getByTestId("home-hero").locator('a[href="/services"]').first()).toBeVisible();
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+    expect(overflow, "horizontal overflow at " + width).toBeLessThanOrEqual(1);
+  }
+});
+
+test("desktop header becomes compact after scrolling", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/");
+  const header = page.locator('[data-site-header] > div > div').first();
+  const initial = (await header.boundingBox())?.height ?? 0;
+  await page.evaluate(() => window.scrollTo(0, 900));
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(500);
+  await expect.poll(async () => (await header.boundingBox())?.height ?? 0).toBeLessThan(initial);
+});
