@@ -26,7 +26,7 @@ export function ServiceLandingSteps({
             {t.seoHowItWorks.title}
           </h2>
         </div>
-        <span className="inline-flex items-center gap-2 text-xs font-semibold text-white/60"><CheckCircle2 size={17} className="text-[#ff7772]" aria-hidden />{steps.length} kroków</span>
+        <span className="inline-flex items-center gap-2 text-xs font-semibold text-white/60"><CheckCircle2 size={17} className="text-[#ff7772]" aria-hidden />{steps.length} {stepCountLabel}</span>
       </div>
       <ol className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3" data-testid="service-process-steps">
         {steps.map((step, i) => (
