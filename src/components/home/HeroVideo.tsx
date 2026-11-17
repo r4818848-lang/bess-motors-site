@@ -66,8 +66,8 @@ export function HeroVideo({ background = false }: { background?: boolean }) {
         alt=""
         fill
         priority
-        sizes={background ? "(min-width: 1024px) 82vw, 100vw" : "(min-width: 1024px) 58vw, 100vw"}
-        className={background ? "object-cover object-[50%_55%]" : "object-contain"}
+        sizes={background ? "(min-width: 1024px) 70vw, 100vw" : "(min-width: 1024px) 58vw, 100vw"}
+        className="object-contain object-center"
         onError={() => {
           if (posterSrc !== FALLBACK_SRC) setPosterSrc(FALLBACK_SRC);
         }}
@@ -84,7 +84,7 @@ export function HeroVideo({ background = false }: { background?: boolean }) {
           aria-hidden="true"
           onPlaying={() => setPlaying(true)}
           onError={() => setFailed(true)}
-          className={`absolute inset-0 h-full w-full ${background ? "object-cover object-[50%_55%]" : "object-contain"} transition-opacity duration-300 ${playing ? "opacity-100" : "opacity-0"}`}
+          className={`absolute inset-0 h-full w-full object-contain object-center transition-opacity duration-300 ${playing ? "opacity-100" : "opacity-0"}`}
         />
       )}
     </div>
