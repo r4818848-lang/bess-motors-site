@@ -480,3 +480,70 @@ test("public site brand palette unifies primary, secondary and accent controls",
   await expect(catalogueBook).toBeVisible();
   await expect.poll(() => getBg(catalogueBook)).toBe("rgb(225, 6, 0)");
 });
+
+
+test("all 13 customization SEO pages resolve with distinct metadata and no invented prices or images", async ({ page }) => {
+  const slugs = [
+    "personalizacja-samochodu-warszawa",
+    "oswietlenie-ambientowe-samochodu-warszawa",
+    "obszywanie-kierownicy-warszawa",
+    "obszywanie-foteli-samochodowych-warszawa",
+    "obszywanie-podsufitki-samochodowej-warszawa",
+    "obszywanie-boczkow-drzwi-warszawa",
+    "montaz-body-kitu-warszawa",
+    "montaz-spoilera-samochodowego-warszawa",
+    "montaz-splittera-warszawa",
+    "aromatyzacja-samochodu-warszawa",
+    "montaz-apple-carplay-warszawa",
+    "oklejanie-samochodu-folia-warszawa",
+    "pranie-tapicerki-samochodowej-warszawa",
+  ];
+  const titles = new Set<string>();
+  for (const slug of slugs) {
+    const response = await page.goto("/" + slug);
+    expect(response?.status(), slug).toBe(200);
+    const h1 = page.locator("main h1");
+    await expect(h1, slug).toHaveCount(1);
+    const title = await page.title();
+    expect(title, slug).toContain("Warszawa");
+    expect(titles.has(title), "duplicate SEO title for " + slug).toBe(false);
+    titles.add(title);
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", new RegExp("/" + slug + "$"));
+    await expect(page.locator('meta[name="robots"]')).not.toHaveAttribute("content", /noindex/i);
+    await expect(page.locator('main [data-testid="enhancement-service-page"] img')).toHaveCount(0);
+  }
+  await page.goto("/oswietlenie-ambientowe-samochodu-warszawa");
+  await expect(page.getByTestId("enhancement-quote")).toBeVisible();
+  const ld = await page.locator('script[type="application/ld+json"]').allTextContents();
+  expect(ld.some((text) => text.includes('"@type":"Service"'))).toBe(true);
+  expect(ld.join(" ")).not.toContain('"priceCurrency"');
+  expect(ld.join(" ")).not.toContain('"offers"');
+});
+
+test("customization category is discoverable in catalogue and multilingual service search", async ({ page }) => {
+  await page.goto("/services");
+  const category = page.getByRole("button", { name: "Personalizacja", exact: true });
+  await category.click();
+  const area = page.getByTestId("services-customization");
+  await expect(area).toBeVisible();
+  await expect(area.getByTestId("customization-catalog-card")).toHaveCount(12);
+  await page.getByTestId("catalogue-search").fill("CarPlay");
+  await expect(area.getByTestId("customization-catalog-card")).toHaveCount(1);
+  await expect(area.locator('a[href="/montaz-apple-carplay-warszawa"]')).toBeVisible();
+  await page.getByTestId("header-service-search").click();
+  await page.getByTestId("service-finder-input").fill("obszywanie kierownicy");
+  const results = page.getByTestId("enhancement-search-result");
+  await expect(results).toHaveCount(1);
+  await expect(results.first()).toHaveAttribute("href", "/obszywanie-kierownicy-warszawa");
+});
+
+test("new customization hub is present in sitemap and links from homepage", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.locator('a[href="/personalizacja-samochodu-warszawa"]').first()).toBeVisible();
+  const response = await page.request.get("/sitemap.xml");
+  expect(response.ok()).toBeTruthy();
+  const xml = await response.text();
+  for (const slug of ["personalizacja-samochodu-warszawa", "oswietlenie-ambientowe-samochodu-warszawa", "montaz-apple-carplay-warszawa", "pranie-tapicerki-samochodowej-warszawa"]) {
+    expect(xml).toContain("/" + slug);
+  }
+});
