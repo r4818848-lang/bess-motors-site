@@ -81,7 +81,7 @@ export function HomeTrustHighlights() {
     { icon: MessageSquareText, title: ui.service, description: ui.serviceDesc },
     { icon: Languages, title: ui.languages, description: ui.languagesDesc },
   ] as const;
-  const hasVerifiedRating = rating?.source === "google" && Number.isFinite(rating.rating) &&
+  const hasVerifiedRating = rating?.source === "google" && typeof rating.rating === "number" && Number.isFinite(rating.rating) &&
     (rating.userRatingCount ?? 0) > 0;
 
   return (
