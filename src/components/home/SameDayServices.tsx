@@ -71,10 +71,9 @@ export function SameDayServices() {
       <div className="mx-auto max-w-7xl px-4 lg:px-8">
         <div className="mb-5 flex flex-wrap items-end justify-between gap-3 sm:mb-7">
           <div>
-            <p className="flex items-center gap-3 font-display text-xs font-bold uppercase tracking-[0.2em] text-bm-copy">
+            <h2 id="popular-services-heading" className="flex items-center gap-3 font-display text-xs font-bold uppercase tracking-[0.2em] text-bm-copy">
               <span className="h-[2px] w-8 bg-bm-red" aria-hidden />{c.eyebrow}
-            </p>
-            <h2 id="popular-services-heading" className="sr-only">{c.eyebrow}</h2>
+            </h2>
           </div>
           <Link href="/services" className="inline-flex min-h-10 items-center gap-2 text-xs font-semibold text-white underline decoration-bm-red/50 underline-offset-4 hover:text-bm-accent sm:text-sm">
             {c.all}<ArrowRight size={16} aria-hidden />
