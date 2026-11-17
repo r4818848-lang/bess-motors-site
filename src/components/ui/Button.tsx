@@ -20,7 +20,7 @@ export function Button({
         variant === "primary" && "btn-primary",
         variant === "outline" && "btn-outline",
         variant === "ghost" &&
-          "px-4 py-2 text-sm text-bm-muted hover:text-white transition-colors",
+          "px-4 py-2 text-sm text-bm-label hover:text-white transition-colors",
         className
       )}
       {...props}
