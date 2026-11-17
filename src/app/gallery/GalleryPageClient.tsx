@@ -119,7 +119,7 @@ export default function GalleryPageClient({
                 "min-h-[44px] px-5 py-2 rounded-xl text-sm font-bold border transition-colors",
                 tab === id
                   ? "bg-bm-red border-bm-red text-white"
-                  : "border-transparent text-white/65 hover:border-white/15 hover:text-white"
+                  : "border-transparent text-bm-copy hover:border-white/15 hover:text-white"
               )}
             >
               {label}
