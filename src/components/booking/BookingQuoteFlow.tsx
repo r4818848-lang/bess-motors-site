@@ -421,7 +421,7 @@ export function BookingQuoteFlow({ onDone }: Props) {
         {bq.hourlyNote} <strong className="text-bm-red">{HOURLY_RATE_PLN} zł/h</strong>
       </p>
 
-      <ol className="mb-7 grid grid-cols-3 gap-2 rounded-2xl border border-white/10 bg-[#1a1e26] p-3 text-xs text-white/60 sm:gap-4 sm:p-4 sm:text-sm" aria-label={progress.title}>
+      <ol className="mb-7 grid grid-cols-3 gap-2 rounded-2xl border border-white/10 bg-[#1a1e26] p-3 text-xs text-bm-label sm:gap-4 sm:p-4 sm:text-sm" aria-label={progress.title}>
         {[
           { id: "services", label: progress.services },
           { id: "phone", label: progress.phone },
@@ -433,7 +433,7 @@ export function BookingQuoteFlow({ onDone }: Props) {
             <li key={item.id} className="flex min-h-[44px] flex-col items-center justify-center gap-2 text-center sm:flex-row sm:text-left" aria-current={active ? "step" : undefined}>
               <span
                 className={`inline-flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${
-                  active ? "bg-bm-red text-white shadow-[0_4px_16px_rgba(225,6,0,.3)]" : "border border-white/20 bg-white/5 text-white/50"
+                  active ? "bg-bm-red text-white shadow-[0_4px_16px_rgba(225,6,0,.3)]" : "border border-white/20 bg-white/5 text-bm-label"
                 }`}
               >
                 {index + 1}
