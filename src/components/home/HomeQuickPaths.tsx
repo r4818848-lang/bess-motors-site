@@ -69,7 +69,7 @@ export function HomeQuickPaths() {
       <div className="mx-auto max-w-7xl px-4 lg:px-8">
         <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#fd8784]">{c.eyebrow}</p>
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-bm-accent">{c.eyebrow}</p>
             <h2 id="home-quick-choices" className="mt-2 font-display text-3xl font-bold tracking-tight text-white sm:text-[2.2rem]">{c.heading}</h2>
           </div>
           <FileSearch size={25} className="hidden text-white/30 sm:block" aria-hidden />
@@ -78,7 +78,7 @@ export function HomeQuickPaths() {
           {paths.map((item, index) => (
             <Link key={item.href} href={item.href} className="group flex min-h-[136px] flex-col justify-between gap-4 rounded-2xl border border-white/[0.11] bg-[#1c2028] p-4 transition-colors hover:border-bm-red/60 hover:bg-[#262a34] sm:p-5">
               <div className="flex items-start justify-between">
-                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/[0.08] text-[#ff6963]"><item.icon size={21} aria-hidden /></span>
+                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/[0.08] text-bm-accent"><item.icon size={21} aria-hidden /></span>
                 <span className="text-[10px] font-bold tracking-[0.18em] text-bm-muted">0{index + 1}</span>
               </div>
               <div>
@@ -90,11 +90,11 @@ export function HomeQuickPaths() {
           <BookingLink href="/booking" trackSource="home_path_booking" className="group flex min-h-[136px] flex-col justify-between gap-4 rounded-2xl border border-bm-red/60 bg-bm-red p-4 text-white shadow-[0_15px_30px_rgba(225,6,0,.14)] transition-colors hover:bg-bm-red-hover sm:p-5">
             <div className="flex items-start justify-between">
               <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/15"><CalendarDays size={21} aria-hidden /></span>
-              <span className="text-[10px] font-bold tracking-[0.18em] text-white/65">04</span>
+              <span className="text-[10px] font-bold tracking-[0.18em] text-bm-copy">04</span>
             </div>
             <div>
               <p className="flex items-center gap-1 text-sm font-bold sm:text-base">{c.appointment}<ArrowUpRight size={15} aria-hidden /></p>
-              <p className="mt-1 text-xs leading-relaxed text-white/75">{c.appointmentDesc}</p>
+              <p className="mt-1 text-xs leading-relaxed text-bm-copy">{c.appointmentDesc}</p>
             </div>
           </BookingLink>
         </div>
