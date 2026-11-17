@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { EnhancementHubPage, EnhancementServicePage } from "@/components/seo/EnhancementServicePage";
+import { ENHANCEMENT_HUB_SLUG, allEnhancementSlugs, getEnhancementService } from "@/lib/enhancement-services";
+import { enhancementHubSchema, enhancementServiceSchema } from "@/lib/enhancement-schema";
 import { SeoLandingPageView } from "@/components/seo/SeoLandingPageView";
 import { StructuredData } from "@/components/seo/StructuredData";
 import {
@@ -29,13 +32,29 @@ import {
 type Props = { params: Promise<{ slug: string }> };
 
 export function generateStaticParams() {
-  return seoLandingSlugs
-    .filter((slug) => !sitemapExcludedSlugs.has(slug))
+  return [...new Set([...seoLandingSlugs.filter((slug) => !sitemapExcludedSlugs.has(slug)), ...allEnhancementSlugs])]
     .map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
+  if (slug === ENHANCEMENT_HUB_SLUG) {
+    return buildPageMetadata({
+      title: "Personalizacja samochodu Warszawa – tuning wizualny i wnętrze",
+      description: "Personalizacja samochodów w Warszawie: ambient light, obszywanie wnętrza, body kit, spoilery, CarPlay, folie i pranie tapicerki. BESS MOTORS Włochy.",
+      path: "/" + slug,
+      keywords: ["personalizacja samochodu Warszawa", "tuning wizualny", "doposażenie samochodu Warszawa", "BESS MOTORS Włochy"],
+    });
+  }
+  const enhancement = getEnhancementService(slug);
+  if (enhancement) {
+    return buildPageMetadata({
+      title: enhancement.metaTitle,
+      description: enhancement.metaDescription,
+      path: "/" + enhancement.slug,
+      keywords: [enhancement.metaTitle, ...enhancement.keywords, "BESS MOTORS", "Warszawa Włochy"],
+    });
+  }
   const page = getSeoLandingPage(slug);
   if (!page) return {};
 
@@ -133,6 +152,23 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function SeoLandingRoute({ params }: Props) {
   const { slug } = await params;
+  if (slug === ENHANCEMENT_HUB_SLUG) {
+    return (
+      <>
+        <StructuredData data={enhancementHubSchema()} />
+        <EnhancementHubPage />
+      </>
+    );
+  }
+  const enhancement = getEnhancementService(slug);
+  if (enhancement) {
+    return (
+      <>
+        <StructuredData data={enhancementServiceSchema(enhancement)} />
+        <EnhancementServicePage service={enhancement} />
+      </>
+    );
+  }
   const page = getSeoLandingPage(slug);
   if (!page) notFound();
 
