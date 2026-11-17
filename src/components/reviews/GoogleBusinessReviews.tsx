@@ -47,11 +47,11 @@ export function GoogleBusinessReviews({ variant = "default", className = "" }: P
   const headingClass =
     variant === "compact"
       ? "font-display text-xl uppercase"
-      : "font-display text-2xl uppercase text-glow";
+      : "font-display text-3xl font-bold tracking-tight text-white sm:text-4xl";
 
   return (
     <section className={className} aria-labelledby="google-reviews-heading">
-      <div className={variant === "compact" ? "" : "mx-auto max-w-6xl px-4"}>
+      <div className={variant === "compact" ? "" : "mx-auto max-w-7xl px-4 lg:px-8"}>
         <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
           <div>
             <h2 id="google-reviews-heading" className={headingClass}>
@@ -76,7 +76,7 @@ export function GoogleBusinessReviews({ variant = "default", className = "" }: P
               href={mapsUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="btn-outline text-sm inline-flex items-center gap-2"
+              className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-white/25 bg-white/5 px-4 text-sm font-bold text-white transition-colors hover:border-bm-red/50"
             >
               <ExternalLink size={14} />
               {gr.viewOnMaps}
@@ -85,7 +85,7 @@ export function GoogleBusinessReviews({ variant = "default", className = "" }: P
               href={writeReviewUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="btn-primary text-sm inline-flex items-center gap-2"
+              className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-bm-red px-4 text-sm font-bold text-white transition-colors hover:bg-red-700"
             >
               {gr.leaveReview}
             </Link>
@@ -97,7 +97,7 @@ export function GoogleBusinessReviews({ variant = "default", className = "" }: P
             {apiReviews.map((r, i) => (
               <article
                 key={`${r.author}-${i}`}
-                className="glass rounded-xl p-5 border border-bm-border/40 min-w-[280px] max-w-[320px] snap-start shrink-0"
+                className="min-w-[280px] max-w-[340px] shrink-0 snap-start rounded-[22px] border border-white/15 bg-[#20252e] p-5"
               >
                 <div className="flex items-center gap-3 mb-3">
                   {r.profilePhotoUrl ? (
