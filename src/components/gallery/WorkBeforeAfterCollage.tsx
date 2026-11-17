@@ -81,9 +81,10 @@ export function WorkBeforeAfterCollage({ item }: { item: WorkBeforeAfterCase }) 
       ) : null}
 
       {open ? (
-        <div role="dialog" aria-modal="true" aria-label={jobName} className="fixed inset-0 z-[130] flex items-center justify-center bg-black/95 p-4" onClick={() => setOpen(null)}>
+        <div role="dialog" aria-modal="true" aria-label={jobName} className="fixed inset-0 z-[130] flex items-center justify-center bg-black/95 p-4">
+          <button type="button" onClick={() => setOpen(null)} className="absolute inset-0" aria-label={w.close} />
           <button type="button" onClick={() => setOpen(null)} className="absolute right-4 top-4 z-10 flex h-12 w-12 items-center justify-center rounded-full border border-white/30 bg-black/75 text-white" aria-label={w.close}><X size={24} /></button>
-          <div className="relative h-[82dvh] w-full max-w-6xl" onClick={(e) => e.stopPropagation()}>
+          <div className="pointer-events-none relative h-[82dvh] w-full max-w-6xl">
             <Image src={open.src} alt={open.alt} fill unoptimized sizes="100vw" className="object-contain" />
           </div>
         </div>
