@@ -20,7 +20,7 @@ export function StickyContactBar() {
       <div className="mx-auto grid max-w-lg grid-cols-[1fr_1fr_1.6fr] gap-2">
         <PhoneLink
           trackSource="sticky_2026_call"
-          className="inline-flex min-h-[52px] flex-col items-center justify-center gap-1 rounded-xl border border-white/10 bg-white/[0.065] px-1 text-[11px] font-bold text-white"
+          className="bm-btn-secondary inline-flex min-h-[52px] flex-col items-center justify-center gap-1 px-1 text-[11px] font-bold"
         >
           <Phone size={19} aria-hidden />{t.stickyBar.call}
         </PhoneLink>
@@ -28,14 +28,14 @@ export function StickyContactBar() {
           kind="whatsapp"
           href={workshopWhatsAppChatUrl(locale)}
           trackSource="sticky_2026_whatsapp"
-          className="inline-flex min-h-[52px] flex-col items-center justify-center gap-1 rounded-xl border border-white/10 bg-white/[0.065] px-1 text-[11px] font-bold text-white"
+          className="bm-btn-secondary inline-flex min-h-[52px] flex-col items-center justify-center gap-1 px-1 text-[11px] font-bold"
         >
           <MessageCircle size={19} className="text-[#45dc83]" aria-hidden />
           WhatsApp
         </SocialContactLink>
         <BookingLink
           trackSource="sticky_2026_booking"
-          className="inline-flex min-h-[52px] items-center justify-center gap-2 rounded-xl bg-bm-red px-3 text-sm font-bold text-white shadow-[0_3px_15px_rgba(225,6,0,.2)]"
+          className="bm-btn-primary inline-flex min-h-[52px] items-center justify-center gap-2 px-3 text-sm font-bold"
         >
           <CalendarDays size={19} aria-hidden />{t.hero.ctaBook}
         </BookingLink>
