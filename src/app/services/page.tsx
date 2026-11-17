@@ -15,10 +15,11 @@ import { createCallRequest } from "@/lib/booking-actions";
 import { normalizePhone } from "@/lib/auth";
 import { saveSubmissionSnapshot, THANK_YOU_PATH } from "@/lib/submission-thank-you";
 import { EXTRA_SEO_SERVICE_PAGES } from "@/lib/seo-extra-service-pages";
+import { enhancementServices, ENHANCEMENT_HUB_SLUG } from "@/lib/enhancement-services";
 import { businessConfig } from "@/lib/businessConfig";
 import { trackBookingOpen } from "@/lib/gtag";
 
-type Group = "popular" | "repairs" | "diagnostics";
+type Group = "popular" | "repairs" | "diagnostics" | "styling";
 
 const catalogue = [
   { serviceId: "tires", titleKey: "tires", icon: "Circle", href: "/wymiana-opon-warszawa", group: "popular", keywords: "opony koła wulkanizacja зимняя резина шиномонтаж tyres" },
@@ -37,14 +38,14 @@ const catalogue = [
 
 const labels: Record<Locale, {
   eyebrow: string; title: string; intro: string; search: string; all: string; popular: string;
-  repairs: string; diagnostics: string; details: string; booking: string; more: string;
+  repairs: string; diagnostics: string; styling: string; quote: string; details: string; booking: string; more: string;
   help: string; noMatch: string; other: string; additional: string; cta: string;
 }> = {
   pl: {
     eyebrow: "BESS MOTORS / katalog usług", title: "Wybierz usługę bez zgadywania",
     intro: "Wybierz kategorię, wyszukaj usługę albo opisz objawy. Przed rozpoczęciem prac uzgadniamy wycenę.",
     search: "Szukaj usługi, np. olej, hamulce, stuki, DSG...", all: "Wszystkie",
-    popular: "Codzienny serwis", repairs: "Naprawy mechaniczne", diagnostics: "Diagnostyka",
+    popular: "Codzienny serwis", repairs: "Naprawy mechaniczne", diagnostics: "Diagnostyka", styling: "Personalizacja", quote: "Zapytaj o wycenę",
     details: "Szczegóły", booking: "Umów", more: "Więcej usług i napraw",
     help: "Nie wiesz, czego potrzebuje auto?", noMatch: "Nie znaleziono tej nazwy. Opisz problem — pomożemy ustalić kolejne kroki.",
     other: "Opisz problem", additional: "Pozostałe usługi", cta: "Umów termin",
@@ -53,7 +54,7 @@ const labels: Record<Locale, {
     eyebrow: "BESS MOTORS / каталог услуг", title: "Быстро найдите нужную услугу",
     intro: "Выберите категорию, найдите услугу или опишите симптомы. Стоимость согласуем до ремонта.",
     search: "Поиск: масло, тормоза, стук, DSG...", all: "Все",
-    popular: "Обслуживание", repairs: "Ремонт", diagnostics: "Диагностика",
+    popular: "Обслуживание", repairs: "Ремонт", diagnostics: "Диагностика", styling: "Стайлинг", quote: "Узнать стоимость",
     details: "Подробнее", booking: "Записаться", more: "Другие работы",
     help: "Не знаете, что нужно автомобилю?", noMatch: "Не нашли услугу. Опишите проблему — поможем подобрать следующий шаг.",
     other: "Опишите проблему", additional: "Остальные услуги", cta: "Записаться",
@@ -62,7 +63,7 @@ const labels: Record<Locale, {
     eyebrow: "BESS MOTORS / каталог послуг", title: "Швидко знайдіть потрібну послугу",
     intro: "Оберіть категорію, знайдіть послугу або опишіть симптоми. Вартість погодимо до ремонту.",
     search: "Пошук: олива, гальма, стуки, DSG...", all: "Усі",
-    popular: "Обслуговування", repairs: "Ремонт", diagnostics: "Діагностика",
+    popular: "Обслуговування", repairs: "Ремонт", diagnostics: "Діагностика", styling: "Стилізація", quote: "Запитати вартість",
     details: "Докладніше", booking: "Записатися", more: "Інші роботи",
     help: "Не знаєте, що потрібно авто?", noMatch: "Не знайшли послугу. Опишіть проблему — допоможемо.",
     other: "Опишіть проблему", additional: "Інші послуги", cta: "Записатися",
@@ -71,7 +72,7 @@ const labels: Record<Locale, {
     eyebrow: "BESS MOTORS / service catalogue", title: "Find the right service quickly",
     intro: "Choose a category, search for a service or describe a symptom. We agree on a quote before repairs.",
     search: "Search: oil, brakes, noise, DSG...", all: "All",
-    popular: "Routine service", repairs: "Mechanical repairs", diagnostics: "Diagnostics",
+    popular: "Routine service", repairs: "Mechanical repairs", diagnostics: "Diagnostics", styling: "Customization", quote: "Request a quote",
     details: "Details", booking: "Book", more: "More services",
     help: "Not sure what your car needs?", noMatch: "No matching service. Describe the problem and we'll help.",
     other: "Describe the problem", additional: "Other services", cta: "Book a visit",
@@ -104,7 +105,14 @@ export default function ServicesPage() {
     const matchesQuery = !needle || needle.split(/\s+/).every((word) => q.includes(word));
     return matchesQuery && (category === "all" || category === item.group);
   }), [t, needle, category]);
+  const enhancementMatches = useMemo(() => enhancementServices.filter((service) => {
+    if (category !== "all" && category !== "styling") return false;
+    if (!needle) return true;
+    const haystack = normalize(service.title + " " + service.titleRu + " " + service.keywords.join(" "));
+    return needle.split(/\s+/).every((word) => haystack.includes(word));
+  }), [needle, category]);
   const additional = useMemo(() => {
+    if (category !== "all") return [];
     const primary = new Set(catalogue.map((item) => item.href.slice(1)));
     return EXTRA_SEO_SERVICE_PAGES.filter((page) =>
       page.noIndex !== true &&
@@ -112,7 +120,7 @@ export default function ServicesPage() {
       !primary.has(page.slug) &&
       (!needle || normalize(page.title + " " + page.metaTitle).includes(needle))
     );
-  }, [needle]);
+  }, [needle, category]);
 
   const submitCustomRequest = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -168,7 +176,7 @@ export default function ServicesPage() {
             </label>
             <div className="mt-4 flex flex-wrap gap-2" aria-label={copy.all}>
               {([
-                ["all", copy.all], ["popular", copy.popular], ["repairs", copy.repairs], ["diagnostics", copy.diagnostics],
+                ["all", copy.all], ["popular", copy.popular], ["repairs", copy.repairs], ["diagnostics", copy.diagnostics], ["styling", copy.styling],
               ] as const).map(([id, label]) => (
                 <button type="button" key={id} aria-pressed={category === id} onClick={() => setCategory(id)} className={category === id
                   ? "min-h-10 rounded-full border border-bm-red bg-bm-red/15 px-4 text-sm font-semibold text-white"
@@ -197,7 +205,29 @@ export default function ServicesPage() {
               );
             })}
           </div>
-          {matched.length === 0 && additional.length === 0 ? (
+          {enhancementMatches.length > 0 ? (
+            <section id="personalizacja" className="mt-10 scroll-mt-28" aria-labelledby="customization-catalog-heading" data-testid="services-customization">
+              <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-[0.16em] text-bm-accent">BESS MOTORS / NOWE USŁUGI</p>
+                  <h2 id="customization-catalog-heading" className="mt-2 font-display text-2xl font-bold text-white sm:text-3xl">{copy.styling}</h2>
+                  <p className="mt-2 text-sm text-bm-label">{locale === "pl" ? "Montaż, wnętrze i stylizacja. Indywidualna wycena — bez stałego cennika." : locale === "ru" ? "Установка и персонализация. Стоимость рассчитывается индивидуально." : locale === "uk" ? "Встановлення й персоналізація. Індивідуальний розрахунок." : "Installation and customization. Quotes on request."}</p>
+                </div>
+                <Link href={"/" + ENHANCEMENT_HUB_SLUG} className="inline-flex min-h-10 items-center gap-2 text-sm font-bold text-bm-accent hover:text-white">{copy.more}<ArrowRight size={17} aria-hidden /></Link>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {enhancementMatches.map((service) => (
+                  <article key={service.slug} className="flex min-h-[146px] flex-col justify-between rounded-2xl border border-white/15 bg-[#1a1e26] p-4 transition-colors hover:border-bm-accent/50" data-testid="customization-catalog-card">
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-bm-accent">{service.category === "upholstery" ? "Tapicerstwo" : service.category === "exterior" ? "Stylizacja" : service.category === "lighting" ? "Ambient" : service.category === "multimedia" ? "CarPlay" : "Wnętrze"}</p>
+                    <h3 className="mt-3 font-display text-lg font-bold leading-snug text-white">{locale === "ru" ? service.titleRu : service.title}</h3>
+                    <Link href={"/" + service.slug} className="mt-4 inline-flex min-h-10 items-center gap-2 text-sm font-semibold text-bm-copy hover:text-white">{copy.quote}<ArrowRight size={16} className="text-bm-accent" aria-hidden /></Link>
+                  </article>
+                ))}
+              </div>
+            </section>
+          ) : null}
+
+          {matched.length === 0 && additional.length === 0 && enhancementMatches.length === 0 ? (
             <p className="mt-8 rounded-xl border border-white/15 bg-white/5 p-5 text-sm text-bm-copy">{copy.noMatch}</p>
           ) : null}
 

@@ -1,4 +1,5 @@
 import type { BlogPost } from "@/lib/blog-posts";
+import { enhancementServices, ENHANCEMENT_HUB_SLUG } from "@/lib/enhancement-services";
 import type { SeoLandingPage } from "@/lib/seo-landing-pages";
 import { getSiteUrl } from "@/lib/seo";
 import { siteConfig } from "@/lib/site";
@@ -112,11 +113,16 @@ export function servicesItemListSchema() {
     { name: "Diagnostyka komputerowa", path: "/diagnostyka" },
     { name: "Naprawa zawieszenia", path: "/zawieszenie" },
   ];
+  const allItems = [
+    ...items,
+    { name: "Personalizacja samochodu Warszawa", path: "/" + ENHANCEMENT_HUB_SLUG },
+    ...enhancementServices.map((item) => ({ name: item.title, path: "/" + item.slug })),
+  ];
   return {
     "@context": "https://schema.org",
     "@type": "ItemList",
     name: "Usługi BESS MOTORS",
-    itemListElement: items.map((item, i) => ({
+    itemListElement: allItems.map((item, i) => ({
       "@type": "ListItem",
       position: i + 1,
       item: {

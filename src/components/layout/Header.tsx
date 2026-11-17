@@ -16,6 +16,7 @@ import { workshopWhatsAppChatUrl } from "@/lib/chat-cta";
 import { businessConfig } from "@/lib/businessConfig";
 import { WORKSHOP_DIRECTIONS_URL } from "@/lib/maps";
 import { trackGetDirectionsClick } from "@/lib/gtag";
+import { enhancementServices, ENHANCEMENT_HUB_SLUG } from "@/lib/enhancement-services";
 
 type ServiceGroup = "quick" | "repair" | "diagnostics";
 
@@ -45,35 +46,35 @@ const auxiliaryLinks = [
 
 const uiCopy: Record<Locale, {
   finder: string; finderHint: string; popular: string; noResults: string;
-  groupQuick: string; groupRepair: string; groupDiagnostics: string;
+  groupQuick: string; groupRepair: string; groupDiagnostics: string; groupStyling: string;
   allServices: string; practical: string; message: string; openMenu: string; close: string;
   showRoute: string; address: string; catalogue: string; startHere: string; fastLinks: string;
 }> = {
   pl: {
     finder: "Znajdź usługę", finderHint: "Wpisz usługę lub objaw, np. hamulce, olej, stuki...",
     popular: "Wybierz usługę", noResults: "Nie znaleziono usługi. Opisz problem — pomożemy dobrać wizytę.",
-    groupQuick: "Obsługa na co dzień", groupRepair: "Naprawy mechaniczne", groupDiagnostics: "Diagnostyka i elektryka",
+    groupQuick: "Obsługa na co dzień", groupRepair: "Naprawy mechaniczne", groupDiagnostics: "Diagnostyka i elektryka", groupStyling: "Stylizacja i personalizacja",
     allServices: "Wszystkie usługi", practical: "Szybki dostęp", message: "Napisz na WhatsApp", openMenu: "Otwórz menu", close: "Zamknij",
     showRoute: "Wyznacz trasę", address: "Warszawa Włochy", catalogue: "Katalog usług", startHere: "Jak możemy pomóc?", fastLinks: "Przydatne linki",
   },
   ru: {
     finder: "Найти услугу", finderHint: "Напишите услугу или симптом: масло, тормоза, стук...",
     popular: "Выберите услугу", noResults: "Услуга не найдена. Опишите проблему — поможем записаться.",
-    groupQuick: "Обслуживание", groupRepair: "Ремонт автомобиля", groupDiagnostics: "Диагностика и электрика",
+    groupQuick: "Обслуживание", groupRepair: "Ремонт автомобиля", groupDiagnostics: "Диагностика и электрика", groupStyling: "Тюнинг и персонализация",
     allServices: "Все услуги", practical: "Быстрый доступ", message: "Написать в WhatsApp", openMenu: "Открыть меню", close: "Закрыть",
     showRoute: "Построить маршрут", address: "Варшава Włochy", catalogue: "Каталог услуг", startHere: "Чем помочь?", fastLinks: "Полезные ссылки",
   },
   uk: {
     finder: "Знайти послугу", finderHint: "Введіть послугу або симптом: олива, гальма...",
     popular: "Оберіть послугу", noResults: "Послугу не знайдено. Опишіть проблему — допоможемо записатись.",
-    groupQuick: "Обслуговування", groupRepair: "Ремонт автомобіля", groupDiagnostics: "Діагностика та електрика",
+    groupQuick: "Обслуговування", groupRepair: "Ремонт автомобіля", groupDiagnostics: "Діагностика та електрика", groupStyling: "Стилізація авто",
     allServices: "Усі послуги", practical: "Швидкий доступ", message: "Написати у WhatsApp", openMenu: "Відкрити меню", close: "Закрити",
     showRoute: "Прокласти маршрут", address: "Варшава Włochy", catalogue: "Каталог послуг", startHere: "Чим допомогти?", fastLinks: "Корисні посилання",
   },
   en: {
     finder: "Find a service", finderHint: "Search by service or symptom: brakes, oil, noise...",
     popular: "Choose a service", noResults: "No matches. Describe your problem and we'll help arrange a visit.",
-    groupQuick: "Routine service", groupRepair: "Mechanical repairs", groupDiagnostics: "Diagnostics & electrical",
+    groupQuick: "Routine service", groupRepair: "Mechanical repairs", groupDiagnostics: "Diagnostics & electrical", groupStyling: "Customization",
     allServices: "All services", practical: "Quick access", message: "Message on WhatsApp", openMenu: "Open menu", close: "Close",
     showRoute: "Get directions", address: "Warsaw Włochy", catalogue: "Service catalogue", startHere: "How can we help?", fastLinks: "Useful links",
   },
@@ -147,6 +148,15 @@ export function Header() {
       return words.every((word) => haystack.includes(word));
     });
   }, [query, t]);
+
+  const customizationMatches = useMemo(() => {
+    const q = normalize(query);
+    const words = q.split(/\s+/).filter(Boolean);
+    return enhancementServices.filter((service) => {
+      const haystack = normalize(service.title + " " + service.titleRu + " " + service.metaTitle + " " + service.keywords.join(" "));
+      return words.every((word) => haystack.includes(word));
+    });
+  }, [query]);
 
   const toggle = (next: Exclude<Panel, null>) => {
     setQuery("");
@@ -277,7 +287,7 @@ export function Header() {
                 {query ? <button onClick={() => {setQuery(""); searchRef.current?.focus();}} type="button" aria-label={copy.close} className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-2 text-white/60 hover:text-white"><X size={18}/></button> : null}
               </label>
 
-              {matches.length ? (
+              {matches.length || customizationMatches.length ? (
                 <div className="mt-7 grid gap-7 lg:grid-cols-3">
                   {([
                     ["quick", copy.groupQuick, CarFront],
@@ -292,6 +302,25 @@ export function Header() {
                       </section>
                     ) : null;
                   })}
+                  {customizationMatches.length > 0 ? (
+                    <section aria-label={copy.groupStyling}>
+                      <h3 className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.15em] text-bm-copy"><Wrench size={18} className="text-bm-accent" aria-hidden />{copy.groupStyling}</h3>
+                      <div className="grid gap-2">
+                        {customizationMatches.map((service) => (
+                          <Link
+                            href={"/" + service.slug}
+                            key={service.slug}
+                            onClick={close}
+                            className="group flex min-h-[48px] items-center justify-between gap-2 rounded-xl border border-white/10 bg-white/[0.035] px-3 py-2.5 text-sm font-medium text-bm-copy transition-colors hover:border-bm-accent/50 hover:text-white"
+                            data-testid="enhancement-search-result"
+                          >
+                            <span className="leading-snug">{locale === "ru" ? service.titleRu : service.title}</span><ArrowRight size={15} className="shrink-0 text-bm-accent" aria-hidden />
+                          </Link>
+                        ))}
+                      </div>
+                      <Link href={"/" + ENHANCEMENT_HUB_SLUG} onClick={close} className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-bm-accent hover:text-white">{copy.groupStyling}<ArrowRight size={15} aria-hidden /></Link>
+                    </section>
+                  ) : null}
                 </div>
               ) : (
                 <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-6 text-sm text-white/75">

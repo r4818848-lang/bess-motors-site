@@ -9,6 +9,7 @@ import {
   sitemapLastModifiedFor,
 } from "@/lib/seo";
 import { seoLandingSlugs } from "@/lib/seo-landing-pages";
+import { ENHANCEMENT_HUB_SLUG, allEnhancementSlugs } from "@/lib/enhancement-services";
 import { blogPosts } from "@/lib/blog-posts";
 import { listPublishedCases } from "@/lib/seo-growth/case-store";
 
@@ -28,7 +29,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     seen.add(key);
     entries.push({
       url: `${siteUrl}${path}`,
-      lastModified: sitemapLastModifiedFor(path),
+      lastModified: allEnhancementSlugs.includes(path.slice(1)) ? new Date("2026-11-17T21:00:00.000Z") : sitemapLastModifiedFor(path),
       changeFrequency,
       priority,
     });
@@ -66,6 +67,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
                             ? 0.75
                             : 0.8;
     add(`/${slug}`, "weekly", priority);
+  }
+
+  // New genuine workshop service areas; unique canonical pages with substantive content.
+  for (const slug of allEnhancementSlugs) {
+    add("/" + slug, "monthly", slug === ENHANCEMENT_HUB_SLUG ? 0.88 : 0.78);
   }
 
   try {
