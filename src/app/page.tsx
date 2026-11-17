@@ -1,7 +1,6 @@
 import dynamic from "next/dynamic";
 import { Hero } from "@/components/home/Hero";
 import { HomeQuickPaths } from "@/components/home/HomeQuickPaths";
-import { HomeTrustBar } from "@/components/home/HomeTrustBar";
 import { SameDayServices } from "@/components/home/SameDayServices";
 import { HomeTireSeasonBlock } from "@/components/home/HomeTireSeasonBlock";
 import { HomeSeoServiceLinks } from "@/components/home/HomeSeoServiceLinks";
@@ -38,9 +37,8 @@ export default function HomePage() {
     <>
       <div className="h-14 sm:h-16 safe-area-pt" aria-hidden />
       <Hero />
-      <HomeTrustBar />
-      <HomeQuickPaths />
       <SameDayServices />
+      <HomeQuickPaths />
       <SymptomShortcuts />
       <HomeTireSeasonBlock />
       <HomeRealizations />
