@@ -34,13 +34,9 @@ export function SiteShell({ children }: { children: ReactNode }) {
   const hideMobileBar = hidesMobileStickyBar(pathname);
 
   return (
-    <div className="bm-public min-h-screen overflow-x-clip">
+    <div className={hideMobileBar ? "bm-public min-h-screen overflow-x-clip" : "bm-public min-h-screen overflow-x-clip pb-[6.5rem] md:pb-0"}>
       <Header />
-      <main
-        className={
-          hideMobileBar ? "min-h-screen" : "min-h-screen pb-[6.5rem] md:pb-0"
-        }
-      >
+      <main className="min-h-screen">
         {children}
       </main>
       <Footer />
