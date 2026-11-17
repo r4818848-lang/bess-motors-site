@@ -1,14 +1,12 @@
 "use client";
 
-import Image from "next/image";
+import { HeroVideo } from "@/components/home/HeroVideo";
 import { ChevronRight, Phone, FileSearch, Navigation } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
-import { siteConfig } from "@/lib/site";
 import { PhoneLink } from "@/components/analytics/PhoneLink";
 import { BookingLink } from "@/components/analytics/BookingLink";
 import { WORKSHOP_DIRECTIONS_URL } from "@/lib/maps";
 import { trackGetDirectionsClick } from "@/lib/gtag";
-import { DriveInCar } from "@/components/motion/ServiceMotion";
 
 /** Calm hero — brand + CTAs (Final Polish v3 §6–7) */
 export function Hero() {
@@ -16,19 +14,8 @@ export function Hero() {
   const h = t.hero;
 
   return (
-    <section className="relative flex items-end sm:items-center overflow-hidden pt-2 pb-8 sm:pb-12 sm:min-h-[58vh]">
+    <section className="relative flex items-center overflow-hidden bg-[#08090c] pt-2 pb-8 sm:pb-12 sm:min-h-[58vh]">
       <div className="absolute inset-0 z-0" aria-hidden>
-        <Image
-          src={siteConfig.bannerImage}
-          alt="BESS MOTORS — serwis samochodowy Warszawa Włochy"
-          fill
-          priority
-          fetchPriority="high"
-          decoding="sync"
-          className="object-cover object-[72%_42%] sm:object-[75%_40%]"
-          sizes="100vw"
-          quality={75}
-        />
         <div
           className="absolute inset-0"
           style={{
@@ -41,7 +28,7 @@ export function Hero() {
       </div>
 
       <div className="relative z-10 mx-auto max-w-7xl px-4 lg:px-8 w-full py-8 sm:py-12">
-        <div className="grid items-end gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(280px,480px)] lg:items-center">
+        <div className="grid items-end gap-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.35fr)] lg:items-center">
         <div className="max-w-2xl">
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-bm-red">BESS MOTORS</p>
           <h1 className="mt-3 font-display font-bold tracking-tight text-[2.125rem] leading-[1.1] sm:text-5xl md:text-[3.5rem] text-white">
@@ -89,8 +76,8 @@ export function Hero() {
             </a>
           </div>
         </div>
-          <div className="rounded-3xl border border-white/10 bg-[#0c0e12] p-2">
-            <DriveInCar className="pointer-events-none w-full" />
+          <div className="order-first overflow-hidden rounded-2xl border border-white/15 bg-black shadow-[0_24px_60px_rgba(0,0,0,0.45)] lg:order-last">
+            <HeroVideo />
           </div>
         </div>
       </div>
