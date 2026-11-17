@@ -126,10 +126,11 @@ test("tyre catalog paints the cookie choice in the first HTML", async ({ request
 // SEO/CRO sprint: keep strong organic service URLs visible and canonicalized.
 test("homepage premium cards link to primary tyre, oil and brake landings", async ({ page }) => {
   await page.goto("/");
-  await expect(page.locator("#popular-services-heading")).toBeVisible();
-  await expect(page.locator('a[href="/wymiana-opon-warszawa"]').first()).toBeVisible();
-  await expect(page.locator('a[href="/wymiana-oleju"]').first()).toBeVisible();
-  await expect(page.locator('a[href="/hamulce"]').first()).toBeVisible();
+  const services = page.locator('section[aria-labelledby="popular-services-heading"]');
+  await expect(services.locator("#popular-services-heading")).toBeVisible();
+  await expect(services.locator('a[href="/wymiana-opon-warszawa"]')).toBeVisible();
+  await expect(services.locator('a[href="/wymiana-oleju"]')).toBeVisible();
+  await expect(services.locator('a[href="/hamulce"]')).toBeVisible();
 });
 
 test("legacy oil landing shares the canonical URL of the primary oil page", async ({ request }) => {
