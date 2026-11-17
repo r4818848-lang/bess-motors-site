@@ -34,7 +34,7 @@ export function BookingQuickStart() {
             key={item.tag}
             href={item.href}
             trackSource={"booking_quick_" + item.tag}
-            className="bm-premium-card flex min-h-[114px] flex-col justify-between rounded-2xl border border-white/15 bg-white/[0.045] p-4 text-white hover:border-bm-red/60 hover:bg-bm-red/10"
+            className="bm-btn-secondary bm-premium-card flex min-h-[114px] flex-col justify-between p-4 text-white"
           >
             <span className="flex items-center justify-between"><item.icon size={22} className="text-bm-accent" aria-hidden /><ArrowRight size={17} className="text-bm-label" aria-hidden /></span>
             <span className="text-sm font-bold leading-tight sm:text-base">{item.label}</span>
