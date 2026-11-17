@@ -4,7 +4,6 @@ import { HomeQuickPaths } from "@/components/home/HomeQuickPaths";
 import { HomeTrustBar } from "@/components/home/HomeTrustBar";
 import { SameDayServices } from "@/components/home/SameDayServices";
 import { HomeTireSeasonBlock } from "@/components/home/HomeTireSeasonBlock";
-import { HomeComplexRepairs } from "@/components/home/HomeComplexRepairs";
 import { HomeSeoServiceLinks } from "@/components/home/HomeSeoServiceLinks";
 import { HomeFinalCta } from "@/components/home/HomeFinalCta";
 import { SymptomShortcuts } from "@/components/home/SymptomShortcuts";
@@ -32,22 +31,21 @@ const SymptomFaq = dynamic(() =>
 );
 
 /**
- * 2026 premium mobile-first homepage. Start with book/service/price paths; detailed sections follow.
+ * 2026 editorial home: trust + visitor paths + services + real work before supporting details. Repetitive repair promo removed; full repair taxonomy remains under /services.
  */
 export default function HomePage() {
   return (
     <>
       <div className="h-14 sm:h-16 safe-area-pt" aria-hidden />
       <Hero />
+      <HomeTrustBar />
       <HomeQuickPaths />
       <SameDayServices />
       <SymptomShortcuts />
       <HomeTireSeasonBlock />
-      <HomeComplexRepairs />
-      <VinQuoteForm />
-      <HomeTrustBar />
-      <WhyBessMotors />
       <HomeRealizations />
+      <WhyBessMotors />
+      <VinQuoteForm />
       <HowRepairWorks />
       <GoogleReviewsBlock />
       <SymptomFaq />
