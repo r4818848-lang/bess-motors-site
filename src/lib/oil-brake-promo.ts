@@ -98,19 +98,19 @@ export function oilBrakePromoMetaDescriptionPl(): string {
 }
 
 export function brakesPromoMetaTitlePl(): string {
-  return `Klocki i tarcze w promocji — kod ${OIL_BRAKE_PROMO_CODE} | Warszawa`;
+  return `Hamulce Warszawa — klocki od 100 zł`;
 }
 
 export function brakesPromoMetaDescriptionPl(): string {
-  return `Promocja ${OIL_BRAKE_PROMO_CODE}: klocki przednie 100 zł (było 120), tarcze+klocki przód 150 zł (było 220), klocki tył 120 zł (było 150), tarcze+klocki tył 180 zł (było 280). Serwis hamulców BESS MOTORS Warszawa.`;
+  return `Hamulce Warszawa Włochy: wymiana klocków i tarcz. Robocizna klocków od 100 zł z kodem ${OIL_BRAKE_PROMO_CODE}. BESS MOTORS, Aleja Krakowska 48/52. Umów wizytę.`;
 }
 
 export function oilPromoMetaTitlePl(): string {
-  return `Wymiana oleju Warszawa 80 zł | filtr + zawieszenie gratis`;
+  return `Wymiana oleju Warszawa — 80 zł robocizna`;
 }
 
 export function oilPromoMetaDescriptionPl(): string {
-  return `Wymiana oleju i filtra w Warszawie (Włochy, Aleja Krakowska 48/52): 80 zł robocizny zamiast 150 zł. Diagnostyka zawieszenia gratis przy wymianie oleju. Olej pod VIN. Kod ${OIL_BRAKE_PROMO_CODE}. Zapis online.`;
+  return `Wymiana oleju i filtra Warszawa Włochy: 80 zł robocizna z kodem ${OIL_BRAKE_PROMO_CODE}. Olej i filtr osobno. BESS MOTORS, Aleja Krakowska 48/52. Zapis online.`;
 }
 
 export const OIL_BRAKE_PROMO_VALID_UNTIL = "2026-12-31";
