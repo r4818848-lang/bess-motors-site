@@ -126,16 +126,16 @@ export function Hero() {
         <div className="max-w-[720px]">
           <div className="flex items-center gap-3">
             <span className="h-px w-9 bg-[#fb4843]" aria-hidden="true" />
-            <p className="text-[10px] font-bold uppercase tracking-[.21em] text-white/75 sm:text-xs">{ui.eyebrow}</p>
+            <p className="font-display text-[11px] font-semibold uppercase tracking-[.18em] text-white/75 sm:text-xs">{ui.eyebrow}</p>
           </div>
 
           {/* Keep a crawlable, precise local-search H1 while prioritizing the actual customer message visually. */}
-          <h1 className="mt-5 text-sm font-semibold leading-snug text-white/75 sm:text-base">
+          <h1 className="mt-5 font-display text-sm font-medium leading-snug tracking-[.025em] text-white/75 sm:text-base">
             {t.hero.h1Short}
           </h1>
           <p
             data-testid="hero-editorial-headline"
-            className="bm-hero-enter mt-4 max-w-[700px] font-display text-[clamp(2.8rem,5.2vw,5rem)] font-extrabold leading-[1.04] tracking-[-.055em] text-white [text-wrap:balance]"
+            className="bm-hero-enter mt-4 max-w-[720px] font-display text-[clamp(2.75rem,5vw,4.5rem)] font-bold leading-[1.01] tracking-[-.035em] text-white [text-wrap:balance] [font-kerning:normal]"
           >
             <span className="block">{ui.headline1}</span>
             <span className="mt-1 block text-[#ff625c]">{ui.headline2}</span>
