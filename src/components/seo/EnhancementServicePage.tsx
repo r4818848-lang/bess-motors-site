@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import {
   ArrowRight, BadgeCheck, CarFront, Check, ChevronRight, ClipboardList, FileCheck2,
   MessageCircle, Phone, Sparkles, Wrench,
@@ -173,7 +174,7 @@ export function EnhancementServicePage({ service }: { service: EnhancementServic
           <section className="mt-14" aria-labelledby="enhancement-photo-heading">
             <h2 id="enhancement-photo-heading" className="mb-5 font-display text-2xl font-bold text-white">Realizacje BESS MOTORS</h2>
             <div className="grid gap-4 sm:grid-cols-2">
-              {service.photos.map((p) => <img key={p.src} src={p.src} alt={p.alt} loading="lazy" className="aspect-[4/3] w-full rounded-2xl border border-white/15 object-cover" />)}
+              {service.photos.map((p) => <Image key={p.src} src={p.src} alt={p.alt} width={960} height={720} quality={75} loading="lazy" className="aspect-[4/3] w-full rounded-2xl border border-white/15 object-cover" />)}
             </div>
           </section>
         ) : null}
