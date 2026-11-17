@@ -141,7 +141,7 @@ export default function ServicesPage() {
 
   return (
     <>
-      <main className="min-h-screen bg-gradient-to-b from-[#161b24] via-[#0e1117] to-bm-black pb-24 pt-24 sm:pt-28" data-testid="service-catalogue">
+      <div className="min-h-screen bg-gradient-to-b from-[#161b24] via-[#0e1117] to-bm-black pb-24 pt-24 sm:pt-28" data-testid="service-catalogue">
         <div className="mx-auto max-w-7xl px-4 lg:px-8">
           <div className="flex flex-wrap items-end justify-between gap-5">
             <div className="max-w-3xl">
@@ -237,7 +237,7 @@ export default function ServicesPage() {
             </form>
           </section>
         </div>
-      </main>
+      </div>
       {bookingService && <LazySmartBookingModal serviceId={bookingService} onClose={() => setBookingService(null)} />}
     </>
   );
