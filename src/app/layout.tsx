@@ -101,8 +101,10 @@ const criticalCss = `
   footer>div{max-width:80rem;margin:0 auto}
 
   img{max-width:100%;height:auto}
-  .text-bm-red{color:#ff625c!important}
-  .text-bm-muted{color:#9aa4b2!important}
+  .text-bm-red{color:#e10600!important}
+  .bm-public .text-bm-red{color:#ff625c!important}
+  .text-bm-muted{color:#888!important}
+  .bm-public .text-bm-muted{color:#9aa4b2!important}
   .font-display{font-weight:700;letter-spacing:.05em}
   [data-cookie-dialog] [data-cc]{display:none}
   [data-cookie-dialog] [data-cc="pl"]{display:block}
