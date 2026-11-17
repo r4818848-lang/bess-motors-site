@@ -197,11 +197,11 @@ export function Header() {
           </nav>
 
           <div className="ml-auto flex items-center gap-1.5 xl:ml-3">
-            <button type="button" className="bm-btn-secondary inline-flex min-h-11 items-center gap-2 rounded-xl px-3 text-sm font-semibold" aria-label={copy.finder} onClick={() => toggle("search")} data-testid="header-service-search">
+            <button type="button" className="bm-btn-secondary hidden min-h-11 items-center gap-2 rounded-xl px-3 text-sm font-semibold sm:inline-flex" aria-label={copy.finder} onClick={() => toggle("search")} data-testid="header-service-search">
               <Search size={18} aria-hidden />
               <span className="hidden 2xl:inline">{copy.finder}</span>
             </button>
-            <div className="hidden sm:block"><LanguageSwitcher compact /></div>
+            <div className="block"><LanguageSwitcher compact /></div>
             <PhoneLink
               trackSource="header_2026"
               className="hidden min-h-11 items-center gap-2 rounded-xl px-3 text-sm font-bold text-[#e5e7eb] transition-colors hover:text-bm-accent lg:inline-flex"
@@ -209,6 +209,13 @@ export function Header() {
             >
               <Phone size={17} aria-hidden />
               <span className="hidden 2xl:inline">{businessConfig.phoneDisplay}</span>
+            </PhoneLink>
+            <PhoneLink
+              trackSource="header_mobile"
+              className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-bm-red/50 text-bm-accent sm:hidden"
+              aria-label={t.hero.ctaCall}
+            >
+              <Phone size={19} aria-hidden />
             </PhoneLink>
             <BookingLink trackSource="header_2026" className="bm-btn-primary hidden min-h-11 items-center justify-center gap-2 px-4 text-sm font-bold sm:inline-flex">
               <CalendarDays size={17} aria-hidden />{t.hero.ctaBook}
