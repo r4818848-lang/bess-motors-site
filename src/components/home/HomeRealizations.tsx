@@ -28,9 +28,9 @@ export function HomeRealizations() {
       <div className="mx-auto max-w-7xl px-4 lg:px-8">
         <div className="mb-8 flex flex-wrap items-end justify-between gap-5">
           <div className="max-w-2xl">
-            <p className="text-xs font-bold uppercase tracking-[0.19em] text-[#ff7772]">{copy.eyebrow}</p>
+            <p className="text-xs font-bold uppercase tracking-[0.19em] text-bm-accent">{copy.eyebrow}</p>
             <h2 id="realizations-heading" className="mt-3 font-display text-3xl font-bold tracking-tight text-white sm:text-4xl">{ow.title}</h2>
-            <p className="mt-3 text-sm leading-relaxed text-white/60 sm:text-base">{ow.subtitle}</p>
+            <p className="mt-3 text-sm leading-relaxed text-bm-label sm:text-base">{ow.subtitle}</p>
           </div>
           <Link href="/gallery?tab=repairs" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-white/25 px-5 text-sm font-bold text-white transition-colors hover:border-bm-red hover:bg-white/5">
             <Camera size={17} aria-hidden />{ow.viewAllWorks}<ArrowUpRight size={16} aria-hidden />
@@ -42,10 +42,10 @@ export function HomeRealizations() {
             <article key={item.id} className="bm-premium-card overflow-hidden rounded-[26px] border border-white/15 bg-[#1b2029]" data-testid="work-case-card">
               <div className="flex items-center justify-between gap-3 border-b border-white/10 px-5 py-4">
                 <div className="min-w-0">
-                  <p className="text-xs font-bold uppercase tracking-[0.15em] text-[#ff7772]">{item.make || "BESS MOTORS"}</p>
+                  <p className="text-xs font-bold uppercase tracking-[0.15em] text-bm-accent">{item.make || "BESS MOTORS"}</p>
                   <h3 className="mt-1 text-base font-bold leading-snug text-white">{item.job[lang]}</h3>
                 </div>
-                <CheckCircle2 className="h-6 w-6 shrink-0 text-[#ff7772]" aria-hidden />
+                <CheckCircle2 className="h-6 w-6 shrink-0 text-bm-accent" aria-hidden />
               </div>
               <div className="grid grid-cols-2 gap-1 bg-[#0e1116]">
                 {([
@@ -59,12 +59,12 @@ export function HomeRealizations() {
                 ))}
               </div>
               <div className="px-5 py-4">
-                <Link href="/gallery?tab=repairs" className="inline-flex min-h-10 items-center gap-2 text-sm font-bold text-white hover:text-[#ff7772]">{copy.view}<ArrowUpRight size={17} aria-hidden /></Link>
+                <Link href="/gallery?tab=repairs" className="inline-flex min-h-10 items-center gap-2 text-sm font-bold text-white hover:text-bm-accent">{copy.view}<ArrowUpRight size={17} aria-hidden /></Link>
               </div>
             </article>
           ))}
         </div>
-        <p className="mt-4 text-xs text-white/45">{copy.note}</p>
+        <p className="mt-4 text-xs text-bm-label">{copy.note}</p>
 
         <div className="mt-12 border-t border-white/10 pt-8">
           <h3 className="mb-6 text-lg font-bold text-white">{copy.videos}</h3>
