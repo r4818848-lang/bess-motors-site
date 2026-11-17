@@ -1,67 +1,45 @@
 "use client";
 
-import { Phone, Calendar, MessageCircle, Navigation } from "lucide-react";
+import { CalendarDays, MessageCircle, Phone } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useI18n } from "@/lib/i18n/context";
 import { PhoneLink } from "@/components/analytics/PhoneLink";
 import { BookingLink } from "@/components/analytics/BookingLink";
 import { SocialContactLink } from "@/components/analytics/SocialContactLink";
 import { workshopWhatsAppChatUrl } from "@/lib/chat-cta";
-import { WORKSHOP_DIRECTIONS_URL } from "@/lib/maps";
-import { trackGetDirectionsClick } from "@/lib/gtag";
 
-const hiddenPaths = [
-  "/crm",
-  "/mechanic",
-  "/admin",
-  "/sign",
-  "/cabinet",
-  "/booking",
-  "/cennik",
-];
+const hiddenPaths = ["/crm", "/mechanic", "/admin", "/sign", "/cabinet", "/booking", "/cennik", "/telegram"];
 
 export function StickyContactBar() {
   const { t, locale } = useI18n();
-  const pathname = usePathname();
-  const sc = t.stickyBar;
-
-  if (hiddenPaths.some((p) => pathname.startsWith(p))) return null;
+  const pathname = usePathname() ?? "";
+  if (hiddenPaths.some((p) => pathname === p || pathname.startsWith(p + "/"))) return null;
 
   return (
-    <div className="bm-sticky-contact fixed bottom-0 left-0 right-0 z-[90] md:hidden border-t border-white/10 bg-bm-black/95 backdrop-blur-md safe-area-pb">
-      <div className="grid grid-cols-4 gap-0">
+    <nav aria-label={t.hero.ctaBook} className="bm-sticky-contact fixed inset-x-0 bottom-0 z-[90] border-t border-white/15 bg-[#11151b]/95 px-2 pt-2 shadow-[0_-16px_50px_rgba(0,0,0,0.45)] backdrop-blur-xl safe-area-pb md:hidden" data-testid="mobile-action-bar">
+      <div className="mx-auto grid max-w-lg grid-cols-[1fr_1fr_1.6fr] gap-2">
         <PhoneLink
-          trackSource="sticky_bar"
-          className="flex items-center justify-center gap-1 min-h-[52px] py-3 text-[10px] font-bold uppercase bg-bm-red text-white"
+          trackSource="sticky_2026_call"
+          className="inline-flex min-h-[52px] flex-col items-center justify-center gap-1 rounded-xl border border-white/10 bg-white/[0.065] px-1 text-[11px] font-bold text-white"
         >
-          <Phone size={15} /> {sc.call}
+          <Phone size={19} aria-hidden />{t.stickyBar.call}
         </PhoneLink>
         <SocialContactLink
           kind="whatsapp"
           href={workshopWhatsAppChatUrl(locale)}
-          trackSource="sticky_bar_whatsapp"
-          className="flex items-center justify-center gap-1 min-h-[52px] py-3 text-[10px] font-bold uppercase bg-[#25D366] text-white border-x border-white/10"
+          trackSource="sticky_2026_whatsapp"
+          className="inline-flex min-h-[52px] flex-col items-center justify-center gap-1 rounded-xl border border-white/10 bg-white/[0.065] px-1 text-[11px] font-bold text-white"
         >
-          <MessageCircle size={15} /> {sc.whatsapp}
+          <MessageCircle size={19} className="text-[#45dc83]" aria-hidden />
+          WhatsApp
         </SocialContactLink>
-        <a
-          href={WORKSHOP_DIRECTIONS_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label={sc.route}
-          onClick={() => trackGetDirectionsClick("sticky_bar")}
-          className="flex items-center justify-center gap-1 min-h-[52px] py-3 text-[10px] font-bold uppercase text-white bg-bm-card border-r border-white/10"
-        >
-          <Navigation size={15} /> Trasa
-        </a>
         <BookingLink
-          trackSource="sticky_bar"
-          aria-label={t.hero.ctaBook}
-          className="flex items-center justify-center gap-1 min-h-[52px] py-3 text-[10px] font-bold uppercase text-white bg-bm-black"
+          trackSource="sticky_2026_booking"
+          className="inline-flex min-h-[52px] items-center justify-center gap-2 rounded-xl bg-bm-red px-3 text-sm font-bold text-white shadow-[0_3px_15px_rgba(225,6,0,.2)]"
         >
-          <Calendar size={15} /> {sc.book}
+          <CalendarDays size={19} aria-hidden />{t.hero.ctaBook}
         </BookingLink>
       </div>
-    </div>
+    </nav>
   );
 }
