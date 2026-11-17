@@ -70,7 +70,7 @@ export function HomeQuickPaths() {
         <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
           <div>
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#fd8784]">{c.eyebrow}</p>
-            <h2 id="home-quick-choices" className="mt-2 text-2xl font-extrabold tracking-tight text-white sm:text-3xl">{c.heading}</h2>
+            <h2 id="home-quick-choices" className="mt-2 font-display text-3xl font-bold tracking-tight text-white sm:text-[2.2rem]">{c.heading}</h2>
           </div>
           <FileSearch size={25} className="hidden text-white/30 sm:block" aria-hidden />
         </div>
