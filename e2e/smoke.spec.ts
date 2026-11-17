@@ -295,7 +295,7 @@ test("BESS 3.0 portfolio shows real before and after work photos", async ({ page
     () => photos.first().evaluate((img: HTMLImageElement) => img.complete ? img.naturalWidth : 0),
     { timeout: 20000 },
   ).toBeGreaterThan(0);
-  await expect(cases.locator('a[href="/gallery?tab=repairs"]')).toBeVisible();
+  await expect(cases.locator('a[href="/gallery?tab=repairs"]').first()).toBeVisible();
 });
 
 test("portfolio repairs tab has usable before-after images and expandable detail", async ({ page }) => {
