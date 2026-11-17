@@ -223,6 +223,7 @@ test("service landing photos load successfully instead of displaying broken plac
     expect(response?.ok(), path).toBeTruthy();
     const media = page.getByTestId("service-landing-hero-media");
     await expect(media, path).toBeVisible();
+    await expect(page.getByTestId("service-hero-book"), path).toBeVisible();
     const heroPhoto = media.locator("img");
     await expect.poll(
       () => heroPhoto.evaluate((img: HTMLImageElement) => img.complete ? img.naturalWidth : 0),
