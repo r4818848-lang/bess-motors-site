@@ -1,136 +1,99 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
-import { clsx } from "clsx";
-import { X } from "lucide-react";
+import { ArrowUpRight, Camera, ChevronDown, X } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { documentLocale } from "@/lib/i18n/locale-utils";
-import {
-  formatWorkCaseCaption,
-  type WorkBeforeAfterCase,
-} from "@/lib/work-before-after";
+import type { WorkBeforeAfterCase } from "@/lib/work-before-after";
 
-function mosaicCols(count: number): string {
-  if (count >= 5) return "grid-cols-3";
-  if (count >= 2) return "grid-cols-2";
-  return "grid-cols-1";
-}
-
-function PhotoMosaic({
-  urls,
-  alts,
-  onOpen,
+function Photo({
+  src, alt, badge, onOpen, large = false,
 }: {
-  urls: string[];
-  alts: string[];
-  onOpen: (src: string, alt: string) => void;
+  src: string; alt: string; badge?: string; onOpen: () => void; large?: boolean;
 }) {
-  if (!urls.length) return null;
   return (
-    <div className={clsx("grid gap-0.5 bg-bm-border/40", mosaicCols(urls.length))}>
-      {urls.map((src, i) => (
-        <button
-          key={src}
-          type="button"
-          onClick={() => onOpen(src, alts[i] ?? alts[0] ?? "")}
-          className="relative aspect-square overflow-hidden bg-black"
-        >
-          <Image
-            src={src}
-            alt={alts[i] ?? ""}
-            fill
-            unoptimized
-            sizes="(max-width: 768px) 50vw, 25vw"
-            className="object-cover hover:scale-105 transition-transform duration-300"
-          />
-        </button>
-      ))}
-    </div>
+    <button
+      type="button"
+      className={"group relative block w-full overflow-hidden bg-[#0c0f13] text-left " + (large ? "aspect-[4/3]" : "aspect-square")}
+      onClick={onOpen}
+      aria-label={alt}
+    >
+      <Image src={src} alt={alt} fill unoptimized sizes={large ? "(max-width: 768px) 50vw, 450px" : "(max-width: 768px) 33vw, 160px"} className="object-cover transition-transform duration-500 motion-safe:group-hover:scale-105" />
+      {badge ? <span className="absolute left-3 top-3 rounded-md border border-white/25 bg-black/75 px-3 py-1.5 text-[11px] font-bold tracking-wide text-white">{badge}</span> : null}
+      <span className="absolute bottom-3 right-3 rounded-full bg-black/65 p-2 text-white/80 opacity-80 transition-opacity group-hover:opacity-100" aria-hidden><ArrowUpRight size={16} /></span>
+    </button>
   );
 }
 
-function SideLabel({
-  children,
-  tone,
-}: {
-  children: string;
-  tone: "before" | "after" | "work";
-}) {
-  const cls =
-    tone === "after"
-      ? "bg-bm-red text-white"
-      : tone === "before"
-        ? "bg-zinc-800 text-white"
-        : "bg-sky-700 text-white";
-  return (
-    <p className={clsx("text-[11px] font-bold uppercase tracking-widest px-3 py-2", cls)}>
-      {children}
-    </p>
-  );
-}
-
-export function WorkBeforeAfterCollage({
-  item,
-}: {
-  item: WorkBeforeAfterCase;
-}) {
+export function WorkBeforeAfterCollage({ item }: { item: WorkBeforeAfterCase }) {
   const { t, locale } = useI18n();
   const lang = documentLocale(locale);
   const w = t.workCases;
-  const caption = formatWorkCaseCaption(item, lang, { labor: w.labor, from: w.from });
   const [open, setOpen] = useState<{ src: string; alt: string } | null>(null);
+  useEffect(() => {
+    if (!open) return;
+    const close = (event: KeyboardEvent) => { if (event.key === "Escape") setOpen(null); };
+    document.addEventListener("keydown", close);
+    return () => document.removeEventListener("keydown", close);
+  }, [open]);
 
-  const beforeAlts = item.before.map((_, i) => `${caption} — ${w.before} ${i + 1}`);
-  const afterAlts = item.after.map((_, i) => `${caption} — ${w.after} ${i + 1}`);
-  const workAlts = (item.workPhotos ?? []).map((_, i) => `${caption} ${i + 1}`);
+  const jobName = item.job[lang];
+  const hasComparison = item.before.length > 0 && item.after.length > 0;
+  const extraBefore = item.before.slice(1);
+  const extraAfter = item.after.slice(1);
+  const extraCount = extraBefore.length + extraAfter.length;
+  const openPhoto = (src: string, alt: string) => setOpen({ src, alt });
 
   return (
-    <article className="rounded-2xl overflow-hidden border border-bm-border/60 bg-bm-card/40">
-      <div className="px-4 py-3 border-b border-bm-border/40">
-        <h3 className="font-display text-sm sm:text-base uppercase text-glow">{item.job[lang]}</h3>
-        <p className="text-xs text-bm-muted mt-1">{caption}</p>
+    <article className="overflow-hidden rounded-[24px] border border-white/15 bg-[#1a1e26]" data-testid="repair-portfolio-case">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 px-5 py-4">
+        <div>
+          {item.make ? <p className="mb-1 text-xs font-bold uppercase tracking-[0.16em] text-[#ff7772]">{item.make}</p> : null}
+          <h3 className="text-lg font-bold tracking-tight text-white">{jobName}</h3>
+        </div>
+        <span className="inline-flex items-center gap-2 text-xs font-semibold text-white/55"><Camera size={16} aria-hidden />{item.before.length + item.after.length + (item.workPhotos?.length ?? 0)}</span>
       </div>
 
-      {item.workPhotos?.length && !item.before.length ? (
-        <div>
-          <SideLabel tone="work">{w.work}</SideLabel>
-          <PhotoMosaic urls={item.workPhotos} alts={workAlts} onOpen={(src, alt) => setOpen({ src, alt })} />
-        </div>
-      ) : (
-        <div className="grid md:grid-cols-2">
-          <div className="border-b md:border-b-0 md:border-r border-bm-border/40">
-            <SideLabel tone="before">{w.before}</SideLabel>
-            <PhotoMosaic urls={item.before} alts={beforeAlts} onOpen={(src, alt) => setOpen({ src, alt })} />
+      {hasComparison ? (
+        <>
+          <div className="grid grid-cols-2 gap-1 bg-[#0e1116]" data-testid="before-after-comparison">
+            <Photo src={item.before[0]} alt={jobName + " — " + w.before} badge={w.before} large onOpen={() => openPhoto(item.before[0], jobName + " — " + w.before)} />
+            <Photo src={item.after[0]} alt={jobName + " — " + w.after} badge={w.after} large onOpen={() => openPhoto(item.after[0], jobName + " — " + w.after)} />
           </div>
-          <div>
-            <SideLabel tone="after">{w.after}</SideLabel>
-            <PhotoMosaic urls={item.after} alts={afterAlts} onOpen={(src, alt) => setOpen({ src, alt })} />
-          </div>
+          {extraCount > 0 ? (
+            <details className="group border-t border-white/10">
+              <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-5 py-3 text-sm font-bold text-white/85 transition-colors hover:bg-white/[0.04] [&::-webkit-details-marker]:hidden">
+                <span>{w.sectionTitle} · {extraCount}</span>
+                <ChevronDown size={18} className="text-[#ff7772] transition-transform group-open:rotate-180" aria-hidden />
+              </summary>
+              <div className="grid grid-cols-3 gap-1 border-t border-white/10 bg-[#0e1116] sm:grid-cols-5">
+                {extraBefore.map((src, idx) => <Photo key={src} src={src} alt={jobName + " — " + w.before + " " + (idx + 2)} onOpen={() => openPhoto(src, jobName + " — " + w.before)} />)}
+                {extraAfter.map((src, idx) => <Photo key={src} src={src} alt={jobName + " — " + w.after + " " + (idx + 2)} onOpen={() => openPhoto(src, jobName + " — " + w.after)} />)}
+              </div>
+            </details>
+          ) : null}
+        </>
+      ) : item.workPhotos?.length ? (
+        <div className="grid grid-cols-2 gap-1 bg-[#0e1116] sm:grid-cols-3">
+          {item.workPhotos.map((src, idx) => <Photo key={src} src={src} alt={jobName + " — " + w.work + " " + (idx + 1)} large onOpen={() => openPhoto(src, jobName)} />)}
         </div>
-      )}
+      ) : null}
 
       {open ? (
-        <button
-          type="button"
-          className="fixed inset-0 z-[100] bg-black/85 flex items-center justify-center p-4"
-          onClick={() => setOpen(null)}
-          aria-label={w.close}
-        >
-          <X className="absolute top-4 right-4 text-white" size={28} />
-          <span className="relative w-full max-w-3xl h-[80vh]">
-            <Image src={open.src} alt={open.alt} fill unoptimized className="object-contain" sizes="100vw" />
-          </span>
-        </button>
+        <div role="dialog" aria-modal="true" aria-label={jobName} className="fixed inset-0 z-[130] flex items-center justify-center bg-black/95 p-4" onClick={() => setOpen(null)}>
+          <button type="button" onClick={() => setOpen(null)} className="absolute right-4 top-4 z-10 flex h-12 w-12 items-center justify-center rounded-full border border-white/30 bg-black/75 text-white" aria-label={w.close}><X size={24} /></button>
+          <div className="relative h-[82dvh] w-full max-w-6xl" onClick={(e) => e.stopPropagation()}>
+            <Image src={open.src} alt={open.alt} fill unoptimized sizes="100vw" className="object-contain" />
+          </div>
+        </div>
       ) : null}
     </article>
   );
 }
 
 export function WorkBeforeAfterList({
-  cases,
-  heading,
-  hint,
+  cases, heading, hint,
 }: {
   cases: WorkBeforeAfterCase[];
   heading?: string;
@@ -139,20 +102,17 @@ export function WorkBeforeAfterList({
   const { t } = useI18n();
   const w = t.workCases;
   if (!cases.length) return null;
-
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {heading !== "" ? (
-        <div>
-          <h2 className="font-display text-xl sm:text-2xl uppercase text-glow">
-            {heading ?? w.sectionTitle}
-          </h2>
-          <p className="text-sm text-bm-muted mt-2 max-w-2xl">{hint ?? w.sectionHint}</p>
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">{heading ?? w.sectionTitle}</h2>
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/60">{hint ?? w.sectionHint}</p>
         </div>
       ) : null}
-      {cases.map((item) => (
-        <WorkBeforeAfterCollage key={item.id} item={item} />
-      ))}
+      <div className="grid gap-6 lg:grid-cols-2">
+        {cases.map((item) => <WorkBeforeAfterCollage key={item.id} item={item} />)}
+      </div>
     </div>
   );
 }
