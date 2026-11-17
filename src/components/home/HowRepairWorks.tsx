@@ -34,7 +34,7 @@ export function HowRepairWorks() {
               transition={{ delay: i * 0.05 }}
               className="rounded-[22px] border border-white/10 bg-[#20242c] p-5 sm:p-6"
             >
-              <span className="font-display text-[#ff7772] text-lg font-bold">
+              <span className="font-display text-bm-accent text-lg font-bold">
                 {String(i + 1).padStart(2, "0")}
               </span>
               <p className="mt-2 font-semibold text-white">{h.steps[key]}</p>
