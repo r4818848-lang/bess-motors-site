@@ -145,9 +145,9 @@ export default function ServicesPage() {
         <div className="mx-auto max-w-7xl px-4 lg:px-8">
           <div className="flex flex-wrap items-end justify-between gap-5">
             <div className="max-w-3xl">
-              <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#ff7974]">{copy.eyebrow}</p>
+              <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-bm-accent">{copy.eyebrow}</p>
               <h1 className="mt-4 font-display text-[2.45rem] font-extrabold leading-[1.1] tracking-[-0.04em] text-white sm:text-5xl">{copy.title}</h1>
-              <p className="mt-4 text-base leading-relaxed text-white/65 sm:text-lg">{copy.intro}</p>
+              <p className="mt-4 text-base leading-relaxed text-bm-copy sm:text-lg">{copy.intro}</p>
             </div>
             <BookingLink trackSource="services_page_top" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-bm-red px-5 text-sm font-bold text-white shadow-[0_12px_35px_rgba(225,6,0,.20)]">
               <CalendarDays size={18} aria-hidden />{copy.cta}<ArrowRight size={17} aria-hidden />
@@ -162,7 +162,7 @@ export default function ServicesPage() {
                 id="service-catalogue-query" type="search" value={query}
                 onChange={(event) => setQuery(event.target.value)}
                 placeholder={copy.search} autoComplete="off"
-                className="h-14 w-full rounded-xl border border-white/20 bg-[#0e1117] pl-12 pr-4 text-base text-white outline-none placeholder:text-white/45 focus:border-bm-red"
+                className="h-14 w-full rounded-xl border border-white/20 bg-[#0e1117] pl-12 pr-4 text-base text-white outline-none placeholder:text-bm-muted focus:border-bm-red"
                 data-testid="catalogue-search"
               />
             </label>
@@ -172,7 +172,7 @@ export default function ServicesPage() {
               ] as const).map(([id, label]) => (
                 <button type="button" key={id} aria-pressed={category === id} onClick={() => setCategory(id)} className={category === id
                   ? "min-h-10 rounded-full border border-bm-red bg-bm-red/15 px-4 text-sm font-semibold text-white"
-                  : "min-h-10 rounded-full border border-white/10 bg-white/[0.035] px-4 text-sm font-semibold text-white/70 hover:border-white/30 hover:text-white"}>
+                  : "min-h-10 rounded-full border border-white/10 bg-white/[0.035] px-4 text-sm font-semibold text-bm-copy hover:border-white/30 hover:text-white"}>
                   {label}
                 </button>
               ))}
@@ -185,8 +185,8 @@ export default function ServicesPage() {
               return (
                 <article key={item.href} className="flex min-h-[168px] flex-col justify-between rounded-2xl border border-white/[0.12] bg-[#1a1e26] p-5 transition-colors hover:border-bm-red/50" data-testid="service-result">
                   <div className="flex items-start justify-between gap-3">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-bm-red/20 bg-bm-red/10 text-[#ff7772]"><ServiceIcon name={item.icon} size={25} /></div>
-                    <ArrowRight size={17} className="text-white/35" aria-hidden/>
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-bm-red/20 bg-bm-red/10 text-bm-accent"><ServiceIcon name={item.icon} size={25} /></div>
+                    <ArrowRight size={17} className="text-bm-muted" aria-hidden/>
                   </div>
                   <h2 className="mt-4 text-lg font-bold leading-snug text-white">{label}</h2>
                   <div className="mt-4 flex gap-2">
@@ -198,19 +198,19 @@ export default function ServicesPage() {
             })}
           </div>
           {matched.length === 0 && additional.length === 0 ? (
-            <p className="mt-8 rounded-xl border border-white/15 bg-white/5 p-5 text-sm text-white/70">{copy.noMatch}</p>
+            <p className="mt-8 rounded-xl border border-white/15 bg-white/5 p-5 text-sm text-bm-copy">{copy.noMatch}</p>
           ) : null}
 
           {additional.length > 0 ? (
             <details key={query} className="group mt-9 rounded-2xl border border-white/10 bg-white/[0.035] p-5" open={Boolean(needle)}>
               <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-bold text-white [&::-webkit-details-marker]:hidden">
-                <span>{copy.more} <span className="ml-2 text-xs font-normal text-white/45">({additional.length})</span></span>
+                <span>{copy.more} <span className="ml-2 text-xs font-normal text-bm-label">({additional.length})</span></span>
                 <ChevronDown size={20} className="text-bm-red transition-transform group-open:rotate-180" aria-hidden />
               </summary>
               <ul className="mt-5 grid gap-2 border-t border-white/10 pt-5 sm:grid-cols-2 lg:grid-cols-3">
                 {additional.map((page) => (
                   <li key={page.slug}>
-                    <Link href={"/" + page.slug} className="flex min-h-[44px] items-center justify-between gap-2 rounded-lg border border-white/[0.06] bg-white/[0.025] px-3 py-2 text-sm text-white/75 transition-colors hover:text-white hover:border-bm-red/40">
+                    <Link href={"/" + page.slug} className="flex min-h-[44px] items-center justify-between gap-2 rounded-lg border border-white/[0.06] bg-white/[0.025] px-3 py-2 text-sm text-bm-copy transition-colors hover:text-white hover:border-bm-red/40">
                       <span>{page.title.replace(" – BESS MOTORS", "")}</span><ArrowRight size={15} className="shrink-0 text-bm-red" aria-hidden />
                     </Link>
                   </li>
@@ -223,15 +223,15 @@ export default function ServicesPage() {
             <div>
               <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-bm-red/10 text-bm-red"><CircleHelp size={25} aria-hidden /></div>
               <h2 id="services-help" className="mt-4 font-display text-2xl font-extrabold tracking-tight text-white sm:text-3xl">{copy.help}</h2>
-              <p className="mt-3 text-sm leading-relaxed text-white/60">{s.subtitle}</p>
+              <p className="mt-3 text-sm leading-relaxed text-bm-label">{s.subtitle}</p>
               <Link href="/cennik" className="mt-6 inline-flex min-h-11 items-center gap-2 rounded-lg border border-white/20 px-4 text-sm font-bold text-white hover:border-bm-red/60"><FileText size={17} aria-hidden />{s.viewPriceList}</Link>
-              <p className="mt-5 flex items-center gap-2 text-xs text-white/50"><MapPin size={15} className="text-bm-red" aria-hidden />{businessConfig.addressLine}</p>
+              <p className="mt-5 flex items-center gap-2 text-xs text-bm-label"><MapPin size={15} className="text-bm-red" aria-hidden />{businessConfig.addressLine}</p>
             </div>
             <form onSubmit={submitCustomRequest} className="space-y-3">
               <label htmlFor="services-problem" className="block text-sm font-bold text-white">{copy.other}</label>
-              <textarea id="services-problem" value={problem} onChange={(event) => setProblem(event.target.value)} required placeholder={s.describeProblem} className="min-h-[125px] w-full resize-y rounded-xl border border-white/20 bg-[#0d1016] p-4 text-sm text-white outline-none placeholder:text-white/40 focus:border-bm-red" />
+              <textarea id="services-problem" value={problem} onChange={(event) => setProblem(event.target.value)} required placeholder={s.describeProblem} className="min-h-[125px] w-full resize-y rounded-xl border border-white/20 bg-[#0d1016] p-4 text-sm text-white outline-none placeholder:text-bm-muted focus:border-bm-red" />
               <label htmlFor="services-phone" className="block text-sm font-bold text-white">{s.phonePlaceholder}</label>
-              <input id="services-phone" value={phone} onChange={(event) => setPhone(event.target.value)} required type="tel" autoComplete="tel" placeholder={s.phonePlaceholder} className="h-12 w-full rounded-xl border border-white/20 bg-[#0d1016] px-4 text-sm text-white outline-none placeholder:text-white/40 focus:border-bm-red" />
+              <input id="services-phone" value={phone} onChange={(event) => setPhone(event.target.value)} required type="tel" autoComplete="tel" placeholder={s.phonePlaceholder} className="h-12 w-full rounded-xl border border-white/20 bg-[#0d1016] px-4 text-sm text-white outline-none placeholder:text-bm-muted focus:border-bm-red" />
               <button type="submit" disabled={sending} className="flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-bm-red px-5 text-sm font-bold text-white hover:bg-red-700 disabled:opacity-60">{sending ? "…" : s.submit}<ArrowRight size={17} aria-hidden /></button>
               {submitError ? <p role="alert" className="text-sm text-red-300">{submitError}</p> : null}
             </form>
