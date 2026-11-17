@@ -149,7 +149,7 @@ export default function ServicesPage() {
               <h1 className="mt-4 font-display text-[2.45rem] font-extrabold leading-[1.1] tracking-[-0.04em] text-white sm:text-5xl">{copy.title}</h1>
               <p className="mt-4 text-base leading-relaxed text-bm-copy sm:text-lg">{copy.intro}</p>
             </div>
-            <BookingLink trackSource="services_page_top" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-bm-red px-5 text-sm font-bold text-white shadow-[0_12px_35px_rgba(225,6,0,.20)]">
+            <BookingLink trackSource="services_page_top" className="bm-btn-primary inline-flex min-h-12 items-center justify-center gap-2 px-5 text-sm font-bold">
               <CalendarDays size={18} aria-hidden />{copy.cta}<ArrowRight size={17} aria-hidden />
             </BookingLink>
           </div>
@@ -190,8 +190,8 @@ export default function ServicesPage() {
                   </div>
                   <h2 className="mt-4 text-lg font-bold leading-snug text-white">{label}</h2>
                   <div className="mt-4 flex gap-2">
-                    <Link href={item.href} className="inline-flex min-h-10 flex-1 items-center justify-center rounded-lg border border-white/20 px-3 text-xs font-semibold text-white hover:bg-white/5">{copy.details}</Link>
-                    <button type="button" onClick={() => {trackBookingOpen("services_grid_" + item.serviceId);setBookingService(item.serviceId);}} className="inline-flex min-h-10 flex-1 items-center justify-center rounded-lg bg-bm-red px-3 text-xs font-bold text-white hover:bg-red-700">{copy.booking}</button>
+                    <Link href={item.href} className="bm-btn-secondary inline-flex min-h-10 flex-1 items-center justify-center px-3 text-xs font-semibold">{copy.details}</Link>
+                    <button type="button" onClick={() => {trackBookingOpen("services_grid_" + item.serviceId);setBookingService(item.serviceId);}} className="bm-btn-primary inline-flex min-h-10 flex-1 items-center justify-center px-3 text-xs font-bold">{copy.booking}</button>
                   </div>
                 </article>
               );
@@ -224,7 +224,7 @@ export default function ServicesPage() {
               <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-bm-red/10 text-bm-red"><CircleHelp size={25} aria-hidden /></div>
               <h2 id="services-help" className="mt-4 font-display text-2xl font-extrabold tracking-tight text-white sm:text-3xl">{copy.help}</h2>
               <p className="mt-3 text-sm leading-relaxed text-bm-label">{s.subtitle}</p>
-              <Link href="/cennik" className="mt-6 inline-flex min-h-11 items-center gap-2 rounded-lg border border-white/20 px-4 text-sm font-bold text-white hover:border-bm-red/60"><FileText size={17} aria-hidden />{s.viewPriceList}</Link>
+              <Link href="/cennik" className="bm-btn-secondary mt-6 inline-flex min-h-11 items-center gap-2 px-4 text-sm font-bold"><FileText size={17} aria-hidden />{s.viewPriceList}</Link>
               <p className="mt-5 flex items-center gap-2 text-xs text-bm-label"><MapPin size={15} className="text-bm-red" aria-hidden />{businessConfig.addressLine}</p>
             </div>
             <form onSubmit={submitCustomRequest} className="space-y-3">
@@ -232,7 +232,7 @@ export default function ServicesPage() {
               <textarea id="services-problem" value={problem} onChange={(event) => setProblem(event.target.value)} required placeholder={s.describeProblem} className="min-h-[125px] w-full resize-y rounded-xl border border-white/20 bg-[#0d1016] p-4 text-sm text-white outline-none placeholder:text-bm-muted focus:border-bm-red" />
               <label htmlFor="services-phone" className="block text-sm font-bold text-white">{s.phonePlaceholder}</label>
               <input id="services-phone" value={phone} onChange={(event) => setPhone(event.target.value)} required type="tel" autoComplete="tel" placeholder={s.phonePlaceholder} className="h-12 w-full rounded-xl border border-white/20 bg-[#0d1016] px-4 text-sm text-white outline-none placeholder:text-bm-muted focus:border-bm-red" />
-              <button type="submit" disabled={sending} className="flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-bm-red px-5 text-sm font-bold text-white hover:bg-red-700 disabled:opacity-60">{sending ? "…" : s.submit}<ArrowRight size={17} aria-hidden /></button>
+              <button type="submit" disabled={sending} className="bm-btn-primary flex min-h-12 w-full items-center justify-center gap-2 px-5 text-sm font-bold disabled:opacity-60">{sending ? "…" : s.submit}<ArrowRight size={17} aria-hidden /></button>
               {submitError ? <p role="alert" className="text-sm text-red-300">{submitError}</p> : null}
             </form>
           </section>
