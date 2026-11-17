@@ -144,7 +144,7 @@ export function SameDayServices() {
               <Link href={item.href} className="bm-premium-card flex min-h-[78px] items-center gap-3 rounded-2xl border border-white/10 bg-[#1a1d25] px-4 text-sm font-semibold text-white hover:border-bm-red/50 hover:bg-bm-red/5">
                 <item.icon className="h-5 w-5 shrink-0 text-bm-red" aria-hidden />
                 <span className="flex-1">{item.title}</span>
-                <ChevronRight className="h-4 w-4 shrink-0 text-white/60" aria-hidden />
+                <ChevronRight className="h-4 w-4 shrink-0 text-bm-label" aria-hidden />
               </Link>
             </li>
           ))}
