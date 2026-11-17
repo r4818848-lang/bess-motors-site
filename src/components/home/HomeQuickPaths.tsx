@@ -79,15 +79,15 @@ export function HomeQuickPaths() {
             <Link key={item.href} href={item.href} className="group flex min-h-[136px] flex-col justify-between gap-4 rounded-2xl border border-white/[0.11] bg-[#1c2028] p-4 transition-colors hover:border-bm-red/60 hover:bg-[#262a34] sm:p-5">
               <div className="flex items-start justify-between">
                 <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/[0.08] text-[#ff6963]"><item.icon size={21} aria-hidden /></span>
-                <span className="text-[10px] font-bold tracking-[0.18em] text-white/35">0{index + 1}</span>
+                <span className="text-[10px] font-bold tracking-[0.18em] text-bm-muted">0{index + 1}</span>
               </div>
               <div>
-                <p className="flex items-center gap-1 text-sm font-bold text-white sm:text-base">{item.title}<ArrowUpRight size={15} className="shrink-0 text-white/45 group-hover:text-[#ff6963]" aria-hidden /></p>
-                <p className="mt-1 text-xs leading-relaxed text-white/55">{item.desc}</p>
+                <p className="flex items-center gap-1 text-sm font-bold text-white sm:text-base">{item.title}<ArrowUpRight size={15} className="shrink-0 text-bm-muted group-hover:text-bm-accent" aria-hidden /></p>
+                <p className="mt-1 text-xs leading-relaxed text-bm-label">{item.desc}</p>
               </div>
             </Link>
           ))}
-          <BookingLink href="/booking" trackSource="home_path_booking" className="group flex min-h-[136px] flex-col justify-between gap-4 rounded-2xl border border-bm-red/60 bg-gradient-to-br from-[#d90904] to-[#8c0707] p-4 text-white shadow-[0_15px_30px_rgba(225,6,0,.14)] transition-colors hover:from-[#ef1910] hover:to-[#a20707] sm:p-5">
+          <BookingLink href="/booking" trackSource="home_path_booking" className="group flex min-h-[136px] flex-col justify-between gap-4 rounded-2xl border border-bm-red/60 bg-bm-red p-4 text-white shadow-[0_15px_30px_rgba(225,6,0,.14)] transition-colors hover:bg-bm-red-hover sm:p-5">
             <div className="flex items-start justify-between">
               <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/15"><CalendarDays size={21} aria-hidden /></span>
               <span className="text-[10px] font-bold tracking-[0.18em] text-white/65">04</span>
