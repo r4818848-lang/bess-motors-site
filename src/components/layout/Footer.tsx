@@ -17,16 +17,16 @@ export function Footer() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="border-t-2 border-bm-red/30 bg-bm-graphite mt-20">
-      <div className="mx-auto max-w-7xl px-4 py-12 lg:px-8">
-        <div className="grid gap-10 lg:grid-cols-3">
+    <footer className="border-t border-white/10 bg-[#080b10]">
+      <div className="mx-auto max-w-7xl px-4 py-14 sm:py-16 lg:px-8">
+        <div className="grid gap-10 border-b border-white/10 pb-10 lg:grid-cols-[1.1fr_.9fr_1fr] lg:gap-14">
           <div>
             <Logo size="md" />
-            <p className="mt-4 text-sm text-bm-muted max-w-xs">{t.footer.desc}</p>
-            <p className="mt-3 text-sm text-white">{businessConfig.workingHoursLabel}</p>
+            <p className="mt-5 max-w-sm text-sm leading-relaxed text-white/60">{t.footer.desc}</p>
+            <p className="mt-4 text-sm font-semibold text-white/80">{businessConfig.workingHoursLabel}</p>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">
+          <div className="grid grid-cols-2 gap-x-5 gap-y-4 text-sm sm:grid-cols-3">
             <Link href="/services" className="text-bm-muted hover:text-bm-red transition-colors">
               {t.nav.services}
             </Link>
@@ -111,7 +111,7 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-8 border-t border-bm-border pt-8">
+        <div className="pt-8">
           <p className="text-xs uppercase text-bm-muted mb-3 tracking-wider">Usługi w Warszawie</p>
           <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs">
             {seoFooterServiceLinks.map((link) => (
@@ -126,7 +126,7 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-bm-border pt-8 text-xs text-bm-muted sm:flex-row">
+        <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-white/10 pt-7 text-xs text-white/50 sm:flex-row">
           <span>
             © {year} BESS MOTORS — {t.common.allRights}
           </span>
