@@ -2148,6 +2148,14 @@ button:focus-visible {
  */
 @layer components {
   .bm-public {
+    --bm-red: #e10600;
+    --bm-black: #0b0f14;
+    --bm-surface: #11151c;
+    --bm-graphite: #11151c;
+    --bm-card: #151922;
+    --bm-text: #f8fafc;
+    --bm-text-2: #c9d1d9;
+    --bm-border-soft: rgba(255,255,255,.16);
     --bm-primary: #e10600;
     --bm-primary-hover: #c90a05;
     --bm-primary-active: #a80804;
