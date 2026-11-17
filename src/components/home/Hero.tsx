@@ -67,7 +67,7 @@ export function Hero() {
 
   return (
     <section
-      className="relative isolate flex min-h-[700px] flex-col justify-between overflow-hidden bg-[#080b10] sm:min-h-[760px] lg:min-h-[740px]"
+      className="relative isolate flex min-h-[690px] flex-col justify-between overflow-hidden bg-[#080b10] sm:min-h-[720px] lg:min-h-[680px]"
       aria-label="BESS MOTORS"
       data-testid="home-hero"
       data-hero-layout="full-bleed"
@@ -102,23 +102,23 @@ export function Hero() {
       />
 
       <div className="relative z-10 mx-auto flex w-full max-w-7xl flex-1 items-center px-4 py-14 sm:py-16 lg:px-8 lg:py-20">
-        <div className="max-w-[620px]">
+        <div className="max-w-[700px]">
           <p className="inline-flex items-center gap-2 rounded-full border border-bm-red/30 bg-black/60 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.17em] text-[#ff8581] backdrop-blur-sm sm:text-xs">
             <span className="h-1.5 w-1.5 rounded-full bg-bm-red" aria-hidden />
             {copy.eyebrow}
           </p>
 
-          <h1 className="mt-6 max-w-[650px] font-display text-[2.65rem] font-extrabold leading-[1.04] tracking-[-0.045em] text-white drop-shadow-[0_3px_18px_rgba(0,0,0,0.55)] sm:text-6xl lg:text-[4.15rem]">
+          <h1 className="bm-hero-enter mt-6 max-w-[700px] font-display text-[2.55rem] font-extrabold leading-[1.07] tracking-[-0.047em] text-white drop-shadow-[0_3px_18px_rgba(0,0,0,0.55)] sm:text-[3.5rem] lg:text-[3.65rem] xl:text-[3.8rem] [text-wrap:balance]">
             {t.hero.h1Short}
           </h1>
-          <p className="mt-6 max-w-lg text-lg font-semibold leading-snug text-white sm:text-xl">
+          <p className="bm-hero-enter bm-hero-enter-delay mt-6 max-w-lg text-lg font-semibold leading-snug text-white sm:text-xl">
             {copy.statement}
           </p>
           <p className="mt-3 max-w-lg text-sm leading-relaxed text-white/80 sm:text-base">
             {copy.steps}
           </p>
 
-          <div className="mt-8 grid grid-cols-1 gap-3 sm:max-w-[550px] sm:grid-cols-2">
+          <div className="bm-hero-enter bm-hero-enter-delay mt-8 grid grid-cols-1 gap-3 sm:max-w-[550px] sm:grid-cols-2">
             <BookingLink
               trackSource="hero_redesign"
               className="inline-flex min-h-14 items-center justify-center gap-2 rounded-xl bg-bm-red px-5 text-sm font-bold text-white shadow-[0_12px_30px_rgba(225,6,0,0.3)] transition-colors hover:bg-red-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
