@@ -515,9 +515,18 @@ test("all 13 customization SEO pages resolve with distinct metadata and no inven
   await page.goto("/oswietlenie-ambientowe-samochodu-warszawa");
   await expect(page.getByTestId("enhancement-quote")).toBeVisible();
   const ld = await page.locator('script[type="application/ld+json"]').allTextContents();
-  expect(ld.some((text) => text.includes('"@type":"Service"'))).toBe(true);
-  expect(ld.join(" ")).not.toContain('"priceCurrency"');
-  expect(ld.join(" ")).not.toContain('"offers"');
+  const nodes = ld.flatMap((source) => {
+    const data: { "@graph"?: Record<string, unknown>[]; "@type"?: string } = JSON.parse(source);
+    return data["@graph"] ?? [data];
+  });
+  const addedService = nodes.find((node) =>
+    node["@type"] === "Service" &&
+    node["@id"] === "https://www.bess-motors.com/oswietlenie-ambientowe-samochodu-warszawa#service"
+  );
+  expect(addedService).toBeDefined();
+  expect(addedService).not.toHaveProperty("offers");
+  expect(addedService).not.toHaveProperty("price");
+  expect(addedService).not.toHaveProperty("priceCurrency");
 });
 
 test("customization category is discoverable in catalogue and multilingual service search", async ({ page }) => {
