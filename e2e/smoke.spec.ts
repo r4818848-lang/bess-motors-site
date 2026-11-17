@@ -354,3 +354,32 @@ test("desktop header becomes compact after scrolling", async ({ page }) => {
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(500);
   await expect.poll(async () => (await header.boundingBox())?.height ?? 0).toBeLessThan(initial);
 });
+
+
+test("editorial hero is visually distinct and exposes a four-service command dock", async ({ page }) => {
+  await page.goto("/");
+  const hero = page.getByTestId("home-hero");
+  await expect(hero).toHaveAttribute("data-hero-design", "editorial-2026");
+  await expect(hero.getByRole("heading", { level: 1 })).toContainText("Mechanik samochodowy Warszawa Włochy");
+  const headline = hero.getByTestId("hero-editorial-headline");
+  await expect(headline).toContainText("Mniej zgadywania.");
+  await expect(headline).toContainText("Więcej konkretów.");
+  const dock = hero.getByTestId("hero-service-dock");
+  await expect(dock.locator("nav a")).toHaveCount(4);
+  for (const route of ["/wymiana-opon-warszawa", "/wymiana-oleju", "/hamulce", "/diagnostyka-komputerowa-warszawa"]) {
+    await expect(dock.locator('a[href="' + route + '"]')).toBeVisible();
+  }
+  await expect(hero.locator('a[href="/booking"]').first()).toBeVisible();
+  const nextSection = await hero.evaluate((section) => section.nextElementSibling?.getAttribute("aria-labelledby"));
+  expect(nextSection).toBe("popular-services-heading");
+});
+
+test("editorial hero remains navigable on 360px phone", async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 760 });
+  await page.goto("/");
+  const hero = page.getByTestId("home-hero");
+  await expect(hero.getByTestId("hero-editorial-headline")).toBeVisible();
+  await expect(hero.getByTestId("hero-service-dock").locator("nav a")).toHaveCount(4);
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+  expect(overflow).toBeLessThanOrEqual(1);
+});
