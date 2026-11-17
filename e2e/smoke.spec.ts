@@ -159,3 +159,44 @@ test("high-intent service descriptions stay concise and location-specific", asyn
     expect(description, path).toMatch(/Warszawa/);
   }
 });
+
+
+test("redesigned service finder filters by service and closes on Escape", async ({ page }) => {
+  await page.goto("/");
+  await page.getByTestId("header-service-search").click();
+  const panel = page.getByTestId("nav-overlay");
+  await expect(panel).toBeVisible();
+  const input = page.getByTestId("service-finder-input");
+  await expect(input).toBeFocused();
+  await input.fill("hamulce");
+  await expect(panel.locator('a[href="/hamulce"]')).toBeVisible();
+  await expect(panel.locator('a[href="/wymiana-opon-warszawa"]')).toHaveCount(0);
+  await page.keyboard.press("Escape");
+  await expect(panel).toHaveCount(0);
+});
+
+test("mobile navigation searches Polish and Russian symptoms and exposes booking", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+  await expect(page.getByTestId("mobile-action-bar")).toBeVisible();
+  await expect(page.getByTestId("mobile-action-bar").locator('a[href="/booking"]')).toBeVisible();
+  await page.getByTestId("mobile-nav-toggle").click();
+  const input = page.getByTestId("service-finder-input");
+  await expect(input).toBeFocused();
+  await input.fill("масло");
+  await expect(page.getByTestId("nav-overlay").locator('a[href="/wymiana-oleju"]')).toBeVisible();
+  await input.fill("stuki");
+  await expect(page.getByTestId("nav-overlay").locator('a[href="/naprawa-zawieszenia-warszawa"]')).toBeVisible();
+  await page.getByTestId("close-nav").click();
+  await expect(page.getByTestId("nav-overlay")).toHaveCount(0);
+});
+
+test("homepage provides four easy paths into the workshop", async ({ page }) => {
+  await page.goto("/");
+  const shortcuts = page.locator('section[aria-labelledby="home-quick-choices"]');
+  await expect(shortcuts.locator('a[href="/services"]')).toBeVisible();
+  await expect(shortcuts.locator('a[href="#objawy"]')).toBeVisible();
+  await expect(shortcuts.locator('a[href="/cennik"]')).toBeVisible();
+  await expect(shortcuts.locator('a[href="/booking"]')).toBeVisible();
+  await expect(page.locator("#objawy")).toHaveCount(1);
+});
