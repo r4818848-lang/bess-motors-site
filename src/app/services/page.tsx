@@ -113,7 +113,7 @@ export default function ServicesPage() {
   }), [needle, category]);
   const additional = useMemo(() => {
     if (category !== "all") return [];
-    const primary = new Set(catalogue.map((item) => item.href.slice(1));
+    const primary = new Set(catalogue.map((item) => item.href.slice(1)));
     return EXTRA_SEO_SERVICE_PAGES.filter((page) =>
       page.noIndex !== true &&
       page.slug !== "wymiana-oleju-warszawa" &&
