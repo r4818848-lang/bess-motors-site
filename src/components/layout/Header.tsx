@@ -154,7 +154,7 @@ export function Header() {
   };
   const close = () => setPanel(null);
 
-  const headerLinkClass = "inline-flex min-h-11 items-center rounded-xl px-3 text-[13px] font-semibold text-white/75 transition-colors hover:bg-white/[0.07] hover:text-white";
+  const headerLinkClass = "inline-flex min-h-11 items-center rounded-xl px-3 text-[13px] font-semibold text-[#e5e7eb] transition-colors hover:bg-white/[0.09] hover:text-white";
   const renderServices = (group: ServiceGroup) => matches.filter((s) => s.group === group).map((service) => (
     <Link
       key={service.href}
@@ -197,20 +197,20 @@ export function Header() {
           </nav>
 
           <div className="ml-auto flex items-center gap-1.5 xl:ml-3">
-            <button type="button" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.045] px-3 text-sm font-semibold text-white/90 transition-colors hover:border-white/30 hover:bg-white/10" aria-label={copy.finder} onClick={() => toggle("search")} data-testid="header-service-search">
+            <button type="button" className="bm-btn-secondary inline-flex min-h-11 items-center gap-2 rounded-xl px-3 text-sm font-semibold" aria-label={copy.finder} onClick={() => toggle("search")} data-testid="header-service-search">
               <Search size={18} aria-hidden />
               <span className="hidden 2xl:inline">{copy.finder}</span>
             </button>
             <div className="hidden sm:block"><LanguageSwitcher compact /></div>
             <PhoneLink
               trackSource="header_2026"
-              className="hidden min-h-11 items-center gap-2 rounded-xl px-3 text-sm font-bold text-white transition-colors hover:text-bm-red lg:inline-flex"
+              className="hidden min-h-11 items-center gap-2 rounded-xl px-3 text-sm font-bold text-[#e5e7eb] transition-colors hover:text-bm-accent lg:inline-flex"
               aria-label={t.hero.ctaCall}
             >
               <Phone size={17} aria-hidden />
               <span className="hidden 2xl:inline">{businessConfig.phoneDisplay}</span>
             </PhoneLink>
-            <BookingLink trackSource="header_2026" className="hidden min-h-11 items-center justify-center gap-2 rounded-xl bg-bm-red px-4 text-sm font-bold text-white shadow-[0_4px_20px_rgba(225,6,0,.22)] transition-colors hover:bg-red-700 sm:inline-flex">
+            <BookingLink trackSource="header_2026" className="bm-btn-primary hidden min-h-11 items-center justify-center gap-2 px-4 text-sm font-bold sm:inline-flex">
               <CalendarDays size={17} aria-hidden />{t.hero.ctaBook}
             </BookingLink>
             <button
@@ -264,7 +264,7 @@ export function Header() {
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder={copy.finderHint}
-                  className="h-14 w-full rounded-2xl border border-white/20 bg-[#1c2029] pl-12 pr-12 text-base text-white outline-none transition-colors placeholder:text-white/40 focus:border-bm-red"
+                  className="h-14 w-full rounded-2xl border border-white/25 bg-[#1c2029] pl-12 pr-12 text-base text-white outline-none transition-colors placeholder:text-bm-muted focus:border-bm-accent"
                   data-testid="service-finder-input"
                 />
                 {query ? <button onClick={() => {setQuery(""); searchRef.current?.focus();}} type="button" aria-label={copy.close} className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-2 text-white/60 hover:text-white"><X size={18}/></button> : null}
@@ -309,8 +309,8 @@ export function Header() {
                 </div>
                 <div className="flex flex-wrap gap-2 lg:max-w-xs lg:justify-end">
                   <div className="w-full sm:hidden"><LanguageSwitcher /></div>
-                  <BookingLink onClick={close} trackSource="service_panel" className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-bm-red px-5 font-bold text-white lg:flex-none"><CalendarDays size={17} aria-hidden/>{t.hero.ctaBook}</BookingLink>
-                  <SocialContactLink kind="whatsapp" href={workshopWhatsAppChatUrl(locale)} trackSource="nav_whatsapp" className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 px-4 text-sm text-white lg:flex-none"><MessageCircle size={17} aria-hidden/>{copy.message}</SocialContactLink>
+                  <BookingLink onClick={close} trackSource="service_panel" className="bm-btn-primary inline-flex min-h-11 flex-1 items-center justify-center gap-2 px-5 font-bold lg:flex-none"><CalendarDays size={17} aria-hidden/>{t.hero.ctaBook}</BookingLink>
+                  <SocialContactLink kind="whatsapp" href={workshopWhatsAppChatUrl(locale)} trackSource="nav_whatsapp" className="bm-btn-secondary inline-flex min-h-11 flex-1 items-center justify-center gap-2 px-4 text-sm lg:flex-none"><MessageCircle size={17} aria-hidden/>{copy.message}</SocialContactLink>
                   <a href={WORKSHOP_DIRECTIONS_URL} target="_blank" rel="noopener noreferrer" onClick={() => { trackGetDirectionsClick("nav_panel"); close(); }} className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl border border-white/20 px-4 text-sm font-semibold text-white lg:flex-none"><MapPin size={17} aria-hidden/>{copy.showRoute}</a>
                 </div>
               </div>
