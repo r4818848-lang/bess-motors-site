@@ -61,6 +61,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, error: "phone" }, { status: 400 });
     }
     apt.clientPhone = phone;
+    apt.marketing = normalizeMarketingAttribution(apt.marketing) ?? undefined;
   } catch {
     return NextResponse.json({ ok: false, error: "invalid" }, { status: 400 });
   }
