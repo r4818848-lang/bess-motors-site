@@ -268,6 +268,7 @@ export function computeCrmAnalytics(
     unpaidOrders,
     mechanicStats,
     marketing,
+    paidMarketingFunnel,
     websiteBookings,
     websiteCalls,
     bookingsWithWorkOrder,
