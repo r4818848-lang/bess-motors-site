@@ -186,7 +186,6 @@ export function PhoneOnlyBookingForm({
 
       <Button
         className="w-full"
-        data-fbq-track="Lead"
         disabled={!contactValid || submitting}
         onClick={submit}
       >
