@@ -67,6 +67,7 @@ export default function ContactsPage() {
           comment: [message, email ? `E-mail: ${email}` : ""].filter(Boolean).join("\n"),
           source: "contacts_form",
           sourceUrl: "/contacts",
+          marketing: getStoredAttribution() ?? undefined,
           siteLocale: locale,
           clientRequestId: clientRequestIdRef.current,
         }),
