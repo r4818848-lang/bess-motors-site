@@ -1,5 +1,3 @@
-import snapshot from "@/data/meta-ads-2026-11-18.json";
-
 export interface MetaAdsDay {
   date: string;
   account_id: string;
@@ -61,19 +59,6 @@ export function validateMetaAdsRows(value: unknown): MetaAdsDay[] {
       spend: Math.round(spend! * 100) / 100,clicks:clicks!,impressions:impressions!,meta_leads:meta_leads!});
   }
   return out;
-}
-
-export function metaAdsSnapshot(syncError = false): MetaAdsPayload {
-  return {
-    mode: "snapshot",
-    capturedAt: snapshot.capturedAt,
-    dateFrom: snapshot.dateFrom,
-    dateTo: snapshot.dateTo,
-    currency: "PLN",
-    rows: validateMetaAdsRows(snapshot.rows),
-    setupRequired: true,
-    ...(syncError ? {syncError: true} : {}),
-  };
 }
 
 export interface MetaCampaignTotals {
