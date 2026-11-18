@@ -77,6 +77,7 @@ export interface CrmAnalytics {
   unpaidOrders: { order: WorkOrder; total: number }[];
   mechanicStats: MechanicStat[];
   marketing: MarketingRow[];
+  paidMarketingFunnel: PaidMarketingFunnelRow[];
   websiteBookings: number;
   websiteCalls: number;
   bookingsWithWorkOrder: number;
