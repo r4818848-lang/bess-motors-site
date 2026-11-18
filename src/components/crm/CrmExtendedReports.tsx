@@ -9,6 +9,7 @@ import { exportReportsCsv, exportOrdersDetailCsv } from "@/lib/crm-analytics";
 import type { RepairStatus } from "@/lib/store";
 import { Card } from "@/components/ui/Card";
 import { MetaAdsCostPanel } from "./MetaAdsCostPanel";
+import { VerifiedAcquisitionPanel } from "./VerifiedAcquisitionPanel";
 
 interface Props {
   stats: CrmAnalytics;
@@ -244,6 +245,7 @@ export function CrmExtendedReports({ stats, periodLabel }: Props) {
         </div>
       </div>
 
+      <VerifiedAcquisitionPanel />
       <MetaAdsCostPanel />
 
       <div className="glass-red rounded-xl p-6 neon-border overflow-x-auto">

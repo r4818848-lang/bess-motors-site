@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { verifyToken } from "@/lib/server/verify-session";
 import type { Database } from "@/lib/store";
 import { cloudGetCrmStore, cloudPutCrmStore, isSupabaseConfigured } from "@/lib/server/crm-cloud";
+import { preserveVerifiedAcquisitionForStaff } from "@/lib/attribution-access";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -80,9 +81,12 @@ export async function PUT(req: Request) {
   const { mergeCloudDocuments, collectRemovedIds } = await import("@/lib/crm-db-merge");
   const { applyWorkOrderClosure } = await import("@/lib/work-order-lifecycle");
   const { applyWorkOrderCompletedAt } = await import("@/lib/work-order-dates");
+  const trustedOrders = auth.session.role === "admin"
+    ? db.workOrders
+    : preserveVerifiedAcquisitionForStaff(db.workOrders, before?.doc?.workOrders ?? []);
   const incoming = docForCloud({
     ...db,
-    workOrders: db.workOrders.map((o) =>
+    workOrders: trustedOrders.map((o) =>
       applyWorkOrderCompletedAt(applyWorkOrderClosure(o))
     ),
   });

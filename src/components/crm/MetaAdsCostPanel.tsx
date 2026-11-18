@@ -5,6 +5,8 @@ import { useI18n } from "@/lib/i18n/context";
 import { loadDb } from "@/lib/store";
 import { buildPaidMarketingFunnel } from "@/lib/paid-marketing-funnel";
 import { summarizeMetaAds, type MetaAdsPayload } from "@/lib/meta-ads-costs";
+import { summarizeVerifiedAcquisition } from "@/lib/verified-acquisition";
+import { useDbSync } from "@/hooks/useDbSync";
 
 const copy = {
   pl: {
@@ -13,6 +15,9 @@ const copy = {
     leads: "Zdarzenia lead wg Meta",
     cpl: "Koszt leada wg Meta",
     clicks: "Kliknięcia reklamy",
+    verified: "Zlecenia przypisane ręcznie po potwierdzeniu reklamy Meta",
+    campaignPaid: "Opłacone zlecenia z potwierdzonym ID kampanii",
+    campaignRevenue: "Ich wartość w CRM",
     account: "Konto",
     campaign: "Kampania",
     costPerLead: "Koszt leada",
@@ -33,6 +38,9 @@ const copy = {
     leads: "Лиды по данным Meta",
     cpl: "Цена лида Meta",
     clicks: "Клики по рекламе",
+    verified: "Оплаченные заказы с вручную подтверждённым источником Meta Ads",
+    campaignPaid: "Оплачено по подтверждённому ID кампании",
+    campaignRevenue: "Их стоимость в CRM",
     account: "Кабинет",
     campaign: "Кампания",
     costPerLead: "Цена лида",
@@ -53,6 +61,9 @@ const copy = {
     leads: "Meta-reported leads",
     cpl: "Meta cost per lead",
     clicks: "Ad clicks",
+    verified: "Orders manually verified as Meta advertising",
+    campaignPaid: "Paid orders with confirmed campaign ID",
+    campaignRevenue: "Their CRM order value",
     account: "Account",
     campaign: "Campaign",
     costPerLead: "Cost per lead",
@@ -73,6 +84,9 @@ const copy = {
     leads: "Ліди за даними Meta",
     cpl: "Вартість ліда Meta",
     clicks: "Кліки реклами",
+    verified: "Замовлення з підтвердженим вручну джерелом реклами Meta",
+    campaignPaid: "Оплачено за підтвердженим ID кампанії",
+    campaignRevenue: "Їхня вартість у CRM",
     account: "Кабінет",
     campaign: "Кампанія",
     costPerLead: "Вартість ліда",
@@ -99,6 +113,7 @@ function isMetaLabel(source: string): boolean {
 export function MetaAdsCostPanel() {
   const {locale} = useI18n();
   const t = copy[locale as keyof typeof copy] ?? copy.pl;
+  const dbTick = useDbSync();
   const [report,setReport]=useState<MetaAdsPayload|null>(null);
   const [failed,setFailed]=useState(false);
   const [missingKey,setMissingKey]=useState(false);
@@ -124,6 +139,8 @@ export function MetaAdsCostPanel() {
   },[]);
 
   const totals=useMemo(()=>report?summarizeMetaAds(report.rows):null,[report]);
+  const verifiedCrm=useMemo(()=>report ? summarizeVerifiedAcquisition(loadDb(),report.dateFrom,report.dateTo) : null,[report,dbTick]);
+  const campaignVerified=useMemo(()=>new Map(verifiedCrm?.byMetaCampaign.map(x=>[x.campaignId,x]) ?? []),[verifiedCrm]);
   const paidCrm=useMemo(()=>{
     if(!report) return {orders:0,revenue:0};
     const funnel=buildPaidMarketingFunnel(loadDb(),createdAt=>{
@@ -132,7 +149,7 @@ export function MetaAdsCostPanel() {
     });
     const matched=funnel.filter(row=>isMetaLabel(row.source));
     return {orders:matched.reduce((s,row)=>s+row.paidOrders,0),revenue:matched.reduce((s,row)=>s+row.paidRevenue,0)};
-  },[report]);
+  },[report,dbTick]);
 
   return (
     <section className="glass-red rounded-xl p-6 neon-border space-y-4 overflow-x-auto" aria-labelledby="meta-ads-report-heading">
@@ -156,14 +173,21 @@ export function MetaAdsCostPanel() {
             <p className="mt-2 text-xl font-bold">{paidCrm.orders} · {zł(paidCrm.revenue)}</p>
             <p className="mt-2 text-xs leading-5 text-bm-muted">{t.warning}</p>
           </div>
-          <table className="dashboard-table min-w-[690px]">
-            <thead><tr><th>{t.account}</th><th>{t.campaign}</th><th>{t.cost}</th><th>{t.leads}</th><th>{t.costPerLead}</th></tr></thead>
+          <div className="rounded-lg border border-green-500/30 bg-white/5 p-4">
+            <p className="text-sm font-semibold">{t.verified}</p>
+            <p className="mt-2 text-xl font-bold">{verifiedCrm?.metaPaidOrders ?? 0} · {zł(verifiedCrm?.metaPaidRevenue ?? 0)}</p>
+            <p className="mt-2 text-xs text-bm-muted">{t.warning}</p>
+          </div>
+          <table className="dashboard-table min-w-[850px]">
+            <thead><tr><th>{t.account}</th><th>{t.campaign}</th><th>{t.cost}</th><th>{t.leads}</th><th>{t.costPerLead}</th><th>{t.campaignPaid}</th><th>{t.campaignRevenue}</th></tr></thead>
             <tbody>{(totals?.campaigns??[]).map(row=><tr key={row.id+"-"+row.account}>
               <td className="text-xs">{row.account}</td>
               <td>{row.name}</td>
               <td className="font-mono">{zł(row.spend)}</td>
               <td>{row.leads}</td>
               <td className="font-mono">{row.costPerMetaLead===null?"—":zł(row.costPerMetaLead)}</td>
+              <td>{campaignVerified.get(row.id)?.paidOrders ?? "—"}</td>
+              <td className="font-mono">{campaignVerified.has(row.id)?zł(campaignVerified.get(row.id)!.paidRevenue):"—"}</td>
             </tr>)}</tbody>
           </table>
           <p className="text-xs leading-5 text-bm-muted">{t.partial}</p>

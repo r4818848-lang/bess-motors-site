@@ -252,6 +252,18 @@ export interface WorkOrder {
   paidCashAmount?: number;
   /** For paymentMethod card_cash — card/transfer portion (PLN) */
   paidCardAmount?: number;
+  /** Operator-confirmed acquisition source for this exact CRM work order. */
+  verifiedAcquisition?: {
+    channel: "instagram_direct" | "facebook_messenger" | "whatsapp" | "phone" | "website" | "meta_instant_form";
+    nature: "meta_paid" | "organic" | "unknown";
+    evidence: "client_confirmed" | "conversation" | "meta_form" | "tagged_link";
+    /** Exact Meta campaign ID, when independently verified. Not inferred from names. */
+    campaignId?: string;
+    /** Explicit CRM lead id, manually reviewed by the operator. */
+    leadId?: string;
+    confirmedAt: string;
+    confirmedBy: "admin";
+  };
   /** ISO date — client notified when status became ready */
   readyNotifiedAt?: string;
   /** Show before/after photos on public /gallery */

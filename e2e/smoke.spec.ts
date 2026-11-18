@@ -345,7 +345,9 @@ test("service process uses readable cards rather than horizontal scrolling table
 test("new homepage remains usable at small mobile widths", async ({ page }) => {
   for (const width of [360, 390, 768]) {
     await page.setViewportSize({ width, height: 840 });
-    await page.goto("/");
+    // Landing content should be usable without waiting for heavy hero media to
+    // finish loading. Still assert both links and zero horizontal overflow.
+    await page.goto("/", { waitUntil: "domcontentloaded" });
     await expect(page.getByTestId("home-hero").locator('a[href="/booking"]').first()).toBeVisible();
     await expect(page.getByTestId("home-hero").locator('a[href="/services"]').first()).toBeVisible();
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
