@@ -1,8 +1,10 @@
 import { expect, test } from "@playwright/test";
+import { preparePage } from "./helpers";
 
 /** No real customer lead is created: every POST is intercepted in the browser. */
 test.describe("Contact form CRM delivery", () => {
   async function fillForm(page: import("@playwright/test").Page) {
+    await preparePage(page);
     await page.goto("/contacts");
     const form = page.locator("form").filter({ has: page.locator('input[name="clientName"]') });
     await expect(form).toBeVisible();
