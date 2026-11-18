@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { cloudMutateCrmStore } from "@/lib/server/crm-cloud-mutate";
 import { normalizePhone } from "@/lib/server/normalize-phone";
+import { normalizeMarketingAttribution, safeLandingPath } from "@/lib/utm";
 import { finishClaimedLeadNotice, productionLeadChatIds } from "@/lib/server/telegram-cron/lead-notifications";
 import { acceptWebsiteInquiry, formatLeadMessage, normalizeSiteLocale, type LeadNoticeClaim } from "@/lib/service-leads";
 
@@ -24,6 +25,7 @@ export async function POST(req: Request) {
     clientRequestId?: string;
     siteLocale?: string;
     sourceUrl?: string;
+    marketing?: unknown;
     plate?: string;
     make?: string;
     model?: string;
@@ -80,7 +82,8 @@ export async function POST(req: Request) {
       desiredTime: body.desiredTime,
       siteLocale: normalizeSiteLocale(body.siteLocale),
       source,
-      sourceUrl: body.sourceUrl,
+      sourceUrl: safeLandingPath(body.sourceUrl) ?? "",
+      marketing: normalizeMarketingAttribution(body.marketing) ?? undefined,
       comment,
     }, new Date(), productionLeadChatIds());
     saved.leadId = accepted.lead.id;

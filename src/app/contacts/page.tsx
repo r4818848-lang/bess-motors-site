@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRef, useState, type FormEvent } from "react";
 import { trackLead } from "@/lib/gtag";
+import { getStoredAttribution } from "@/lib/utm";
 import Image from "next/image";
 import { MapPin, Phone, Mail, Clock, MessageCircle } from "lucide-react";
 import { WORKSHOP_HERO_PHOTO } from "@/lib/workshop-photos";
@@ -66,6 +67,7 @@ export default function ContactsPage() {
           comment: [message, email ? `E-mail: ${email}` : ""].filter(Boolean).join("\n"),
           source: "contacts_form",
           sourceUrl: "/contacts",
+          marketing: getStoredAttribution() ?? undefined,
           siteLocale: locale,
           clientRequestId: clientRequestIdRef.current,
         }),

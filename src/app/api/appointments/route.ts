@@ -11,6 +11,7 @@ import { safeExternalNotify, withUnifiedCrm } from "@/lib/server/unified-calenda
 import { finishClaimedLeadNotice, productionLeadChatIds, releaseClaimedLeadNotice } from "@/lib/server/telegram-cron/lead-notifications";
 import { claimLeadNotice, upsertWebsiteLead, type LeadNoticeClaim } from "@/lib/service-leads";
 import { normalizePhone } from "@/lib/server/normalize-phone";
+import { normalizeMarketingAttribution } from "@/lib/utm";
 import type { Appointment, Database } from "@/lib/store";
 import {
   cloudDeleteAppointment,
@@ -60,6 +61,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, error: "phone" }, { status: 400 });
     }
     apt.clientPhone = phone;
+    apt.marketing = normalizeMarketingAttribution(apt.marketing) ?? undefined;
   } catch {
     return NextResponse.json({ ok: false, error: "invalid" }, { status: 400 });
   }
@@ -251,6 +253,7 @@ async function applyWebsiteBooking(db: Database, apt: Appointment): Promise<void
     desiredTime: apt.time,
     siteLocale: apt.siteLocale,
     source: apt.source || "website",
+    marketing: apt.marketing,
   });
   if (!saved.lead.appointmentId) {
     saved.lead.status = "booked";

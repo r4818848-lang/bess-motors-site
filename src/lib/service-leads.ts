@@ -88,6 +88,7 @@ export type IncomingLead = {
   siteLocale?: unknown;
   source?: string;
   sourceUrl?: string;
+  marketing?: ServiceLead["marketing"];
   now?: Date;
 };
 
@@ -211,6 +212,7 @@ export function upsertWebsiteLead(db: Database, input: IncomingLead): { lead: Se
     siteLocale: normalizeSiteLocale(input.siteLocale),
     source: input.source || "website",
     sourceUrl: input.sourceUrl || "",
+    marketing: input.marketing,
     status: "new",
     managerId: "",
     contacts: [],
@@ -355,7 +357,8 @@ export function acceptWebsiteInquiry(
       source: "website",
       createdAt: now.toISOString(),
       priority: input.priority ?? "normal",
-      marketing: input.source && input.source !== "website" ? { utmSource: input.source } : undefined,
+      // A form name (e.g. contacts_form) is not a marketing acquisition channel.
+      marketing: input.marketing,
     };
     db.callRequests.push(call);
   }
