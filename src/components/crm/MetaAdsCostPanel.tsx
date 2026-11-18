@@ -139,6 +139,8 @@ export function MetaAdsCostPanel() {
   },[]);
 
   const totals=useMemo(()=>report?summarizeMetaAds(report.rows):null,[report]);
+  const verifiedCrm=useMemo(()=>report ? summarizeVerifiedAcquisition(loadDb(),report.dateFrom,report.dateTo) : null,[report,dbTick]);
+  const campaignVerified=useMemo(()=>new Map(verifiedCrm?.byMetaCampaign.map(x=>[x.campaignId,x]) ?? []),[verifiedCrm]);
   const paidCrm=useMemo(()=>{
     if(!report) return {orders:0,revenue:0};
     const funnel=buildPaidMarketingFunnel(loadDb(),createdAt=>{
