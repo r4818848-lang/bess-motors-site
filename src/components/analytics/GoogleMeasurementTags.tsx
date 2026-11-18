@@ -15,17 +15,17 @@ export function GoogleMeasurementTags() {
     <>
       <Script
         id="bess-google-gtag-loader"
-        src={\`https://www.googletagmanager.com/gtag/js?id=\${SCRIPT_ID}\`}
+        src={`https://www.googletagmanager.com/gtag/js?id=${SCRIPT_ID}`}
         strategy="afterInteractive"
       />
       <Script id="bess-google-gtag-config" strategy="afterInteractive">
-        {\`
+        {`
           window.dataLayer = window.dataLayer || [];
           window.gtag = window.gtag || function(){window.dataLayer.push(arguments);};
           gtag('js', new Date());
-          \${GA4_ID ? \`gtag('config', '\${GA4_ID}');\` : ""}
-          gtag('config', '\${GOOGLE_ADS_ID}');
-        \`}
+          ${GA4_ID ? `gtag('config', '${GA4_ID}');` : ""}
+          gtag('config', '${GOOGLE_ADS_ID}');
+        `}
       </Script>
     </>
   );
