@@ -39,7 +39,11 @@ jobs:
               const advisories = (v.via || []).filter(i => typeof i !== 'string').map(i => ({title:i.title,url:i.url,range:i.range}));
               console.log('AUDIT ISSUE',JSON.stringify({name,severity:v.severity,isDirect:v.isDirect,range:v.range,fixAvailable:v.fixAvailable,advisories}));
             }
-            if (data.error) console.log('AUDIT ERROR', JSON.stringify(data.error));
+            if (data.error) { console.log('AUDIT ERROR', JSON.stringify(data.error)); process.exitCode = 1; }
+            if (file === 'audit-prod.json' && Number(data.metadata?.vulnerabilities?.critical || 0) > 0) {
+              console.error('BLOCKING DEPENDENCY RELEASE: critical production vulnerability detected');
+              process.exitCode = 1;
+            }
           }
           NODE
   unit:
