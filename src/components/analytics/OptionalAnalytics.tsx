@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { GoogleAdsTag } from "@/components/analytics/GoogleAdsTag";
-import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
+import { GoogleMeasurementTags } from "@/components/analytics/GoogleMeasurementTags";
 import { GoogleTagManagerBody, GoogleTagManagerHead } from "@/components/analytics/GoogleTagManager";
 import { YandexMetrika } from "@/components/analytics/YandexMetrika";
 import { ANALYTICS_CONSENT_EVENT, analyticsConsentGranted } from "@/lib/analytics-consent";
@@ -29,8 +28,7 @@ export function OptionalAnalytics() {
       <YandexMetrika />
       <GoogleTagManagerHead />
       <GoogleTagManagerBody />
-      <GoogleAdsTag />
-      <GoogleAnalytics />
+      <GoogleMeasurementTags />
       {META_PIXEL_ID ? (
         <script dangerouslySetInnerHTML={{ __html: metaPixelInitScript(META_PIXEL_ID) }} />
       ) : null}
