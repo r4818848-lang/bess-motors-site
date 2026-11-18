@@ -9,6 +9,7 @@ import { exportReportsCsv, exportOrdersDetailCsv } from "@/lib/crm-analytics";
 import type { RepairStatus } from "@/lib/store";
 import { Card } from "@/components/ui/Card";
 import { MetaAdsCostPanel } from "./MetaAdsCostPanel";
+import { VerifiedAcquisitionPanel } from "./VerifiedAcquisitionPanel";
 
 interface Props {
   stats: CrmAnalytics;
