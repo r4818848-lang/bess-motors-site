@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRef, useState, type FormEvent } from "react";
 import { trackLead } from "@/lib/gtag";
+import { getStoredAttribution } from "@/lib/utm";
 import Image from "next/image";
 import { MapPin, Phone, Mail, Clock, MessageCircle } from "lucide-react";
 import { WORKSHOP_HERO_PHOTO } from "@/lib/workshop-photos";
