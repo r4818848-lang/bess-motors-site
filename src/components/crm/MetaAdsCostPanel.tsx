@@ -149,7 +149,7 @@ export function MetaAdsCostPanel() {
     });
     const matched=funnel.filter(row=>isMetaLabel(row.source));
     return {orders:matched.reduce((s,row)=>s+row.paidOrders,0),revenue:matched.reduce((s,row)=>s+row.paidRevenue,0)};
-  },[report]);
+  },[report,dbTick]);
 
   return (
     <section className="glass-red rounded-xl p-6 neon-border space-y-4 overflow-x-auto" aria-labelledby="meta-ads-report-heading">
