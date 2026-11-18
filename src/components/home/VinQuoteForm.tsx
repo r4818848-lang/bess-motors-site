@@ -10,6 +10,7 @@ import { fireFbq } from "@/lib/meta-pixel";
 import { trackLead } from "@/lib/gtag";
 import { siteConfig } from "@/lib/site";
 import { SocialContactLink } from "@/components/analytics/SocialContactLink";
+import { PhoneLink } from "@/components/analytics/PhoneLink";
 import { workshopWhatsAppChatUrl } from "@/lib/chat-cta";
 
 /**
@@ -285,9 +286,9 @@ export function VinQuoteForm() {
               {t.common.privacy}
             </Link>
             {" · "}
-            <a href={siteConfig.phoneHref} className="underline hover:text-white">
+            <PhoneLink trackSource="vin_quote_help" href={siteConfig.phoneHref} className="underline hover:text-white">
               {siteConfig.phone}
-            </a>
+            </PhoneLink>
           </p>
         </form>
       </div>
