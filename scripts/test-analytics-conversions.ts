@@ -25,10 +25,10 @@ const storage = {getItem: (key: string) => seen.get(key) ?? null, setItem: (key:
 const key = conversionDedupeKey("booking", "2026-11-18T09:00:00.000Z");
 assert.equal(claimConversionSlot(key, storage), true);
 assert.equal(claimConversionSlot(key, storage), false, "a thank-you refresh cannot count a second booking");
-const phoneOnlyForm = readFileSync(new URL("../src/components/booking/PhoneOnlyBookingForm.tsx", import.meta.url), "utf8");
+const phoneOnlyForm = readFileSync("src/components/booking/PhoneOnlyBookingForm.tsx", "utf8");
 assert.doesNotMatch(phoneOnlyForm, /data-fbq-track="Lead"/, "button clicks must not be reported as successful leads");
 assert.match(phoneOnlyForm, /router\.push\(THANK_YOU_PATH\)/, "successful form still redirects to conversion-deduplicating thank-you page");
-const bootstrap = readFileSync(new URL("../src/components/analytics/OptionalAnalytics.tsx", import.meta.url), "utf8");
+const bootstrap = readFileSync("src/components/analytics/OptionalAnalytics.tsx", "utf8");
 assert.match(bootstrap, /<GoogleMeasurementTags\s*\/>/, "one direct Google measurement bootstrap after consent");
 assert.doesNotMatch(bootstrap, /<GoogleAdsTag\s*\/>|<GoogleAnalytics\s*\/>/, "do not mount duplicate direct gtag loaders");
 console.log("analytics lead events, PII guard and Ads destination checks passed");
