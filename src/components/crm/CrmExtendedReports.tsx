@@ -245,6 +245,7 @@ export function CrmExtendedReports({ stats, periodLabel }: Props) {
         </div>
       </div>
 
+      <VerifiedAcquisitionPanel />
       <MetaAdsCostPanel />
 
       <div className="glass-red rounded-xl p-6 neon-border overflow-x-auto">
