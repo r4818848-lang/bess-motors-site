@@ -25,6 +25,7 @@ export async function POST(req: Request) {
     clientRequestId?: string;
     siteLocale?: string;
     sourceUrl?: string;
+    marketing?: unknown;
     plate?: string;
     make?: string;
     model?: string;
