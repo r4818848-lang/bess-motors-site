@@ -4,6 +4,7 @@ import { EnhancementHubPage, EnhancementServicePage } from "@/components/seo/Enh
 import { ENHANCEMENT_HUB_SLUG, allEnhancementSlugs, getEnhancementService } from "@/lib/enhancement-services";
 import { enhancementHubSchema, enhancementServiceSchema } from "@/lib/enhancement-schema";
 import { SeoLandingPageView } from "@/components/seo/SeoLandingPageView";
+import { BrakesLocalContent } from "@/components/seo/BrakesLocalContent";
 import { StructuredData } from "@/components/seo/StructuredData";
 import {
   getSeoLandingPage,
@@ -176,6 +177,7 @@ export default async function SeoLandingRoute({ params }: Props) {
     <>
       <StructuredData data={autoRepairServiceSchema(page)} />
       <SeoLandingPageView page={page} />
+      {slug === "hamulce" ? <BrakesLocalContent /> : null}
     </>
   );
 }
