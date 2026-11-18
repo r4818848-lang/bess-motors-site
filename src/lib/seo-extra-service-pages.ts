@@ -135,11 +135,11 @@ const EXTRA_SEO_SERVICE_PAGES_BATCH1: SeoLandingPage[] = [
   {
     slug: "wymiana-oleju-skrzynia-automatyczna-warszawa",
     title: "Wymiana oleju w automatycznej skrzyni biegów Warszawa",
-    line1: "ATF / DSG — dobór oleju po VIN",
-    line2: "Diagnostyka skrzyni i wymiana według procedury",
-    metaTitle: "Wymiana oleju skrzyni automatycznej Warszawa",
+    line1: "Statyczna wymiana ATF / DSG — dobór po VIN",
+    line2: "Wymiana statyczna zgodnie z procedurą; bez usługi dynamicznej",
+    metaTitle: "Statyczna wymiana oleju skrzyni automatycznej Warszawa",
     metaDescription:
-      "Wymiana oleju w automatycznej skrzyni biegów Warszawa — ATF, DSG, filtr gdy wymagany. BESS MOTORS Włochy. Wycena indywidualna po diagnostyce.",
+      "Statyczna wymiana oleju ATF w automatycznej skrzyni biegów, również wybrane DSG. BESS MOTORS Warszawa Włochy. Dobór po VIN, bez wymiany dynamicznej. Wycena przed naprawą.",
     serviceId: "transmission",
     icon: "Settings2",
   },
@@ -519,7 +519,7 @@ const EXTRA_SEO_SERVICE_PROFILES_BATCH1: Record<string, SlugLandingProfile> = {
       fromZl: getPriceItem("gearbox_oil_auto")?.basePrice ?? 500,
       priceFrom: true,
       materialsExtra: true,
-      note: L("Wycena indywidualna: robocizna + olej ATF/DSG + filtr gdy wymagany. Dobór po VIN / kodzie skrzyni.", "Индивидуальная смета: работа + ATF + фильтр.", "Individual pricing: Labour + ATF/DSG oil + filter when required. Selection by Vin /box code.", "Индивидуальная кошторис: робота + ATF + фільтр."),
+      note: L("Wymiana statyczna (nie dynamiczna). Wycena: robocizna + olej ATF/DSG + filtr, jeżeli wymagany. Dobór po VIN i kodzie skrzyni.", "Индивидуальная смета: работа + ATF + фильтр.", "Individual pricing: Labour + ATF/DSG oil + filter when required. Selection by Vin /box code.", "Индивидуальная кошторис: робота + ATF + фільтр."),
       includes: [
         L("Identyfikacja skrzyni i procedury", "Идентификация КПП и процедуры", "Chest identification and procedures", "Ідентифікація та процедури СЛР"),
         L("Wymiana oleju według zaleceń", "Замена масла по регламенту", "Changing the oil as recommended", "Заміна оливи по регламенту"),
@@ -530,7 +530,7 @@ const EXTRA_SEO_SERVICE_PROFILES_BATCH1: Record<string, SlugLandingProfile> = {
     education: [
       {
         title: L("Olej w automacie — Warszawa", "Масло АКПП — Варшава", "Oil in a vending machine — Warsaw", "Олива АКПП — Варшава"),
-        body: L("Wymieniamy olej w skrzyniach automatycznych i robotyzowanych (w tym DSG) według procedury. Zły olej lub „dolewka na ślepo” szkodzi — dobieramy ATF po VIN.", "Замена ATF/DSG по процедуре и VIN.", "We change the oil in automatic and robotized boxes (including DSG) according to the procedure. Bad oil or \"blind refill\" is harmful — we select ATF after Vin.", "Заміна ATF/DSG по процедуре і VIN."),
+        body: L("Wykonujemy statyczną wymianę oleju w obsługiwanych skrzyniach automatycznych i DSG, zgodnie z procedurą producenta. Nie oferujemy dynamicznej wymiany ATF. Olej i filtr dobieramy po VIN oraz kodzie skrzyni.", "Замена ATF/DSG по процедуре и VIN.", "We change the oil in automatic and robotized boxes (including DSG) according to the procedure. Bad oil or \"blind refill\" is harmful — we select ATF after Vin.", "Заміна ATF/DSG по процедуре і VIN."),
       },
       {
         title: L("Kiedy wymieniać?", "Когда менять?", "When to replace?", "Коли менять?"),
