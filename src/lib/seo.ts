@@ -31,12 +31,16 @@ export const SITEMAP_LAST_MODIFIED = new Date("2026-11-08T08:00:00.000Z");
 /** Editorial update of homepage, tyres, oil, brakes and suspension. */
 export const SEO_DESIGN_LAST_MODIFIED = new Date("2026-11-17T15:00:00.000Z");
 
+/** Human-reviewed local SEO content: booking process, gallery and suspension landing. */
+export const AI_GEO_CONTENT_LAST_MODIFIED = new Date("2026-11-18T09:00:00.000Z");
+
 /** Tyre copy and public tyre prices. Only URLs whose text or prices changed. */
 export const TIRE_COPY_LAST_MODIFIED = new Date("2026-11-11T11:30:00.000Z");
 
 export function sitemapLastModifiedFor(path: string): Date {
   const key = path || "/";
   if (key.startsWith("/blog/")) return SITEMAP_LAST_MODIFIED;
+  if (new Set(["/booking", "/gallery", "/zawieszenie", "/naprawa-zawieszenia-warszawa"]).has(key)) return AI_GEO_CONTENT_LAST_MODIFIED;
   if (new Set(["/", "/wymiana-opon-warszawa", "/sezonowa-wymiana-opon-warszawa", "/wulkanizacja-warszawa", "/wymiana-oleju", "/hamulce", "/zawieszenie"]).has(key)) return SEO_DESIGN_LAST_MODIFIED;
   const changed =
     key === "/" ||

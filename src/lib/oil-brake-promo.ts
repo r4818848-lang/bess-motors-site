@@ -34,20 +34,20 @@ export const OIL_BRAKE_PROMO_OFFERS: OilBrakePromoOffer[] = [
   },
   {
     id: "brake_disc_front",
-    wasZl: 220,
-    nowZl: 150,
+    wasZl: 250,
+    nowZl: 180,
     bookingItems: "brake_disc_front",
   },
   {
     id: "brake_pads_rear",
-    wasZl: 150,
-    nowZl: 120,
+    wasZl: 160,
+    nowZl: 140,
     bookingItems: "brake_pads_rear",
   },
   {
     id: "brake_disc_rear",
     wasZl: 280,
-    nowZl: 180,
+    nowZl: 230,
     bookingItems: "brake_disc_rear",
   },
 ];
@@ -84,9 +84,9 @@ export function oilBrakePromoBookingNote(itemIds: string[]): string | null {
   const hit = itemIds.some((id) => isOilBrakePromoItem(id));
   if (!hit && !hasOil) return null;
   if (hasOil) {
-    return `PROMO ${OIL_BRAKE_PROMO_CODE}: wymiana oleju 80 zł robocizna + diagnostyka zawieszenia BEZPŁATNIE (w pakiecie z olejem). Hamulce: klocki przód 100 / tarcze+klocki 150 / klocki tył 120 / tarcze+klocki tył 180 zł.`;
+    return `PROMO ${OIL_BRAKE_PROMO_CODE}: wymiana oleju 80 zł robocizna + diagnostyka zawieszenia BEZPŁATNIE (w pakiecie z olejem). Hamulce: klocki przód 100 / tarcze+klocki 180 / klocki tył 140 / tarcze+klocki tył 230 zł.`;
   }
-  return `PROMO ${OIL_BRAKE_PROMO_CODE}: olej/hamulce — klient prosi o ceny promocji (olej 80 / klocki przód 100 / tarcze+klocki przód 150 / klocki tył 120 / tarcze+klocki tył 180 zł robocizna)`;
+  return `PROMO ${OIL_BRAKE_PROMO_CODE}: olej/hamulce — klient prosi o ceny promocji (olej 80 / klocki przód 100 / tarcze+klocki przód 180 / klocki tył 140 / tarcze+klocki tył 230 zł robocizna)`;
 }
 
 export function oilBrakePromoMetaTitlePl(): string {

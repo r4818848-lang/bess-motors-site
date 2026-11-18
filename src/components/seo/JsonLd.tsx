@@ -25,6 +25,12 @@ export function JsonLd() {
     url: siteUrl,
     telephone: SITE_NAP.phoneDisplay,
     email: SITE_NAP.email,
+    contactPoint: {
+      "@type": "ContactPoint",
+      contactType: "customer service",
+      telephone: SITE_NAP.phoneDisplay,
+      availableLanguage: ["pl", "ru", "uk", "en"],
+    },
     image: gbpPhotoUrls(siteUrl),
     logo: `${siteUrl}${siteConfig.logoImage}`,
     address: {

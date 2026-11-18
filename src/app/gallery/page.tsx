@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Suspense } from "react";
 import GalleryPageClient from "./GalleryPageClient";
 
@@ -32,6 +33,37 @@ export default function GalleryPage() {
       >
         <GalleryPageClient hideTitle />
       </Suspense>
+      <section aria-labelledby="gallery-services" className="mx-auto mt-12 max-w-7xl border-t border-white/10 px-4 pt-10 lg:px-8">
+        <h2 id="gallery-services" className="font-display text-2xl font-bold text-white sm:text-3xl">
+          Zobacz, jakie usługi wykonujemy w warsztacie
+        </h2>
+        <p className="mt-4 max-w-3xl text-base leading-7 text-white/70">
+          Galeria pomaga zobaczyć stanowiska pracy i przykłady obsługi samochodów w BESS MOTORS.
+          Opis i koszt konkretnej naprawy zawsze ustalamy indywidualnie, po sprawdzeniu samochodu
+          oraz doborze części. Nasz serwis mieści się w Warszawie Włochy, przy Alei Krakowskiej 48/52.
+        </p>
+        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <Link href="/wymiana-opon-warszawa" className="rounded-xl border border-white/15 p-5 text-white hover:border-[#ff8581]">
+            <h3 className="font-semibold">Wymiana opon</h3>
+            <p className="mt-2 text-sm leading-6 text-white/65">Sezonowa wymiana opon, wyważanie i cennik w Warszawie.</p>
+          </Link>
+          <Link href="/wymiana-oleju" className="rounded-xl border border-white/15 p-5 text-white hover:border-[#ff8581]">
+            <h3 className="font-semibold">Wymiana oleju</h3>
+            <p className="mt-2 text-sm leading-6 text-white/65">Wymiana oleju i filtrów, dobór produktów do silnika.</p>
+          </Link>
+          <Link href="/hamulce" className="rounded-xl border border-white/15 p-5 text-white hover:border-[#ff8581]">
+            <h3 className="font-semibold">Hamulce</h3>
+            <p className="mt-2 text-sm leading-6 text-white/65">Kontrola układu, wymiana klocków i tarcz.</p>
+          </Link>
+          <Link href="/naprawa-zawieszenia-warszawa" className="rounded-xl border border-white/15 p-5 text-white hover:border-[#ff8581]">
+            <h3 className="font-semibold">Zawieszenie</h3>
+            <p className="mt-2 text-sm leading-6 text-white/65">Diagnostyka stuków i luzów, naprawa wahaczy i amortyzatorów.</p>
+          </Link>
+        </div>
+        <p className="mt-6 text-sm text-white/65">
+          Chcesz umówić wizytę? <Link href="/booking" className="font-semibold text-white underline hover:text-[#ff8581]">Wyślij zgłoszenie do warsztatu</Link> — termin potwierdzimy po kontakcie.
+        </p>
+      </section>
     </div>
   );
 }

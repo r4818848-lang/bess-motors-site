@@ -128,7 +128,7 @@ const EXTRA_SEO_SERVICE_PAGES_BATCH1: SeoLandingPage[] = [
     line2: "Stuki, luz, nierówne zużycie opon",
     metaTitle: "Naprawa zawieszenia Warszawa",
     metaDescription:
-      "Naprawa zawieszenia Warszawa — diagnostyka, amortyzatory, wahacze, łączniki. BESS MOTORS Włochy. Wycena przed naprawą, zapis online.",
+      "Naprawa zawieszenia w Warszawie: stuki, luzy, amortyzatory i wahacze. BESS MOTORS, Aleja Krakowska 48/52. Diagnoza i wycena przed naprawą.",
     serviceId: "suspension",
     icon: "Settings",
   },
