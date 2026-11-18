@@ -75,6 +75,7 @@ export async function createCallRequest(params: {
         desiredTime: params.desiredTime,
         services: params.services,
         source: params.source,
+        marketing: getStoredAttribution() ?? undefined,
         clientRequestId,
         siteLocale: savedSiteLocale(),
         sourceUrl: typeof window !== "undefined" ? window.location.href : "",
