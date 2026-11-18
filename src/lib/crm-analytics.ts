@@ -7,6 +7,7 @@ import {
   calcPartLine,
 } from "./workorder-calc";
 import { formatAttributionLabel, type MarketingAttribution } from "./utm";
+import { buildPaidMarketingFunnel, type PaidMarketingFunnelRow } from "./paid-marketing-funnel";
 
 export type ReportPeriod = "day" | "week" | "month" | "year" | "2years" | "custom";
 
