@@ -106,11 +106,11 @@ export function brakesPromoMetaDescriptionPl(): string {
 }
 
 export function oilPromoMetaTitlePl(): string {
-  return `Wymiana oleju Warszawa — 80 zł robocizna`;
+  return `Wymiana oleju Warszawa Włochy — 80 zł robocizna`;
 }
 
 export function oilPromoMetaDescriptionPl(): string {
-  return `Wymiana oleju i filtra Warszawa Włochy: 80 zł robocizna z kodem ${OIL_BRAKE_PROMO_CODE}. Olej i filtr osobno. BESS MOTORS, Aleja Krakowska 48/52. Zapis online.`;
+  return `Wymiana oleju i filtra Warszawa Włochy, blisko Okęcia. Robocizna 80 zł z kodem ${OIL_BRAKE_PROMO_CODE}; olej i filtr osobno, dobór po VIN. BESS MOTORS — umów wizytę.`;
 }
 
 export const OIL_BRAKE_PROMO_VALID_UNTIL = "2026-12-31";

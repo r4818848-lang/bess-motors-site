@@ -22,14 +22,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const add = (
     path: string,
     changeFrequency: MetadataRoute.Sitemap[number]["changeFrequency"],
-    priority: number
+    priority: number,
+    modified?: Date
   ) => {
     const key = path || "/";
     if (seen.has(key)) return;
     seen.add(key);
     entries.push({
       url: `${siteUrl}${path}`,
-      lastModified: allEnhancementSlugs.includes(path.slice(1)) ? new Date("2026-11-17T21:00:00.000Z") : sitemapLastModifiedFor(path),
+      lastModified: modified ?? (allEnhancementSlugs.includes(path.slice(1)) ? new Date("2026-11-17T21:00:00.000Z") : sitemapLastModifiedFor(path)),
       changeFrequency,
       priority,
     });
@@ -91,7 +92,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       post.slug === "nabijanie-klimatyzacji-cena-warszawa"
         ? 0.75
         : 0.65;
-    add(`/blog/${post.slug}`, "monthly", priority);
+    add(`/blog/${post.slug}`, "monthly", priority, new Date(`${post.updatedAt ?? post.date}T12:00:00.000Z`));
   }
 
   return entries;

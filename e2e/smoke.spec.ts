@@ -556,3 +556,41 @@ test("new customization hub is present in sitemap and links from homepage", asyn
     expect(xml).toContain("/" + slug);
   }
 });
+
+
+test("SEO 2026-11-18: strongest existing landing pages have local, honest snippets", async ({ page }) => {
+  await page.goto("/wymiana-opon-warszawa");
+  await expect(page).toHaveTitle(/Wymiana opon Warszawa.*od/);
+  await expect(page.locator('meta[name="description"]')).toHaveAttribute("content", /Okęcia.*wyważaniem.*Aleja Krakowska/);
+
+  await page.goto("/wymiana-oleju");
+  await expect(page).toHaveTitle(/Wymiana oleju Warszawa Włochy/);
+  await expect(page.locator('meta[name="description"]')).toHaveAttribute("content", /80 zł.*VIN/);
+
+  await page.goto("/wymiana-oleju-skrzynia-automatyczna-warszawa");
+  await expect(page).toHaveTitle(/Statyczna wymiana oleju skrzyni/);
+  await expect(page.locator('meta[name="description"]')).toHaveAttribute("content", /bez wymiany dynamicznej/);
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  await expect(page.getByText("Nie oferujemy dynamicznej wymiany ATF.", { exact: false }).first()).toBeVisible();
+
+  await page.goto("/blog/wymiana-rozrzadu-ile-trwa");
+  await expect(page).toHaveTitle(/Ile trwa wymiana rozrządu\? Pasek, łańcuch/);
+  await expect(page.locator("article h1")).toContainText("Ile trwa wymiana rozrządu?");
+  await expect(page.locator("article")).toContainText("około 1–2 dniami roboczymi");
+  await expect(page.locator('meta[property="article:modified_time"]')).toHaveAttribute("content", /2026-11-18/);
+});
+
+test("SEO 2026-11-18: sitemap lastmod is truthful and IndexNow host key is served", async ({ request }) => {
+  const key = "4020106655944b1eb4cb23c4a8dbe1bb";
+  const proof = await request.get("/" + key + ".txt");
+  expect(proof.status()).toBe(200);
+  expect((await proof.text()).trim()).toBe(key);
+
+  const response = await request.get("/sitemap.xml");
+  expect(response.ok()).toBeTruthy();
+  const xml = await response.text();
+  expect(xml).toMatch(/blog\/wymiana-rozrzadu-ile-trwa<\/loc>\s*<lastmod>2026-11-18/);
+  expect(xml).toMatch(/wymiana-oleju-skrzynia-automatyczna-warszawa<\/loc>\s*<lastmod>2026-11-18/);
+  expect(xml).toContain("/oswietlenie-ambientowe-samochodu-warszawa");
+  expect(xml).toContain("/pranie-tapicerki-samochodowej-warszawa");
+});
