@@ -35,6 +35,10 @@ test("optional analytics load after consent", async ({ page }) => {
   await expect.poll(async () => page.content()).toMatch(/mc\.yandex\.ru\/metrika\/tag\.js/);
   const html = await page.content();
   expect(html).toMatch(/109683484/);
+  await expect(page.locator('script#bess-google-gtag-loader')).toHaveCount(1);
+  await expect(page.locator('script#bess-google-gtag-config')).toHaveCount(1);
+  await expect(page.locator('script#google-ads-gtag')).toHaveCount(0);
+  await expect(page.locator('script#ga4')).toHaveCount(0);
 });
 
 test("main navigation pages respond 200", async ({ page }) => {
