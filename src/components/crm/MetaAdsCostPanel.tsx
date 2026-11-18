@@ -173,7 +173,12 @@ export function MetaAdsCostPanel() {
             <p className="mt-2 text-xl font-bold">{paidCrm.orders} · {zł(paidCrm.revenue)}</p>
             <p className="mt-2 text-xs leading-5 text-bm-muted">{t.warning}</p>
           </div>
-          <table className="dashboard-table min-w-[690px]">
+          <div className="rounded-lg border border-green-500/30 bg-white/5 p-4">
+            <p className="text-sm font-semibold">{t.verified}</p>
+            <p className="mt-2 text-xl font-bold">{verifiedCrm?.metaPaidOrders ?? 0} · {zł(verifiedCrm?.metaPaidRevenue ?? 0)}</p>
+            <p className="mt-2 text-xs text-bm-muted">{t.warning}</p>
+          </div>
+          <table className="dashboard-table min-w-[850px]">
             <thead><tr><th>{t.account}</th><th>{t.campaign}</th><th>{t.cost}</th><th>{t.leads}</th><th>{t.costPerLead}</th></tr></thead>
             <tbody>{(totals?.campaigns??[]).map(row=><tr key={row.id+"-"+row.account}>
               <td className="text-xs">{row.account}</td>
