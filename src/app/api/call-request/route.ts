@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { cloudMutateCrmStore } from "@/lib/server/crm-cloud-mutate";
 import { normalizePhone } from "@/lib/server/normalize-phone";
+import { normalizeMarketingAttribution, safeLandingPath } from "@/lib/utm";
 import { finishClaimedLeadNotice, productionLeadChatIds } from "@/lib/server/telegram-cron/lead-notifications";
 import { acceptWebsiteInquiry, formatLeadMessage, normalizeSiteLocale, type LeadNoticeClaim } from "@/lib/service-leads";
 
