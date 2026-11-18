@@ -82,7 +82,8 @@ export async function POST(req: Request) {
       desiredTime: body.desiredTime,
       siteLocale: normalizeSiteLocale(body.siteLocale),
       source,
-      sourceUrl: body.sourceUrl,
+      sourceUrl: safeLandingPath(body.sourceUrl) ?? "",
+      marketing: normalizeMarketingAttribution(body.marketing) ?? undefined,
       comment,
     }, new Date(), productionLeadChatIds());
     saved.leadId = accepted.lead.id;
