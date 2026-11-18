@@ -185,11 +185,11 @@ export const EXTRA_SEO_SERVICE_PAGES_BATCH2: SeoLandingPage[] = [
   {
     slug: "wymiana-plynu-chlodniczego-warszawa",
     title: "Wymiana płynu chłodniczego Warszawa",
-    line1: "Świeży płyn i kontrola układu",
-    line2: "Mniej ryzyka przegrzania silnika",
-    metaTitle: "Wymiana płynu chłodniczego Warszawa",
+    line1: "Dobór płynu po specyfikacji auta, kontrola szczelności",
+    line2: "Spust starego płynu, napełnienie i odpowietrzenie układu",
+    metaTitle: "Wymiana płynu chłodniczego Warszawa Włochy",
     metaDescription:
-      "Wymiana płynu chłodniczego Warszawa — spust, napełnienie, kontrola. BESS MOTORS Włochy. Umów wizytę lub zapytaj o wycenę.",
+      "Wymiana płynu chłodniczego i odpowietrzenie układu w BESS MOTORS, Warszawa Włochy, Aleja Krakowska 48/52. Dobór właściwego płynu, kontrola wycieków, wycena przed wizytą.",
     serviceId: "otherReason",
     icon: "Droplets",
   },
