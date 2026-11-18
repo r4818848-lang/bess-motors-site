@@ -503,7 +503,7 @@ export interface LeadNoticeRecipient {
   lastError?: string;
 }
 
-export interface ServiceLead {
+export interface ServiceLead extends MarketingAttributionFields {
   id: string;
   createdAt: string;
   updatedAt: string;
