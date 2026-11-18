@@ -1,4 +1,6 @@
-/** UTM / marketing attribution from URL → sessionStorage */
+/** Campaign attribution from public landing URL → sessionStorage → CRM.
+ * Store campaign labels only, never click IDs, raw query strings, or client PII.
+ */
 
 export interface MarketingAttribution {
   utmSource?: string;
@@ -11,6 +13,47 @@ export interface MarketingAttribution {
 }
 
 const STORAGE_KEY = "bess-motors-utm";
+const SITE_ORIGIN = "https://www.bess-motors.com";
+
+/** Accept plain marketing tokens only: no phone, VIN, email, free-text or click IDs. */
+function safeCampaignToken(value: unknown): string | undefined {
+  if (typeof value !== "string") return undefined;
+  const token = value.trim();
+  if (!/^[A-Za-z][A-Za-z0-9._+-]{0,63}$/.test(token)) return undefined;
+  if (/\d{7,}/.test(token)) return undefined;
+  return token;
+}
+
+/** Only the onsite pathname is needed. Query strings might contain client details. */
+export function safeLandingPath(value: unknown): string | undefined {
+  if (typeof value !== "string" || !value.trim() || value.length > 2048) return undefined;
+  try {
+    const url = new URL(value.trim(), SITE_ORIGIN);
+    if (url.origin !== SITE_ORIGIN) return undefined;
+    return url.pathname.length <= 180 && url.pathname.startsWith("/") && !url.pathname.startsWith("//")
+      ? url.pathname
+      : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/** Validate untrusted client-supplied marketing labels before saving to the cloud CRM. */
+export function normalizeMarketingAttribution(value: unknown): MarketingAttribution | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const v = value as Record<string, unknown>;
+  const utmSource = safeCampaignToken(v.utmSource);
+  if (!utmSource) return null;
+  const out: MarketingAttribution = {
+    utmSource,
+    utmMedium: safeCampaignToken(v.utmMedium),
+    utmCampaign: safeCampaignToken(v.utmCampaign),
+    utmContent: safeCampaignToken(v.utmContent),
+    utmTerm: safeCampaignToken(v.utmTerm),
+    landingPage: safeLandingPath(v.landingPage),
+  };
+  return out;
+}
 
 export function captureUtmFromUrl(): void {
   if (typeof window === "undefined") return;
@@ -21,10 +64,9 @@ export function captureUtmFromUrl(): void {
     params.has("utm_campaign") ||
     params.get("gclid") ||
     params.get("fbclid");
-
   if (!hasUtm && !params.get("partner")) return;
 
-  const data: MarketingAttribution = {
+  const data = normalizeMarketingAttribution({
     utmSource:
       params.get("utm_source") ??
       params.get("partner") ??
@@ -34,14 +76,14 @@ export function captureUtmFromUrl(): void {
     utmCampaign: params.get("utm_campaign") ?? undefined,
     utmContent: params.get("utm_content") ?? undefined,
     utmTerm: params.get("utm_term") ?? undefined,
-    landingPage: `${window.location.pathname}${window.location.search}`,
-    capturedAt: new Date().toISOString(),
-  };
+    landingPage: window.location.pathname,
+  });
+  if (!data) return;
 
   try {
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ ...data, capturedAt: new Date().toISOString() }));
   } catch {
-    /* ignore */
+    /* Session storage may be unavailable; the form still works. */
   }
 }
 
@@ -50,7 +92,7 @@ export function getStoredAttribution(): MarketingAttribution | null {
   try {
     const raw = sessionStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
-    return JSON.parse(raw) as MarketingAttribution;
+    return normalizeMarketingAttribution(JSON.parse(raw));
   } catch {
     return null;
   }
