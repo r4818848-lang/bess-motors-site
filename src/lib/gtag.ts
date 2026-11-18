@@ -22,13 +22,35 @@ export function publicAnalyticsParams(params?: Record<string, unknown>): Record<
   return safe;
 }
 
-/** Safe params only — never pass VIN, phone, name, email, or free-text repair notes. */
+/**
+ * The Google Ads send_to field is an account/label routing key, not personal
+ * data. The generic PII scrubber intentionally strips long digit strings,
+ * so restore only a strictly valid AW-.../label value for conversion events.
+ * Never allow client-provided text, phone numbers or VINs through this escape.
+ */
+export function safeGtagEventParams(event: string, params?: Record<string, unknown>): Record<string, unknown> {
+  const safe = publicAnalyticsParams(params);
+  // A caller must never select an arbitrary analytics/Ads destination.
+  // Restore this routing key only for a genuine, strictly validated Ads conversion.
+  delete safe.send_to;
+  if (event === "conversion") {
+    const destination = params?.send_to;
+    if (typeof destination === "string" && /^AW-\d{6,15}\/[A-Za-z0-9_-]{2,}$/.test(destination)) {
+      safe.send_to = destination;
+    }
+  }
+  return safe;
+}
+
 export function fireGtag(event: string, params?: Record<string, unknown>): void {
   if (!analyticsConsentGranted()) return;
   const gtag = getGtag();
   if (!gtag) return;
+  const safe = safeGtagEventParams(event, params);
+  // An Ads conversion without a valid destination can never be attributed.
+  if (event === "conversion" && !safe.send_to) return;
   try {
-    gtag("event", event, publicAnalyticsParams(params));
+    gtag("event", event, safe);
   } catch {
     /* ignore */
   }
