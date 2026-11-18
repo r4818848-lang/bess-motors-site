@@ -7,6 +7,45 @@ on:
     branches: [main]
 
 jobs:
+  dependency-security:
+    # Separate security report: npm run audit checks site metadata, not package CVEs.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - name: Install locked dependencies without scripts
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Audit production and full dependency tree
+        shell: bash
+        run: |
+          npm audit --omit=dev --json > audit-prod.json || true
+          npm audit --json > audit-all.json || true
+          node --input-type=module <<'NODE'
+          import { readFileSync } from 'node:fs';
+          for (const file of ['audit-prod.json', 'audit-all.json']) {
+            const data = JSON.parse(readFileSync(file, 'utf8'));
+            const records = Object.entries(data.vulnerabilities || {});
+            const order = { critical: 0, high: 1, moderate: 2, low: 3 };
+            const selected = records.filter(([,v]) => v.severity === 'critical' || v.severity === 'high').sort((a,b) => (order[a[1].severity] ?? 4) - (order[b[1].severity] ?? 4));
+            console.log('AUDIT FILE', file, 'COUNTS', JSON.stringify(data.metadata?.vulnerabilities || {}));
+            for (const [name, v] of selected) {
+              const advisories = (v.via || []).filter(i => typeof i !== 'string').map(i => ({title:i.title,url:i.url,range:i.range}));
+              console.log('AUDIT ISSUE',JSON.stringify({name,severity:v.severity,isDirect:v.isDirect,range:v.range,fixAvailable:v.fixAvailable,advisories}));
+            }
+            if (data.error) { console.log('AUDIT ERROR', JSON.stringify(data.error)); process.exitCode = 1; }
+            if (file === 'audit-prod.json' && Number(data.metadata?.vulnerabilities?.critical || 0) > 0) {
+              console.error('BLOCKING DEPENDENCY RELEASE: critical production vulnerability detected');
+              process.exitCode = 1;
+            }
+          }
+          NODE
   unit:
     runs-on: ubuntu-latest
     timeout-minutes: 15
