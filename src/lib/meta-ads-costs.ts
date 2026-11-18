@@ -42,7 +42,7 @@ export function validateMetaAdsRows(value: unknown): MetaAdsDay[] {
     const campaign_id = String(row.campaign_id ?? "");
     const campaign = String(row.campaign ?? "");
     const account_name = String(row.account_name ?? "");
-    if (!/^\\d{8,25}$/.test(account_id)) throw Error("invalid_meta_account");
+    if (!/^\d{8,25}$/.test(account_id)) throw Error("invalid_meta_account");
     if (!VALID_DATE.test(date) || !/^\d{12,25}$/.test(campaign_id) || !campaign.trim() || campaign.length > 180 || account_name.length > 140) throw Error("bad_meta_dimension");
     const currency = row.currency ?? row.account_currency;
     if (currency !== "PLN") throw Error("unexpected_currency");
