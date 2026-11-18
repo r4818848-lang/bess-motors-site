@@ -186,6 +186,8 @@ export function MetaAdsCostPanel() {
               <td className="font-mono">{zł(row.spend)}</td>
               <td>{row.leads}</td>
               <td className="font-mono">{row.costPerMetaLead===null?"—":zł(row.costPerMetaLead)}</td>
+              <td>{campaignVerified.get(row.id)?.paidOrders ?? "—"}</td>
+              <td className="font-mono">{campaignVerified.has(row.id)?zł(campaignVerified.get(row.id)!.paidRevenue):"—"}</td>
             </tr>)}</tbody>
           </table>
           <p className="text-xs leading-5 text-bm-muted">{t.partial}</p>
