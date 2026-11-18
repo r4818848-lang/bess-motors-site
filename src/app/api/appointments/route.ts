@@ -11,6 +11,7 @@ import { safeExternalNotify, withUnifiedCrm } from "@/lib/server/unified-calenda
 import { finishClaimedLeadNotice, productionLeadChatIds, releaseClaimedLeadNotice } from "@/lib/server/telegram-cron/lead-notifications";
 import { claimLeadNotice, upsertWebsiteLead, type LeadNoticeClaim } from "@/lib/service-leads";
 import { normalizePhone } from "@/lib/server/normalize-phone";
+import { normalizeMarketingAttribution } from "@/lib/utm";
 import type { Appointment, Database } from "@/lib/store";
 import {
   cloudDeleteAppointment,
