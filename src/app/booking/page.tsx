@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { BookingPageClient } from "@/components/booking/BookingPageClient";
 import { siteConfig } from "@/lib/site";
 
@@ -62,12 +63,12 @@ export default function BookingPage() {
           </div>
           <h2 className="mt-10 font-display text-2xl font-bold text-white">Najczęściej wybierane usługi</h2>
           <nav aria-label="Usługi serwisu BESS MOTORS" className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            <a className="rounded-lg border border-white/15 p-4 text-white hover:border-bm-red" href="/wymiana-opon-warszawa">Wymiana opon i wyważanie kół — Warszawa</a>
-            <a className="rounded-lg border border-white/15 p-4 text-white hover:border-bm-red" href="/wymiana-oleju">Wymiana oleju i filtrów</a>
-            <a className="rounded-lg border border-white/15 p-4 text-white hover:border-bm-red" href="/hamulce">Klocki, tarcze i naprawa hamulców</a>
-            <a className="rounded-lg border border-white/15 p-4 text-white hover:border-bm-red" href="/naprawa-zawieszenia-warszawa">Naprawa zawieszenia</a>
-            <a className="rounded-lg border border-white/15 p-4 text-white hover:border-bm-red" href="/wymiana-plynu-hamulcowego-warszawa">Wymiana płynu hamulcowego</a>
-            <a className="rounded-lg border border-white/15 p-4 text-white hover:border-bm-red" href="/wymiana-plynu-chlodniczego-warszawa">Wymiana płynu chłodniczego</a>
+            <Link className="rounded-lg border border-white/15 p-4 text-white hover:border-bm-red" href="/wymiana-opon-warszawa">Wymiana opon i wyważanie kół — Warszawa</Link>
+            <Link className="rounded-lg border border-white/15 p-4 text-white hover:border-bm-red" href="/wymiana-oleju">Wymiana oleju i filtrów</Link>
+            <Link className="rounded-lg border border-white/15 p-4 text-white hover:border-bm-red" href="/hamulce">Klocki, tarcze i naprawa hamulców</Link>
+            <Link className="rounded-lg border border-white/15 p-4 text-white hover:border-bm-red" href="/naprawa-zawieszenia-warszawa">Naprawa zawieszenia</Link>
+            <Link className="rounded-lg border border-white/15 p-4 text-white hover:border-bm-red" href="/wymiana-plynu-hamulcowego-warszawa">Wymiana płynu hamulcowego</Link>
+            <Link className="rounded-lg border border-white/15 p-4 text-white hover:border-bm-red" href="/wymiana-plynu-chlodniczego-warszawa">Wymiana płynu chłodniczego</Link>
           </nav>
           <p className="mt-7 text-sm leading-6 text-bm-copy">
             Godziny warsztatu: {siteConfig.workingHours}. Kontakt telefoniczny:{" "}
