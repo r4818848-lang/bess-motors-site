@@ -7,6 +7,7 @@ import {
   calcPartLine,
 } from "./workorder-calc";
 import { formatAttributionLabel, type MarketingAttribution } from "./utm";
+import { buildPaidMarketingFunnel, type PaidMarketingFunnelRow } from "./paid-marketing-funnel";
 
 export type ReportPeriod = "day" | "week" | "month" | "year" | "2years" | "custom";
 
@@ -76,6 +77,7 @@ export interface CrmAnalytics {
   unpaidOrders: { order: WorkOrder; total: number }[];
   mechanicStats: MechanicStat[];
   marketing: MarketingRow[];
+  paidMarketingFunnel: PaidMarketingFunnelRow[];
   websiteBookings: number;
   websiteCalls: number;
   bookingsWithWorkOrder: number;
@@ -238,6 +240,9 @@ export function computeCrmAnalytics(
   const marketing = [...marketingMap.values()].sort(
     (a, b) => b.bookings + b.calls - (a.bookings + a.calls)
   );
+  const paidMarketingFunnel = buildPaidMarketingFunnel(db, (createdAt) =>
+    filterByPeriod(createdAt.slice(0, 10), period, dateFrom, dateTo)
+  );
 
   const websiteBookings = appointments.filter((a) => a.source === "website").length;
   const websiteCalls = calls.filter((c) => c.source === "website").length;
@@ -263,6 +268,7 @@ export function computeCrmAnalytics(
     unpaidOrders,
     mechanicStats,
     marketing,
+    paidMarketingFunnel,
     websiteBookings,
     websiteCalls,
     bookingsWithWorkOrder,
@@ -296,11 +302,18 @@ export function exportReportsCsv(
     "Nazwa;Kwota;Pozycji",
     ...stats.topServices.map((s) => `${s.name};${s.amount.toFixed(2)};${s.count}`),
     "",
-    "Marketing",
-    "Źródło;Rezerwacje;Telefony;Zlecenia",
+    "Marketing (stary raport, linki bez weryfikacji zapłaty)",
+    "Źródło;Rezerwacje;Telefony;Zlecenia powiązane",
     ...stats.marketing.map(
       (m) => `${m.source};${m.bookings};${m.calls};${m.ordersLinked}`
     ),
+    "",
+    "Marketing – kohorta utworzonych zgłoszeń i wizyt; rozliczone zlecenia tylko z powiązanym ID",
+    "Źródło;Zgłoszenia;Rezerwacje;Potwierdzone;Przyjazdy potwierdzone;Opłacone zlecenia;Wartość wg CRM bez doliczonego VAT (zł)",
+    ...stats.paidMarketingFunnel.map(
+      (m) => `${m.source};${m.inquiries};${m.bookings};${m.confirmedBookings};${m.arrivals};${m.paidOrders};${m.paidRevenue.toFixed(2)}`
+    ),
+    "UWAGA;Nie obliczamy ROI bez kosztu reklamy. Płatności po dacie utworzenia zgłoszenia są przypisane do kohorty, nie do okresu księgowania.",
   ];
   return lines.join("\n");
 }
