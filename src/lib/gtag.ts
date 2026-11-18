@@ -22,7 +22,6 @@ export function publicAnalyticsParams(params?: Record<string, unknown>): Record<
   return safe;
 }
 
-/** Safe params only — never pass VIN, phone, name, email, or free-text repair notes. */
 /**
  * The Google Ads send_to field is an account/label routing key, not personal
  * data. The generic PII scrubber intentionally strips long digit strings,
@@ -33,7 +32,7 @@ export function safeGtagEventParams(event: string, params?: Record<string, unkno
   const safe = publicAnalyticsParams(params);
   if (event === "conversion") {
     const destination = params?.send_to;
-    if (typeof destination === "string" && /^AW-\\d{6,15}\\/[A-Za-z0-9_-]{2,}$/.test(destination)) {
+    if (typeof destination === "string" && /^AW-\d{6,15}\/[A-Za-z0-9_-]{2,}$/.test(destination)) {
       safe.send_to = destination;
     }
   }
