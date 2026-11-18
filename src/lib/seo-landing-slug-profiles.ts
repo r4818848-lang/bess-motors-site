@@ -209,10 +209,10 @@ export const SEO_LANDING_SLUG_PROFILES: Record<string, SlugLandingProfile> = {
           "Просування коду BessMotors — колодки та диски"
         ),
         body: L(
-          "Klocki przednie 100 zł (było 120), tarcze+klocki przód 150 zł (było 220), klocki tył 120 zł (było 150), tarcze+klocki tył 180 zł (było 280). Przy zapisie online lub telefonicznie podaj kod BessMotors.",
-          "Передние колодки 100 zł (было 120), диски+колодки спереди 150 zł (было 220), задние колодки 120 zł (было 150), диски+колодки сзади 180 zł (было 280). При записи назовите код BessMotors.",
-          "Front blocks PLN 100 (there were 120), discs+ front blocks PLN 150 (there were 220), back blocks PLN 120 (there were 150), discs+ back blocks PLN 180 (there were 280). When signing up online or by phone, enter the BessMotors code.",
-          "Передні колодки 100 злотих (було 120 злотих), диски+колодки спереду 150 злотих (було 220 злотих), задні колодки 120 злотих (було 150 злотих), диски+колодки ззаду 180 злотих (було 280 злотих). Під час запису назвіть код BessMotors."
+          "Klocki przednie 100 zł (zamiast 120), tarcze i klocki przód 180 zł (zamiast 250), klocki tył 140 zł (zamiast 160), tarcze i klocki tył 230 zł (zamiast 280). Ceny robocizny jednej osi dla typowego auta osobowego; części płatne osobno. Przed pracą potwierdzamy koszt. Podaj kod BessMotors.",
+          "Передние колодки — работа 100 zł (вместо 120), передние диски с колодками — 180 zł (вместо 250), задние колодки — 140 zł (вместо 160), задние диски с колодками — 230 zł (вместо 280). Стоимость деталей отдельно, для обычных легковых автомобилей. Подтвердим цену до начала работ. Код BessMotors.",
+          "Front pads labour PLN 100 (regular 120), front discs and pads PLN 180 (regular 250), rear pads PLN 140 (regular 160), rear discs and pads PLN 230 (regular 280). Per axle for a typical passenger car; parts are extra. Final price agreed before work. Mention code BessMotors.",
+          "Передні колодки — робота 100 zł (замість 120), диски та колодки спереду — 180 zł (замість 250), задні колодки — 140 zł (замість 160), задні диски та колодки — 230 zł (замість 280). Ціни роботи за одну вісь для легкового авто, деталі окремо. Узгоджуємо кошторис до ремонту. Код BessMotors."
         ),
       },
       {
