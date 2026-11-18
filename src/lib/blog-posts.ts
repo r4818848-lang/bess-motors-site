@@ -233,7 +233,7 @@ Jak przygotować zapytanie?
 Prześlij VIN, aktualny przebieg i informację, czy wymiana ma charakter profilaktyczny, czy pojawiły się objawy problemu. Jeśli masz już kupiony zestaw rozrządu, podaj jego producenta i numery elementów — sprawdzimy możliwość montażu.
 
 Gdzie wykonać wymianę rozrządu w Warszawie?
-BESS MOTORS, Aleja Krakowska 48/52, Warszawa Włochy. Oferujemy ocenę zakresu i indywidualną wycenę przed naprawą. Telefon +48 791 257 229. Umówienie terminu i potwierdzenie dostępności części przed przyjazdem ułatwia planowanie usługi.``,
+BESS MOTORS, Aleja Krakowska 48/52, Warszawa Włochy. Oferujemy ocenę zakresu i indywidualną wycenę przed naprawą. Telefon +48 791 257 229. Umówienie terminu i potwierdzenie dostępności części przed przyjazdem ułatwia planowanie usługi.`,
     relatedHrefs: [
       { href: "/wymiana-rozrzadu-warszawa", label: "Wymiana rozrządu Warszawa" },
       { href: "/diagnostyka-silnika-warszawa", label: "Diagnostyka silnika" },
