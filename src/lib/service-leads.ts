@@ -88,6 +88,7 @@ export type IncomingLead = {
   siteLocale?: unknown;
   source?: string;
   sourceUrl?: string;
+  marketing?: ServiceLead["marketing"];
   now?: Date;
 };
 
