@@ -30,6 +30,9 @@ export function publicAnalyticsParams(params?: Record<string, unknown>): Record<
  */
 export function safeGtagEventParams(event: string, params?: Record<string, unknown>): Record<string, unknown> {
   const safe = publicAnalyticsParams(params);
+  // A caller must never select an arbitrary analytics/Ads destination.
+  // Restore this routing key only for a genuine, strictly validated Ads conversion.
+  delete safe.send_to;
   if (event === "conversion") {
     const destination = params?.send_to;
     if (typeof destination === "string" && /^AW-\d{6,15}\/[A-Za-z0-9_-]{2,}$/.test(destination)) {
