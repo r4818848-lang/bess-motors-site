@@ -44,9 +44,9 @@ export const EXTRA_SEO_SERVICE_PAGES_BATCH2: SeoLandingPage[] = [
     title: "Wymiana opon Warszawa",
     line1: `Cena kompletu od ${TIRE_PROMO_FROM_ZL} zł z wyważaniem`,
     line2: "Cena promocyjna i regularna w jednym cenniku · Aleja Krakowska 48/52",
-    metaTitle: `Wymiana opon Warszawa Włochy – od ${TIRE_PROMO_FROM_ZL} zł`,
+    metaTitle: `Wymiana opon Warszawa – od ${TIRE_PROMO_FROM_ZL} zł`,
     metaDescription:
-      `Wymiana opon sezonowych Warszawa Włochy / Okęcie. Komplet od ${TIRE_PROMO_FROM_ZL} zł z wyważaniem. BESS MOTORS, Aleja Krakowska 48/52. Cennik i zapis online.`,
+      `Wymiana opon sezonowych w Warszawie, okolice Okęcia. Komplet od ${TIRE_PROMO_FROM_ZL} zł z wyważaniem. BESS MOTORS, Aleja Krakowska 48/52. Cennik i zapis online.`,
     serviceId: "tires",
     icon: "Circle",
   },
