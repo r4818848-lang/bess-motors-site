@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { verifyToken } from "@/lib/server/verify-session";
-import { metaAdsSnapshot, validateMetaAdsRows, type MetaAdsPayload } from "@/lib/meta-ads-costs";
+import { validateMetaAdsRows, type MetaAdsPayload } from "@/lib/meta-ads-costs";
+import { metaAdsSnapshot } from "@/lib/server/meta-ads-snapshot";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
