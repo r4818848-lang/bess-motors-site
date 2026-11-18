@@ -67,7 +67,7 @@ export const seoLandingPages: SeoLandingPage[] = [
     slug: "hamulce",
     title: "Serwis Hamulców",
     line1: "Klocki od 100 zł — kod BessMotors",
-    line2: "Tarcze + klocki od 150 zł",
+    line2: "Tarcze + klocki od 180 zł",
     metaTitle: brakesPromoMetaTitlePl(),
     metaDescription: brakesPromoMetaDescriptionPl(),
     serviceId: "brakePads",
