@@ -179,7 +179,7 @@ export function MetaAdsCostPanel() {
             <p className="mt-2 text-xs text-bm-muted">{t.warning}</p>
           </div>
           <table className="dashboard-table min-w-[850px]">
-            <thead><tr><th>{t.account}</th><th>{t.campaign}</th><th>{t.cost}</th><th>{t.leads}</th><th>{t.costPerLead}</th></tr></thead>
+            <thead><tr><th>{t.account}</th><th>{t.campaign}</th><th>{t.cost}</th><th>{t.leads}</th><th>{t.costPerLead}</th><th>{t.campaignPaid}</th><th>{t.campaignRevenue}</th></tr></thead>
             <tbody>{(totals?.campaigns??[]).map(row=><tr key={row.id+"-"+row.account}>
               <td className="text-xs">{row.account}</td>
               <td>{row.name}</td>
