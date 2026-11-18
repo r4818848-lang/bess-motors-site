@@ -8,6 +8,7 @@ import type { CrmAnalytics } from "@/lib/crm-analytics";
 import { exportReportsCsv, exportOrdersDetailCsv } from "@/lib/crm-analytics";
 import type { RepairStatus } from "@/lib/store";
 import { Card } from "@/components/ui/Card";
+import { MetaAdsCostPanel } from "./MetaAdsCostPanel";
 
 interface Props {
   stats: CrmAnalytics;
@@ -242,6 +243,8 @@ export function CrmExtendedReports({ stats, periodLabel }: Props) {
           </ul>
         </div>
       </div>
+
+      <MetaAdsCostPanel />
 
       <div className="glass-red rounded-xl p-6 neon-border overflow-x-auto">
         <h3 className="font-display text-sm uppercase text-bm-red font-bold mb-4">
