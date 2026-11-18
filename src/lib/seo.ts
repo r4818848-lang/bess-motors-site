@@ -37,12 +37,16 @@ export const AI_GEO_CONTENT_LAST_MODIFIED = new Date("2026-11-18T09:00:00.000Z")
 /** Updated descriptions: tyre change, engine oil, static ATF and timing article. */
 export const SEO_CTR_LAST_MODIFIED = new Date("2026-11-18T10:40:00.000Z");
 
+/** Material change to brakes page and first published coolant service page. */
+export const LOCAL_SERVICE_CONTENT_LAST_MODIFIED = new Date("2026-11-18T12:55:00.000Z");
+
 /** Tyre copy and public tyre prices. Only URLs whose text or prices changed. */
 export const TIRE_COPY_LAST_MODIFIED = new Date("2026-11-11T11:30:00.000Z");
 
 export function sitemapLastModifiedFor(path: string): Date {
   const key = path || "/";
   if (key.startsWith("/blog/")) return SITEMAP_LAST_MODIFIED;
+  if (key === "/hamulce" || key === "/wymiana-plynu-chlodniczego-warszawa") return LOCAL_SERVICE_CONTENT_LAST_MODIFIED;
   if (new Set(["/wymiana-opon-warszawa", "/wymiana-oleju", "/wymiana-oleju-skrzynia-automatyczna-warszawa"]).has(key)) return SEO_CTR_LAST_MODIFIED;
   if (new Set(["/booking", "/gallery", "/zawieszenie", "/naprawa-zawieszenia-warszawa"]).has(key)) return AI_GEO_CONTENT_LAST_MODIFIED;
   if (new Set(["/", "/wymiana-opon-warszawa", "/sezonowa-wymiana-opon-warszawa", "/wulkanizacja-warszawa", "/wymiana-oleju", "/hamulce", "/zawieszenie"]).has(key)) return SEO_DESIGN_LAST_MODIFIED;
@@ -99,6 +103,7 @@ export const publicSitemapPaths: {
 }[] = [
   { path: "", changeFrequency: "weekly", priority: 1 },
   { path: "/services", changeFrequency: "weekly", priority: 0.9 },
+  { path: "/wymiana-plynu-chlodniczego-warszawa", changeFrequency: "monthly", priority: 0.85 },
   { path: "/cennik", changeFrequency: "weekly", priority: 0.9 },
   { path: "/booking", changeFrequency: "weekly", priority: 0.9 },
   { path: "/contacts", changeFrequency: "monthly", priority: 0.85 },
