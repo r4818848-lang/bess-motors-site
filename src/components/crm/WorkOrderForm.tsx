@@ -354,6 +354,8 @@ export function WorkOrderForm({
     const updated = applyWorkOrderCompletedAt(
       applyWorkOrderClosure({
         ...draft,
+        // This field is managed by the owner attribution editor, not the repair form.
+        verifiedAcquisition: previousOrder?.verifiedAcquisition,
         documentStatus,
         updatedAt: nowIsoTimestamp(),
         paymentStatus: draft.paymentStatus ?? "unpaid",
