@@ -253,6 +253,7 @@ async function applyWebsiteBooking(db: Database, apt: Appointment): Promise<void
     desiredTime: apt.time,
     siteLocale: apt.siteLocale,
     source: apt.source || "website",
+    marketing: apt.marketing,
   });
   if (!saved.lead.appointmentId) {
     saved.lead.status = "booked";
