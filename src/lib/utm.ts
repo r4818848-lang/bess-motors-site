@@ -61,7 +61,7 @@ export function classifyAiReferral(referrer: string): string | null {
   try {
     const url = new URL(referrer);
     if (url.protocol !== "https:") return null;
-    const host = url.hostname.toLowerCase().replace(/^www\\./, "");
+    const host = url.hostname.toLowerCase().replace(/^www\./, "");
     const sources: Record<string, string> = {
       "chatgpt.com": "chatgpt",
       "chat.openai.com": "chatgpt",
