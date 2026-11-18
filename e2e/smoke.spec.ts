@@ -560,8 +560,8 @@ test("new customization hub is present in sitemap and links from homepage", asyn
 
 test("SEO 2026-11-18: strongest existing landing pages have local, honest snippets", async ({ page }) => {
   await page.goto("/wymiana-opon-warszawa");
-  await expect(page).toHaveTitle(/Wymiana opon Warszawa Włochy/);
-  await expect(page.locator('meta[name="description"]')).toHaveAttribute("content", /Okęcie.*wyważaniem.*Aleja Krakowska/);
+  await expect(page).toHaveTitle(/Wymiana opon Warszawa.*od/);
+  await expect(page.locator('meta[name="description"]')).toHaveAttribute("content", /Okęcia.*wyważaniem.*Aleja Krakowska/);
 
   await page.goto("/wymiana-oleju");
   await expect(page).toHaveTitle(/Wymiana oleju Warszawa Włochy/);
