@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { mergeStoredDb, type ServiceLead, type WorkOrder } from "../src/lib/store";
+import { preserveVerifiedAcquisitionForStaff } from "../src/lib/attribution-access";
 import {
   parseVerifiedAcquisition,
   summarizeVerifiedAcquisition,
@@ -74,6 +75,17 @@ assert.equal(summarizeVerifiedAcquisition(db,"2026-11-01","2026-11-30").metaPaid
 lead.createdAt="2026-10-15T08:00:00.000Z";
 assert.equal(summarizeVerifiedAcquisition(db,"2026-11-01","2026-11-30").metaPaidOrders,0,
   "Old enquiries cannot be credited to new ad-period spend");
+const staffPayload = preserveVerifiedAcquisitionForStaff(
+  [{...paid,verifiedAcquisition:undefined},{...paid,id:"order-fake",verifiedAcquisition:confirmed}],
+  [paid]
+);
+assert.deepEqual(staffPayload[0].verifiedAcquisition,paid.verifiedAcquisition);
+assert.equal(staffPayload[1].verifiedAcquisition,undefined,
+  "mechanic cannot insert a proof into a different order");
+assert.match(readFileSync("src/app/api/crm-db/route.ts","utf8"),
+  /preserveVerifiedAcquisitionForStaff/);
+assert.match(readFileSync("src/components/crm/WorkOrderForm.tsx","utf8"),
+  /verifiedAcquisition: previousOrder\\?\\.verifiedAcquisition/);
 const api = readFileSync("src/app/api/crm/verified-acquisition/route.ts","utf8");
 assert.match(api,/session\.role !== "admin"/);
 assert.match(api,/cloudMutateCrmStore/);
