@@ -78,7 +78,7 @@ export async function createCallRequest(params: {
         marketing: getStoredAttribution() ?? undefined,
         clientRequestId,
         siteLocale: savedSiteLocale(),
-        sourceUrl: typeof window !== "undefined" ? window.location.href : "",
+        sourceUrl: typeof window !== "undefined" ? window.location.pathname : "",
       }),
     });
     const data = (await res.json()) as { ok?: boolean; cloud?: boolean; error?: string };
