@@ -110,7 +110,7 @@ export function oilPromoMetaTitlePl(): string {
 }
 
 export function oilPromoMetaDescriptionPl(): string {
-  return `Wymiana oleju i filtra w Warszawie Włochy, blisko Okęcia. Robocizna 80 zł z kodem ${OIL_BRAKE_PROMO_CODE}; olej i filtr osobno, dobór po VIN. BESS MOTORS — umów wizytę.`;
+  return `Wymiana oleju i filtra Warszawa Włochy, blisko Okęcia. Robocizna 80 zł z kodem ${OIL_BRAKE_PROMO_CODE}; olej i filtr osobno, dobór po VIN. BESS MOTORS — umów wizytę.`;
 }
 
 export const OIL_BRAKE_PROMO_VALID_UNTIL = "2026-12-31";
