@@ -5,6 +5,8 @@ import { useI18n } from "@/lib/i18n/context";
 import { loadDb } from "@/lib/store";
 import { buildPaidMarketingFunnel } from "@/lib/paid-marketing-funnel";
 import { summarizeMetaAds, type MetaAdsPayload } from "@/lib/meta-ads-costs";
+import { summarizeVerifiedAcquisition } from "@/lib/verified-acquisition";
+import { useDbSync } from "@/hooks/useDbSync";
 
 const copy = {
   pl: {
