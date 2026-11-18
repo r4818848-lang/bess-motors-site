@@ -84,8 +84,8 @@ assert.equal(staffPayload[1].verifiedAcquisition,undefined,
   "mechanic cannot insert a proof into a different order");
 assert.match(readFileSync("src/app/api/crm-db/route.ts","utf8"),
   /preserveVerifiedAcquisitionForStaff/);
-assert.match(readFileSync("src/components/crm/WorkOrderForm.tsx","utf8"),
-  /verifiedAcquisition: previousOrder\\?\\.verifiedAcquisition/);
+assert.ok(readFileSync("src/components/crm/WorkOrderForm.tsx","utf8")
+  .includes("verifiedAcquisition: previousOrder?.verifiedAcquisition"));
 const api = readFileSync("src/app/api/crm/verified-acquisition/route.ts","utf8");
 assert.match(api,/session\.role !== "admin"/);
 assert.match(api,/cloudMutateCrmStore/);
