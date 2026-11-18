@@ -212,6 +212,7 @@ export function upsertWebsiteLead(db: Database, input: IncomingLead): { lead: Se
     siteLocale: normalizeSiteLocale(input.siteLocale),
     source: input.source || "website",
     sourceUrl: input.sourceUrl || "",
+    marketing: input.marketing,
     status: "new",
     managerId: "",
     contacts: [],
