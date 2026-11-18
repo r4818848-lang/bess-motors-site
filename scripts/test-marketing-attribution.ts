@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { normalizeMarketingAttribution, safeLandingPath } from "../src/lib/utm";
+import { classifyAiReferral, normalizeMarketingAttribution, safeLandingPath } from "../src/lib/utm";
 import { mergeStoredDb } from "../src/lib/store";
 import { acceptWebsiteInquiry } from "../src/lib/service-leads";
 
@@ -21,6 +21,12 @@ assert.deepEqual(tagged, {
 });
 assert.equal(safeLandingPath("/booking?phone=500600700&vin=WAUZZZ12345678901"), "/booking");
 assert.equal(safeLandingPath("https://attack.example/booking?utm_source=google"), undefined);
+assert.equal(classifyAiReferral("https://chatgpt.com/c/secret-user-conversation"), "chatgpt");
+assert.equal(classifyAiReferral("https://www.perplexity.ai/search?q=VIN"), "perplexity");
+assert.equal(classifyAiReferral("https://gemini.google.com/app/123"), "gemini");
+assert.equal(classifyAiReferral("https://claude.ai/chat/123"), "claude");
+assert.equal(classifyAiReferral("https://chatgpt.com.evil.example/"), null);
+assert.equal(classifyAiReferral("https://www.google.com/search?q=mechanik"), null, "Google search must not be falsely labeled AI");
 assert.equal(normalizeMarketingAttribution({ utmSource: "someone@example.com" }), null);
 assert.equal(normalizeMarketingAttribution({ utmSource: "phone123456789" }), null);
 assert.equal(normalizeMarketingAttribution({ utmSource: "<script>alert(1)</script>" }), null);
