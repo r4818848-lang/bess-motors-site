@@ -113,6 +113,7 @@ function isMetaLabel(source: string): boolean {
 export function MetaAdsCostPanel() {
   const {locale} = useI18n();
   const t = copy[locale as keyof typeof copy] ?? copy.pl;
+  const dbTick = useDbSync();
   const [report,setReport]=useState<MetaAdsPayload|null>(null);
   const [failed,setFailed]=useState(false);
   const [missingKey,setMissingKey]=useState(false);
