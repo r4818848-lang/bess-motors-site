@@ -23,9 +23,69 @@ const statusOrder: RepairStatus[] = [
   "delivered",
 ];
 
+const paidFunnelLabels = {
+  pl: {
+    title: "Marketing: od zgłoszenia do opłaconego zlecenia",
+    source: "Źródło / kampania",
+    inquiries: "Zgłoszenia",
+    bookings: "Rezerwacje",
+    confirmed: "Potwierdzone",
+    arrived: "Przyjazdy",
+    paid: "Opłacone zlecenia",
+    revenue: "Wartość opłacona (zł)",
+    unknown: "Nieustalone",
+    empty: "Brak zapisanych zgłoszeń z wybranego okresu.",
+    note: "Kohorta według daty utworzenia zgłoszenia lub rezerwacji. Przyjazd liczymy tylko po oznaczeniu w CRM. Opłacone zlecenie musi mieć jawny link do rezerwacji; wartość bazowa CRM bez osobno naliczonego VAT. Przychód nie oznacza zysku ani ROAS — koszty reklam nie są tu dostępne. Brak UTM nie oznacza automatycznie wejścia bezpośredniego.",
+    old: "Poprzednia tabela pokazuje powiązane zlecenia, także nieopłacone; do oceny przychodów użyj zestawienia poniżej.",
+  },
+  ru: {
+    title: "Маркетинг: от заявки до оплаченного заказ-наряда",
+    source: "Источник / кампания",
+    inquiries: "Заявки",
+    bookings: "Записи",
+    confirmed: "Подтверждены",
+    arrived: "Приехали",
+    paid: "Оплаченных заказов",
+    revenue: "Стоимость оплаченных (zł)",
+    unknown: "Источник неизвестен",
+    empty: "Нет заявок за выбранный период.",
+    note: "Группировка по дате создания заявки или записи. Приезд учитывается только при отметке в CRM. Заказ засчитывается лишь по явной связи с записью и статусу «оплачен». Сумма — базовая стоимость CRM без отдельно начисляемого VAT; это не прибыль и не ROAS, расходы на рекламу здесь не учтены. Отсутствие UTM не означает прямой переход.",
+    old: "Предыдущая таблица включает связанные, в том числе ещё неоплаченные заказы; для выручки используйте отчёт ниже.",
+  },
+  en: {
+    title: "Marketing: from enquiry to paid work order",
+    source: "Source / campaign",
+    inquiries: "Enquiries",
+    bookings: "Bookings",
+    confirmed: "Confirmed",
+    arrived: "Arrivals",
+    paid: "Paid work orders",
+    revenue: "Paid order value (zł)",
+    unknown: "Unknown",
+    empty: "No enquiries in the selected period.",
+    note: "Acquisition cohorts use enquiry or booking creation date. Arrival requires an explicit CRM marker. Paid orders require a direct booking-to-order link and paid status. Base CRM value excludes separately added VAT; it is not profit or ROAS, and advertising costs are unavailable. Missing UTM is not proof of direct traffic.",
+    old: "The prior table includes linked orders even if unpaid; use the report below for paid amounts.",
+  },
+  uk: {
+    title: "Маркетинг: від заявки до оплаченого замовлення",
+    source: "Джерело / кампанія",
+    inquiries: "Заявки",
+    bookings: "Записи",
+    confirmed: "Підтверджено",
+    arrived: "Приїзди",
+    paid: "Оплачені замовлення",
+    revenue: "Сума оплачених (zł)",
+    unknown: "Невідоме джерело",
+    empty: "За вибраний період немає заявок.",
+    note: "Когорта за датою створення заявки або запису. Приїзд рахуємо лише за позначкою в CRM. Оплачене замовлення потребує прямого зв’язку із записом та статусу оплати. Базова вартість CRM без окремо нарахованого VAT — це не прибуток чи ROAS, витрати на рекламу тут не враховані. Відсутність UTM не означає прямий трафік.",
+    old: "Попередня таблиця включає також неоплачені пов’язані замовлення; для виручки використовуйте звіт нижче.",
+  },
+} as const;
+
 export function CrmExtendedReports({ stats, periodLabel }: Props) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const rx = t.reportsExt;
+  const fm = paidFunnelLabels[locale as keyof typeof paidFunnelLabels] ?? paidFunnelLabels.pl;
   const rs = t.repairStatus;
   const db = loadDb();
 
@@ -211,8 +271,45 @@ export function CrmExtendedReports({ stats, periodLabel }: Props) {
             </tbody>
           </table>
         )}
-        <p className="text-[10px] text-bm-muted mt-3">{rx.marketingHint}</p>
+        <p className="text-[10px] text-bm-muted mt-3">{rx.marketingHint} {fm.old}</p>
       </div>
+
+      <section className="glass-red rounded-xl p-6 neon-border overflow-x-auto" aria-labelledby="paid-funnel-heading">
+        <h3 id="paid-funnel-heading" className="font-display text-base uppercase text-bm-red font-bold mb-4">
+          {fm.title}
+        </h3>
+        {stats.paidMarketingFunnel.length === 0 ? (
+          <p className="text-sm text-bm-muted">{fm.empty}</p>
+        ) : (
+          <table className="dashboard-table min-w-[900px]">
+            <thead>
+              <tr>
+                <th>{fm.source}</th>
+                <th>{fm.inquiries}</th>
+                <th>{fm.bookings}</th>
+                <th>{fm.confirmed}</th>
+                <th>{fm.arrived}</th>
+                <th>{fm.paid}</th>
+                <th>{fm.revenue}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {stats.paidMarketingFunnel.map((row) => (
+                <tr key={row.source}>
+                  <td className="font-mono text-xs">{row.source === "unknown" ? fm.unknown : row.source}</td>
+                  <td>{row.inquiries}</td>
+                  <td>{row.bookings}</td>
+                  <td>{row.confirmedBookings}</td>
+                  <td>{row.arrivals}</td>
+                  <td>{row.paidOrders}</td>
+                  <td className="font-mono">{row.paidRevenue.toLocaleString("pl-PL", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} zł</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+        <p className="mt-4 text-xs leading-5 text-bm-muted">{fm.note}</p>
+      </section>
     </div>
   );
 }
