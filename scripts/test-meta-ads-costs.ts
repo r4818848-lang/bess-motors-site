@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import snapshot from "../src/data/meta-ads-2026-11-18.json";
-import { metaAdsSnapshot, summarizeMetaAds, validateMetaAdsRows } from "../src/lib/meta-ads-costs";
+import { summarizeMetaAds, validateMetaAdsRows } from "../src/lib/meta-ads-costs";
+import { metaAdsSnapshot } from "../src/lib/server/meta-ads-snapshot";
 
 const rows = validateMetaAdsRows(snapshot.rows);
 const s = summarizeMetaAds(rows);
