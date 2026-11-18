@@ -589,8 +589,8 @@ test("SEO 2026-11-18: sitemap lastmod is truthful and IndexNow host key is serve
   const response = await request.get("/sitemap.xml");
   expect(response.ok()).toBeTruthy();
   const xml = await response.text();
-  expect(xml).toMatch(/blog\/wymiana-rozrzadu-ile-trwa<\/loc><lastmod>2026-11-18/);
-  expect(xml).toMatch(/wymiana-oleju-skrzynia-automatyczna-warszawa<\/loc><lastmod>2026-11-18/);
+  expect(xml).toMatch(/blog\/wymiana-rozrzadu-ile-trwa<\/loc>\s*<lastmod>2026-11-18/);
+  expect(xml).toMatch(/wymiana-oleju-skrzynia-automatyczna-warszawa<\/loc>\s*<lastmod>2026-11-18/);
   expect(xml).toContain("/oswietlenie-ambientowe-samochodu-warszawa");
   expect(xml).toContain("/pranie-tapicerki-samochodowej-warszawa");
 });
