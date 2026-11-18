@@ -240,6 +240,9 @@ export function computeCrmAnalytics(
   const marketing = [...marketingMap.values()].sort(
     (a, b) => b.bookings + b.calls - (a.bookings + a.calls)
   );
+  const paidMarketingFunnel = buildPaidMarketingFunnel(db, (createdAt) =>
+    filterByPeriod(createdAt.slice(0, 10), period, dateFrom, dateTo)
+  );
 
   const websiteBookings = appointments.filter((a) => a.source === "website").length;
   const websiteCalls = calls.filter((c) => c.source === "website").length;
