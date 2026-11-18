@@ -55,6 +55,27 @@ export function normalizeMarketingAttribution(value: unknown): MarketingAttribut
   return out;
 }
 
+/** Recognize only known AI assistant domains; never store the full referrer URL. */
+export function classifyAiReferral(referrer: string): string | null {
+  if (!referrer) return null;
+  try {
+    const url = new URL(referrer);
+    if (url.protocol !== "https:") return null;
+    const host = url.hostname.toLowerCase().replace(/^www\\./, "");
+    const sources: Record<string, string> = {
+      "chatgpt.com": "chatgpt",
+      "chat.openai.com": "chatgpt",
+      "perplexity.ai": "perplexity",
+      "gemini.google.com": "gemini",
+      "claude.ai": "claude",
+      "copilot.microsoft.com": "copilot",
+    };
+    return sources[host] ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export function captureUtmFromUrl(): void {
   if (typeof window === "undefined") return;
   const params = new URLSearchParams(window.location.search);
@@ -64,15 +85,19 @@ export function captureUtmFromUrl(): void {
     params.has("utm_campaign") ||
     params.get("gclid") ||
     params.get("fbclid");
-  if (!hasUtm && !params.get("partner")) return;
+  const aiReferral = !hasUtm && !params.get("partner")
+    ? classifyAiReferral(document.referrer)
+    : null;
+  if (!hasUtm && !params.get("partner") && !aiReferral) return;
 
   const data = normalizeMarketingAttribution({
     utmSource:
       params.get("utm_source") ??
       params.get("partner") ??
       (params.get("gclid") ? "google_ads" : undefined) ??
-      (params.get("fbclid") ? "facebook" : undefined),
-    utmMedium: params.get("utm_medium") ?? undefined,
+      (params.get("fbclid") ? "facebook" : undefined) ??
+      aiReferral,
+    utmMedium: params.get("utm_medium") ?? (aiReferral ? "referral" : undefined),
     utmCampaign: params.get("utm_campaign") ?? undefined,
     utmContent: params.get("utm_content") ?? undefined,
     utmTerm: params.get("utm_term") ?? undefined,
