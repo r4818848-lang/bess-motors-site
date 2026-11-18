@@ -1,8 +1,8 @@
-import { trackLead } from "@/lib/gtag";
-import { useRef, useState, type FormEvent } from "react";
-import Link from "next/link";
 "use client";
 
+import Link from "next/link";
+import { useRef, useState, type FormEvent } from "react";
+import { trackLead } from "@/lib/gtag";
 import Image from "next/image";
 import { MapPin, Phone, Mail, Clock, MessageCircle } from "lucide-react";
 import { WORKSHOP_HERO_PHOTO } from "@/lib/workshop-photos";
