@@ -44,7 +44,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: "Personalizacja samochodu Warszawa – ambient, wygłuszenie i wnętrze",
       description: "Personalizacja samochodów Warszawa: oświetlenie ambientowe, wygłuszenie kabiny, obszywanie wnętrza, CarPlay, body kit i folie. BESS MOTORS Włochy.",
       path: "/" + slug,
-      keywords: ["personalizacja samochodu Warszawa", "tuning wizualny", "doposażenie samochodu Warszawa", "BESS MOTORS Włochy"],
+      keywords: ["personalizacja samochodu Warszawa", "ambient light Warszawa", "wygłuszenie samochodu Warszawa", "doposażenie samochodu Warszawa", "BESS MOTORS Włochy"],
     });
   }
   const enhancement = getEnhancementService(slug);
