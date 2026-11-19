@@ -83,7 +83,7 @@ export function EnhancementHubPage() {
             <p className="mt-5 max-w-2xl text-base leading-relaxed text-bm-copy sm:text-lg">
               Chcesz zmienić wygląd auta, odświeżyć jego wnętrze lub dodać nowe wyposażenie?
               W BESS MOTORS możesz zapytać o oświetlenie ambientowe, obszywanie elementów tapicerki,
-              montaż dodatków nadwozia, Apple CarPlay, folie samochodowe i czyszczenie wnętrza.
+              montaż dodatków nadwozia, Apple CarPlay, wygłuszenie kabiny, folie samochodowe i czyszczenie wnętrza.
             </p>
             <p className="mt-3 max-w-2xl text-sm leading-relaxed text-bm-label">
               Każdy projekt omawiamy indywidualnie. Dopasowanie części, materiał i zakres prac zależą od konkretnego samochodu.
