@@ -18,6 +18,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const seen = new Set<string>();
   const entries: MetadataRoute.Sitemap = [];
+  const newEnhancementSlugs = new Set([
+    ENHANCEMENT_HUB_SLUG,
+    "oswietlenie-ambientowe-samochodu-warszawa",
+    "wygluszenie-samochodu-warszawa",
+  ]);
+  const updatedEnhancementAt = new Date("2026-11-20T00:00:00.000Z");
 
   const add = (
     path: string,
@@ -30,7 +36,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     seen.add(key);
     entries.push({
       url: `${siteUrl}${path}`,
-      lastModified: modified ?? (allEnhancementSlugs.includes(path.slice(1)) ? new Date("2026-11-17T21:00:00.000Z") : sitemapLastModifiedFor(path)),
+      lastModified: modified ?? (newEnhancementSlugs.has(path.slice(1)) ? updatedEnhancementAt : allEnhancementSlugs.includes(path.slice(1)) ? new Date("2026-11-17T21:00:00.000Z") : sitemapLastModifiedFor(path)),
       changeFrequency,
       priority,
     });
