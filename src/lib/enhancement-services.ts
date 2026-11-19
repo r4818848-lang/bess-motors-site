@@ -90,7 +90,7 @@ export const enhancementServices: EnhancementService[] = [
     ],
     faq: [
       { question: "Czy można wygłuszyć tylko drzwi albo bagażnik?", answer: "Taką opcję można ustalić indywidualnie. Nie każda strefa jest równie łatwo dostępna; najpierw sprawdzamy konstrukcję auta i cel prac." },
-      { question: "Czy wygłuszenie całkowicie usunie hałas z samochodu?", answer: "Nie. Efekt zależy od źródła dźwięku, prędkości, opon, konstrukcji auta oraz zakresu użytych materiałów. Nie deklarujemy z góry konkretnej liczby decybeli." },
+      { question: "Czy wygłuszenie całkowicie usunie hałas z samochodu?", answer: "Nie. Hałas w kabinie zależy od źródła dźwięku, prędkości, opon, konstrukcji auta oraz zakresu użytych materiałów. Nie deklarujemy z góry konkretnej liczby decybeli." },
       { question: "Czy wygłuszenie wpływa na masę pojazdu?", answer: "Dodatkowe materiały mają określoną masę. Ilość i lokalizację ustalamy przed montażem, uwzględniając elementy bezpieczeństwa i dostęp do instalacji." },
       { question: "Ile kosztuje wygłuszenie auta w Warszawie?", answer: "Nie podajemy stałej ceny bez poznania modelu, zakresu demontażu i planowanych materiałów. Po ustaleniu stref prac przygotujemy indywidualną wycenę." },
     ],
