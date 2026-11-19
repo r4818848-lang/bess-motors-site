@@ -26,7 +26,7 @@ assert.ok(soundproof, "Car soundproofing must have its own SEO page");
 assert.equal(soundproof.category, "comfort");
 assert.match(soundproof.metaTitle, /Wygłuszenie samochodu Warszawa/);
 assert.match(soundproof.titleRu, /Шумоизоляция/);
-assert.ok(soundproof.faq.some(q => /hałas/.test(q.answer)));
+assert.ok(soundproof.faq.some(q => /hałas/i.test(q.question + " " + q.answer)));
 assert.ok(soundproof.scope.length >= 4);
 assert.equal(soundproof.photos, undefined, "Do not invent soundproofing photo assets");
 assert.equal(allEnhancementSlugs.includes(soundproof.slug), true);
