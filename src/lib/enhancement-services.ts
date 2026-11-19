@@ -1,7 +1,8 @@
 /**
  * New BESS MOTORS service areas confirmed by owner, November 2026.
- * No photos, client examples, parts brands, fixed prices or guarantees are
- * asserted until supplied and approved by the workshop.
+ * Original owner-supplied ambient lighting photos are included in the
+ * gallery. Other services stay without photos until original files arrive.
+ * No invented client examples, fixed prices or performance guarantees.
  *
  * Polish content is the canonical SEO source. UI navigation remains localized.
  */
@@ -20,7 +21,7 @@ export type EnhancementService = {
   preparation: string[];
   faq: EnhancementFaq[];
   keywords: string[];
-  /** Photos added later after owner provides verified original files. */
+  /** Owner-supplied illustrative photos of the service effect; no claim about the workshop that performed the work. */
   photos?: { src: string; alt: string }[];
 };
 
@@ -52,7 +53,48 @@ export const enhancementServices: EnhancementService[] = [
       { question: "Czy światło będzie regulowane?", answer: "To zależy od wybranego zestawu i sterownika. Opcje kolorów i regulacji ustalamy przed zamówieniem elementów." },
       { question: "Czy trzeba demontować elementy tapicerki?", answer: "Zakres demontażu ustala się na podstawie konkretnego modelu i sposobu montażu. Unikamy obietnic montażu bez demontażu przed oględzinami." },
     ],
-    keywords: ["ambient light Warszawa", "uniwersalne oświetlenie ambientowe", "montaż LED wnętrza samochodu", "подсветка салона"],
+    keywords: ["ambient light Warszawa", "uniwersalne oświetlenie ambientowe", "montaż LED wnętrza samochodu", "podświetlenie drzwi Warszawa", "podświetlenie deski rozdzielczej", "подсветка салона"],
+    photos: [
+      { src: "/images/ambient/ambient-01.webp", alt: "Fioletowe listwy LED na desce rozdzielczej i konsoli centralnej samochodu" },
+      { src: "/images/ambient/ambient-02.webp", alt: "Fioletowe oświetlenie ambientowe tylnego rzędu i boczków drzwiowych" },
+      { src: "/images/ambient/ambient-03.webp", alt: "Zbliżenie dekoracyjnego oświetlenia LED na desce rozdzielczej" },
+      { src: "/images/ambient/ambient-04.webp", alt: "Podświetlenie ambientowe kokpitu oraz paneli drzwi samochodowych" },
+      { src: "/images/ambient/ambient-05.webp", alt: "Wielokolorowe oświetlenie LED otwartych drzwi i przestrzeni na nogi" },
+      { src: "/images/ambient/ambient-06.webp", alt: "Niebiesko-fioletowe podświetlenie drzwi i kokpitu" },
+      { src: "/images/ambient/ambient-07.webp", alt: "Różowo-niebieskie oświetlenie ambientowe deski i kratek nawiewu" },
+      { src: "/images/ambient/ambient-08.webp", alt: "Fioletowo-niebieskie listwy LED i podświetlona konsola środkowa" },
+      { src: "/images/ambient/ambient-09.webp", alt: "Niebieskie oświetlenie ambientowe przedniego i tylnego rzędu" },
+      { src: "/images/ambient/ambient-10.webp", alt: "Wielokolorowe oświetlenie wnętrza samochodu, przednie fotele i kokpit" },
+    ],
+  },
+  {
+    slug: "wygluszenie-samochodu-warszawa",
+    title: "Wygłuszenie i wyciszenie samochodu",
+    titleRu: "Шумоизоляция автомобиля",
+    metaTitle: "Wygłuszenie samochodu Warszawa – drzwi, podłoga i bagażnik",
+    metaDescription: "Wygłuszenie i wyciszenie samochodu w Warszawie: drzwi, podłoga, bagażnik oraz wybrane elementy wnętrza. Zakres i wycena indywidualnie. BESS MOTORS Włochy, Okęcie.",
+    category: "comfort",
+    intro: "Chcesz ograniczyć hałas dobiegający do kabiny podczas jazdy, drgania elementów wnętrza lub poprawić komfort słuchania muzyki? W BESS MOTORS możesz zapytać o wygłuszenie wybranych stref samochodu albo zaplanować szerszą izolację akustyczną.",
+    explanation: "Każdy model auta ma inne źródła hałasu i budowę tapicerki. Dobór materiałów tłumiących drgania oraz pochłaniających dźwięk zależy od konstrukcji drzwi, podłogi i bagażnika, dostępnego miejsca oraz bezpiecznego demontażu. Nie obiecujemy określonej redukcji hałasu bez pomiaru i sprawdzenia konkretnego pojazdu.",
+    scope: [
+      "Wyciszenie drzwi i boczków – zakres po ocenie konstrukcji",
+      "Wygłuszenie bagażnika i nadkoli od wewnątrz – po weryfikacji auta",
+      "Izolacja podłogi i wybranych elementów wnętrza, jeśli dostęp do nich jest możliwy",
+      "Dobór mat tłumiących drgania i materiałów akustycznych do danej strefy",
+      "Przygotowanie etapowej lub indywidualnej wyceny bez z góry narzuconych pakietów",
+    ],
+    preparation: [
+      "Podaj markę, model, rocznik oraz wersję nadwozia.",
+      "Opisz, czy przeszkadza Ci szum opon, dźwięk z zewnątrz, rezonans drzwi czy drgania wnętrza.",
+      "Wskaż strefy, które chcesz wygłuszyć, i prześlij zdjęcia, jeśli masz konkretny projekt.",
+    ],
+    faq: [
+      { question: "Czy można wygłuszyć tylko drzwi albo bagażnik?", answer: "Taką opcję można ustalić indywidualnie. Nie każda strefa jest równie łatwo dostępna; najpierw sprawdzamy konstrukcję auta i cel prac." },
+      { question: "Czy wygłuszenie całkowicie usunie hałas z samochodu?", answer: "Nie. Hałas w kabinie zależy od źródła dźwięku, prędkości, opon, konstrukcji auta oraz zakresu użytych materiałów. Nie deklarujemy z góry konkretnej liczby decybeli." },
+      { question: "Czy wygłuszenie wpływa na masę pojazdu?", answer: "Dodatkowe materiały mają określoną masę. Ilość i lokalizację ustalamy przed montażem, uwzględniając elementy bezpieczeństwa i dostęp do instalacji." },
+      { question: "Ile kosztuje wygłuszenie auta w Warszawie?", answer: "Nie podajemy stałej ceny bez poznania modelu, zakresu demontażu i planowanych materiałów. Po ustaleniu stref prac przygotujemy indywidualną wycenę." },
+    ],
+    keywords: ["wygłuszenie samochodu Warszawa", "wyciszenie auta Warszawa", "wygłuszenie drzwi samochodu", "izolacja akustyczna samochodu", "шумоизоляция автомобиля Варшава"],
   },
   {
     slug: "obszywanie-kierownicy-warszawa",
