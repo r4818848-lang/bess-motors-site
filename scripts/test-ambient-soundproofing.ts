@@ -1,0 +1,45 @@
+import assert from "node:assert/strict";
+import { existsSync, readFileSync, statSync } from "node:fs";
+import { join } from "node:path";
+import { enhancementServices, getEnhancementService, allEnhancementSlugs } from "../src/lib/enhancement-services";
+import { enhancementServiceSchema } from "../src/lib/enhancement-schema";
+
+const ambient = getEnhancementService("oswietlenie-ambientowe-samochodu-warszawa");
+assert.ok(ambient, "The universal ambient lighting page must exist");
+assert.match(ambient.intro, /zestawy uniwersalne/);
+assert.equal(ambient.photos?.length, 10, "Use all ten submitted owner photos");
+const names = new Set<string>();
+for (const photo of ambient.photos ?? []) {
+  assert.ok(photo.src.startsWith("/images/ambient/"));
+  assert.ok(photo.alt.length > 35, "Every photo needs specific Polish alternative text");
+  assert.equal(names.has(photo.src), false, "Duplicate photo URL");
+  names.add(photo.src);
+  const local = join("public", photo.src);
+  assert.ok(existsSync(local), `Missing gallery photo: ${local}`);
+  assert.ok(statSync(local).size > 7000 && statSync(local).size < 250_000, "Optimized WebP asset size");
+  const header = readFileSync(local).subarray(0,12);
+  assert.equal(header.toString("ascii",0,4), "RIFF");
+  assert.equal(header.toString("ascii",8,12), "WEBP");
+}
+const soundproof = getEnhancementService("wygluszenie-samochodu-warszawa");
+assert.ok(soundproof, "Car soundproofing must have its own SEO page");
+assert.equal(soundproof.category, "comfort");
+assert.match(soundproof.metaTitle, /Wygłuszenie samochodu Warszawa/);
+assert.match(soundproof.titleRu, /Шумоизоляция/);
+assert.ok(soundproof.faq.some(q => /hałas/.test(q.answer)));
+assert.ok(soundproof.scope.length >= 4);
+assert.equal(soundproof.photos, undefined, "Do not invent soundproofing photo assets");
+assert.equal(allEnhancementSlugs.includes(soundproof.slug), true);
+assert.equal(new Set(enhancementServices.map(s=>s.slug)).size,enhancementServices.length);
+const schema=enhancementServiceSchema(soundproof);
+assert.ok(JSON.stringify(schema).includes("Wygłuszenie"));
+const gallery=readFileSync("src/components/seo/EnhancementServicePage.tsx","utf8");
+assert.match(gallery, /enhancement-photo-gallery/);
+assert.match(gallery, /grid-cols-2/);
+assert.match(gallery, /object-contain/);
+assert.match(gallery, /service\.photos\.map/);
+assert.doesNotMatch(gallery, /Realizacje BESS MOTORS/, "Owner-provided inspiration should not be misrepresented as verified workshop cases");
+const sitemap=readFileSync("src/app/sitemap.ts","utf8");
+assert.match(sitemap, /wygluszenie-samochodu-warszawa/);
+assert.match(sitemap, /oswietlenie-ambientowe-samochodu-warszawa/);
+console.log("Customization pages: ambient photo gallery with 10 optimized original WebP files and soundproofing page verified");
