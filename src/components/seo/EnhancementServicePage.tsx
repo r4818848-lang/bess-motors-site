@@ -173,10 +173,34 @@ export function EnhancementServicePage({ service }: { service: EnhancementServic
         </section>
 
         {service.photos?.length ? (
-          <section className="mt-14" aria-labelledby="enhancement-photo-heading">
-            <h2 id="enhancement-photo-heading" className="mb-5 font-display text-2xl font-bold text-white">Realizacje BESS MOTORS</h2>
-            <div className="grid gap-4 sm:grid-cols-2">
-              {service.photos.map((p) => <Image key={p.src} src={p.src} alt={p.alt} width={960} height={720} quality={75} loading="lazy" className="aspect-[4/3] w-full rounded-2xl border border-white/15 object-cover" />)}
+          <section className="mt-14 scroll-mt-24" aria-labelledby="enhancement-photo-heading" data-testid="enhancement-photo-gallery">
+            <div className="mb-6 max-w-3xl">
+              <p className="text-xs font-bold uppercase tracking-[0.16em] text-bm-accent">Inspiracje / galeria zdjęć</p>
+              <h2 id="enhancement-photo-heading" className="mt-2 font-display text-2xl font-bold text-white sm:text-3xl">
+                {service.category === "lighting" ? "Uniwersalne oświetlenie ambientowe — przykłady efektów" : "Galeria usługi"}
+              </h2>
+              <p className="mt-3 text-sm leading-relaxed text-bm-copy">
+                Zdjęcia pokazują możliwe warianty kolorów i rozmieszczenia oświetlenia.
+                Efekt w Twoim aucie zależy od dostępnego zestawu, modelu i uzgodnionego sposobu montażu.
+                Przed realizacją potwierdzamy zakres i koszt, bez stałego cennika.
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 xl:grid-cols-4">
+              {service.photos.map((p, index) => (
+                <figure key={p.src} className="min-w-0 overflow-hidden rounded-2xl border border-white/15 bg-[#090c14]">
+                  <a href={p.src} target="_blank" rel="noopener noreferrer"
+                    aria-label={"Otwórz zdjęcie " + (index + 1) + ": " + p.alt}
+                    className="block overflow-hidden focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-bm-accent">
+                    <Image src={p.src} alt={p.alt} width={720} height={1280}
+                      quality={80} sizes="(max-width: 640px) 47vw, (max-width: 1024px) 31vw, 24vw"
+                      loading={index < 2 ? "eager" : "lazy"}
+                      className="aspect-[9/16] w-full object-contain transition-transform duration-300 motion-safe:hover:scale-[1.035]" />
+                  </a>
+                  <figcaption className="min-h-[52px] px-3 py-2 text-xs leading-relaxed text-bm-label">
+                    {p.alt}
+                  </figcaption>
+                </figure>
+              ))}
             </div>
           </section>
         ) : null}
