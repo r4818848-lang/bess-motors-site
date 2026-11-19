@@ -41,8 +41,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   if (slug === ENHANCEMENT_HUB_SLUG) {
     return buildPageMetadata({
-      title: "Personalizacja samochodu Warszawa – tuning wizualny i wnętrze",
-      description: "Personalizacja samochodów w Warszawie: ambient light, obszywanie wnętrza, body kit, spoilery, CarPlay, folie i pranie tapicerki. BESS MOTORS Włochy.",
+      title: "Personalizacja samochodu Warszawa – ambient, wygłuszenie i wnętrze",
+      description: "Personalizacja samochodów Warszawa: oświetlenie ambientowe, wygłuszenie kabiny, obszywanie wnętrza, CarPlay, body kit i folie. BESS MOTORS Włochy.",
       path: "/" + slug,
       keywords: ["personalizacja samochodu Warszawa", "tuning wizualny", "doposażenie samochodu Warszawa", "BESS MOTORS Włochy"],
     });
