@@ -11,7 +11,11 @@ export const dynamic = "force-dynamic";
 
 const photoPaths: Record<string, string> = {
   "ambient-light.jpg": "/images/enhancements/ambient/ambient-08.webp",
+  "ambient-purple.jpg": "/images/enhancements/ambient/ambient-18.webp",
+  "ambient-detail.jpg": "/images/enhancements/ambient/ambient-19.webp",
   "wygłuszenie.jpg": "/images/enhancements/soundproofing/wyciszenie-02.webp",
+  "wygłuszenie-bagaznik.jpg": "/images/enhancements/soundproofing/wyciszenie-01.webp",
+  "wygłuszenie-tapicerka.jpg": "/images/enhancements/soundproofing/wyciszenie-03.webp",
 };
 
 export async function GET(
