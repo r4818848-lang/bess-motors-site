@@ -2,6 +2,7 @@
 
 import { useMemo, useState, type FormEvent } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { ArrowRight, CalendarDays, ChevronDown, CircleHelp, FileText, MapPin, Search, Wrench } from "lucide-react";
 import { ServiceIcon } from "@/components/icons/ServiceIcon";
