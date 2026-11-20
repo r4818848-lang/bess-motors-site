@@ -52,8 +52,8 @@ export const SOUNDPROOFING_PHOTOS: readonly EnhancementPhoto[] = [
  */
 const CARPLAY_PATH = "/images/enhancements/carplay/";
 export const CARPLAY_ANDROID_AUTO_PHOTOS: readonly EnhancementPhoto[] = [
-  { src: CARPLAY_PATH + "bmw-android-auto-cockpit.avif", alt: "BMW z ekranem multimedialnym Android Auto oraz podświetleniem kokpitu – widok całej deski rozdzielczej", width: 780, height: 439 },
-  { src: CARPLAY_PATH + "bmw-google-maps-screen.avif", alt: "Google Maps na ekranie BMW po integracji Android Auto – nawigacja samochodowa", width: 780, height: 439 },
-  { src: CARPLAY_PATH + "bmw-media-android-auto.avif", alt: "Menu systemu BMW z wybraną funkcją Android Auto na fabrycznym ekranie multimedialnym", width: 439, height: 780 },
-  { src: CARPLAY_PATH + "bmw-google-maps-portrait.avif", alt: "Wyświetlacz BMW z aktywną mapą Google Maps i interfejsem Android Auto – zdjęcie wnętrza", width: 439, height: 780 },
+  { src: CARPLAY_PATH + "bmw-android-auto-cockpit.jpg", alt: "BMW z ekranem multimedialnym Android Auto oraz podświetleniem kokpitu – widok całej deski rozdzielczej", width: 1536, height: 864 },
+  { src: CARPLAY_PATH + "bmw-google-maps-screen.jpg", alt: "Google Maps na ekranie BMW po integracji Android Auto – nawigacja samochodowa", width: 1536, height: 864 },
+  { src: CARPLAY_PATH + "bmw-media-android-auto.jpg", alt: "Menu systemu BMW z wybraną funkcją Android Auto na fabrycznym ekranie multimedialnym", width: 864, height: 1536 },
+  { src: CARPLAY_PATH + "bmw-google-maps-portrait.jpg", alt: "Wyświetlacz BMW z aktywną mapą Google Maps i interfejsem Android Auto – zdjęcie wnętrza", width: 864, height: 1536 },
 ];
