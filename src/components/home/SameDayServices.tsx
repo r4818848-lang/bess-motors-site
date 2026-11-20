@@ -79,7 +79,7 @@ export function SameDayServices() {
     { title: c.universal, description: c.universalDesc, href: "/oswietlenie-ambientowe-samochodu-warszawa", image: "/images/enhancements/ambient/ambient-15.webp", icon: Lightbulb, alt: "Uniwersalna podświetlenie LED wnętrza samochodu" },
     { title: c.ambient, description: c.ambientDesc, href: "/oswietlenie-ambientowe-samochodu-warszawa", image: "/images/enhancements/ambient/ambient-08.webp", icon: Sparkles, alt: "Oświetlenie ambientowe deski i drzwi samochodu" },
     { title: c.soundproof, description: c.soundproofDesc, href: "/wygluszenie-samochodu-warszawa", image: "/images/enhancements/soundproofing/wyciszenie-02.webp", icon: ShieldCheck, alt: "Wygłuszenie drzwi samochodu matami akustycznymi" },
-    { title: c.carplay, description: c.carplayDesc, href: "/montaz-apple-carplay-warszawa", image: "/images/enhancements/carplay/bmw-android-auto-cockpit.avif", icon: Smartphone, alt: "BMW z Android Auto, Google Maps na ekranie i fabrycznym systemem multimedialnym" },
+    { title: c.carplay, description: c.carplayDesc, href: "/montaz-apple-carplay-warszawa", image: "/images/enhancements/carplay/bmw-android-auto-cockpit.jpg", icon: Smartphone, alt: "BMW z Android Auto, Google Maps na ekranie i fabrycznym systemem multimedialnym" },
   ] as const;
 
   return (
