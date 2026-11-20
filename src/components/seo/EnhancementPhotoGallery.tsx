@@ -59,7 +59,7 @@ export function EnhancementPhotoGallery({ photos }: { photos: readonly Enhanceme
               alt={photo.alt}
               width={photo.width}
               height={photo.height}
-              quality={76}
+              quality={75}
               sizes="(max-width: 639px) calc(100vw - 32px), (max-width: 1279px) 47vw, 30vw"
               loading="lazy"
               className="block h-auto w-full transition-transform duration-500 motion-safe:group-hover:scale-[1.025]"
@@ -97,7 +97,7 @@ export function EnhancementPhotoGallery({ photos }: { photos: readonly Enhanceme
               alt={photos[activeIndex].alt}
               fill
               priority
-              quality={88}
+              quality={85}
               sizes="100vw"
               className="object-contain"
             />
