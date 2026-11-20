@@ -189,10 +189,10 @@ export function EnhancementServicePage({ service }: { service: EnhancementServic
             <p className="mt-6 max-w-2xl text-base leading-relaxed text-bm-copy sm:text-lg">{service.intro}</p>
             <p className="mt-4 max-w-2xl text-sm leading-relaxed text-bm-label sm:text-base">{service.explanation}</p>
             <div className="mt-7 flex flex-wrap gap-3">
-              <SocialContactLink kind="whatsapp" href={contactWhatsApp(service.title)} trackSource="customization_service_hero" className="bm-btn-primary inline-flex min-h-12 items-center justify-center gap-2 px-5 text-sm font-bold" data-testid="enhancement-quote">
+              <SocialContactLink kind="whatsapp" href={contactWhatsApp(service.title)} trackSource={"customization_" + service.slug + "_whatsapp"} className="bm-btn-primary inline-flex min-h-12 items-center justify-center gap-2 px-5 text-sm font-bold" data-testid="enhancement-quote">
                 <MessageCircle size={19} aria-hidden /> Zapytaj o wycenę <ArrowRight size={17} aria-hidden />
               </SocialContactLink>
-              <PhoneLink href={businessConfig.phoneHref} trackSource="customization_service_call" className="bm-btn-secondary inline-flex min-h-12 items-center justify-center gap-2 px-5 text-sm font-bold"><Phone size={18} aria-hidden /> Zadzwoń</PhoneLink>
+              <PhoneLink href={businessConfig.phoneHref} trackSource={"customization_" + service.slug + "_call"} className="bm-btn-secondary inline-flex min-h-12 items-center justify-center gap-2 px-5 text-sm font-bold"><Phone size={18} aria-hidden /> Zadzwoń</PhoneLink>
             </div>
           </div>
           <aside className="rounded-[25px] border border-white/15 bg-[#191e28] p-6" aria-labelledby="enhancement-before-quote">
@@ -241,7 +241,7 @@ export function EnhancementServicePage({ service }: { service: EnhancementServic
         <section className="mt-14 rounded-[24px] border border-bm-red/35 bg-gradient-to-r from-[#241820] to-[#151923] p-6 sm:p-8" aria-labelledby="enhancement-contact-heading">
           <h2 id="enhancement-contact-heading" className="font-display text-2xl font-bold text-white sm:text-3xl">Masz zdjęcia pomysłu lub zestawu?</h2>
           <p className="mt-3 max-w-2xl text-sm leading-relaxed text-bm-copy">Wyślij nam markę i model auta, kilka zdjęć oraz opis oczekiwanego efektu. Ustalimy, czy wybrany wariant można dopasować i jak przygotować wycenę.</p>
-          <SocialContactLink kind="whatsapp" href={contactWhatsApp(service.title)} trackSource="customization_service_footer" className="bm-btn-primary mt-5 inline-flex min-h-12 items-center gap-2 px-5 text-sm font-bold"><MessageCircle size={18} aria-hidden /> Wyślij zapytanie <ArrowRight size={17} aria-hidden /></SocialContactLink>
+          <SocialContactLink kind="whatsapp" href={contactWhatsApp(service.title)} trackSource={"customization_" + service.slug + "_footer_whatsapp"} className="bm-btn-primary mt-5 inline-flex min-h-12 items-center gap-2 px-5 text-sm font-bold"><MessageCircle size={18} aria-hidden /> Wyślij zapytanie <ArrowRight size={17} aria-hidden /></SocialContactLink>
         </section>
 
         <section className="mt-14" aria-labelledby="enhancement-related">
