@@ -21,6 +21,7 @@ const FEATURED_SEO_LINKS: { href: string; label: string }[] = [
   { href: "/oswietlenie-ambientowe-samochodu-warszawa", label: "Oświetlenie ambientowe auta" },
   { href: "/oswietlenie-ambientowe-samochodu-warszawa", label: "Uniwersalne oświetlenie LED samochodu" },
   { href: "/wygluszenie-samochodu-warszawa", label: "Wygłuszenie i wyciszenie auta" },
+  { href: "/montaz-apple-carplay-warszawa", label: "Montaż Apple CarPlay i Android Auto" },
   { href: "/obszywanie-kierownicy-warszawa", label: "Obszywanie kierownicy" },
   { href: "/montaz-body-kitu-warszawa", label: "Montaż body kitu" },
   { href: "/mechanik-warszawa-wlochy", label: "Mechanik Warszawa Włochy" },
