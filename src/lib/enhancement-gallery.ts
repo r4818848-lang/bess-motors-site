@@ -1,7 +1,8 @@
 /**
- * Original workshop photos provided by BESS MOTORS for its ambient-lighting and
- * car soundproofing service galleries on 20 November 2026.
- * Cropped / resized to WebP without fabricating car interiors.
+ * Original owner-provided illustrative photos for the ambient-lighting and
+ * car soundproofing service galleries, received 20 November 2026.
+ * Cropped / resized to WebP without inventing or altering the interiors.
+ * Photo provenance is not a verified case study or workshop attribution.
  * Supplier image IMG_0947 (watermark) is intentionally excluded.
  */
 export type EnhancementPhoto = {
