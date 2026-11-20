@@ -93,6 +93,8 @@ assert.match(gallery, /Escape/);
 assert.doesNotMatch(gallery, /Realizacje BESS MOTORS/, "Photos must not be claimed as verified workshop cases");
 const page = readFileSync("src/components/seo/EnhancementServicePage.tsx", "utf8");
 assert.match(page, /EnhancementPhotoGallery/);
+assert.match(page, /customization_" \+ service\.slug \+ "_whatsapp"/, "WhatsApp clicks need service-specific GA4 attribution");
+assert.match(page, /customization_" \+ service\.slug \+ "_call"/, "Phone clicks need service-specific GA4 attribution");
 for (const slug of ["oswietlenie-ambientowe-samochodu-warszawa", "wygluszenie-samochodu-warszawa", "montaz-apple-carplay-warszawa"]) {
   assert.ok(page.includes('href="/' + slug + '"'), "Customization hub must link explicitly to " + slug);
 }
