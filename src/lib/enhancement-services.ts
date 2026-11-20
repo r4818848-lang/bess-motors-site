@@ -6,7 +6,7 @@
  *
  * Polish content is the canonical SEO source. UI navigation remains localized.
  */
-import { AMBIENT_LIGHTING_PHOTOS, SOUNDPROOFING_PHOTOS, CARPLAY_ANDROID_AUTO_PHOTOS, type EnhancementPhoto } from "./enhancement-gallery";
+import { AMBIENT_LIGHTING_PHOTOS, SOUNDPROOFING_PHOTOS, CARPLAY_ANDROID_AUTO_PHOTOS, STAR_HEADLINER_PHOTOS, type EnhancementPhoto } from "./enhancement-gallery";
 
 export type EnhancementCategory = "lighting" | "upholstery" | "exterior" | "comfort" | "multimedia" | "detailing";
 export type EnhancementFaq = { question: string; answer: string };
@@ -39,6 +39,47 @@ export const enhancementCategoryLabels: Record<EnhancementCategory,string> = {
 };
 
 export const enhancementServices: EnhancementService[] = [
+  {
+    slug: "gwiezdne-niebo-w-samochodzie-warszawa",
+    title: "Montaż gwiezdnego nieba w podsufitce samochodu",
+    titleRu: "Установка звёздного неба в потолок автомобиля",
+    metaTitle: "Montaż gwiezdnego nieba w samochodzie Warszawa | BESS MOTORS",
+    metaDescription: "Gwiezdne niebo w samochodzie – montaż światłowodów w podsufitce w Warszawie Włochy. Zdjęcia efektu i etapów pracy, wycena indywidualna. BESS MOTORS.",
+    category: "lighting",
+    intro: "Marzysz o efekcie rozgwieżdżonego nieba nad fotelami? BESS MOTORS w Warszawie Włochy oferuje dobór i montaż światłowodowego oświetlenia podsufitki. Zobacz zdjęcia gotowego efektu, przygotowania podsufitki i testów włókien. Zakres i wycenę uzgadniamy dla konkretnego samochodu.",
+    explanation: "Gwiezdne niebo to dekoracyjne punkty świetlne tworzone za pomocą włókien światłowodowych w podsufitce auta. Instalacja może wymagać demontażu podsufitki i części osłon, przygotowania punktów oraz poprowadzenia wiązek do źródła światła. Przed montażem sprawdzamy konstrukcję dachu, dostęp do instalacji, elementy bezpieczeństwa (w tym kurtyny powietrzne) oraz możliwości bezpiecznego zasilania. Liczbę punktów, kolory i tryby świecenia potwierdzamy dopiero po doborze zestawu. Zdjęcia pokazują przykładowy efekt i etapy wykonania, bez deklaracji identycznego rezultatu w każdym aucie.",
+    scope: [
+      "Ocena podsufitki, instalacji, miejsca na moduł światła i warunków bezpiecznego montażu",
+      "Ustalenie liczby i rozmieszczenia punktów świetlnych do projektu",
+      "Demontaż potrzebnych elementów wnętrza i przygotowanie podsufitki",
+      "Rozprowadzenie światłowodów, montaż źródła światła i bezpieczne prowadzenie przewodów",
+      "Montaż podsufitki, sprawdzenie świecenia i kontrola elementów wnętrza po pracach",
+    ],
+    preparation: [
+      "Prześlij markę, model, rok produkcji i zdjęcie podsufitki samochodu.",
+      "Napisz, czy podsufitka ma szyberdach albo dach panoramiczny, i jaki efekt Cię interesuje.",
+      "Podaj oczekiwaną liczbę punktów, kolory lub przykładowe zdjęcie inspiracji; możliwości potwierdzimy po ocenie auta.",
+    ],
+    faq: [
+      { question: "Gdzie w Warszawie zamontować gwiezdne niebo w samochodzie?", answer: "W BESS MOTORS przy Alei Krakowskiej 48/52, Warszawa Włochy, można zapytać o montaż światłowodowego gwiezdnego nieba. Podaj model auta i zdjęcia podsufitki, a sprawdzimy możliwość wykonania i zakres prac." },
+      { question: "Czy można zrobić gwiezdne niebo w samochodzie z panoramicznym dachem?", answer: "To zależy od ilości miejsca, budowy podsufitki, kurtyn powietrznych i sposobu jej demontażu. Zgodność potwierdzamy indywidualnie po sprawdzeniu samochodu." },
+      { question: "Ile kosztuje gwiezdne niebo w podsufitce auta?", answer: "Cena zależy m.in. od modelu, konstrukcji podsufitki, liczby punktów, zestawu i zakresu prac. Nie podajemy jednej ceny bez ustalenia specyfikacji." },
+      { question: "Jak długo trwa montaż światłowodów w podsufitce?", answer: "Czas zależy od demontażu, liczby punktów i stopnia skomplikowania projektu. Termin i przewidywany czas ustalamy po ocenie samochodu." },
+      { question: "Czy można wybrać kolory, migotanie i rozmieszczenie gwiazd?", answer: "Projekt rozmieszczenia omawiamy przed montażem. Funkcje zmiany kolorów, regulacji jasności i migotania są zależne od wybranego zestawu, dlatego ustalamy je przed zamówieniem części." },
+      { question: "Czy montaż wpływa na kurtyny powietrzne i bezpieczeństwo auta?", answer: "Przed pracą oceniamy przebieg kurtyn, wiązek i mocowań. Nie prowadzimy włókien ani przewodów w sposób kolidujący z elementami bezpieczeństwa; jeśli nie da się zapewnić prawidłowego montażu, uzgadniamy zmianę projektu." },
+    ],
+    keywords: [
+      "gwiezdne niebo samochód Warszawa",
+      "montaż gwiezdnego nieba Warszawa",
+      "podsufitka gwiezdne niebo Warszawa",
+      "światłowody w podsufitce auta",
+      "starlight headliner Warszawa",
+      "montaż światłowodów w podsufitce samochodu Warszawa",
+      "świecąca podsufitka samochodu Warszawa Włochy",
+      "звёздное небо в машине Варшава",
+    ],
+    photos: STAR_HEADLINER_PHOTOS,
+  },
   {
     slug: "oswietlenie-ambientowe-samochodu-warszawa",
     title: "Montaż uniwersalnego oświetlenia ambientowego LED",
