@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, CircleDot, Disc3, Droplets, MonitorCog, Snowflake, Wrench, Lightbulb, Sparkles, ShieldCheck } from "lucide-react";
+import { ArrowRight, CircleDot, Disc3, Droplets, MonitorCog, Snowflake, Wrench, Smartphone, Lightbulb, Sparkles, ShieldCheck } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { TIRE_AUDI_Q5_SRC } from "@/lib/tire-media";
 
@@ -18,6 +18,7 @@ const content = {
     universal: "Uniwersalne LED", universalDesc: "Podświetlenie wnętrza auta",
     ambient: "Ambient Light", ambientDesc: "Deska, drzwi i konsola",
     soundproof: "Wygłuszenie auta", soundproofDesc: "Drzwi, podłoga i bagażnik",
+    carplay: "Apple CarPlay / Android Auto", carplayDesc: "Integracja telefonu z ekranem auta",
     note: "Zakres i koszt prac uzgadniamy przed naprawą.",
   },
   ru: {
@@ -31,6 +32,7 @@ const content = {
     universal: "Универсальная LED-подсветка", universalDesc: "Подсветка салона автомобиля",
     ambient: "Ambient Light", ambientDesc: "Панель, двери и консоль",
     soundproof: "Шумоизоляция авто", soundproofDesc: "Двери, пол и багажник",
+    carplay: "Apple CarPlay / Android Auto", carplayDesc: "Подключение телефона к экрану",
     note: "Стоимость и объём работ согласуем до ремонта.",
   },
   uk: {
@@ -44,6 +46,7 @@ const content = {
     universal: "Універсальна LED-підсвітка", universalDesc: "Освітлення салону авто",
     ambient: "Ambient Light", ambientDesc: "Панель, двері та консоль",
     soundproof: "Шумоізоляція авто", soundproofDesc: "Двері, підлога та багажник",
+    carplay: "Apple CarPlay / Android Auto", carplayDesc: "Підключення телефона до екрана",
     note: "Вартість та обсяг робіт погоджуємо до ремонту.",
   },
   en: {
@@ -57,6 +60,7 @@ const content = {
     universal: "Universal LED lighting", universalDesc: "Custom interior illumination",
     ambient: "Ambient Light", ambientDesc: "Dashboard, doors and console",
     soundproof: "Car soundproofing", soundproofDesc: "Doors, floor and boot",
+    carplay: "Apple CarPlay / Android Auto", carplayDesc: "Phone integration with car display",
     note: "We agree on the scope and price before work begins.",
   },
 } as const;
@@ -75,6 +79,7 @@ export function SameDayServices() {
     { title: c.universal, description: c.universalDesc, href: "/oswietlenie-ambientowe-samochodu-warszawa", image: "/images/enhancements/ambient/ambient-15.webp", icon: Lightbulb, alt: "Uniwersalna podświetlenie LED wnętrza samochodu" },
     { title: c.ambient, description: c.ambientDesc, href: "/oswietlenie-ambientowe-samochodu-warszawa", image: "/images/enhancements/ambient/ambient-08.webp", icon: Sparkles, alt: "Oświetlenie ambientowe deski i drzwi samochodu" },
     { title: c.soundproof, description: c.soundproofDesc, href: "/wygluszenie-samochodu-warszawa", image: "/images/enhancements/soundproofing/wyciszenie-02.webp", icon: ShieldCheck, alt: "Wygłuszenie drzwi samochodu matami akustycznymi" },
+    { title: c.carplay, description: c.carplayDesc, href: "/montaz-apple-carplay-warszawa", image: "/images/enhancements/carplay/bmw-android-auto-cockpit.avif", icon: Smartphone, alt: "BMW z Android Auto, Google Maps na ekranie i fabrycznym systemem multimedialnym" },
   ] as const;
 
   return (
