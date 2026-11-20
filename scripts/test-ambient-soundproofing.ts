@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { enhancementServices, getEnhancementService, allEnhancementSlugs } from "../src/lib/enhancement-services";
-import { AMBIENT_LIGHTING_PHOTOS, SOUNDPROOFING_PHOTOS } from "../src/lib/enhancement-gallery";
+import { AMBIENT_LIGHTING_PHOTOS, SOUNDPROOFING_PHOTOS, STAR_HEADLINER_PHOTOS } from "../src/lib/enhancement-gallery";
 import { enhancementServiceSchema } from "../src/lib/enhancement-schema";
 
 const ambient = getEnhancementService("oswietlenie-ambientowe-samochodu-warszawa");
@@ -20,6 +20,28 @@ assert.ok(soundproof.faq.some(q => /hałas/i.test(q.question + " " + q.answer)))
 assert.ok(soundproof.scope.length >= 4);
 assert.deepEqual(soundproof.photos, SOUNDPROOFING_PHOTOS);
 assert.equal(soundproof.photos?.length, 3, "Use the three uploaded soundproofing installation photos");
+
+const starlight = getEnhancementService("gwiezdne-niebo-w-samochodzie-warszawa");
+assert.ok(starlight, "Published starlight headliner landing must exist");
+assert.equal(starlight.category, "lighting", "Match supported enhancement service taxonomy");
+assert.match(starlight.metaTitle, /gwiezdnego nieba.*Warszawa/);
+assert.deepEqual(starlight.photos, STAR_HEADLINER_PHOTOS);
+assert.equal(starlight.photos?.length, 5);
+assert.ok(starlight.faq.some(q => /Włochy/.test(q.question + " " + q.answer)));
+assert.ok(starlight.faq.some(q => /kurtyny/.test(q.question + " " + q.answer)), "Electrical and curtain-airbag safety notes");
+assert.ok(starlight.scope.length >= 4);
+for (const photo of starlight.photos ?? []) {
+  assert.match(photo.src, /^\/images\/enhancements\/star-headliner\/.+\.jpg$/);
+  assert.ok(photo.alt.length > 45, "Clear image alt describing what is actually visible");
+  assert.ok(photo.width >= 800 && photo.height >= 1500, "Dimensions for source photo");
+  const local = join("public", photo.src);
+  assert.ok(existsSync(local), "Missing star headliner gallery image: " + local);
+  assert.ok(statSync(local).size > 100_000, "Original photo appears to be truncated: " + local);
+  const magic = readFileSync(local).subarray(0, 3);
+  assert.deepEqual([...magic], [0xff, 0xd8, 0xff], "JPEG image signature");
+}
+assert.equal(new Set(starlight.photos?.map(p => p.src)).size, 5, "Star gallery must have 5 distinct shots");
+assert.ok(!JSON.stringify(enhancementServiceSchema(starlight)).includes('"offers"'), "No invented price schema");
 
 const carplay = getEnhancementService("montaz-apple-carplay-warszawa");
 assert.ok(carplay, "CarPlay/Android Auto landing must exist");
@@ -46,6 +68,8 @@ for (const photo of carplay.photos ?? []) {
 const homepage = readFileSync("src/components/home/SameDayServices.tsx", "utf8");
 assert.match(homepage, /bmw-android-auto-cockpit\.jpg/);
 assert.match(homepage, /c\.carplay/);
+assert.match(homepage, /c\.starSky/, "Star headliner card on homepage in four languages");
+assert.match(homepage, /gwiezdne-niebo-gotowy-efekt\.jpg/);
 assert.match(readFileSync("src/components/home/HomeSeoServiceLinks.tsx", "utf8"), /Montaż Apple CarPlay i Android Auto/);
 
 // Keep new Warsaw services answerable by search and AI without deceptive claims.
@@ -95,7 +119,7 @@ const page = readFileSync("src/components/seo/EnhancementServicePage.tsx", "utf8
 assert.match(page, /EnhancementPhotoGallery/);
 assert.match(page, /customization_" \+ service\.slug \+ "_whatsapp"/, "WhatsApp clicks need service-specific GA4 attribution");
 assert.match(page, /customization_" \+ service\.slug \+ "_call"/, "Phone clicks need service-specific GA4 attribution");
-for (const slug of ["oswietlenie-ambientowe-samochodu-warszawa", "wygluszenie-samochodu-warszawa", "montaz-apple-carplay-warszawa"]) {
+for (const slug of ["oswietlenie-ambientowe-samochodu-warszawa", "wygluszenie-samochodu-warszawa", "montaz-apple-carplay-warszawa", "gwiezdne-niebo-w-samochodzie-warszawa"]) {
   assert.ok(page.includes('href="/' + slug + '"'), "Customization hub must link explicitly to " + slug);
 }
 assert.match(page, /Jaką zmianę we wnętrzu auta wybrać/, "Helpful comparison on personalization hub");
@@ -106,4 +130,5 @@ assert.match(route, /Android Auto/, "Hub metadata should cover Android Auto");
 const sitemap = readFileSync("src/app/sitemap.ts", "utf8");
 assert.match(sitemap, /allEnhancementSlugs/);
 assert.match(sitemap, /"montaz-apple-carplay-warszawa"/, "Updated CarPlay page must have new sitemap lastmod");
-console.log("Customization: ambient 19 + soundproofing 3 + CarPlay/Android Auto BMW 4 photos, gallery, homepage SEO and price-free schema OK");
+assert.match(sitemap, /"gwiezdne-niebo-w-samochodzie-warszawa"/, "New page sitemap lastmod");
+console.log("Customization: ambient 19 + soundproofing 3 + CarPlay BMW 4 + starlight headliner 5 photos, hub links, SEO and schema OK");

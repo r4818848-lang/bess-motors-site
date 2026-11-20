@@ -85,7 +85,8 @@ export function EnhancementHubPage() {
             <p className="mt-5 max-w-2xl text-base leading-relaxed text-bm-copy sm:text-lg">
               Chcesz zmienić wygląd auta, odświeżyć jego wnętrze lub dodać nowe wyposażenie?
               W BESS MOTORS możesz zapytać o uniwersalne oświetlenie LED i ambient light, wygłuszenie drzwi i kabiny,
-              Apple CarPlay lub Android Auto, obszywanie tapicerki, stylizację nadwozia, folie i czyszczenie wnętrza.
+              gwiezdne niebo w podsufitce, Apple CarPlay lub Android Auto, obszywanie tapicerki, stylizację nadwozia,
+              folie i czyszczenie wnętrza.
             </p>
             <p className="mt-3 max-w-2xl text-sm leading-relaxed text-bm-label">
               Każdy projekt omawiamy indywidualnie. Dopasowanie części, materiał i zakres prac zależą od konkretnego samochodu.
@@ -123,7 +124,7 @@ export function EnhancementHubPage() {
               Zobacz, co warto sprawdzić przed doborem zestawu do konkretnego samochodu.
             </p>
           </div>
-          <div className="mt-6 grid gap-4 lg:grid-cols-3">
+          <div className="mt-6 grid gap-4 lg:grid-cols-2 xl:grid-cols-4">
             <article className="rounded-2xl border border-white/15 bg-[#171b23] p-5">
               <h3 className="font-display text-lg font-bold text-white">Ambient light i uniwersalne LED</h3>
               <p className="mt-3 text-sm leading-relaxed text-bm-copy">
@@ -133,6 +134,19 @@ export function EnhancementHubPage() {
               </p>
               <Link href="/oswietlenie-ambientowe-samochodu-warszawa" className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-bm-accent hover:text-white">
                 Montaż podświetlenia LED <ArrowRight size={16} aria-hidden />
+              </Link>
+            </article>
+            <article className="rounded-2xl border border-white/15 bg-[#171b23] p-5">
+              <div className="relative mb-4 h-40 overflow-hidden rounded-xl border border-white/10">
+                <Image src="/images/enhancements/star-headliner/gwiezdne-niebo-gotowy-efekt.jpg" alt="Gotowy efekt gwiezdnego nieba w samochodowej podsufitce" fill quality={75} loading="lazy" sizes="(max-width:1024px) 90vw, 22vw" className="object-cover object-center" />
+              </div>
+              <h3 className="font-display text-lg font-bold text-white">Gwiezdne niebo w podsufitce</h3>
+              <p className="mt-3 text-sm leading-relaxed text-bm-copy">
+                Światłowodowy efekt starlight w suficie auta: liczba punktów, ich rozmieszczenie i sterowanie
+                zależą od wybranego zestawu oraz konstrukcji podsufitki. Przed montażem sprawdzamy bezpieczeństwo prowadzenia włókien i przewodów.
+              </p>
+              <Link href="/gwiezdne-niebo-w-samochodzie-warszawa" className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-bm-accent hover:text-white">
+                Zobacz zdjęcia i możliwości <ArrowRight size={16} aria-hidden />
               </Link>
             </article>
             <article className="rounded-2xl border border-white/15 bg-[#171b23] p-5">
@@ -196,6 +210,14 @@ export function EnhancementServicePage({ service }: { service: EnhancementServic
             </div>
           </div>
           <aside className="rounded-[25px] border border-white/15 bg-[#191e28] p-6" aria-labelledby="enhancement-before-quote">
+            {service.slug === "gwiezdne-niebo-w-samochodzie-warszawa" && service.photos?.[0] ? (
+              <figure className="mb-6">
+                <div className="relative mx-auto aspect-[3/4] max-h-[390px] overflow-hidden rounded-2xl border border-white/10 bg-black">
+                  <Image src={service.photos[0].src} alt={service.photos[0].alt} fill quality={75} priority sizes="(max-width:1024px) 90vw, 27vw" className="object-cover object-center" />
+                </div>
+                <figcaption className="mt-2 text-xs text-bm-label">Przykładowy efekt gwiezdnego nieba w podsufitce samochodu</figcaption>
+              </figure>
+            ) : null}
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-bm-accent/10 text-bm-accent"><ClipboardList size={23} aria-hidden /></div>
             <h2 id="enhancement-before-quote" className="mt-5 font-display text-2xl font-bold text-white">Co wysłać do wyceny?</h2>
             <ul className="mt-5 space-y-4">
