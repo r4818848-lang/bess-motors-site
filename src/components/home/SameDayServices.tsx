@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, CircleDot, Disc3, Droplets, MonitorCog, Snowflake, Wrench } from "lucide-react";
+import { ArrowRight, CircleDot, Disc3, Droplets, MonitorCog, Snowflake, Wrench, Lightbulb, Sparkles, ShieldCheck } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { TIRE_AUDI_Q5_SRC } from "@/lib/tire-media";
 
@@ -15,6 +15,9 @@ const content = {
     brakes: "Serwis hamulców", brakesDesc: "Tarcze, klocki, płyn",
     ac: "Klimatyzacja", acDesc: "Serwis i napełnianie",
     suspension: "Zawieszenie", suspensionDesc: "Diagnostyka i naprawa",
+    universal: "Uniwersalne LED", universalDesc: "Podświetlenie wnętrza auta",
+    ambient: "Ambient Light", ambientDesc: "Deska, drzwi i konsola",
+    soundproof: "Wygłuszenie auta", soundproofDesc: "Drzwi, podłoga i bagażnik",
     note: "Zakres i koszt prac uzgadniamy przed naprawą.",
   },
   ru: {
@@ -25,6 +28,9 @@ const content = {
     brakes: "Тормозная система", brakesDesc: "Диски, колодки, жидкость",
     ac: "Кондиционер", acDesc: "Обслуживание и заправка",
     suspension: "Подвеска", suspensionDesc: "Диагностика и ремонт",
+    universal: "Универсальная LED-подсветка", universalDesc: "Подсветка салона автомобиля",
+    ambient: "Ambient Light", ambientDesc: "Панель, двери и консоль",
+    soundproof: "Шумоизоляция авто", soundproofDesc: "Двери, пол и багажник",
     note: "Стоимость и объём работ согласуем до ремонта.",
   },
   uk: {
@@ -35,6 +41,9 @@ const content = {
     brakes: "Гальмівна система", brakesDesc: "Диски, колодки, рідина",
     ac: "Кондиціонер", acDesc: "Сервіс і заправка",
     suspension: "Підвіска", suspensionDesc: "Діагностика та ремонт",
+    universal: "Універсальна LED-підсвітка", universalDesc: "Освітлення салону авто",
+    ambient: "Ambient Light", ambientDesc: "Панель, двері та консоль",
+    soundproof: "Шумоізоляція авто", soundproofDesc: "Двері, підлога та багажник",
     note: "Вартість та обсяг робіт погоджуємо до ремонту.",
   },
   en: {
@@ -45,6 +54,9 @@ const content = {
     brakes: "Brake service", brakesDesc: "Discs, pads and fluid",
     ac: "Air conditioning", acDesc: "Service and recharge",
     suspension: "Suspension", suspensionDesc: "Diagnostics and repairs",
+    universal: "Universal LED lighting", universalDesc: "Custom interior illumination",
+    ambient: "Ambient Light", ambientDesc: "Dashboard, doors and console",
+    soundproof: "Car soundproofing", soundproofDesc: "Doors, floor and boot",
     note: "We agree on the scope and price before work begins.",
   },
 } as const;
@@ -60,13 +72,16 @@ export function SameDayServices() {
     { title: c.brakes, description: c.brakesDesc, href: "/hamulce", image: "/images/works/brake-pads-change.png", icon: Disc3, alt: "Serwis hamulców w BESS MOTORS" },
     { title: c.ac, description: c.acDesc, href: "/klimatyzacja", image: "/images/works/ac-recharge-bmw.png", icon: Snowflake, alt: "Serwis klimatyzacji w BESS MOTORS" },
     { title: c.suspension, description: c.suspensionDesc, href: "/naprawa-zawieszenia-warszawa", image: "/images/works/before-after/audi-a6-suspension/after/01.jpg", icon: Wrench, alt: "Naprawa zawieszenia Audi A6 w BESS MOTORS" },
+    { title: c.universal, description: c.universalDesc, href: "/oswietlenie-ambientowe-samochodu-warszawa", image: "/images/enhancements/ambient/ambient-15.webp", icon: Lightbulb, alt: "Uniwersalna podświetlenie LED wnętrza samochodu" },
+    { title: c.ambient, description: c.ambientDesc, href: "/oswietlenie-ambientowe-samochodu-warszawa", image: "/images/enhancements/ambient/ambient-08.webp", icon: Sparkles, alt: "Oświetlenie ambientowe deski i drzwi samochodu" },
+    { title: c.soundproof, description: c.soundproofDesc, href: "/wygluszenie-samochodu-warszawa", image: "/images/enhancements/soundproofing/wyciszenie-02.webp", icon: ShieldCheck, alt: "Wygłuszenie drzwi samochodu matami akustycznymi" },
   ] as const;
 
   return (
     <section
       className="relative border-t border-white/10 bg-[#0c1016] pb-12 pt-9 sm:pb-16 sm:pt-14"
       aria-labelledby="popular-services-heading"
-      data-testid="homepage-six-services"
+      data-testid="homepage-services"
     >
       <div className="mx-auto max-w-7xl px-4 lg:px-8">
         <div className="mb-5 flex flex-wrap items-end justify-between gap-3 sm:mb-7">
