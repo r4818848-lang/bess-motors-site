@@ -171,7 +171,13 @@ async function fetchViaPlacesNew(
   const placeResource = resolved.id.startsWith("places/")
     ? resolved.id
     : `places/${resolved.id}`;
-  const res = await fetch(`https://places.googleapis.com/v1/${placeResource}`, {
+  // Places API returns max 5 reviews; NEWEST keeps fresher ones on the site
+  const detailsUrl = new URL(`https://places.googleapis.com/v1/${placeResource}`);
+  detailsUrl.searchParams.set("languageCode", languageCode);
+  detailsUrl.searchParams.set("regionCode", "PL");
+  detailsUrl.searchParams.set("reviewsSort", "NEWEST");
+
+  const res = await fetch(detailsUrl.toString(), {
     headers: {
       "Content-Type": "application/json",
       "X-Goog-Api-Key": key,
