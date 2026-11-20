@@ -43,7 +43,7 @@ export const enhancementServices: EnhancementService[] = [
     slug: "oswietlenie-ambientowe-samochodu-warszawa",
     title: "Montaż uniwersalnego oświetlenia ambientowego LED",
     titleRu: "Установка амбиентной подсветки",
-    metaTitle: "Montaż ambient light i uniwersalnego LED Warszawa",
+    metaTitle: "Montaż ambient light i uniwersalnego podświetlenia LED Warszawa",
     metaDescription: "Montaż ambient light i uniwersalnego podświetlenia LED auta w Warszawie Włochy. Deska, drzwi i przestrzeń na nogi. Zdjęcia i indywidualna wycena BESS MOTORS.",
     category: "lighting",
     intro: "Uniwersalne oświetlenie ambientowe LED może całkowicie zmienić atmosferę wnętrza. W BESS MOTORS w Warszawie pomagamy dobrać i zamontować podświetlenie deski, drzwi, konsoli i przestrzeni na nogi. Zobacz galerię przykładowych efektów w różnych kolorach i konfiguracjach.",
