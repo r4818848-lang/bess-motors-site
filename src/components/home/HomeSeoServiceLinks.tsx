@@ -18,8 +18,7 @@ const FEATURED_SEO_LINKS: { href: string; label: string }[] = [
   { href: "/diagnostyka-komputerowa-warszawa", label: "Diagnostyka komputerowa" },
   { href: "/serwis-skrzyni-automatycznej-warszawa", label: "Skrzynia automatyczna" },
   { href: "/personalizacja-samochodu-warszawa", label: "Personalizacja samochodu" },
-  { href: "/oswietlenie-ambientowe-samochodu-warszawa", label: "Oświetlenie ambientowe auta" },
-  { href: "/oswietlenie-ambientowe-samochodu-warszawa", label: "Uniwersalne oświetlenie LED samochodu" },
+  { href: "/oswietlenie-ambientowe-samochodu-warszawa", label: "Montaż ambient light i uniwersalnego LED" },
   { href: "/wygluszenie-samochodu-warszawa", label: "Wygłuszenie i wyciszenie auta" },
   { href: "/montaz-apple-carplay-warszawa", label: "Montaż Apple CarPlay i Android Auto" },
   { href: "/obszywanie-kierownicy-warszawa", label: "Obszywanie kierownicy" },
@@ -42,10 +41,10 @@ export function HomeSeoServiceLinks() {
               id="seo-services-heading"
               className="font-display text-xl sm:text-2xl font-bold text-white tracking-tight"
             >
-              Usługi serwisowe Warszawa
+              Serwis i personalizacja samochodu Warszawa
             </h2>
             <p className="mt-2 text-sm text-bm-muted max-w-2xl">
-              Najczęściej szukane usługi BESS MOTORS — Włochy, Aleja Krakowska 48/52.
+              Serwis mechaniczny i doposażenie samochodów w BESS MOTORS — Warszawa Włochy, Aleja Krakowska 48/52.
             </p>
           </div>
           <Link href="/services" className="btn-outline text-sm inline-flex items-center gap-2">
