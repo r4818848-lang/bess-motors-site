@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, CircleDot, Disc3, Droplets, MonitorCog, Snowflake, Wrench, Smartphone, Lightbulb, Sparkles, ShieldCheck, Stars } from "lucide-react";
+import { ArrowRight, CircleDot, Disc3, Droplets, MonitorCog, Snowflake, Wrench, Smartphone, Lightbulb, Sparkles, ShieldCheck, Star } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { TIRE_AUDI_Q5_SRC } from "@/lib/tire-media";
 
@@ -84,7 +84,7 @@ export function SameDayServices() {
     { title: c.ambient, description: c.ambientDesc, href: "/oswietlenie-ambientowe-samochodu-warszawa", image: "/images/enhancements/ambient/ambient-08.webp", icon: Sparkles, alt: "Oświetlenie ambientowe deski i drzwi samochodu" },
     { title: c.soundproof, description: c.soundproofDesc, href: "/wygluszenie-samochodu-warszawa", image: "/images/enhancements/soundproofing/wyciszenie-02.webp", icon: ShieldCheck, alt: "Wygłuszenie drzwi samochodu matami akustycznymi" },
     { title: c.carplay, description: c.carplayDesc, href: "/montaz-apple-carplay-warszawa", image: "/images/enhancements/carplay/bmw-android-auto-cockpit.jpg", icon: Smartphone, alt: "BMW z Android Auto, Google Maps na ekranie i fabrycznym systemem multimedialnym" },
-    { title: c.starSky, description: c.starSkyDesc, href: "/gwiezdne-niebo-w-samochodzie-warszawa", image: "/images/enhancements/star-headliner/gwiezdne-niebo-gotowy-efekt.jpg", icon: Stars, alt: "Światłowodowe gwiezdne niebo na czarnej podsufitce samochodu" },
+    { title: c.starSky, description: c.starSkyDesc, href: "/gwiezdne-niebo-w-samochodzie-warszawa", image: "/images/enhancements/star-headliner/gwiezdne-niebo-gotowy-efekt.jpg", icon: Star, alt: "Światłowodowe gwiezdne niebo na czarnej podsufitce samochodu" },
   ] as const;
 
   return (
