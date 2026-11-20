@@ -46,6 +46,7 @@ export const TIRE_COPY_LAST_MODIFIED = new Date("2026-11-11T11:30:00.000Z");
 export function sitemapLastModifiedFor(path: string): Date {
   const key = path || "/";
   if (key.startsWith("/blog/")) return SITEMAP_LAST_MODIFIED;
+  if (new Set(["/oswietlenie-ambientowe-samochodu-warszawa", "/wygluszenie-samochodu-warszawa", "/personalizacja-samochodu-warszawa", "/services"]).has(key)) return new Date("2026-11-20T10:00:00.000Z");
   if (key === "/hamulce" || key === "/wymiana-plynu-chlodniczego-warszawa") return LOCAL_SERVICE_CONTENT_LAST_MODIFIED;
   if (new Set(["/wymiana-opon-warszawa", "/wymiana-oleju", "/wymiana-oleju-skrzynia-automatyczna-warszawa"]).has(key)) return SEO_CTR_LAST_MODIFIED;
   if (new Set(["/booking", "/gallery", "/zawieszenie", "/naprawa-zawieszenia-warszawa"]).has(key)) return AI_GEO_CONTENT_LAST_MODIFIED;
