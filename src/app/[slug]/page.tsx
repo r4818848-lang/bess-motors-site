@@ -41,10 +41,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   if (slug === ENHANCEMENT_HUB_SLUG) {
     return buildPageMetadata({
-      title: "Personalizacja auta Warszawa – ambient LED, CarPlay, wygłuszenie",
-      description: "Personalizacja samochodu w Warszawie Włochy: montaż uniwersalnego LED, ambient light, wygłuszenie auta, Apple CarPlay i Android Auto. Galeria zdjęć BESS MOTORS.",
+      title: "Personalizacja auta Warszawa – ambient, gwiezdne niebo, CarPlay",
+      description: "Personalizacja auta Warszawa Włochy: ambient LED, gwiezdne niebo w podsufitce, wygłuszenie, Apple CarPlay i Android Auto. Zdjęcia, indywidualna wycena.",
       path: "/" + slug,
-      keywords: ["personalizacja samochodu Warszawa", "ambient light Warszawa", "uniwersalne oświetlenie LED Warszawa", "wygłuszenie samochodu Warszawa", "Apple CarPlay Android Auto Warszawa", "BESS MOTORS Włochy"],
+      keywords: ["personalizacja samochodu Warszawa", "ambient light Warszawa", "uniwersalne oświetlenie LED Warszawa", "wygłuszenie samochodu Warszawa", "Apple CarPlay Android Auto Warszawa", "gwiezdne niebo samochód Warszawa", "BESS MOTORS Włochy"],
     });
   }
   const enhancement = getEnhancementService(slug);
