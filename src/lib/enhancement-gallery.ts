@@ -42,3 +42,18 @@ export const SOUNDPROOFING_PHOTOS: readonly EnhancementPhoto[] = [
   { src: NOISE_PATH + "wyciszenie-01.webp", alt: "Wygłuszanie i izolacja nadkola oraz wnętrza bagażnika samochodu", width: 589, height: 1052 },
   { src: NOISE_PATH + "wyciszenie-03.webp", alt: "Pianka akustyczna zamontowana od wewnętrznej strony tapicerki drzwiowej", width: 520, height: 920 },
 ];
+
+
+/**
+ * Owner-supplied BMW multimedia photos from 20 November 2026.
+ * The captured in-car screen demonstrates Android Auto / Google Maps.
+ * Images are illustrative of retrofit possibilities, not proof of Apple CarPlay
+ * on this particular unit. Compatibility is checked against each car.
+ */
+const CARPLAY_PATH = "/images/enhancements/carplay/";
+export const CARPLAY_ANDROID_AUTO_PHOTOS: readonly EnhancementPhoto[] = [
+  { src: CARPLAY_PATH + "bmw-android-auto-cockpit.avif", alt: "BMW z ekranem multimedialnym Android Auto oraz podświetleniem kokpitu – widok całej deski rozdzielczej", width: 780, height: 439 },
+  { src: CARPLAY_PATH + "bmw-google-maps-screen.avif", alt: "Google Maps na ekranie BMW po integracji Android Auto – nawigacja samochodowa", width: 780, height: 439 },
+  { src: CARPLAY_PATH + "bmw-media-android-auto.avif", alt: "Menu systemu BMW z wybraną funkcją Android Auto na fabrycznym ekranie multimedialnym", width: 439, height: 780 },
+  { src: CARPLAY_PATH + "bmw-google-maps-portrait.avif", alt: "Wyświetlacz BMW z aktywną mapą Google Maps i interfejsem Android Auto – zdjęcie wnętrza", width: 439, height: 780 },
+];
