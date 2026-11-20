@@ -21,6 +21,33 @@ assert.ok(soundproof.scope.length >= 4);
 assert.deepEqual(soundproof.photos, SOUNDPROOFING_PHOTOS);
 assert.equal(soundproof.photos?.length, 3, "Use the three uploaded soundproofing installation photos");
 
+const carplay = getEnhancementService("montaz-apple-carplay-warszawa");
+assert.ok(carplay, "CarPlay/Android Auto landing must exist");
+assert.match(carplay.title, /Apple CarPlay i Android Auto/);
+assert.match(carplay.intro, /Google Maps/);
+assert.equal(carplay.photos?.length, 4, "Include all four supplied BMW multimedia photos");
+assert.ok(carplay.faq.some(f => /Android Auto/.test(f.question + f.answer)));
+const carplayGalleryPaths = new Set<string>();
+for (const photo of carplay.photos ?? []) {
+  assert.ok(photo.src.startsWith("/images/enhancements/carplay/"), photo.src);
+  assert.ok(photo.src.endsWith(".jpg"), photo.src);
+  assert.ok(photo.alt.includes("BMW"), "Photo must describe the demonstrated BMW Android Auto");
+  assert.ok(photo.width >= 800 && photo.height >= 800);
+  assert.ok(!carplayGalleryPaths.has(photo.src), "No duplicate BMW photos");
+  carplayGalleryPaths.add(photo.src);
+  const local = join("public", photo.src);
+  assert.ok(existsSync(local), "Missing original BMW photo: " + local);
+  assert.ok(statSync(local).size > 50_000, "Unexpectedly small photo: " + local);
+  const jpegMagic = readFileSync(local).subarray(0, 3);
+  assert.equal(jpegMagic[0], 0xff);
+  assert.equal(jpegMagic[1], 0xd8);
+  assert.equal(jpegMagic[2], 0xff);
+}
+const homepage = readFileSync("src/components/home/SameDayServices.tsx", "utf8");
+assert.match(homepage, /bmw-android-auto-cockpit\.jpg/);
+assert.match(homepage, /c\.carplay/);
+assert.match(readFileSync("src/components/home/HomeSeoServiceLinks.tsx", "utf8"), /Montaż Apple CarPlay i Android Auto/);
+
 const paths = new Set<string>();
 for (const photo of [...(ambient.photos ?? []), ...(soundproof.photos ?? [])]) {
   assert.ok(photo.src.startsWith("/images/enhancements/"), photo.src);
@@ -59,4 +86,4 @@ const page = readFileSync("src/components/seo/EnhancementServicePage.tsx", "utf8
 assert.match(page, /EnhancementPhotoGallery/);
 const sitemap = readFileSync("src/app/sitemap.ts", "utf8");
 assert.match(sitemap, /allEnhancementSlugs/);
-console.log("Customization: ambient 19 + soundproofing 3 optimized photos, gallery, SEO and price-free schema OK");
+console.log("Customization: ambient 19 + soundproofing 3 + CarPlay/Android Auto BMW 4 photos, gallery, homepage SEO and price-free schema OK");

@@ -6,7 +6,7 @@
  *
  * Polish content is the canonical SEO source. UI navigation remains localized.
  */
-import { AMBIENT_LIGHTING_PHOTOS, SOUNDPROOFING_PHOTOS, type EnhancementPhoto } from "./enhancement-gallery";
+import { AMBIENT_LIGHTING_PHOTOS, SOUNDPROOFING_PHOTOS, CARPLAY_ANDROID_AUTO_PHOTOS, type EnhancementPhoto } from "./enhancement-gallery";
 
 export type EnhancementCategory = "lighting" | "upholstery" | "exterior" | "comfort" | "multimedia" | "detailing";
 export type EnhancementFaq = { question: string; answer: string };
@@ -234,21 +234,40 @@ export const enhancementServices: EnhancementService[] = [
   },
   {
     slug: "montaz-apple-carplay-warszawa",
-    title: "Montaż i doposażenie w Apple CarPlay",
-    titleRu: "Установка Apple CarPlay",
-    metaTitle: "Montaż Apple CarPlay Warszawa – doposażenie auta",
-    metaDescription: "Doposażenie samochodu w Apple CarPlay po sprawdzeniu systemu multimedialnego. Dobór rozwiązania do modelu i rocznika. BESS MOTORS Warszawa Włochy.",
+    title: "Montaż Apple CarPlay i Android Auto",
+    titleRu: "Установка Apple CarPlay и Android Auto",
+    metaTitle: "Montaż Apple CarPlay i Android Auto Warszawa – BMW, doposażenie",
+    metaDescription: "Montaż Apple CarPlay i Android Auto w Warszawie. Integracja z fabrycznym ekranem po weryfikacji zgodności auta, zdjęcia BMW z Android Auto i Google Maps. BESS MOTORS Włochy.",
     category: "multimedia",
-    intro: "Apple CarPlay ułatwia korzystanie z kompatybilnych funkcji iPhone'a na ekranie multimedialnym samochodu. Możliwość doposażenia zależy jednak od zastosowanego radia i elektroniki auta.",
-    explanation: "W jednych samochodach wystarczy kompatybilny moduł, w innych potrzebna może być wymiana jednostki. Przed podjęciem prac trzeba sprawdzić złącza, ekran, sterowanie z kierownicy i możliwości systemu. Nie obiecujemy aktywacji każdej fabrycznej jednostki bez weryfikacji.",
-    scope: ["Wstępna ocena fabrycznego systemu multimedialnego", "Dobór sposobu doposażenia w Apple CarPlay", "Omówienie kompatybilności ekranu i sterowania", "Montaż lub konfiguracja zatwierdzonego rozwiązania"],
-    preparation: ["Podaj VIN, markę, model i rocznik.", "Wyślij zdjęcie ekranu oraz menu systemu.", "Napisz, czy zależy Ci na połączeniu przewodowym czy bezprzewodowym."],
-    faq: [
-      { question: "Czy Apple CarPlay można zamontować w starszym samochodzie?", answer: "W wielu autach istnieją rozwiązania doposażeniowe, ale ich dostępność zależy od fabrycznego radia i wyposażenia. Weryfikujemy model przed doborem części." },
-      { question: "Czy pozostaną przyciski na kierownicy?", answer: "Zgodność przycisków oraz pozostałych funkcji zależy od zastosowanego modułu. Potwierdzimy ją dla wybranego samochodu." },
-      { question: "Czy dostępny jest bezprzewodowy CarPlay?", answer: "Niektóre rozwiązania obsługują łączność bezprzewodową. Dobór wersji przewodowej lub bezprzewodowej ustalamy przed montażem." },
+    intro: "Chcesz korzystać z nawigacji, muzyki i aplikacji telefonu na ekranie auta? W BESS MOTORS w Warszawie pomagamy dobrać rozwiązanie Apple CarPlay lub Android Auto do konkretnego systemu multimedialnego. Na zdjęciach przedstawiamy przykład działania Android Auto i Google Maps na ekranie BMW; zgodność oraz zakres instalacji ustalamy indywidualnie.",
+    explanation: "W zależności od marki, rocznika i wyposażenia możliwe jest doposażenie fabrycznego ekranu w odpowiedni moduł albo wybór innego zgodnego rozwiązania. Przed pracą sprawdzamy VIN, wersję systemu multimedialnego, połączenia, sterowanie oraz przewodowy lub bezprzewodowy tryb działania. Zdjęcia BMW przedstawiają Android Auto — nie potwierdzają działania Apple CarPlay na sfotografowanym egzemplarzu. Nie gwarantujemy kompatybilności bez weryfikacji samochodu.",
+    scope: [
+      "Weryfikacja zgodności fabrycznego systemu i ekranu multimedialnego",
+      "Dobór odpowiedniego modułu Apple CarPlay lub Android Auto",
+      "Montaż i konfiguracja wybranego rozwiązania po zatwierdzeniu zakresu",
+      "Kontrola działania nawigacji, dźwięku i funkcji telefonu",
     ],
-    keywords: ["montaż Apple CarPlay Warszawa", "CarPlay do starszego auta", "doposażenie CarPlay samochodu"],
+    preparation: [
+      "Podaj markę, model, rocznik i numer VIN samochodu.",
+      "Prześlij zdjęcie ekranu oraz wersję systemu multimedialnego.",
+      "Napisz, czy korzystasz z iPhone'a (CarPlay), czy telefonu Android (Android Auto), i czy zależy Ci na połączeniu bezprzewodowym.",
+    ],
+    faq: [
+      { question: "Czy można zamontować Apple CarPlay lub Android Auto w starszym BMW?", answer: "W wielu wersjach systemów BMW dostępne są rozwiązania doposażeniowe. Możliwość montażu sprawdzamy po VIN, wersji iDrive i wyposażeniu konkretnego auta." },
+      { question: "Czy można zachować fabryczny ekran i sterowanie iDrive?", answer: "W niektórych autach tak. Dobór modułu oraz zgodność sterowania, dźwięku i ekranu potwierdzamy przed montażem." },
+      { question: "Czy instalacja będzie działała bezprzewodowo?", answer: "Obsługa przewodowa lub bezprzewodowa zależy od zastosowanego zestawu i telefonu. Ustalimy wariant przed zakupem części." },
+      { question: "Czy zdjęcia BMW pokazują Apple CarPlay?", answer: "Nie. Przedstawiają działanie Android Auto oraz Google Maps na ekranie BMW. Są przykładem integracji telefonu z multimediami samochodu." },
+      { question: "Ile kosztuje montaż CarPlay i Android Auto?", answer: "Cenę ustalamy indywidualnie po sprawdzeniu wersji systemu, potrzebnych części i zakresu instalacji." },
+    ],
+    keywords: [
+      "montaż Apple CarPlay Warszawa",
+      "montaż Android Auto Warszawa",
+      "Android Auto BMW Warszawa",
+      "CarPlay BMW Warszawa",
+      "doposażenie multimediów BMW",
+      "Google Maps ekran samochodu",
+    ],
+    photos: CARPLAY_ANDROID_AUTO_PHOTOS,
   },
   {
     slug: "oklejanie-samochodu-folia-warszawa",
