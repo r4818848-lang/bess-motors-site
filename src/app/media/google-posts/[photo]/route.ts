@@ -9,7 +9,16 @@ import { NextResponse } from "next/server";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+// A controlled catalogue of the nineteen original ambient photos.
+const ambientPhotoSources = Object.fromEntries(
+  Array.from({ length: 19 }, (_, idx) => {
+    const number = String(idx + 1).padStart(2, "0");
+    return [`ambient-${number}.jpg`, `/images/enhancements/ambient/ambient-${number}.webp`];
+  }),
+);
+
 const photoPaths: Record<string, string> = {
+  ...ambientPhotoSources,
   "ambient-light.jpg": "/images/enhancements/ambient/ambient-08.webp",
   "ambient-purple.jpg": "/images/enhancements/ambient/ambient-18.webp",
   "ambient-detail.jpg": "/images/enhancements/ambient/ambient-19.webp",
