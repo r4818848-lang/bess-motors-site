@@ -57,3 +57,17 @@ export const CARPLAY_ANDROID_AUTO_PHOTOS: readonly EnhancementPhoto[] = [
   { src: CARPLAY_PATH + "bmw-media-android-auto.jpg", alt: "Menu systemu BMW z wybraną funkcją Android Auto na fabrycznym ekranie multimedialnym", width: 864, height: 1536 },
   { src: CARPLAY_PATH + "bmw-google-maps-portrait.jpg", alt: "Wyświetlacz BMW z aktywną mapą Google Maps i interfejsem Android Auto – zdjęcie wnętrza", width: 864, height: 1536 },
 ];
+
+
+/** Owner-provided images of a fibre-optic starlight headliner project.
+ * The gallery separates loose fibre lighting tests, headliner preparation,
+ * and the finished interior. Do not imply verified BESS MOTORS case ownership.
+ */
+const STAR_HEADLINER_PATH = "/images/enhancements/star-headliner/";
+export const STAR_HEADLINER_PHOTOS: readonly EnhancementPhoto[] = [
+  { src: STAR_HEADLINER_PATH + "gwiezdne-niebo-gotowy-efekt.jpg", alt: "Gotowa czarna podsufitka z rozświetlonymi punktami gwiezdnego nieba we wnętrzu samochodu", width: 864, height: 1536 },
+  { src: STAR_HEADLINER_PATH + "gwiezdne-niebo-montaz-podsufitki.jpg", alt: "Przygotowanie zdemontowanej podsufitki i prowadzenie światłowodów od jej tylnej strony", width: 1152, height: 1536 },
+  { src: STAR_HEADLINER_PATH + "gwiezdne-niebo-prowadzenie-wlokien.jpg", alt: "Wystające włókna światłowodowe na czarnym materiale podsufitki przed wykończeniem", width: 864, height: 1536 },
+  { src: STAR_HEADLINER_PATH + "gwiezdne-niebo-test-swiatlowodow-01.jpg", alt: "Fioletowe i białe końcówki światłowodów świecące podczas testu zestawu gwiezdnego nieba", width: 1152, height: 1536 },
+  { src: STAR_HEADLINER_PATH + "gwiezdne-niebo-test-swiatlowodow-02.jpg", alt: "Świecące włókna światłowodowe przed montażem w samochodowej podsufitce", width: 1152, height: 1536 },
+];
