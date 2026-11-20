@@ -22,8 +22,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ENHANCEMENT_HUB_SLUG,
     "oswietlenie-ambientowe-samochodu-warszawa",
     "wygluszenie-samochodu-warszawa",
+    "montaz-apple-carplay-warszawa",
   ]);
-  const updatedEnhancementAt = new Date("2026-11-20T00:00:00.000Z");
+  const updatedEnhancementAt = new Date("2026-11-20T10:00:00.000Z");
 
   const add = (
     path: string,
