@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { EnhancementPhotoGallery } from "./EnhancementPhotoGallery";
 import {
   ArrowRight, BadgeCheck, CarFront, Check, ChevronRight, ClipboardList, FileCheck2,
@@ -41,6 +42,7 @@ export function EnhancementServicesGrid({ exclude }: { exclude?: string }) {
               <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-bm-accent/20 bg-bm-accent/10 text-bm-accent"><Icon size={22} aria-hidden /></span>
               <ArrowRight size={17} className="text-bm-label transition-transform motion-safe:group-hover:translate-x-1" aria-hidden />
             </div>
+            {service.photos?.[0] ? <div className="relative mt-4 h-36 overflow-hidden rounded-xl border border-white/10"><Image src={service.photos[0].src} alt={service.photos[0].alt} fill loading="lazy" sizes="(max-width:640px) 92vw, (max-width:1279px) 45vw, 30vw" className="object-cover transition-transform duration-500 motion-safe:group-hover:scale-[1.035]" /></div> : null}
             <h3 className="mt-5 font-display text-xl font-bold leading-tight text-white">{service.title}</h3>
             <p className="mt-2 text-xs font-semibold uppercase tracking-[0.12em] text-bm-label">{enhancementCategoryLabels[service.category]}</p>
           </Link>
