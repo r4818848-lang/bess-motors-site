@@ -19,6 +19,8 @@ const FEATURED_SEO_LINKS: { href: string; label: string }[] = [
   { href: "/serwis-skrzyni-automatycznej-warszawa", label: "Skrzynia automatyczna" },
   { href: "/personalizacja-samochodu-warszawa", label: "Personalizacja samochodu" },
   { href: "/oswietlenie-ambientowe-samochodu-warszawa", label: "Oświetlenie ambientowe auta" },
+  { href: "/oswietlenie-ambientowe-samochodu-warszawa", label: "Uniwersalne oświetlenie LED samochodu" },
+  { href: "/wygluszenie-samochodu-warszawa", label: "Wygłuszenie i wyciszenie auta" },
   { href: "/obszywanie-kierownicy-warszawa", label: "Obszywanie kierownicy" },
   { href: "/montaz-body-kitu-warszawa", label: "Montaż body kitu" },
   { href: "/mechanik-warszawa-wlochy", label: "Mechanik Warszawa Włochy" },
