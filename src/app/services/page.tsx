@@ -2,6 +2,7 @@
 
 import { useMemo, useState, type FormEvent } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { ArrowRight, CalendarDays, ChevronDown, CircleHelp, FileText, MapPin, Search, Wrench } from "lucide-react";
 import { ServiceIcon } from "@/components/icons/ServiceIcon";
@@ -218,6 +219,7 @@ export default function ServicesPage() {
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {enhancementMatches.map((service) => (
                   <article key={service.slug} className="flex min-h-[146px] flex-col justify-between rounded-2xl border border-white/15 bg-[#1a1e26] p-4 transition-colors hover:border-bm-accent/50" data-testid="customization-catalog-card">
+                    {service.photos?.[0] ? <Image src={service.photos[0].src} alt={service.photos[0].alt} width={service.photos[0].width} height={service.photos[0].height} loading="lazy" sizes="(max-width:640px) 93vw, (max-width:1024px) 47vw, 24vw" className="mb-3 h-36 w-full rounded-xl object-cover" /> : null}
                     <p className="text-[11px] font-semibold uppercase tracking-wide text-bm-accent">{service.category === "upholstery" ? "Tapicerstwo" : service.category === "exterior" ? "Stylizacja" : service.category === "lighting" ? "Ambient" : service.category === "multimedia" ? "CarPlay" : "Wnętrze"}</p>
                     <h3 className="mt-3 font-display text-lg font-bold leading-snug text-white">{locale === "ru" ? service.titleRu : service.title}</h3>
                     <Link href={"/" + service.slug} className="mt-4 inline-flex min-h-10 items-center gap-2 text-sm font-semibold text-bm-copy hover:text-white">{copy.quote}<ArrowRight size={16} className="text-bm-accent" aria-hidden /></Link>

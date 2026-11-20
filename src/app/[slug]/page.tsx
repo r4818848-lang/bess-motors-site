@@ -54,6 +54,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description: enhancement.metaDescription,
       path: "/" + enhancement.slug,
       keywords: [enhancement.metaTitle, ...enhancement.keywords, "BESS MOTORS", "Warszawa Włochy"],
+      ...(enhancement.photos?.length ? { ogImage: enhancement.photos[0].src, ogImageAlt: enhancement.photos[0].alt } : {}),
     });
   }
   const page = getSeoLandingPage(slug);

@@ -518,16 +518,29 @@ test("all 14 customization pages have canonical SEO metadata and only supplied i
     await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", new RegExp("/" + slug + "$"));
     await expect(page.locator('meta[name="robots"]')).not.toHaveAttribute("content", /noindex/i);
     if (slug === "oswietlenie-ambientowe-samochodu-warszawa") {
-      await expect(page.getByTestId("enhancement-photo-gallery").locator("img")).toHaveCount(10);
+      const gallery = page.getByTestId("enhancement-photo-gallery");
+      await expect(gallery.locator("img")).toHaveCount(6);
+      await gallery.getByTestId("enhancement-gallery-more").click();
+      await expect(gallery.locator("img")).toHaveCount(19);
+    } else if (slug === "wygluszenie-samochodu-warszawa") {
+      await expect(page.getByTestId("enhancement-photo-gallery").locator("img")).toHaveCount(3);
     } else {
       await expect(page.locator('main[data-testid="enhancement-service-page"] img')).toHaveCount(0);
     }
   }
   await page.goto("/oswietlenie-ambientowe-samochodu-warszawa");
   await expect(page.getByTestId("enhancement-quote")).toBeVisible();
-  const ambientPhoto = await page.request.get("/images/ambient/ambient-01.webp");
+  const ambientPhoto = await page.request.get("/images/enhancements/ambient/ambient-08.webp");
   expect(ambientPhoto.ok()).toBeTruthy();
   expect(ambientPhoto.headers()["content-type"]).toContain("image/webp");
+  const galleryButton = page.getByTestId("enhancement-photo-open").first();
+  await galleryButton.click();
+  await expect(page.getByTestId("enhancement-gallery-lightbox")).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page.getByTestId("enhancement-gallery-lightbox")).toHaveCount(0);
+  const noisePhoto = await page.request.get("/images/enhancements/soundproofing/wyciszenie-02.webp");
+  expect(noisePhoto.ok()).toBeTruthy();
+  expect(noisePhoto.headers()["content-type"]).toContain("image/webp");
   const ld = await page.locator('script[type="application/ld+json"]').allTextContents();
   const nodes = ld.flatMap((source) => {
     const data: { "@graph"?: Record<string, unknown>[]; "@type"?: string } = JSON.parse(source);

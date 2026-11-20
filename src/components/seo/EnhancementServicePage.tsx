@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { EnhancementPhotoGallery } from "./EnhancementPhotoGallery";
 import {
   ArrowRight, BadgeCheck, CarFront, Check, ChevronRight, ClipboardList, FileCheck2,
   MessageCircle, Phone, Sparkles, Wrench,
@@ -41,6 +42,7 @@ export function EnhancementServicesGrid({ exclude }: { exclude?: string }) {
               <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-bm-accent/20 bg-bm-accent/10 text-bm-accent"><Icon size={22} aria-hidden /></span>
               <ArrowRight size={17} className="text-bm-label transition-transform motion-safe:group-hover:translate-x-1" aria-hidden />
             </div>
+            {!exclude && service.photos?.[0] ? <div className="relative mt-4 h-36 overflow-hidden rounded-xl border border-white/10"><Image src={service.photos[0].src} alt={service.photos[0].alt} fill loading="lazy" sizes="(max-width:640px) 92vw, (max-width:1279px) 45vw, 30vw" className="object-cover transition-transform duration-500 motion-safe:group-hover:scale-[1.035]" /></div> : null}
             <h3 className="mt-5 font-display text-xl font-bold leading-tight text-white">{service.title}</h3>
             <p className="mt-2 text-xs font-semibold uppercase tracking-[0.12em] text-bm-label">{enhancementCategoryLabels[service.category]}</p>
           </Link>
@@ -172,38 +174,7 @@ export function EnhancementServicePage({ service }: { service: EnhancementServic
           <p className="mt-4 text-xs text-bm-label">Rzeczywisty zakres ustalamy po weryfikacji auta i wybranego rozwiązania.</p>
         </section>
 
-        {service.photos?.length ? (
-          <section className="mt-14 scroll-mt-24" aria-labelledby="enhancement-photo-heading" data-testid="enhancement-photo-gallery">
-            <div className="mb-6 max-w-3xl">
-              <p className="text-xs font-bold uppercase tracking-[0.16em] text-bm-accent">Inspiracje / galeria zdjęć</p>
-              <h2 id="enhancement-photo-heading" className="mt-2 font-display text-2xl font-bold text-white sm:text-3xl">
-                {service.category === "lighting" ? "Uniwersalne oświetlenie ambientowe — przykłady efektów" : "Galeria usługi"}
-              </h2>
-              <p className="mt-3 text-sm leading-relaxed text-bm-copy">
-                Zdjęcia pokazują możliwe warianty kolorów i rozmieszczenia oświetlenia.
-                Efekt w Twoim aucie zależy od dostępnego zestawu, modelu i uzgodnionego sposobu montażu.
-                Przed realizacją potwierdzamy zakres i koszt, bez stałego cennika.
-              </p>
-            </div>
-            <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 xl:grid-cols-4">
-              {service.photos.map((p, index) => (
-                <figure key={p.src} className="min-w-0 overflow-hidden rounded-2xl border border-white/15 bg-[#090c14]">
-                  <a href={p.src} target="_blank" rel="noopener noreferrer"
-                    aria-label={"Otwórz zdjęcie " + (index + 1) + ": " + p.alt}
-                    className="block overflow-hidden focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-bm-accent">
-                    <Image src={p.src} alt={p.alt} width={720} height={1280}
-                      quality={80} sizes="(max-width: 640px) 47vw, (max-width: 1024px) 31vw, 24vw"
-                      loading={index < 2 ? "eager" : "lazy"}
-                      className="aspect-[9/16] w-full object-contain transition-transform duration-300 motion-safe:hover:scale-[1.035]" />
-                  </a>
-                  <figcaption className="min-h-[52px] px-3 py-2 text-xs leading-relaxed text-bm-label">
-                    {p.alt}
-                  </figcaption>
-                </figure>
-              ))}
-            </div>
-          </section>
-        ) : null}
+        {service.photos?.length ? <EnhancementPhotoGallery photos={service.photos} /> : null}
 
         <section className="mt-14 scroll-mt-24" aria-labelledby="enhancement-faq-heading">
           <h2 id="enhancement-faq-heading" className="mb-6 font-display text-3xl font-bold text-white">Pytania i odpowiedzi</h2>

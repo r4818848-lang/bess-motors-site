@@ -17,6 +17,7 @@ export function enhancementServiceSchema(service: EnhancementService) {
         "url": url,
         "provider": { "@id": base + "/#business" },
         "areaServed": { "@type": "City", "name": "Warszawa" },
+        ...(service.photos?.length ? { "image": service.photos.slice(0, 6).map(p => base + p.src) } : {}),
       },
       {
         "@type": "BreadcrumbList",
