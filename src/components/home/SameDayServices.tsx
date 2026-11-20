@@ -69,7 +69,7 @@ const content = {
   },
 } as const;
 
-/** All card imagery is from actual BESS MOTORS service work in /public. */
+/** Visuals come from local owner-supplied images; some illustrate service possibilities. */
 export function SameDayServices() {
   const { locale } = useI18n();
   const c = content[locale];
@@ -80,7 +80,7 @@ export function SameDayServices() {
     { title: c.brakes, description: c.brakesDesc, href: "/hamulce", image: "/images/works/brake-pads-change.png", icon: Disc3, alt: "Serwis hamulców w BESS MOTORS" },
     { title: c.ac, description: c.acDesc, href: "/klimatyzacja", image: "/images/works/ac-recharge-bmw.png", icon: Snowflake, alt: "Serwis klimatyzacji w BESS MOTORS" },
     { title: c.suspension, description: c.suspensionDesc, href: "/naprawa-zawieszenia-warszawa", image: "/images/works/before-after/audi-a6-suspension/after/01.jpg", icon: Wrench, alt: "Naprawa zawieszenia Audi A6 w BESS MOTORS" },
-    { title: c.universal, description: c.universalDesc, href: "/oswietlenie-ambientowe-samochodu-warszawa", image: "/images/enhancements/ambient/ambient-15.webp", icon: Lightbulb, alt: "Uniwersalna podświetlenie LED wnętrza samochodu" },
+    { title: c.universal, description: c.universalDesc, href: "/oswietlenie-ambientowe-samochodu-warszawa", image: "/images/enhancements/ambient/ambient-15.webp", icon: Lightbulb, alt: "Uniwersalne oświetlenie LED wnętrza samochodu" },
     { title: c.ambient, description: c.ambientDesc, href: "/oswietlenie-ambientowe-samochodu-warszawa", image: "/images/enhancements/ambient/ambient-08.webp", icon: Sparkles, alt: "Oświetlenie ambientowe deski i drzwi samochodu" },
     { title: c.soundproof, description: c.soundproofDesc, href: "/wygluszenie-samochodu-warszawa", image: "/images/enhancements/soundproofing/wyciszenie-02.webp", icon: ShieldCheck, alt: "Wygłuszenie drzwi samochodu matami akustycznymi" },
     { title: c.carplay, description: c.carplayDesc, href: "/montaz-apple-carplay-warszawa", image: "/images/enhancements/carplay/bmw-android-auto-cockpit.jpg", icon: Smartphone, alt: "BMW z Android Auto, Google Maps na ekranie i fabrycznym systemem multimedialnym" },
@@ -108,7 +108,7 @@ export function SameDayServices() {
         <div className="grid grid-cols-2 gap-2.5 sm:gap-4 lg:grid-cols-3" data-testid="services-visual-grid">
           {services.map((item) => (
             <Link
-              key={item.href}
+              key={item.href + "-" + item.title}
               href={item.href}
               className="bm-premium-card group relative flex min-h-[151px] flex-col justify-between overflow-hidden rounded-[18px] border border-white/20 bg-[#161b23] p-3.5 text-white shadow-[0_15px_35px_rgba(0,0,0,.18)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-bm-accent sm:min-h-[165px] sm:rounded-[22px] sm:p-5"
               data-testid="visual-service-card"
