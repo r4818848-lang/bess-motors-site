@@ -84,8 +84,8 @@ export function EnhancementHubPage() {
             <h1 className="mt-4 max-w-4xl font-display text-4xl font-bold leading-tight tracking-tight text-white sm:text-5xl">Personalizacja samochodu Warszawa</h1>
             <p className="mt-5 max-w-2xl text-base leading-relaxed text-bm-copy sm:text-lg">
               Chcesz zmienić wygląd auta, odświeżyć jego wnętrze lub dodać nowe wyposażenie?
-              W BESS MOTORS możesz zapytać o oświetlenie ambientowe, obszywanie elementów tapicerki,
-              montaż dodatków nadwozia, Apple CarPlay, wygłuszenie kabiny, folie samochodowe i czyszczenie wnętrza.
+              W BESS MOTORS możesz zapytać o uniwersalne oświetlenie LED i ambient light, wygłuszenie drzwi i kabiny,
+              Apple CarPlay lub Android Auto, obszywanie tapicerki, stylizację nadwozia, folie i czyszczenie wnętrza.
             </p>
             <p className="mt-3 max-w-2xl text-sm leading-relaxed text-bm-label">
               Każdy projekt omawiamy indywidualnie. Dopasowanie części, materiał i zakres prac zależą od konkretnego samochodu.
@@ -115,6 +115,54 @@ export function EnhancementHubPage() {
           <h2 id="customization-services-heading" className="mb-6 font-display text-3xl font-bold text-white">Wybierz rodzaj personalizacji</h2>
           <EnhancementServicesGrid />
         </section>
+        <section className="mt-14" aria-labelledby="customization-compare">
+          <div className="max-w-3xl">
+            <h2 id="customization-compare" className="font-display text-2xl font-bold text-white sm:text-3xl">Jaką zmianę we wnętrzu auta wybrać?</h2>
+            <p className="mt-3 text-sm leading-relaxed text-bm-copy sm:text-base">
+              Podświetlenie, izolacja akustyczna i multimedia rozwiązują różne potrzeby.
+              Zobacz, co warto sprawdzić przed doborem zestawu do konkretnego samochodu.
+            </p>
+          </div>
+          <div className="mt-6 grid gap-4 lg:grid-cols-3">
+            <article className="rounded-2xl border border-white/15 bg-[#171b23] p-5">
+              <h3 className="font-display text-lg font-bold text-white">Ambient light i uniwersalne LED</h3>
+              <p className="mt-3 text-sm leading-relaxed text-bm-copy">
+                Chcesz podświetlić deskę, boczki drzwi, konsolę lub przestrzeń na nogi?
+                Przed montażem sprawdzamy prowadzenie przewodów, zasilanie i możliwy sposób sterowania.
+                Efekt i dostępne kolory zależą od zestawu oraz wnętrza auta.
+              </p>
+              <Link href="/oswietlenie-ambientowe-samochodu-warszawa" className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-bm-accent hover:text-white">
+                Montaż podświetlenia LED <ArrowRight size={16} aria-hidden />
+              </Link>
+            </article>
+            <article className="rounded-2xl border border-white/15 bg-[#171b23] p-5">
+              <h3 className="font-display text-lg font-bold text-white">Wygłuszenie i wyciszenie auta</h3>
+              <p className="mt-3 text-sm leading-relaxed text-bm-copy">
+                Dokucza Ci szum lub rezonans elementów wnętrza? Można rozważyć wygłuszenie
+                drzwi, bagażnika, nadkoli lub podłogi. Strefy i materiały dobieramy po
+                sprawdzeniu źródła hałasu, bez obiecywania konkretnej redukcji dB.
+              </p>
+              <Link href="/wygluszenie-samochodu-warszawa" className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-bm-accent hover:text-white">
+                Sprawdź opcje wygłuszenia <ArrowRight size={16} aria-hidden />
+              </Link>
+            </article>
+            <article className="rounded-2xl border border-white/15 bg-[#171b23] p-5">
+              <h3 className="font-display text-lg font-bold text-white">Apple CarPlay i Android Auto</h3>
+              <p className="mt-3 text-sm leading-relaxed text-bm-copy">
+                Chcesz nawigację i aplikacje telefonu na ekranie samochodu? Możliwość
+                doposażenia zależy od radia, wersji systemu oraz wyposażenia pojazdu.
+                Prześlij VIN i zdjęcie menu; w galerii pokazujemy Android Auto w BMW.
+              </p>
+              <Link href="/montaz-apple-carplay-warszawa" className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-bm-accent hover:text-white">
+                Sprawdź zgodność multimediów <ArrowRight size={16} aria-hidden />
+              </Link>
+            </article>
+          </div>
+          <p className="mt-4 text-sm leading-relaxed text-bm-label">
+            BESS MOTORS, Warszawa Włochy: dopasowujemy zakres prac i części do konkretnego modelu.
+            Przed realizacją uzgadniamy indywidualną wycenę. Nie publikujemy stałych cen tych usług.
+          </p>
+        </section>
         <section className="mt-14 rounded-2xl border border-white/15 bg-white/[0.03] p-6" aria-labelledby="customization-location">
           <h2 id="customization-location" className="font-display text-2xl font-bold text-white">Personalizacja auta — Warszawa Włochy</h2>
           <p className="mt-3 text-sm leading-relaxed text-bm-copy">BESS MOTORS znajduje się przy {businessConfig.addressLine}. Możesz skonsultować plan zmian w samochodzie i uzgodnić indywidualny termin. Pokaż zdjęcia inspiracji oraz wybranego zestawu, jeśli już go posiadasz.</p>
@@ -141,10 +189,10 @@ export function EnhancementServicePage({ service }: { service: EnhancementServic
             <p className="mt-6 max-w-2xl text-base leading-relaxed text-bm-copy sm:text-lg">{service.intro}</p>
             <p className="mt-4 max-w-2xl text-sm leading-relaxed text-bm-label sm:text-base">{service.explanation}</p>
             <div className="mt-7 flex flex-wrap gap-3">
-              <SocialContactLink kind="whatsapp" href={contactWhatsApp(service.title)} trackSource="customization_service_hero" className="bm-btn-primary inline-flex min-h-12 items-center justify-center gap-2 px-5 text-sm font-bold" data-testid="enhancement-quote">
+              <SocialContactLink kind="whatsapp" href={contactWhatsApp(service.title)} trackSource={"customization_" + service.slug + "_whatsapp"} className="bm-btn-primary inline-flex min-h-12 items-center justify-center gap-2 px-5 text-sm font-bold" data-testid="enhancement-quote">
                 <MessageCircle size={19} aria-hidden /> Zapytaj o wycenę <ArrowRight size={17} aria-hidden />
               </SocialContactLink>
-              <PhoneLink href={businessConfig.phoneHref} trackSource="customization_service_call" className="bm-btn-secondary inline-flex min-h-12 items-center justify-center gap-2 px-5 text-sm font-bold"><Phone size={18} aria-hidden /> Zadzwoń</PhoneLink>
+              <PhoneLink href={businessConfig.phoneHref} trackSource={"customization_" + service.slug + "_call"} className="bm-btn-secondary inline-flex min-h-12 items-center justify-center gap-2 px-5 text-sm font-bold"><Phone size={18} aria-hidden /> Zadzwoń</PhoneLink>
             </div>
           </div>
           <aside className="rounded-[25px] border border-white/15 bg-[#191e28] p-6" aria-labelledby="enhancement-before-quote">
@@ -193,7 +241,7 @@ export function EnhancementServicePage({ service }: { service: EnhancementServic
         <section className="mt-14 rounded-[24px] border border-bm-red/35 bg-gradient-to-r from-[#241820] to-[#151923] p-6 sm:p-8" aria-labelledby="enhancement-contact-heading">
           <h2 id="enhancement-contact-heading" className="font-display text-2xl font-bold text-white sm:text-3xl">Masz zdjęcia pomysłu lub zestawu?</h2>
           <p className="mt-3 max-w-2xl text-sm leading-relaxed text-bm-copy">Wyślij nam markę i model auta, kilka zdjęć oraz opis oczekiwanego efektu. Ustalimy, czy wybrany wariant można dopasować i jak przygotować wycenę.</p>
-          <SocialContactLink kind="whatsapp" href={contactWhatsApp(service.title)} trackSource="customization_service_footer" className="bm-btn-primary mt-5 inline-flex min-h-12 items-center gap-2 px-5 text-sm font-bold"><MessageCircle size={18} aria-hidden /> Wyślij zapytanie <ArrowRight size={17} aria-hidden /></SocialContactLink>
+          <SocialContactLink kind="whatsapp" href={contactWhatsApp(service.title)} trackSource={"customization_" + service.slug + "_footer_whatsapp"} className="bm-btn-primary mt-5 inline-flex min-h-12 items-center gap-2 px-5 text-sm font-bold"><MessageCircle size={18} aria-hidden /> Wyślij zapytanie <ArrowRight size={17} aria-hidden /></SocialContactLink>
         </section>
 
         <section className="mt-14" aria-labelledby="enhancement-related">

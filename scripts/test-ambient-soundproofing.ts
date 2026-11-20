@@ -93,6 +93,16 @@ assert.match(gallery, /Escape/);
 assert.doesNotMatch(gallery, /Realizacje BESS MOTORS/, "Photos must not be claimed as verified workshop cases");
 const page = readFileSync("src/components/seo/EnhancementServicePage.tsx", "utf8");
 assert.match(page, /EnhancementPhotoGallery/);
+assert.match(page, /customization_" \+ service\.slug \+ "_whatsapp"/, "WhatsApp clicks need service-specific GA4 attribution");
+assert.match(page, /customization_" \+ service\.slug \+ "_call"/, "Phone clicks need service-specific GA4 attribution");
+for (const slug of ["oswietlenie-ambientowe-samochodu-warszawa", "wygluszenie-samochodu-warszawa", "montaz-apple-carplay-warszawa"]) {
+  assert.ok(page.includes('href="/' + slug + '"'), "Customization hub must link explicitly to " + slug);
+}
+assert.match(page, /Jaką zmianę we wnętrzu auta wybrać/, "Helpful comparison on personalization hub");
+assert.match(page, /Apple CarPlay i Android Auto/, "Both multimedia platforms visible on hub");
+const route = readFileSync("src/app/[slug]/page.tsx", "utf8");
+assert.match(route, /uniwersalnego LED/, "Hub metadata should cover universal LED");
+assert.match(route, /Android Auto/, "Hub metadata should cover Android Auto");
 const sitemap = readFileSync("src/app/sitemap.ts", "utf8");
 assert.match(sitemap, /allEnhancementSlugs/);
 assert.match(sitemap, /"montaz-apple-carplay-warszawa"/, "Updated CarPlay page must have new sitemap lastmod");
