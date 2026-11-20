@@ -34,7 +34,7 @@ export function EnhancementPhotoGallery({ photos }: { photos: readonly Enhanceme
   if (!photos.length) return null;
 
   return (
-    <section className="mt-14 scroll-mt-24" aria-labelledby="enhancement-photo-heading" data-testid="enhancement-gallery">
+    <section className="mt-14 scroll-mt-24" aria-labelledby="enhancement-photo-heading" data-testid="enhancement-photo-gallery">
       <div className="mb-6 flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
         <div>
           <p className="text-xs font-bold uppercase tracking-[.16em] text-bm-accent">GALERIA ZDJĘĆ</p>
