@@ -25,7 +25,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "montaz-apple-carplay-warszawa",
     "gwiezdne-niebo-w-samochodzie-warszawa",
   ]);
-  const updatedEnhancementAt = new Date("2026-11-20T11:30:00.000Z");
+  const updatedEnhancementAt = new Date("2026-11-20T10:45:00.000Z");
 
   const add = (
     path: string,
