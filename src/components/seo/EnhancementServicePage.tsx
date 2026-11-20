@@ -84,8 +84,8 @@ export function EnhancementHubPage() {
             <h1 className="mt-4 max-w-4xl font-display text-4xl font-bold leading-tight tracking-tight text-white sm:text-5xl">Personalizacja samochodu Warszawa</h1>
             <p className="mt-5 max-w-2xl text-base leading-relaxed text-bm-copy sm:text-lg">
               Chcesz zmienić wygląd auta, odświeżyć jego wnętrze lub dodać nowe wyposażenie?
-              W BESS MOTORS możesz zapytać o oświetlenie ambientowe, obszywanie elementów tapicerki,
-              montaż dodatków nadwozia, Apple CarPlay, wygłuszenie kabiny, folie samochodowe i czyszczenie wnętrza.
+              W BESS MOTORS możesz zapytać o uniwersalne oświetlenie LED i ambient light, wygłuszenie drzwi i kabiny,
+              Apple CarPlay lub Android Auto, obszywanie tapicerki, stylizację nadwozia, folie i czyszczenie wnętrza.
             </p>
             <p className="mt-3 max-w-2xl text-sm leading-relaxed text-bm-label">
               Każdy projekt omawiamy indywidualnie. Dopasowanie części, materiał i zakres prac zależą od konkretnego samochodu.
@@ -114,6 +114,54 @@ export function EnhancementHubPage() {
         <section className="mt-14" aria-labelledby="customization-services-heading">
           <h2 id="customization-services-heading" className="mb-6 font-display text-3xl font-bold text-white">Wybierz rodzaj personalizacji</h2>
           <EnhancementServicesGrid />
+        </section>
+        <section className="mt-14" aria-labelledby="customization-compare">
+          <div className="max-w-3xl">
+            <h2 id="customization-compare" className="font-display text-2xl font-bold text-white sm:text-3xl">Jaką zmianę we wnętrzu auta wybrać?</h2>
+            <p className="mt-3 text-sm leading-relaxed text-bm-copy sm:text-base">
+              Podświetlenie, izolacja akustyczna i multimedia rozwiązują różne potrzeby.
+              Zobacz, co warto sprawdzić przed doborem zestawu do konkretnego samochodu.
+            </p>
+          </div>
+          <div className="mt-6 grid gap-4 lg:grid-cols-3">
+            <article className="rounded-2xl border border-white/15 bg-[#171b23] p-5">
+              <h3 className="font-display text-lg font-bold text-white">Ambient light i uniwersalne LED</h3>
+              <p className="mt-3 text-sm leading-relaxed text-bm-copy">
+                Chcesz podświetlić deskę, boczki drzwi, konsolę lub przestrzeń na nogi?
+                Przed montażem sprawdzamy prowadzenie przewodów, zasilanie i możliwy sposób sterowania.
+                Efekt i dostępne kolory zależą od zestawu oraz wnętrza auta.
+              </p>
+              <Link href="/oswietlenie-ambientowe-samochodu-warszawa" className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-bm-accent hover:text-white">
+                Montaż podświetlenia LED <ArrowRight size={16} aria-hidden />
+              </Link>
+            </article>
+            <article className="rounded-2xl border border-white/15 bg-[#171b23] p-5">
+              <h3 className="font-display text-lg font-bold text-white">Wygłuszenie i wyciszenie auta</h3>
+              <p className="mt-3 text-sm leading-relaxed text-bm-copy">
+                Dokucza Ci szum lub rezonans elementów wnętrza? Można rozważyć wygłuszenie
+                drzwi, bagażnika, nadkoli lub podłogi. Strefy i materiały dobieramy po
+                sprawdzeniu źródła hałasu, bez obiecywania konkretnej redukcji dB.
+              </p>
+              <Link href="/wygluszenie-samochodu-warszawa" className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-bm-accent hover:text-white">
+                Sprawdź opcje wygłuszenia <ArrowRight size={16} aria-hidden />
+              </Link>
+            </article>
+            <article className="rounded-2xl border border-white/15 bg-[#171b23] p-5">
+              <h3 className="font-display text-lg font-bold text-white">Apple CarPlay i Android Auto</h3>
+              <p className="mt-3 text-sm leading-relaxed text-bm-copy">
+                Chcesz nawigację i aplikacje telefonu na ekranie samochodu? Możliwość
+                doposażenia zależy od radia, wersji systemu oraz wyposażenia pojazdu.
+                Prześlij VIN i zdjęcie menu; w galerii pokazujemy Android Auto w BMW.
+              </p>
+              <Link href="/montaz-apple-carplay-warszawa" className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-bm-accent hover:text-white">
+                Sprawdź zgodność multimediów <ArrowRight size={16} aria-hidden />
+              </Link>
+            </article>
+          </div>
+          <p className="mt-4 text-sm leading-relaxed text-bm-label">
+            BESS MOTORS, Warszawa Włochy: dopasowujemy zakres prac i części do konkretnego modelu.
+            Przed realizacją uzgadniamy indywidualną wycenę. Nie publikujemy stałych cen tych usług.
+          </p>
         </section>
         <section className="mt-14 rounded-2xl border border-white/15 bg-white/[0.03] p-6" aria-labelledby="customization-location">
           <h2 id="customization-location" className="font-display text-2xl font-bold text-white">Personalizacja auta — Warszawa Włochy</h2>
