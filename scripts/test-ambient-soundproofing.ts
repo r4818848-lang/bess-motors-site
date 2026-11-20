@@ -48,6 +48,15 @@ assert.match(homepage, /bmw-android-auto-cockpit\.jpg/);
 assert.match(homepage, /c\.carplay/);
 assert.match(readFileSync("src/components/home/HomeSeoServiceLinks.tsx", "utf8"), /Montaż Apple CarPlay i Android Auto/);
 
+// Keep new Warsaw services answerable by search and AI without deceptive claims.
+assert.ok(ambient.faq.some(q => /Gdzie w Warszawie/.test(q.question)));
+assert.ok(ambient.faq.some(q => /uniwersalny zestaw LED/.test(q.question + q.answer)));
+assert.ok(soundproof.faq.some(q => /Włochy/.test(q.question + q.answer)));
+assert.ok(carplay.faq.some(q => /Gdzie w Warszawie/.test(q.question)));
+const seoLinksSource = readFileSync("src/components/home/HomeSeoServiceLinks.tsx", "utf8");
+const seoLinkHrefs = [...seoLinksSource.matchAll(/\\{ href: "([^"]+)", label:/g)].map(m => m[1]);
+assert.equal(new Set(seoLinkHrefs).size, seoLinkHrefs.length, "Homepage SEO links must not reuse the same href as React keys");
+
 const paths = new Set<string>();
 for (const photo of [...(ambient.photos ?? []), ...(soundproof.photos ?? [])]) {
   assert.ok(photo.src.startsWith("/images/enhancements/"), photo.src);
@@ -86,4 +95,5 @@ const page = readFileSync("src/components/seo/EnhancementServicePage.tsx", "utf8
 assert.match(page, /EnhancementPhotoGallery/);
 const sitemap = readFileSync("src/app/sitemap.ts", "utf8");
 assert.match(sitemap, /allEnhancementSlugs/);
+assert.match(sitemap, /"montaz-apple-carplay-warszawa"/, "Updated CarPlay page must have new sitemap lastmod");
 console.log("Customization: ambient 19 + soundproofing 3 + CarPlay/Android Auto BMW 4 photos, gallery, homepage SEO and price-free schema OK");
