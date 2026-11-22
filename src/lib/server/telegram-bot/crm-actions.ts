@@ -117,10 +117,11 @@ export async function markCallAsCalled(callId: string): Promise<{ ok: boolean; e
   });
 }
 
-export async function addExpenseToCrm(expense: Omit<ServiceExpense, "id">): Promise<{ ok: boolean; error?: string }> {
+export async function addExpenseToCrm(expense: Omit<ServiceExpense, "id">, id = `ex-${crypto.randomUUID()}` as string): Promise<{ ok: boolean; error?: string }> {
   return mutateCrm((db) => {
+    if (db.expenses.some(e => e.id === id)) return id;
     db.expenses.push({
-      id: `ex-${Date.now()}`,
+      id,
       ...expense,
     });
   });

@@ -267,3 +267,61 @@ test("the keyboard shrinks the shell to the current viewport", async ({ page }) 
   const paddingTop = await shell.evaluate((element) => Number.parseFloat(getComputedStyle(element).paddingTop));
   expect(paddingTop).toBe(113);
 });
+
+test("long press on a lift prepares one retryable repair booking",async ({page})=>{
+  await installTelegram(page,profiles[0]);
+  await mockCalendar(page,[]);
+  const requests: Record<string,unknown>[]=[];
+  await page.route("**/api/staff/calendar",async route=>{
+    const b=route.request().postDataJSON();
+    if(b.action!=="create") return route.fallback();
+    requests.push(b);
+    await route.fulfill({status:503,json:{ok:false,error:"cloud_write"}});
+  });
+  await page.goto("/telegram/calendar");
+  await page.getByRole("button",{name:"Подъёмники",exact:true}).click();
+  const cell=page.locator('[data-column="lift-1"][data-time="10:00"]');
+  await cell.scrollIntoViewIfNeeded();
+  const box=(await cell.boundingBox())!;
+  await page.mouse.move(box.x+10,box.y+14);
+  await page.mouse.down();
+  await expect(page.getByPlaceholder("Имя")).toBeVisible();
+  await page.mouse.up();
+  await page.getByPlaceholder("Имя").fill("Test");
+  await page.locator('input[inputmode="tel"]').fill("+48000000000");
+  const save=page.locator('button[type="submit"]');
+  await save.click(); await expect.poll(()=>requests.length).toBe(1);
+  await save.click(); await expect.poll(()=>requests.length).toBe(2);
+  expect(requests[0].clientRequestId).toBeTruthy();
+  expect(requests[1]).toMatchObject({clientRequestId:requests[0].clientRequestId,time:"10:00",resourceIds:["lift-1"],workMinutes:60});
+});
+
+test("moving and resizing a repair submit the current appointment version",async ({page})=>{
+  await installTelegram(page,profiles[0]);
+  await mockCalendar(page,[{id:"repair",date:"2026-11-09",time:"09:00",workStart:"09:00",workMinutes:60,mechanicId:"m1",clientName:"Test",serviceIds:[],updatedAt:"rev1"}]);
+  const updates:Record<string,unknown>[]=[];
+  await page.route("**/api/staff/calendar",async route=>{
+    const body=route.request().postDataJSON();
+    if(body.action!=="update") return route.fallback();
+    updates.push(body);
+    await route.fulfill({json:{ok:true}});
+  });
+  await page.goto("/telegram/calendar");
+  const card=page.getByRole("button",{name:/09:00 Test/});
+  await expect(card).toBeVisible();
+  const resize=page.getByRole("button",{name:"Длительность"});
+  await resize.focus();
+  await page.keyboard.press("ArrowDown");
+  await expect.poll(()=>updates.length).toBe(1);
+  expect(updates[0]).toMatchObject({id:"repair",workMinutes:75,expectedUpdatedAt:"rev1"});
+  const target=page.locator('[data-column="m1"][data-time="10:00"]');
+  await target.scrollIntoViewIfNeeded();
+  const box=(await card.boundingBox())!, dest=(await target.boundingBox())!;
+  await page.mouse.move(box.x+5,box.y+5);
+  await page.mouse.down();
+  await page.waitForTimeout(500);
+  await page.mouse.move(dest.x+10,dest.y+10,{steps:6});
+  await page.mouse.up();
+  await expect.poll(()=>updates.length).toBe(2);
+  expect(updates[1]).toMatchObject({id:"repair",workStart:"10:00",expectedUpdatedAt:"rev1"});
+});

@@ -43,8 +43,11 @@ export function parseMakeModelLine(text: string): { make?: string; model?: strin
 
 export async function createQuickWorkOrderFromTelegram(
   db: Database,
-  draft: QuickWorkOrderDraft
+  draft: QuickWorkOrderDraft,
+  orderId: string = `wo-${crypto.randomUUID()}`
 ): Promise<QuickWorkOrderResult> {
+  const existing = db.workOrders.find(order => order.id === orderId);
+  if (existing) return {ok:true,orderId:existing.id,orderNumber:existing.number};
   const phone = normalizePhone(draft.phone?.trim() ?? "");
   if (!phone) return { ok: false, error: "phone_required" };
 
@@ -88,7 +91,7 @@ export async function createQuickWorkOrderFromTelegram(
     .join("\n");
 
   const order: WorkOrder = applyWorkOrderCompletedAt({
-    id: `wo-${Date.now()}`,
+    id: orderId,
     number: generateOrderNumber(db.workOrders),
     userId: client.userId,
     vehicleId: client.vehicleId,

@@ -1,3 +1,5 @@
+import { cashCommand } from "./cash-plan";
+import { resolveStaffCalendarActor } from "@/lib/server/staff-calendar-access";
 import type { ReportPeriod } from "@/lib/crm-analytics";
 import { computeCrmAnalytics } from "@/lib/crm-analytics";
 import { getWebsiteHotOrders } from "@/lib/hot-orders";
@@ -171,6 +173,7 @@ import {
 } from "./admin-parts-photo";
 
 type TelegramMessage = AdminTelegramFileMessage & {
+  from?: { id: number };
   text?: string;
 };
 
@@ -324,6 +327,11 @@ async function handleMessage(msg: TelegramMessage): Promise<void> {
   const text = msg.text?.trim() ?? "";
   const chatKey = String(chatId);
 
+  if (/^\/(cash|balance|income|debt|wage|settle)(?:\s|$)/.test(text)) {
+    if (msg.from?.id !== chatId || (await resolveStaffCalendarActor(chatId))?.role !== "owner") return;
+    await sendTelegramMessage(chatId, await cashCommand(text, `tg:${chatId}:${msg.message_id}`));
+    return;
+  }
   if (text === "/start" || text === "/menu" || text === BOT.menu) {
     await showMainMenu(chatId);
     return;
@@ -433,6 +441,7 @@ async function handleMessage(msg: TelegramMessage): Promise<void> {
       return;
     }
     const result = await createQuickAppointment({
+      requestId: `tg-visit:${chatId}:${msg.message_id}`,
       phone: parsed.phone,
       date: parsed.date,
       time: parsed.time,
@@ -466,7 +475,7 @@ async function handleMessage(msg: TelegramMessage): Promise<void> {
       await sendTelegramMessage(chatId, BOT.invalidExpense(), expenseCategoryKeyboard());
       return;
     }
-    const result = await addExpenseToCrm(parsed.expense);
+    const result = await addExpenseToCrm(parsed.expense, `tg-exp:${chatId}:${msg.message_id}`);
     await clearTelegramSession(chatKey);
     if (result.ok) {
       await sendTelegramMessage(

@@ -23,7 +23,7 @@ export function ensureClientForBooking(
         )
       : undefined) ??
     (existingUserId && existingUserId !== "guest"
-      ? db.users.find((u) => u.id === existingUserId)
+      ? db.users.find((u) => u.role === "client" && u.id === existingUserId)
       : undefined);
 
   if (!user) {
