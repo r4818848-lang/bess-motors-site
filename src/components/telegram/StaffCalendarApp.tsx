@@ -296,6 +296,7 @@ export function StaffCalendarApp() {
   const [lang, setLang] = useState<Lang>("ru");
   const [session, setSession] = useState<Session | null>(null);
   const [view, setView] = useState<View>("today");
+  const [cursor, setCursor] = useState("");
   const [archive, setArchive] = useState(false);
   const [rows, setRows] = useState<Card[]>([]);
   const [selected, setSelected] = useState<Card | null>(null);
@@ -351,12 +352,13 @@ export function StaffCalendarApp() {
   }, []);
 
   const load = useCallback(
-    async (next: Session, nextView: View, showArchive = false) => {
-      const from = nextView === "week" ? next.today : nextView === "month" ? `${next.today.slice(0, 8)}01` : next.today;
-      const to = nextView === "week" ? addDateKeyDays(next.today, 6) : nextView === "month" ? monthEnd(next.today) : next.today;
+    async (next: Session, nextView: View, showArchive = false, anchor = next.today) => {
+      const weekday = new Date(`${anchor}T12:00:00Z`).getUTCDay();
+      const from = nextView === "week" ? (addDateKeyDays(anchor, -((weekday + 6) % 7)) ?? anchor) : nextView === "month" ? `${anchor.slice(0, 8)}01` : anchor;
+      const to = nextView === "week" ? addDateKeyDays(from, 6) : nextView === "month" ? monthEnd(anchor) : anchor;
       const data = await post({ action: "list", from, to, includeArchive: showArchive && next.role === "owner" });
       const appointments = (data.appointments as Card[]) ?? [];
-      setRows(showArchive || nextView !== "today" ? appointments : appointments.filter((row) => row.date === next.today));
+      setRows(showArchive || nextView !== "today" ? appointments : appointments.filter((row) => row.date === anchor));
     },
     [post]
   );
@@ -374,6 +376,7 @@ export function StaffCalendarApp() {
           mechanics: (data.mechanics as Session["mechanics"]) ?? [],
         };
         setSession(next);
+        setCursor(next.today);
         setForm((prev) => ({ ...prev, date: next.today, mechanicId: next.mechanics[0]?.id ?? "" }));
         const params = new URLSearchParams(window.location.search);
         const leadId = params.get("lead") ?? "";
@@ -421,7 +424,7 @@ export function StaffCalendarApp() {
     setMoving(false);
     setConfirmDelete(false);
     setView(nextView);
-    if (nextView !== "add" && session) await load(session, nextView, archive).catch((err: Error) => setError(err.message));
+    if (nextView !== "add" && session) await load(session, nextView, archive, cursor || session.today).catch((err: Error) => setError(err.message));
   }
 
   async function mutate(action: string, extra: Record<string, unknown> = {}) {
@@ -433,7 +436,7 @@ export function StaffCalendarApp() {
       return;
     }
     const appointment = data.appointment as Card;
-    setRows((current) => current.map((row) => (row.id === appointment.id ? appointment : row)).filter((row) => !session || row.date === session.today || view !== "today"));
+    setRows((current) => current.map((row) => (row.id === appointment.id ? appointment : row)).filter((row) => !session || row.date === (cursor || session.today) || view !== "today"));
     setSelected(appointment);
     setMoving(false);
     setNotice(text.saved);
@@ -462,7 +465,8 @@ export function StaffCalendarApp() {
     setNotice(text.saved);
     if (session) {
       setView("today");
-      await load(session, "today");
+      setCursor(form.date);
+      await load(session, "today", false, form.date);
     }
   }
 
@@ -515,7 +519,7 @@ export function StaffCalendarApp() {
     <CalendarShell frame={frame}>
       <div className="mb-3">
         <p className="text-[11px] font-semibold tracking-[0.16em] text-zinc-400">{text.title}</p>
-        <h1 className="text-lg font-semibold leading-tight">{session.today}</h1>
+        <h1 className="text-lg font-semibold leading-tight">{cursor || session.today}</h1>
       </div>
       <nav className="mb-3 grid grid-cols-4 gap-1.5">
         {(["today", "week", "month", "add"] as View[]).map((item) => (
@@ -524,6 +528,20 @@ export function StaffCalendarApp() {
           </button>
         ))}
       </nav>
+      {view !== "add" && !archive && !selected && (
+        <div className="mb-3 flex items-center justify-between gap-2">
+          {[-1, 0, 1].map((direction) => <button key={direction} type="button" className="min-h-12 rounded-xl bg-zinc-900 px-4" aria-label={direction < 0 ? "Previous" : direction > 0 ? "Next" : "Today"} onClick={() => {
+            const anchor = cursor || session.today;
+            const month = new Date(`${anchor.slice(0, 7)}-01T12:00:00Z`);
+            month.setUTCMonth(month.getUTCMonth() + direction);
+            const next = direction === 0 ? session.today : view === "month" ? month.toISOString().slice(0, 10) : addDateKeyDays(anchor, direction * (view === "week" ? 7 : 1));
+            if (!next) return;
+            setCursor(next);
+            setRows([]);
+            void load(session, view, false, next).catch((err: Error) => setError(err.message));
+          }}>{direction < 0 ? "‹" : direction > 0 ? "›" : text.today}</button>)}
+        </div>
+      )}
       {session.role === "owner" && (
         <button
           type="button"
@@ -535,7 +553,7 @@ export function StaffCalendarApp() {
             setSelected(null);
             const nextView = view === "add" ? "today" : view;
             if (view === "add") setView("today");
-            load(session, nextView, nextArchive).catch((err: Error) => setError(err.message));
+            load(session, nextView, nextArchive, cursor || session.today).catch((err: Error) => setError(err.message));
           }}
         >
           {archive ? text.today : text.archive}
