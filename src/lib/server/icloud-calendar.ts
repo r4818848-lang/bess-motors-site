@@ -1,6 +1,6 @@
 import ICAL from "ical.js";
 import { createHash } from "node:crypto";
-import { createDAVClient } from "tsdav";
+import { DAVClient } from "tsdav";
 import { formatWarsawDateKey } from "@/lib/date-key";
 import { minutesToClock, warsawCivilToUtc, warsawParts } from "@/lib/workshop-schedule";
 import { getSupabaseConfig } from "./supabase-config";
@@ -101,12 +101,72 @@ export async function syncICloud() {
       throw new ExchangeError(failure || name+"_failed");
     }
   }
-  const dav=await davStep("discovery",()=>createDAVClient({serverUrl:"https://caldav.icloud.com",credentials:{username:login,password},authMethod:"Basic",defaultAccountType:"caldav",fetch:safeFetch}));
-  const all=await davStep("calendar_list",()=>dav.fetchCalendars());
-  const calendars=all.filter(c=>typeof c.displayName==="string" && c.displayName.trim().toUpperCase()==="BESS MOTORS");
-  if (calendars.length!==1) throw new ExchangeError(failure || (calendars.length ? "dedicated_calendar_ambiguous" : "dedicated_calendar_missing"));
-  const calendar=calendars[0], calendarKey=digest(login.toLowerCase()+"\n"+calendar.url);
+  const dav = new DAVClient({serverUrl:"https://caldav.icloud.com", credentials:{username:login,password}, authMethod:"Basic", defaultAccountType:"caldav", fetch:safeFetch});
+  await davStep("discovery", () => dav.login({loadCollections:false, loadObjects:false}));
+  async function findDedicated() {
+    const all = await davStep("calendar_list", () => dav.fetchCalendars());
+    if (failure) throw new ExchangeError(failure);
+    const matches = all.filter(c => typeof c.displayName === "string" && c.displayName.trim().toUpperCase() === "BESS MOTORS");
+    if (matches.length > 1) throw new ExchangeError("dedicated_calendar_ambiguous");
+    return matches[0];
+  }
   const headers={apikey:cfg.key,Authorization:"Bearer "+cfg.key,"Content-Type":"application/json"};
+  const receipts = cfg.url+"/rest/v1/crm_store";
+  const setupId = "icloud_setup_"+digest(login.toLowerCase());
+  const receipt = await fetch(receipts+"?id=eq."+setupId+"&select=id",{headers,cache:"no-store"});
+  if (!receipt.ok) throw new ExchangeError("calendar_setup_read");
+  const configured = (await receipt.json()).length > 0;
+  let calendar = await findDedicated();
+  const authorization = "Basic "+Buffer.from(login+":"+password).toString("base64");
+  if (!calendar) {
+    if (configured || !dav.account?.homeUrl) throw new ExchangeError("dedicated_calendar_missing");
+    const home = dav.account.homeUrl.replace(/\/?$/,"/");
+    const hex = digest(setupId).slice(0,32);
+    const path = [hex.slice(0,8),hex.slice(8,12),hex.slice(12,16),hex.slice(16,20),hex.slice(20)].join("-").toUpperCase()+"/";
+    const creation = await davStep("create_calendar", () => safeFetch(new URL(path,home), {
+      method:"MKCALENDAR", headers:{Authorization:authorization,"Content-Type":"application/xml; charset=utf-8","If-None-Match":"*"},
+      body:'<C:mkcalendar xmlns:D="DAV:" xmlns:C="urn:ietf:params:xml:ns:caldav"><D:set><D:prop><D:displayname>BESS MOTORS</D:displayname><C:supported-calendar-component-set><C:comp name="VEVENT"/></C:supported-calendar-component-set></D:prop></D:set></C:mkcalendar>'
+    }));
+    calendar = await findDedicated();
+    if (!calendar) throw new ExchangeError(creation.ok ? "created_calendar_missing" : "create_calendar_http_"+creation.status);
+  }
+  if (!configured) {
+    // A past event has no attendees, alarms or CRM appointment. Check the same
+    // serializer and decoder used for visits before recording the first setup.
+    const probe = digest("initial-calendar-check/"+setupId);
+    const href = new URL(probe+".ics",calendar.url.replace(/\/?$/,"/"));
+    const uid = probe+"@bess-motors.com";
+    const slot = {date:"2001-01-15", time:"10:00", minutes:30, title:"BESS MOTORS · Calendar setup"};
+    const request = (method:string, extra:Record<string,string>={}, body?:string) =>
+      safeFetch(href,{method,headers:{Authorization:authorization,...extra},body});
+    const put = (minutes:number, condition:Record<string,string>) => request("PUT",{"Content-Type":"text/calendar; charset=utf-8",...condition},encodeVisit({...slot,minutes},uid));
+    const read = async () => {
+      const res = await request("GET");
+      if (!res.ok) throw new ExchangeError("calendar_probe_read_"+res.status);
+      const event = decodeVisit(await res.text());
+      const etag = res.headers.get("etag");
+      if (event.uid!==uid || !etag) throw new ExchangeError("calendar_probe_identity");
+      return {etag,slot:event.slot};
+    };
+    const first = await put(30,{"If-None-Match":"*"});
+    if (!first.ok && first.status!==412) throw new ExchangeError("calendar_probe_create_"+first.status);
+    try {
+      const initial = await read();
+      if (![30,45].some(minutes => signature(initial.slot)===signature({...slot,minutes}))) throw new ExchangeError("calendar_probe_mismatch");
+      const update = await put(45,{"If-Match":initial.etag});
+      if (!update.ok) throw new ExchangeError("calendar_probe_update_"+update.status);
+      if (signature((await read()).slot)!==signature({...slot,minutes:45})) throw new ExchangeError("calendar_probe_mismatch");
+    } finally {
+      const removed = await request("DELETE",{"If-Match":(await read()).etag});
+      if (!removed.ok) throw new ExchangeError("calendar_probe_cleanup_"+removed.status);
+    }
+    const absent = await request("GET");
+    if (![404,410].includes(absent.status)) throw new ExchangeError("calendar_probe_cleanup_unconfirmed");
+    const saved = await fetch(receipts,{method:"POST",headers:{...headers,Prefer:"resolution=ignore-duplicates,return=minimal"},body:JSON.stringify({id:setupId,doc:{calendarVerified:true},updated_at:new Date().toISOString()})});
+    if (!saved.ok) throw new ExchangeError("calendar_setup_save");
+    console.info("[icloud] calendar_read_write_verified");
+  }
+  const calendarKey=digest(login.toLowerCase()+"\n"+calendar.url);
   const linksUrl=cfg.url+"/rest/v1/workshop_calendar_links";
   const links: Link[]=[];
   for (;;) {
