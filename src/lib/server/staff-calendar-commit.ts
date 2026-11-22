@@ -9,8 +9,10 @@ import {
 import { workshopHours } from "@/lib/businessConfig";
 import { compatibleResourceFields } from "@/lib/smart-scheduler/crm-reconcile";
 import type { Appointment, AppointmentStatus, Database, Vehicle } from "@/lib/store";
-import { cloudGetCrmStore, patchCrmIfUnchanged } from "@/lib/server/crm-cloud";
-import { cloudUpsertAppointment } from "@/lib/server/appointments-cloud";
+import { cloudGetCrmStore } from "@/lib/server/crm-cloud";
+import { getSupabaseConfig } from "@/lib/server/supabase-config";
+import { randomUUID } from "node:crypto";
+import { splitWorkBlocks } from "@/lib/smart-scheduler/schedule";
 import { safeExternalNotify, withUnifiedCrm } from "@/lib/server/unified-calendar";
 import { normalizePhone } from "@/lib/server/normalize-phone";
 import { applyLeadAction } from "@/lib/service-leads";
@@ -18,7 +20,8 @@ import { applyLeadAction } from "@/lib/service-leads";
 export type StaffAppointmentInput = {
   mode: "create" | "update" | "cancel" | "arrive" | "noshow" | "remove";
   id?: string;
-  expectedUpdatedAt?: string;
+  expectedUpdatedAt?: string | null;
+  restrictedMechanicId?: string;
   clientRequestId?: string;
   clientName?: string;
   clientPhone?: string;
@@ -69,9 +72,10 @@ function applyVehicle(vehicle: Vehicle, input: StaffAppointmentInput): void {
 
 export async function commitStaffAppointment(
   input: StaffAppointmentInput,
-  now = new Date()
+  now = new Date(),
+  notify = true
 ): Promise<StaffCommitResult> {
-  const unified = await commitStaffUnified(input, now);
+  const unified = await commitStaffUnified(input, now, notify);
   if (unified) return unified;
 
   for (let attempt = 0; attempt < 3; attempt++) {
@@ -87,19 +91,24 @@ export async function commitStaffAppointment(
     if (!saved) return { ok: false, error: "not_found", status: 404 };
 
     const payload = { ...working, currentUserId: null };
-    const put = await patchCrmIfUnchanged(payload, snap.updatedAt);
-    if (put !== "ok") continue;
+    const cfg = getSupabaseConfig();
+    if (!cfg) return { ok: false, error: "cloud_disabled", status: 503 };
+    const response = await fetch(`${cfg.url}/rest/v1/rpc/commit_staff_appointment`, {
+      method: "POST",
+      headers: { apikey: cfg.key, Authorization: `Bearer ${cfg.key}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ expected_version: snap.updatedAt, next_doc: payload, appointment_id: saved.id }),
+    });
+    if (!response.ok) return { ok: false, error: "cloud_write", status: 503 };
+    if ((await response.json()) !== true) continue;
     const { notifyAfterCrmCloudSave } = await import("@/lib/server/crm-cloud-notify");
-    void notifyAfterCrmCloudSave(snap.doc, payload);
-
-    const row = await cloudUpsertAppointment(saved);
-    return { ok: true, appointment: saved, rowSynced: row.ok };
+    if (notify) void notifyAfterCrmCloudSave(snap.doc, payload);
+    return { ok: true, appointment: saved, rowSynced: true };
   }
 
   return { ok: false, error: "conflict", status: 409 };
 }
 
-async function commitStaffUnified(input: StaffAppointmentInput, now: Date): Promise<StaffCommitResult | null> {
+async function commitStaffUnified(input: StaffAppointmentInput, now: Date, notify: boolean): Promise<StaffCommitResult | null> {
   const outcome = await withUnifiedCrm<Appointment>(async (db) => {
     const previous = structuredClone(db);
     const built = await applyStaffChange(db, input, now);
@@ -110,7 +119,7 @@ async function commitStaffUnified(input: StaffAppointmentInput, now: Date): Prom
     const eventKey = input.mode === "create"
       ? `staff-create:${input.clientRequestId || saved.id}`
       : `staff:${saved.id}:${input.mode}:${saved.updatedAt ?? ""}`;
-    return { value: saved, eventKey };
+    return { value: saved, eventKey: notify ? eventKey : undefined };
   }, { notify: safeExternalNotify });
   if (!outcome.handled) return null;
   if (!outcome.ok) return { ok: false, error: outcome.reason ? `${outcome.error}: ${outcome.reason}` : outcome.error, status: outcome.status };
@@ -124,13 +133,15 @@ async function applyStaffChange(
 ): Promise<{ ok: true; appointment: Appointment } | StaffCommitResult> {
   if (input.mode === "create" && input.clientRequestId) {
     const existing = db.appointments.find((apt) => apt.clientRequestId === input.clientRequestId);
+    if (existing && input.restrictedMechanicId && existing.mechanicId !== input.restrictedMechanicId) return { ok: false, error: "forbidden", status: 403 };
     if (existing) return { ok: true, appointment: existing };
   }
 
   if (input.mode !== "create") {
     const apt = db.appointments.find((item) => item.id === input.id);
     if (!apt) return { ok: false, error: "not_found", status: 404 };
-    if (input.expectedUpdatedAt && apt.updatedAt && apt.updatedAt !== input.expectedUpdatedAt) {
+    if (input.restrictedMechanicId && apt.mechanicId !== input.restrictedMechanicId) return { ok: false, error: "forbidden", status: 403 };
+    if (input.expectedUpdatedAt !== undefined && (apt.updatedAt ?? null) !== input.expectedUpdatedAt) {
       return { ok: false, error: "conflict", status: 409 };
     }
     if (input.mode === "cancel" || input.mode === "remove") {
@@ -149,7 +160,7 @@ async function applyStaffChange(
   }
 
   const apt: Appointment = {
-    id: `apt-${now.getTime()}`,
+    id: `apt-${randomUUID()}`,
     userId: "guest",
     vehicleId: "",
     serviceIds: ["otherReason"],
@@ -192,8 +203,8 @@ async function fillAppointment(
     input.durationMinutes ?? apt.durationMinutes,
     serviceIds
   );
-  const holdUntil = input.holdUntil?.trim() || undefined;
-  const multiDay = Boolean(input.multiDay || holdUntil);
+  const holdUntil = input.holdUntil === undefined ? apt.holdUntil : input.holdUntil.trim() || undefined;
+  const multiDay = Boolean(input.multiDay ?? (holdUntil || apt.multiDay));
   const hours = workshopHours();
   const lunch = lunchOf(db);
   const arrival = evaluateStaffArrival({
@@ -209,8 +220,15 @@ async function fillAppointment(
 
   const workStart = input.workStart?.trim() || apt.workStart;
   const workMinutes = input.workMinutes ?? apt.workMinutes;
+  if (workStart && workMinutes && (input.workStart !== undefined || input.workMinutes !== undefined || date !== apt.date)) {
+    const split = splitWorkBlocks({ id: apt.id, date, start: workStart, minutes: workMinutes, hours, mechanicId, resourceIds: [], operationCode: "repair" });
+    if (!split.ok) return { ok: false, error: split.error, status: 400 };
+  }
+  const resources = input.resourceId !== undefined || input.resourceIds !== undefined
+    ? compatibleResourceFields(input.resourceId, input.resourceIds) : {};
   const draft: Appointment = {
     ...apt,
+    ...resources,
     date,
     time,
     mechanicId,
@@ -260,7 +278,7 @@ async function fillAppointment(
   apt.mechanicId = mechanicId;
   apt.comment = (input.comment ?? apt.comment ?? "").slice(0, 1000);
   apt.appointmentStatus = draft.appointmentStatus;
-  apt.notifyMechanic = Boolean(input.notifyMechanic);
+  apt.notifyMechanic = Boolean(input.notifyMechanic ?? apt.notifyMechanic);
   apt.leavesCar = Boolean(draft.leavesCar);
   apt.pickupDate = draft.pickupDate;
   apt.workStart = workStart || undefined;

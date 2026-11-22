@@ -15,3 +15,12 @@ export function parseDateKey(key: string): Date {
   const [y, m, day] = key.split("-").map(Number);
   return new Date(y, m - 1, day, 12, 0, 0, 0);
 }
+
+export function addDateKeyDays(dateKey: string, days: number): string | null {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateKey) || !Number.isInteger(days)) return null;
+  const [year, month, day] = dateKey.split("-").map(Number);
+  const utc = new Date(Date.UTC(year, month - 1, day + days, 12, 0, 0));
+  if (Number.isNaN(utc.getTime())) return null;
+  return utc.toISOString().slice(0, 10);
+}
+

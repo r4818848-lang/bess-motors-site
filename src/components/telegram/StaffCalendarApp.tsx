@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState, useRef, type ReactNode } from "react";
+import { WorkshopGrid, type GridVisit, type GridSlot } from "./WorkshopGrid";
 import { arrivalTimesForDate } from "@/lib/arrival-window";
 import { addDateKeyDays } from "@/lib/staff-calendar";
 import {
@@ -17,7 +18,7 @@ import {
 type Role = "owner" | "admin" | "mechanic";
 type View = "today" | "week" | "month" | "add";
 
-type Card = {
+type Card = GridVisit & {
   id: string;
   date: string;
   time: string;
@@ -321,6 +322,8 @@ export function StaffCalendarApp() {
     pickupDate: "",
     leadId: "",
     clientRequestId: "",
+    lift: "",
+    minutes: 0,
   });
   const text = COPY[lang];
   const frame = useCalendarFrame();
@@ -384,6 +387,11 @@ export function StaffCalendarApp() {
         setCursor(next.today);
         setForm((prev) => ({ ...prev, date: next.today, mechanicId: next.mechanics[0]?.id ?? "" }));
         const params = new URLSearchParams(window.location.search);
+        if (next.canEdit && params.get("new") === "1" && !params.get("lead")) {
+          setForm(prev => ({...prev, clientRequestId: crypto.randomUUID()}));
+          setView("add");
+          return;
+        }
         const leadId = params.get("lead") ?? "";
         if (leadId) {
           const leadData = await post({ action: "lead", leadId });
@@ -428,8 +436,9 @@ export function StaffCalendarApp() {
     setSelected(null);
     setMoving(false);
     setConfirmDelete(false);
+    if (nextView === "add") { newBooking(); return; }
     setView(nextView);
-    if (nextView !== "add" && session) await load(session, nextView, archive, cursor || session.today).catch((err: Error) => setError(err.message));
+    if (session) await load(session, nextView, archive, cursor || session.today).catch((err: Error) => setError(err.message));
   }
 
   async function mutate(action: string, extra: Record<string, unknown> = {}) {
@@ -447,6 +456,25 @@ export function StaffCalendarApp() {
     setNotice(text.saved);
   }
 
+  function newBooking(slot?: GridSlot) {
+    if (!session?.canEdit) return;
+    const date = slot?.date || cursor || session.today;
+    setForm({ clientName: "", clientPhone: "", car: "", plate: "", problemText: "", leavesCar: false, pickupDate: "", leadId: "",
+      date, time: slot?.time || arrivalTimesForDate(date)[0] || "", mechanicId: slot?.mechanicId || session.mechanics[0]?.id || "",
+      lift: slot?.lift || "", minutes: slot ? 60 : 0, clientRequestId: crypto.randomUUID() });
+    setSelected(null);
+    setView("add");
+  }
+
+  async function changeSlot(visit: Card, changes: Record<string, unknown>) {
+    if (!session?.canEdit) return;
+    try {
+      await post({ action: "update", id: visit.id, expectedUpdatedAt: visit.updatedAt, ...changes });
+      setNotice(text.saved);
+    } catch (err) { setError(err instanceof Error ? err.message : "error"); }
+    await load(session, view, archive, cursor || session.today).catch((err: Error) => setError(err.message));
+  }
+
   async function saveNew() {
     const [make, ...modelParts] = form.car.trim().split(/\s+/);
     await post({
@@ -460,6 +488,8 @@ export function StaffCalendarApp() {
       date: form.date,
       time: form.time,
       mechanicId: form.mechanicId,
+      ...(form.minutes ? { workStart: form.time, workMinutes: form.minutes, durationMinutes: form.minutes } : {}),
+      resourceIds: form.lift ? [form.lift] : [],
       leavesCar: form.leavesCar,
       pickupDate: form.leavesCar ? form.pickupDate : "",
       holdUntil: form.leavesCar ? form.pickupDate : "",
@@ -537,7 +567,7 @@ export function StaffCalendarApp() {
         <h1 className="text-lg font-semibold leading-tight">{cursor || session.today}</h1>
       </div>
       <nav className="mb-3 grid grid-cols-4 gap-1.5">
-        {(["today", "week", "month", "add"] as View[]).map((item) => (
+        {(["today", "week", "month", "add"] as View[]).filter(item => item !== "add" || session.canEdit).map((item) => (
           <button key={item} type="button" data-testid={`telegram-tab-${item}`} onClick={() => void openView(item)} className={`${tabClass} ${view === item ? "bg-white text-black" : "bg-zinc-900 text-zinc-100"}`}>
             {text[item]}
           </button>
@@ -545,16 +575,7 @@ export function StaffCalendarApp() {
       </nav>
       {view !== "add" && !archive && !selected && (
         <div className="mb-3 flex items-center justify-between gap-2">
-          {[-1, 0, 1].map((direction) => <button key={direction} type="button" className="min-h-12 rounded-xl bg-zinc-900 px-4" aria-label={direction < 0 ? "Previous" : direction > 0 ? "Next" : "Today"} onClick={() => {
-            const anchor = cursor || session.today;
-            const month = new Date(`${anchor.slice(0, 7)}-01T12:00:00Z`);
-            month.setUTCMonth(month.getUTCMonth() + direction);
-            const next = direction === 0 ? session.today : view === "month" ? month.toISOString().slice(0, 10) : addDateKeyDays(anchor, direction * (view === "week" ? 7 : 1));
-            if (!next) return;
-            setCursor(next);
-            setRows([]);
-            void load(session, view, false, next).catch((err: Error) => setError(err.message));
-          }}>{direction < 0 ? "‹" : direction > 0 ? "›" : text.today}</button>)}
+          {[-1, 0, 1].map((direction) => <button key={direction} type="button" className="min-h-12 rounded-xl bg-zinc-900 px-4" aria-label={direction < 0 ? "Previous" : direction > 0 ? "Next" : "Today"} onClick={() => navigate(direction)}>{direction < 0 ? "‹" : direction > 0 ? "›" : text.today}</button>)}
         </div>
       )}
       {session.role === "owner" && (
@@ -574,12 +595,30 @@ export function StaffCalendarApp() {
           {archive ? text.today : text.archive}
         </button>
       )}
+      {session.role === "owner" && <button type="button" className="mb-3 min-h-11 rounded-xl bg-zinc-900 px-3" onClick={async () => {
+        try {
+          const res = await fetch("/api/staff/icloud",{method:"POST",headers:{"x-telegram-init-data":initData}});
+          const data=await res.json();
+          if (!res.ok) throw new Error(data.error === "icloud_authorization_required" ? "iCloud · Apple Account ↔ BESS MOTORS" : "iCloud · "+(data.error || res.status));
+          setNotice(`iCloud · ERP → iPhone: ${data.exported} · iPhone → ERP: ${data.imported} · ⚠ ${data.conflicts+data.invalid+data.failed}`);
+          await load(session,view,archive,cursor || session.today);
+        } catch (e) { setError(e instanceof Error ? e.message : "iCloud"); }
+      }}>↻ iCloud</button>}
       {notice && <p className="mb-3 text-sm text-emerald-300">{notice}</p>}
       {error && <p className="mb-3 text-sm text-red-300">{error}</p>}
 
       {view !== "add" && !archive && !selected && (
-        <section className="mb-4 select-none" onTouchStart={e => {const t=e.touches[0]; if(touch.current===null && t) touch.current={x:t.clientX,y:t.clientY};}} onTouchCancel={()=>{touch.current=null;}} onTouchEnd={e=>{const origin=touch.current; touch.current=null; const t=e.changedTouches[0]; if(origin && t && Math.abs(t.clientX-origin.x)>65 && Math.abs(t.clientX-origin.x)>Math.abs(t.clientY-origin.y)*1.5) navigate(t.clientX<origin.x?1:-1);}}>
-          {view === "month" ? <div className="grid grid-cols-7 gap-1">{Array.from({length:42},(_,i)=>{const anchor=cursor||session.today;const first=new Date(`${anchor.slice(0,7)}-01T12:00:00Z`);first.setUTCDate(1-((first.getUTCDay()+6)%7)+i);const date=first.toISOString().slice(0,10);return <button type="button" key={date} className={`min-h-12 rounded-lg text-sm ${date===session.today?"bg-red-700":date.slice(0,7)===anchor.slice(0,7)?"bg-zinc-900":"text-zinc-500"}`} onClick={()=>{setCursor(date);setView("today");setRows([]);void load(session,"today",false,date).catch((err:Error)=>setError(err.message));}}>{first.getUTCDate()}<span className="block text-xs text-sky-300">{grouped[date]?.length||""}</span></button>;})}</div> : <div className="overflow-x-auto"><div className="grid gap-px bg-zinc-800" style={{gridTemplateColumns:`44px repeat(${view==="week"?7:Math.max(1,session.mechanics.length)},minmax(${view==="week"?65:100}px,1fr))`}}><div/>{(view==="week"?Array.from({length:7},(_,i)=>{const a=cursor||session.today;return addDateKeyDays(a,i-((new Date(`${a}T12:00:00Z`).getUTCDay()+6)%7))||a;}):session.mechanics.length?session.mechanics.map(m=>m.id):[""]).map(k=><div key={k} className="bg-zinc-950 p-2 text-xs">{view==="week"?k.slice(5):session.mechanics.find(m=>m.id===k)?.name||"—"}</div>)}{Array.from({length:10},(_,i)=>i+9).flatMap(h=>{const time=`${String(h).padStart(2,"0")}:00`;return [<div key={time} className="bg-zinc-950 pt-1 text-xs text-zinc-400">{time}</div>,...(view==="week"?Array.from({length:7},(_,i)=>{const a=cursor||session.today;return addDateKeyDays(a,i-((new Date(`${a}T12:00:00Z`).getUTCDay()+6)%7))||a;}):session.mechanics.length?session.mechanics.map(m=>m.id):[""]).map(k=>{const date=view==="week"?k:cursor||session.today;const matches=(grouped[date]||[]).filter(r=>Number(r.time.slice(0,2))===h&&(view==="week"||r.mechanicId===k));return <div key={`${time}-${k}`} className="min-h-14 bg-zinc-950 p-1">{matches.map(r=><button key={r.id} type="button" className="mb-1 block w-full rounded bg-sky-950 p-1 text-left text-xs" onClick={()=>setSelected(r)}>{r.time} {r.make} {r.model}<span className="block">{r.durationMinutes||60} min</span></button>)}</div>;})]})}</div></div>}
+        <section className="mb-4 select-none" onTouchStart={e => {const t=e.touches[0]; if(!(e.target as Element).closest("[data-grid-slot] button") && touch.current===null && t) touch.current={x:t.clientX,y:t.clientY};}} onTouchCancel={()=>{touch.current=null;}} onTouchEnd={e=>{const origin=touch.current; touch.current=null; const t=e.changedTouches[0]; if(origin && t && Math.abs(t.clientX-origin.x)>65 && Math.abs(t.clientX-origin.x)>Math.abs(t.clientY-origin.y)*1.5) navigate(t.clientX<origin.x?1:-1);}}>
+          {view === "month" ? <div className="grid grid-cols-7 gap-1">{Array.from({length:42},(_,i)=>{const anchor=cursor||session.today;const first=new Date(`${anchor.slice(0,7)}-01T12:00:00Z`);first.setUTCDate(1-((first.getUTCDay()+6)%7)+i);const date=first.toISOString().slice(0,10);return <button type="button" key={date} className={`min-h-12 rounded-lg text-sm ${date===session.today?"bg-red-700":date.slice(0,7)===anchor.slice(0,7)?"bg-zinc-900":"text-zinc-500"}`} onClick={()=>{setCursor(date);setView("today");setRows([]);void load(session,"today",false,date).catch((err:Error)=>setError(err.message));}}>{first.getUTCDate()}<span className="block text-xs text-sky-300">{grouped[date]?.length||""}</span></button>;})}</div> : <WorkshopGrid date={cursor || session.today} week={view === "week"} rows={rows} mechanics={session.mechanics}
+            lang={lang} canEdit={session.canEdit} select={setSelected} create={newBooking}
+            move={(visit, slot) => { const repair = Boolean(visit.workStart && visit.workMinutes);
+              void changeSlot(visit, { date: slot.date, ...(repair ? { workStart: slot.time } : { time: slot.time }),
+                ...(slot.mechanicId ? { mechanicId: slot.mechanicId } : {}),
+                ...(slot.lift !== undefined ? { resourceId: "", resourceIds: [...(visit.resourceIds || []).filter(id => !id.startsWith("lift-")), ...(slot.lift ? [slot.lift] : [])],
+                  workStart: slot.time, workMinutes: visit.workMinutes || visit.durationMinutes || 60 } : {}) });
+            }}
+            resize={(visit, minutes) => void changeSlot(visit, { workStart: visit.workStart || visit.time, workMinutes: minutes, durationMinutes: minutes })} />}
+
         </section>
       )}
       {view === "add" ? (
@@ -609,6 +648,9 @@ export function StaffCalendarApp() {
             <select className={fieldClass} value={form.mechanicId} onChange={(event) => setForm({ ...form, mechanicId: event.target.value })}>
               {session.mechanics.map((mechanic) => <option key={mechanic.id} value={mechanic.id}>{mechanic.name}</option>)}
             </select>
+          </label>
+          <label className="block text-xs text-zinc-400">{({ru:"Время ремонта",pl:"Czas naprawy",en:"Repair time",uk:"Час ремонту"})[lang]} (min)
+            <input type="number" min="0" max="3780" step="15" className={fieldClass} value={form.minutes} onChange={e => setForm({...form, minutes: Number(e.target.value)})} />
           </label>
           <label className="flex min-h-12 items-center gap-3 text-base"><input className="h-5 w-5" type="checkbox" checked={form.leavesCar} onChange={(event) => setForm({ ...form, leavesCar: event.target.checked })} />{text.drop}</label>
           {form.leavesCar && <label className="block text-xs text-zinc-400">{text.pickup}<input type="date" className={fieldClass} value={form.pickupDate} onChange={(event) => setForm({ ...form, pickupDate: event.target.value })} /></label>}
@@ -650,9 +692,9 @@ export function StaffCalendarApp() {
       ) : rows.length === 0 ? (
         <div data-testid="telegram-calendar-empty" className="rounded-2xl bg-zinc-900 px-4 py-4">
           <p className="text-sm">{view === "today" ? text.empty : text.emptyAny}</p>
-          <button type="button" data-testid="telegram-calendar-new" className="mt-3 min-h-12 w-full rounded-xl bg-white font-semibold text-black" onClick={() => void openView("add")}>
+          {session.canEdit && <button type="button" data-testid="telegram-calendar-new" className="mt-3 min-h-12 w-full rounded-xl bg-white font-semibold text-black" onClick={() => void openView("add")}>
             {text.newVisit}
-          </button>
+          </button>}
         </div>
       ) : (
         <div className="space-y-4">

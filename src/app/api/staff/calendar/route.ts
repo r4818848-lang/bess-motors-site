@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { workshopHours } from "@/lib/businessConfig";
+import { resourceIdsForOccupancy } from "@/lib/smart-scheduler/crm-reconcile";
 import { arrivalSchedule } from "@/lib/arrival-window";
 import { addDateKeyDays, canStaff, weekdayWindowLabel } from "@/lib/staff-calendar";
 import { staffCalendarMutationsEnabled } from "@/lib/server/cron-auth";
@@ -53,6 +54,7 @@ function card(db: Database, apt: Appointment) {
     userId: apt.userId,
     serviceIds: apt.serviceIds,
     problemText: apt.problemText ?? "",
+    resourceIds: resourceIdsForOccupancy(apt as Appointment & { resourceId?: string }),
     mechanicId: apt.mechanicId,
     mechanicName: mechanic?.name ?? "",
     comment: (apt.comment ?? "").slice(0, 1000),
@@ -96,7 +98,7 @@ function matchesQuery(db: Database, apt: Appointment, q: string): boolean {
     .filter(Boolean)
     .join(" ")
     .toLowerCase();
-  return hay.includes(q.toLowerCase()) || hay.includes(normalizePhone(q));
+  return hay.includes(q.toLowerCase()) || (Boolean(normalizePhone(q)) && hay.includes(normalizePhone(q)));
 }
 
 async function actorFrom(req: Request, body: Body) {
@@ -116,6 +118,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: "invalid" }, { status: 400 });
   }
 
+  if (!body || typeof body !== "object" || Array.isArray(body) || (body.initData !== undefined && typeof body.initData !== "string")) {
+    return NextResponse.json({ok:false,error:"invalid"},{status:400});
+  }
   const auth = await actorFrom(req, body);
   if ("error" in auth && auth.error) return auth.error;
   const actor = auth.actor;
@@ -138,7 +143,7 @@ export async function POST(req: Request) {
       hours: workshopHours(),
       arrival: arrivalSchedule(),
       todayWindow: weekdayWindowLabel(today, workshopHours()),
-      mechanics: db.mechanics.map((mechanic) => ({ id: mechanic.id, name: mechanic.name })),
+      mechanics: db.mechanics.filter(m => actor.seeAll || m.id === actor.mechanicId).map((mechanic) => ({ id: mechanic.id, name: mechanic.name })),
     });
   }
 
@@ -194,7 +199,7 @@ export async function POST(req: Request) {
         const phone = normalizePhone(user.phone);
         return (
           user.name.toLowerCase().includes(q) ||
-          phone.includes(digits) ||
+          (Boolean(digits) && phone.includes(digits)) ||
           db.vehicles.some(
             (vehicle) =>
               vehicle.userId === user.id &&
@@ -271,10 +276,18 @@ export async function POST(req: Request) {
     body.mechanicId = actor.mechanicId;
   }
 
+  const strings = ["id","clientRequestId","clientName","clientPhone","make","model","plate","vin","vehicleId","userId","problemText","date","time","holdUntil","mechanicId","comment","pickupDate","workStart","resourceId","leadId"] as const;
+  if (strings.some(k => body[k] !== undefined && (typeof body[k] !== "string" || body[k]!.length > 1000))
+      || [body.serviceIds,body.resourceIds].some(v => v !== undefined && (!Array.isArray(v) || v.length>16 || v.some(x => typeof x !== "string" || x.length>100)))
+      || [body.durationMinutes,body.workMinutes].some(v => v !== undefined && (!Number.isInteger(v) || v < 0 || v > 3780))
+      || (body.appointmentStatus !== undefined && !["scheduled","confirmed","in_progress","completed","cancelled"].includes(body.appointmentStatus))) {
+    return NextResponse.json({ok:false,error:"invalid"},{status:400});
+  }
   const result = await commitStaffAppointment({
     ...body,
+    restrictedMechanicId: actor.role === "mechanic" ? actor.mechanicId : undefined,
     mode: action as StaffAppointmentInput["mode"],
-  });
+  }, new Date(), false);
   if (!result.ok) {
     return NextResponse.json({ ok: false, error: result.error }, { status: result.status });
   }

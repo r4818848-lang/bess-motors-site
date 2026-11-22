@@ -6,6 +6,8 @@
  */
 
 import type { Appointment, AppointmentStatus } from "@/lib/store";
+import { resourceIdsForOccupancy } from "@/lib/smart-scheduler/resource-fields";
+import { splitWorkBlocks, rangesOverlap } from "@/lib/smart-scheduler/schedule";
 import { planArrivalReminder } from "@/lib/arrival-reminder";
 import { evaluateArrivalTime, type ArrivalError } from "@/lib/arrival-window";
 import {
@@ -39,13 +41,8 @@ const ACTIVE: ReadonlySet<AppointmentStatus> = new Set([
   "in_progress",
 ]);
 
-export function addDateKeyDays(dateKey: string, days: number): string | null {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateKey) || !Number.isInteger(days)) return null;
-  const [year, month, day] = dateKey.split("-").map(Number);
-  const utc = new Date(Date.UTC(year, month - 1, day + days, 12, 0, 0));
-  if (Number.isNaN(utc.getTime())) return null;
-  return utc.toISOString().slice(0, 10);
-}
+import { addDateKeyDays } from "./date-key";
+export { addDateKeyDays } from "./date-key";
 
 export function clampStaffDuration(value: number | undefined, serviceIds?: string[]): number {
   const fromServices = resolveBookingDurationMinutes({ serviceIds, durationMinutes: undefined });
@@ -185,6 +182,9 @@ type SlotShape = Pick<
   | "appointmentStatus"
   | "multiDay"
 > & {
+  resourceId?: string;
+  resourceIds?: string[];
+  visitState?: string;
   workStart?: string;
   workMinutes?: number;
   leavesCar?: boolean;
@@ -195,31 +195,22 @@ function durationOf(apt: SlotShape): number {
   return clampStaffDuration(apt.durationMinutes, apt.serviceIds);
 }
 
-function workWindow(apt: SlotShape): { date: string; start: number; end: number } | null {
-  if (!apt.workStart || !apt.workMinutes || apt.workMinutes <= 0) return null;
-  const start = clockToMinutes(apt.workStart);
-  if (start == null) return null;
-  return { date: apt.date, start, end: start + apt.workMinutes };
+function busyBlocks(apt: SlotShape, hours: WorkshopHours) {
+  if (!apt.workStart || !apt.workMinutes || apt.calendarHidden || apt.visitState === "no_show" || !ACTIVE.has(apt.appointmentStatus)) return [];
+  const split = splitWorkBlocks({ id: apt.id, date: apt.date, start: apt.workStart, minutes: apt.workMinutes,
+    hours, mechanicId: apt.mechanicId, resourceIds: resourceIdsForOccupancy(apt), operationCode: "repair" });
+  return split.ok ? split.blocks : [];
 }
 
-/** A drop-off does not occupy the mechanic. Only an explicit work window does. */
-export function findMechanicConflict(
-  existing: SlotShape[],
-  candidate: SlotShape,
-  _hours: WorkshopHours,
-  _lunch: LunchWindow
-): string | null {
-  if (!ACTIVE.has(candidate.appointmentStatus) || candidate.calendarHidden) return null;
-  const left = workWindow(candidate);
-  if (!left) return null;
-  const mechanicId = candidate.mechanicId || "";
+/** Drop-offs alone do not reserve workshop capacity. */
+export function findMechanicConflict(existing: SlotShape[], candidate: SlotShape, hours: WorkshopHours, _lunch: LunchWindow): string | null {
+  const left = busyBlocks(candidate, hours);
+  if (!left.length) return null;
+  const resources = resourceIdsForOccupancy(candidate);
   for (const other of existing) {
-    if (other.id === candidate.id || other.calendarHidden) continue;
-    if (!ACTIVE.has(other.appointmentStatus)) continue;
-    if ((other.mechanicId || "") !== mechanicId) continue;
-    const right = workWindow(other);
-    if (!right || right.date !== left.date) continue;
-    if (left.start < right.end && right.start < left.end) return other.id;
+    if (other.id === candidate.id) continue;
+    if (other.mechanicId !== candidate.mechanicId && !resourceIdsForOccupancy(other).some(id => resources.includes(id))) continue;
+    if (busyBlocks(other, hours).some(b => left.some(a => rangesOverlap(a.startMs,a.endMs,b.startMs,b.endMs)))) return other.id;
   }
   return null;
 }
@@ -248,6 +239,7 @@ export function slotSignature(apt: SlotShape): string {
     apt.durationMinutes ?? "",
     apt.holdUntil ?? "",
     apt.multiDay ? "1" : "0",
+    apt.workStart, apt.workMinutes, resourceIdsForOccupancy(apt).join(","), apt.visitState, apt.calendarHidden,
   ].join("|");
 }
 

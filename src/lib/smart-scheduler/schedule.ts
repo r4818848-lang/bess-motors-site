@@ -9,7 +9,7 @@ import {
   weekdayIndexFromDateKey,
   type WorkshopHours,
 } from "@/lib/workshop-schedule";
-import { addDateKeyDays } from "@/lib/staff-calendar";
+import { addDateKeyDays } from "@/lib/date-key";
 
 export const VEHICLE_COEFFICIENTS = {
   city: 0.9,
