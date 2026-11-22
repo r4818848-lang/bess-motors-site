@@ -84,7 +84,7 @@ export function WorkshopGrid<T extends GridVisit>(props: Props<T>) {
                   if (g?.active && slot && (slot.key !== c.key || slot.time !== time)) move(r,slot);
                   else if (g && !g.active) select(r);
                 }}>{time} {r.make} {r.model} {r.clientName}<span className="block">{minutes} min</span></button>
-              {canEdit && <button type="button" aria-label={words[4]} className="block h-6 w-full touch-none text-sky-300"
+              {canEdit && <button type="button" aria-label={words[4]} className="block min-h-11 w-full touch-none rounded-md text-sky-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-400"
                 onPointerDown={e => { start(e, () => {}); if (gesture.current) gesture.current.active = true; }}
                 onKeyDown={e => { if (e.key === "ArrowUp" || e.key === "ArrowDown") { e.preventDefault(); resize(r, Math.max(15,minutes + (e.key === "ArrowDown" ? 15 : -15))); } }}
                 onPointerUp={e => { e.stopPropagation(); const g=gesture.current; clear(); if (!g) return;
