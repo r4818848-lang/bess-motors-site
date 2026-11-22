@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { cronAuthorized, staffCalendarMutationsEnabled } from "@/lib/server/cron-auth";
-import { syncICloud } from "@/lib/server/icloud-calendar";
+import { syncICloud, exchangeErrorCode } from "@/lib/server/icloud-calendar";
 import { verifyTelegramWebAppInitData } from "@/lib/server/telegram-webapp-auth";
 import { resolveStaffCalendarActor } from "@/lib/server/staff-calendar-access";
 export const maxDuration=60;
@@ -9,7 +9,7 @@ async function run() {
   if (!staffCalendarMutationsEnabled()) return NextResponse.json({error:"writes_disabled"},{status:403});
   if (!process.env.BESS_ICLOUD_APP_PASSWORD) return NextResponse.json({error:"icloud_authorization_required"},{status:503});
   try { return NextResponse.json(await syncICloud()); }
-  catch { return NextResponse.json({error:"icloud_sync_unavailable"},{status:503}); }
+  catch (error) { return NextResponse.json({error:exchangeErrorCode(error)},{status:503}); }
 }
 export async function GET(req:Request) {
   if (!cronAuthorized(req.headers.get("authorization"))) return NextResponse.json({error:"unauthorized"},{status:401});
