@@ -238,7 +238,7 @@ test("move and delete stay large enough to tap", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/telegram/calendar");
   await expect(page.getByTestId("telegram-calendar-empty")).toHaveCount(0);
-  await page.getByRole("button", { name: /09:00/ }).click();
+  await page.getByRole("button", { name: /09:00 Jan/ }).click();
   for (const id of ["telegram-move", "telegram-remove"]) {
     const box = await page.getByTestId(id).boundingBox();
     expect(box?.height ?? 0).toBeGreaterThanOrEqual(44);
