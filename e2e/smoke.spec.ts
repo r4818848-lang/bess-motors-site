@@ -488,7 +488,7 @@ test("public site brand palette unifies primary, secondary and accent controls",
 });
 
 
-test("all 15 customization pages have canonical SEO metadata and only supplied images", async ({ page }) => {
+test("all 19 customization pages have canonical SEO metadata and only supplied images", async ({ page }) => {
   const slugs = [
     "personalizacja-samochodu-warszawa",
     "gwiezdne-niebo-w-samochodzie-warszawa",
@@ -505,6 +505,10 @@ test("all 15 customization pages have canonical SEO metadata and only supplied i
     "montaz-apple-carplay-warszawa",
     "oklejanie-samochodu-folia-warszawa",
     "pranie-tapicerki-samochodowej-warszawa",
+    "montaz-ducktaila-warszawa",
+    "przyciemnianie-szyb-samochodowych-warszawa",
+    "podswietlenie-podwozia-samochodu-warszawa",
+    "usuwanie-wgniecen-bez-lakierowania-warszawa",
   ];
   const titles = new Set<string>();
   for (const slug of slugs) {
@@ -565,7 +569,7 @@ test("customization category is discoverable in catalogue and multilingual servi
   await category.click();
   const area = page.getByTestId("services-customization");
   await expect(area).toBeVisible();
-  await expect(area.getByTestId("customization-catalog-card")).toHaveCount(14);
+  await expect(area.getByTestId("customization-catalog-card")).toHaveCount(18);
   await page.getByTestId("catalogue-search").fill("CarPlay");
   await expect(area.getByTestId("customization-catalog-card")).toHaveCount(1);
   await expect(area.locator('a[href="/montaz-apple-carplay-warszawa"]')).toBeVisible();
