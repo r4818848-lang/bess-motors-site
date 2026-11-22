@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useState, useRef, type ReactNode } from "react";
 import { arrivalTimesForDate } from "@/lib/arrival-window";
 import { addDateKeyDays } from "@/lib/staff-calendar";
 import {
@@ -21,6 +21,7 @@ type Card = {
   id: string;
   date: string;
   time: string;
+  durationMinutes?: number;
   clientName: string;
   clientPhone: string;
   plate: string;
@@ -297,6 +298,8 @@ export function StaffCalendarApp() {
   const [session, setSession] = useState<Session | null>(null);
   const [view, setView] = useState<View>("today");
   const [cursor, setCursor] = useState("");
+  const touch = useRef<{x:number;y:number}|null>(null);
+  const requestId = useRef(0);
   const [archive, setArchive] = useState(false);
   const [rows, setRows] = useState<Card[]>([]);
   const [selected, setSelected] = useState<Card | null>(null);
@@ -356,7 +359,9 @@ export function StaffCalendarApp() {
       const weekday = new Date(`${anchor}T12:00:00Z`).getUTCDay();
       const from = nextView === "week" ? (addDateKeyDays(anchor, -((weekday + 6) % 7)) ?? anchor) : nextView === "month" ? `${anchor.slice(0, 8)}01` : anchor;
       const to = nextView === "week" ? addDateKeyDays(from, 6) : nextView === "month" ? monthEnd(anchor) : anchor;
+      const id = ++requestId.current;
       const data = await post({ action: "list", from, to, includeArchive: showArchive && next.role === "owner" });
+      if (id !== requestId.current) return;
       const appointments = (data.appointments as Card[]) ?? [];
       setRows(showArchive || nextView !== "today" ? appointments : appointments.filter((row) => row.date === anchor));
     },
@@ -510,6 +515,16 @@ export function StaffCalendarApp() {
     );
   }
 
+  function navigate(direction: number) {
+    if (!session || view === "add" || archive || selected) return;
+    const anchor = cursor || session.today;
+    const month = new Date(`${anchor.slice(0, 7)}-01T12:00:00Z`);
+    month.setUTCMonth(month.getUTCMonth() + direction);
+    const next = direction === 0 ? session.today : view === "month" ? month.toISOString().slice(0, 10) : addDateKeyDays(anchor, direction * (view === "week" ? 7 : 1));
+    if (!next) return;
+    setCursor(next); setRows([]);
+    void load(session, view, false, next).catch((err: Error) => setError(err.message));
+  }
   const grouped = rows.reduce<Record<string, Card[]>>((acc, row) => {
     acc[row.date] = [...(acc[row.date] ?? []), row];
     return acc;
@@ -562,6 +577,11 @@ export function StaffCalendarApp() {
       {notice && <p className="mb-3 text-sm text-emerald-300">{notice}</p>}
       {error && <p className="mb-3 text-sm text-red-300">{error}</p>}
 
+      {view !== "add" && !archive && !selected && (
+        <section className="mb-4 select-none" onTouchStart={e => {const t=e.touches[0]; if(touch.current===null && t) touch.current={x:t.clientX,y:t.clientY};}} onTouchCancel={()=>{touch.current=null;}} onTouchEnd={e=>{const origin=touch.current; touch.current=null; const t=e.changedTouches[0]; if(origin && t && Math.abs(t.clientX-origin.x)>65 && Math.abs(t.clientX-origin.x)>Math.abs(t.clientY-origin.y)*1.5) navigate(t.clientX<origin.x?1:-1);}}>
+          {view === "month" ? <div className="grid grid-cols-7 gap-1">{Array.from({length:42},(_,i)=>{const anchor=cursor||session.today;const first=new Date(`${anchor.slice(0,7)}-01T12:00:00Z`);first.setUTCDate(1-((first.getUTCDay()+6)%7)+i);const date=first.toISOString().slice(0,10);return <button type="button" key={date} className={`min-h-12 rounded-lg text-sm ${date===session.today?"bg-red-700":date.slice(0,7)===anchor.slice(0,7)?"bg-zinc-900":"text-zinc-500"}`} onClick={()=>{setCursor(date);setView("today");setRows([]);void load(session,"today",false,date).catch((err:Error)=>setError(err.message));}}>{first.getUTCDate()}<span className="block text-xs text-sky-300">{grouped[date]?.length||""}</span></button>;})}</div> : <div className="overflow-x-auto"><div className="grid gap-px bg-zinc-800" style={{gridTemplateColumns:`44px repeat(${view==="week"?7:Math.max(1,session.mechanics.length)},minmax(${view==="week"?65:100}px,1fr))`}}><div/>{(view==="week"?Array.from({length:7},(_,i)=>{const a=cursor||session.today;return addDateKeyDays(a,i-((new Date(`${a}T12:00:00Z`).getUTCDay()+6)%7))||a;}):session.mechanics.length?session.mechanics.map(m=>m.id):[""]).map(k=><div key={k} className="bg-zinc-950 p-2 text-xs">{view==="week"?k.slice(5):session.mechanics.find(m=>m.id===k)?.name||"—"}</div>)}{Array.from({length:10},(_,i)=>i+9).flatMap(h=>{const time=`${String(h).padStart(2,"0")}:00`;return [<div key={time} className="bg-zinc-950 pt-1 text-xs text-zinc-400">{time}</div>,...(view==="week"?Array.from({length:7},(_,i)=>{const a=cursor||session.today;return addDateKeyDays(a,i-((new Date(`${a}T12:00:00Z`).getUTCDay()+6)%7))||a;}):session.mechanics.length?session.mechanics.map(m=>m.id):[""]).map(k=>{const date=view==="week"?k:cursor||session.today;const matches=(grouped[date]||[]).filter(r=>Number(r.time.slice(0,2))===h&&(view==="week"||r.mechanicId===k));return <div key={`${time}-${k}`} className="min-h-14 bg-zinc-950 p-1">{matches.map(r=><button key={r.id} type="button" className="mb-1 block w-full rounded bg-sky-950 p-1 text-left text-xs" onClick={()=>setSelected(r)}>{r.time} {r.make} {r.model}<span className="block">{r.durationMinutes||60} min</span></button>)}</div>;})]})}</div></div>}
+        </section>
+      )}
       {view === "add" ? (
         <form
           className="space-y-3"
