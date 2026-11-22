@@ -14,8 +14,9 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
   if (process.env.BESS_ICLOUD_APP_PASSWORD && staffCalendarMutationsEnabled()) {
     after(async () => {
-      try { const {syncICloud}=await import("@/lib/server/icloud-calendar"); await syncICloud(); }
-      catch { console.error("[icloud] synchronization unavailable"); }
+      const {syncICloud,exchangeErrorCode}=await import("@/lib/server/icloud-calendar");
+      try { console.info("[icloud] sync",await syncICloud()); }
+      catch (error) { console.error("[icloud]",exchangeErrorCode(error)); }
     });
   }
 

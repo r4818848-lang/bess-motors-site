@@ -66,31 +66,57 @@ export function decodeVisit(raw: string) {
   return { uid:event.uid, slot, notes:event.description || "", cancelled: events[0].getFirstPropertyValue("status")==="CANCELLED" };
 }
 
+class ExchangeError extends Error {}
+export function exchangeErrorCode(error: unknown): string {
+  return error instanceof ExchangeError ? error.message : "icloud_unavailable";
+}
 export async function syncICloud() {
-  const login=process.env.BESS_ICLOUD_USER, password=process.env.BESS_ICLOUD_APP_PASSWORD;
-  if (!login || !password) throw new Error("icloud_authorization_required");
+  const login=process.env.BESS_ICLOUD_USER?.trim(), password=process.env.BESS_ICLOUD_APP_PASSWORD?.trim();
+  if (!login || !password) throw new ExchangeError("icloud_authorization_required");
   const cfg = getSupabaseConfig();
   const snap = await cloudGetCrmStore();
-  if (!cfg || !snap) throw new Error("crm_unavailable");
-  const safeFetch: typeof fetch = (input,init) => {
-    const url=new URL(input instanceof Request ? input.url : input.toString());
-    if (url.protocol !== "https:" || !url.hostname.endsWith(".icloud.com") || url.port || url.username || url.password) throw new Error("invalid_calendar_host");
-    return fetch(input,{...init,redirect:init?.redirect === "manual" ? "manual" : "error",cache:"no-store",signal:AbortSignal.timeout(10000)});
+  if (!cfg || !snap) throw new ExchangeError("crm_unavailable");
+  let stage = "discovery";
+  let failure: string | undefined;
+  const safeFetch: typeof fetch = async (input,init) => {
+    let url=new URL(input instanceof Request ? input.url : input.toString());
+    const signal=AbortSignal.timeout(10000);
+    for (let hop=0; hop<4; hop++) {
+      if (url.protocol !== "https:" || !url.hostname.endsWith(".icloud.com") || url.port || url.username || url.password) throw new ExchangeError("icloud_invalid_host");
+      const res=await fetch(url,{...init,redirect:"manual",cache:"no-store",signal});
+      if ([301,302,307,308].includes(res.status) && init?.redirect!=="manual" && res.headers.has("location")) {
+        url=new URL(res.headers.get("location")!,url);
+        continue;
+      }
+      failure=res.status>=400 ? stage+"_http_"+res.status : undefined;
+      return res;
+    }
+    throw new ExchangeError("icloud_redirect_limit");
   };
-  const dav=await createDAVClient({serverUrl:"https://caldav.icloud.com",credentials:{username:login,password},authMethod:"Basic",defaultAccountType:"caldav",fetch:safeFetch});
-  const calendars=(await dav.fetchCalendars()).filter(c=>c.displayName==="BESS MOTORS");
-  if (calendars.length!==1) throw new Error("dedicated_calendar_required");
+  async function davStep<T>(name:string,fn:()=>Promise<T>):Promise<T> {
+    stage=name; failure=undefined;
+    try { return await fn(); }
+    catch (err) {
+      if (err instanceof ExchangeError) throw err;
+      throw new ExchangeError(failure || name+"_failed");
+    }
+  }
+  const dav=await davStep("discovery",()=>createDAVClient({serverUrl:"https://caldav.icloud.com",credentials:{username:login,password},authMethod:"Basic",defaultAccountType:"caldav",fetch:safeFetch}));
+  const all=await davStep("calendar_list",()=>dav.fetchCalendars());
+  const calendars=all.filter(c=>typeof c.displayName==="string" && c.displayName.trim().toUpperCase()==="BESS MOTORS");
+  if (calendars.length!==1) throw new ExchangeError(failure || (calendars.length ? "dedicated_calendar_ambiguous" : "dedicated_calendar_missing"));
   const calendar=calendars[0], calendarKey=digest(login.toLowerCase()+"\n"+calendar.url);
   const headers={apikey:cfg.key,Authorization:"Bearer "+cfg.key,"Content-Type":"application/json"};
   const linksUrl=cfg.url+"/rest/v1/workshop_calendar_links";
   const links: Link[]=[];
   for (;;) {
     const page=await fetch(linksUrl+"?calendar_key=eq."+calendarKey+"&select=appointment_id,href,signature&order=appointment_id&limit=500&offset="+links.length,{headers,cache:"no-store"});
-    if (!page.ok) throw new Error("calendar_link_read");
+    if (!page.ok) throw new ExchangeError("calendar_link_read");
     const items: Link[]=await page.json(); links.push(...items);
     if (items.length<500) break;
   }
-  const objects=await dav.fetchCalendarObjects({calendar});
+  const objects=await davStep("calendar_events",()=>dav.fetchCalendarObjects({calendar}));
+  if (failure) throw new ExchangeError(failure);
   const byUrl=new Map(objects.map(o=>[o.url,o]));
   const known=new Map(links.map(l=>[l.appointment_id,l]));
   const claimed=new Set(links.map(l=>l.href));
