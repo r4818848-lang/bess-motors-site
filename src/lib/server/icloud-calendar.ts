@@ -151,9 +151,11 @@ export async function syncICloud() {
       const phone=event.notes.match(/^TEL:\s*(\+?[\d ()-]{9,20})$/im)?.[1];
       const name=event.notes.match(/^NAME:\s*(.{1,100})$/im)?.[1]?.trim();
       const mechanicId=event.notes.match(/^MECH:\s*([\w-]+)$/im)?.[1] || process.env.BESS_ICLOUD_MECHANIC_ID || (snap.doc.mechanics.length===1 ? snap.doc.mechanics[0].id : "");
-      if (!name || !phone || !mechanicId) { stats.invalid++; continue; }
+      const normalizedPhone = phone?.replace(/[ ()-]/g, "");
+      // Never create a CRM client with an incomplete Polish number from iCloud notes.
+      if (!name || !normalizedPhone || !mechanicId || !/^\+?[1-9]\d{7,14}$/.test(normalizedPhone) || /^\+?48\d*$/.test(normalizedPhone) && !/^\+?48\d{9}$/.test(normalizedPhone)) { stats.invalid++; continue; }
       const {slot}=event;
-      const res=await commitStaffAppointment({mode:"create",clientRequestId:"icloud-"+digest(calendarKey+event.uid),clientName:name,clientPhone:phone,mechanicId,
+      const res=await commitStaffAppointment({mode:"create",clientRequestId:"icloud-"+digest(calendarKey+event.uid),clientName:name,clientPhone:normalizedPhone,mechanicId,
         date:slot.date,time:slot.time,workStart:slot.time,workMinutes:slot.minutes,durationMinutes:slot.minutes,problemText:slot.title},new Date(),false);
       if (!res.ok) { stats.conflicts++; continue; }
       await remember(res.appointment.id,object.url,signature(slot)); stats.imported++;
