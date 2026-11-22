@@ -12,6 +12,13 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });
   }
 
+  if (process.env.BESS_ICLOUD_APP_PASSWORD && staffCalendarMutationsEnabled()) {
+    after(async () => {
+      try { const {syncICloud}=await import("@/lib/server/icloud-calendar"); await syncICloud(); }
+      catch { console.error("[icloud] synchronization unavailable"); }
+    });
+  }
+
   if (!reminderDeliveryEnabled()) {
     return NextResponse.json({ ok: true, delivery: "skipped" });
   }
@@ -26,12 +33,6 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ ok: true, delivery: "skipped", reason: "other_project" });
   }
 
-  if (process.env.BESS_ICLOUD_APP_PASSWORD && staffCalendarMutationsEnabled()) {
-    after(async () => {
-      try { const {syncICloud}=await import("@/lib/server/icloud-calendar"); await syncICloud(); }
-      catch { console.error("[icloud] synchronization unavailable"); }
-    });
-  }
   const stats = await runAppointmentReminders(db);
   return NextResponse.json({ ok: true, delivery: "live", ...stats });
 }

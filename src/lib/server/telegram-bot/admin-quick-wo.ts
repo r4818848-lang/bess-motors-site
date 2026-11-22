@@ -168,7 +168,7 @@ export async function startQuickWorkOrderFlow(
   chatId: number,
   messageId?: number
 ): Promise<void> {
-  const data: QuickWoSessionData = { woStep: "firstName" };
+  const data: QuickWoSessionData = { woStep: "firstName", orderId: `wo-${crypto.randomUUID()}` };
   const intro = `${BOT.quickWoIntro}\n\n${stepPrompt("firstName")}`;
   const keyboard = stepKeyboard("firstName");
   const chatKeyStr = chatKey(chatId);
@@ -215,7 +215,7 @@ export async function handleQuickWoCallback(
     let orderNumber = "";
     let createError = "";
     const put = await cloudMutateCrmStore(async (db) => {
-      const result = await createQuickWorkOrderFromTelegram(db, draft);
+      const result = await createQuickWorkOrderFromTelegram(db, draft, data.orderId || (messageId ? `wo-tg-${chatId}-${messageId}` : undefined));
       if (!result.ok) {
         createError = result.error;
         return false;

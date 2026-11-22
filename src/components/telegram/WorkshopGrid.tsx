@@ -6,7 +6,7 @@ import { arrivalTimesForDate } from "@/lib/arrival-window";
 
 export type GridVisit = {
   id: string; date: string; time: string; mechanicId: string; resourceIds?: string[];
-  workStart?: string; workMinutes?: number; durationMinutes?: number; make: string; model: string;
+  workStart?: string; workMinutes?: number; durationMinutes?: number; clientName: string; make: string; model: string;
 };
 export type GridSlot = { date: string; time: string; mechanicId?: string; lift?: string };
 type Column = { key: string; label: string; date: string; mechanicId?: string; lift?: string };
@@ -83,7 +83,7 @@ export function WorkshopGrid<T extends GridVisit>(props: Props<T>) {
                 onPointerUp={e => { e.stopPropagation(); const g = gesture.current; const slot = target(e); clear();
                   if (g?.active && slot && (slot.key !== c.key || slot.time !== time)) move(r,slot);
                   else if (g && !g.active) select(r);
-                }}>{time} {r.make} {r.model}<span className="block">{minutes} min</span></button>
+                }}>{time} {r.make} {r.model} {r.clientName}<span className="block">{minutes} min</span></button>
               {canEdit && <button type="button" aria-label={words[4]} className="block h-6 w-full touch-none text-sky-300"
                 onPointerDown={e => { start(e, () => {}); if (gesture.current) gesture.current.active = true; }}
                 onKeyDown={e => { if (e.key === "ArrowUp" || e.key === "ArrowDown") { e.preventDefault(); resize(r, Math.max(15,minutes + (e.key === "ArrowDown" ? 15 : -15))); } }}

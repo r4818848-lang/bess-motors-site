@@ -196,7 +196,7 @@ test("mobile navigation searches Polish and Russian symptoms and exposes booking
 });
 
 
-test("homepage provides four immediate customer actions and six service links", async ({ page }) => {
+test("homepage provides four immediate customer actions and eleven service cards", async ({ page }) => {
   await page.goto("/");
   const actions = page.getByTestId("hero-quick-actions");
   await expect(actions.locator("a")).toHaveCount(4);
@@ -205,7 +205,7 @@ test("homepage provides four immediate customer actions and six service links", 
   await expect(actions.locator('a[href="#wyceń-po-vin"]')).toBeVisible();
   await expect(actions.locator('a[href="/services"]')).toBeVisible();
   const services = page.getByTestId("services-visual-grid");
-  await expect(services.getByTestId("visual-service-card")).toHaveCount(6);
+  await expect(services.getByTestId("visual-service-card")).toHaveCount(11);
   for (const href of ["/wymiana-oleju", "/wymiana-opon-warszawa", "/hamulce", "/klimatyzacja", "/diagnostyka-komputerowa-warszawa", "/naprawa-zawieszenia-warszawa"]) {
     await expect(services.locator('a[href="' + href + '"]')).toBeVisible();
   }
@@ -488,9 +488,10 @@ test("public site brand palette unifies primary, secondary and accent controls",
 });
 
 
-test("all 14 customization pages have canonical SEO metadata and only supplied images", async ({ page }) => {
+test("all 15 customization pages have canonical SEO metadata and only supplied images", async ({ page }) => {
   const slugs = [
     "personalizacja-samochodu-warszawa",
+    "gwiezdne-niebo-w-samochodzie-warszawa",
     "oswietlenie-ambientowe-samochodu-warszawa",
     "wygluszenie-samochodu-warszawa",
     "obszywanie-kierownicy-warszawa",
@@ -522,6 +523,8 @@ test("all 14 customization pages have canonical SEO metadata and only supplied i
       await expect(gallery.locator("img")).toHaveCount(6);
       await gallery.getByTestId("enhancement-gallery-more").click();
       await expect(gallery.locator("img")).toHaveCount(19);
+    } else if (slug === "montaz-apple-carplay-warszawa" || slug === "gwiezdne-niebo-w-samochodzie-warszawa") {
+      await expect(page.getByTestId("enhancement-photo-gallery").locator("img")).toHaveCount(slug.startsWith("montaz") ? 4 : 5);
     } else if (slug === "wygluszenie-samochodu-warszawa") {
       await expect(page.getByTestId("enhancement-photo-gallery").locator("img")).toHaveCount(3);
     } else {
@@ -562,7 +565,7 @@ test("customization category is discoverable in catalogue and multilingual servi
   await category.click();
   const area = page.getByTestId("services-customization");
   await expect(area).toBeVisible();
-  await expect(area.getByTestId("customization-catalog-card")).toHaveCount(13);
+  await expect(area.getByTestId("customization-catalog-card")).toHaveCount(14);
   await page.getByTestId("catalogue-search").fill("CarPlay");
   await expect(area.getByTestId("customization-catalog-card")).toHaveCount(1);
   await expect(area.locator('a[href="/montaz-apple-carplay-warszawa"]')).toBeVisible();

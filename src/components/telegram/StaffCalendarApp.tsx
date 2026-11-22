@@ -696,7 +696,7 @@ export function StaffCalendarApp() {
             {text.newVisit}
           </button>}
         </div>
-      ) : (
+      ) : (archive || view === "month" || rows.some(r => !session.mechanics.some(m=>m.id===r.mechanicId))) ? (
         <div className="space-y-4">
           {Object.keys(grouped).sort().map((date) => (
             <section key={date}>
@@ -717,7 +717,7 @@ export function StaffCalendarApp() {
             </section>
           ))}
         </div>
-      )}
+      ) : null}
     </CalendarShell>
   );
 }

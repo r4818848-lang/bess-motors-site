@@ -75,7 +75,7 @@ export async function syncICloud() {
   const safeFetch: typeof fetch = (input,init) => {
     const url=new URL(input instanceof Request ? input.url : input.toString());
     if (url.protocol !== "https:" || !url.hostname.endsWith(".icloud.com") || url.port || url.username || url.password) throw new Error("invalid_calendar_host");
-    return fetch(input,{...init,redirect:"error",cache:"no-store",signal:AbortSignal.timeout(10000)});
+    return fetch(input,{...init,redirect:init?.redirect === "manual" ? "manual" : "error",cache:"no-store",signal:AbortSignal.timeout(10000)});
   };
   const dav=await createDAVClient({serverUrl:"https://caldav.icloud.com",credentials:{username:login,password},authMethod:"Basic",defaultAccountType:"caldav",fetch:safeFetch});
   const calendars=(await dav.fetchCalendars()).filter(c=>c.displayName==="BESS MOTORS");

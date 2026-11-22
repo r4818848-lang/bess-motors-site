@@ -267,3 +267,31 @@ test("the keyboard shrinks the shell to the current viewport", async ({ page }) 
   const paddingTop = await shell.evaluate((element) => Number.parseFloat(getComputedStyle(element).paddingTop));
   expect(paddingTop).toBe(113);
 });
+
+test("long press on a lift prepares one retryable repair booking",async ({page})=>{
+  await installTelegram(page,profiles[0]);
+  await mockCalendar(page,[]);
+  const requests: Record<string,unknown>[]=[];
+  await page.route("**/api/staff/calendar",async route=>{
+    const b=route.request().postDataJSON();
+    if(b.action!=="create") return route.fallback();
+    requests.push(b);
+    await route.fulfill({status:503,json:{ok:false,error:"cloud_write"}});
+  });
+  await page.goto("/telegram/calendar");
+  await page.getByRole("button",{name:"Подъёмники",exact:true}).click();
+  const cell=page.locator('[data-column="lift-1"][data-time="10:00"]');
+  await cell.scrollIntoViewIfNeeded();
+  const box=(await cell.boundingBox())!;
+  await page.mouse.move(box.x+10,box.y+14);
+  await page.mouse.down();
+  await expect(page.getByPlaceholder("Имя")).toBeVisible();
+  await page.mouse.up();
+  await page.getByPlaceholder("Имя").fill("Test");
+  await page.locator('input[inputmode="tel"]').fill("+48000000000");
+  const save=page.locator('button[type="submit"]');
+  await save.click(); await expect.poll(()=>requests.length).toBe(1);
+  await save.click(); await expect.poll(()=>requests.length).toBe(2);
+  expect(requests[0].clientRequestId).toBeTruthy();
+  expect(requests[1]).toMatchObject({clientRequestId:requests[0].clientRequestId,time:"10:00",resourceIds:["lift-1"],workMinutes:60});
+});

@@ -3,6 +3,7 @@ import {
   calcClientTotal,
   calcMechanicEarnings,
   calcPartsProfit,
+  calcPartsPurchaseCost,
   calcServiceLine,
   calcPartLine,
 } from "./workorder-calc";
@@ -127,7 +128,10 @@ export function computeCrmAnalytics(
     salaries += calcMechanicEarnings(o, db.settings, m).total;
   });
 
-  const profit = revenue - expenseTotal - salaries;
+  const partsCost = orders.reduce((sum, order) => sum + calcPartsPurchaseCost(order), 0);
+  const operatingExpenses = expenses.filter(e => e.category !== "purchase" && e.category !== "salary")
+    .reduce((sum, e) => sum + e.amount, 0);
+  const profit = revenue - partsCost - salaries - operatingExpenses;
   const avgCheck = orders.length ? revenue / orders.length : 0;
 
   const clientTotals = new Map<string, number>();
