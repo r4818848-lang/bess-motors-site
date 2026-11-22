@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { verifyToken } from "@/lib/server/verify-session";
 import type { Database } from "@/lib/store";
-import { cloudGetCrmStore, cloudPutCrmStore, isSupabaseConfigured } from "@/lib/server/crm-cloud";
+import { cloudGetCrmStore, commitCrmSnapshot, isSupabaseConfigured } from "@/lib/server/crm-cloud";
 import { preserveVerifiedAcquisitionForStaff } from "@/lib/attribution-access";
 
 export const dynamic = "force-dynamic";
@@ -117,11 +117,11 @@ export async function PUT(req: Request) {
       );
     }
   }
-  const result = await cloudPutCrmStore(payload, { skipNotify: true });
+  const result = await commitCrmSnapshot(payload, before?.updatedAt ?? null);
   if (!result.ok) {
     return NextResponse.json(
       { ok: false, error: result.error },
-      { status: result.error === "cloud_disabled" ? 503 : 502 }
+      { status: result.error === "conflict" ? 409 : 502 }
     );
   }
 

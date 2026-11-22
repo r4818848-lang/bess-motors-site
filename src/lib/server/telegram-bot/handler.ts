@@ -441,6 +441,7 @@ async function handleMessage(msg: TelegramMessage): Promise<void> {
       return;
     }
     const result = await createQuickAppointment({
+      requestId: `tg-visit:${chatId}:${msg.message_id}`,
       phone: parsed.phone,
       date: parsed.date,
       time: parsed.time,

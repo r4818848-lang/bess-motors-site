@@ -295,3 +295,33 @@ test("long press on a lift prepares one retryable repair booking",async ({page})
   expect(requests[0].clientRequestId).toBeTruthy();
   expect(requests[1]).toMatchObject({clientRequestId:requests[0].clientRequestId,time:"10:00",resourceIds:["lift-1"],workMinutes:60});
 });
+
+test("moving and resizing a repair submit the current appointment version",async ({page})=>{
+  await installTelegram(page,profiles[0]);
+  await mockCalendar(page,[{id:"repair",date:"2026-11-09",time:"09:00",workStart:"09:00",workMinutes:60,mechanicId:"m1",clientName:"Test",serviceIds:[],updatedAt:"rev1"}]);
+  const updates:Record<string,unknown>[]=[];
+  await page.route("**/api/staff/calendar",async route=>{
+    const body=route.request().postDataJSON();
+    if(body.action!=="update") return route.fallback();
+    updates.push(body);
+    await route.fulfill({json:{ok:true}});
+  });
+  await page.goto("/telegram/calendar");
+  const card=page.getByRole("button",{name:/09:00 Test/});
+  await expect(card).toBeVisible();
+  const resize=page.getByRole("button",{name:"Длительность"});
+  await resize.focus();
+  await page.keyboard.press("ArrowDown");
+  await expect.poll(()=>updates.length).toBe(1);
+  expect(updates[0]).toMatchObject({id:"repair",workMinutes:75,expectedUpdatedAt:"rev1"});
+  const target=page.locator('[data-column="m1"][data-time="10:00"]');
+  await target.scrollIntoViewIfNeeded();
+  const box=(await card.boundingBox())!, dest=(await target.boundingBox())!;
+  await page.mouse.move(box.x+5,box.y+5);
+  await page.mouse.down();
+  await page.waitForTimeout(500);
+  await page.mouse.move(dest.x+10,dest.y+10,{steps:6});
+  await page.mouse.up();
+  await expect.poll(()=>updates.length).toBe(2);
+  expect(updates[1]).toMatchObject({id:"repair",workStart:"10:00",expectedUpdatedAt:"rev1"});
+});

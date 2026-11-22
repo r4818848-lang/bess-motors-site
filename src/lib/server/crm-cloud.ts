@@ -93,32 +93,24 @@ export async function cloudPutCrmStore(
   }
 }
 
-/** Write only when updated_at still matches. An empty result means another writer won. */
-export async function patchCrmIfUnchanged(
-  doc: Database,
-  expectedUpdatedAt: string
-): Promise<"ok" | "stale" | "error"> {
-  if (crmCloudTestIo) return crmCloudTestIo.patch(doc, expectedUpdatedAt);
+/** Save the ERP snapshot and project changed visits into appointments in one transaction. */
+export async function commitCrmSnapshot(doc: Database, expectedVersion: string | null): Promise<{ok:true;updatedAt:string} | {ok:false;error:"conflict"|"cloud_write"}> {
   const cfg = getSupabaseConfig();
-  if (!cfg || !expectedUpdatedAt) return "error";
+  if (!cfg) return {ok:false,error:"cloud_write"};
   try {
-    const res = await fetch(
-      `${cfg.url}/rest/v1/crm_store?id=eq.${ROW_ID}&updated_at=eq.${encodeURIComponent(expectedUpdatedAt)}`,
-      {
-        method: "PATCH",
-        headers: {
-          apikey: cfg.key,
-          Authorization: `Bearer ${cfg.key}`,
-          "Content-Type": "application/json",
-          Prefer: "return=representation",
-        },
-        body: JSON.stringify({ doc, updated_at: new Date().toISOString() }),
-      }
-    );
-    if (!res.ok) return "error";
-    const rows = (await res.json()) as unknown[];
-    return Array.isArray(rows) && rows.length > 0 ? "ok" : "stale";
-  } catch {
-    return "error";
-  }
+    const response = await fetch(`${cfg.url}/rest/v1/rpc/commit_crm_snapshot`, {
+      method:"POST", headers:{apikey:cfg.key, Authorization:`Bearer ${cfg.key}`, "Content-Type":"application/json"},
+      body: JSON.stringify({expected_version:expectedVersion, next_doc:doc}),
+    });
+    if (!response.ok) return {ok:false,error:"cloud_write"};
+    const stamp:unknown = await response.json();
+    return typeof stamp === "string" ? {ok:true,updatedAt:stamp} : {ok:false,error:"conflict"};
+  } catch { return {ok:false,error:"cloud_write"}; }
+}
+
+export async function patchCrmIfUnchanged(doc: Database, expectedUpdatedAt: string): Promise<"ok" | "stale" | "error"> {
+  if (crmCloudTestIo) return crmCloudTestIo.patch(doc, expectedUpdatedAt);
+  if (!expectedUpdatedAt) return "error";
+  const result=await commitCrmSnapshot(doc,expectedUpdatedAt);
+  return result.ok ? "ok" : result.error === "conflict" ? "stale" : "error";
 }
