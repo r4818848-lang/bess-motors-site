@@ -4,6 +4,7 @@ import { HomeTrustHighlights } from "@/components/home/HomeTrustHighlights";
 import { SameDayServices } from "@/components/home/SameDayServices";
 import { HomeTireSeasonBlock } from "@/components/home/HomeTireSeasonBlock";
 import { HomeSeoServiceLinks } from "@/components/home/HomeSeoServiceLinks";
+import { HomeCustomizationServices } from "@/components/home/HomeCustomizationServices";
 import { HomeFinalCta } from "@/components/home/HomeFinalCta";
 import { SymptomShortcuts } from "@/components/home/SymptomShortcuts";
 
@@ -41,6 +42,7 @@ export default function HomePage() {
       <HomeTrustHighlights />
       <SymptomShortcuts />
       <HomeTireSeasonBlock />
+      <HomeCustomizationServices />
       <HomeRealizations />
       <WhyBessMotors />
       <VinQuoteForm />
