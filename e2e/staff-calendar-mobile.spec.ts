@@ -239,6 +239,11 @@ test("move and delete stay large enough to tap", async ({ page }) => {
   await page.goto("/telegram/calendar");
   await expect(page.getByTestId("telegram-calendar-empty")).toHaveCount(0);
   await page.getByRole("button", { name: /09:00 Jan/ }).click();
+  const durationHandles = page.getByRole("button", { name: /^(Длительность|Тривалість|Duration|Czas naprawy)$/ });
+  if (await durationHandles.count()) {
+    const handle = await durationHandles.first().boundingBox();
+    expect(handle?.height ?? 0).toBeGreaterThanOrEqual(44);
+  }
   for (const id of ["telegram-move", "telegram-remove"]) {
     const box = await page.getByTestId(id).boundingBox();
     expect(box?.height ?? 0).toBeGreaterThanOrEqual(44);
