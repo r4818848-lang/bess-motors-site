@@ -39,10 +39,10 @@ export default function HomePage() {
       <div className="h-14 sm:h-16 safe-area-pt" aria-hidden />
       <Hero />
       <SameDayServices />
+      <HomeCustomizationServices />
       <HomeTrustHighlights />
       <SymptomShortcuts />
       <HomeTireSeasonBlock />
-      <HomeCustomizationServices />
       <HomeRealizations />
       <WhyBessMotors />
       <VinQuoteForm />
