@@ -178,6 +178,25 @@ export async function syncICloud() {
   const objects=await davStep("calendar_events",()=>dav.fetchCalendarObjects({calendar}));
   if (failure) throw new ExchangeError(failure);
   const byUrl=new Map(objects.map(o=>[o.url,o]));
+  type RemoteObject = (typeof objects)[number];
+  async function readEvent(href:string, listed:RemoteObject | undefined, verifyMissing:boolean) {
+    if (listed && typeof listed.data === "string") {
+      try { return { object:listed, event:decodeVisit(listed.data) }; }
+      catch { /* Some DAV REPORT responses cannot be decoded. Read the resource itself. */ }
+    }
+    if (!listed && !verifyMissing) return null;
+    const res = await safeFetch(href,{method:"GET",headers:{Authorization:authorization}});
+    if (res.status===404 || res.status===410) return null;
+    if (!res.ok) throw new ExchangeError("event_read_http_"+res.status);
+    const data=await res.text();
+    return {object:{url:href,data,etag:res.headers.get("etag") || undefined},event:decodeVisit(data)};
+  }
+  function recordFailure(action:string, err:unknown) {
+    const reason=err instanceof ExchangeError ? err.message :
+      err instanceof Error && ["single_event_required","unsupported_event","invalid_time","unknown_timezone","invalid_duration","missing_etag","link_changed"].includes(err.message) ? err.message : "unexpected";
+    console.warn("[icloud] event_failure",action,reason);
+    stats.failed++;
+  }
   const known=new Map(links.map(l=>[l.appointment_id,l]));
   const claimed=new Set(links.map(l=>l.href));
   const stats={exported:0, imported:0, conflicts:0, invalid:0, failed:0};
@@ -195,13 +214,16 @@ export async function syncICloud() {
     const uid=digest(a.id)+"@bess-motors.com", filename=digest(a.id)+".ics";
     const href=link?.href || new URL(filename,calendar.url.replace(/\/?$/,"/")).href;
     claimed.add(href);
-    const object=byUrl.get(href);
+    let operation="read_linked";
     try {
-      const remote=object ? decodeVisit(object.data) : null;
+      const current=await readEvent(href,byUrl.get(href),Boolean(link));
+      const object=current?.object, remote=current?.event;
+
       if (a.date<today && (!remote || remote.slot.date<today)) continue;
-      if (!link && object && remote?.uid!==uid) { stats.conflicts++; continue; }
+      if (object && !a.clientRequestId?.startsWith("icloud-") && remote?.uid!==uid) { stats.conflicts++; continue; }
       const remoteSig=signature(remote && !remote.cancelled ? remote.slot : null), localSig=signature(local);
       const action=calendarDecision(link?.signature || "cancelled",localSig,remoteSig);
+      operation=action;
       if (action==="conflict") { stats.conflicts++; continue; }
       if (action==="equal") {
         if ((!link && object) || (link && link.signature!==localSig)) await remember(a.id,href,localSig,link);
@@ -213,26 +235,23 @@ export async function syncICloud() {
           ? object ? await dav.updateCalendarObject({calendarObject:{...object,data:encodeVisit(local,remote!.uid,object.data)}})
                    : await dav.createCalendarObject({calendar,filename:decodeURIComponent(new URL(href).pathname.split("/").pop()!),iCalString:encodeVisit(local,uid)})
           : await dav.deleteCalendarObject({calendarObject:object!});
-        if (!response.ok) throw new Error("dav_write");
+        if (!response.ok) throw new ExchangeError("event_write_http_"+response.status);
         await remember(a.id,href,localSig,link); stats.exported++;
       } else {
         if (!link) { stats.conflicts++; continue; }
-        if (!object) {
-          // Confirm a real deletion separately from a partial REPORT response.
-          const proof=await safeFetch(href,{method:"HEAD",headers:{Authorization:"Basic "+Buffer.from(login+":"+password).toString("base64")}});
-          if (proof.status!==404 && proof.status!==410) throw new Error("absence_unconfirmed");
-        }
         const next=remote?.slot;
         const result=await commitStaffAppointment({mode:!next || remote?.cancelled ? "cancel":"update",id:a.id,expectedUpdatedAt:a.updatedAt ?? null,
           ...(next ? {date:next.date,time:a.workStart ? a.time : next.time,workStart:next.time,workMinutes:next.minutes,durationMinutes:next.minutes,problemText:next.title} : {})},new Date(),false);
         if (!result.ok) { stats.conflicts++; continue; }
         await remember(a.id,href,remoteSig,link); stats.imported++;
       }
-    } catch { stats.failed++; }
+    } catch (err) { recordFailure(operation,err); }
   }
   for (const object of objects.filter(o=>!claimed.has(o.url))) {
     try {
-      const event=decodeVisit(object.data);
+      const current=await readEvent(object.url,object,false);
+      if (!current) continue;
+      const {event}=current;
       if (event.cancelled || event.slot.date<today) continue;
       const phone=event.notes.match(/^TEL:\s*(\+?[\d ()-]{9,20})$/im)?.[1];
       const name=event.notes.match(/^NAME:\s*(.{1,100})$/im)?.[1]?.trim();
@@ -243,7 +262,7 @@ export async function syncICloud() {
         date:slot.date,time:slot.time,workStart:slot.time,workMinutes:slot.minutes,durationMinutes:slot.minutes,problemText:slot.title},new Date(),false);
       if (!res.ok) { stats.conflicts++; continue; }
       await remember(res.appointment.id,object.url,signature(slot)); stats.imported++;
-    } catch { stats.failed++; }
+    } catch (err) { recordFailure("read_native",err); }
   }
   return stats;
 }
