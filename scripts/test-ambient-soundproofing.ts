@@ -5,6 +5,7 @@ import { enhancementServices, getEnhancementService, allEnhancementSlugs } from 
 import { AMBIENT_LIGHTING_PHOTOS, SOUNDPROOFING_PHOTOS, STAR_HEADLINER_PHOTOS } from "../src/lib/enhancement-gallery";
 import { enhancementServiceSchema } from "../src/lib/enhancement-schema";
 import { enhancementUi, localizedEnhancementService, russianEnhancementSlugs } from "../src/lib/enhancement-localization";
+import { temporaryServicePhotos } from "../src/lib/temporary-service-photos";
 
 const ambient = getEnhancementService("oswietlenie-ambientowe-samochodu-warszawa");
 assert.ok(ambient, "Universal ambient lighting landing page must exist");
@@ -159,6 +160,41 @@ const sitemap = readFileSync("src/app/sitemap.ts", "utf8");
 assert.match(sitemap, /allEnhancementSlugs/);
 assert.match(sitemap, /"montaz-apple-carplay-warszawa"/, "Updated CarPlay page must have new sitemap lastmod");
 assert.match(sitemap, /"gwiezdne-niebo-w-samochodzie-warszawa"/, "New page sitemap lastmod");
+const stockSlugs = [
+  "przyciemnianie-szyb-samochodowych-warszawa",
+  "pranie-tapicerki-samochodowej-warszawa",
+  "oklejanie-samochodu-folia-warszawa",
+  "montaz-body-kitu-warszawa",
+  "montaz-spoilera-samochodowego-warszawa",
+  "montaz-ducktaila-warszawa",
+  "podswietlenie-podwozia-samochodu-warszawa",
+  "usuwanie-wgniecen-bez-lakierowania-warszawa",
+  "aromatyzacja-samochodu-warszawa",
+];
+assert.deepEqual(new Set(Object.keys(temporaryServicePhotos)), new Set(stockSlugs), "Temporary images must cover exactly nine missing-photo cards");
+const stockIds = new Set<number>();
+for (const slug of stockSlugs) {
+  const item = getEnhancementService(slug);
+  assert.ok(item && !(item.photos?.length), "Do not replace genuine service galleries with stock: " + slug);
+  const photo = temporaryServicePhotos[slug];
+  assert.ok(photo.alt.includes("Ilustracja"), "Temporary photo must be labeled an illustration");
+  assert.match(photo.source, /^https:\/\/www\.pexels\.com\/photo\/[^/]+-\d+\/$/);
+  assert.match(photo.src, /^https:\/\/images\.pexels\.com\/photos\/(\d+)\/pexels-photo-\d+\.jpeg\?/);
+  const imageId = Number(photo.src.match(/\/photos\/(\d+)\//)?.[1]);
+  assert.ok(!stockIds.has(imageId), "Each service should have a distinct licensed illustration");
+  stockIds.add(imageId);
+}
+for (const slug of ["oswietlenie-ambientowe-samochodu-warszawa", "gwiezdne-niebo-w-samochodzie-warszawa", "wygluszenie-samochodu-warszawa", "montaz-apple-carplay-warszawa"]) {
+  assert.ok(!(slug in temporaryServicePhotos), "Owner-provided images must retain priority: " + slug);
+}
+const cardSource = readFileSync("src/components/home/HomeCustomizationServices.tsx", "utf8");
+assert.ok(cardSource.includes("ownPhoto ?? temporaryPhoto"), "Owner photos override licensed illustrations");
+assert.ok(cardSource.includes("temporaryPhoto ? c.stock"), "Stock photos must carry a visible disclosure");
+const landingSource = readFileSync("src/components/seo/EnhancementServicePage.tsx", "utf8");
+assert.match(landingSource, /Nie przedstawia realizacji BESS MOTORS/, "Landing illustration must not claim completed work");
+const nextConfig = readFileSync("next.config.ts", "utf8");
+assert.match(nextConfig, /hostname: "images.pexels.com"/, "Remote CDN must be allowed by the optimized image loader");
+
 const homeOrder = readFileSync("src/app/page.tsx", "utf8");
 const coreIndex = homeOrder.indexOf("<HomeComplexRepairs />");
 const customizationIndex = homeOrder.indexOf("<HomeCustomizationServices />");
