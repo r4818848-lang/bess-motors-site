@@ -7,21 +7,24 @@ import { useI18n } from "@/lib/i18n/context";
 import { ENHANCEMENT_HUB_SLUG, enhancementServices } from "@/lib/enhancement-services";
 
 /**
- * Supporting offer after the core mechanical work and verified repairs.
+ * Preserve the owner's original home service placement and all original cards.
  * Show matching owner-supplied illustrative photos only. No stock photographs
  * presented as finished workshop jobs.
  */
 const featuredSlugs = [
-  "pranie-tapicerki-samochodowej-warszawa",
   "przyciemnianie-szyb-samochodowych-warszawa",
+  "pranie-tapicerki-samochodowej-warszawa",
+  "oklejanie-samochodu-folia-warszawa",
+  "montaz-body-kitu-warszawa",
+  "montaz-spoilera-samochodowego-warszawa",
+  "montaz-ducktaila-warszawa",
+  "podswietlenie-podwozia-samochodu-warszawa",
+  "usuwanie-wgniecen-bez-lakierowania-warszawa",
+  "aromatyzacja-samochodu-warszawa",
   "oswietlenie-ambientowe-samochodu-warszawa",
   "gwiezdne-niebo-w-samochodzie-warszawa",
   "wygluszenie-samochodu-warszawa",
   "montaz-apple-carplay-warszawa",
-  "aromatyzacja-samochodu-warszawa",
-  "oklejanie-samochodu-folia-warszawa",
-  "montaz-body-kitu-warszawa",
-  "usuwanie-wgniecen-bez-lakierowania-warszawa",
 ] as const;
 
 const localizedCopy = {
@@ -33,7 +36,7 @@ const localizedCopy = {
     all: "Zobacz wszystkie usługi personalizacji",
     preview: "Zdjęcie przykładowego efektu",
     quote: "Indywidualna wycena",
-    titles: ["Pranie tapicerki i czyszczenie wnętrza", "Przyciemnianie szyb folią", "Ambient Light i uniwersalne LED", "Gwiezdne niebo w podsufitce", "Wygłuszenie samochodu", "Apple CarPlay / Android Auto", "Aromatyzacja wnętrza", "Oklejanie auta folią", "Montaż body kitu", "Usuwanie wgnieceń PDR"],
+    titles: ["Przyciemnianie szyb folią","Pranie tapicerki i czyszczenie wnętrza","Oklejanie auta folią","Montaż body kitu","Montaż spoilera","Montaż ducktaila","Podświetlenie podwozia LED","Usuwanie wgnieceń PDR","Aromatyzacja wnętrza","Ambient Light i uniwersalne LED","Gwiezdne niebo w podsufitce","Wygłuszenie samochodu","Apple CarPlay / Android Auto"],
   },
   ru: {
     eyebrow: "ДОПОЛНИТЕЛЬНЫЕ УСЛУГИ BESS MOTORS",
@@ -43,7 +46,7 @@ const localizedCopy = {
     all: "Все услуги персонализации",
     preview: "Фото примерного результата",
     quote: "Индивидуальная стоимость",
-    titles: ["Химчистка салона", "Тонировка стёкол", "Амбиентная LED-подсветка", "Звёздное небо в потолке", "Шумоизоляция автомобиля", "Apple CarPlay / Android Auto", "Ароматизация салона", "Оклейка плёнкой", "Установка обвесов", "Удаление вмятин PDR"],
+    titles: ["Тонировка стёкол","Химчистка салона","Оклейка плёнкой","Установка обвесов","Установка спойлера","Установка ducktail","Подсветка днища LED","Удаление вмятин PDR","Ароматизация салона","Амбиентная LED-подсветка","Звёздное небо в потолке","Шумоизоляция автомобиля","Apple CarPlay / Android Auto"],
   },
   uk: {
     eyebrow: "ДОДАТКОВІ ПОСЛУГИ BESS MOTORS",
@@ -53,7 +56,7 @@ const localizedCopy = {
     all: "Усі послуги персоналізації",
     preview: "Фото прикладу ефекту",
     quote: "Індивідуальний кошторис",
-    titles: ["Хімчистка салону", "Тонування скла", "Амбієнтне LED-підсвічування", "Зоряне небо в стелі", "Шумоізоляція автомобіля", "Apple CarPlay / Android Auto", "Ароматизація салону", "Обклеювання плівкою", "Монтаж обвісів", "Видалення вм'ятин PDR"],
+    titles: ["Тонування скла","Хімчистка салону","Обклеювання плівкою","Монтаж обвісів","Встановлення спойлера","Встановлення ducktail","LED-підсвічування днища","Видалення вм'ятин PDR","Ароматизація салону","Амбієнтне LED-підсвічування","Зоряне небо в стелі","Шумоізоляція автомобіля","Apple CarPlay / Android Auto"],
   },
   en: {
     eyebrow: "ADDITIONAL BESS MOTORS SERVICES",
@@ -63,7 +66,7 @@ const localizedCopy = {
     all: "All customization services",
     preview: "Illustrative effect photo",
     quote: "Individual quote",
-    titles: ["Interior and upholstery cleaning", "Car window tinting", "Ambient LED lighting", "Starlight headliner", "Car soundproofing", "Apple CarPlay / Android Auto", "Interior fragrance systems", "Car wrapping", "Body kit installation", "Paintless dent repair"],
+    titles: ["Car window tinting","Interior and upholstery cleaning","Car wrapping","Body kit installation","Car spoiler installation","Ducktail spoiler installation","LED underglow installation","Paintless dent repair","Interior fragrance systems","Ambient LED lighting","Starlight headliner","Car soundproofing","Apple CarPlay / Android Auto"],
   },
 } as const;
 
