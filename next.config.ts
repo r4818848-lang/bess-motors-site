@@ -10,6 +10,12 @@ const nextConfig: NextConfig = {
     qualities: [75, 85],
     formats: ["image/avif", "image/webp"],
     remotePatterns: [
+      // Temporarily licensed editorial photos for empty customization service cards.
+      {
+        protocol: "https",
+        hostname: "images.pexels.com",
+        pathname: "/photos/**",
+      },
       {
         protocol: "https",
         hostname: "upload.wikimedia.org",

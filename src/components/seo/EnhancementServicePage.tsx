@@ -8,6 +8,7 @@ import {
   MessageCircle, Phone, Sparkles, Wrench,
 } from "lucide-react";
 import { businessConfig } from "@/lib/businessConfig";
+import { temporaryServicePhotos } from "@/lib/temporary-service-photos";
 import { useI18n } from "@/lib/i18n/context";
 import type { Locale } from "@/lib/i18n/types";
 import { enhancementUi, localizedEnhancementService } from "@/lib/enhancement-localization";
@@ -198,6 +199,7 @@ export function EnhancementServicePage({ service }: { service: EnhancementServic
   const { locale } = useI18n();
   const ui = enhancementUi(locale);
   const view = localizedEnhancementService(service, locale);
+  const temporaryPhoto = service.photos?.length ? undefined : temporaryServicePhotos[service.slug];
   const city = cityWideCopy[locale];
   const related = enhancementServices.filter((s) => s.slug !== service.slug && s.category === service.category).slice(0, 3);
   const alternatives = related.length ? related : enhancementServices.filter((s) => s.slug !== service.slug).slice(0, 3);
@@ -227,6 +229,22 @@ export function EnhancementServicePage({ service }: { service: EnhancementServic
                   <Image src={service.photos[0].src} alt={service.photos[0].alt} fill quality={75} priority sizes="(max-width:1024px) 90vw, 27vw" className="object-cover object-center" />
                 </div>
                 <figcaption className="mt-2 text-xs text-bm-label">{ui.service.starExample}</figcaption>
+              </figure>
+            ) : null}
+            {temporaryPhoto ? (
+              <figure className="mb-6">
+                <div className="relative mx-auto aspect-[4/3] overflow-hidden rounded-2xl border border-white/10 bg-black">
+                  <Image src={temporaryPhoto.src} alt={temporaryPhoto.alt} fill quality={75} loading="lazy" sizes="(max-width:1024px) 90vw, 28vw" className="object-cover object-center" />
+                </div>
+                <figcaption className="mt-2 text-xs leading-relaxed text-bm-label">
+                  {locale === "ru"
+                    ? "Иллюстративная фотография. Не является выполненной работой BESS MOTORS."
+                    : locale === "uk"
+                      ? "Ілюстративне фото. Не є роботою, виконаною BESS MOTORS."
+                      : locale === "en"
+                        ? "Illustrative stock photo, not a completed BESS MOTORS project."
+                        : "Zdjęcie poglądowe. Nie przedstawia realizacji BESS MOTORS."}
+                </figcaption>
               </figure>
             ) : null}
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-bm-accent/10 text-bm-accent"><ClipboardList size={23} aria-hidden /></div>

@@ -5,11 +5,12 @@ import Image from "next/image";
 import { ArrowRight, CarFront, Sparkles } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { ENHANCEMENT_HUB_SLUG, enhancementServices } from "@/lib/enhancement-services";
+import { temporaryServicePhotos } from "@/lib/temporary-service-photos";
 
 /**
  * Preserve the owner's original home service placement and all original cards.
- * Show matching owner-supplied illustrative photos only. No stock photographs
- * presented as finished workshop jobs.
+ * Owner photos remain first. Explicitly labeled licensed editorial Pexels
+ * stock photos are temporary ONLY where BESS MOTORS has no matching image.
  */
 const featuredSlugs = [
   "przyciemnianie-szyb-samochodowych-warszawa",
@@ -35,6 +36,7 @@ const localizedCopy = {
     area: "Jesteśmy przy Alei Krakowskiej 48/52, Warszawa Włochy. Zapraszamy kierowców z całej Warszawy — usługi wykonujemy w naszym warsztacie, a zakres i cenę ustalamy po sprawdzeniu auta.",
     all: "Zobacz wszystkie usługi personalizacji",
     preview: "Zdjęcie przykładowego efektu",
+    stock: "Zdjęcie poglądowe",
     quote: "Indywidualna wycena",
     titles: ["Przyciemnianie szyb folią","Pranie tapicerki i czyszczenie wnętrza","Oklejanie auta folią","Montaż body kitu","Montaż spoilera","Montaż ducktaila","Podświetlenie podwozia LED","Usuwanie wgnieceń PDR","Aromatyzacja wnętrza","Ambient Light i uniwersalne LED","Gwiezdne niebo w podsufitce","Wygłuszenie samochodu","Apple CarPlay / Android Auto"],
   },
@@ -45,6 +47,7 @@ const localizedCopy = {
     area: "Мы находимся на Aleja Krakowska 48/52 в районе Włochy. Принимаем клиентов со всей Варшавы в нашем автосервисе; стоимость согласуем после осмотра автомобиля.",
     all: "Все услуги персонализации",
     preview: "Фото примерного результата",
+    stock: "Иллюстративное фото",
     quote: "Индивидуальная стоимость",
     titles: ["Тонировка стёкол","Химчистка салона","Оклейка плёнкой","Установка обвесов","Установка спойлера","Установка ducktail","Подсветка днища LED","Удаление вмятин PDR","Ароматизация салона","Амбиентная LED-подсветка","Звёздное небо в потолке","Шумоизоляция автомобиля","Apple CarPlay / Android Auto"],
   },
@@ -55,6 +58,7 @@ const localizedCopy = {
     area: "Наш сервіс за адресою Aleja Krakowska 48/52, Warszawa Włochy. Приймаємо клієнтів з усієї Варшави у майстерні; вартість погоджуємо індивідуально.",
     all: "Усі послуги персоналізації",
     preview: "Фото прикладу ефекту",
+    stock: "Ілюстративне фото",
     quote: "Індивідуальний кошторис",
     titles: ["Тонування скла","Хімчистка салону","Обклеювання плівкою","Монтаж обвісів","Встановлення спойлера","Встановлення ducktail","LED-підсвічування днища","Видалення вм'ятин PDR","Ароматизація салону","Амбієнтне LED-підсвічування","Зоряне небо в стелі","Шумоізоляція автомобіля","Apple CarPlay / Android Auto"],
   },
@@ -65,6 +69,7 @@ const localizedCopy = {
     area: "Visit our workshop at Aleja Krakowska 48/52 in Warsaw Włochy. We welcome drivers from across Warsaw; quotes are prepared after reviewing your vehicle.",
     all: "All customization services",
     preview: "Illustrative effect photo",
+    stock: "Stock illustration",
     quote: "Individual quote",
     titles: ["Car window tinting","Interior and upholstery cleaning","Car wrapping","Body kit installation","Car spoiler installation","Ducktail spoiler installation","LED underglow installation","Paintless dent repair","Interior fragrance systems","Ambient LED lighting","Starlight headliner","Car soundproofing","Apple CarPlay / Android Auto"],
   },
@@ -92,16 +97,18 @@ export function HomeCustomizationServices() {
         </div>
         <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
           {featured.map(({ service, title }) => {
-            const photo = service.photos?.[0];
+            const ownPhoto = service.photos?.[0];
+            const temporaryPhoto = ownPhoto ? undefined : temporaryServicePhotos[service.slug];
+            const photo = ownPhoto ?? temporaryPhoto;
             return (
-              <Link key={service.slug} href={"/" + service.slug} className="group relative isolate flex min-h-44 flex-col justify-between overflow-hidden rounded-2xl border border-white/20 bg-gradient-to-br from-[#263142] to-[#111620] p-4 transition-all duration-300 hover:-translate-y-1 hover:border-bm-accent/70 sm:min-h-48" data-testid="home-customization-link">
+              <Link key={service.slug} href={"/" + service.slug} className="group relative isolate flex min-h-44 flex-col justify-between overflow-hidden rounded-2xl border border-white/20 bg-gradient-to-br from-[#263142] to-[#111620] p-4 transition-all duration-300 hover:-translate-y-1 hover:border-bm-accent/70 sm:min-h-48" data-testid="home-customization-link" data-photo-kind={ownPhoto ? "owner" : temporaryPhoto ? "stock" : "none"}>
                 {photo ? (
-                  <Image src={photo.src} alt={photo.alt} fill loading="lazy" sizes="(max-width:640px) 45vw, (max-width:1279px) 30vw, 18vw" className="-z-20 object-cover transition-transform duration-500 group-hover:scale-105" />
+                  <Image src={photo.src} alt={photo.alt} fill quality={75} loading="lazy" sizes="(max-width:640px) 45vw, (max-width:1279px) 30vw, 18vw" className="-z-20 object-cover transition-transform duration-500 group-hover:scale-105" />
                 ) : (
                   <CarFront size={74} aria-hidden className="absolute -z-20 right-2 top-1/3 text-white/[0.07]" />
                 )}
                 {photo ? <div aria-hidden className="absolute inset-0 -z-10 bg-gradient-to-t from-[#080c13]/95 via-[#080c13]/65 to-[#080c13]/20" /> : null}
-                <span className="text-[10px] font-bold uppercase tracking-wider text-bm-accent">{photo ? c.preview : c.quote}</span>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-bm-accent">{temporaryPhoto ? c.stock : ownPhoto ? c.preview : c.quote}</span>
                 <span className="mt-8 flex items-end justify-between gap-2 text-sm font-semibold leading-snug text-white sm:text-base">{title}<ArrowRight size={16} className="shrink-0 text-bm-accent transition-transform group-hover:translate-x-1" aria-hidden /></span>
               </Link>
             );
