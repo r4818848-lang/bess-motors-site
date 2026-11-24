@@ -5,6 +5,7 @@ import { SameDayServices } from "@/components/home/SameDayServices";
 import { HomeTireSeasonBlock } from "@/components/home/HomeTireSeasonBlock";
 import { HomeSeoServiceLinks } from "@/components/home/HomeSeoServiceLinks";
 import { HomeCustomizationServices } from "@/components/home/HomeCustomizationServices";
+import { HomeComplexRepairs } from "@/components/home/HomeComplexRepairs";
 import { HomeFinalCta } from "@/components/home/HomeFinalCta";
 import { SymptomShortcuts } from "@/components/home/SymptomShortcuts";
 
@@ -39,11 +40,12 @@ export default function HomePage() {
       <div className="h-14 sm:h-16 safe-area-pt" aria-hidden />
       <Hero />
       <SameDayServices />
-      <HomeCustomizationServices />
       <HomeTrustHighlights />
       <SymptomShortcuts />
       <HomeTireSeasonBlock />
+      <HomeComplexRepairs />
       <HomeRealizations />
+      <HomeCustomizationServices />
       <WhyBessMotors />
       <VinQuoteForm />
       <HowRepairWorks />

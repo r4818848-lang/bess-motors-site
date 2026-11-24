@@ -1,66 +1,108 @@
 "use client";
 
-import { useI18n } from "@/lib/i18n/context";
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowRight, CarFront, Sparkles } from "lucide-react";
+import { useI18n } from "@/lib/i18n/context";
 import { ENHANCEMENT_HUB_SLUG, enhancementServices } from "@/lib/enhancement-services";
 
+/**
+ * Supporting offer after the core mechanical work and verified repairs.
+ * Show matching owner-supplied illustrative photos only. No stock photographs
+ * presented as finished workshop jobs.
+ */
 const featuredSlugs = [
-  "przyciemnianie-szyb-samochodowych-warszawa",
   "pranie-tapicerki-samochodowej-warszawa",
+  "przyciemnianie-szyb-samochodowych-warszawa",
+  "oswietlenie-ambientowe-samochodu-warszawa",
+  "gwiezdne-niebo-w-samochodzie-warszawa",
+  "wygluszenie-samochodu-warszawa",
+  "montaz-apple-carplay-warszawa",
+  "aromatyzacja-samochodu-warszawa",
   "oklejanie-samochodu-folia-warszawa",
   "montaz-body-kitu-warszawa",
-  "montaz-spoilera-samochodowego-warszawa",
-  "montaz-ducktaila-warszawa",
-  "podswietlenie-podwozia-samochodu-warszawa",
   "usuwanie-wgniecen-bez-lakierowania-warszawa",
-  "aromatyzacja-samochodu-warszawa",
-  "oswietlenie-ambientowe-samochodu-warszawa",
-] as const;
-
-// Temporary royalty-free Unsplash photography. Replace with verified BESS MOTORS work photos.
-const temporaryPhotos = [
-  "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=700&q=78",
-  "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=700&q=78",
-  "https://images.unsplash.com/photo-1485291571150-772bcfc10da5?auto=format&fit=crop&w=700&q=78",
-  "https://images.unsplash.com/photo-1493238792000-8113da705763?auto=format&fit=crop&w=700&q=78",
-  "https://images.unsplash.com/photo-1507136566006-cfc505b114fc?auto=format&fit=crop&w=700&q=78",
 ] as const;
 
 const localizedCopy = {
-  pl: { eyebrow: "BESS MOTORS / STYLIZACJA AUTA", heading: "Detailing i personalizacja samochodu w Warszawie", description: "Przyciemnianie szyb, czyszczenie wnętrza, folie, body kity, spoilery i oświetlenie LED. Wybierz usługę, sprawdź zakres i poproś o indywidualną wycenę.", all: "Wszystkie usługi", titles: ["Przyciemnianie szyb samochodowych folią", "Pranie tapicerki i czyszczenie wnętrza", "Oklejanie samochodu folią", "Montaż body kitu i owiewek stylistycznych", "Montaż spoilera samochodowego", "Montaż ducktaila na klapie bagażnika", "Montaż podświetlenia podwozia LED", "Usuwanie wgnieceń bez lakierowania (PDR)", "Aromatyzacja wnętrza samochodu", "Montaż uniwersalnego oświetlenia ambientowego LED"] },
-  ru: { eyebrow: "BESS MOTORS / СТАЙЛИНГ АВТО", heading: "Детейлинг и персонализация автомобиля в Варшаве", description: "Тонировка стёкол, химчистка салона, оклейка плёнкой, обвесы, спойлеры и LED-подсветка. Выберите услугу и запросите индивидуальный расчёт стоимости.", all: "Все услуги", titles: ["Тонировка стёкол автомобиля", "Химчистка салона и сидений", "Оклейка автомобиля плёнкой", "Установка обвесов и аэродинамических элементов", "Установка спойлера", "Установка спойлера ducktail", "Установка подсветки днища LED", "Удаление вмятин без покраски (PDR)", "Ароматизация салона автомобиля", "Установка универсальной амбиентной LED-подсветки"] },
-  en: { eyebrow: "BESS MOTORS / CAR CUSTOMIZATION", heading: "Car detailing and customization in Warsaw", description: "Window tinting, interior cleaning, wraps, body kits, spoilers and LED lighting. Choose a service and request a personalized quote.", all: "All services", titles: ["Car window tinting", "Upholstery and interior cleaning", "Car vinyl wrapping", "Body kit installation", "Car spoiler installation", "Ducktail spoiler installation", "LED underglow installation", "Paintless dent repair (PDR)", "Car interior fragrance", "Universal ambient LED lighting installation"] },
-  uk: { eyebrow: "BESS MOTORS / СТАЙЛІНГ АВТО", heading: "Детейлінг і персоналізація автомобіля у Варшаві", description: "Тонування скла, хімчистка салону, обклеювання плівкою, обвіси, спойлери та LED-підсвічування. Оберіть послугу й отримайте індивідуальний розрахунок вартості.", all: "Усі послуги", titles: ["Тонування скла автомобіля", "Хімчистка салону та сидінь", "Обклеювання автомобіля плівкою", "Встановлення обвісів і аеродинамічних елементів", "Встановлення спойлера", "Встановлення спойлера ducktail", "Встановлення LED-підсвічування днища", "Видалення вм’ятин без фарбування (PDR)", "Ароматизація салону автомобіля", "Встановлення універсального амбієнтного LED-підсвічування"] },
+  pl: {
+    eyebrow: "DODATKOWE MOŻLIWOŚCI BESS MOTORS",
+    heading: "Detailing, oświetlenie i personalizacja aut w Warszawie",
+    description: "Pranie tapicerki, przyciemnianie szyb, ambient LED, gwiezdne niebo, wygłuszenie, CarPlay i indywidualne projekty. To dodatkowe usługi obok naszej głównej oferty mechaniki samochodowej.",
+    area: "Jesteśmy przy Alei Krakowskiej 48/52, Warszawa Włochy. Zapraszamy kierowców z całej Warszawy — usługi wykonujemy w naszym warsztacie, a zakres i cenę ustalamy po sprawdzeniu auta.",
+    all: "Zobacz wszystkie usługi personalizacji",
+    preview: "Zdjęcie przykładowego efektu",
+    quote: "Indywidualna wycena",
+    titles: ["Pranie tapicerki i czyszczenie wnętrza", "Przyciemnianie szyb folią", "Ambient Light i uniwersalne LED", "Gwiezdne niebo w podsufitce", "Wygłuszenie samochodu", "Apple CarPlay / Android Auto", "Aromatyzacja wnętrza", "Oklejanie auta folią", "Montaż body kitu", "Usuwanie wgnieceń PDR"],
+  },
+  ru: {
+    eyebrow: "ДОПОЛНИТЕЛЬНЫЕ УСЛУГИ BESS MOTORS",
+    heading: "Детейлинг, подсветка и персонализация авто в Варшаве",
+    description: "Химчистка, тонировка, Ambient LED, звёздное небо, шумоизоляция, CarPlay и индивидуальные проекты — в дополнение к основной механической специализации автосервиса.",
+    area: "Мы находимся на Aleja Krakowska 48/52 в районе Włochy. Принимаем клиентов со всей Варшавы в нашем автосервисе; стоимость согласуем после осмотра автомобиля.",
+    all: "Все услуги персонализации",
+    preview: "Фото примерного результата",
+    quote: "Индивидуальная стоимость",
+    titles: ["Химчистка салона", "Тонировка стёкол", "Амбиентная LED-подсветка", "Звёздное небо в потолке", "Шумоизоляция автомобиля", "Apple CarPlay / Android Auto", "Ароматизация салона", "Оклейка плёнкой", "Установка обвесов", "Удаление вмятин PDR"],
+  },
+  uk: {
+    eyebrow: "ДОДАТКОВІ ПОСЛУГИ BESS MOTORS",
+    heading: "Детейлінг, підсвічування та персоналізація авто у Варшаві",
+    description: "Хімчистка, тонування, Ambient LED, зоряне небо, шумоізоляція, CarPlay та індивідуальні проєкти — додатково до основного механічного сервісу.",
+    area: "Наш сервіс за адресою Aleja Krakowska 48/52, Warszawa Włochy. Приймаємо клієнтів з усієї Варшави у майстерні; вартість погоджуємо індивідуально.",
+    all: "Усі послуги персоналізації",
+    preview: "Фото прикладу ефекту",
+    quote: "Індивідуальний кошторис",
+    titles: ["Хімчистка салону", "Тонування скла", "Амбієнтне LED-підсвічування", "Зоряне небо в стелі", "Шумоізоляція автомобіля", "Apple CarPlay / Android Auto", "Ароматизація салону", "Обклеювання плівкою", "Монтаж обвісів", "Видалення вм'ятин PDR"],
+  },
+  en: {
+    eyebrow: "ADDITIONAL BESS MOTORS SERVICES",
+    heading: "Detailing, lighting and car customization in Warsaw",
+    description: "Interior cleaning, window tinting, ambient LED lighting, starlight headliners, soundproofing, CarPlay and bespoke styling — alongside our primary mechanical services.",
+    area: "Visit our workshop at Aleja Krakowska 48/52 in Warsaw Włochy. We welcome drivers from across Warsaw; quotes are prepared after reviewing your vehicle.",
+    all: "All customization services",
+    preview: "Illustrative effect photo",
+    quote: "Individual quote",
+    titles: ["Interior and upholstery cleaning", "Car window tinting", "Ambient LED lighting", "Starlight headliner", "Car soundproofing", "Apple CarPlay / Android Auto", "Interior fragrance systems", "Car wrapping", "Body kit installation", "Paintless dent repair"],
+  },
 } as const;
 
 export function HomeCustomizationServices() {
   const { locale } = useI18n();
   const c = localizedCopy[locale];
-  const featured = featuredSlugs.flatMap((slug) => {
+  const featured = featuredSlugs.flatMap((slug, index) => {
     const service = enhancementServices.find((item) => item.slug === slug);
-    return service ? [service] : [];
+    return service ? [{ service, title: c.titles[index] }] : [];
   });
+
   return (
     <section aria-labelledby="home-customization-heading" className="bg-[#10151e] py-12 sm:py-16" data-testid="home-customization-services">
       <div className="mx-auto max-w-7xl px-4 lg:px-8">
         <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
-          <div>
+          <div className="max-w-4xl">
             <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.15em] text-bm-accent"><Sparkles size={16} aria-hidden /> {c.eyebrow}</p>
             <h2 id="home-customization-heading" className="mt-3 font-display text-2xl font-bold text-white sm:text-4xl">{c.heading}</h2>
-            <p className="mt-3 max-w-3xl text-sm leading-relaxed text-bm-copy sm:text-base">{c.description}</p>
+            <p className="mt-3 text-sm leading-relaxed text-bm-copy sm:text-base">{c.description}</p>
+            <p className="mt-3 text-sm leading-relaxed text-bm-label">{c.area}</p>
           </div>
           <Link href={"/" + ENHANCEMENT_HUB_SLUG} className="inline-flex min-h-11 items-center gap-2 font-semibold text-bm-accent hover:text-white">{c.all} <ArrowRight size={17} aria-hidden /></Link>
         </div>
         <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
-          {featured.map((service, index) => (
-            <Link key={service.slug} href={"/" + service.slug} className="group relative isolate flex min-h-40 flex-col justify-between overflow-hidden rounded-2xl border border-white/20 bg-[#191f2a] p-4 transition-all duration-300 hover:-translate-y-1 hover:border-bm-accent/70 sm:min-h-44" data-testid="home-customization-link">
-              <div aria-hidden className="absolute inset-0 -z-20 bg-cover bg-center transition-transform duration-500 group-hover:scale-110" style={{ backgroundImage: `url("${temporaryPhotos[index % temporaryPhotos.length]}")` }} />
-              <div aria-hidden className="absolute inset-0 -z-10 bg-gradient-to-t from-[#080c13]/95 via-[#080c13]/65 to-[#080c13]/35" />
-              <CarFront className="text-bm-accent drop-shadow-md" size={23} aria-hidden />
-              <span className="mt-5 flex items-end justify-between gap-2 text-sm font-semibold leading-snug text-white drop-shadow-md sm:text-base">{c.titles[index]}<ArrowRight size={16} className="shrink-0 text-bm-accent transition-transform group-hover:translate-x-1" aria-hidden /></span>
-            </Link>
-          ))}
+          {featured.map(({ service, title }) => {
+            const photo = service.photos?.[0];
+            return (
+              <Link key={service.slug} href={"/" + service.slug} className="group relative isolate flex min-h-44 flex-col justify-between overflow-hidden rounded-2xl border border-white/20 bg-gradient-to-br from-[#263142] to-[#111620] p-4 transition-all duration-300 hover:-translate-y-1 hover:border-bm-accent/70 sm:min-h-48" data-testid="home-customization-link">
+                {photo ? (
+                  <Image src={photo.src} alt={photo.alt} fill loading="lazy" sizes="(max-width:640px) 45vw, (max-width:1279px) 30vw, 18vw" className="-z-20 object-cover transition-transform duration-500 group-hover:scale-105" />
+                ) : (
+                  <CarFront size={74} aria-hidden className="absolute -z-20 right-2 top-1/3 text-white/[0.07]" />
+                )}
+                {photo ? <div aria-hidden className="absolute inset-0 -z-10 bg-gradient-to-t from-[#080c13]/95 via-[#080c13]/65 to-[#080c13]/20" /> : null}
+                <span className="text-[10px] font-bold uppercase tracking-wider text-bm-accent">{photo ? c.preview : c.quote}</span>
+                <span className="mt-8 flex items-end justify-between gap-2 text-sm font-semibold leading-snug text-white sm:text-base">{title}<ArrowRight size={16} className="shrink-0 text-bm-accent transition-transform group-hover:translate-x-1" aria-hidden /></span>
+              </Link>
+            );
+          })}
         </div>
       </div>
     </section>
