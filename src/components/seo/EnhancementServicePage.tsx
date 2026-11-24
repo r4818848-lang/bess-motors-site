@@ -24,6 +24,33 @@ const categoryIcons: Record<EnhancementCategory, typeof Sparkles> = {
   detailing: Sparkles,
 };
 
+const cityWideCopy = {
+  pl: {
+    title: "Usługi dla kierowców z całej Warszawy",
+    body: "BESS MOTORS prowadzi jeden warsztat przy Alei Krakowskiej 48/52 w dzielnicy Włochy. Zapraszamy kierowców z całej Warszawy, także z Ochoty, Mokotowa, Ursynowa i Bemowa. Montaż i pozostałe prace wykonujemy na miejscu po uzgodnieniu zakresu; nie jest to usługa mobilna.",
+    mechanic: "Mechanika samochodowa — nasza główna specjalizacja",
+    diagnostic: "Diagnostyka samochodu",
+  },
+  ru: {
+    title: "Услуги для клиентов со всей Варшавы",
+    body: "У BESS MOTORS одна мастерская по адресу Aleja Krakowska 48/52 в районе Włochy. Принимаем клиентов со всей Варшавы, включая Ochota, Mokotów, Ursynów и Bemowo. Работы выполняются в нашем автосервисе после согласования объёма, без выездного обслуживания.",
+    mechanic: "Ремонт автомобилей — наше основное направление",
+    diagnostic: "Диагностика автомобиля",
+  },
+  uk: {
+    title: "Послуги для водіїв з усієї Варшави",
+    body: "Майстерня BESS MOTORS знаходиться за адресою Aleja Krakowska 48/52, Warszawa Włochy. Приймаємо клієнтів з усієї Варшави, зокрема Ochota, Mokotów, Ursynów та Bemowo. Роботи виконуємо на місці за погодженням.",
+    mechanic: "Механічний ремонт — наш основний напрям",
+    diagnostic: "Діагностика автомобіля",
+  },
+  en: {
+    title: "Welcoming drivers from across Warsaw",
+    body: "BESS MOTORS operates one workshop at Aleja Krakowska 48/52 in Warsaw Włochy. Drivers from Ochota, Mokotów, Ursynów, Bemowo and the wider city are welcome. Work takes place at our workshop after confirming the scope; we do not offer a mobile service.",
+    mechanic: "Mechanical repairs — our core service",
+    diagnostic: "Car diagnostics",
+  },
+} as const;
+
 function contactWhatsApp(service: string, locale: Locale) {
   const copy = enhancementUi(locale).service;
   const message = copy.waGreeting + " " + service + ". " + copy.waDetails;
@@ -159,6 +186,8 @@ export function EnhancementHubPage() {
           <h2 id="customization-location" className="font-display text-2xl font-bold text-white">{ui.hub.locationTitle}</h2>
           <p className="mt-3 text-sm leading-relaxed text-bm-copy">{ui.hub.locationIntro}</p>
           <Link href="/contacts" className="mt-5 inline-flex items-center gap-2 text-sm font-bold text-bm-accent hover:text-white">{ui.hub.directions} <ArrowRight size={17} aria-hidden /></Link>
+          <p className="mt-4 text-xs leading-relaxed text-bm-label">{cityWideCopy[locale].body}</p>
+          <Link href="/services" className="mt-3 inline-flex items-center gap-2 text-sm font-bold text-bm-accent hover:text-white">{cityWideCopy[locale].mechanic}<ArrowRight size={16} aria-hidden /></Link>
         </section>
       </div>
     </main>
@@ -169,6 +198,7 @@ export function EnhancementServicePage({ service }: { service: EnhancementServic
   const { locale } = useI18n();
   const ui = enhancementUi(locale);
   const view = localizedEnhancementService(service, locale);
+  const city = cityWideCopy[locale];
   const related = enhancementServices.filter((s) => s.slug !== service.slug && s.category === service.category).slice(0, 3);
   const alternatives = related.length ? related : enhancementServices.filter((s) => s.slug !== service.slug).slice(0, 3);
   const Icon = categoryIcons[service.category];
@@ -243,6 +273,15 @@ export function EnhancementServicePage({ service }: { service: EnhancementServic
           <h2 id="enhancement-contact-heading" className="font-display text-2xl font-bold text-white sm:text-3xl">{ui.service.contactTitle}</h2>
           <p className="mt-3 max-w-2xl text-sm leading-relaxed text-bm-copy">{ui.service.contactIntro}</p>
           <SocialContactLink kind="whatsapp" href={contactWhatsApp(view.title, locale)} trackSource={"customization_" + service.slug + "_footer_whatsapp"} className="bm-btn-primary mt-5 inline-flex min-h-12 items-center gap-2 px-5 text-sm font-bold"><MessageCircle size={18} aria-hidden /> {ui.service.contactSend} <ArrowRight size={17} aria-hidden /></SocialContactLink>
+        </section>
+
+        <section className="mt-14 rounded-2xl border border-white/10 bg-[#151a22] p-6" aria-labelledby="enhancement-citywide">
+          <h2 id="enhancement-citywide" className="font-display text-xl font-bold text-white">{city.title}</h2>
+          <p className="mt-3 max-w-4xl text-sm leading-relaxed text-bm-copy">{city.body}</p>
+          <div className="mt-4 flex flex-wrap gap-x-6 gap-y-3">
+            <Link href="/services" className="inline-flex items-center gap-2 text-sm font-semibold text-bm-accent hover:text-white">{city.mechanic}<ArrowRight size={15} aria-hidden /></Link>
+            <Link href="/diagnostyka-komputerowa-warszawa" className="inline-flex items-center gap-2 text-sm font-semibold text-bm-accent hover:text-white">{city.diagnostic}<ArrowRight size={15} aria-hidden /></Link>
+          </div>
         </section>
 
         <section className="mt-14" aria-labelledby="enhancement-related">
