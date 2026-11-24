@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { enhancementServices, getEnhancementService, allEnhancementSlugs } from "../src/lib/enhancement-services";
 import { AMBIENT_LIGHTING_PHOTOS, SOUNDPROOFING_PHOTOS, STAR_HEADLINER_PHOTOS } from "../src/lib/enhancement-gallery";
 import { enhancementServiceSchema } from "../src/lib/enhancement-schema";
+import { enhancementUi, localizedEnhancementService, russianEnhancementSlugs } from "../src/lib/enhancement-localization";
 
 const ambient = getEnhancementService("oswietlenie-ambientowe-samochodu-warszawa");
 assert.ok(ambient, "Universal ambient lighting landing page must exist");
@@ -122,8 +123,35 @@ assert.match(page, /customization_" \+ service\.slug \+ "_call"/, "Phone clicks 
 for (const slug of ["oswietlenie-ambientowe-samochodu-warszawa", "wygluszenie-samochodu-warszawa", "montaz-apple-carplay-warszawa", "gwiezdne-niebo-w-samochodzie-warszawa"]) {
   assert.ok(page.includes('href="/' + slug + '"'), "Customization hub must link explicitly to " + slug);
 }
-assert.match(page, /Jaką zmianę we wnętrzu auta wybrać/, "Helpful comparison on personalization hub");
-assert.match(page, /Apple CarPlay i Android Auto/, "Both multimedia platforms visible on hub");
+assert.match(page, /ui\.hub\.compareTitle/, "Hub must use locale-aware headings");
+assert.match(readFileSync("src/lib/enhancement-localization.ts", "utf8"), /Apple CarPlay i Android Auto/, "Polish hub cards must retain multimedia");
+// Regressions: selecting RU translates the entire tinting page, not only the navigation.
+assert.equal(russianEnhancementSlugs.length, enhancementServices.length, "All customization service slugs need RU body translations");
+assert.deepEqual(new Set(russianEnhancementSlugs), new Set(enhancementServices.map(x => x.slug)), "No untranslated service or stale localization key");
+const tinting = getEnhancementService("przyciemnianie-szyb-samochodowych-warszawa");
+assert.ok(tinting);
+const tintedRu = localizedEnhancementService(tinting, "ru");
+assert.match(tintedRu.title, /Тонировка/);
+assert.match(tintedRu.intro, /Плёнка для тонировки/);
+assert.match(tintedRu.explanation, /Польше/);
+assert.deepEqual(tintedRu.scope.length, tinting.scope.length);
+assert.deepEqual(tintedRu.preparation.length, tinting.preparation.length);
+assert.equal(tintedRu.faq[0].question, "Как узнать стоимость тонировки?");
+assert.deepEqual(localizedEnhancementService(tinting, "pl"), tinting, "Polish SEO content must remain canonical");
+assert.match(enhancementUi("ru").service.quoteTitle, /расчёта/);
+assert.equal(enhancementUi("ru").nav.home, "Главная");
+assert.equal(enhancementUi("ru").hub.cards.length, 4);
+for (const service of enhancementServices) {
+  const copy = localizedEnhancementService(service, "ru");
+  assert.ok(copy.intro && copy.explanation && copy.scope.length && copy.preparation.length && copy.faq.length, "Russian copy completeness: " + service.slug);
+  assert.ok(copy.faq.every(x => x.question && x.answer), "Russian FAQ must have answers: " + service.slug);
+}
+assert.match(page, /localizedEnhancementService\(service, locale\)/);
+assert.match(page, /ui\.service\.quoteTitle/);
+assert.match(page, /view\.scope\.map/);
+assert.match(page, /view\.faq\.map/);
+assert.match(gallery, /enhancementUi\(locale\)\.gallery/, "Gallery controls must follow selected locale");
+
 const route = readFileSync("src/app/[slug]/page.tsx", "utf8");
 assert.match(route, /uniwersalnego LED/, "Hub metadata should cover universal LED");
 assert.match(route, /Android Auto/, "Hub metadata should cover Android Auto");
