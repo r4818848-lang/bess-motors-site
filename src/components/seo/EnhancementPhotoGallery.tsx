@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight, Expand, X } from "lucide-react";
 import type { EnhancementPhoto } from "@/lib/enhancement-gallery";
+import { useI18n } from "@/lib/i18n/context";
+import { enhancementUi } from "@/lib/enhancement-localization";
 
 /**
  * Lightweight masonry gallery for portrait workshop photos.
@@ -11,6 +13,8 @@ import type { EnhancementPhoto } from "@/lib/enhancement-gallery";
  * on the majority of mobile visits. Full-size preview has keyboard controls.
  */
 export function EnhancementPhotoGallery({ photos }: { photos: readonly EnhancementPhoto[] }) {
+  const { locale } = useI18n();
+  const labels = enhancementUi(locale).gallery;
   const [expanded, setExpanded] = useState(false);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const visiblePhotos = expanded ? photos : photos.slice(0, 6);
@@ -37,12 +41,12 @@ export function EnhancementPhotoGallery({ photos }: { photos: readonly Enhanceme
     <section className="mt-14 scroll-mt-24" aria-labelledby="enhancement-photo-heading" data-testid="enhancement-photo-gallery">
       <div className="mb-6 flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
         <div>
-          <p className="text-xs font-bold uppercase tracking-[.16em] text-bm-accent">GALERIA ZDJĘĆ</p>
+          <p className="text-xs font-bold uppercase tracking-[.16em] text-bm-accent">{labels.kicker}</p>
           <h2 id="enhancement-photo-heading" className="mt-2 font-display text-2xl font-bold text-white sm:text-3xl">
-            Zobacz przykładowe efekty i etapy prac
+            {labels.title}
           </h2>
         </div>
-        <p className="text-sm text-bm-label">{photos.length} zdjęć · kliknij, aby powiększyć</p>
+        <p className="text-sm text-bm-label">{labels.count(photos.length)}</p>
       </div>
       <div className="columns-1 gap-4 sm:columns-2 xl:columns-3">
         {visiblePhotos.map((photo, index) => (
@@ -51,7 +55,7 @@ export function EnhancementPhotoGallery({ photos }: { photos: readonly Enhanceme
             key={photo.src}
             onClick={() => setActiveIndex(index)}
             className="group relative mb-4 block w-full break-inside-avoid overflow-hidden rounded-2xl border border-white/15 bg-[#151820] text-left shadow-[0_18px_35px_rgba(0,0,0,.18)] transition-colors hover:border-bm-accent/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-bm-accent"
-            aria-label={"Powiększ zdjęcie: " + photo.alt}
+            aria-label={labels.enlarge + ": " + photo.alt}
             data-testid="enhancement-photo-open"
           >
             <Image
@@ -78,7 +82,7 @@ export function EnhancementPhotoGallery({ photos }: { photos: readonly Enhanceme
           className="mt-5 inline-flex min-h-12 items-center justify-center rounded-xl border border-bm-accent/40 bg-bm-accent/10 px-6 text-sm font-bold text-white transition-colors hover:bg-bm-accent/20"
           data-testid="enhancement-gallery-more"
         >
-          Pokaż wszystkie {photos.length} zdjęć
+          {labels.more(photos.length)}
         </button>
       ) : null}
 
@@ -86,7 +90,7 @@ export function EnhancementPhotoGallery({ photos }: { photos: readonly Enhanceme
         <div
           role="dialog"
           aria-modal="true"
-          aria-label="Powiększone zdjęcie usługi"
+          aria-label={labels.dialog}
           className="fixed inset-0 z-[100] flex items-center justify-center bg-[#020308]/95 p-3 sm:p-6"
           onClick={() => setActiveIndex(null)}
           data-testid="enhancement-gallery-lightbox"
@@ -105,20 +109,20 @@ export function EnhancementPhotoGallery({ photos }: { photos: readonly Enhanceme
               type="button"
               onClick={() => setActiveIndex(null)}
               className="absolute right-1 top-1 z-10 flex h-11 w-11 items-center justify-center rounded-full border border-white/30 bg-black/75 text-white"
-              aria-label="Zamknij zdjęcie"
+              aria-label={labels.close}
               autoFocus
             ><X size={22}/></button>
             <button
               type="button"
               onClick={() => setActiveIndex((activeIndex - 1 + photos.length) % photos.length)}
               className="absolute left-0 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/30 bg-black/75 text-white sm:left-3"
-              aria-label="Poprzednie zdjęcie"
+              aria-label={labels.previous}
             ><ChevronLeft size={24}/></button>
             <button
               type="button"
               onClick={() => setActiveIndex((activeIndex + 1) % photos.length)}
               className="absolute right-0 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/30 bg-black/75 text-white sm:right-3"
-              aria-label="Następne zdjęcie"
+              aria-label={labels.next}
             ><ChevronRight size={24}/></button>
             <p className="absolute bottom-0 left-0 right-0 z-10 rounded-xl bg-black/75 p-3 text-center text-xs text-white sm:text-sm">
               {photos[activeIndex].alt} · {activeIndex + 1} / {photos.length}
