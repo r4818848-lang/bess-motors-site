@@ -29,7 +29,7 @@ const enhancements: ServiceLink[] = [
   { href: "/oswietlenie-ambientowe-samochodu-warszawa", pl: "Montaż ambient light i LED", ru: "Установка Ambient LED", uk: "Встановлення Ambient LED", en: "Ambient LED lighting" },
   { href: "/gwiezdne-niebo-w-samochodzie-warszawa", pl: "Gwiezdne niebo w podsufitce", ru: "Звёздное небо в потолке", uk: "Зоряне небо в стелі", en: "Starlight headliner" },
   { href: "/wygluszenie-samochodu-warszawa", pl: "Wygłuszenie samochodu", ru: "Шумоизоляция автомобиля", uk: "Шумоізоляція автомобіля", en: "Car soundproofing" },
-  { href: "/montaz-apple-carplay-warszawa", pl: "Montaż CarPlay i Android Auto", ru: "Установка CarPlay и Android Auto", uk: "Встановлення CarPlay та Android Auto", en: "CarPlay and Android Auto retrofit" },
+  { href: "/montaz-apple-carplay-warszawa", pl: "Montaż Apple CarPlay i Android Auto", ru: "Установка CarPlay и Android Auto", uk: "Встановлення CarPlay та Android Auto", en: "CarPlay and Android Auto retrofit" },
   { href: "/przyciemnianie-szyb-samochodowych-warszawa", pl: "Przyciemnianie szyb folią", ru: "Тонировка стёкол", uk: "Тонування скла", en: "Car window tinting" },
   { href: "/aromatyzacja-samochodu-warszawa", pl: "Aromatyzacja wnętrza samochodu", ru: "Ароматизация салона", uk: "Ароматизація салону", en: "Car fragrance systems" },
   { href: "/oklejanie-samochodu-folia-warszawa", pl: "Oklejanie auta folią", ru: "Оклейка автомобиля плёнкой", uk: "Обклеювання авто плівкою", en: "Car vinyl wrapping" },
