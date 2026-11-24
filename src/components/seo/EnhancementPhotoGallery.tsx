@@ -55,7 +55,7 @@ export function EnhancementPhotoGallery({ photos }: { photos: readonly Enhanceme
             key={photo.src}
             onClick={() => setActiveIndex(index)}
             className="group relative mb-4 block w-full break-inside-avoid overflow-hidden rounded-2xl border border-white/15 bg-[#151820] text-left shadow-[0_18px_35px_rgba(0,0,0,.18)] transition-colors hover:border-bm-accent/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-bm-accent"
-            aria-label={labels.enlarge + ": " + photo.alt}
+            aria-label={labels.enlarge + ": " + (locale === "ru" ? String(index + 1) : photo.alt)}
             data-testid="enhancement-photo-open"
           >
             <Image
@@ -125,7 +125,7 @@ export function EnhancementPhotoGallery({ photos }: { photos: readonly Enhanceme
               aria-label={labels.next}
             ><ChevronRight size={24}/></button>
             <p className="absolute bottom-0 left-0 right-0 z-10 rounded-xl bg-black/75 p-3 text-center text-xs text-white sm:text-sm">
-              {photos[activeIndex].alt} · {activeIndex + 1} / {photos.length}
+              {locale === "ru" ? "Фото " + (activeIndex + 1) + " из " + photos.length : photos[activeIndex].alt + " · " + (activeIndex + 1) + " / " + photos.length}
             </p>
           </div>
         </div>
