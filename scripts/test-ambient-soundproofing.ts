@@ -162,13 +162,18 @@ assert.match(sitemap, /"gwiezdne-niebo-w-samochodzie-warszawa"/, "New page sitem
 const homeOrder = readFileSync("src/app/page.tsx", "utf8");
 const coreIndex = homeOrder.indexOf("<HomeComplexRepairs />");
 const customizationIndex = homeOrder.indexOf("<HomeCustomizationServices />");
-assert.ok(coreIndex !== -1 && customizationIndex > coreIndex, "Core mechanical repairs must precede cosmetic upgrades");
-assert.ok(homeOrder.indexOf("<HomeRealizations />") < customizationIndex, "Verified real workshop work takes priority");
+const firstServiceIndex = homeOrder.indexOf("<SameDayServices />");
+const trustIndex = homeOrder.indexOf("<HomeTrustHighlights />");
+assert.ok(firstServiceIndex !== -1 && customizationIndex > firstServiceIndex && customizationIndex < trustIndex, "Keep customization cards immediately below the original main services block");
+assert.ok(coreIndex > customizationIndex, "Complex mechanical repairs remain available below services");
 const cosmeticHome = readFileSync("src/components/home/HomeCustomizationServices.tsx", "utf8");
 assert.doesNotMatch(cosmeticHome, /unsplash|temporaryPhotos/, "No unrelated stock imagery as finished service examples");
 assert.ok(cosmeticHome.includes("service.photos?.[0]"), "Only owner-provided service photos");
 assert.match(cosmeticHome, /aromatyzacja-samochodu-warszawa/);
 assert.match(cosmeticHome, /pranie-tapicerki-samochodowej-warszawa/);
+for (const slug of ["montaz-spoilera-samochodowego-warszawa", "montaz-ducktaila-warszawa", "podswietlenie-podwozia-samochodu-warszawa", "gwiezdne-niebo-w-samochodzie-warszawa", "montaz-apple-carplay-warszawa", "wygluszenie-samochodu-warszawa"]) {
+  assert.ok(cosmeticHome.includes(slug), "Do not remove an original or newly added service: " + slug);
+}
 const homeLinks = readFileSync("src/components/home/HomeSeoServiceLinks.tsx", "utf8");
 assert.ok(homeLinks.includes("const mechanical: ServiceLink[]"));
 assert.ok(homeLinks.includes("const enhancements: ServiceLink[]"));
