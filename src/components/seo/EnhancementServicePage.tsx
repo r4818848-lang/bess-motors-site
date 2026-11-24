@@ -13,7 +13,7 @@ import type { Locale } from "@/lib/i18n/types";
 import { enhancementUi, localizedEnhancementService } from "@/lib/enhancement-localization";
 import { SocialContactLink } from "@/components/analytics/SocialContactLink";
 import { PhoneLink } from "@/components/analytics/PhoneLink";
-import { ENHANCEMENT_HUB_SLUG, enhancementCategoryLabels, enhancementServices, type EnhancementCategory, type EnhancementService } from "@/lib/enhancement-services";
+import { ENHANCEMENT_HUB_SLUG, enhancementServices, type EnhancementCategory, type EnhancementService } from "@/lib/enhancement-services";
 
 const categoryIcons: Record<EnhancementCategory, typeof Sparkles> = {
   lighting: Sparkles,
