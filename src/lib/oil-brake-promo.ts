@@ -106,7 +106,7 @@ export function brakesPromoMetaDescriptionPl(): string {
 }
 
 export function oilPromoMetaTitlePl(): string {
-  return `Wymiana oleju Warszawa Włochy — 80 zł`;
+  return `Wymiana oleju Warszawa — 80 zł robocizna`;
 }
 
 export function oilPromoMetaDescriptionPl(): string {
