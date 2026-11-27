@@ -1,13 +1,12 @@
 import type { Metadata } from "next";
 import { buildPageMetadata } from "@/lib/seo-metadata";
 import {
-  oilBrakePromoMetaDescriptionPl,
   OIL_BRAKE_PROMO_CODE,
 } from "@/lib/oil-brake-promo";
 
 export const metadata: Metadata = buildPageMetadata({
-  title: `Promocje — olej, hamulce, klima · kod ${OIL_BRAKE_PROMO_CODE}`,
-  description: oilBrakePromoMetaDescriptionPl(),
+  title: `Promocje — olej, hamulce · kod ${OIL_BRAKE_PROMO_CODE}`,
+  description: `Promocje BESS MOTORS Warszawa Włochy: wymiana oleju, hamulce i klimatyzacja. Sprawdź aktualne warunki i kod ${OIL_BRAKE_PROMO_CODE}.`,
   path: "/promocje",
   keywords: [
     "promocja wymiana oleju Warszawa",
