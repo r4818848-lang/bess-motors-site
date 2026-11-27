@@ -32,7 +32,7 @@ export function acPromoMetaTitlePl(): string {
 }
 
 export function acPromoMetaDescriptionPl(): string {
-  return `Nabijanie klimatyzacji w BESS MOTORS Warszawa Włochy: podłączenie ${acHookupPricePln()} zł, ${acRefrigerantLinePl()}. R134a i R1234yf. Od ${acRechargeFromPln()} zł. Aleja Krakowska 48/52 — zapis online.`;
+  return `Nabijanie klimatyzacji Warszawa Włochy: R134a i R1234yf, od ${acRechargeFromPln()} zł. BESS MOTORS, Aleja Krakowska 48/52. Zapis online.`;
 }
 
 export function acPromoHeroLinePl(): string {
@@ -96,7 +96,7 @@ export function acRepairMetaTitlePl(): string {
 }
 
 export function acRepairMetaDescriptionPl(): string {
-  return "Naprawa klimatyzacji samochodowej w Warszawie Włochy: diagnostyka, szczelność obiegu, spawanie przewodów, wymiana sprężarki, chłodnicy i osuszacza. Po naprawie — nabijanie R134a / R1234yf. BESS MOTORS, Aleja Krakowska 48/52.";
+  return "Naprawa klimatyzacji Warszawa Włochy: diagnostyka, szczelność, spawanie przewodów, sprężarki i chłodnice. BESS MOTORS, Aleja Krakowska 48/52.";
 }
 
 /** Commercial A/C keywords — no seasonal discount phrases */
