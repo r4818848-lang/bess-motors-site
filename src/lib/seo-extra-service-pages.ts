@@ -43,15 +43,18 @@ const WHY_BESS_EDU = {
   body: L("Wycena przed naprawą, części dobierane po VIN, kontakt podczas prac i przejrzyste rozliczenie. Warsztat przy Alei Krakowskiej 48/52 (Warszawa Włochy) — blisko Okęcia.", "Смета до ремонта, детали по VIN, связь во время работ и прозрачный расчёт. Сервис на Aleja Krakowska 48/52 (Warszawa Włochy).", "Quote before repair, parts matched by VIN, updates during the job and clear billing. Workshop at Aleja Krakowska 48/52 (Warsaw Włochy) — near Okęcie.", "Кошторис до ремонту, деталі за VIN, зв’язок під час робіт і прозорий розрахунок. Сервіс на Aleja Krakowska 48/52 (Warszawa Włochy) — поруч з Okęcie."),
 };
 
+const timingBeltLabour = getPriceItem("timing_belt");
+const timingChainLabour = getPriceItem("timing_chain");
+
 const EXTRA_SEO_SERVICE_PAGES_BATCH1: SeoLandingPage[] = [
   {
     slug: "wymiana-rozrzadu-warszawa",
     title: "Wymiana rozrządu Warszawa – BESS MOTORS",
     line1: "Pasek lub łańcuch rozrządu",
-    line2: "Diagnostyka, wycena i wymiana w Włochach",
-    metaTitle: "Wymiana rozrządu Warszawa",
+    line2: "Wycena robocizny i części po VIN · Warszawa Włochy",
+    metaTitle: "Wymiana rozrządu Warszawa – pasek i łańcuch",
     metaDescription:
-      "Wymiana rozrządu w Warszawie Włochy — pasek, łańcuch, pompa wody. Diagnostyka, wycena przed pracą. BESS MOTORS, Aleja Krakowska 48/52. Umów wizytę.",
+      "Wymiana paska lub łańcucha rozrządu w BESS MOTORS, Warszawa Włochy. Sprawdź ceny robocizny i poproś o wycenę po VIN. Aleja Krakowska 48/52.",
     serviceId: "timingBelt",
     icon: "Clock",
   },
@@ -158,18 +161,22 @@ const EXTRA_SEO_SERVICE_PROFILES_BATCH1: Record<string, SlugLandingProfile> = {
     bookServiceId: "timingBelt",
     contentServiceId: "timingBelt",
     faqDuration: L("Wymiana rozrządu zwykle 1–2 dni robocze — zależnie od modelu i dostępności części.", "Замена ГРМ обычно 1–2 рабочих дня — зависит от модели и запчастей.", "Replacement of the timing usually 1–2 working days — depending on the model and the availability of parts.", "Заміна ГРМ зазвичай 1–2 рабочих дня — зависит от модели і запчастей."),
-    price: {
-      fromZl: getPriceItem("timing_belt")?.basePrice ?? 800,
+    price: timingBeltLabour && timingChainLabour ? {
+      fromZl: timingBeltLabour.basePrice,
       priceFrom: true,
-      materialsExtra: true,
-      note: L("Orientacyjna robocizna — dokładna wycena po modelu i zakresie (pasek/łańcuch, pompa wody, rolki). Części osobno.", "Ориентировочная работа — точная смета по модели. Запчасти отдельно.", "Indicative work — accurate valuation by model and range (belt/chain, water pump, rollers). Parts separately.", "Ориентировочная робота — точная кошторис по модели. Запчасти отдельно."),
+      note: L(
+        `Powyższa cena dotyczy robocizny przy wymianie paska. Wymiana łańcucha — robocizna od ${timingChainLabour.basePrice} zł. Części wyceniamy osobno po VIN.`,
+        `Выше указана стоимость работы по замене ремня. Замена цепи — работа от ${timingChainLabour.basePrice} zł. Стоимость деталей рассчитываем отдельно по VIN.`,
+        `The price above is for timing belt labour. Timing chain labour starts at ${timingChainLabour.basePrice} zł. Parts are quoted separately by VIN.`,
+        `Вище вказана вартість роботи із заміни ременя. Заміна ланцюга — робота від ${timingChainLabour.basePrice} zł. Вартість деталей розраховуємо окремо за VIN.`,
+      ),
       includes: [
         L("Diagnostyka stanu rozrządu", "Диагностика ГРМ", "Diagnosis of timing condition", "Діагностика ГРМ"),
         L("Wymiana paska lub łańcucha według zaleceń", "Замена ремня/цепи по регламенту", "Replacing the belt or chain as recommended", "Заміна ремня/цепи по регламенту"),
         L("Kontrola pomp i napinaczy", "Проверка помпы и натяжителей", "Inspection of pumps and tensioners", "Перевірка насоса та натягувачів"),
         L("Wycena przed rozpoczęciem prac", "Смета до начала работ", "Pricing before the start of work", "Кошторис до начала работ"),
       ],
-    },
+    } : null,
     education: [
       {
         title: L("Kiedy wymieniać rozrząd?", "Когда міняти ГРМ?", "When to change the timing?", "Коли міняти ГРМ?"),
@@ -185,7 +192,7 @@ const EXTRA_SEO_SERVICE_PROFILES_BATCH1: Record<string, SlugLandingProfile> = {
       },
       {
         title: L("Czas i koszt", "Срок и стоимость", "Time and cost", "Срок і вартість"),
-        body: L("Czas: zwykle 1–2 dni. Koszt: wycena indywidualna — robocizna od ok. 800 zł + części. Potwierdzamy zakres przed startem.", "Срок 1–2 дня. Стоимость — индивидуальная смета.", "Time: usually 1–2 days. Cost: individual valuation — labor from approx. PLN 800 + parts. We confirm the range before the start.", "Срок 1–2 дня. Стоимость — индивидуальная кошторис."),
+        body: L("Zwykle 1–2 dni robocze, zależnie od silnika, zakresu prac i dostępności części. Po VIN potwierdzamy termin i przedstawiamy koszt robocizny oraz części przed rozpoczęciem naprawy.", "Обычно 1–2 рабочих дня. По VIN уточняем срок и отдельно рассчитываем работу и детали.", "Usually 1–2 working days. We use the VIN to confirm timing and quote labour and parts separately before repair.", "Зазвичай 1–2 робочі дні. За VIN уточнюємо термін і окремо розраховуємо роботу та деталі."),
       },
       WHY_BESS_EDU,
     ],

@@ -43,8 +43,11 @@ export default async function BlogPostPage({
   const tireAdLink = post.relatedHrefs?.find(
     (l) => l.href === "/sezonowa-wymiana-opon-warszawa"
   );
-  const primaryBookHref = tireAdLink?.href ?? "/booking";
-  const primaryBookLabel = tireAdLink ? "Umów wymianę opon" : "Umów wizytę online";
+  const primaryCta = post.primaryCta ?? {
+    href: tireAdLink?.href ?? "/booking",
+    label: tireAdLink ? "Umów wymianę opon" : "Umów wizytę online",
+  };
+  const [intro, ...remainingParagraphs] = post.body.split("\n\n");
 
   return (
     <>
@@ -70,7 +73,19 @@ export default async function BlogPostPage({
           ) : null}
         </p>
         <h1 className="font-display text-3xl uppercase text-glow mt-2">{post.title}</h1>
-        <p className="text-bm-muted mt-6 leading-relaxed whitespace-pre-line">{post.body}</p>
+        {post.primaryCta ? (
+          <>
+            <p className="text-bm-muted mt-6 leading-relaxed">{intro}</p>
+            <Link href={primaryCta.href} className="btn-primary mt-4 inline-flex text-sm">
+              {primaryCta.label}
+            </Link>
+            <p className="text-bm-muted mt-6 leading-relaxed whitespace-pre-line">
+              {remainingParagraphs.join("\n\n")}
+            </p>
+          </>
+        ) : (
+          <p className="text-bm-muted mt-6 leading-relaxed whitespace-pre-line">{post.body}</p>
+        )}
 
         {post.relatedHrefs?.length ? (
           <section className="mt-10 border-t border-bm-border/50 pt-6" aria-labelledby="related-services">
@@ -93,8 +108,8 @@ export default async function BlogPostPage({
         ) : null}
 
         <p className="mt-10 flex flex-wrap gap-3">
-          <Link href={primaryBookHref} className="btn-primary inline-flex text-sm">
-            {primaryBookLabel}
+          <Link href={primaryCta.href} className="btn-primary inline-flex text-sm">
+            {primaryCta.label}
           </Link>
           <Link href="/contacts" className="btn-outline inline-flex text-sm">
             Kontakt
