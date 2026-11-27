@@ -636,12 +636,12 @@ test("SEO 2026-11-18: strongest existing landing pages have local, honest snippe
   await expect(page.locator('meta[name="description"]')).toHaveAttribute("content", /Okęcia.*wyważaniem.*Aleja Krakowska/);
 
   await page.goto("/wymiana-oleju");
-  await expect(page).toHaveTitle(/Wymiana oleju Warszawa Włochy/);
-  await expect(page.locator('meta[name="description"]')).toHaveAttribute("content", /80 zł.*VIN/);
+  await expect(page).toHaveTitle(/Wymiana oleju Warszawa.*80 zł robocizna/);
+  await expect(page.locator('meta[name="description"]')).toHaveAttribute("content", /Warszawa Włochy.*80 zł.*VIN/);
 
   await page.goto("/wymiana-oleju-skrzynia-automatyczna-warszawa");
-  await expect(page).toHaveTitle(/Statyczna wymiana oleju skrzyni/);
-  await expect(page.locator('meta[name="description"]')).toHaveAttribute("content", /Statyczna wymiana.*VIN/);
+  await expect(page).toHaveTitle(/Statyczna wymiana oleju ATF Warszawa/);
+  await expect(page.locator('meta[name="description"]')).toHaveAttribute("content", /Statyczna wymiana.*Warszawa Włochy.*VIN/);
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   await expect(page.getByText("Nie oferujemy dynamicznej wymiany ATF.", { exact: false }).first()).toBeVisible();
 
