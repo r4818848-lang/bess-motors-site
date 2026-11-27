@@ -138,11 +138,11 @@ const EXTRA_SEO_SERVICE_PAGES_BATCH1: SeoLandingPage[] = [
   {
     slug: "wymiana-oleju-skrzynia-automatyczna-warszawa",
     title: "Wymiana oleju w automatycznej skrzyni biegów Warszawa",
-    line1: "Statyczna wymiana ATF / DSG — dobór po VIN",
-    line2: "Wymiana statyczna zgodnie z procedurą; bez usługi dynamicznej",
-    metaTitle: "Statyczna wymiana oleju skrzyni automatycznej Warszawa",
+    line1: "Statyczna wymiana oleju ATF i oleju w wybranych skrzyniach DSG",
+    line2: "Wycena robocizny, oleju i filtra po VIN oraz kodzie skrzyni",
+    metaTitle: "Statyczna wymiana oleju skrzyni automatycznej | Warszawa",
     metaDescription:
-      "Statyczna wymiana oleju ATF w automatycznej skrzyni biegów, również wybrane DSG. BESS MOTORS Warszawa Włochy. Dobór po VIN, bez wymiany dynamicznej. Wycena przed naprawą.",
+      "Statyczna wymiana oleju w automacie i wybranych DSG. BESS MOTORS Warszawa Włochy. Podaj VIN, aby sprawdzić zakres i otrzymać wycenę robocizny, oleju i filtra.",
     serviceId: "transmission",
     icon: "Settings2",
   },
@@ -526,7 +526,7 @@ const EXTRA_SEO_SERVICE_PROFILES_BATCH1: Record<string, SlugLandingProfile> = {
       fromZl: getPriceItem("gearbox_oil_auto")?.basePrice ?? 500,
       priceFrom: true,
       materialsExtra: true,
-      note: L("Wymiana statyczna (nie dynamiczna). Wycena: robocizna + olej ATF/DSG + filtr, jeżeli wymagany. Dobór po VIN i kodzie skrzyni.", "Индивидуальная смета: работа + ATF + фильтр.", "Individual pricing: Labour + ATF/DSG oil + filter when required. Selection by Vin /box code.", "Индивидуальная кошторис: робота + ATF + фільтр."),
+      note: L("Podana cena dotyczy robocizny przy wymianie statycznej. Olej i filtr, jeśli przewiduje go procedura, dobieramy i wyceniamy po VIN oraz kodzie skrzyni.", "Указана стоимость работы по статической замене. Масло и фильтр рассчитываем отдельно по VIN и коду коробки.", "The price shown is for static oil change labour. We quote the oil and any required filter separately using the VIN and gearbox code.", "Вказана вартість роботи зі статичної заміни. Оливу й фільтр розраховуємо окремо за VIN і кодом коробки."),
       includes: [
         L("Identyfikacja skrzyni i procedury", "Идентификация КПП и процедуры", "Chest identification and procedures", "Ідентифікація та процедури СЛР"),
         L("Wymiana oleju według zaleceń", "Замена масла по регламенту", "Changing the oil as recommended", "Заміна оливи по регламенту"),
@@ -549,7 +549,7 @@ const EXTRA_SEO_SERVICE_PROFILES_BATCH1: Record<string, SlugLandingProfile> = {
       },
       {
         title: L("Czas i koszt", "Срок и цена", "Time and cost", "Срок і ціна"),
-        body: L("Zwykle kilka godzin. Koszt: wycena indywidualna (robocizna od ok. 500 zł + olej i filtr). Potwierdzamy przed startem.", "Несколько часов. Индивидуальная смета.", "Usually a few hours. Cost: individual valuation (labor from approx. PLN 500 + oil and filter). We confirm before the start.", "Несколько годин. Индивидуальная кошторис."),
+        body: L("Zwykle kilka godzin. Przed przyjazdem potwierdzamy dostępność części, termin i koszt robocizny oraz materiałów.", "Обычно несколько часов. Срок, наличие деталей и стоимость подтверждаем до приезда.", "Usually a few hours. We confirm parts availability, timing and the cost of labour and materials before your visit.", "Зазвичай кілька годин. Термін, наявність деталей і вартість підтверджуємо до приїзду."),
       },
       WHY_BESS_EDU,
     ],
@@ -586,7 +586,7 @@ const EXTRA_SEO_RELATED_BATCH1: Record<string, string[]> = {
   "mechanik-warszawa-wlochy": [
     "wymiana-oleju-warszawa",
     "diagnostyka-komputerowa-warszawa",
-    "hamulce-warszawa",
+    "hamulce",
     "serwis-klimatyzacji-warszawa",
   ],
   "diagnostyka-komputerowa-warszawa": [
@@ -598,7 +598,7 @@ const EXTRA_SEO_RELATED_BATCH1: Record<string, string[]> = {
   "wymiana-oleju-warszawa": [
     "naprawa-zawieszenia-warszawa",
     "diagnostyka-komputerowa-warszawa",
-    "hamulce-warszawa",
+    "hamulce",
     "mechanik-warszawa-wlochy",
   ],
   "serwis-klimatyzacji-warszawa": [
@@ -613,7 +613,7 @@ const EXTRA_SEO_RELATED_BATCH1: Record<string, string[]> = {
     "mechanik-warszawa-wlochy",
   ],
   "naprawa-zawieszenia-warszawa": [
-    "hamulce-warszawa",
+    "hamulce",
     "wymiana-oleju-warszawa",
     "mechanik-warszawa-wlochy",
   ],

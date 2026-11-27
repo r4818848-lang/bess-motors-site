@@ -149,7 +149,7 @@ Części wyceniamy osobno.
 
 Warsztat: Aleja Krakowska 48/52, Warszawa Włochy. Pn–Pt 9:00–18:00, Sb 9:00–14:00.`,
     relatedHrefs: [
-      { href: "/hamulce-warszawa", label: "Hamulce Warszawa" },
+      { href: "/hamulce", label: "Hamulce Warszawa" },
       { href: "/wymiana-klockow-hamulcowych-warszawa", label: "Wymiana klocków" },
     ],
   },

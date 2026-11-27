@@ -41,14 +41,15 @@ const nextConfig: NextConfig = {
       { source: "/contact", destination: "/contacts", permanent: true },
       { source: "/kontakty", destination: "/contacts", permanent: true },
       { source: "/klocki-hamulcowe", destination: "/hamulce", permanent: true },
+      { source: "/hamulce-warszawa", destination: "/hamulce", permanent: true },
       {
         source: "/wymiana-hamulcow-warszawa",
-        destination: "/hamulce-warszawa",
+        destination: "/hamulce",
         permanent: true,
       },
       {
         source: "/wymiana-hamulcow",
-        destination: "/hamulce-warszawa",
+        destination: "/hamulce",
         permanent: true,
       },
       { source: "/serwis-klimatyzacji", destination: "/klimatyzacja", permanent: true },
@@ -76,7 +77,7 @@ const nextConfig: NextConfig = {
       { source: "/cennik-uslug", destination: "/cennik", permanent: true },
       { source: "/zapis-online", destination: "/booking", permanent: true },
       { source: "/olej", destination: "/wymiana-oleju", permanent: true },
-      // /wymiana-oleju-warszawa and /hamulce-warszawa are indexed SEO landings (not redirects)
+      // /wymiana-oleju-warszawa points to /wymiana-oleju via its canonical.
       { source: "/klocki-warszawa", destination: "/hamulce", permanent: true },
       { source: "/login", destination: "/crm/login", permanent: false },
       { source: "/logowanie", destination: "/crm/login", permanent: false },

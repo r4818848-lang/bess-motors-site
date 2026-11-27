@@ -118,7 +118,7 @@ export function buildCarReadyMessage(
   vehicleLabel: string,
   locale: WaMsgLocale
 ): string {
-  const reviewUrl = siteConfig.googleMapsReviewsUrl;
+  const reviewUrl = siteConfig.googleWriteReviewUrl;
   const loc = resolveLocale(locale);
   const messages: Record<"pl" | "ru" | "en", string> = {
     pl: `Dzień dobry! Państwa ${vehicleLabel} jest gotowy do odbioru (${orderNumber}). Prosimy o odbiór w ciągu 7 dni. Będziemy wdzięczni za opinię w Google Maps: ${reviewUrl}\n\nBESS MOTORS`,

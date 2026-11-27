@@ -7,7 +7,7 @@ export type VerifiedNature = VerifiedAcquisition["nature"];
 export type VerifiedEvidence = VerifiedAcquisition["evidence"];
 
 export const ACQUISITION_CHANNELS: readonly VerifiedChannel[] = [
-  "instagram_direct", "facebook_messenger", "whatsapp", "phone", "website", "meta_instant_form",
+  "instagram_direct", "facebook_messenger", "whatsapp", "phone", "website", "meta_instant_form", "google_maps", "google_search",
 ];
 export const ACQUISITION_NATURES: readonly VerifiedNature[] = ["meta_paid", "organic", "unknown"];
 export const ACQUISITION_EVIDENCES: readonly VerifiedEvidence[] = [
@@ -24,6 +24,7 @@ export function parseVerifiedAcquisition(
   const v = value as Record<string, unknown>;
   if (!ACQUISITION_CHANNELS.includes(v.channel as VerifiedChannel)) return null;
   if (!ACQUISITION_NATURES.includes(v.nature as VerifiedNature)) return null;
+  if ((v.channel === "google_maps" || v.channel === "google_search") && v.nature === "meta_paid") return null;
   if (!ACQUISITION_EVIDENCES.includes(v.evidence as VerifiedEvidence)) return null;
   if (v.manuallyConfirmed !== true) return null;
 

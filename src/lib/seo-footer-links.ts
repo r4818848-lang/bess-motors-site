@@ -1,6 +1,6 @@
 export const seoFooterServiceLinks: { href: string; label: string }[] = [
   { href: "/wymiana-oleju-warszawa", label: "Wymiana oleju Warszawa" },
-  { href: "/hamulce-warszawa", label: "Hamulce Warszawa" },
+  { href: "/hamulce", label: "Hamulce Warszawa" },
   { href: "/wymiana-klockow-hamulcowych-warszawa", label: "Wymiana klocków hamulcowych" },
   { href: "/diagnostyka-komputerowa-warszawa", label: "Diagnostyka komputerowa" },
   { href: "/serwis-klimatyzacji-warszawa", label: "Serwis klimatyzacji Warszawa" },

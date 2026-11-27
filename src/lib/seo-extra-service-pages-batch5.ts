@@ -40,8 +40,10 @@ function brakePage(c: ModelServiceCase): SeoLandingPage {
     title: `Wymiana klocków hamulcowych ${c.label} Warszawa`,
     line1: `Robocizna od ${from} zł — kod BessMotors`,
     line2: `BESS MOTORS Włochy · ${c.label} · wycena przed montażem`,
-    metaTitle: `Wymiana klocków ${c.label} Warszawa | BESS MOTORS`,
-    metaDescription: `Wymiana klocków hamulcowych ${c.label} Warszawa Włochy — robocizna od ${from} zł (kod BessMotors). BESS MOTORS, Aleja Krakowska 48/52. Umów wizytę.`,
+    metaTitle: c.id === "audi-q5" ? "Wymiana klocków hamulcowych Audi Q5 | Warszawa Włochy" : `Wymiana klocków ${c.label} Warszawa | BESS MOTORS`,
+    metaDescription: c.id === "audi-q5"
+      ? `Klocki i tarcze do Audi Q5 dobieramy po VIN. Robocizna wymiany przednich klocków od ${from} zł z kodem BessMotors. Umów wizytę w Warszawie Włochach.`
+      : `Wymiana klocków hamulcowych ${c.label} Warszawa Włochy — robocizna od ${from} zł (kod BessMotors). BESS MOTORS, Aleja Krakowska 48/52. Umów wizytę.`,
     serviceId: "brakePads",
     icon: "Disc",
   };
@@ -162,7 +164,7 @@ function brakeProfile(c: ModelServiceCase): SlugLandingProfile {
           `Гальма ${c.label} у BESS MOTORS`
         ),
         body: L(
-          `Serwisujemy hamulce ${c.label}: klocki, tarcze, płyn. Na stronie wulkanizacji tego modelu zobaczysz realne zdjęcie z warsztatu. Niezależny warsztat — nie ASO ${c.brand}.`,
+          `Serwisujemy hamulce ${c.label}: klocki, tarcze i płyn hamulcowy. Podaj VIN oraz informację, czy chodzi o przednią, czy tylną oś. Przed montażem potwierdzimy dobór części i osobno podamy koszt robocizny.`,
           `Обслуживаем тормоза ${c.label}. На странице шиномонтажа этой модели — реальное фото сервиса.`,
           `We service ${c.label} brakes. See the tyre page for a real workshop photo of this model.`,
           `Обслуговуємо гальма ${c.label}.`
@@ -228,7 +230,6 @@ export const EXTRA_SEO_RELATED_BATCH5: Record<string, string[]> = Object.fromEnt
         [
           c.tireSlug,
           "wymiana-klockow-hamulcowych-warszawa",
-          "hamulce-warszawa",
           "hamulce",
           c.brandHubSlug,
           "wymiana-tarcz-hamulcowych-warszawa",

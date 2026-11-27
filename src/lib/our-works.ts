@@ -1064,25 +1064,25 @@ Book condenser cleaning and A/C service online! ❄️`,
     description: {
       pl: `Realna wymiana tarcz i klocków w BESS MOTORS.
 
-Zużyte tarcze i klocki skracają drogę hamowania i powodują wibracje. Po oględzinach wymieniamy komplet na osi i kontrolujemy układ.
+Zużyte tarcze i klocki mogą pogorszyć skuteczność hamowania i powodować wibracje. Po oględzinach wymieniamy komplet na osi i kontrolujemy układ.
 
 ✅ Ocena stanu tarcz i klocków
 ✅ Wymiana robocizną według cennika / promocji
 ✅ Części dobierane do modelu (VIN)
 
-Zobacz też: /hamulce-warszawa · /wymiana-klockow-hamulcowych-warszawa
+Zobacz też: /hamulce · /wymiana-klockow-hamulcowych-warszawa
 
 📍 Aleja Krakowska 48/52, Warszawa Włochy
 📞 +48 791 257 229`,
       ru: `Реальная замена дисков и колодок в BESS MOTORS.
 
-См. также: /hamulce-warszawa
+См. также: /hamulce
 
 📍 Aleja Krakowska 48/52, Warszawa
 📞 +48 791 257 229`,
       en: `Real disc and pad replacement at BESS MOTORS.
 
-See also: /hamulce-warszawa
+See also: /hamulce
 
 📍 Aleja Krakowska 48/52, Warsaw
 📞 +48 791 257 229`,

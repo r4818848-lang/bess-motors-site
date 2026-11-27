@@ -64,7 +64,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
                     : slug === "wymiana-oleju" ||
                         slug === "wymiana-oleju-warszawa" ||
                         slug === "hamulce" ||
-                        slug === "hamulce-warszawa" ||
                         slug === "naprawa-klimatyzacji" ||
                         slug === "mechanik-warszawa-wlochy"
                       ? 0.9

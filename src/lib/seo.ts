@@ -15,6 +15,7 @@ export function getSiteUrl(): string {
 export const sitemapExcludedSlugs = new Set([
   "kontakt",
   "klocki-hamulcowe",
+  "hamulce-warszawa",
   "serwis-klimatyzacji",
   "promocje",
 ]);
@@ -47,8 +48,9 @@ export function sitemapLastModifiedFor(path: string): Date {
   const key = path || "/";
   if (key.startsWith("/blog/")) return SITEMAP_LAST_MODIFIED;
   if (new Set(["/oswietlenie-ambientowe-samochodu-warszawa", "/wygluszenie-samochodu-warszawa", "/personalizacja-samochodu-warszawa", "/services"]).has(key)) return new Date("2026-11-20T10:00:00.000Z");
-  if (key === "/hamulce" || key === "/wymiana-plynu-chlodniczego-warszawa") return LOCAL_SERVICE_CONTENT_LAST_MODIFIED;
-  if (new Set(["/wymiana-opon-warszawa", "/wymiana-oleju", "/wymiana-oleju-skrzynia-automatyczna-warszawa"]).has(key)) return SEO_CTR_LAST_MODIFIED;
+  if (["/hamulce", "/wymiana-rozrzadu-warszawa", "/wymiana-klockow-hamulcowych-audi-q5-warszawa", "/wymiana-oleju", "/wymiana-oleju-skrzynia-automatyczna-warszawa"].includes(key)) return new Date("2026-11-27T13:00:00.000Z");
+  if (key === "/wymiana-plynu-chlodniczego-warszawa") return LOCAL_SERVICE_CONTENT_LAST_MODIFIED;
+  if (key === "/wymiana-opon-warszawa") return SEO_CTR_LAST_MODIFIED;
   if (new Set(["/booking", "/gallery", "/zawieszenie", "/naprawa-zawieszenia-warszawa"]).has(key)) return AI_GEO_CONTENT_LAST_MODIFIED;
   if (new Set(["/", "/wymiana-opon-warszawa", "/sezonowa-wymiana-opon-warszawa", "/wulkanizacja-warszawa", "/wymiana-oleju", "/hamulce", "/zawieszenie"]).has(key)) return SEO_DESIGN_LAST_MODIFIED;
   const changed =

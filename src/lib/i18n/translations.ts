@@ -657,8 +657,7 @@ const pl = {
   },
   cookieConsent: {
     title: "Pliki cookie i analityka",
-    body: "Używamy cookies i narzędzi Google/Meta do statystyk i reklam. Akceptacja poprawia pomiar kampanii. Wybierz opcję, aby kontynuować.",
-    requiredHint: "Wybór jest wymagany — bez niego strona pozostaje zablokowana.",
+    body: "Używamy plików cookie do statystyk i pomiaru reklam za Twoją zgodą.",
     accept: "Akceptuję",
     reject: "Tylko niezbędne",
     privacyLink: "Polityka prywatności",
@@ -2641,8 +2640,7 @@ const ru: TranslationKeys = {
   },
   cookieConsent: {
     title: "Cookies и аналитика",
-    body: "Мы используем cookies и Google/Meta для статистики и рекламы. Согласие улучшает учёт кампаний. Выберите вариант, чтобы продолжить.",
-    requiredHint: "Выбор обязателен — без него сайт остаётся заблокированным.",
+    body: "С вашего согласия мы используем cookies для статистики и оценки рекламы.",
     accept: "Принимаю",
     reject: "Только необходимое",
     privacyLink: "Политика конфиденциальности",
@@ -4843,8 +4841,7 @@ const en: TranslationKeys = {
   },
   cookieConsent: {
     title: "Cookies & analytics",
-    body: "We use cookies and Google/Meta tools for stats and ads. Accepting improves campaign measurement. Choose an option to continue.",
-    requiredHint: "A choice is required — the site stays blocked until you decide.",
+    body: "We use cookies for analytics and ad measurement with your consent.",
     accept: "Accept",
     reject: "Essential only",
     privacyLink: "Privacy policy",
