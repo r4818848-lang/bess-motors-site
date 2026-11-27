@@ -71,7 +71,7 @@ export const HOME_SEO_TITLE =
   "Mechanik Warszawa Włochy | Warsztat Samochodowy BESS MOTORS";
 
 export const HOME_SEO_DESCRIPTION =
-  "BESS MOTORS — warsztat samochodowy Warszawa, Aleja Krakowska 48/52 (Włochy). Wulkanizacja i wymiana opon dla całej Warszawy, diagnostyka, hamulce, klimatyzacja. Umów wizytę.";
+  "BESS MOTORS — warsztat samochodowy Warszawa Włochy, Aleja Krakowska 48/52. Wymiana opon, wulkanizacja, diagnostyka, hamulce i klimatyzacja. Umów wizytę.";
 
 export const defaultSeoKeywords = [
   "BESS MOTORS",
