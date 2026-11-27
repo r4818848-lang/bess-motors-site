@@ -140,7 +140,7 @@ const EXTRA_SEO_SERVICE_PAGES_BATCH1: SeoLandingPage[] = [
     title: "Wymiana oleju w automatycznej skrzyni biegów Warszawa",
     line1: "Statyczna wymiana oleju ATF i oleju w wybranych skrzyniach DSG",
     line2: "Wycena robocizny, oleju i filtra po VIN oraz kodzie skrzyni",
-    metaTitle: "Statyczna wymiana oleju skrzyni automatycznej | Warszawa",
+    metaTitle: "Statyczna wymiana oleju ATF Warszawa",
     metaDescription:
       "Statyczna wymiana oleju w automacie i wybranych DSG. BESS MOTORS Warszawa Włochy. Podaj VIN, aby sprawdzić zakres i otrzymać wycenę robocizny, oleju i filtra.",
     serviceId: "transmission",
