@@ -8,6 +8,7 @@ export type BlogPost = {
   updatedAt?: string;
   excerpt: string;
   body: string;
+  primaryCta?: { href: string; label: string };
   /** Related service / SEO page paths for internal linking */
   relatedHrefs?: { href: string; label: string }[];
 };
@@ -148,7 +149,7 @@ Części wyceniamy osobno.
 
 Warsztat: Aleja Krakowska 48/52, Warszawa Włochy. Pn–Pt 9:00–18:00, Sb 9:00–14:00.`,
     relatedHrefs: [
-      { href: "/hamulce-warszawa", label: "Hamulce Warszawa" },
+      { href: "/hamulce", label: "Hamulce Warszawa" },
       { href: "/wymiana-klockow-hamulcowych-warszawa", label: "Wymiana klocków" },
     ],
   },
@@ -210,12 +211,13 @@ Wejdź na stronę sezonowej wymiany opon (/sezonowa-wymiana-opon-warszawa) i kli
   },
   {
     slug: "wymiana-rozrzadu-ile-trwa",
-    title: "Ile trwa wymiana rozrządu? Pasek, łańcuch i czas naprawy",
+    title: "Ile trwa wymiana rozrządu? Czas wymiany paska i łańcucha",
     date: "2026-10-21",
-    updatedAt: "2026-11-18",
+    updatedAt: "2026-11-27",
     excerpt:
-      "Ile trwa wymiana rozrządu? Często około 1–2 dni roboczych, zależnie od silnika, paska lub łańcucha i części. Sprawdź, co wpływa na termin.",
-    body: `Ile trwa wymiana rozrządu? W praktyce warto liczyć się często z około 1–2 dniami roboczymi, ale nie jest to stały termin dla każdego auta. Dokładny czas zależy od silnika, dostępu do rozrządu, rodzaju napędu (pasek lub łańcuch), zakresu dodatkowych prac i dostępności części.
+      "Wymiana rozrządu często zajmuje 1–2 dni robocze. Sprawdź, co wpływa na czas wymiany paska lub łańcucha i jak uzyskać wycenę po VIN w Warszawie.",
+    primaryCta: { href: "/#wyceń-po-vin", label: "Zapytaj o cenę i termin po VIN" },
+    body: `Na wymianę rozrządu w warsztacie często trzeba przewidzieć 1–2 dni robocze. Termin odbioru zależy od wersji silnika, dostępu do rozrządu i dostępności części. W BESS MOTORS w Warszawie Włochach wstępny zakres i termin ustalamy po VIN.
 
 Pasek czy łańcuch — od czego zależy czas?
 • W niektórych silnikach dostęp do paska jest stosunkowo prosty, w innych trzeba zdemontować więcej osprzętu.
@@ -236,6 +238,7 @@ Gdzie wykonać wymianę rozrządu w Warszawie?
 BESS MOTORS, Aleja Krakowska 48/52, Warszawa Włochy. Oferujemy ocenę zakresu i indywidualną wycenę przed naprawą. Telefon +48 791 257 229. Umówienie terminu i potwierdzenie dostępności części przed przyjazdem ułatwia planowanie usługi.`,
     relatedHrefs: [
       { href: "/wymiana-rozrzadu-warszawa", label: "Wymiana rozrządu Warszawa" },
+      { href: "/wymiana-rozrzadu-warszawa#cena-uslugi", label: "Ceny robocizny za wymianę paska i łańcucha" },
       { href: "/diagnostyka-silnika-warszawa", label: "Diagnostyka silnika" },
       { href: "/booking", label: "Umów termin po wycenie" },
     ],

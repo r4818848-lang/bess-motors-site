@@ -56,8 +56,8 @@ export const seoLandingPages: SeoLandingPage[] = [
   {
     slug: "wymiana-oleju",
     title: "Wymiana Oleju",
-    line1: "Promocja 80 zł — kod BessMotors",
-    line2: "Było 150 zł · zawieszenie gratis przy oleju",
+    line1: "Wymiana oleju i filtra — 80 zł za robociznę z kodem BessMotors",
+    line2: "Olej i filtr dobieramy po VIN · kontrola zawieszenia w cenie usługi",
     metaTitle: oilPromoMetaTitlePl(),
     metaDescription: oilPromoMetaDescriptionPl(),
     serviceId: "oil",

@@ -23,7 +23,7 @@ const translations = {
     err:"Не удалось сохранить. Проверь источник, ID кампании, связанную заявку и повтори.",
     old:"Уже указано",paid:"Оплачено",unpaid:"Не оплачено",
     meta_paid:"Подтверждённое обращение из рекламы Meta",organic:"Органический источник, не реклама",unknown:"Источник неизвестен",
-    instagram_direct:"Instagram Direct",facebook_messenger:"Facebook Messenger",whatsapp:"WhatsApp",phone:"Телефонный звонок",website:"Форма сайта",meta_instant_form:"Лид-форма Meta",
+    instagram_direct:"Instagram Direct",facebook_messenger:"Facebook Messenger",whatsapp:"WhatsApp",phone:"Телефонный звонок",website:"Форма сайта",meta_instant_form:"Лид-форма Meta",google_maps:"Google Карты",google_search:"Поиск Google",
     client_confirmed:"Клиент подтвердил источник",conversation:"Проверено по переписке/звонку",meta_form:"Есть подтверждение формы Meta",tagged_link:"Подтверждённая UTM-ссылка",
     warning:"Отметка «реклама Meta» создаётся только после проверки. Если не уверен — выбери «Источник неизвестен». Имя кампании не угадываем. Заказ считается в выручке только после статуса «оплачено».",
   },
@@ -36,7 +36,7 @@ const translations = {
     submit:"Zapisz potwierdzone źródło",saving:"Zapisuję…",done:"Zapisano w CRM.",err:"Nie udało się zapisać. Sprawdź dane i spróbuj ponownie.",
     old:"Aktualne źródło",paid:"Opłacone",unpaid:"Nieopłacone",
     meta_paid:"Potwierdzona reklama Meta",organic:"Źródło organiczne, bez reklamy",unknown:"Nieznane",
-    instagram_direct:"Instagram Direct",facebook_messenger:"Facebook Messenger",whatsapp:"WhatsApp",phone:"Telefon",website:"Formularz strony",meta_instant_form:"Formularz Meta",
+    instagram_direct:"Instagram Direct",facebook_messenger:"Facebook Messenger",whatsapp:"WhatsApp",phone:"Telefon",website:"Formularz strony",meta_instant_form:"Formularz Meta",google_maps:"Mapy Google",google_search:"Wyszukiwarka Google",
     client_confirmed:"Klient potwierdził",conversation:"Sprawdzona rozmowa lub połączenie",meta_form:"Potwierdzony formularz Meta",tagged_link:"Sprawdzony link UTM",
     warning:"Reklamę Meta oznacz tylko na podstawie potwierdzonego źródła. W razie wątpliwości wybierz «Nieznane». Nie zgaduj kampanii. Wartość zlecenia liczymy dopiero po opłaceniu.",
   },
@@ -49,7 +49,7 @@ const translations = {
     submit:"Save verified source",saving:"Saving…",done:"Saved to cloud CRM.",err:"Failed to save. Check the evidence, campaign ID and linked lead.",
     old:"Current",paid:"Paid",unpaid:"Unpaid",
     meta_paid:"Verified Meta advertisement",organic:"Organic, not paid",unknown:"Unknown",
-    instagram_direct:"Instagram Direct",facebook_messenger:"Facebook Messenger",whatsapp:"WhatsApp",phone:"Phone call",website:"Website form",meta_instant_form:"Meta Instant Form",
+    instagram_direct:"Instagram Direct",facebook_messenger:"Facebook Messenger",whatsapp:"WhatsApp",phone:"Phone call",website:"Website form",meta_instant_form:"Meta Instant Form",google_maps:"Google Maps",google_search:"Google Search",
     client_confirmed:"Customer confirmed",conversation:"Conversation or call checked",meta_form:"Meta form confirmed",tagged_link:"Confirmed UTM URL",
     warning:"Only select Meta Ads if confirmed. Otherwise select Unknown. Never guess a campaign. Revenue requires paid status.",
   },
@@ -62,7 +62,7 @@ const translations = {
     submit:"Зберегти підтверджене джерело",saving:"Збереження…",done:"Збережено у CRM.",err:"Не вдалося зберегти. Перевір дані.",
     old:"Поточне",paid:"Оплачено",unpaid:"Не оплачено",
     meta_paid:"Підтверджена реклама Meta",organic:"Органічне джерело",unknown:"Невідомо",
-    instagram_direct:"Instagram Direct",facebook_messenger:"Facebook Messenger",whatsapp:"WhatsApp",phone:"Телефон",website:"Форма сайту",meta_instant_form:"Форма Meta",
+    instagram_direct:"Instagram Direct",facebook_messenger:"Facebook Messenger",whatsapp:"WhatsApp",phone:"Телефон",website:"Форма сайту",meta_instant_form:"Форма Meta",google_maps:"Карти Google",google_search:"Пошук Google",
     client_confirmed:"Клієнт підтвердив",conversation:"Перевірено за розмовою",meta_form:"Підтверджено форму Meta",tagged_link:"Підтверджена UTM",
     warning:"Вибирай рекламу Meta лише після перевірки. Інакше — «Невідомо». Кампанію не вгадуємо. Виручка — тільки після оплати.",
   },
@@ -139,14 +139,19 @@ export function VerifiedAcquisitionPanel() {
         </label>
         <label className="block text-sm text-white">
           {t.channel}
-          <select className="input-premium mt-2 w-full" value={channel} onChange={e=>{setChannel(e.target.value as VerifiedChannel);setConfirmed(false)}}>
+          <select className="input-premium mt-2 w-full" value={channel} onChange={event => {
+            const next = event.target.value as VerifiedChannel;
+            setChannel(next);
+            if ((next === "google_maps" || next === "google_search") && nature === "meta_paid") setNature("unknown");
+            setConfirmed(false);
+          }}>
             {ACQUISITION_CHANNELS.map(k=><option key={k} value={k}>{t[k]}</option>)}
           </select>
         </label>
         <label className="block text-sm text-white">
           {t.nature}
           <select className="input-premium mt-2 w-full" value={nature} onChange={e=>{setNature(e.target.value as VerifiedNature);setConfirmed(false)}}>
-            {ACQUISITION_NATURES.map(k=><option key={k} value={k}>{t[k]}</option>)}
+            {ACQUISITION_NATURES.map(k => <option key={k} value={k} disabled={k === "meta_paid" && (channel === "google_maps" || channel === "google_search")}>{t[k]}</option>)}
           </select>
         </label>
         <label className="block text-sm text-white">

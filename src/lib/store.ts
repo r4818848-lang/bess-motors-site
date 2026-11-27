@@ -254,7 +254,7 @@ export interface WorkOrder {
   paidCardAmount?: number;
   /** Operator-confirmed acquisition source for this exact CRM work order. */
   verifiedAcquisition?: {
-    channel: "instagram_direct" | "facebook_messenger" | "whatsapp" | "phone" | "website" | "meta_instant_form";
+    channel: "instagram_direct" | "facebook_messenger" | "whatsapp" | "phone" | "website" | "meta_instant_form" | "google_maps" | "google_search";
     nature: "meta_paid" | "organic" | "unknown";
     evidence: "client_confirmed" | "conversation" | "meta_form" | "tagged_link";
     /** Exact Meta campaign ID, when independently verified. Not inferred from names. */

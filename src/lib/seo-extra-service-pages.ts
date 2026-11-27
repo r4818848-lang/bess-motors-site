@@ -43,15 +43,18 @@ const WHY_BESS_EDU = {
   body: L("Wycena przed naprawą, części dobierane po VIN, kontakt podczas prac i przejrzyste rozliczenie. Warsztat przy Alei Krakowskiej 48/52 (Warszawa Włochy) — blisko Okęcia.", "Смета до ремонта, детали по VIN, связь во время работ и прозрачный расчёт. Сервис на Aleja Krakowska 48/52 (Warszawa Włochy).", "Quote before repair, parts matched by VIN, updates during the job and clear billing. Workshop at Aleja Krakowska 48/52 (Warsaw Włochy) — near Okęcie.", "Кошторис до ремонту, деталі за VIN, зв’язок під час робіт і прозорий розрахунок. Сервіс на Aleja Krakowska 48/52 (Warszawa Włochy) — поруч з Okęcie."),
 };
 
+const timingBeltLabour = getPriceItem("timing_belt");
+const timingChainLabour = getPriceItem("timing_chain");
+
 const EXTRA_SEO_SERVICE_PAGES_BATCH1: SeoLandingPage[] = [
   {
     slug: "wymiana-rozrzadu-warszawa",
     title: "Wymiana rozrządu Warszawa – BESS MOTORS",
     line1: "Pasek lub łańcuch rozrządu",
-    line2: "Diagnostyka, wycena i wymiana w Włochach",
-    metaTitle: "Wymiana rozrządu Warszawa",
+    line2: "Wycena robocizny i części po VIN · Warszawa Włochy",
+    metaTitle: "Wymiana rozrządu Warszawa – pasek i łańcuch",
     metaDescription:
-      "Wymiana rozrządu w Warszawie Włochy — pasek, łańcuch, pompa wody. Diagnostyka, wycena przed pracą. BESS MOTORS, Aleja Krakowska 48/52. Umów wizytę.",
+      "Wymiana paska lub łańcucha rozrządu w BESS MOTORS, Warszawa Włochy. Sprawdź ceny robocizny i poproś o wycenę po VIN. Aleja Krakowska 48/52.",
     serviceId: "timingBelt",
     icon: "Clock",
   },
@@ -135,11 +138,11 @@ const EXTRA_SEO_SERVICE_PAGES_BATCH1: SeoLandingPage[] = [
   {
     slug: "wymiana-oleju-skrzynia-automatyczna-warszawa",
     title: "Wymiana oleju w automatycznej skrzyni biegów Warszawa",
-    line1: "Statyczna wymiana ATF / DSG — dobór po VIN",
-    line2: "Wymiana statyczna zgodnie z procedurą; bez usługi dynamicznej",
-    metaTitle: "Statyczna wymiana oleju skrzyni automatycznej Warszawa",
+    line1: "Statyczna wymiana oleju ATF i oleju w wybranych skrzyniach DSG",
+    line2: "Wycena robocizny, oleju i filtra po VIN oraz kodzie skrzyni",
+    metaTitle: "Statyczna wymiana oleju skrzyni automatycznej | Warszawa",
     metaDescription:
-      "Statyczna wymiana oleju ATF w automatycznej skrzyni biegów, również wybrane DSG. BESS MOTORS Warszawa Włochy. Dobór po VIN, bez wymiany dynamicznej. Wycena przed naprawą.",
+      "Statyczna wymiana oleju w automacie i wybranych DSG. BESS MOTORS Warszawa Włochy. Podaj VIN, aby sprawdzić zakres i otrzymać wycenę robocizny, oleju i filtra.",
     serviceId: "transmission",
     icon: "Settings2",
   },
@@ -158,18 +161,22 @@ const EXTRA_SEO_SERVICE_PROFILES_BATCH1: Record<string, SlugLandingProfile> = {
     bookServiceId: "timingBelt",
     contentServiceId: "timingBelt",
     faqDuration: L("Wymiana rozrządu zwykle 1–2 dni robocze — zależnie od modelu i dostępności części.", "Замена ГРМ обычно 1–2 рабочих дня — зависит от модели и запчастей.", "Replacement of the timing usually 1–2 working days — depending on the model and the availability of parts.", "Заміна ГРМ зазвичай 1–2 рабочих дня — зависит от модели і запчастей."),
-    price: {
-      fromZl: getPriceItem("timing_belt")?.basePrice ?? 800,
+    price: timingBeltLabour && timingChainLabour ? {
+      fromZl: timingBeltLabour.basePrice,
       priceFrom: true,
-      materialsExtra: true,
-      note: L("Orientacyjna robocizna — dokładna wycena po modelu i zakresie (pasek/łańcuch, pompa wody, rolki). Części osobno.", "Ориентировочная работа — точная смета по модели. Запчасти отдельно.", "Indicative work — accurate valuation by model and range (belt/chain, water pump, rollers). Parts separately.", "Ориентировочная робота — точная кошторис по модели. Запчасти отдельно."),
+      note: L(
+        `Powyższa cena dotyczy robocizny przy wymianie paska. Wymiana łańcucha — robocizna od ${timingChainLabour.basePrice} zł. Części wyceniamy osobno po VIN.`,
+        `Выше указана стоимость работы по замене ремня. Замена цепи — работа от ${timingChainLabour.basePrice} zł. Стоимость деталей рассчитываем отдельно по VIN.`,
+        `The price above is for timing belt labour. Timing chain labour starts at ${timingChainLabour.basePrice} zł. Parts are quoted separately by VIN.`,
+        `Вище вказана вартість роботи із заміни ременя. Заміна ланцюга — робота від ${timingChainLabour.basePrice} zł. Вартість деталей розраховуємо окремо за VIN.`,
+      ),
       includes: [
         L("Diagnostyka stanu rozrządu", "Диагностика ГРМ", "Diagnosis of timing condition", "Діагностика ГРМ"),
         L("Wymiana paska lub łańcucha według zaleceń", "Замена ремня/цепи по регламенту", "Replacing the belt or chain as recommended", "Заміна ремня/цепи по регламенту"),
         L("Kontrola pomp i napinaczy", "Проверка помпы и натяжителей", "Inspection of pumps and tensioners", "Перевірка насоса та натягувачів"),
         L("Wycena przed rozpoczęciem prac", "Смета до начала работ", "Pricing before the start of work", "Кошторис до начала работ"),
       ],
-    },
+    } : null,
     education: [
       {
         title: L("Kiedy wymieniać rozrząd?", "Когда міняти ГРМ?", "When to change the timing?", "Коли міняти ГРМ?"),
@@ -185,7 +192,7 @@ const EXTRA_SEO_SERVICE_PROFILES_BATCH1: Record<string, SlugLandingProfile> = {
       },
       {
         title: L("Czas i koszt", "Срок и стоимость", "Time and cost", "Срок і вартість"),
-        body: L("Czas: zwykle 1–2 dni. Koszt: wycena indywidualna — robocizna od ok. 800 zł + części. Potwierdzamy zakres przed startem.", "Срок 1–2 дня. Стоимость — индивидуальная смета.", "Time: usually 1–2 days. Cost: individual valuation — labor from approx. PLN 800 + parts. We confirm the range before the start.", "Срок 1–2 дня. Стоимость — индивидуальная кошторис."),
+        body: L("Zwykle 1–2 dni robocze, zależnie od silnika, zakresu prac i dostępności części. Po VIN potwierdzamy termin i przedstawiamy koszt robocizny oraz części przed rozpoczęciem naprawy.", "Обычно 1–2 рабочих дня. По VIN уточняем срок и отдельно рассчитываем работу и детали.", "Usually 1–2 working days. We use the VIN to confirm timing and quote labour and parts separately before repair.", "Зазвичай 1–2 робочі дні. За VIN уточнюємо термін і окремо розраховуємо роботу та деталі."),
       },
       WHY_BESS_EDU,
     ],
@@ -519,7 +526,7 @@ const EXTRA_SEO_SERVICE_PROFILES_BATCH1: Record<string, SlugLandingProfile> = {
       fromZl: getPriceItem("gearbox_oil_auto")?.basePrice ?? 500,
       priceFrom: true,
       materialsExtra: true,
-      note: L("Wymiana statyczna (nie dynamiczna). Wycena: robocizna + olej ATF/DSG + filtr, jeżeli wymagany. Dobór po VIN i kodzie skrzyni.", "Индивидуальная смета: работа + ATF + фильтр.", "Individual pricing: Labour + ATF/DSG oil + filter when required. Selection by Vin /box code.", "Индивидуальная кошторис: робота + ATF + фільтр."),
+      note: L("Podana cena dotyczy robocizny przy wymianie statycznej. Olej i filtr, jeśli przewiduje go procedura, dobieramy i wyceniamy po VIN oraz kodzie skrzyni.", "Указана стоимость работы по статической замене. Масло и фильтр рассчитываем отдельно по VIN и коду коробки.", "The price shown is for static oil change labour. We quote the oil and any required filter separately using the VIN and gearbox code.", "Вказана вартість роботи зі статичної заміни. Оливу й фільтр розраховуємо окремо за VIN і кодом коробки."),
       includes: [
         L("Identyfikacja skrzyni i procedury", "Идентификация КПП и процедуры", "Chest identification and procedures", "Ідентифікація та процедури СЛР"),
         L("Wymiana oleju według zaleceń", "Замена масла по регламенту", "Changing the oil as recommended", "Заміна оливи по регламенту"),
@@ -542,7 +549,7 @@ const EXTRA_SEO_SERVICE_PROFILES_BATCH1: Record<string, SlugLandingProfile> = {
       },
       {
         title: L("Czas i koszt", "Срок и цена", "Time and cost", "Срок і ціна"),
-        body: L("Zwykle kilka godzin. Koszt: wycena indywidualna (robocizna od ok. 500 zł + olej i filtr). Potwierdzamy przed startem.", "Несколько часов. Индивидуальная смета.", "Usually a few hours. Cost: individual valuation (labor from approx. PLN 500 + oil and filter). We confirm before the start.", "Несколько годин. Индивидуальная кошторис."),
+        body: L("Zwykle kilka godzin. Przed przyjazdem potwierdzamy dostępność części, termin i koszt robocizny oraz materiałów.", "Обычно несколько часов. Срок, наличие деталей и стоимость подтверждаем до приезда.", "Usually a few hours. We confirm parts availability, timing and the cost of labour and materials before your visit.", "Зазвичай кілька годин. Термін, наявність деталей і вартість підтверджуємо до приїзду."),
       },
       WHY_BESS_EDU,
     ],
@@ -579,7 +586,7 @@ const EXTRA_SEO_RELATED_BATCH1: Record<string, string[]> = {
   "mechanik-warszawa-wlochy": [
     "wymiana-oleju-warszawa",
     "diagnostyka-komputerowa-warszawa",
-    "hamulce-warszawa",
+    "hamulce",
     "serwis-klimatyzacji-warszawa",
   ],
   "diagnostyka-komputerowa-warszawa": [
@@ -591,7 +598,7 @@ const EXTRA_SEO_RELATED_BATCH1: Record<string, string[]> = {
   "wymiana-oleju-warszawa": [
     "naprawa-zawieszenia-warszawa",
     "diagnostyka-komputerowa-warszawa",
-    "hamulce-warszawa",
+    "hamulce",
     "mechanik-warszawa-wlochy",
   ],
   "serwis-klimatyzacji-warszawa": [
@@ -606,7 +613,7 @@ const EXTRA_SEO_RELATED_BATCH1: Record<string, string[]> = {
     "mechanik-warszawa-wlochy",
   ],
   "naprawa-zawieszenia-warszawa": [
-    "hamulce-warszawa",
+    "hamulce",
     "wymiana-oleju-warszawa",
     "mechanik-warszawa-wlochy",
   ],

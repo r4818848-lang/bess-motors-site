@@ -6,7 +6,7 @@ export const CASE_SERVICES = [
   { id: "mechanic", href: "/mechanik-warszawa-wlochy", labelPl: "Mechanik" },
   { id: "oil", href: "/wymiana-oleju-warszawa", labelPl: "Wymiana oleju" },
   { id: "diagnostics", href: "/diagnostyka-komputerowa-warszawa", labelPl: "Diagnostyka" },
-  { id: "brakes", href: "/hamulce-warszawa", labelPl: "Hamulce" },
+  { id: "brakes", href: "/hamulce", labelPl: "Hamulce" },
   { id: "suspension", href: "/zawieszenie", labelPl: "Zawieszenie" },
   { id: "ac", href: "/serwis-klimatyzacji-warszawa", labelPl: "Klimatyzacja" },
   { id: "timing", href: "/wymiana-rozrzadu-warszawa", labelPl: "Rozrząd" },

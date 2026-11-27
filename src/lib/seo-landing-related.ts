@@ -14,7 +14,6 @@ const RELATED_SLUGS: Record<string, string[]> = {
   zawieszenie: ["hamulce", "opony", "diagnostyka", "silnik", "wymiana-oleju"],
   "wymiana-oleju": ["przeglad", "diagnostyka", "hamulce", "opony", "serwis-toyota"],
   hamulce: [
-    "hamulce-warszawa",
     "wymiana-klockow-hamulcowych-warszawa",
     "wymiana-tarcz-hamulcowych-warszawa",
     "wymiana-plynu-hamulcowego-warszawa",

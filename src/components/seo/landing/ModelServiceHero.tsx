@@ -33,13 +33,13 @@ export function ModelServiceHero({ slug }: { slug: string }) {
       ? [
           { href: "/sezonowa-wymiana-opon-warszawa", label: "Сезонная замена шин" },
           { href: "/wywazanie-kol-warszawa", label: "Балансировка" },
-          { href: "/hamulce-warszawa", label: "Тормоза Warszawa" },
+          { href: "/hamulce", label: "Тормоза Warszawa" },
           { href: `/${model.brandHubSlug}`, label: model.brand },
         ]
       : [
           { href: "/sezonowa-wymiana-opon-warszawa", label: "Sezonowa wymiana opon" },
           { href: "/wywazanie-kol-warszawa", label: "Wyważanie kół" },
-          { href: "/hamulce-warszawa", label: "Hamulce Warszawa" },
+          { href: "/hamulce", label: "Hamulce Warszawa" },
           { href: `/${model.brandHubSlug}`, label: model.brand },
         ];
 

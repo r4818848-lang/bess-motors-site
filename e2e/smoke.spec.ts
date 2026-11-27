@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { preparePage } from "./helpers";
+import { temporaryServicePhotos } from "../src/lib/temporary-service-photos";
 
 test.beforeEach(async ({ page }) => {
   await preparePage(page);
@@ -104,7 +105,25 @@ test("saved cookie choice keeps the dialog closed", async ({ page, request }) =>
   expect(html).toContain("/fonts/inter-polish.woff2");
   expect(html).not.toMatch(/rel="preload"[^>]*inter-cyrillic/);
   await page.goto("/");
-  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(page.locator("[data-cookie-dialog]")).toHaveCount(0);
+});
+
+test("mobile booking works before a cookie choice", async ({ browser, baseURL }) => {
+  const page = await browser.newPage({ baseURL, viewport: { width: 390, height: 844 }, locale: "pl-PL" });
+  try {
+    await page.goto("/");
+    const banner = page.locator("[data-cookie-dialog]");
+    await expect(banner).toBeVisible();
+    await expect(banner).not.toHaveAttribute("aria-modal", "true");
+    await expect.poll(() => page.evaluate(() => document.body.style.overflow)).not.toBe("hidden");
+    await expect(page.locator("script#bess-google-gtag-loader")).toHaveCount(0);
+    await page.getByTestId("mobile-action-bar").getByRole("link", { name: "Umów wizytę" }).click();
+    await expect(page).toHaveURL(/\/booking$/);
+    await banner.getByRole("button", { name: "Tylko niezbędne" }).click();
+    await expect(banner).toHaveCount(0);
+  } finally {
+    await page.close();
+  }
 });
 
 test("seo panel and unpublished cases stay private", async ({ page, request }) => {
@@ -123,8 +142,9 @@ test("tyre catalog paints the cookie choice in the first HTML", async ({ request
   const html = await (await request.get("/opony")).text();
   expect(html).toContain("data-cookie-dialog");
   expect(html).toContain("We use cookies");
-  const dialogTag = html.match(/<div[^>]*data-cookie-dialog[^>]*>/)?.[0] ?? "";
-  expect(dialogTag).not.toContain("backdrop-blur");
+  const bannerTag = html.match(/<section[^>]*data-cookie-dialog[^>]*>/)?.[0] ?? "";
+  expect(bannerTag).toContain("aria-labelledby");
+  expect(bannerTag).not.toContain("inset-0");
 });
 
 // SEO/CRO sprint: keep strong organic service URLs visible and canonicalized.
@@ -135,6 +155,15 @@ test("homepage premium cards link to primary tyre, oil and brake landings", asyn
   await expect(services.locator('a[href="/wymiana-opon-warszawa"]')).toBeVisible();
   await expect(services.locator('a[href="/wymiana-oleju"]')).toBeVisible();
   await expect(services.locator('a[href="/hamulce"]')).toBeVisible();
+});
+
+test("legacy brake page redirects to the canonical service", async ({ request }) => {
+  const response = await request.get("/hamulce-warszawa?utm_source=google-gmb", { maxRedirects: 0 });
+  expect(response.status()).toBe(308);
+  expect(response.headers().location).toMatch(/\/hamulce\?utm_source=google-gmb$/);
+  const main = await request.get("/hamulce");
+  expect(main.ok()).toBeTruthy();
+  expect(await main.text()).toMatch(/rel="canonical" href="[^"]+\/hamulce"/);
 });
 
 test("legacy oil landing shares the canonical URL of the primary oil page", async ({ request }) => {
@@ -488,7 +517,7 @@ test("public site brand palette unifies primary, secondary and accent controls",
 });
 
 
-test("all 19 customization pages have canonical SEO metadata and only supplied images", async ({ page }) => {
+test("all 19 customization pages have canonical SEO metadata and labeled illustrations", async ({ page }) => {
   const slugs = [
     "personalizacja-samochodu-warszawa",
     "gwiezdne-niebo-w-samochodzie-warszawa",
@@ -531,6 +560,12 @@ test("all 19 customization pages have canonical SEO metadata and only supplied i
       await expect(page.getByTestId("enhancement-photo-gallery").locator("img")).toHaveCount(slug.startsWith("montaz") ? 4 : 5);
     } else if (slug === "wygluszenie-samochodu-warszawa") {
       await expect(page.getByTestId("enhancement-photo-gallery").locator("img")).toHaveCount(3);
+    } else if (Object.hasOwn(temporaryServicePhotos, slug)) {
+      const illustration = page.locator('main[data-testid="enhancement-service-page"] figure').filter({
+        hasText: "Zdjęcie poglądowe. Nie przedstawia realizacji BESS MOTORS.",
+      });
+      await expect(page.locator('main[data-testid="enhancement-service-page"] img')).toHaveCount(1);
+      await expect(illustration.getByRole("img")).toHaveAttribute("alt", temporaryServicePhotos[slug].alt);
     } else {
       await expect(page.locator('main[data-testid="enhancement-service-page"] img')).toHaveCount(0);
     }
@@ -606,15 +641,16 @@ test("SEO 2026-11-18: strongest existing landing pages have local, honest snippe
 
   await page.goto("/wymiana-oleju-skrzynia-automatyczna-warszawa");
   await expect(page).toHaveTitle(/Statyczna wymiana oleju skrzyni/);
-  await expect(page.locator('meta[name="description"]')).toHaveAttribute("content", /bez wymiany dynamicznej/);
+  await expect(page.locator('meta[name="description"]')).toHaveAttribute("content", /Statyczna wymiana.*VIN/);
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   await expect(page.getByText("Nie oferujemy dynamicznej wymiany ATF.", { exact: false }).first()).toBeVisible();
 
   await page.goto("/blog/wymiana-rozrzadu-ile-trwa");
-  await expect(page).toHaveTitle(/Ile trwa wymiana rozrządu\? Pasek, łańcuch/);
+  await expect(page).toHaveTitle(/Ile trwa wymiana rozrządu\? Czas wymiany paska i łańcucha/);
   await expect(page.locator("article h1")).toContainText("Ile trwa wymiana rozrządu?");
-  await expect(page.locator("article")).toContainText("około 1–2 dniami roboczymi");
-  await expect(page.locator('meta[property="article:modified_time"]')).toHaveAttribute("content", /2026-11-18/);
+  await expect(page.locator("article")).toContainText("1–2 dni robocze");
+  await expect(page.locator("article").getByRole("link", { name: "Zapytaj o cenę i termin po VIN" }).first()).toBeVisible();
+  await expect(page.locator('meta[property="article:modified_time"]')).toHaveAttribute("content", /2026-11-27/);
 });
 
 test("SEO 2026-11-18: sitemap lastmod is truthful and IndexNow host key is served", async ({ request }) => {
@@ -626,8 +662,10 @@ test("SEO 2026-11-18: sitemap lastmod is truthful and IndexNow host key is serve
   const response = await request.get("/sitemap.xml");
   expect(response.ok()).toBeTruthy();
   const xml = await response.text();
-  expect(xml).toMatch(/blog\/wymiana-rozrzadu-ile-trwa<\/loc>\s*<lastmod>2026-11-18/);
-  expect(xml).toMatch(/wymiana-oleju-skrzynia-automatyczna-warszawa<\/loc>\s*<lastmod>2026-11-18/);
+  expect(xml).toMatch(/blog\/wymiana-rozrzadu-ile-trwa<\/loc>\s*<lastmod>2026-11-27/);
+  expect(xml).toMatch(/wymiana-oleju-skrzynia-automatyczna-warszawa<\/loc>\s*<lastmod>2026-11-27/);
+  expect(xml).toMatch(/\/hamulce<\/loc>/);
+  expect(xml).not.toMatch(/\/hamulce-warszawa<\/loc>/);
   expect(xml).toContain("/oswietlenie-ambientowe-samochodu-warszawa");
   expect(xml).toContain("/pranie-tapicerki-samochodowej-warszawa");
 });

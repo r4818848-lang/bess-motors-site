@@ -18,7 +18,8 @@ const lead = {
   contacts:[],notifyStatus:"pending",notifyAttempts:0,
 } as ServiceLead;
 const db = mergeStoredDb({leads:[lead],appointments:[],workOrders:[]});
-assert.equal(ACQUISITION_CHANNELS.length,6);
+assert.ok(ACQUISITION_CHANNELS.includes("google_maps"));
+assert.ok(ACQUISITION_CHANNELS.includes("google_search"));
 const payload = {
   channel:"instagram_direct",nature:"meta_paid",evidence:"client_confirmed",
   campaignId:"120252007744340373",leadId:"lead-1",
@@ -37,6 +38,12 @@ assert.equal(parseVerifiedAcquisition({...payload,campaignId:"Winter Tires"},db,
 assert.equal(parseVerifiedAcquisition({...payload,nature:"organic"},db,now),null);
 assert.equal(parseVerifiedAcquisition({...payload,channel:"telegram"},db,now),null);
 assert.ok(parseVerifiedAcquisition({...payload,campaignId:"",leadId:""},db,now));
+for (const channel of ["google_maps", "google_search"]) {
+  assert.equal(parseVerifiedAcquisition({ ...payload, channel, campaignId: "" }, db, now), null);
+  const google = parseVerifiedAcquisition({ ...payload, channel, nature: "organic", campaignId: "" }, db, now);
+  assert.equal(google?.channel, channel);
+  assert.equal(google?.nature, "organic");
+}
 const paid = {
   id:"order-1",number:"BESS/2026/TEST1",userId:"user",vehicleId:"vehicle",
   status:"delivered",paymentStatus:"paid",
@@ -98,4 +105,4 @@ assert.match(ui,/manuallyConfirmed:true/);
 assert.match(ui,/staffCrmFetch/);
 assert.match(ui,/pullCrmFromCloud/);
 assert.match(readFileSync("src/components/crm/CrmExtendedReports.tsx","utf8"),/<VerifiedAcquisitionPanel \/>/);
-console.log("Six-channel attribution: explicit verification, campaign ID, paid-only credit and no double counts OK");
+console.log("Verified acquisition: explicit verification, campaign ID, paid-only credit and no double counts OK");

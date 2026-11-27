@@ -33,7 +33,7 @@ function publishConsent(value: "granted" | "denied"): void {
   window.dispatchEvent(new Event(ANALYTICS_CONSENT_EVENT));
 }
 
-function ConsentText({ field }: { field: "title" | "body" | "requiredHint" | "accept" | "reject" | "privacyLink" }) {
+function ConsentText({ field }: { field: "title" | "body" | "accept" | "reject" | "privacyLink" }) {
   return (
     <>
       {CONSENT_LOCALES.map((locale) => (
@@ -60,15 +60,6 @@ export function CookieConsent() {
     }
   }, []);
 
-  useEffect(() => {
-    if (!visible || readAnalyticsConsent() !== "unknown") return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = prev;
-    };
-  }, [visible]);
-
   const accept = () => {
     publishConsent("granted");
     setVisible(false);
@@ -82,38 +73,28 @@ export function CookieConsent() {
   if (!visible) return null;
 
   return (
-    <div
+    <section
       data-cookie-dialog
-      className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/90"
-      role="dialog"
-      aria-modal="true"
+      className="fixed inset-x-3 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] z-[80] max-w-sm rounded-2xl border border-white/25 bg-[#141820] p-3.5 shadow-xl sm:p-4 md:bottom-4 md:left-4 md:right-auto"
       aria-labelledby="cookie-consent-title"
     >
-      <div className="w-full max-w-lg rounded-2xl border border-bm-red/40 bg-bm-surface p-6 md:p-8 shadow-2xl">
-        <p id="cookie-consent-title" className="font-display text-lg uppercase text-bm-red">
-          <ConsentText field="title" />
-        </p>
-        <p className="text-sm text-bm-muted mt-3 leading-relaxed min-h-[4.75rem]">
-          <ConsentText field="body" />
-        </p>
-        <p className="text-xs text-bm-muted/80 mt-2">
-          <ConsentText field="requiredHint" />
-        </p>
-        <div className="mt-6 flex flex-col sm:flex-row gap-3">
-          <button type="button" className="btn-primary flex-1 py-3" onClick={accept}>
-            <ConsentText field="accept" />
-          </button>
-          <button type="button" className="btn-outline flex-1 py-3" onClick={reject}>
-            <ConsentText field="reject" />
-          </button>
-        </div>
-        <Link
-          href="/privacy"
-          className="block text-center text-xs text-bm-muted hover:text-bm-red mt-4"
-        >
-          <ConsentText field="privacyLink" />
-        </Link>
+      <p id="cookie-consent-title" className="text-sm font-semibold text-white">
+        <ConsentText field="title" />
+      </p>
+      <p className="mt-1 text-xs leading-relaxed text-slate-200">
+        <ConsentText field="body" />
+      </p>
+      <div className="mt-2 grid grid-cols-2 gap-2">
+        <button type="button" className="btn-outline min-h-10 px-2 text-xs font-semibold" onClick={accept}>
+          <ConsentText field="accept" />
+        </button>
+        <button type="button" className="btn-outline min-h-10 px-2 text-xs font-semibold" onClick={reject}>
+          <ConsentText field="reject" />
+        </button>
       </div>
-    </div>
+      <Link href="/privacy" className="mt-2 inline-flex text-xs text-slate-300 underline underline-offset-2">
+        <ConsentText field="privacyLink" />
+      </Link>
+    </section>
   );
 }
