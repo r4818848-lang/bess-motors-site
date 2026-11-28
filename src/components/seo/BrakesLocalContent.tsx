@@ -57,7 +57,8 @@ export function BrakesLocalContent() {
           <div className="mt-6 flex flex-wrap gap-4">
             <BookingLink trackSource="brakes_local" className="bm-btn-primary inline-flex min-h-12 items-center justify-center rounded-lg px-6 font-bold">Poproś o termin</BookingLink>
             <PhoneLink trackSource="brakes_local" className="inline-flex min-h-12 items-center rounded-lg border border-white/20 px-6 font-bold">Zadzwoń: {siteConfig.phone}</PhoneLink>
-            <Link href="/wymiana-plynu-chlodniczego-warszawa" className="inline-flex min-h-12 items-center font-semibold underline underline-offset-4">Serwis płynu chłodniczego</Link>
+            <Link href="/wymiana-plynu-hamulcowego-warszawa" className="inline-flex min-h-12 items-center font-semibold underline underline-offset-4">Wymiana płynu hamulcowego</Link>
+            <Link href="/wymiana-klockow-hamulcowych-warszawa" className="inline-flex min-h-12 items-center font-semibold underline underline-offset-4">Wymiana klocków hamulcowych</Link>
           </div>
         </div>
       </div>
