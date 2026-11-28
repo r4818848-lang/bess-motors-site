@@ -2,6 +2,7 @@ import Link from "next/link";
 import { BookingLink } from "@/components/analytics/BookingLink";
 import { PhoneLink } from "@/components/analytics/PhoneLink";
 import { siteConfig } from "@/lib/site";
+import { OIL_BRAKE_PROMO_CODE, OIL_BRAKE_PROMO_OFFERS, OIL_BRAKE_PROMO_VALID_UNTIL } from "@/lib/oil-brake-promo";
 
 /** Server-rendered, descriptive local copy for /hamulce. No invented case studies or availability. */
 export function BrakesLocalContent() {
@@ -35,9 +36,11 @@ export function BrakesLocalContent() {
           </div>
           <h2 className="mt-10 text-xl font-bold">Ile kosztuje wymiana klocków i tarcz?</h2>
           <p className="mt-3 max-w-4xl leading-7 text-bm-copy">
-            Orientacyjna cena robocizny w typowym samochodzie osobowym: klocki przednie od 100 zł,
-            tarcze i klocki przednie od 180 zł, klocki tylne od 140 zł,
-            tarcze i klocki tylne od 230 zł. Części zamienne są płatne osobno;
+            Ceny promocyjne robocizny z kodem {OIL_BRAKE_PROMO_CODE} (do {OIL_BRAKE_PROMO_VALID_UNTIL}):
+            klocki przednie {OIL_BRAKE_PROMO_OFFERS.find(o => o.id === "brake_pads_front")?.nowZl} zł,
+            tarcze i klocki przednie {OIL_BRAKE_PROMO_OFFERS.find(o => o.id === "brake_disc_front")?.nowZl} zł,
+            klocki tylne {OIL_BRAKE_PROMO_OFFERS.find(o => o.id === "brake_pads_rear")?.nowZl} zł,
+            tarcze i klocki tylne {OIL_BRAKE_PROMO_OFFERS.find(o => o.id === "brake_disc_rear")?.nowZl} zł. Części zamienne są płatne osobno;
             układy z elektrycznym hamulcem postojowym i nietypowe konstrukcje wyceniamy indywidualnie.
             Ostateczny koszt potwierdzamy przed rozpoczęciem naprawy.
           </p>
@@ -54,7 +57,8 @@ export function BrakesLocalContent() {
           <div className="mt-6 flex flex-wrap gap-4">
             <BookingLink trackSource="brakes_local" className="bm-btn-primary inline-flex min-h-12 items-center justify-center rounded-lg px-6 font-bold">Poproś o termin</BookingLink>
             <PhoneLink trackSource="brakes_local" className="inline-flex min-h-12 items-center rounded-lg border border-white/20 px-6 font-bold">Zadzwoń: {siteConfig.phone}</PhoneLink>
-            <Link href="/wymiana-plynu-chlodniczego-warszawa" className="inline-flex min-h-12 items-center font-semibold underline underline-offset-4">Serwis płynu chłodniczego</Link>
+            <Link href="/wymiana-plynu-hamulcowego-warszawa" className="inline-flex min-h-12 items-center font-semibold underline underline-offset-4">Wymiana płynu hamulcowego</Link>
+            <Link href="/wymiana-klockow-hamulcowych-warszawa" className="inline-flex min-h-12 items-center font-semibold underline underline-offset-4">Wymiana klocków hamulcowych</Link>
           </div>
         </div>
       </div>

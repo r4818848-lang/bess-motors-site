@@ -4,7 +4,7 @@ import { buildPageMetadata } from "@/lib/seo-metadata";
 export const metadata: Metadata = buildPageMetadata({
   title: "Serwis flot samochodowych Warszawa",
   description:
-    "Serwis samochodów firmowych i flot — BESS MOTORS Warszawa Włochy. Przeglądy, olej, hamulce, opony, diagnostyka, klimatyzacja, fakturowanie. Aleja Krakowska 48/52.",
+    "Serwis flot Warszawa Włochy: przeglądy, olej, hamulce, opony, diagnostyka i klimatyzacja. Fakturowanie. Aleja Krakowska 48/52.",
   path: "/serwis-flot-warszawa",
   keywords: [
     "serwis flot Warszawa",

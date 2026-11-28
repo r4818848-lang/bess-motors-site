@@ -200,7 +200,7 @@ export const seoLandingPages: SeoLandingPage[] = [
     line2: "Diagnostyka, naprawy, serwis",
     metaTitle: "Mechanik Włochy Warszawa — BESS MOTORS",
     metaDescription:
-      "Serwis samochodowy przy Alei Krakowskiej 48/52 — Włochy, Okęcie (ok. 5 min). Diagnostyka, hamulce, olej, klimatyzacja. Warsztat w promieniu 8 km od południowej Warszawy.",
+      "Serwis samochodowy Warszawa Włochy, blisko Okęcia. Diagnostyka, hamulce, olej i klimatyzacja. BESS MOTORS, Aleja Krakowska 48/52.",
     serviceId: "diagnostic",
     icon: "MapPin",
   },

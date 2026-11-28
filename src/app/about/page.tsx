@@ -57,7 +57,7 @@ export default function AboutPage() {
                 return (
                   <Card key={i} delay={i * 0.1}>
                     <Icon className="w-8 h-8 text-bm-red mb-3" />
-                    <h3 className="font-display text-sm font-bold uppercase">{v.title}</h3>
+                    <h2 className="font-display text-sm font-bold uppercase">{v.title}</h2>
                     <p className="text-xs text-bm-muted mt-1">{v.desc}</p>
                   </Card>
                 );

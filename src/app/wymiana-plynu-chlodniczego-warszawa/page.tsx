@@ -11,7 +11,7 @@ const PATH = "/wymiana-plynu-chlodniczego-warszawa";
 export const metadata: Metadata = buildPageMetadata({
   title: "Wymiana płynu chłodniczego Warszawa Włochy",
   description:
-    "Wymiana płynu chłodniczego i kontrola układu chłodzenia w BESS MOTORS, al. Krakowska 48/52, Warszawa Włochy, niedaleko Okęcia. Dobór płynu i wycena przed naprawą.",
+    "Wymiana płynu chłodniczego i kontrola układu chłodzenia. BESS MOTORS, Warszawa Włochy, al. Krakowska 48/52. Dobór płynu i wycena.",
   path: PATH,
   keywords: [
     "wymiana płynu chłodniczego Warszawa",
